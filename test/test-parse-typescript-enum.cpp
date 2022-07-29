@@ -39,7 +39,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_is_not_allowed_in_javascript,  //
+            p.code, diag_typescript_enum_is_not_allowed_in_javascript,  //
             enum_keyword, 0, u8"enum")));
   }
 
@@ -53,7 +53,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_is_not_allowed_in_javascript,  //
+            p.code, diag_typescript_enum_is_not_allowed_in_javascript,  //
             enum_keyword, strlen(u8"const "), u8"enum")));
   }
 
@@ -67,7 +67,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_is_not_allowed_in_javascript,  //
+            p.code, diag_typescript_enum_is_not_allowed_in_javascript,  //
             enum_keyword, strlen(u8"declare "), u8"enum")));
   }
 
@@ -81,7 +81,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_is_not_allowed_in_javascript,  //
+            p.code, diag_typescript_enum_is_not_allowed_in_javascript,  //
             enum_keyword, strlen(u8"declare const "), u8"enum")));
   }
 }
@@ -257,7 +257,7 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code, diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { "), u8"42")));
   }
 
@@ -268,7 +268,7 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code, diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { "), u8"42n")));
   }
 
@@ -280,7 +280,7 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code, diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { ["), u8"42")));
   }
 }
@@ -294,7 +294,7 @@ TEST_F(test_parse_typescript_enum,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code, diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { [ "), u8"'mem' + 'ber'")));
   }
 
@@ -305,7 +305,7 @@ TEST_F(test_parse_typescript_enum,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code, diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { ["), u8"('member')")));
   }
 
@@ -316,7 +316,7 @@ TEST_F(test_parse_typescript_enum,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code, diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { ["),
             u8"`template${withVariable}`")));
   }
@@ -329,7 +329,7 @@ TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
+            p.code, diag_extra_comma_not_allowed_between_enum_members,  //
             comma, strlen(u8"enum E { "), u8",")));
   }
 
@@ -340,10 +340,10 @@ TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
         p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
+                p.code, diag_extra_comma_not_allowed_between_enum_members,  //
                 comma, strlen(u8"enum E { A,"), u8","),
             DIAG_TYPE_OFFSETS(
-                p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
+                p.code, diag_extra_comma_not_allowed_between_enum_members,  //
                 comma, strlen(u8"enum E { A,, B,"), u8",")));
   }
 }
@@ -468,7 +468,7 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
             auto_member_name, strlen(u8"enum E { A = f(), "), u8"B",  //
             computed_expression, strlen(u8"enum E { A = "), u8"f()")));
@@ -491,7 +491,7 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
             auto_member_name, strlen(u8"enum E { ['A'] = f(), "), u8"['B']",  //
             computed_expression, strlen(u8"enum E { ['A'] = "), u8"f()")));
@@ -507,7 +507,7 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
             DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
             DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
             DIAG_TYPE_2_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
                 auto_member_name, strlen(u8"enum E { 42 = f(), "), u8"69",  //
                 computed_expression, strlen(u8"enum E { 42 = "), u8"f()")));

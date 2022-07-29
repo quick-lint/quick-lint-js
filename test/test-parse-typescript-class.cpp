@@ -36,7 +36,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_type_annotations_not_allowed_in_javascript,  //
             type_colon, strlen(u8"class C { fieldName"), u8":")));
   }
@@ -64,7 +64,7 @@ TEST_F(test_parse_typescript_class,
     test_parser p(u8"class C { [key: KeyType]: ValueType; }"_sv, capture_diags);
     p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(), diag_unexpected_token,  //
+                              p.code, diag_unexpected_token,  //
                               token, strlen(u8"class C { [key"), u8":")));
   }
 }
@@ -108,11 +108,11 @@ TEST_F(test_parse_typescript_class,
         p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_optional_properties_not_allowed_in_javascript,  //
                 question, strlen(u8"class C { field1"), u8"?"),
             DIAG_TYPE_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_optional_properties_not_allowed_in_javascript,  //
                 question, strlen(u8"class C { field1?; field2"), u8"?")));
   }
@@ -125,7 +125,7 @@ TEST_F(test_parse_typescript_class,
     test_parser p(u8"class C { method?() {} }"_sv, options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_typescript_optional_class_method,  //
                               question, strlen(u8"class C { method"), u8"?")));
   }
@@ -147,11 +147,11 @@ TEST_F(test_parse_typescript_class,
         p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
                 bang, strlen(u8"class C { field1"), u8"!"),
             DIAG_TYPE_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
                 bang, strlen(u8"class C { field1?; field2"), u8"!")));
   }
@@ -189,7 +189,7 @@ TEST_F(test_parse_typescript_class,
                             "visit_exit_class_scope",           // C
                             "visit_variable_declaration"));     // C
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_typescript_assignment_asserted_method,  //
                               bang, strlen(u8"class C { method"), u8"!")));
   }
@@ -208,7 +208,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_readonly_fields_not_allowed_in_javascript,  //
             readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -219,7 +219,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_readonly_fields_not_allowed_in_javascript,  //
             readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -231,7 +231,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_readonly_fields_not_allowed_in_javascript,  //
             readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -243,7 +243,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_readonly_fields_not_allowed_in_javascript,  //
             readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -265,7 +265,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_readonly_fields_not_allowed_in_javascript,  //
             readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -281,7 +281,7 @@ TEST_F(test_parse_typescript_class,
             DIAG_TYPE(
                 diag_typescript_optional_properties_not_allowed_in_javascript),
             DIAG_TYPE_OFFSETS(
-                p.code(),
+                p.code,
                 diag_typescript_readonly_fields_not_allowed_in_javascript,  //
                 readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -335,7 +335,7 @@ TEST_F(test_parse_typescript_class, readonly_methods_are_invalid) {
                             "visit_variable_declaration"));     // C
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_readonly_method,  //
                     readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
@@ -354,7 +354,7 @@ TEST_F(test_parse_typescript_class, readonly_static_field_is_disallowed) {
                             "visit_variable_declaration"));  // C
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_readonly_static_field,  //
                               readonly_static, strlen(u8"class C { "),
                               u8"readonly static")));
@@ -376,7 +376,7 @@ TEST_F(test_parse_typescript_class,
                 ElementsAre(generic_param_decl(u8"T"), class_decl(u8"C")));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_generics_not_allowed_in_javascript,  //
                     opening_less, strlen(u8"class C"), u8"<")));
   }
@@ -415,7 +415,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_generics_not_allowed_in_javascript,  //
                     opening_less, strlen(u8"class C { method"), u8"<")));
   }
@@ -456,7 +456,7 @@ TEST_F(test_parse_typescript_class,
                     "visit_variable_declaration"));     // C
     EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_missing_class_method_name,  //
                               expected_name, strlen(u8"class C { "), u8"")));
   }
@@ -479,7 +479,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_call_signatures_not_allowed_in_classes,  //
                     expected_method_name, strlen(u8"class C { "), u8"")));
   }
@@ -506,7 +506,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -519,7 +519,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -532,7 +532,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -545,7 +545,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -559,7 +559,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -576,7 +576,7 @@ TEST_F(test_parse_typescript_class,
                   diag_typescript_optional_properties_not_allowed_in_javascript),
               DIAG_TYPE(diag_missing_semicolon_after_field),
               DIAG_TYPE_OFFSETS(
-                  p.code(),
+                  p.code,
                   diag_typescript_access_specifiers_not_allowed_in_javascript,  //
                   specifier, strlen(u8"class C { "), specifier)));
     }
@@ -590,7 +590,7 @@ TEST_F(test_parse_typescript_class,
       EXPECT_THAT(
           p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(),
+              p.code,
               diag_typescript_access_specifiers_not_allowed_in_javascript,  //
               specifier, strlen(u8"class C { "), specifier)));
     }
@@ -636,7 +636,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_static_blocks_not_allowed_in_javascript,  //
                     static_token, strlen(u8"class C { static #private; "),
                     u8"static")));
@@ -680,7 +680,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_type_annotations_not_allowed_in_javascript,  //
             type_colon, strlen(u8"class C { method()"), u8":")));
   }
@@ -718,7 +718,7 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_abstract_class_not_allowed_in_javascript,  //
             abstract_keyword, strlen(u8""), u8"abstract")));
   }
@@ -766,7 +766,7 @@ TEST_F(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
   EXPECT_THAT(
       p.errors,
       ElementsAre(DIAG_TYPE_OFFSETS(
-          p.code(),
+          p.code,
           diag_typescript_class_implements_not_allowed_in_javascript,  //
           implements_keyword, strlen(u8"class C "), u8"implements")));
 }
@@ -813,7 +813,7 @@ TEST_F(test_parse_typescript_class, implements_comes_after_extends) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_implements_must_be_after_extends,          //
             implements_keyword, strlen(u8"class C "), u8"implements",  //
             extends_keyword, strlen(u8"class C implements I "), u8"extends")));

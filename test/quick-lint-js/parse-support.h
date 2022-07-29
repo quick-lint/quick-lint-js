@@ -122,8 +122,6 @@ class test_parser {
     return this->parser_.enter_function(attributes);
   }
 
-  padded_string_view code() const noexcept { return &this->code_; }
-
   quick_lint_js::parser& parser() noexcept { return this->parser_; }
 
   // See offsets_matcher's constructor.
@@ -157,6 +155,7 @@ class test_parser {
       this->errors_.variable_declarations;
   std::vector<string8>& variable_uses = this->errors_.variable_uses;
   std::vector<diag_collector::diag>& errors = this->errors_.errors;
+  padded_string_view code = padded_string_view(&this->code_);
 };
 
 // TODO(strager): Delete.

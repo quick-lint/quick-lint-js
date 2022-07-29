@@ -38,7 +38,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_assignment_makes_condition_constant,  //
+                    p.code, diag_assignment_makes_condition_constant,  //
                     assignment_operator, strlen(u8"if (x "), u8"=")));
   }
 
@@ -47,7 +47,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_assignment_makes_condition_constant,  //
+                    p.code, diag_assignment_makes_condition_constant,  //
                     assignment_operator, strlen(u8"if (o.prop "), u8"=")));
   }
 
@@ -114,8 +114,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_equals_does_not_distribute_over_or,  //
-                    or_operator, strlen(u8"if (x === 'A' "), u8"||",    //
+                    p.code, diag_equals_does_not_distribute_over_or,  //
+                    or_operator, strlen(u8"if (x === 'A' "), u8"||",  //
                     equals_operator, strlen(u8"if (x "), u8"===")));
   }
 
@@ -124,8 +124,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_equals_does_not_distribute_over_or,  //
-                    or_operator, strlen(u8"if (x === 10 "), u8"||",     //
+                    p.code, diag_equals_does_not_distribute_over_or,  //
+                    or_operator, strlen(u8"if (x === 10 "), u8"||",   //
                     equals_operator, strlen(u8"if (x "), u8"===")));
   }
 
@@ -134,8 +134,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_equals_does_not_distribute_over_or,  //
-                    or_operator, strlen(u8"if (x == 'A' "), u8"||",     //
+                    p.code, diag_equals_does_not_distribute_over_or,  //
+                    or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
                     equals_operator, strlen(u8"if (x "), u8"==")));
   }
 }

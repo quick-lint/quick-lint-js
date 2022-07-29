@@ -170,7 +170,7 @@ TEST_F(test_parse_typescript_var,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(),
+            p.code,
             diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
             parameter_and_annotation, strlen(u8"("), u8"param: Type",        //
             type_colon, strlen(u8"(param"), u8":")));
@@ -188,7 +188,7 @@ TEST_F(test_parse_typescript_var,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(),
+            p.code,
             diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
             parameter_and_annotation, strlen(u8"(async "), u8"param: Type",  //
             type_colon, strlen(u8"(async param"), u8":")));
@@ -282,7 +282,7 @@ TEST_F(test_parse_typescript_var,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_catch_type_annotation_must_be_any,  //
             type_expression, strlen(u8"try { } catch (e: "), u8"SomeType")));
   }

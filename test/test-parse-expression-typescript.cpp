@@ -125,7 +125,7 @@ TEST_F(test_parse_expression_typescript,
   EXPECT_THAT(
       p.errors,
       ElementsAre(DIAG_TYPE_OFFSETS(
-          p.code(),
+          p.code,
           diag_typescript_non_null_assertion_not_allowed_in_javascript,  //
           bang, strlen(u8"x"), u8"!")));
 }
@@ -138,7 +138,7 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
             as_keyword, strlen(u8"x "), u8"as")));
   }
@@ -183,7 +183,7 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"(x "), u8"as")));
     EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
@@ -209,7 +209,7 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"function f(x "), u8"as")));
     EXPECT_THAT(p.variable_declarations,

@@ -117,7 +117,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                                       "visit_variable_use"));     // expr
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
                     bracketed_type, 0, u8"<Type1 | Type2>",                   //
                     expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8"")));
@@ -130,7 +130,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                                       "visit_variable_use"));     // expr
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
                     bracketed_type, 0, u8"<(Type)>",                          //
                     expected_as, strlen(u8"<(Type)>expr"), u8"")));
@@ -143,7 +143,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
     test_parser p(u8"(<T>x) => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"<T>x")));
     EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
@@ -154,7 +154,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"<T>x")));
     EXPECT_THAT(p.variable_declarations,

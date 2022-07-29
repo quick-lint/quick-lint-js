@@ -347,11 +347,10 @@ TEST_F(test_parse_typescript_type,
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_missing_separator_between_object_type_entries,
-            expected_separator, strlen(u8"{ p1: Type1"), u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_missing_separator_between_object_type_entries,
+                    expected_separator, strlen(u8"{ p1: Type1"), u8"")));
   }
 }
 
@@ -946,7 +945,7 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_missing_type_between_intersection_or_union,
+                    p.code, diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8""), u8"|",  //
                     right_operator, strlen(u8"| "), u8"|")));
   }
@@ -958,7 +957,7 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
                                       "visit_variable_type_use"));  // Type2
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_missing_type_between_intersection_or_union,
+                    p.code, diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8"Type1 "), u8"|",  //
                     right_operator, strlen(u8"Type1 | "), u8"|")));
   }
@@ -995,7 +994,7 @@ TEST_F(test_parse_typescript_type,
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_missing_type_between_intersection_or_union,
+                    p.code, diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8""), u8"&",  //
                     right_operator, strlen(u8"& "), u8"&")));
   }
@@ -1007,7 +1006,7 @@ TEST_F(test_parse_typescript_type,
                                       "visit_variable_type_use"));  // Type2
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_missing_type_between_intersection_or_union,
+                    p.code, diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8"Type1 "), u8"&",  //
                     right_operator, strlen(u8"Type1 & "), u8"&")));
   }
@@ -1155,7 +1154,7 @@ TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code(), diag_dot_not_allowed_after_generic_arguments_in_type, dot,
+            p.code, diag_dot_not_allowed_after_generic_arguments_in_type, dot,
             strlen(u8"typeof Class<T>"), u8".",  //
             property_name, strlen(u8"typeof Class<T>."), u8"member")));
   }

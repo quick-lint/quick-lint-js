@@ -34,7 +34,7 @@ TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
                                     "visit_exit_namespace_scope"));  // }
   EXPECT_THAT(p.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
-                  p.code(),
+                  p.code,
                   diag_typescript_namespaces_not_allowed_in_javascript,  //
                   namespace_keyword, 0, u8"namespace")));
 }
@@ -115,7 +115,7 @@ TEST_F(test_parse_typescript_namespace,
                                       "visit_variable_namespace_use"));  // ns
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_import_alias_not_allowed_in_javascript,  //
                     import_keyword, 0, u8"import",                           //
                     equal, strlen(u8"import A "), u8"=")));
@@ -155,7 +155,7 @@ TEST_F(test_parse_typescript_namespace,
                                       "visit_variable_use",  // nextStatement
                                       "visit_end_of_module"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"import A = ns"), u8"")));
   }

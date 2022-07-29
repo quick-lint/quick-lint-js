@@ -50,9 +50,9 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(), diag_unexpected_token,  //
-                              token, 0, token)));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
+                                              token, 0, token)));
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
@@ -66,7 +66,7 @@ TEST_F(test_parse, comma_not_allowed_between_class_methods) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_comma_not_allowed_between_class_methods,  //
+                    p.code, diag_comma_not_allowed_between_class_methods,  //
                     unexpected_comma, 44, u8",")));
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -98,31 +98,31 @@ TEST_F(test_parse, commas_not_allowed_between_class_methods) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 10, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 11, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 12, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 48, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 49, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 50, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 111, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 112, u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 113, u8",")));
 
@@ -201,7 +201,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
         strlen(u8"console.log('hello')");
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_missing_semicolon_after_statement,  //
+                    p.code, diag_missing_semicolon_after_statement,  //
                     where, end_of_first_expression, u8"")));
   }
 
@@ -372,10 +372,10 @@ TEST_F(test_parse, utter_garbage) {
     EXPECT_THAT(
         p.errors,
         UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(p.code(),
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_expected_parentheses_around_if_condition,  //
                               condition, strlen(u8"if "), u8":"),
-            DIAG_TYPE_OFFSETS(p.code(), diag_unexpected_token,  //
+            DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
                               token, strlen(u8"if "), u8":")));
   }
 }
@@ -386,9 +386,9 @@ TEST_F(test_parse, statement_starting_with_extends) {
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // Base
                                       "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(), diag_unexpected_token,  //
-                              token, 0, u8"extends")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
+                                              token, 0, u8"extends")));
   }
 }
 
@@ -398,7 +398,7 @@ TEST_F(test_parse, stray_right_curly_at_top_level) {
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(), diag_unmatched_right_curly,  //
+                              p.code, diag_unmatched_right_curly,  //
                               right_curly, 0, u8"}")));
   }
 }
@@ -418,11 +418,10 @@ TEST_F(
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
-              escape_sequence, 0, u8"\\u{??}")));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      p.code, diag_keywords_cannot_contain_escape_sequences,  //
+                      escape_sequence, 0, u8"\\u{??}")));
     }
 
     {
@@ -433,11 +432,10 @@ TEST_F(
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
-              escape_sequence, strlen(u8"("), u8"\\u{??}")));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      p.code, diag_keywords_cannot_contain_escape_sequences,  //
+                      escape_sequence, strlen(u8"("), u8"\\u{??}")));
     }
   }
 }

@@ -72,7 +72,7 @@ TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
         ElementsAre(generic_param_decl(u8"T1"), generic_param_decl(u8"T2")));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_missing_comma_between_generic_parameters,
+                    p.code, diag_missing_comma_between_generic_parameters,
                     expected_comma, strlen(u8"<T1"), u8"")));
   }
 }
@@ -86,7 +86,7 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_comma_not_allowed_before_first_generic_parameter,
+            p.code, diag_comma_not_allowed_before_first_generic_parameter,
             unexpected_comma, strlen(u8"<"), u8",")));
   }
 
@@ -98,13 +98,13 @@ TEST_F(test_parse_typescript_generic,
         p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<"), u8","),
             DIAG_TYPE_OFFSETS(
-                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<,"), u8","),
             DIAG_TYPE_OFFSETS(
-                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<,,"), u8",")));
   }
 }
@@ -117,7 +117,7 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_typescript_generic_parameter_list_is_empty,
+                    p.code, diag_typescript_generic_parameter_list_is_empty,
                     expected_parameter, strlen(u8"<"), u8"")));
   }
 
@@ -127,7 +127,7 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_typescript_generic_parameter_list_is_empty,
+                    p.code, diag_typescript_generic_parameter_list_is_empty,
                     expected_parameter, strlen(u8"<"), u8"")));
   }
 
@@ -137,13 +137,12 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
-            DIAG_TYPE_OFFSETS(p.code(),
-                              diag_typescript_generic_parameter_list_is_empty,
-                              expected_parameter, strlen(u8"<"), u8""),
-            DIAG_TYPE_OFFSETS(p.code(),
-                              diag_multiple_commas_in_generic_parameter_list,
-                              unexpected_comma, strlen(u8"<,"), u8",")));
+        ElementsAre(DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_generic_parameter_list_is_empty,
+                        expected_parameter, strlen(u8"<"), u8""),
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        unexpected_comma, strlen(u8"<,"), u8",")));
   }
 }
 
@@ -155,7 +154,7 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_multiple_commas_in_generic_parameter_list,
+                    p.code, diag_multiple_commas_in_generic_parameter_list,
                     unexpected_comma, strlen(u8"<T,"), u8",")));
   }
 
@@ -165,13 +164,12 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
-            DIAG_TYPE_OFFSETS(p.code(),
-                              diag_multiple_commas_in_generic_parameter_list,
-                              unexpected_comma, strlen(u8"<T , "), u8","),
-            DIAG_TYPE_OFFSETS(p.code(),
-                              diag_multiple_commas_in_generic_parameter_list,
-                              unexpected_comma, strlen(u8"<T , , "), u8",")));
+        ElementsAre(DIAG_TYPE_OFFSETS(
+                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        unexpected_comma, strlen(u8"<T , "), u8","),
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        unexpected_comma, strlen(u8"<T , , "), u8",")));
   }
 }
 
@@ -184,7 +182,7 @@ TEST_F(test_parse_typescript_generic,
                                       "visit_variable_declaration"));  // U
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(), diag_multiple_commas_in_generic_parameter_list,
+                    p.code, diag_multiple_commas_in_generic_parameter_list,
                     unexpected_comma, strlen(u8"<T,"), u8",")));
   }
 }
@@ -497,11 +495,10 @@ TEST_F(test_parse_typescript_generic,
     test_parser p(u8"foo?.<T>(p)"_sv, javascript_options, capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_generics_not_allowed_in_javascript,
-            opening_less, strlen(u8"foo?."), u8"<")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_typescript_generics_not_allowed_in_javascript,
+                    opening_less, strlen(u8"foo?."), u8"<")));
   }
 
   {
@@ -509,11 +506,10 @@ TEST_F(test_parse_typescript_generic,
                   capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(), diag_typescript_generics_not_allowed_in_javascript,
-            opening_less, strlen(u8"foo?."), u8"<")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_typescript_generics_not_allowed_in_javascript,
+                    opening_less, strlen(u8"foo?."), u8"<")));
   }
 }
 }

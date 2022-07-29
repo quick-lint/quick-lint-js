@@ -36,7 +36,7 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
            "might produce spurious warnings about undeclared types";
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myVar"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_typescript_type_annotation_in_expression,  //
                               type_colon, strlen(u8"x = myVar"), u8":")));
   }
@@ -108,7 +108,7 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
                                       "visit_exit_type_alias_scope",   // V
                                       "visit_end_of_module"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(),
+                              p.code,
                               diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"type T = U"), u8"")));
   }
@@ -162,7 +162,7 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
                             "visit_exit_type_alias_scope"));  // (name)
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_typescript_type_alias_not_allowed_in_javascript,  //
                     type_keyword, 0, u8"type")));
   }

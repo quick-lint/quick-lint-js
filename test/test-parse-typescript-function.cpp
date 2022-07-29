@@ -35,7 +35,7 @@ TEST_F(test_parse_typescript_function,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code(),
+            p.code,
             diag_typescript_type_annotations_not_allowed_in_javascript,  //
             type_colon, strlen(u8"function f()"), u8":")));
   }
@@ -184,7 +184,7 @@ TEST_F(test_parse_typescript_function,
                             "visit_exit_function_scope"));      // }
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_non_null_assertion_not_allowed_in_parameter,  //
                     bang, strlen(u8"function f(param"), u8"!")));
   }
@@ -199,7 +199,7 @@ TEST_F(test_parse_typescript_function,
                             "visit_exit_function_scope"));      // }
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
+                    p.code,
                     diag_non_null_assertion_not_allowed_in_parameter,  //
                     bang, strlen(u8"(param"), u8"!")));
   }
