@@ -131,15 +131,12 @@ TEST_F(test_parse_function, parse_function_statement) {
 
 TEST_F(test_parse_function, function_with_arrow_operator) {
   {
-    spy_visitor v;
-    padded_string code(u8"function f() => {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-
+    test_parser& p = this->make_parser(u8"function f() => {}"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_functions_or_methods_should_not_have_arrow_operator,  //
             arrow_operator, strlen(u8"function f() "), u8"=>")));
   }

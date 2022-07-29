@@ -61,48 +61,40 @@ TEST_F(test_parse_var, parse_simple_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let first; let second"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"first");
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"first");
-    EXPECT_EQ(v.variable_declarations[1].name, u8"second");
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"let first; let second"_sv);
+    p.parse_and_visit_statement();
+    ASSERT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"first");
+    p.parse_and_visit_statement();
+    ASSERT_EQ(p.variable_declarations.size(), 2);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"first");
+    EXPECT_EQ(p.variable_declarations[1].name, u8"second");
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(test_parse_var, parse_simple_var) {
-  spy_visitor v;
-  padded_string code(u8"var x"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parser& p = this->make_parser(u8"var x"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_var, parse_simple_const) {
-  spy_visitor v;
-  padded_string code(u8"const x = null"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(u8"x")));
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parser& p = this->make_parser(u8"const x = null"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(u8"x")));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_var, parse_const_with_no_initializers) {
-  spy_visitor v;
-  padded_string code(u8"const x;"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  ASSERT_EQ(v.variable_declarations.size(), 1);
-  EXPECT_THAT(v.variable_declarations, ElementsAre(const_noinit_decl(u8"x")));
-  EXPECT_THAT(v.errors,
+  test_parser& p = this->make_parser(u8"const x;"_sv);
+  p.parse_and_visit_statement();
+  ASSERT_EQ(p.variable_declarations.size(), 1);
+  EXPECT_THAT(p.variable_declarations, ElementsAre(const_noinit_decl(u8"x")));
+  EXPECT_THAT(p.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
-                  &code, diag_missing_initializer_in_const_declaration,  //
+                  p.code(), diag_missing_initializer_in_const_declaration,  //
                   variable_name, strlen(u8"const "), u8"x")));
 }
 
@@ -223,18 +215,15 @@ TEST_F(test_parse_var,
        variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
 
-  spy_visitor v;
-  padded_string code(u8"let x = x"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+  test_parser& p = this->make_parser(u8"let x = x"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                     "visit_variable_declaration"));
 
-  ASSERT_EQ(v.variable_declarations.size(), 1);
-  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-  EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
-  EXPECT_THAT(v.errors, IsEmpty());
+  ASSERT_EQ(p.variable_declarations.size(), 1);
+  EXPECT_EQ(p.variable_declarations[0].name, u8"x");
+  EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_var, parse_valid_let) {
@@ -301,36 +290,30 @@ TEST_F(test_parse_var, parse_valid_let) {
 
 TEST_F(test_parse_var, parse_invalid_let) {
   {
-    spy_visitor v;
-    padded_string code(u8"let a,"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_stray_comma_in_let_statement,  //
+    test_parser& p = this->make_parser(u8"let a,"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_stray_comma_in_let_statement,  //
                               where, strlen(u8"let a"), u8",")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let a,;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_stray_comma_in_let_statement,  //
+    test_parser& p = this->make_parser(u8"let a,;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_stray_comma_in_let_statement,  //
                               where, strlen(u8"let a"), u8",")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x, 42"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"let x, 42"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"42")));
   }
 
@@ -431,26 +414,22 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let {debugger}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"let {debugger}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 0);
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_value_for_object_literal_entry,  //
+                    p.code(), diag_missing_value_for_object_literal_entry,  //
                     key, strlen(u8"let {"), u8"debugger")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let {42}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"let {42}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 0);
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_invalid_lone_literal_in_object_literal,  //
+                    p.code(), diag_invalid_lone_literal_in_object_literal,  //
                     where, strlen(u8"let {"), u8"42")));
   }
 
@@ -613,16 +592,14 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let [42] = x;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 0);
+    test_parser& p = this->make_parser(u8"let [42] = x;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_EQ(p.variable_declarations.size(), 0);
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_literal_in_parameter_list,  //
+                    p.code(), diag_unexpected_literal_in_parameter_list,  //
                     literal, strlen(u8"let ["), u8"42")));
   }
 }
@@ -859,56 +836,51 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
 
 TEST_F(test_parse_var, parse_invalid_var) {
   {
-    spy_visitor v;
-    padded_string code(u8"var"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_let_with_no_bindings,  //
+    test_parser& p = this->make_parser(u8"var"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_let_with_no_bindings,  //
                               where, 0, u8"var")));
   }
 }
 
 TEST_F(test_parse_var, parse_invalid_const) {
   {
-    spy_visitor v;
-    padded_string code(u8"const"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_let_with_no_bindings,  //
+    test_parser& p = this->make_parser(u8"const"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_let_with_no_bindings,  //
                               where, 0, u8"const")));
   }
 }
 
 TEST_F(test_parse_var, report_missing_semicolon_for_declarations) {
   {
-    spy_visitor v;
-    padded_string code(u8"let x = 2 for (;;) { console.log(); }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
+    test_parser& p =
+        this->make_parser(u8"let x = 2 for (;;) { console.log(); }"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"console"));
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_statement,  //
-                              where, end_of_let_statement, u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(), diag_missing_semicolon_after_statement,  //
+                    where, end_of_let_statement, u8"")));
   }
   {
-    spy_visitor v;
-    padded_string code(u8"let x debugger"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
+    test_parser& p = this->make_parser(u8"let x debugger"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
     cli_source_position::offset_type end_of_let_statement = strlen(u8"let x");
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_statement,  //
-                              where, end_of_let_statement, u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(), diag_missing_semicolon_after_statement,  //
+                    where, end_of_let_statement, u8"")));
   }
 }
 
@@ -1044,66 +1016,57 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
 
 TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   for (string8 declaration_kind : {u8"const", u8"let"}) {
-    spy_visitor v;
-    padded_string code(declaration_kind + u8" let = null;");
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(declaration_kind + u8" let = null;");
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_cannot_declare_variable_named_let_with_let,  //
+            name, declaration_kind.size() + 1, u8"let")));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_variable_named_let_with_let,  //
-                    name, declaration_kind.size() + 1, u8"let")));
-
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
+    ASSERT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"let");
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let {other, let} = stuff;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_variable_named_let_with_let,  //
-                    name, strlen(u8"let {other, "), u8"let")));
+    test_parser& p = this->make_parser(u8"let {other, let} = stuff;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_cannot_declare_variable_named_let_with_let,  //
+            name, strlen(u8"let {other, "), u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
   {
-    spy_visitor v;
-    padded_string code(u8"import let from 'weird';"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_import_let,  //
+    test_parser& p = this->make_parser(u8"import let from 'weird';"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_import_let,  //
                               import_name, strlen(u8"import "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
   {
-    spy_visitor v;
-    padded_string code(u8"import * as let from 'weird';"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_import_let,  //
+    test_parser& p = this->make_parser(u8"import * as let from 'weird';"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_import_let,  //
                               import_name, strlen(u8"import * as "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
   {
-    spy_visitor v;
-    padded_string code(u8"import { let } from 'weird';"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_import_let,  //
+    test_parser& p = this->make_parser(u8"import { let } from 'weird';"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_import_let,  //
                               import_name, strlen(u8"import { "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -1131,27 +1094,23 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export function let() {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"export function let() {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_export_let,  //
+                    p.code(), diag_cannot_export_let,  //
                     export_name, strlen(u8"export function "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"let")));
   }
 
   // class implies strict mode.
   {
-    spy_visitor v;
-    padded_string code(u8"class let {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_declare_class_named_let,  //
+    test_parser& p = this->make_parser(u8"class let {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_declare_class_named_let,  //
                               name, strlen(u8"class "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"let")));
   }
 }
 
@@ -1294,21 +1253,20 @@ TEST_F(test_parse_var, declare_await_in_async_function) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"async function f(await) {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
+    test_parser& p = this->make_parser(u8"async function f(await) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
                             param_decl(u8"await")));
-    EXPECT_THAT(v.errors,
-                UnorderedElementsAre(
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_cannot_declare_await_in_async_function,  //
-                        name, strlen(u8"async function f("), u8"await"),
-                    // TODO(strager): Drop the
-                    // diag_missing_operand_for_operator error.
-                    DIAG_TYPE(diag_missing_operand_for_operator)));
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_cannot_declare_await_in_async_function,  //
+                              name, strlen(u8"async function f("), u8"await"),
+            // TODO(strager): Drop the
+            // diag_missing_operand_for_operator error.
+            DIAG_TYPE(diag_missing_operand_for_operator)));
   }
 }
 
@@ -1637,17 +1595,16 @@ TEST_F(test_parse_var, declare_yield_in_generator_function) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"function* f(yield) {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
+    test_parser& p = this->make_parser(u8"function* f(yield) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
                             param_decl(u8"yield")));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_yield_in_generator_function,  //
-                    name, strlen(u8"function* f("), u8"yield")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_cannot_declare_yield_in_generator_function,  //
+            name, strlen(u8"function* f("), u8"yield")));
   }
 }
 

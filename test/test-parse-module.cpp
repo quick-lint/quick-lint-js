@@ -148,15 +148,14 @@ TEST_F(test_parse_module, export_default) {
 
 TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
   for (string8 declaration_kind : {u8"const", u8"let", u8"var"}) {
-    padded_string code(u8"export default " + declaration_kind + u8" x = y;");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
+    string8 code = u8"export default " + declaration_kind + u8" x = y;";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_export_default_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_export_default_variable,  //
                               declaring_token, strlen(u8"export default "),
                               declaration_kind)));
   }
@@ -285,30 +284,28 @@ TEST_F(test_parse_module,
 TEST_F(test_parse_module,
        exported_variables_cannot_be_named_reserved_keywords) {
   for (string8 keyword : strict_reserved_keywords) {
-    padded_string code(u8"export {" + keyword + u8"};");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.variable_uses, IsEmpty());
-    EXPECT_THAT(v.errors,
+    string8 code = u8"export {" + keyword + u8"};";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_export_variable_named_keyword,  //
+                    p.code(), diag_cannot_export_variable_named_keyword,  //
                     export_name, strlen(u8"export {"), keyword)));
   }
 
   for (string8 keyword : strict_reserved_keywords) {
-    padded_string code(u8"export {" + keyword + u8" as thing};");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.variable_uses, IsEmpty());
-    EXPECT_THAT(v.errors,
+    string8 code = u8"export {" + keyword + u8" as thing};";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_export_variable_named_keyword,  //
+                    p.code(), diag_cannot_export_variable_named_keyword,  //
                     export_name, strlen(u8"export {"), keyword)));
   }
 
@@ -318,29 +315,29 @@ TEST_F(test_parse_module,
     string8 exported_variable = escape_first_character_in_keyword(keyword);
 
     {
-      padded_string code(u8"export {" + exported_variable + u8"};");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses, IsEmpty());
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
+      string8 code = u8"export {" + exported_variable + u8"};";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_uses, IsEmpty());
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"export {" + exported_variable + u8" as thing};");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses, IsEmpty());
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
+      string8 code = u8"export {" + exported_variable + u8" as thing};";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_uses, IsEmpty());
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
     }
   }
 }
@@ -434,94 +431,80 @@ TEST_F(test_parse_module, export_from) {
 
 TEST_F(test_parse_module, invalid_export_expression) {
   {
-    spy_visitor v;
-    padded_string code(u8"export stuff;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_exporting_requires_curlies,  //
+    test_parser& p = this->make_parser(u8"export stuff;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_exporting_requires_curlies,  //
                               names, strlen(u8"export "), u8"stuff")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // stuff
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // stuff
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export a, b, c;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"export a, b, c;"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         // TODO(strager): Report diag_exporting_requires_curlies instead.
         ElementsAre(
-            DIAG_TYPE_OFFSETS(&code, diag_exporting_requires_default,  //
+            DIAG_TYPE_OFFSETS(p.code(), diag_exporting_requires_default,  //
                               expression, strlen(u8"export "), u8"a, b, c")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use",    // b
                                       "visit_variable_use"));  // c
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export a, b, c+d;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"export a, b, c+d;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 // TODO(strager): Should we report
                 // diag_exporting_requires_curlies instead?
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_exporting_requires_default,  //
+                    p.code(), diag_exporting_requires_default,  //
                     expression, strlen(u8"export "), u8"a, b, c+d")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use",    // b
                                       "visit_variable_use",    // c
                                       "visit_variable_use"));  // d
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export 2 + x;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_exporting_requires_default,  //
+    test_parser& p = this->make_parser(u8"export 2 + x;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_exporting_requires_default,  //
                               expression, strlen(u8"export "), u8"2 + x")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
   }
 }
 
 TEST_F(test_parse_module, invalid_export) {
   {
-    spy_visitor v;
-    padded_string code(u8"export ;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_token_after_export,  //
+    test_parser& p = this->make_parser(u8"export ;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_token_after_export,  //
                               export_token, 0, u8"export")));
-    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export "_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_token_after_export,  //
+    test_parser& p = this->make_parser(u8"export "_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_token_after_export,  //
                               export_token, 0, u8"export")));
-    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"export = x"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unexpected_token_after_export,  //
+    test_parser& p = this->make_parser(u8"export = x"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unexpected_token_after_export,  //
                               unexpected_token, strlen(u8"export "), u8"=")));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));               // Parse '= x'.
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    p.parse_and_visit_statement();                             // Parse '= x'.
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
   }
 }
 
@@ -545,14 +528,13 @@ TEST_F(test_parse_module, parse_and_visit_import) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"import fs from 'fs'; import net from 'net';"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
+    test_parser& p =
+        this->make_parser(u8"import fs from 'fs'; import net from 'net';"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(import_decl(u8"fs"), import_decl(u8"net")));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -796,75 +778,70 @@ TEST_F(test_parse_module,
        imported_variables_cannot_be_named_reserved_keywords) {
   for (string8 name : strict_reserved_keywords) {
     {
-      padded_string code(u8"import { " + name + u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.visits,
+      string8 code = u8"import { " + name + u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_cannot_import_variable_named_keyword,  //
+                      p.code(), diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import { "), name)));
     }
 
     {
-      padded_string code(u8"import { someFunction as " + name +
-                         u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.visits,
+      string8 code =
+          u8"import { someFunction as " + name + u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              &code, diag_cannot_import_variable_named_keyword,  //
+              p.code(), diag_cannot_import_variable_named_keyword,  //
               import_name, strlen(u8"import { someFunction as "), name)));
     }
 
     {
-      padded_string code(u8"import { 'someFunction' as " + name +
-                         u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(name)));
+      string8 code =
+          u8"import { 'someFunction' as " + name + u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(name)));
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              &code, diag_cannot_import_variable_named_keyword,  //
+              p.code(), diag_cannot_import_variable_named_keyword,  //
               import_name, strlen(u8"import { 'someFunction' as "), name)));
     }
 
     {
-      padded_string code(u8"import " + name + u8" from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.visits,
+      string8 code = u8"import " + name + u8" from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_cannot_import_variable_named_keyword,  //
+                      p.code(), diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import "), name)));
     }
 
     {
-      padded_string code(u8"import * as " + name + u8" from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.visits,
+      string8 code = u8"import * as " + name + u8" from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_cannot_import_variable_named_keyword,  //
+                      p.code(), diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import * as "), name)));
     }
   }
@@ -875,74 +852,72 @@ TEST_F(test_parse_module,
     string8 imported_variable = escape_first_character_in_keyword(keyword);
 
     {
-      padded_string code(u8"import { " + imported_variable +
-                         u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(keyword)));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"import { "), u8"\\u{??}")));
+      string8 code = u8"import { " + imported_variable + u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"import { "), u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"import { someFunction as " + imported_variable +
-                         u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(keyword)));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"import { someFunction as "),
-                      u8"\\u{??}")));
+      string8 code = u8"import { someFunction as " + imported_variable +
+                     u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"import { someFunction as "),
+              u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"import { 'someFunction' as " + imported_variable +
-                         u8" } from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(keyword)));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"import { 'someFunction' as "),
-                      u8"\\u{??}")));
+      string8 code = u8"import { 'someFunction' as " + imported_variable +
+                     u8" } from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"import { 'someFunction' as "),
+              u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"import " + imported_variable + u8" from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(keyword)));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"import "), u8"\\u{??}")));
+      string8 code = u8"import " + imported_variable + u8" from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"import "), u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"import * as " + imported_variable +
-                         u8" from 'other';");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(keyword)));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"import * as "), u8"\\u{??}")));
+      string8 code = u8"import * as " + imported_variable + u8" from 'other';";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"import * as "), u8"\\u{??}")));
     }
   }
 }

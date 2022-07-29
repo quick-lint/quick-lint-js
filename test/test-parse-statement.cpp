@@ -37,38 +37,32 @@ TEST_F(test_parse_statement, return_statement) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"return a\nreturn b"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"return a\nreturn b"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use", "visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"a", u8"b"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"a", u8"b"));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"return a; return b;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"return a; return b;"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use", "visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"a", u8"b"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"a", u8"b"));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (true) return; x;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
+    test_parser& p = this->make_parser(u8"if (true) return; x;"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
   }
 
   {
@@ -264,24 +258,20 @@ TEST_F(test_parse_statement, throw_statement) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"throw;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"throw;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_expression_before_semicolon,  //
+                    p.code(), diag_expected_expression_before_semicolon,  //
                     where, strlen(u8"throw"), u8";")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"throw\nnew Error();"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"throw\nnew Error();"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_expression_before_newline,  //
+                    p.code(), diag_expected_expression_before_newline,  //
                     where, strlen(u8"throw"), u8"")));
   }
 }
@@ -565,30 +555,26 @@ TEST_F(test_parse_statement, if_with_else) {
 
 TEST_F(test_parse_statement, if_without_body) {
   {
-    spy_visitor v;
-    padded_string code(u8"if (a)\nelse e;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
+    test_parser& p = this->make_parser(u8"if (a)\nelse e;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use"));  // e
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_body_for_if_statement,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_body_for_if_statement,  //
                               expected_body, strlen(u8"if (a)"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"{\nif (a)\n} b;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"{\nif (a)\n} b;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_body_for_if_statement,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_body_for_if_statement,  //
                               expected_body, strlen(u8"{\nif (a)"), u8"")));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // b
@@ -609,110 +595,96 @@ TEST_F(test_parse_statement, if_without_body) {
 
 TEST_F(test_parse_statement, if_without_parens) {
   {
-    spy_visitor v;
-    padded_string code(u8"if cond { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p = this->make_parser(u8"if cond { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_parentheses_around_if_condition,  //
+                    p.code(), diag_expected_parentheses_around_if_condition,  //
                     condition, strlen(u8"if "), u8"cond")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (cond { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p = this->make_parser(u8"if (cond { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_expected_parenthesis_around_if_condition,              //
-            where, offsets_matcher(&code, strlen(u8"if (cond"), u8""),  //
+            diag_expected_parenthesis_around_if_condition,                 //
+            where, offsets_matcher(p.code(), strlen(u8"if (cond"), u8""),  //
             token, u8')')));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if cond) { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p = this->make_parser(u8"if cond) { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_expected_parenthesis_around_if_condition,         //
-                    where, offsets_matcher(&code, strlen(u8"if "), u8""),  //
+                    diag_expected_parenthesis_around_if_condition,            //
+                    where, offsets_matcher(p.code(), strlen(u8"if "), u8""),  //
                     token, u8'(')));
   }
 }
 
 TEST_F(test_parse_statement, if_without_condition) {
   {
-    spy_visitor v;
-    padded_string code(u8"if { yay(); } else { nay(); }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // (if)
+    test_parser& p = this->make_parser(u8"if { yay(); } else { nay(); }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // (if)
                                       "visit_variable_use",        // yay
                                       "visit_exit_block_scope",    // (if)
                                       "visit_enter_block_scope",   // (else)
                                       "visit_variable_use",        // nay
                                       "visit_exit_block_scope"));  // (else)
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_condition_for_if_statement,  //
+                    p.code(), diag_missing_condition_for_if_statement,  //
                     if_keyword, 0, u8"if")));
   }
 }
 
 TEST_F(test_parse_statement, else_without_if) {
   {
-    spy_visitor v;
-    padded_string code(u8"else { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"else { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_else_has_no_if,  //
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(p.code(), diag_else_has_no_if,  //
                                               else_token, 0, u8"else")));
   }
 }
 
 TEST_F(test_parse_statement, missing_if_after_else) {
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else (true) {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+    test_parser& p = this->make_parser(u8"if (false) {} else (true) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
                                       "visit_enter_block_scope",   // else
                                       "visit_exit_block_scope"));  // else
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_if_after_else,  //
+                    p.code(), diag_missing_if_after_else,  //
                     expected_if, strlen(u8"if (false) {} else"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (x) {} else (y) {} else {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"if (x) {} else (y) {} else {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",        // x
                             "visit_enter_block_scope",   // if
                             "visit_exit_block_scope",    // if
@@ -721,78 +693,69 @@ TEST_F(test_parse_statement, missing_if_after_else) {
                             "visit_exit_block_scope",    // first else
                             "visit_enter_block_scope",   // second else
                             "visit_exit_block_scope"));  // second else
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_if_after_else,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_if_after_else,  //
                               expected_if, strlen(u8"if (x) {} else"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else true {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"if (false) {} else true {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
     ElementsAre(
-        DIAG_TYPE_OFFSETS(&code, diag_missing_semicolon_after_statement,  //
+        DIAG_TYPE_OFFSETS(p.code(), diag_missing_semicolon_after_statement,  //
                           where, strlen(u8"if (false) {} else true"), u8""));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else (true)\n{}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"if (false) {} else (true)\n{}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else (true); {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"if (false) {} else (true); {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else () {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+    test_parser& p = this->make_parser(u8"if (false) {} else () {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
                                       "visit_enter_block_scope",   // else
                                       "visit_exit_block_scope"));  // else
-    EXPECT_THAT(v.errors,
-                UnorderedElementsAre(
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_missing_expression_between_parentheses,  //
-                        left_paren_to_right_paren,
-                        strlen(u8"if (false) {} else "), u8"()"),
-                    DIAG_TYPE_OFFSETS(&code, diag_missing_if_after_else,  //
-                                      expected_if,
-                                      strlen(u8"if (false) {} else"), u8"")))
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_missing_expression_between_parentheses,  //
+                              left_paren_to_right_paren,
+                              strlen(u8"if (false) {} else "), u8"()"),
+            DIAG_TYPE_OFFSETS(p.code(), diag_missing_if_after_else,  //
+                              expected_if, strlen(u8"if (false) {} else"),
+                              u8"")))
         << "should not report diag_missing_arrow_operator_in_arrow_function";
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (false) {} else (x, y) {}"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+    test_parser& p = this->make_parser(u8"if (false) {} else (x, y) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
                                       "visit_variable_use",        // x
                                       "visit_variable_use",        // y
                                       "visit_enter_block_scope",   // else
                                       "visit_exit_block_scope"));  // else
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_if_after_else,  //
+                    p.code(), diag_missing_if_after_else,  //
                     expected_if, strlen(u8"if (false) {} else"), u8"")))
         << "should not report diag_missing_arrow_operator_in_arrow_function";
   }
@@ -883,114 +846,104 @@ TEST_F(test_parse_statement, switch_statement) {
 
 TEST_F(test_parse_statement, switch_without_parens) {
   {
-    spy_visitor v;
-    padded_string code(u8"switch cond { case ONE: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p = this->make_parser(u8"switch cond { case ONE: break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_expected_parentheses_around_switch_condition,  //
+            p.code(), diag_expected_parentheses_around_switch_condition,  //
             condition, strlen(u8"switch "), u8"cond")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"switch (cond { case ONE: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p =
+        this->make_parser(u8"switch (cond { case ONE: break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_expected_parenthesis_around_switch_condition,              //
-            where, offsets_matcher(&code, strlen(u8"switch (cond"), u8""),  //
+            diag_expected_parenthesis_around_switch_condition,  //
+            where,
+            offsets_matcher(p.code(), strlen(u8"switch (cond"), u8""),  //
             token, u8')')));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"switch cond) { case ONE: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p =
+        this->make_parser(u8"switch cond) { case ONE: break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_expected_parenthesis_around_switch_condition,         //
-            where, offsets_matcher(&code, strlen(u8"switch "), u8""),  //
+            diag_expected_parenthesis_around_switch_condition,            //
+            where, offsets_matcher(p.code(), strlen(u8"switch "), u8""),  //
             token, u8'(')));
   }
 }
 
 TEST_F(test_parse_statement, switch_without_condition) {
   {
-    spy_visitor v;
-    padded_string code(u8"switch { case ONE: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"switch { case ONE: break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_condition_for_switch_statement,  //
+                    p.code(), diag_missing_condition_for_switch_statement,  //
                     switch_keyword, 0, u8"switch")));
   }
 }
 
 TEST_F(test_parse_statement, switch_without_body) {
   {
-    spy_visitor v;
-    padded_string code(u8"switch (cond);"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"switch (cond);"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // cond
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_body_for_switch_statement,  //
+                    p.code(), diag_missing_body_for_switch_statement,  //
                     switch_and_condition, strlen(u8"switch (cond)"), u8"")));
   }
 }
 
 TEST_F(test_parse_statement, switch_without_body_curlies) {
   {
-    spy_visitor v;
-    padded_string code(u8"switch (cond) case a: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p = this->make_parser(u8"switch (cond) case a: break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_left_curly,  //
+                    p.code(), diag_expected_left_curly,  //
                     expected_left_curly, strlen(u8"switch (cond)"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"switch (cond) default: body; break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p =
+        this->make_parser(u8"switch (cond) default: body; break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_left_curly,  //
+                    p.code(), diag_expected_left_curly,  //
                     expected_left_curly, strlen(u8"switch (cond)"), u8"")));
   }
 }
@@ -1087,19 +1040,17 @@ TEST_F(test_parse_statement, with_statement) {
 
 TEST_F(test_parse_statement, statement_before_first_switch_case) {
   {
-    spy_visitor v;
-    padded_string code(
+    test_parser& p = this->make_parser(
         u8"switch (cond) { console.log('hi'); case ONE: break; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // console
                             "visit_variable_use",       // ONE
                             "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_statement_before_first_switch_case,
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_statement_before_first_switch_case,
                               unexpected_statement,
                               strlen(u8"switch (cond) { "), u8"console")));
   }
@@ -1107,29 +1058,9 @@ TEST_F(test_parse_statement, statement_before_first_switch_case) {
 
 TEST_F(test_parse_statement, with_statement_without_parens) {
   {
-    spy_visitor v;
-    padded_string code(u8"with cond { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",       // cond
-                            "visit_enter_with_scope",   // with
-                            "visit_enter_block_scope",  //
-                            "visit_variable_use",       // body
-                            "visit_exit_block_scope",   //
-                            "visit_exit_with_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_parentheses_around_with_expression,  //
-                    expression, strlen(u8"with "), u8"cond")));
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(u8"with (cond { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"with cond { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
@@ -1137,56 +1068,68 @@ TEST_F(test_parse_statement, with_statement_without_parens) {
                             "visit_exit_block_scope",   //
                             "visit_exit_with_scope"));
     EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_expected_parenthesis_around_with_expression,             //
-            where, offsets_matcher(&code, strlen(u8"with (cond"), u8""),  //
-            token, u8')')));
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_expected_parentheses_around_with_expression,  //
+            expression, strlen(u8"with "), u8"cond")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"with cond) { body; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"with (cond { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // body
                             "visit_exit_block_scope",   //
                             "visit_exit_with_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_expected_parenthesis_around_with_expression,        //
-                    where, offsets_matcher(&code, strlen(u8"with "), u8""),  //
-                    token, u8'(')));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_FIELDS(
+            diag_expected_parenthesis_around_with_expression,                //
+            where, offsets_matcher(p.code(), strlen(u8"with (cond"), u8""),  //
+            token, u8')')));
+  }
+
+  {
+    test_parser& p = this->make_parser(u8"with cond) { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_with_scope",   // with
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_FIELDS(
+            diag_expected_parenthesis_around_with_expression,           //
+            where, offsets_matcher(p.code(), strlen(u8"with "), u8""),  //
+            token, u8'(')));
   }
 }
 
 TEST_F(test_parse_statement, debugger_statement) {
   {
-    spy_visitor v;
-    padded_string code(u8"debugger; x;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
+    test_parser& p = this->make_parser(u8"debugger; x;"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
   }
 }
 
 TEST_F(test_parse_statement, labelled_statement) {
   {
-    spy_visitor v;
-    padded_string code(u8"some_label: ; x;"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"some_label: ; x;"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
     // TODO(strager): Announce the label with a visit?
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
   }
 
   {
@@ -1225,37 +1168,34 @@ TEST_F(test_parse_statement, statement_label_can_be_a_contextual_keyword) {
 }
 
 TEST_F(test_parse_statement, disallow_label_named_await_in_async_function) {
-  spy_visitor v;
-  padded_string code(u8"async function f() {await:}"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+  test_parser& p = this->make_parser(u8"async function f() {await:}"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                     "visit_enter_function_scope",       //
                                     "visit_enter_function_scope_body",  //
                                     "visit_exit_function_scope"));
   EXPECT_THAT(
-      v.errors,
+      p.errors,
       ElementsAre(DIAG_TYPE_2_OFFSETS(
-          &code, diag_label_named_await_not_allowed_in_async_function,  //
-          await, strlen(u8"async function f() {"), u8"await",           //
+          p.code(), diag_label_named_await_not_allowed_in_async_function,  //
+          await, strlen(u8"async function f() {"), u8"await",              //
           colon, strlen(u8"async function f() {await"), u8":")));
 }
 
 TEST_F(test_parse_statement, disallow_label_named_yield_in_generator_function) {
-  spy_visitor v;
-  padded_string code(u8"function *f() {yield:}"_sv);
-  parser p(&code, &v);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+  test_parser& p = this->make_parser(u8"function *f() {yield:}"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                     "visit_enter_function_scope",       //
                                     "visit_enter_function_scope_body",  //
                                     "visit_exit_function_scope"));
   EXPECT_THAT(
-      v.errors,
+      p.errors,
       ElementsAre(
-          DIAG_TYPE_OFFSETS(&code, diag_missing_semicolon_after_statement,  //
+          DIAG_TYPE_OFFSETS(p.code(),
+                            diag_missing_semicolon_after_statement,  //
                             where, strlen(u8"function *f() {yield"), u8""),
-          DIAG_TYPE_OFFSETS(&code, diag_unexpected_token,  //
+          DIAG_TYPE_OFFSETS(p.code(), diag_unexpected_token,  //
                             token, strlen(u8"function *f() {yield"), u8":")));
 }
 }
