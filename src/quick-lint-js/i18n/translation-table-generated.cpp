@@ -169,7 +169,8 @@ const translation_table translation_data = {
         {29, 18, 24, 0, 21},          //
         {44, 18, 49, 0, 39},          //
         {84, 28, 66, 25, 54},         //
-        {70, 27, 0, 0, 52},           //
+        {0, 0, 0, 0, 52},             //
+        {70, 27, 0, 0, 45},           //
         {5, 11, 66, 54, 5},           //
         {41, 33, 48, 36, 33},         //
         {42, 24, 59, 33, 47},         //
@@ -1404,6 +1405,7 @@ const translation_table translation_data = {
         u8"functions/methods should not have '=>'\0"
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"
+        u8"generic arrow function needs ',' here in TSX\0"
         u8"here\0"
         u8"hex number literal has no digits\0"
         u8"if statement is missing '{1}' around condition\0"

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 334;
-constexpr std::size_t translation_table_string_table_size = 53064;
+constexpr std::uint16_t translation_table_mapping_table_size = 335;
+constexpr std::size_t translation_table_string_table_size = 53109;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -186,6 +186,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "functions/methods should not have '=>'"sv,
           "generator function '*' belongs after keyword function"sv,
           "generator function '*' belongs before function name"sv,
+          "generic arrow function needs ',' here in TSX"sv,
           "here"sv,
           "hex number literal has no digits"sv,
           "if statement is missing '{1}' around condition"sv,

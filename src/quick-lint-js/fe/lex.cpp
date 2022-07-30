@@ -1012,6 +1012,35 @@ void lexer::skip_in_jsx_children() {
   this->skip_in_jsx();
 }
 
+const char8* lexer::find_equal_greater_in_jsx_children() const noexcept {
+  QLJS_ASSERT(this->last_token_.type == token_type::greater);
+
+  const char8* c;
+  for (c = this->input_;; ++c) {
+    switch (*c) {
+    case u8'<':
+    case u8'{':
+    case u8'}':
+      return nullptr;
+
+    case u8'>':
+      if (c[-1] == u8'=') {
+        return &c[-1];
+      }
+      return nullptr;
+
+    case u8'\0':
+      if (this->is_eof(c)) {
+        return nullptr;
+      }
+      break;
+
+    default:
+      break;
+    }
+  }
+}
+
 void lexer::skip_less_less_as_less() {
   QLJS_ASSERT(this->peek().type == token_type::less_less);
   this->last_token_.has_leading_newline = false;
@@ -2057,7 +2086,7 @@ done:
   this->input_ = c;
 }
 
-bool lexer::is_eof(const char8* input) noexcept {
+bool lexer::is_eof(const char8* input) const noexcept {
   QLJS_ASSERT(*input == u8'\0');
   return input == this->original_input_.null_terminator();
 }

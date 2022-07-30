@@ -20,6 +20,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -99,6 +100,50 @@ TEST_F(test_parse_typescript_generic_arrow,
     EXPECT_EQ(
         summarize(ast),
         "binary(assign(var f, jsxelement(T)), assign(var f, arrowfunc()))");
+  }
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
+       unambiguous_generic_arrow_is_not_allowed_in_tsx) {
+  {
+    SCOPED_TRACE(
+        "'>' is invalid in JSX, so this code cannot be interpreted as legal "
+        "JSX");
+    test_parser p(u8"<T>() => {body} // </T>", typescript_jsx_options,
+                  capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "arrowfunc()");
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // T
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",  // body
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_3_OFFSETS(
+                    p.code,
+                    diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                    generic_parameters_less, 0, u8"<",                      //
+                    expected_comma, strlen(u8"<T"), u8"",                   //
+                    arrow, strlen(u8"<T>() "), u8"=>")));
+  }
+
+  // TODO(strager): <T>({}) => {}         // '{' appears before '=>'.
+  // TODO(strager): <T>(x = y > z) => {}  // '>' appears before '=>'.
+  // TODO(strager): <T>(x = y < z) => {}  // '<' appears before '=>'.
+  // TODO(strager): <T>(f)() => </T>      // Not an arrow function.
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
+       unambiguous_generic_arrow_is_treated_as_jsx_in_non_typescript) {
+  {
+    test_parser p(u8"<T>() => {body} // </T>", jsx_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
+                              diag_unexpected_greater_in_jsx_text,  //
+                              greater, strlen(u8"<T>() ="), u8">")));
   }
 }
 

@@ -1609,6 +1609,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "generic arrow function needs ',' here in TSX"_translatable,
+        {
+            u8"generic arrow function needs ',' here in TSX",
+            u8"generic arrow function needs ',' here in TSX",
+            u8"generic arrow function needs ',' here in TSX",
+            u8"generic arrow function needs ',' here in TSX",
+            u8"generic arrow function needs ',' here in TSX",
+        },
+    },
+    {
         "here"_translatable,
         {
             u8"here",

@@ -1628,6 +1628,18 @@
               expected_type))                                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_generic_arrow_needs_comma_in_jsx_mode, "E0285",          \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span generic_parameters_less;                              \
+        source_code_span expected_comma;                                       \
+        source_code_span arrow;                                                \
+      },                                                                       \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("generic arrow function needs ',' here in TSX"),   \
+          expected_comma))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_generic_parameter_list_is_empty, "E0264",                \
       diagnostic_severity::error, { source_code_span expected_parameter; },    \
       MESSAGE(                                                                 \

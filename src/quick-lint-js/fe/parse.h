@@ -480,7 +480,7 @@ class parser {
   expression *parse_typescript_generic_arrow_expression(parse_visitor_base &,
                                                         bool allow_in_operator);
   expression *parse_typescript_angle_type_assertion_expression(
-      parse_visitor_base &, precedence);
+      parse_visitor_base &, precedence, bool is_invalid_due_to_jsx_ambiguity);
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
   expression *parse_untagged_template(parse_visitor_base &);
 

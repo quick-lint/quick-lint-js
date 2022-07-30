@@ -2876,7 +2876,9 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
     case token_type::left_square:
     case token_type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
-      return this->parse_typescript_angle_type_assertion_expression(v, prec);
+      return this->parse_typescript_angle_type_assertion_expression(
+          v, prec,
+          /*is_invalid_due_to_jsx_ambiguity=*/false);
 
     // <Type>expr
     // <T,>(params) => {}    // Arrow function.
@@ -2896,18 +2898,36 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
       // <T>() => {}  // Generic arrow function.
       // <T>expr      // Cast.
       // <T></T>      // JSX element.
-      case token_type::greater:
+      case token_type::greater: {
         if (!this->options_.jsx) {
           this->lexer_.roll_back_transaction(std::move(transaction));
-          return this->parse_typescript_angle_type_assertion_expression(v,
-                                                                        prec);
+          return this->parse_typescript_angle_type_assertion_expression(
+              v, prec,
+              /*is_invalid_due_to_jsx_ambiguity=*/false);
+        }
+        const char8* equal_greater =
+            this->lexer_.find_equal_greater_in_jsx_children();
+        if (equal_greater) {
+          // <T> => </T>             // Invalid.
+          // <T>(p: T): RT => p.m()  // Invalid.
+          //
+          // '>' is invalid in JSX text. Instead of complaining about the '>',
+          // parse as a generic arrow function.
+          // TODO(strager): Only do this if '(' follows the '>'.
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          return this->parse_typescript_angle_type_assertion_expression(
+              v, prec,
+              /*is_invalid_due_to_jsx_ambiguity=*/true);
         }
         break;
+      }
 
       // <T | U>expr  // Cast.
       case token_type::pipe:
         this->lexer_.roll_back_transaction(std::move(transaction));
-        return this->parse_typescript_angle_type_assertion_expression(v, prec);
+        return this->parse_typescript_angle_type_assertion_expression(
+            v, prec,
+            /*is_invalid_due_to_jsx_ambiguity=*/false);
 
       default:
         break;
@@ -3349,7 +3369,8 @@ expression* parser::parse_typescript_generic_arrow_expression(
 }
 
 expression* parser::parse_typescript_angle_type_assertion_expression(
-    parse_visitor_base& v, precedence prec) {
+    parse_visitor_base& v, precedence prec,
+    bool is_invalid_due_to_jsx_ambiguity) {
   QLJS_ASSERT(this->peek().type == token_type::less);
   const char8* less_begin = this->peek().begin;
   this->skip();
@@ -3405,6 +3426,17 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
         }
         if (this->peek().type == token_type::equal_greater) {
           // <T>(param) => body
+
+          if (is_invalid_due_to_jsx_ambiguity) {
+            this->diag_reporter_->report(
+                diag_typescript_generic_arrow_needs_comma_in_jsx_mode{
+                    .generic_parameters_less =
+                        source_code_span(less_begin, less_begin + 1),
+                    .expected_comma = source_code_span::unit(type.span().end()),
+                    .arrow = this->peek().span(),
+                });
+          }
+
           this->skip();
           buffering_visitor generic_parameter_visits(
               &this->type_expression_memory_);

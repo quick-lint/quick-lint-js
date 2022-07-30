@@ -1070,6 +1070,10 @@ msgid "index signatures require a value type"
 msgstr "indexing requires an expression"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "generic arrow function needs ',' here in TSX"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "expected at least one parameter in generic parameter list"
 msgstr "you literally forgot to name your parameter"
