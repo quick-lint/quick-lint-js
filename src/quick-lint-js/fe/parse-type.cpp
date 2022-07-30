@@ -315,16 +315,14 @@ again:
     this->parse_and_visit_typescript_type_expression(v);
     break;
 
+  case token_type::comma:
   case token_type::end_of_file:
   case token_type::right_curly:
   case token_type::right_paren:
+  default:
     this->diag_reporter_->report(diag_missing_typescript_type{
         .expected_type = source_code_span::unit(this->peek().begin),
     });
-    break;
-
-  default:
-    QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
 

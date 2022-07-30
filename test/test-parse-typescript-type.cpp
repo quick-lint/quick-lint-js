@@ -1252,6 +1252,16 @@ TEST_F(test_parse_typescript_type, missing) {
                               p.code, diag_missing_typescript_type,  //
                               expected_type, strlen(u8" "), u8"")));
   }
+
+  {
+    // Example: function f(param1: , param2: T2) {}
+    test_parser p(u8" ,"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_typescript_type,  //
+                              expected_type, strlen(u8" "), u8"")));
+  }
 }
 }
 }
