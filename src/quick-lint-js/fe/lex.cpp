@@ -1013,8 +1013,6 @@ void lexer::skip_in_jsx_children() {
 }
 
 const char8* lexer::find_equal_greater_in_jsx_children() const noexcept {
-  QLJS_ASSERT(this->last_token_.type == token_type::greater);
-
   const char8* c;
   for (c = this->input_;; ++c) {
     switch (*c) {

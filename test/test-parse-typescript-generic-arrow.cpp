@@ -148,6 +148,20 @@ TEST_F(test_parse_typescript_generic_arrow,
 }
 
 TEST_F(test_parse_typescript_generic_arrow,
+       arrow_without_parentheses_in_tsx_is_interpreted_as_jsx_element) {
+  {
+    test_parser p(u8"<T>param => {body} // </T>", typescript_jsx_options,
+                  capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
+                              diag_unexpected_greater_in_jsx_text,  //
+                              greater, strlen(u8"<T>param ="), u8">")));
+  }
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
        generic_arrow_with_comma_is_allowed_in_tsx) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
     test_parser p(u8"<T,>(param) => {}"_sv, o);

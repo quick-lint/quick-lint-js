@@ -100,7 +100,8 @@ class lexer {
   //               this->peek().type == token_type::greater
   void skip_in_jsx_children();
 
-  // After '>', look for for first occurrence of any one of the following:
+  // After the current token, look for for first occurrence of any one of the
+  // following:
   //
   // * '=>' (invalid in JSX children)
   // * '>' (invalid in JSX children)
@@ -111,8 +112,6 @@ class lexer {
   //
   // If '=>' was found, this function returns a pointer to the '='. Otherwise,
   // it returns nullptr.
-  //
-  // Precondition: this->peek().type == token_type::greater
   const char8* find_equal_greater_in_jsx_children() const noexcept;
 
   // After parsing a '<<' (less_less) token, call this function to reinterpret

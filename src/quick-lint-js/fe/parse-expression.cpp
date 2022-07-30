@@ -2905,19 +2905,21 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
               v, prec,
               /*is_invalid_due_to_jsx_ambiguity=*/false);
         }
-        const char8* equal_greater =
-            this->lexer_.find_equal_greater_in_jsx_children();
-        if (equal_greater) {
-          // <T> => </T>             // Invalid.
-          // <T>(p: T): RT => p.m()  // Invalid.
-          //
-          // '>' is invalid in JSX text. Instead of complaining about the '>',
-          // parse as a generic arrow function.
-          // TODO(strager): Only do this if '(' follows the '>'.
-          this->lexer_.roll_back_transaction(std::move(transaction));
-          return this->parse_typescript_angle_type_assertion_expression(
-              v, prec,
-              /*is_invalid_due_to_jsx_ambiguity=*/true);
+        this->skip();
+        if (this->peek().type == token_type::left_paren) {
+          const char8* equal_greater =
+              this->lexer_.find_equal_greater_in_jsx_children();
+          if (equal_greater) {
+            // <T> => </T>             // Invalid.
+            // <T>(p: T): RT => p.m()  // Invalid.
+            //
+            // '>' is invalid in JSX text. Instead of complaining about the '>',
+            // parse as a generic arrow function.
+            this->lexer_.roll_back_transaction(std::move(transaction));
+            return this->parse_typescript_angle_type_assertion_expression(
+                v, prec,
+                /*is_invalid_due_to_jsx_ambiguity=*/true);
+          }
         }
         break;
       }
