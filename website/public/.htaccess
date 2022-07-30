@@ -23,9 +23,6 @@
       Header add Link "</main.css>;rel=preload"
       Header add Link "</dusty.svg>;rel=preload"
     </If>
-    <If "%{REQUEST_URI} == '/index.html'">
-      Header add Link "</vscode-demo.webp>;rel=preload"
-    </If>
   </Files>
 </IfModule>
 

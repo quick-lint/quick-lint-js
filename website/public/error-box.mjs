@@ -30,7 +30,7 @@ function removeErrorMessageBox() {
 function showErrorMessage(event, markedElement) {
   removeErrorMessageBox();
 
-  const marks = markedElement.querySelectorAll("mark");
+  const marks = markedElement.querySelectorAll("mark[data-message]");
   let diagnostics = [];
   let hoveredMarkElement = null;
   for (let mark of marks) {

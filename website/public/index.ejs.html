@@ -93,6 +93,285 @@
       .logo-with-text {
         white-space: nowrap;
       }
+
+      #demonstration {
+        box-shadow: 0 0 7px rgba(0, 0, 0, 0.6);
+        border-radius: 0.75em;
+        max-width: 500px;
+        margin: 1rem auto;
+      }
+      /* Make the demonstration look like Visual Studio Code. */
+      #demonstration .window-title {
+        background-color: #dddddd;
+        border-radius: 0.75em 0.75em 0 0;
+        border-top: 1px solid #e8e8e8;
+        color: #333333;
+        font-size: 0.5rem;
+        padding: 0.5em;
+        position: relative;
+        text-align: center;
+      }
+      #demonstration .traffic-light {
+        display: inline-block;
+        position: absolute;
+        width: 1em;
+        height: 1em;
+        top: 0.66em;
+        border-radius: 1.25em;
+      }
+      #demonstration .traffic-light-red {
+        left: 1em;
+        background-color: #ff5e57;
+      }
+      #demonstration .traffic-light-yellow {
+        left: 2.5em;
+        background-color: #febd30;
+      }
+      #demonstration .traffic-light-green {
+        left: 4em;
+        background-color: #2bc740;
+      }
+      #demonstration .tab-bar {
+        background-color: #f3f3f3;
+        color: #333333;
+        display: flex;
+        flex-direction: row;
+        font-size: 0.75rem;
+      }
+      #demonstration .tab {
+        background-color: #ffffff;
+        padding: 0.5em 1em;
+      }
+      #demonstration .tab:before {
+        content: "JS";
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+        font-weight: bold;
+        font-size: 0.6rem;
+        color: #b7b73b;
+      }
+      #demonstration .tab .close-button {
+        display: inline-block;
+        padding-left: 0.5em;
+
+        /* When the icon changes, try to keep the center the same. */
+        width: 1em;
+        text-align: center;
+      }
+      #demonstration .editor {
+        background-color: #ffffff;
+        margin: 0;
+        padding: 1em 2em;
+        font-size: 0.85rem;
+      }
+      #demonstration .footer-bar {
+        color: #ffffff;
+        background-color: #007ad3;
+        border-radius: 0 0 0.75em 0.75em;
+        display: flex;
+        flex-direction: row;
+        font-size: 0.66em;
+        justify-content: space-between;
+        padding: 0.25em 1.5em;
+      }
+      @media (prefers-color-scheme: dark) {
+        #demonstration .window-title {
+          background-color: #3c3c3c;
+          border-top-color: #828282;
+          color: #cccccc;
+        }
+        #demonstration .tab-bar {
+          background-color: #2d2d2d;
+          color: #ffffff;
+        }
+        #demonstration .tab {
+          background-color: #1e1e1e;
+        }
+        #demonstration .editor {
+          background-color: #1e1e1e;
+        }
+      }
+
+      #demonstration .window-title,
+      #demonstration .tab-bar,
+      #demonstration .footer-bar {
+        user-select: none;
+      }
+
+      /* Make a cursor fly in and "fix" the code. */
+      #demonstration .to-insert,
+      #demonstration .to-remove,
+      #demonstration .cursor,
+      #demonstration .error-box,
+      #demonstration .error-to-fix {
+        animation-iteration-count: 1;
+        animation-fill-mode: forwards;
+        animation-duration: 5s;
+      }
+      @media (prefers-reduced-motion) {
+        #demonstration .to-insert,
+        #demonstration .to-remove,
+        #demonstration .cursor,
+        #demonstration .error-box,
+        #demonstration .error-to-fix {
+          animation-iteration-count: 0;
+        }
+      }
+
+      #demonstration .cursor {
+        --cursor-radius: 0.75em;
+        background-color: rgba(180, 180, 180, 0.6);
+        border: 2px solid rgba(180, 180, 180, 0.9);
+        border-radius: calc(var(--cursor-radius) * 2);
+        content: "";
+        height: calc(var(--cursor-radius) * 2);
+        position: absolute;
+        width: calc(var(--cursor-radius) * 2);
+
+        /* Place the cursor in front of the error box. */
+        z-index: 200;
+      }
+      #demonstration .error-box {
+        max-width: initial;
+        white-space: nowrap;
+
+        /* Position the error box below the mark. */
+        margin-top: 1.25em;
+
+        /* Fix the font because it's inside a pre. */
+        font-family: sans-serif;
+      }
+      #demonstration mark {
+        text-decoration-color: red;
+        text-decoration-line: underline;
+        text-decoration-skip-ink: none;
+        text-decoration-style: wavy;
+      }
+      @media (prefers-color-scheme: dark) {
+        #demonstration .cursor {
+          background-color: rgba(230, 230, 230, 0.7);
+          border-color: rgba(230, 230, 230, 0.9);
+        }
+      }
+
+      /* Move the cursor from the side to over the erroring code. Then, tap.
+         Then, hide the cursor. */
+      #demonstration .cursor {
+        animation-name: demonstration-cursor;
+        margin-top: -0.25em;
+        margin-left: 2.5em;
+        opacity: 0;
+      }
+      @keyframes demonstration-cursor {
+        0% {
+          visibility: visible;
+          opacity: 0;
+          transform: translate(150px, -30px);
+        }
+        6% {
+          transform: translate(150px, -30px);
+        }
+        14% {
+          opacity: 1;
+        }
+        30% {
+          transform: translate(0, 0);
+        }
+        65% {
+          transform: scale(1, 1);
+        }
+        70% {
+          transform: scale(0.7, 0.7);
+        }
+        73% {
+          transform: scale(1, 1);
+        }
+        90% {
+          opacity: 1;
+        }
+        95% {
+          visibility: visible;
+          opacity: 0;
+        }
+        100% {
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+      /* Show the error box when the cursor hovers over it. Then, hide the
+         error box when the cursor taps. */
+      #demonstration .error-box {
+        animation-name: demonstration-error-box;
+        opacity: 0;
+        position: absolute;
+      }
+      @keyframes demonstration-error-box {
+        0% {
+          opacity: 0;
+          transform: translate(0, 0.5em);
+        }
+        20% {
+          opacity: 0;
+          transform: translate(0, 0.5em);
+        }
+        30% {
+          opacity: 1;
+          transform: translate(0, 0);
+        }
+        73% {
+          opacity: 1;
+        }
+        78% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      /* By default, show the text to remove. Make it disappear when the cursor
+         taps. */
+      #demonstration .to-remove {
+        animation-name: demonstration-to-remove;
+        display: inline-block;
+        visibility: visible;
+        width: auto;
+      }
+      @keyframes demonstration-to-remove {
+        73% {
+          width: auto;
+          visibility: visible;
+        }
+        73.001% {
+          visibility: hidden;
+          width: 0;
+        }
+        100% {
+          visibility: hidden;
+          width: 0;
+        }
+      }
+      /* By default, hide the text to insert. Make it appear when the cursor
+         taps. */
+      #demonstration .to-insert {
+        animation-name: demonstration-to-insert;
+        display: inline-block;
+        visibility: hidden;
+        width: 0;
+      }
+      @keyframes demonstration-to-insert {
+        73% {
+          width: 0;
+          visibility: hidden;
+        }
+        73.001% {
+          visibility: visible;
+          width: auto;
+        }
+        100% {
+          visibility: visible;
+          width: auto;
+        }
+      }
     </style>
   </head>
   <body>
@@ -107,20 +386,39 @@
         <strong>no configuration</strong>.
       </p>
 
-      <p><a href="demo/">Try it out in your browser.</a></p>
+      <figure id="demonstration">
+        <div class="window-title">
+          <span class="traffic-light traffic-light-red"></span>
+          <span class="traffic-light traffic-light-yellow"></span>
+          <span class="traffic-light traffic-light-green"></span>
+          Your Cool App – Best IDE Ever
+        </div>
+        <div class="tab-bar">
+          <div class="tab">
+            AwesomeApp.js
+            <span class="close-button">
+              <span class="to-remove">✕</span><ins class="to-insert">•</ins>
+            </span>
+          </div>
+        </div>
+        <pre
+          class="editor"
+        ><code class="javascript">const occupation = <mark data-message="variable used before declaration: language" data-code="E0058" data-severity="1">language</mark> + " coder";
+const language = "JavaScript";
+<mark data-message="assignment to const variable" data-code="E0003" data-severity="1">occupation</mark> = "Senior " + occupation;
 
-      <figure>
-        <picture style="width: 100%; height: auto" width="1324" height="526">
-          <source srcset="vscode-demo.webp" type="image/webp" />
-          <img
-            src="vscode-demo.png"
-            style="width: 100%; height: auto"
-            alt="quick-lint-js running in Visual Studio Code"
-            width="1324"
-            height="526"
-          />
-        </picture>
+<span class="error-box">E0057 - use of undeclared variable: ocupation</span>console.log(`Welcome, ${<span class="cursor"></span><mark class="to-remove">ocupation</mark><ins class="to-insert">occupation</ins>}!`);
+
+</code></pre>
+        <div class="footer-bar">
+          <div class="diagnostic-counts">
+            ⊗ 2 ⚠ <span class="to-remove">1</span><ins class="to-insert">0</ins>
+          </div>
+          <div class="language">JavaScript</div>
+        </div>
       </figure>
+
+      <p><a href="demo/">Try it out in your browser.</a></p>
 
       <h2>Install quick-lint-js</h2>
       <p>
@@ -605,6 +903,8 @@
     </main>
 
     <footer><%- await include("./common-footer-nav.ejs.html") %></footer>
+
+    <script src="error-box.bundled.js"></script>
   </body>
 </html>
 

@@ -341,6 +341,10 @@ nav.breadcrumbs ol > li {
   text-align: center;
 }
 
+ins {
+  text-decoration: none;
+}
+
 /* Make errors stand out. */
 pre mark {
   color: unset;
@@ -482,14 +486,15 @@ kbd.keystroke {
   }
 }
 
-#error-box {
+#error-box,
+.error-box {
   background-color: #252526;
   color: yellow;
   border: 1px solid #fff;
   padding: 5px;
   font-size: 0.8rem;
   max-width: 300px;
-  z-index: 999999;
+  z-index: 100;
 }
 
 @media only screen and (min-width: 34em) and (max-width: 40em) {
