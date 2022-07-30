@@ -34,6 +34,11 @@ function showErrorMessage(event, markedElement) {
   let diagnostics = [];
   let hoveredMarkElement = null;
   for (let mark of marks) {
+    if (hasPlayingAnimation(mark)) {
+      // Showing an error box on an animating mark would probably be confusing,
+      // so don't.
+      continue;
+    }
     const markRect = mark.getBoundingClientRect();
     if (cursorOverMark(event.clientX, event.clientY, markRect)) {
       diagnostics.push(getDiagnosticFromMark(mark));
@@ -44,6 +49,15 @@ function showErrorMessage(event, markedElement) {
   if (hoveredMarkElement !== null) {
     showErrorMessageBox(hoveredMarkElement, event.clientX, diagnostics);
   }
+}
+
+function hasPlayingAnimation(element) {
+  if (typeof element.getAnimations !== "function") {
+    return false;
+  }
+  return element
+    .getAnimations()
+    .some((animation) => animation.playState === "running");
 }
 
 function cursorOverMark(cursorPosX, cursorPosY, markRect) {
