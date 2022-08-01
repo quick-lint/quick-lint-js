@@ -170,7 +170,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, non_constant) {
   }
 }
 
-TEST(test_parse, warn_on_pointless_string_comp) {
+TEST_F(test_parse_warning, warn_on_pointless_string_comp) {
   {
     padded_string code(u8"toLowerCase() == 'banana'"_sv);
     spy_visitor v;
@@ -217,7 +217,7 @@ TEST(test_parse, warn_on_pointless_string_comp) {
   }
 }
 
-TEST(test_parse, warn_on_pointless_string_comp_all_operators) {
+TEST_F(test_parse_warning, warn_on_pointless_string_comp_all_operators) {
   {
     for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
       padded_string code(u8"x.toLowerCase() " + string8(op) + u8" 'Banana'");
@@ -240,7 +240,7 @@ TEST(test_parse, warn_on_pointless_string_comp_all_operators) {
   }
 }
 
-TEST(test_parse, warn_on_pointless_string_comp_function_signatures) {
+TEST_F(test_parse_warning, warn_on_pointless_string_comp_function_signatures) {
   {
     padded_string code(u8"tolowerCASE() == 'BANANA'"_sv);
     spy_visitor v;
@@ -282,7 +282,7 @@ TEST(test_parse, warn_on_pointless_string_comp_function_signatures) {
   }
 }
 
-TEST(test_parse, warn_on_pointless_string_comp_complex_expressions) {
+TEST_F(test_parse_warning, warn_on_pointless_string_comp_complex_expressions) {
   {
     padded_string code(u8"if(tolowerCase() === 'BANANA') {}"_sv);
     spy_visitor v;
