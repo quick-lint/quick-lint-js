@@ -320,7 +320,7 @@ void parser::error_on_pointless_string_compare(
     return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
   };
 
-  for (size_t i = 0; i < ast->child_count() - 1; i++) {
+  for (int i = 0; i < ast->child_count() - 1; i++) {
     expression* lhs = ast->child(i);
     expression* rhs = ast->child(i + 1);
 
