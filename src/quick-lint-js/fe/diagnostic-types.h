@@ -2180,7 +2180,7 @@
                                                                                \
   /* TODO(rol1510): maybe display the actual function name? */                 \
   QLJS_DIAG_TYPE(                                                              \
-      diag_pointless_string_comp_contains_lower, "E0273",                      \
+      diag_pointless_string_comp_contains_lower, "E0286",                      \
       diagnostic_severity::warning, { source_code_span span_operator; },       \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("lower case letters compared with toUpperCase"),   \
@@ -2188,7 +2188,7 @@
                                                                                \
   /* TODO(rol1510): maybe display the actual function name? */                 \
   QLJS_DIAG_TYPE(                                                              \
-      diag_pointless_string_comp_contains_upper, "E0274",                      \
+      diag_pointless_string_comp_contains_upper, "E0287",                      \
       diagnostic_severity::warning, { source_code_span span_operator; },       \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("upper case letters compared with toLowerCase"),   \
