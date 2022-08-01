@@ -232,7 +232,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare_all_operators) {
     }
   }
   {
-    padded_string code(u8"tolowerCase() || 'BANANA'"_sv);
+    padded_string code(u8"toLowerCase() || 'BANANA'"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -288,7 +288,7 @@ TEST_F(test_parse_warning,
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_pointless_string_comp_contains_upper,
-                    span_operator, strlen(u8"if(tolowerCase() "), u8"===")));
+                    span_operator, strlen(u8"if(toLowerCase() "), u8"===")));
   }
   {
     padded_string code(

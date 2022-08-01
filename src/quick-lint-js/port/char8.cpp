@@ -95,7 +95,6 @@ bool hasupper(string8_view s) {
   }
   return false;
 }
-
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

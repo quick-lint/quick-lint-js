@@ -319,28 +319,6 @@ void parser::error_on_pointless_string_compare(
   auto is_comparison_operator = [](string8_view s) {
     return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
   };
-  auto check = [&](source_code_span op_span, string8_view call,
-                   string8_view literal) {
-    bool lower = call == u8"toLowerCase"sv;
-    bool upper = call == u8"toUpperCase"sv;
-
-    // Don't check if both or neither are found
-    if (lower == upper) {
-      return;
-    }
-
-    if (lower) {
-      if (hasupper(literal)) {
-        this->diag_reporter_->report(
-            diag_pointless_string_comp_contains_upper{op_span});
-      }
-    } else {
-      if (haslower(literal)) {
-        this->diag_reporter_->report(
-            diag_pointless_string_comp_contains_lower{op_span});
-      }
-    }
-  };
 
   for (size_t i = 0; i < ast->child_count() - 1; i++) {
     expression* lhs = ast->child(i);
@@ -362,10 +340,21 @@ void parser::error_on_pointless_string_compare(
         rhs = tmp;
       }
 
-      source_code_span call = lhs->child_0()->variable_identifier().span();
-      source_code_span literal = rhs->span();
+      string8_view call =
+          lhs->child_0()->variable_identifier().span().string_view();
+      string8_view literal = rhs->span().string_view();
 
-      check(op_span, call.string_view(), literal.string_view());
+      if (call == u8"toLowerCase"sv) {
+        if (hasupper(literal)) {
+          this->diag_reporter_->report(
+              diag_pointless_string_comp_contains_upper{op_span});
+        }
+      } else if (call == u8"toUpperCase"sv) {
+        if (haslower(literal)) {
+          this->diag_reporter_->report(
+              diag_pointless_string_comp_contains_lower{op_span});
+        }
+      }
     }
   }
 }
