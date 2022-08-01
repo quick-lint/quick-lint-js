@@ -231,6 +231,13 @@ TEST(test_parse, warn_on_pointless_string_comp_all_operators) {
               strlen(u8"x.toLowerCase() "), string8(op))));
     }
   }
+  {
+    padded_string code(u8"tolowerCase() || 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, warn_on_pointless_string_comp_function_signatures) {
@@ -277,11 +284,14 @@ TEST(test_parse, warn_on_pointless_string_comp_function_signatures) {
 
 TEST(test_parse, warn_on_pointless_string_comp_complex_expressions) {
   {
-    padded_string code(u8"if(tolowerCase() || 'BANANA') {}"_sv);
+    padded_string code(u8"if(tolowerCase() === 'BANANA') {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_pointless_string_comp_contains_upper,
+                    span_operator, strlen(u8"if(tolowerCase() "), u8"===")));
   }
   {
     padded_string code(
