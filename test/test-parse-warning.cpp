@@ -170,7 +170,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, non_constant) {
   }
 }
 
-TEST_F(test_parse_warning, warn_on_pointless_string_comp) {
+TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
   {
     padded_string code(u8"toLowerCase() == 'banana'"_sv);
     spy_visitor v;
@@ -217,7 +217,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp) {
   }
 }
 
-TEST_F(test_parse_warning, warn_on_pointless_string_comp_all_operators) {
+TEST_F(test_parse_warning, warn_on_pointless_string_compare_all_operators) {
   {
     for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
       padded_string code(u8"x.toLowerCase() " + string8(op) + u8" 'Banana'");
@@ -240,20 +240,24 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_all_operators) {
   }
 }
 
-TEST_F(test_parse_warning, warn_on_pointless_string_comp_function_signatures) {
+TEST_F(test_parse_warning,
+       warn_on_pointless_string_compare_function_signatures) {
   {
-    padded_string code(u8"tolowerCASE() == 'BANANA'"_sv);
+    padded_string code(u8"tolowercase() == 'BANANA'"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_pointless_string_comp_contains_upper,
-                    span_operator, strlen(u8"toLowerCase() "), u8"==")));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
   {
-    padded_string code(
-        u8"s.ref().builder().customToLowerCaseWithPostfix() == 'BANANA'"_sv);
+    padded_string code(u8"myToLowerCase() == 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    padded_string code(u8"stringBuilder.build().toLowerCase() == 'BANANA'"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -261,15 +265,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_function_signatures) {
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_pointless_string_comp_contains_upper, span_operator,
-            strlen(u8"s.ref().builder().customToLowerCaseWithPostfix() "),
-            u8"==")));
-  }
-  {
-    padded_string code(u8"toLowerCaseAndToUpperCase() == 'Banana'"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
+            strlen(u8"stringBuilder.build().toLowerCase() "), u8"==")));
   }
   {
     padded_string code(u8"'BANANA' == toLowerCase()"_sv);
@@ -282,9 +278,10 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_function_signatures) {
   }
 }
 
-TEST_F(test_parse_warning, warn_on_pointless_string_comp_complex_expressions) {
+TEST_F(test_parse_warning,
+       warn_on_pointless_string_compare_complex_expressions) {
   {
-    padded_string code(u8"if(tolowerCase() === 'BANANA') {}"_sv);
+    padded_string code(u8"if(toLowerCase() === 'BANANA') {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -295,7 +292,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_complex_expressions) {
   }
   {
     padded_string code(
-        u8"tolowerCase() == 'BANANA' && x.toUpperCase() !== 'orange'"_sv);
+        u8"toLowerCase() == 'BANANA' && x.toUpperCase() !== 'orange'"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -312,7 +309,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_complex_expressions) {
   }
   {
     padded_string code(
-        u8"((tolowerCase() == 'BANANA') && x.toUpperCase() !== 'orange')"_sv);
+        u8"((toLowerCase() == 'BANANA') && x.toUpperCase() !== 'orange')"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -324,7 +321,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_comp_complex_expressions) {
                               u8"=="),
             DIAG_TYPE_OFFSETS(
                 &code, diag_pointless_string_comp_contains_lower, span_operator,
-                strlen(u8"((tolowerCASE() == 'BANANA') && x.toUpperCase() "),
+                strlen(u8"((toLowerCASE() == 'BANANA') && x.toUpperCase() "),
                 u8"!==")));
   }
 }

@@ -317,13 +317,12 @@ void parser::error_on_sketchy_condition(expression* ast) {
 void parser::error_on_pointless_string_compare(
     expression::binary_operator* ast) {
   auto is_comparison_operator = [](string8_view s) {
-    return s.starts_with(u8"=="sv) || s.starts_with(u8"==="sv) ||
-           s.starts_with(u8"!="sv) || s.starts_with(u8"!=="sv);
+    return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
   };
   auto check = [&](source_code_span op_span, string8_view call,
                    string8_view literal) {
-    bool lower = find_case_insensitive(call, u8"toLowerCase"sv);
-    bool upper = find_case_insensitive(call, u8"toUpperCase"sv);
+    bool lower = call == u8"toLowerCase"sv;
+    bool upper = call == u8"toUpperCase"sv;
 
     // Don't check if both or neither are found
     if (lower == upper) {

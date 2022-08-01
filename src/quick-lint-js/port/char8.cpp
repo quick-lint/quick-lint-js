@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <quick-lint-js/port/char8.h>
@@ -95,17 +94,6 @@ bool hasupper(string8_view s) {
     }
   }
   return false;
-}
-
-bool find_case_insensitive(string8_view haystack, string8_view needle) {
-  auto predicate = [](char8 c1, char8 c2) {
-    return tolower(c1) == tolower(c2);
-  };
-
-  auto *res = std::search(haystack.begin(), haystack.end(), needle.begin(),
-                          needle.end(), predicate);
-
-  return res != haystack.end();
 }
 
 }
