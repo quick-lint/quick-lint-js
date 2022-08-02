@@ -24,9 +24,19 @@ struct result_propagation {
   result_base<T, Errors...>& to_propagate;
 };
 
-// Do not use result_error_tag directly. Call result<>::failure instead.
+// Do not use result_error directly. Call failed_result instead.
 template <class Error>
-struct result_error_tag {};
+struct result_error {
+  static_assert(std::is_reference_v<Error&&>);
+  Error&& e;
+};
+
+// After calling failed_result, you must immediately construct a new result or
+// assign to an existing result.
+template <class Error>
+result_error<Error&&> failed_result(Error&& e) {
+  return result_error<Error&&>{.e = std::forward<Error&&>(e)};
+}
 
 // Do not use result_base directly. Use result instead.
 template <class T, class... Errors>
@@ -46,13 +56,12 @@ class result_base {
   /*implicit*/ result_base(Args&&... args)
       : data_(std::in_place_index<0>, std::forward<Args>(args)...) {}
 
-  // Private constructor used by failure. Do not call directly.
-  template <class Error, class... ErrorArgs>
-  explicit result_base(result_error_tag<Error>, ErrorArgs&&... error_args)
+  template <class Error>
+  /*implicit*/ result_base(result_error<Error>&& error)
       // TODO(strager): If std::is_same_v<Error, value_type>, then
       // std::in_place_type is incorrect.
-      : data_(std::in_place_type<Error>,
-              std::forward<ErrorArgs>(error_args)...) {}
+      : data_(std::in_place_type<std::decay_t<Error>>,
+              std::forward<Error>(error.e)) {}
 
   // Private constructor used by propagate. Do not call directly.
   /*implicit*/ result_base(result_propagation<T, Errors...>&& propagation)
@@ -76,15 +85,16 @@ class result_base {
   /*implicit*/ result_base(quick_lint_js::result<T, OtherErrors...>&& other)
       : data_(visit(move_data_visitor(), std::move(other).data_)) {}
 
+  // FIXME(strager): The following code is a landmine:
+  //
+  //   r = failed_result(std::move(r.error()));
   template <class Error>
-  static result failure(Error&& error) {
-    return result(result_error_tag<Error>(), std::forward<Error>(error));
-  }
-
-  template <class Error, class... ErrorArgs>
-  static result failure(ErrorArgs&&... error_args) {
-    return result(result_error_tag<Error>(),
-                  std::forward<ErrorArgs>(error_args)...);
+  result_base& operator=(result_error<Error>&& error) {
+    // TODO(strager): If std::is_same_v<Error, value_type>, then the emplace
+    // template parameter is incorrect.
+    this->data_.template emplace<std::decay_t<Error>>(
+        std::forward<Error>(error.e));
+    return *this;
   }
 
   bool ok() const noexcept { return this->data_.index() == 0; }
@@ -216,7 +226,7 @@ class result_base {
     template <class Error>
     quick_lint_js::result<void, NewErrors...> operator()(const Error& error) {
       return quick_lint_js::result<void, NewErrors...>(
-          result_error_tag<Error>(), error);
+          failed_result<const Error&>(error));
     }
   };
 
@@ -239,7 +249,6 @@ class result : public result_base<T, Errors...> {
   using base::copy_errors;
   using base::error;
   using base::error_to_string;
-  using base::failure;
   using base::has_error;
   using base::ok;
   using base::operator*;
@@ -265,7 +274,6 @@ class result<void, Errors...> : public result_base<void, Errors...> {
   using base::copy_errors;
   using base::error;
   using base::error_to_string;
-  using base::failure;
   using base::has_error;
   using base::ok;
   using base::operator=;
@@ -292,12 +300,6 @@ class result<T, Error> : public result_base<T, Error> {
   using base::propagate;
   using base::value;
 
-  template <class... ErrorArgs>
-  static result failure(ErrorArgs&&... error_args) {
-    return base::template failure<Error, ErrorArgs...>(
-        std::forward<ErrorArgs>(error_args)...);
-  }
-
   const Error& error() const noexcept { return base::template error<Error>(); }
 
   template <class, class...>
@@ -317,12 +319,6 @@ class result<void, Error> : public result_base<void, Error> {
   using base::ok;
   using base::operator=;
   using base::propagate;
-
-  template <class... ErrorArgs>
-  static result failure(ErrorArgs&&... error_args) {
-    return base::template failure<Error, ErrorArgs...>(
-        std::forward<ErrorArgs>(error_args)...);
-  }
 
   const Error& error() const noexcept { return base::template error<Error>(); }
 

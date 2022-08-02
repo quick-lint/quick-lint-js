@@ -77,8 +77,7 @@ std::string create_directory_io_error::to_string() const {
 result<void, platform_file_io_error> make_unique_directory(std::string &path) {
   path += ".XXXXXX";
   if (!::mkdtemp(path.data())) {
-    return result<void, platform_file_io_error>::failure(
-        platform_file_io_error{.error = errno});
+    return failed_result(platform_file_io_error{.error = errno});
   }
   return {};
 }
@@ -108,7 +107,7 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
   }
 
   // TODO(strager): Return the proper error code from 'create_result'.
-  return result<void, platform_file_io_error>::failure(platform_file_io_error{
+  return failed_result(platform_file_io_error{
       .error = 0,
   });
 }
@@ -172,14 +171,13 @@ result<void, create_directory_io_error> create_directory(
         directory_existed = attributes & FILE_ATTRIBUTE_DIRECTORY;
       }
     }
-    return result<void, create_directory_io_error>::failure(
-        create_directory_io_error{
-            .io_error =
-                windows_file_io_error{
-                    .error = error,
-                },
-            .is_directory_already_exists_error = directory_existed,
-        });
+    return failed_result(create_directory_io_error{
+        .io_error =
+            windows_file_io_error{
+                .error = error,
+            },
+        .is_directory_already_exists_error = directory_existed,
+    });
   }
   return {};
 #elif QLJS_HAVE_FCNTL_H
@@ -192,27 +190,25 @@ result<void, create_directory_io_error> create_directory(
         directory_existed = S_ISDIR(s.st_mode);
       }
     }
-    return result<void, create_directory_io_error>::failure(
-        create_directory_io_error{
-            .io_error =
-                posix_file_io_error{
-                    .error = error,
-                },
-            .is_directory_already_exists_error = directory_existed,
-        });
+    return failed_result(create_directory_io_error{
+        .io_error =
+            posix_file_io_error{
+                .error = error,
+            },
+        .is_directory_already_exists_error = directory_existed,
+    });
   }
   return {};
 #elif QLJS_HAVE_STD_FILESYSTEM
   std::error_code error;
   if (!std::filesystem::create_directory(to_string8(path), error)) {
     // TODO(strager): Return the proper error code from 'error'.
-    return result<void, create_directory_io_error>::failure(
-        create_directory_io_error{
-            .io_error =
-                platform_file_io_error{
-                    .error = 0,
-                },
-        });
+    return failed_result(create_directory_io_error{
+        .io_error =
+            platform_file_io_error{
+                .error = 0,
+            },
+    });
   }
   return {};
 #else

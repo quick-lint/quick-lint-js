@@ -271,11 +271,10 @@ class path_canonicalizer_base {
 #else
 #error "Unsupported platform"
 #endif
-      return result<void, canonicalizing_path_io_error>::failure(
-          canonicalizing_path_io_error{
-              .canonicalizing_path = {},
-              .io_error = io_error,
-          });
+      return failed_result(canonicalizing_path_io_error{
+          .canonicalizing_path = {},
+          .io_error = io_error,
+      });
     }
 
     result<void, canonicalizing_path_io_error> r =
@@ -347,11 +346,10 @@ class path_canonicalizer_base {
       result<file_type, platform_file_io_error> type =
           this->derived().get_file_type(canonical_);
       if (!type.ok()) {
-        return result<void, canonicalizing_path_io_error>::failure(
-            canonicalizing_path_io_error{
-                .canonicalizing_path = canonical_,
-                .io_error = type.error(),
-            });
+        return failed_result(canonicalizing_path_io_error{
+            .canonicalizing_path = canonical_,
+            .io_error = type.error(),
+        });
       }
       switch (*type) {
       case file_type::does_not_exist:
@@ -369,17 +367,16 @@ class path_canonicalizer_base {
         // Extra components and trailing slashes are not allowed for regular
         // files, FIFOs, etc.
         if (!path_to_process_.empty()) {
-          return result<void, canonicalizing_path_io_error>::failure(
-              canonicalizing_path_io_error {
-                .canonicalizing_path = canonical_,
+          return failed_result(canonicalizing_path_io_error {
+            .canonicalizing_path = canonical_,
 #if QLJS_HAVE_UNISTD_H
-                .io_error = posix_file_io_error{ENOTDIR},
+            .io_error = posix_file_io_error{ENOTDIR},
 #elif QLJS_HAVE_WINDOWS_H
                 .io_error = windows_file_io_error{ERROR_DIRECTORY},
 #else
 #error "Unsupported platform"
 #endif
-              });
+          });
         }
         break;
 
@@ -470,11 +467,10 @@ class posix_path_canonicalizer
     } else {
       quick_lint_js::result<void, posix_file_io_error> r = load_cwd();
       if (!r.ok()) {
-        return quick_lint_js::result<void, canonicalizing_path_io_error>::
-            failure(canonicalizing_path_io_error{
-                .canonicalizing_path = path_string(this->path_to_process_),
-                .io_error = r.error(),
-            });
+        return failed_result(canonicalizing_path_io_error{
+            .canonicalizing_path = path_string(this->path_to_process_),
+            .io_error = r.error(),
+        });
       }
     }
     return {};
@@ -485,8 +481,7 @@ class posix_path_canonicalizer
     // buffer?
     canonical_.resize(PATH_MAX);
     if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      return quick_lint_js::result<void, posix_file_io_error>::failure(
-          posix_file_io_error{errno});
+      return failed_result(posix_file_io_error{errno});
     }
     canonical_.resize(std::strlen(canonical_.c_str()));
 
@@ -508,8 +503,7 @@ class posix_path_canonicalizer
       if (errno == ENOENT) {
         return file_type::does_not_exist;
       }
-      return quick_lint_js::result<file_type, posix_file_io_error>::failure(
-          posix_file_io_error{errno});
+      return failed_result(posix_file_io_error{errno});
     }
     if (S_ISLNK(s.st_mode)) {
       return file_type::symlink;
@@ -523,11 +517,10 @@ class posix_path_canonicalizer
   quick_lint_js::result<void, canonicalizing_path_io_error> resolve_symlink() {
     symlink_depth_ += 1;
     if (symlink_depth_ >= symlink_depth_limit_) {
-      return quick_lint_js::result<void, canonicalizing_path_io_error>::failure(
-          canonicalizing_path_io_error{
-              .canonicalizing_path = canonical_,
-              .io_error = posix_file_io_error{ELOOP},
-          });
+      return failed_result(canonicalizing_path_io_error{
+          .canonicalizing_path = canonical_,
+          .io_error = posix_file_io_error{ELOOP},
+      });
     }
 
     std::string &new_readlink_buffer =
@@ -535,11 +528,10 @@ class posix_path_canonicalizer
     int readlink_rc =
         read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
     if (readlink_rc == -1) {
-      return quick_lint_js::result<void, canonicalizing_path_io_error>::failure(
-          canonicalizing_path_io_error{
-              .canonicalizing_path = canonical_,
-              .io_error = posix_file_io_error{errno},
-          });
+      return failed_result(canonicalizing_path_io_error{
+          .canonicalizing_path = canonical_,
+          .io_error = posix_file_io_error{errno},
+      });
     }
 
     // Rebase the remaining input components onto the readlink result.
@@ -630,11 +622,10 @@ class windows_path_canonicalizer
       // Path is invalid or is relative. Assume that it is relative.
       quick_lint_js::result<void, windows_file_io_error> r = load_cwd();
       if (!r.ok()) {
-        return quick_lint_js::result<void, canonicalizing_path_io_error>::
-            failure(canonicalizing_path_io_error{
-                .canonicalizing_path = path_string(this->path_to_process_),
-                .io_error = r.error(),
-            });
+        return failed_result(canonicalizing_path_io_error{
+            .canonicalizing_path = path_string(this->path_to_process_),
+            .io_error = r.error(),
+        });
       }
       break;
     }
@@ -695,8 +686,7 @@ class windows_path_canonicalizer
       if (error == ERROR_FILE_NOT_FOUND) {
         return file_type::does_not_exist;
       }
-      return quick_lint_js::result<file_type, windows_file_io_error>::failure(
-          windows_file_io_error{error});
+      return failed_result(windows_file_io_error{error});
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {
       return file_type::symlink;
@@ -744,13 +734,12 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
 #endif
   result<void, canonicalizing_path_io_error> r = canonicalizer.canonicalize();
   if (!r.ok()) {
-    return result<canonical_path_result, canonicalize_path_io_error>::failure(
-        canonicalize_path_io_error{
-            .input_path = path,
-            .canonicalizing_path = string_for_error_message(
-                std::move(r.error().canonicalizing_path)),
-            .io_error = r.error().io_error,
-        });
+    return failed_result(canonicalize_path_io_error{
+        .input_path = path,
+        .canonicalizing_path =
+            string_for_error_message(std::move(r.error().canonicalizing_path)),
+        .io_error = r.error().io_error,
+    });
   }
   return canonicalizer.result();
 }

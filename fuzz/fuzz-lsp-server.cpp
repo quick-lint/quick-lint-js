@@ -32,8 +32,7 @@ class null_configuration_filesystem : public configuration_filesystem {
 #if QLJS_HAVE_UNISTD_H
     posix_file_io_error io_error = {ENOENT};
 #endif
-    return result<padded_string, read_file_io_error>::failure<
-        read_file_io_error>(read_file_io_error{
+    return failed_result(read_file_io_error{
         .path = path.c_str(),
         .io_error = io_error,
     });

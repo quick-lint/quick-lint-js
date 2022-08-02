@@ -14,6 +14,10 @@
 
 namespace quick_lint_js {
 // Like std::variant<Ts...>, but simpler and with more copy-paste.
+//
+// Known differences:
+//
+// * emplace might call operator= instead of destructing/constructing.
 template <class... Ts>
 class variant;
 
@@ -173,6 +177,12 @@ class variant<T0> {
     return lhs.data_0_ == rhs.data_0_;
   }
 
+  template <class T, class... Args>
+  void emplace(Args&&... args) {
+    static_assert(std::is_same_v<T, T0>, "unexpected T");
+    this->data_0_ = T(std::forward<Args>(args)...);
+  }
+
  private:
   T0 data_0_;
 };
@@ -328,6 +338,20 @@ class variant<T0, T1> {
       return lhs.data_1_ == rhs.data_1_;
     default:
       QLJS_UNREACHABLE();
+    }
+  }
+
+  template <class T, class... Args>
+  void emplace(Args&&... args) {
+    this->destruct();
+    if constexpr (std::is_same_v<T, T0>) {
+      this->tag_ = 0;
+      new (&this->data_0_) T(std::forward<Args>(args)...);
+    } else if constexpr (std::is_same_v<T, T1>) {
+      this->tag_ = 1;
+      new (&this->data_1_) T(std::forward<Args>(args)...);
+    } else {
+      static_assert(std::is_same_v<T, T0>, "unexpected T");
     }
   }
 
@@ -533,6 +557,23 @@ class variant<T0, T1, T2> {
       return lhs.data_2_ == rhs.data_2_;
     default:
       QLJS_UNREACHABLE();
+    }
+  }
+
+  template <class T, class... Args>
+  void emplace(Args&&... args) {
+    this->destruct();
+    if constexpr (std::is_same_v<T, T0>) {
+      this->tag_ = 0;
+      new (&this->data_0_) T(std::forward<Args>(args)...);
+    } else if constexpr (std::is_same_v<T, T1>) {
+      this->tag_ = 1;
+      new (&this->data_1_) T(std::forward<Args>(args)...);
+    } else if constexpr (std::is_same_v<T, T2>) {
+      this->tag_ = 2;
+      new (&this->data_2_) T(std::forward<Args>(args)...);
+    } else {
+      static_assert(std::is_same_v<T, T0>, "unexpected T");
     }
   }
 

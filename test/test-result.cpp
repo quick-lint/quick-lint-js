@@ -5,8 +5,11 @@
 #include <memory>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/port/warning.h>
+#include <string>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
+
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -72,24 +75,21 @@ TEST(test_result, move_assign_void) {
 }
 
 TYPED_TEST(test_result_error, store_error) {
-  result<TypeParam, std::string> r =
-      result<TypeParam, std::string>::failure("something bad happened");
+  result<TypeParam, std::string> r = failed_result("something bad happened"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "something bad happened");
 }
 
 TYPED_TEST(test_result_error, move_construct_error) {
-  result<TypeParam, std::string> r =
-      result<TypeParam, std::string>::failure("something bad happened");
+  result<TypeParam, std::string> r = failed_result("something bad happened"s);
   result<TypeParam, std::string> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error(), "something bad happened");
 }
 
 TYPED_TEST(test_result_error, move_assign_error) {
-  result<TypeParam, std::string> r =
-      result<TypeParam, std::string>::failure("something bad happened");
-  r = result<TypeParam, std::string>::failure("fatal error");
+  result<TypeParam, std::string> r = failed_result("something bad happened"s);
+  r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
@@ -97,29 +97,27 @@ TYPED_TEST(test_result_error, move_assign_error) {
 TEST(test_result, move_assign_error_atop_value) {
   result<std::shared_ptr<int>, std::string> r =
       result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
-  r = result<std::shared_ptr<int>, std::string>::failure("fatal error");
+  r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
 TEST(test_result, move_assign_error_atop_void) {
   result<void, std::string> r;
-  r = result<void, std::string>::failure("fatal error");
+  r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
 TEST(test_result, move_assign_value_atop_error) {
-  result<std::shared_ptr<int>, std::string> r =
-      result<std::shared_ptr<int>, std::string>::failure("fatal error");
+  result<std::shared_ptr<int>, std::string> r = failed_result("fatal error"s);
   r = result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
 
 TEST(test_result, move_assign_void_atop_error) {
-  result<void, std::string> r =
-      result<void, std::string>::failure("fatal error");
+  result<void, std::string> r = failed_result("fatal error"s);
   r = result<void, std::string>();
   EXPECT_TRUE(r.ok());
 }
@@ -170,9 +168,7 @@ TYPED_TEST(test_result_error, multi_store_first_error_type) {
   struct e_b {
     int data;
   };
-  result<TypeParam, e_a, e_b> r =
-      result<TypeParam, e_a, e_b>::template failure<e_a>(
-          e_a{"something bad happened"});
+  result<TypeParam, e_a, e_b> r = failed_result(e_a{"something bad happened"});
   EXPECT_FALSE(r.ok());
   EXPECT_TRUE(r.template has_error<e_a>());
   EXPECT_FALSE(r.template has_error<e_b>());
@@ -186,8 +182,7 @@ TYPED_TEST(test_result_error, multi_store_second_error_type) {
   struct e_b {
     int data;
   };
-  result<TypeParam, e_a, e_b> r =
-      result<TypeParam, e_a, e_b>::template failure<e_b>(e_b{42});
+  result<TypeParam, e_a, e_b> r = failed_result(e_b{42});
   EXPECT_FALSE(r.ok());
   EXPECT_FALSE(r.template has_error<e_a>());
   EXPECT_TRUE(r.template has_error<e_b>());
@@ -195,9 +190,7 @@ TYPED_TEST(test_result_error, multi_store_second_error_type) {
 }
 
 TYPED_TEST(test_result_error, multi_move_construct_first_error_type) {
-  result<TypeParam, std::string, char> r =
-      result<TypeParam, std::string, char>::template failure<std::string>(
-          "error");
+  result<TypeParam, std::string, char> r = failed_result("error"s);
   result<TypeParam, std::string, char> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_TRUE(copy.template has_error<std::string>());
@@ -207,10 +200,8 @@ TYPED_TEST(test_result_error, multi_move_construct_first_error_type) {
 
 TYPED_TEST(test_result_error, multi_move_assign_first_error_type) {
   result<TypeParam, std::string, char> r =
-      result<TypeParam, std::string, char>::template failure<std::string>(
-          "something bad happened");
-  r = result<TypeParam, std::string, char>::template failure<std::string>(
-      "fatal error");
+      failed_result<std::string>("something bad happened");
+  r = failed_result<std::string>("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_TRUE(r.template has_error<std::string>());
   EXPECT_FALSE(r.template has_error<char>());
@@ -221,8 +212,7 @@ TEST(test_result, multi_move_assign_first_error_type_atop_value) {
   result<std::shared_ptr<int>, std::string, char> r =
       result<std::shared_ptr<int>, std::string, char>(
           std::make_shared<int>(42));
-  r = result<std::shared_ptr<int>, std::string,
-             char>::template failure<std::string>("fatal error");
+  r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_TRUE(r.template has_error<std::string>());
   EXPECT_FALSE(r.template has_error<char>());
@@ -231,8 +221,7 @@ TEST(test_result, multi_move_assign_first_error_type_atop_value) {
 
 TEST(test_result, multi_move_assign_first_error_type_atop_void) {
   result<void, std::string, char> r = result<void, std::string, char>();
-  r = result<void, std::string, char>::template failure<std::string>(
-      "fatal error");
+  r = failed_result<std::string>("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_TRUE(r.template has_error<std::string>());
   EXPECT_FALSE(r.template has_error<char>());
@@ -241,8 +230,7 @@ TEST(test_result, multi_move_assign_first_error_type_atop_void) {
 
 TEST(test_result, multi_move_assign_value_atop_first_error_type) {
   result<std::shared_ptr<int>, std::string, char> r =
-      result<std::shared_ptr<int>, std::string, char>::failure<std::string>(
-          "fatal error");
+      failed_result<std::string>("fatal error");
   r = result<std::shared_ptr<int>, std::string, char>(
       std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
@@ -252,8 +240,7 @@ TEST(test_result, multi_move_assign_value_atop_first_error_type) {
 }
 
 TEST(test_result, multi_move_assign_void_atop_first_error_type) {
-  result<void, std::string, char> r =
-      result<void, std::string, char>::failure<std::string>("fatal error");
+  result<void, std::string, char> r = failed_result("fatal error"s);
   r = result<void, std::string, char>();
   EXPECT_TRUE(r.ok());
   EXPECT_FALSE(r.template has_error<std::string>());
@@ -263,8 +250,7 @@ TEST(test_result, multi_move_assign_void_atop_first_error_type) {
 TYPED_TEST(test_result_error, widen_error_to_first_error_type) {
   struct e_a {};
   struct e_b {};
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::template failure(e_a{});
+  result<TypeParam, e_a> original = failed_result(e_a{});
   result<TypeParam, e_a, e_b> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
   EXPECT_TRUE(copy.template has_error<e_a>());
@@ -274,8 +260,7 @@ TYPED_TEST(test_result_error, widen_error_to_first_error_type) {
 TYPED_TEST(test_result_error, widen_error_to_second_error_type) {
   struct e_a {};
   struct e_b {};
-  result<TypeParam, e_b> original =
-      result<TypeParam, e_b>::template failure(e_b{});
+  result<TypeParam, e_b> original = failed_result(e_b{});
   result<TypeParam, e_a, e_b> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
   EXPECT_FALSE(copy.template has_error<e_a>());
@@ -285,8 +270,7 @@ TYPED_TEST(test_result_error, widen_error_to_second_error_type) {
 TYPED_TEST(test_result_error, swap_error_types) {
   struct e_a {};
   struct e_b {};
-  result<TypeParam, e_a, e_b> original =
-      result<TypeParam, e_a>::template failure(e_a{});
+  result<TypeParam, e_a, e_b> original = failed_result(e_a{});
   result<TypeParam, e_b, e_a> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
   EXPECT_TRUE(copy.template has_error<e_a>());
@@ -297,8 +281,7 @@ TYPED_TEST(test_result_error, propagate_error_with_same_value_type) {
   struct e_a {
     int data;
   };
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
   ASSERT_FALSE(original.ok());
 
   result<TypeParam, e_a> copy = original.propagate();
@@ -310,8 +293,7 @@ TYPED_TEST(test_result_error, propagate_error_to_different_value_type) {
   struct e_a {
     int data;
   };
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
   ASSERT_FALSE(original.ok());
 
   result<std::string, e_a> copy = original.propagate();
@@ -323,8 +305,7 @@ TYPED_TEST(test_result_error, propagate_error_to_void_value_type) {
   struct e_a {
     int data;
   };
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
   ASSERT_FALSE(original.ok());
 
   result<void, e_a> copy = original.propagate();
@@ -337,8 +318,7 @@ TYPED_TEST(test_result_error, propagate_error_with_extra_second_error_type) {
     int data;
   };
   struct e_b {};
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
   ASSERT_FALSE(original.ok());
 
   result<TypeParam, e_a, e_b> copy = original.propagate();
@@ -353,8 +333,7 @@ TYPED_TEST(test_result_error, propagate_error_with_extra_first_error_type) {
     int data;
   };
   struct e_b {};
-  result<TypeParam, e_a> original =
-      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
   ASSERT_FALSE(original.ok());
 
   result<TypeParam, e_b, e_a> copy = original.propagate();
@@ -369,8 +348,7 @@ TYPED_TEST(test_result_error, error_to_string_with_single_error_type) {
     std::string data;
     std::string to_string() const { return "data = " + data; }
   };
-  result<TypeParam, e_a> error =
-      result<TypeParam, e_a>::failure(e_a{.data = "hello"});
+  result<TypeParam, e_a> error = failed_result(e_a{.data = "hello"});
   EXPECT_EQ(error.error_to_string(), "data = hello");
 }
 
@@ -383,8 +361,7 @@ TYPED_TEST(test_result_error, error_to_string_with_first_error_type) {
     std::string data;
     std::string to_string() const { return "e_b data = " + data; }
   };
-  result<TypeParam, e_a, e_b> error =
-      result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
+  result<TypeParam, e_a, e_b> error = failed_result(e_a{.data = "hello"});
   EXPECT_EQ(error.error_to_string(), "e_a data = hello");
 }
 
@@ -392,8 +369,7 @@ TYPED_TEST(test_result_error, copy_errors_with_single_error) {
   struct e_a {
     std::string data;
   };
-  result<TypeParam, e_a> r =
-      result<TypeParam, e_a>::failure(e_a{.data = "hello"});
+  result<TypeParam, e_a> r = failed_result(e_a{.data = "hello"});
   result<void, e_a> v = r.template copy_errors<e_a>();
   EXPECT_FALSE(v.ok());
   EXPECT_EQ(v.error().data, "hello");
@@ -406,8 +382,7 @@ TYPED_TEST(test_result_error, copy_errors_with_first_error) {
   struct e_b {
     int data;
   };
-  result<TypeParam, e_a, e_b> r =
-      result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
+  result<TypeParam, e_a, e_b> r = failed_result(e_a{.data = "hello"});
   result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
   EXPECT_FALSE(v.ok());
   EXPECT_TRUE(v.template has_error<e_a>());
@@ -422,8 +397,7 @@ TYPED_TEST(test_result_error, copy_errors_with_second_error) {
   struct e_b {
     int data;
   };
-  result<TypeParam, e_a, e_b> r =
-      result<TypeParam, e_a, e_b>::failure(e_b{.data = 42});
+  result<TypeParam, e_a, e_b> r = failed_result(e_b{.data = 42});
   result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
   EXPECT_FALSE(v.ok());
   EXPECT_FALSE(v.template has_error<e_a>());
@@ -438,7 +412,7 @@ TYPED_TEST(test_result_error,
   struct e_c {};
 
   {
-    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<TypeParam, e_b> r = failed_result(e_b());
     result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
     EXPECT_FALSE(v.ok());
     EXPECT_FALSE(v.template has_error<e_a>());
@@ -446,7 +420,7 @@ TYPED_TEST(test_result_error,
   }
 
   {
-    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<TypeParam, e_b> r = failed_result(e_b());
     result<void, e_b, e_c> v = r.template copy_errors<e_b, e_c>();
     EXPECT_FALSE(v.ok());
     EXPECT_TRUE(v.template has_error<e_b>());

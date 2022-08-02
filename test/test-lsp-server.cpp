@@ -1642,8 +1642,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
   this->fs.create_file(
       this->fs.rooted("quick-lint-js.config"),
       [this]() -> fake_configuration_filesystem::read_file_result {
-        return fake_configuration_filesystem::read_file_result::failure<
-            read_file_io_error>(read_file_io_error{
+        return failed_result(read_file_io_error{
             .path = this->fs.rooted("quick-lint-js.config").path(),
             .io_error = generic_file_io_error,
         });
@@ -1788,8 +1787,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   this->fs.create_file(
       this->fs.rooted("quick-lint-js.config"),
       [this]() -> fake_configuration_filesystem::read_file_result {
-        return fake_configuration_filesystem::read_file_result::failure<
-            read_file_io_error>(read_file_io_error{
+        return failed_result(read_file_io_error{
             .path = this->fs.rooted("quick-lint-js.config").path(),
             .io_error = generic_file_io_error,
         });

@@ -77,7 +77,7 @@ fake_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_UNISTD_H
     posix_file_io_error io_error = {ENOENT};
 #endif
-    return read_file_result::failure<read_file_io_error>(read_file_io_error{
+    return failed_result(read_file_io_error{
         .path = std::string(path.path()),
         .io_error = io_error,
     });

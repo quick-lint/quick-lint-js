@@ -62,8 +62,7 @@ change_detecting_filesystem_inotify::change_detecting_filesystem_inotify() {
         result<posix_fd_file, posix_file_io_error>(std::move(inotify_fd));
   } else {
     posix_file_io_error error{errno};
-    this->inotify_fd_ =
-        result<posix_fd_file, posix_file_io_error>::failure(error);
+    this->inotify_fd_ = failed_result(error);
     this->watch_errors_.emplace_back(watch_io_error{
         .path = "",
         .io_error = error,

@@ -100,7 +100,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     case ERROR_NO_DATA:
       return 0;
     default:
-      return file_read_result::failure(windows_file_io_error{error});
+      return failed_result(windows_file_io_error{error});
     };
   }
   // TODO(strager): Microsoft's documentation for ReadFile claims the following:
@@ -125,8 +125,7 @@ result<std::size_t, windows_file_io_error> windows_handle_file_ref::write(
   ::DWORD write_size;
   if (!::WriteFile(this->handle_, buffer, size_to_write, &write_size,
                    /*lpOverlapped=*/nullptr)) {
-    return result<std::size_t, windows_file_io_error>::failure(
-        windows_file_io_error{::GetLastError()});
+    return failed_result(windows_file_io_error{::GetLastError()});
   }
   return write_size;
 }
@@ -140,8 +139,7 @@ result<void, windows_file_io_error> windows_handle_file_ref::write_full(
   }
   if (*write_result != buffer_size) {
     // TODO(strager): Should we retry with the remaining buffer?
-    return result<void, windows_file_io_error>::failure(
-        windows_file_io_error{ERROR_PARTIAL_COPY});
+    return failed_result(windows_file_io_error{ERROR_PARTIAL_COPY});
   }
   return {};
 }
@@ -256,7 +254,7 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return file_read_result::failure(posix_file_io_error{errno});
+    return failed_result(posix_file_io_error{errno});
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));
@@ -267,8 +265,7 @@ result<std::size_t, posix_file_io_error> posix_fd_file_ref::write(
   QLJS_ASSERT(this->valid());
   ::ssize_t written_size = ::write(this->fd_, buffer, buffer_size);
   if (written_size == -1) {
-    return result<std::size_t, posix_file_io_error>::failure(
-        posix_file_io_error{errno});
+    return failed_result(posix_file_io_error{errno});
   }
   return narrow_cast<std::size_t>(written_size);
 }
@@ -282,7 +279,7 @@ result<void, posix_file_io_error> posix_fd_file_ref::write_full(
   }
   if (*write_result != buffer_size) {
     // TODO(strager): Should we retry with the remaining buffer?
-    return result<void, posix_file_io_error>::failure(posix_file_io_error{EIO});
+    return failed_result(posix_file_io_error{EIO});
   }
   return {};
 }

@@ -74,8 +74,7 @@ result<void, platform_file_io_error> read_file_buffered(
       std::optional<int> new_size = checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
-        return result<void, platform_file_io_error>::failure(
-            file_too_large_error());
+        return failed_result(file_too_large_error());
       }
       out_content->resize_grow_uninitialized(size_before + buffer_size);
     }
@@ -101,8 +100,7 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
   if (!size_to_read.has_value()) {
-    return result<padded_string, platform_file_io_error>::failure(
-        file_too_large_error());
+    return failed_result(file_too_large_error());
   }
   content.resize_grow_uninitialized(*size_to_read);
 
@@ -183,12 +181,10 @@ result<padded_string, platform_file_io_error> read_file(
 
   ::LARGE_INTEGER file_size;
   if (!::GetFileSizeEx(file.get(), &file_size)) {
-    return result<padded_string, windows_file_io_error>::failure<
-        windows_file_io_error>(windows_file_io_error{::GetLastError()});
+    return failed_result(windows_file_io_error{::GetLastError()});
   }
   if (!in_range<int>(file_size.QuadPart)) {
-    return result<padded_string, platform_file_io_error>::failure(
-        file_too_large_error());
+    return failed_result(file_too_large_error());
   }
 
   return read_file_with_expected_size(
@@ -216,13 +212,11 @@ result<padded_string, platform_file_io_error> read_file(
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
-    return result<padded_string, posix_file_io_error>::failure(
-        posix_file_io_error{errno});
+    return failed_result(posix_file_io_error{errno});
   }
   auto file_size = s.st_size;
   if (!in_range<int>(file_size)) {
-    return result<padded_string, platform_file_io_error>::failure(
-        file_too_large_error());
+    return failed_result(file_too_large_error());
   }
 
   return read_file_with_expected_size(
@@ -235,7 +229,7 @@ result<padded_string, read_file_io_error> read_file(const char *path,
                                                     platform_file_ref file) {
   result<padded_string, platform_file_io_error> r = read_file(file);
   if (!r.ok()) {
-    return result<padded_string, read_file_io_error>::failure(
+    return failed_result(
         read_file_io_error{.path = path, .io_error = r.error()});
   }
   return *std::move(r);
@@ -250,9 +244,8 @@ result<padded_string, read_file_io_error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
-    return result<padded_string, read_file_io_error>::failure(
-        read_file_io_error{
-            .path = path, .io_error = windows_file_io_error{::GetLastError()}});
+    return failed_result(read_file_io_error{
+        .path = path, .io_error = windows_file_io_error{::GetLastError()}});
   }
   HANDLE handle = ::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
@@ -262,9 +255,8 @@ result<padded_string, read_file_io_error> read_file(const char *path) {
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
-    return result<padded_string, read_file_io_error>::failure(
-        read_file_io_error{
-            .path = path, .io_error = windows_file_io_error{::GetLastError()}});
+    return failed_result(read_file_io_error{
+        .path = path, .io_error = windows_file_io_error{::GetLastError()}});
   }
   windows_handle_file file(handle);
   return read_file(path, file.ref());
@@ -280,9 +272,8 @@ result<padded_string, read_file_io_error> read_stdin() {
 result<padded_string, read_file_io_error> read_file(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    return result<padded_string, read_file_io_error>::failure(
-        read_file_io_error{.path = path,
-                           .io_error = posix_file_io_error{errno}});
+    return failed_result(read_file_io_error{
+        .path = path, .io_error = posix_file_io_error{errno}});
   }
   posix_fd_file file(fd);
   return read_file(path, file.ref());
@@ -313,11 +304,10 @@ result<platform_file, write_file_io_error> open_file_for_writing(
   posix_fd_file file(
       ::open(path, O_CLOEXEC | O_CREAT | O_TRUNC | O_WRONLY, 0644));
   if (!file.valid()) {
-    return result<platform_file, write_file_io_error>::failure(
-        write_file_io_error{
-            .path = path,
-            .io_error = posix_file_io_error{errno},
-        });
+    return failed_result(write_file_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
   }
   return file;
 }
@@ -328,11 +318,10 @@ result<platform_file, write_file_io_error> open_file_for_writing(
     const char *path) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
-    return result<platform_file, write_file_io_error>::failure(
-        write_file_io_error{
-            .path = path,
-            .io_error = windows_file_io_error{::GetLastError()},
-        });
+    return failed_result(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
   windows_handle_file file(::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_WRITE,
@@ -342,11 +331,10 @@ result<platform_file, write_file_io_error> open_file_for_writing(
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr));
   if (!file.valid()) {
-    return result<platform_file, write_file_io_error>::failure(
-        write_file_io_error{
-            .path = path,
-            .io_error = windows_file_io_error{::GetLastError()},
-        });
+    return failed_result(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
   return std::move(file);
 }
@@ -361,7 +349,7 @@ result<void, write_file_io_error> write_file(const char *path,
 
   auto write_result = file->write_full(content.data(), content.size());
   if (!write_result.ok()) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
+    return failed_result(write_file_io_error{
         .path = path,
         .io_error = write_result.error(),
     });
