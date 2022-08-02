@@ -118,8 +118,16 @@
         //%>
       </script>
 
+      <ul>
+        <% for (let file of files) { %>
+        <li>
+          <a href="#<%= path.basename(file) %>"><%= path.basename(file) %></a>
+        </li>
+        <% } %>
+      </ul>
+
       <% for (let file of files) { %>
-      <p>
+      <p id="<%= path.basename(file) %>">
         quick-lint-js' website contains
         <a href="<%= file %>"><%= path.basename(file) %></a> which has the
         following license:
