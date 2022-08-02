@@ -2178,7 +2178,6 @@
       MESSAGE(QLJS_TRANSLATABLE("continue can only be used inside of a loop"), \
               continue_statement))                                             \
                                                                                \
-  /* TODO(rol1510): maybe display the actual function name? */                 \
   QLJS_DIAG_TYPE(                                                              \
       diag_pointless_string_comp_contains_lower, "E0286",                      \
       diagnostic_severity::warning, { source_code_span span_operator; },       \
@@ -2186,7 +2185,6 @@
           QLJS_TRANSLATABLE("lower case letters compared with toUpperCase"),   \
           span_operator))                                                      \
                                                                                \
-  /* TODO(rol1510): maybe display the actual function name? */                 \
   QLJS_DIAG_TYPE(                                                              \
       diag_pointless_string_comp_contains_upper, "E0287",                      \
       diagnostic_severity::warning, { source_code_span span_operator; },       \
