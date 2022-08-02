@@ -17,6 +17,7 @@ check_file_copyright_header() {
     website/public/license/*.gif.html) ;;
     website/public/license/*.png.html) ;;
     website/public/license/*.svg.html) ;;
+    website/public/license/CC-*.html) ;;
     po/en_US@snarky.po) ;;
     dist/winget/*.yaml) check_file_copyright_header_winget_manifests "${file}" ;;
     *) check_file_copyright_header_quick_lint_js "${file}" ;;
