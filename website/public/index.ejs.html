@@ -18,7 +18,7 @@
         border-color: #888888;
         border-style: solid;
         border-width: 0;
-        padding: 0.5em 1em;
+        padding: 0.5rem 1rem;
         text-align: center;
       }
       .feature-comparison th:first-child {
@@ -45,14 +45,13 @@
         margin-bottom: 0.25em;
       }
 
-      /* Make editor logos appear close to the editor names. */
-      .feature-comparison .editors th:first-child:not([colspan="2"]) {
+      /* Make editor logos appear beside the editor names. */
+      .feature-comparison .editors th:first-child {
         white-space: nowrap;
-        padding-right: 0.25em;
       }
-      .feature-comparison .editors th:first-child:not([colspan="2"]) + th {
-        padding-left: 0.25em;
-        padding-right: 1em;
+      .feature-comparison .editors th:first-child a + a,
+      .feature-comparison .editors th:first-child > img.plugin-logo {
+        margin-left: 0.5rem;
       }
 
       /* Make the table consume less horizontal space. */
@@ -86,9 +85,9 @@
       }
 
       .plugin-logo {
-        height: 1.2em;
-        width: 1.2em;
-        vertical-align: text-bottom;
+        height: 1.2rem;
+        width: 1.2rem;
+        vertical-align: middle;
       }
       .logo-with-text {
         white-space: nowrap;
@@ -531,7 +530,7 @@ const language = "JavaScript";
         <table>
           <thead>
             <tr class="header">
-              <th colspan="2">feature</th>
+              <th>feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
               <th><a href="https://jshint.com/">JSHint</a></th>
@@ -541,7 +540,7 @@ const language = "JavaScript";
           </thead>
           <tbody>
             <tr>
-              <th colspan="2"><a href="benchmarks/">speed</a></th>
+              <th><a href="benchmarks/">speed</a></th>
               <td class="good quick-lint-js has-link">
                 <a href="benchmarks/"
                   ><span aria-labelledby="feature-speed-qljs-quick">🚀</span
@@ -566,7 +565,7 @@ const language = "JavaScript";
               </td>
             </tr>
             <tr>
-              <th colspan="2">license</th>
+              <th>license</th>
               <td class="good quick-lint-js">free<br />GPLv3</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
@@ -574,7 +573,7 @@ const language = "JavaScript";
               <td class="meh">open source<br />MIT</td>
             </tr>
             <tr>
-              <th colspan="2">easy npm install</th>
+              <th>easy npm install</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span>
               </td>
@@ -584,7 +583,7 @@ const language = "JavaScript";
               <td class="bad"><span aria-label="hard">❌</span></td>
             </tr>
             <tr>
-              <th colspan="2">easy setup</th>
+              <th>easy setup</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span><br />zero config
               </td>
@@ -601,7 +600,7 @@ const language = "JavaScript";
               </td>
             </tr>
             <tr>
-              <th colspan="2">JSX</th>
+              <th>JSX</th>
               <td class="good quick-lint-js">
                 <span aria-label="yes">✅</span>
               </td>
@@ -619,7 +618,7 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th colspan="2">TypeScript</th>
+              <th>TypeScript</th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -644,7 +643,7 @@ const language = "JavaScript";
             </tr>
 
             <tr>
-              <th colspan="2">lint rules</th>
+              <th>lint rules</th>
               <td class="meh quick-lint-js"><a href="errors/">minimal</a></td>
               <td class="good">
                 <a href="https://eslint.org/docs/rules/">zillions</a>
@@ -658,7 +657,7 @@ const language = "JavaScript";
               <td class="meh"><a href="https://lint.deno.land/">some</a></td>
             </tr>
             <tr>
-              <th colspan="2">stable</th>
+              <th>stable</th>
               <td class="good quick-lint-js">
                 <span aria-label="stable">✅</span>
               </td>
@@ -671,7 +670,7 @@ const language = "JavaScript";
 
           <tbody class="editors">
             <tr class="header">
-              <th colspan="2">feature</th>
+              <th>feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
               <th><a href="https://jshint.com/">JSHint</a></th>
@@ -679,8 +678,8 @@ const language = "JavaScript";
               <th><a href="https://deno.land/">Deno</a></th>
             </tr>
             <tr>
-              <th class="has-link"><a href="install/vscode/">VS Code</a></th>
               <th class="has-link">
+                <a href="install/vscode/">VS Code</a>
                 <a href="install/vscode/"
                   ><img
                     class="plugin-logo"
@@ -699,8 +698,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th class="has-link"><a href="install/vim/">Vim</a></th>
               <th class="has-link">
+                <a href="install/vim/">Vim</a>
                 <a href="install/vim/"
                   ><img
                     class="plugin-logo"
@@ -719,8 +718,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th class="has-link"><a href="install/neovim/">Neovim</a></th>
               <th class="has-link">
+                <a href="install/neovim/">Neovim</a>
                 <a href="install/neovim/"
                   ><img
                     class="plugin-logo"
@@ -739,8 +738,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>WebStorm</th>
               <th>
+                WebStorm
                 <img
                   class="plugin-logo"
                   src="webstorm.svg"
@@ -758,8 +757,6 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/sublime/">Sublime Text</a>
-              </th>
-              <th class="has-link">
                 <a href="install/sublime/"
                   ><img
                     class="plugin-logo"
@@ -778,8 +775,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>Notepad++</th>
               <th>
+                Notepad++
                 <img
                   class="plugin-logo"
                   src="notepad-plus-plus.svg"
@@ -796,8 +793,8 @@ const language = "JavaScript";
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>Atom</th>
               <th>
+                Atom
                 <img
                   class="plugin-logo"
                   src="atom.svg"
@@ -813,8 +810,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th><a href="install/emacs/">Emacs</a></th>
               <th>
+                <a href="install/emacs/">Emacs</a>
                 <a href="install/emacs/"
                   ><img
                     class="plugin-logo"
@@ -833,8 +830,8 @@ const language = "JavaScript";
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>Codespaces</th>
               <th>
+                Codespaces
                 <img
                   class="plugin-logo"
                   src="codespaces.png"
@@ -850,8 +847,8 @@ const language = "JavaScript";
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th class="has-link"><a href="install/kate/">Kate</a></th>
               <th class="has-link">
+                <a href="install/kate/">Kate</a>
                 <a href="install/kate/"
                   ><img
                     class="plugin-logo"
@@ -870,7 +867,7 @@ const language = "JavaScript";
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th colspan="2" class="has-link">
+              <th class="has-link">
                 <a href="install/cli/">LSP server</a>
               </th>
               <td class="good quick-lint-js has-link">
