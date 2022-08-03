@@ -100,24 +100,29 @@ export class VFS {
   }
 
   async _loadFromIndexScriptsAsync(uri, listing) {
-    for (let currentURI of uriAncestry(uri)) {
-      let indexScriptPath = path.join(this._rootPath, currentURI, "index.mjs");
-      await this._loadFromIndexScriptAsync(uri, indexScriptPath, listing);
+    for (let { routes } of await this._loadIndexScriptsAsync(uri)) {
+      await this._loadFromIndexScriptRoutesAsync(uri, routes, listing);
     }
   }
 
-  async _loadFromIndexScriptAsync(uri, indexScriptPath, listing) {
-    let routes;
-    try {
-      let indexModule = await import(url.pathToFileURL(indexScriptPath));
-      routes = indexModule.routes;
-    } catch (e) {
-      if (e.code === "ERR_MODULE_NOT_FOUND" || e.code === "ENOTDIR") {
-        return;
-      } else {
-        throw e;
+  async _loadIndexScriptsAsync(uri) {
+    let indexExports = [];
+    for (let currentURI of uriAncestry(uri)) {
+      let indexScriptPath = path.join(this._rootPath, currentURI, "index.mjs");
+      try {
+        indexExports.push(await import(url.pathToFileURL(indexScriptPath)));
+      } catch (e) {
+        if (e.code === "ERR_MODULE_NOT_FOUND" || e.code === "ENOTDIR") {
+          continue;
+        } else {
+          throw e;
+        }
       }
     }
+    return indexExports;
+  }
+
+  async _loadFromIndexScriptRoutesAsync(uri, routes, listing) {
     for (let routeURI in routes) {
       if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
         continue;
@@ -138,7 +143,7 @@ export class VFS {
         ) {
           switch (route.type) {
             case "build-ejs":
-              // TODO(strager): The path should be relative to indexScriptPath's
+              // TODO(strager): The path should be relative to index.mjs's
               // parent directory instead.
               childEntry = new EJSVFSFile(
                 path.join(this._rootPath, route.path),
@@ -147,7 +152,7 @@ export class VFS {
               break;
 
             case "esbuild":
-              // TODO(strager): Path should be relative to indexScriptPath's
+              // TODO(strager): Path should be relative to index.mjs's
               // parent directory instead.
               childEntry = new ESBuildVFSFile({
                 ...route.esbuildConfig,
