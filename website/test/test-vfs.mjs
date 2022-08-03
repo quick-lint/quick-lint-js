@@ -352,6 +352,22 @@ describe("VFS", () => {
       expect(children.get("")).toEqual("test dir route");
     });
 
+    it("index.mjs without routes export is ignored", async () => {
+      fs.mkdirSync(path.join(rootPath, "dir"));
+      fs.writeFileSync(
+        path.join(rootPath, "index.mjs"),
+        `export let routes = {
+          "/dir/subdir/": "route from /index.mjs",
+        };`
+      );
+      fs.writeFileSync(path.join(rootPath, "dir", "index.mjs"), `/* empty */`);
+
+      let children = await vfs.listDirectoryAsync("/dir/subdir/");
+
+      expect(children.names()).toEqual([""]);
+      expect(children.get("")).toEqual("route from /index.mjs");
+    });
+
     it("type=build-ejs route is translated into EJSVFSFile", async () => {
       fs.writeFileSync(
         path.join(rootPath, "index.mjs"),
