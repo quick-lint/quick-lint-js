@@ -175,7 +175,8 @@
         line-height: 1em;
         padding: 0.25em 1.5em;
       }
-      #demonstration .footer-bar img {
+      #demonstration .footer-bar img,
+      #demonstration .footer-bar svg {
         height: 1em;
         width: 1em;
         vertical-align: bottom;
@@ -379,6 +380,14 @@
         }
       }
     </style>
+    <script>
+      //<%
+      let {InlineSpriteSheet} = await importFileAsync("../src/sprite-sheet.mjs");
+      let spriteSheet = new InlineSpriteSheet({symbolIDPrefix: "sprites-"});
+      let vscodeCodiconError = spriteSheet.addSVG("vscode-codicon-error.svg");
+      let vscodeCodiconWarning = spriteSheet.addSVG("vscode-codicon-warning.svg");
+      //%>
+    </script>
   </head>
   <body>
     <header><%- await include("./common-nav.ejs.html") %></header>
@@ -418,19 +427,9 @@ const language = "JavaScript";
 </code></pre>
         <div class="footer-bar">
           <div class="diagnostic-counts">
-            <img
-              src="vscode-codicon-error.svg"
-              alt="Errors:"
-              width="10"
-              height="10"
-            />
-            2
-            <img
-              src="vscode-codicon-warning.svg"
-              alt="Warnings:"
-              width="10"
-              height="10"
-            />
+            <%- vscodeCodiconError.makeReferenceHTML({ alt: "Errors:", width:
+            10, height: 10, }) %> 2 <%- vscodeCodiconWarning.makeReferenceHTML({
+            alt: "Warnings:", width: 10, height: 10, }) %>
             <span class="to-remove">1</span><ins class="to-insert">0</ins>
           </div>
           <div class="language">JavaScript</div>
@@ -438,6 +437,8 @@ const language = "JavaScript";
       </figure>
 
       <p><a href="demo/">Try it out in your browser.</a></p>
+
+      <%- await spriteSheet.makeInlineHTMLAsync() %>
 
       <h2>Install quick-lint-js</h2>
       <p>

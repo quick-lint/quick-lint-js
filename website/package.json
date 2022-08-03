@@ -16,7 +16,9 @@
     "markdown-it": "13.0.1",
     "mime": "3.0.0",
     "promise-limit": "^2.7.0",
-    "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
+    "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/",
+    "svg-sprite": "^2.0.0-beta7",
+    "vinyl": "^2.2.1"
   },
   "devDependencies": {
     "axios": "0.27.2",
