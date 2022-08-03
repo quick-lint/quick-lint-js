@@ -165,14 +165,20 @@
         font-size: 0.85rem;
       }
       #demonstration .footer-bar {
-        color: #ffffff;
         background-color: #007ad3;
         border-radius: 0 0 0.75em 0.75em;
+        color: #ffffff;
         display: flex;
         flex-direction: row;
         font-size: 0.66em;
         justify-content: space-between;
+        line-height: 1em;
         padding: 0.25em 1.5em;
+      }
+      #demonstration .footer-bar img {
+        height: 1em;
+        width: 1em;
+        vertical-align: bottom;
       }
       @media (prefers-color-scheme: dark) {
         #demonstration .window-title {
@@ -412,7 +418,20 @@ const language = "JavaScript";
 </code></pre>
         <div class="footer-bar">
           <div class="diagnostic-counts">
-            ⊗ 2 ⚠ <span class="to-remove">1</span><ins class="to-insert">0</ins>
+            <img
+              src="vscode-codicon-error.svg"
+              alt="Errors:"
+              width="10"
+              height="10"
+            />
+            2
+            <img
+              src="vscode-codicon-warning.svg"
+              alt="Warnings:"
+              width="10"
+              height="10"
+            />
+            <span class="to-remove">1</span><ins class="to-insert">0</ins>
           </div>
           <div class="language">JavaScript</div>
         </div>
