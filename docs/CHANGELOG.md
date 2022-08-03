@@ -6,6 +6,14 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* quick-lint-js now recognizes the `jest` global variable from the Jest test
+  framework. This suppresses undesired [E0057][] ("use of undeclared variable")
+  warnings.
+
 ## 2.8.0 (2022-07-25)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.8.0/)

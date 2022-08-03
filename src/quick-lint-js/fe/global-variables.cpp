@@ -171,6 +171,7 @@ constexpr const char8 global_variables_jest[] =
     u8"fdescribe\0"
     u8"fit\0"
     u8"it\0"
+    u8"jest\0"
     u8"test\0"
     u8"xdescribe\0"
     u8"xit\0"
@@ -273,7 +274,7 @@ const global_group global_groups[] = {
         .globals = global_variables_jest,
         .non_writable_globals = nullptr,
         .non_shadowable_globals = nullptr,
-        .globals_count = 13,
+        .globals_count = 14,
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
     },
