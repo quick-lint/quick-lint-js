@@ -28,7 +28,7 @@ function qljsContentIcon(attributes, { currentURI }) {
     src="${makeRelativeIconURI(icon, currentURI)}"
     alt="${icon.alt}"
     title="${icon.alt}"
-    class="os-logo"
+    class="os-logo ${attributes.class || ""}"
     ${getExtraIconAttributesHTML(attributes)}
   />`;
 }
@@ -41,7 +41,7 @@ function qljsIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
   return html`<img
     src="${makeRelativeIconURI(icon, currentURI)}"
-    class="os-logo"
+    class="os-logo ${attributes.class || ""}"
     alt=""
     title="${icon.alt}"
     ${getExtraIconAttributesHTML(attributes)}
