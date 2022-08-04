@@ -5,7 +5,10 @@ import assert from "assert";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { InlineSpriteSheet } from "../src/sprite-sheet.mjs";
+import {
+  ExternalSpriteSheet,
+  InlineSpriteSheet,
+} from "../src/sprite-sheet.mjs";
 
 describe("InlineSpriteSheet", () => {
   it("empty has empty inline data", async () => {
@@ -54,6 +57,69 @@ describe("InlineSpriteSheet", () => {
       expect(referenceHTML).toContain(`xlink:href="#${testSVG.symbolID}"`);
       expect(referenceHTML).toContain("<svg");
       expect(referenceHTML).toContain('role="img"');
+      expect(referenceHTML).toContain('aria-label="alt text goes here"');
+      expect(referenceHTML).toContain('width="10"');
+      expect(referenceHTML).toContain('height="12"');
+    });
+  });
+});
+
+describe("ExternalSpriteSheet", () => {
+  it("empty has blank SVG external data", async () => {
+    let sheet = new ExternalSpriteSheet();
+    let external = await sheet.makeExternalFileAsync();
+    expect(external).toContain("<svg");
+    expect(external).toContain("></svg>");
+  });
+
+  let tempDir;
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(os.tmpdir() + path.sep);
+  });
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true });
+  });
+
+  describe("one SVG", () => {
+    let testSVGPath;
+    let sheet;
+    let testSVG;
+    beforeEach(() => {
+      testSVGPath = path.join(tempDir, "test.svg");
+      fs.writeFileSync(
+        testSVGPath,
+        `
+          <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0h8v8H0z" />
+          </svg>
+        `
+      );
+      sheet = new ExternalSpriteSheet();
+      testSVG = sheet.addSVG(testSVGPath);
+    });
+
+    it("appears in external file", async () => {
+      let external = await sheet.makeExternalFileAsync();
+      expect(external).toContain(`id="${testSVG.symbolID}"`);
+      expect(external).toContain('<path d="M0 0h8v8H0z"');
+    });
+
+    it("reference", async () => {
+      let referenceHTML = testSVG.makeReferenceHTML({
+        externalFileURI: "myspritesheet.svg",
+        attributes: {
+          alt: "alt text goes here",
+          width: 10,
+          height: 12,
+          class: "banana",
+        },
+      });
+      expect(referenceHTML).toContain(
+        `xlink:href="myspritesheet.svg#${testSVG.symbolID}"`
+      );
+      expect(referenceHTML).toContain("<svg");
+      expect(referenceHTML).toContain('role="img"');
+      expect(referenceHTML).toContain('class="banana"');
       expect(referenceHTML).toContain('aria-label="alt text goes here"');
       expect(referenceHTML).toContain('width="10"');
       expect(referenceHTML).toContain('height="12"');

@@ -6,6 +6,89 @@ import Vinyl from "vinyl";
 import assert from "assert";
 import fs from "fs";
 
+export class ExternalSpriteSheet {
+  constructor() {
+    this._paths = [];
+    // Vinyl normalizes paths. Use the normalized path as the key so we can look
+    // it up later in the symbol ID generator function.
+    this._vinylPathToSymbolID = new Map();
+  }
+
+  addSVG(path) {
+    let symbolID = `s${this._paths.length}`;
+    let vinylPath = new Vinyl({
+      path: path,
+      contents: emptyBuffer,
+    }).path;
+    this._vinylPathToSymbolID.set(vinylPath, symbolID);
+    this._paths.push(path);
+    return new ExternalSpriteSheetImage({ symbolID });
+  }
+
+  async makeExternalFileAsync() {
+    let config = {
+      shape: {
+        id: {
+          generator: (name, file) => {
+            let symbolID = this._vinylPathToSymbolID.get(file.path);
+            assert.ok(symbolID);
+            return symbolID;
+          },
+        },
+      },
+      mode: {
+        defs: true,
+      },
+    };
+    let spriter = new SVGSpriter(config);
+    for (let path of this._paths) {
+      spriter.add(
+        new Vinyl({
+          path: path,
+          contents: await fs.promises.readFile(path),
+        })
+      );
+    }
+    let { result } = await spriter.compileAsync();
+    return result.defs.sprite.contents.toString();
+  }
+}
+
+function makeSVGSymbolReference({
+  externalFileURI,
+  symbolID,
+  attributes: { alt, ...passthruAttributes },
+}) {
+  let svgAttributes = ' role="img"';
+  if (alt) {
+    // TODO(strager): HTML-escape.
+    svgAttributes += ` aria-label="${alt}"`;
+  }
+  for (let [name, value] of Object.entries(passthruAttributes)) {
+    // TODO(strager): HTML-escape.
+    svgAttributes += ` ${name}="${value}"`;
+  }
+  return `<svg${svgAttributes}><use xlink:href="${externalFileURI}#${symbolID}"></use></svg>`;
+}
+
+class ExternalSpriteSheetImage {
+  constructor({ symbolID }) {
+    this._symbolID = symbolID;
+  }
+
+  get symbolID() {
+    return this._symbolID;
+  }
+
+  makeReferenceHTML({ attributes, externalFileURI }) {
+    return makeSVGSymbolReference({
+      attributes,
+      externalFileURI,
+      symbolID: this._symbolID,
+    });
+  }
+}
+
 export class InlineSpriteSheet {
   constructor({ symbolIDPrefix }) {
     this._symbolIDPrefix = symbolIDPrefix;
@@ -23,7 +106,7 @@ export class InlineSpriteSheet {
     }).path;
     this._vinylPathToSymbolID.set(vinylPath, symbolID);
     this._paths.push(path);
-    return new SpriteSheetImage({ symbolID });
+    return new InlineSpriteSheetImage({ symbolID });
   }
 
   async makeInlineHTMLAsync() {
@@ -61,7 +144,7 @@ export class InlineSpriteSheet {
   }
 }
 
-class SpriteSheetImage {
+class InlineSpriteSheetImage {
   constructor({ symbolID }) {
     this._symbolID = symbolID;
   }
@@ -70,19 +153,12 @@ class SpriteSheetImage {
     return this._symbolID;
   }
 
-  makeReferenceHTML({ alt, width, height } = {}) {
-    let svgAttributes = ' role="img"';
-    if (alt) {
-      // TODO(strager): HTML-escape.
-      svgAttributes += ` aria-label="${alt}"`;
-    }
-    if (typeof width !== "undefined") {
-      svgAttributes += ` width="${width}"`;
-    }
-    if (typeof height !== "undefined") {
-      svgAttributes += ` height="${height}"`;
-    }
-    return `<svg${svgAttributes}><use xlink:href="#${this._symbolID}"></use></svg>`;
+  makeReferenceHTML(attributes = {}) {
+    return makeSVGSymbolReference({
+      attributes,
+      externalFileURI: "",
+      symbolID: this._symbolID,
+    });
   }
 }
 

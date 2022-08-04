@@ -12,6 +12,7 @@ import ejs from "ejs";
 import fs from "fs";
 import path from "path";
 import url from "url";
+import { makeRelativeURI } from "./uri.mjs";
 import { getQuickLintJSVersionInfoAsync } from "./qljs-version.mjs";
 
 process.on("message", (message, _sendHandle) => {
@@ -75,11 +76,7 @@ async function renderEJSFileAsync({ currentURI, ejsFilePath }) {
           return await import(url.pathToFileURL(path));
         },
         makeRelativeURI: (uri) => {
-          if (/^\w+:/.test(uri)) {
-            return uri;
-          }
-          let suffix = uri.endsWith("/") ? "/" : "";
-          return path.posix.relative(currentURI, uri) + suffix;
+          return makeRelativeURI(currentURI, uri);
         },
         qljsVersionInfo: await getQuickLintJSVersionInfoAsync(),
         collapseInteriorWhitespace: (s) => {

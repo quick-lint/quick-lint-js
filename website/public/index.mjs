@@ -2,13 +2,28 @@
 // See end of file for extended copyright information.
 
 import path from "path";
+import url from "url";
+import { ExternalSpriteSheet } from "../src/sprite-sheet.mjs";
 import { html } from "../src/html-tag.mjs";
+import { makeRelativeURI } from "../src/uri.mjs";
 
+let __filename = url.fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
+
+let iconsSpriteSheetURI = "/logos.svg";
 export let routes = {
   "/error-box.bundled.js": {
     type: "esbuild",
     esbuildConfig: {
       entryPoints: ["/error-box.mjs"],
+    },
+  },
+  [iconsSpriteSheetURI]: {
+    getContentType() {
+      return "image/svg+xml";
+    },
+    async getContentsAsync() {
+      return await iconsSpriteSheet.makeExternalFileAsync();
     },
   },
 };
@@ -24,6 +39,17 @@ export let customComponents = {
 // replacing content.
 function qljsContentIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
+  if (icon.spriteSheetItem) {
+    return icon.spriteSheetItem.makeReferenceHTML({
+      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
+      attributes: {
+        class: `logo ${attributes.class || ""}`,
+        alt: icon.alt,
+        title: icon.alt,
+        ...getExtraIconAttributes(attributes),
+      },
+    });
+  }
   return html`<img
     src="${makeRelativeIconURI(icon, currentURI)}"
     alt="${icon.alt}"
@@ -39,6 +65,17 @@ function qljsContentIcon(attributes, { currentURI }) {
 // icons, with an explanation for the icon elsewhere.
 function qljsIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
+  if (icon.spriteSheetItem) {
+    return icon.spriteSheetItem.makeReferenceHTML({
+      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
+      attributes: {
+        class: `logo ${attributes.class || ""}`,
+        alt: "",
+        title: icon.alt,
+        ...getExtraIconAttributes(attributes),
+      },
+    });
+  }
   return html`<img
     src="${makeRelativeIconURI(icon, currentURI)}"
     class="logo ${attributes.class || ""}"
@@ -60,6 +97,21 @@ function getExtraIconAttributesHTML(attributes) {
     }
   }
   return html;
+}
+
+function getExtraIconAttributes(attributes) {
+  let out = {};
+  if (attributes.size) {
+    out.width = attributes.size;
+    out.height = attributes.size;
+  }
+  for (let attrName in attributes) {
+    if (attrName.startsWith("aria-")) {
+      // TODO(strager): HTML-escape.
+      out[attrName] = attributes[attrName];
+    }
+  }
+  return out;
 }
 
 let icons = {
@@ -92,6 +144,15 @@ let icons = {
   webstorm: { path: "webstorm.svg", alt: "WebStorm" },
   windows: { path: "windows.svg", alt: "Windows" },
 };
+
+let iconsSpriteSheet = new ExternalSpriteSheet();
+for (let [iconName, icon] of Object.entries(icons)) {
+  let spriteSheetItem = null;
+  if (path.extname(icon.path) === ".svg") {
+    spriteSheetItem = iconsSpriteSheet.addSVG(path.join(__dirname, icon.path));
+  }
+  icon.spriteSheetItem = spriteSheetItem;
+}
 
 function getIcon(name) {
   if (!Object.prototype.hasOwnProperty.call(icons, name)) {
