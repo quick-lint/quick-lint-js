@@ -1764,13 +1764,20 @@ next:
     bool looks_like_arrow_function_body =
         prec.trailing_curly_is_arrow_body &&
         !binary_builder.has_multiple_children() &&
-        ((!this->peek().has_leading_newline &&
-          // TODO(strager): Check for ',' operator explicitly, not any binary
-          // operator.
-          binary_builder.last_expression()->without_paren()->kind() ==
-              expression_kind::binary_operator) ||
-         (binary_builder.last_expression()->kind() ==
-          expression_kind::paren_empty));
+        ((  // multiple identifiers: (a, b)
+             !this->peek().has_leading_newline &&
+             // TODO(strager): Check for ',' operator explicitly, not any binary
+             // operator.
+             binary_builder.last_expression()->without_paren()->kind() ==
+                 expression_kind::binary_operator) ||
+         (  // one identifier: (a)
+             binary_builder.last_expression()->kind() ==
+                 expression_kind::paren &&
+             binary_builder.last_expression()->without_paren()->kind() ==
+                 expression_kind::variable) ||
+         (  // no identifier: ()
+             binary_builder.last_expression()->kind() ==
+             expression_kind::paren_empty));
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
       // (a, b) { return a + b; }  // Invalid.
