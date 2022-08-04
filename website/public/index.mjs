@@ -24,15 +24,12 @@ export let customComponents = {
 // replacing content.
 function qljsContentIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
-  let sizeAttributes = attributes.size
-    ? `width="${attributes.size}" height="${attributes.size}"`
-    : "";
   return html`<img
     src="${makeRelativeIconURI(icon, currentURI)}"
     alt="${icon.alt}"
     title="${icon.alt}"
     class="os-logo"
-    ${sizeAttributes}
+    ${getExtraIconAttributesHTML(attributes)}
   />`;
 }
 
@@ -42,16 +39,27 @@ function qljsContentIcon(attributes, { currentURI }) {
 // icons, with an explanation for the icon elsewhere.
 function qljsIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
-  let sizeAttributes = attributes.size
-    ? `width="${attributes.size}" height="${attributes.size}"`
-    : "";
   return html`<img
     src="${makeRelativeIconURI(icon, currentURI)}"
     class="os-logo"
     alt=""
     title="${icon.alt}"
-    ${sizeAttributes}
+    ${getExtraIconAttributesHTML(attributes)}
   />`;
+}
+
+function getExtraIconAttributesHTML(attributes) {
+  let html = "";
+  if (attributes.size) {
+    html += ` width="${attributes.size}" height="${attributes.size}"`;
+  }
+  for (let attrName in attributes) {
+    if (attrName.startsWith("aria-")) {
+      // TODO(strager): HTML-escape.
+      html += ` ${attrName}=${attributes[attrName]}`;
+    }
+  }
+  return html;
 }
 
 let icons = {

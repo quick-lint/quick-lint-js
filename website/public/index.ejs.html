@@ -50,7 +50,7 @@
         white-space: nowrap;
       }
       .feature-comparison .editors th:first-child a + a,
-      .feature-comparison .editors th:first-child > img.plugin-logo {
+      .feature-comparison .editors th:first-child > img.os-logo {
         margin-left: 0.5rem;
       }
 
@@ -84,13 +84,17 @@
         }
       }
 
-      .plugin-logo {
+      .os-logo {
         height: 1.2rem;
         width: 1.2rem;
         vertical-align: middle;
       }
       .logo-with-text {
         white-space: nowrap;
+      }
+
+      .install-options .os-logo {
+        vertical-align: text-bottom;
       }
 
       #demonstration {
@@ -456,66 +460,43 @@ const language = "JavaScript";
         <li>
           <a
             href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
-            ><img
-              class="install-logo"
-              src="vscode.png"
-              alt=""
+            ><qljs-icon
+              name="vscode"
+              size="19"
               aria-labelledby="install-vs-code"
-              width="19"
-              height="19"
             />
             <span id="install-vs-code">install VS Code plugin</span></a
           >
         </li>
         <li>
           <a href="install/neovim/"
-            ><img
-              class="install-logo"
-              src="neovim.svg"
-              alt=""
+            ><qljs-icon
+              name="neovim"
+              size="19"
               aria-labelledby="install-neovim"
-              width="19"
-              height="19"
             />
             <span id="install-neovim">install Neovim plugin</span></a
           >
         </li>
         <li>
           <a href="install/vim/"
-            ><img
-              class="install-logo"
-              src="vim.gif"
-              alt=""
-              aria-labelledby="install-vim"
-              width="19"
-              height="19"
-            />
+            ><qljs-icon name="vim" size="19" aria-labelledby="install-vim" />
             <span id="install-vim">install Vim plugin</span></a
           >
         </li>
         <li>
           <a href="install/cli/"
-            ><img
-              class="install-logo"
-              src="gnome-terminal.svg"
-              alt=""
+            ><qljs-icon
+              name="cli-and-lsp-server"
+              size="19"
               aria-labelledby="install-cli"
-              width="19"
-              height="19"
             />
             <span id="install-cli">install CLI</span></a
           >
         </li>
         <li>
           <a href="https://www.npmjs.com/package/quick-lint-js"
-            ><img
-              class="install-logo"
-              src="npm.svg"
-              alt=""
-              aria-labelledby="install-npm"
-              width="19"
-              height="19"
-            />
+            ><qljs-icon name="npm" size="19" aria-labelledby="install-npm" />
             <span id="install-npm">install CLI on npm</span></a
           >
         </li>
@@ -681,12 +662,7 @@ const language = "JavaScript";
               <th class="has-link">
                 <a href="install/vscode/">VS Code</a>
                 <a href="install/vscode/"
-                  ><img
-                    class="plugin-logo"
-                    src="vscode.png"
-                    alt=""
-                    width="19"
-                    height="19"
+                  ><qljs-icon name="vscode" size="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -700,14 +676,7 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/vim/">Vim</a>
-                <a href="install/vim/"
-                  ><img
-                    class="plugin-logo"
-                    src="vim.gif"
-                    alt=""
-                    width="19"
-                    height="19"
-                /></a>
+                <a href="install/vim/"><qljs-icon name="vim" size="19" /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/vim/" aria-label="yes">✅</a>
@@ -721,12 +690,7 @@ const language = "JavaScript";
               <th class="has-link">
                 <a href="install/neovim/">Neovim</a>
                 <a href="install/neovim/"
-                  ><img
-                    class="plugin-logo"
-                    src="neovim.svg"
-                    alt=""
-                    width="19"
-                    height="19"
+                  ><qljs-icon name="neovim" size="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -740,13 +704,7 @@ const language = "JavaScript";
             <tr>
               <th>
                 WebStorm
-                <img
-                  class="plugin-logo"
-                  src="webstorm.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+                <qljs-icon name="webstorm" size="19" />
               </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -758,12 +716,7 @@ const language = "JavaScript";
               <th class="has-link">
                 <a href="install/sublime/">Sublime Text</a>
                 <a href="install/sublime/"
-                  ><img
-                    class="plugin-logo"
-                    src="sublime-text.svg"
-                    alt=""
-                    width="19"
-                    height="19"
+                  ><qljs-icon name="sublime-text" size="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -777,13 +730,7 @@ const language = "JavaScript";
             <tr>
               <th>
                 Notepad++
-                <img
-                  class="plugin-logo"
-                  src="notepad-plus-plus.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+                <qljs-icon name="notepad-plus-plus" size="19" />
               </th>
 
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
@@ -795,13 +742,7 @@ const language = "JavaScript";
             <tr>
               <th>
                 Atom
-                <img
-                  class="plugin-logo"
-                  src="atom.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+                <qljs-icon name="atom" size="19" />
               </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -813,12 +754,7 @@ const language = "JavaScript";
               <th>
                 <a href="install/emacs/">Emacs</a>
                 <a href="install/emacs/"
-                  ><img
-                    class="plugin-logo"
-                    src="emacs.svg"
-                    alt=""
-                    width="19"
-                    height="19"
+                  ><qljs-icon name="emacs" size="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -832,13 +768,7 @@ const language = "JavaScript";
             <tr>
               <th>
                 Codespaces
-                <img
-                  class="plugin-logo"
-                  src="codespaces.png"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+                <qljs-icon name="codespaces" size="19" />
               </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
@@ -849,14 +779,7 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/kate/">Kate</a>
-                <a href="install/kate/"
-                  ><img
-                    class="plugin-logo"
-                    src="kate.svg"
-                    alt=""
-                    width="19"
-                    height="19"
-                /></a>
+                <a href="install/kate/"><qljs-icon name="kate" size="19" /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/kate/" aria-label="yes">✅</a>
