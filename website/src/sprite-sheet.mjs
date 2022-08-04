@@ -57,7 +57,7 @@ export class ExternalSpriteSheet {
 function makeSVGSymbolReference({
   externalFileURI,
   symbolID,
-  attributes: { alt, ...passthruAttributes },
+  attributes: { alt, title, ...passthruAttributes },
 }) {
   let svgAttributes = ' role="img"';
   if (alt) {
@@ -68,7 +68,9 @@ function makeSVGSymbolReference({
     // TODO(strager): HTML-escape.
     svgAttributes += ` ${name}="${value}"`;
   }
-  return `<svg${svgAttributes}><use xlink:href="${externalFileURI}#${symbolID}"></use></svg>`;
+  // TODO(strager): HTML-escape.
+  let titleHTML = title ? `<title>${title}</title>` : "";
+  return `<svg${svgAttributes}><use xlink:href="${externalFileURI}#${symbolID}">${titleHTML}</use></svg>`;
 }
 
 class ExternalSpriteSheetImage {

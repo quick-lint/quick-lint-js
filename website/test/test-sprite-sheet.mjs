@@ -51,6 +51,7 @@ describe("InlineSpriteSheet", () => {
     it("reference", async () => {
       let referenceHTML = testSVG.makeReferenceHTML({
         alt: "alt text goes here",
+        title: "title goes here",
         width: 10,
         height: 12,
       });
@@ -60,6 +61,7 @@ describe("InlineSpriteSheet", () => {
       expect(referenceHTML).toContain('aria-label="alt text goes here"');
       expect(referenceHTML).toContain('width="10"');
       expect(referenceHTML).toContain('height="12"');
+      expect(referenceHTML).toContain("<title>title goes here</title>");
     });
   });
 });
@@ -109,6 +111,7 @@ describe("ExternalSpriteSheet", () => {
         externalFileURI: "myspritesheet.svg",
         attributes: {
           alt: "alt text goes here",
+          title: "title goes here",
           width: 10,
           height: 12,
           class: "banana",
@@ -123,6 +126,7 @@ describe("ExternalSpriteSheet", () => {
       expect(referenceHTML).toContain('aria-label="alt text goes here"');
       expect(referenceHTML).toContain('width="10"');
       expect(referenceHTML).toContain('height="12"');
+      expect(referenceHTML).toContain("<title>title goes here</title>");
     });
   });
 });
