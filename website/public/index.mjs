@@ -83,6 +83,8 @@ let icons = {
   "notepad-plus-plus": { path: "notepad-plus-plus.svg", alt: "Notepad++" },
   npm: { path: "npm.svg", alt: "npm" },
   "open-vsx": { path: "open-vsx.svg", alt: "Open VSX" },
+  "quick-lint-js": { path: "dusty.svg", alt: "quick-lint-js" },
+  "quick-lint-js-small": { path: "favicon-32x32.png", alt: "quick-lint-js" },
   "sublime-text": { path: "sublime-text.svg", alt: "Sublime Text" },
   ubuntu: { path: "ubuntu.svg", alt: "Ubuntu" },
   vim: { path: "vim.gif", alt: "Vim" },

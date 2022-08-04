@@ -426,6 +426,7 @@ summary + h4 {
 .os-logo {
   height: 1.2em;
   vertical-align: text-bottom;
+  width: 1.2em;
 }
 
 .inline-logo {
