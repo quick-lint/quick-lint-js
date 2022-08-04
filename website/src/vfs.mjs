@@ -10,6 +10,7 @@ import path from "path";
 import url from "url";
 import { readFileAsync } from "./fs.mjs";
 import { renderEJSFileAsync } from "./router.mjs";
+import { substituteCustomHTMLComponentsAsync } from "./custom-component.mjs";
 
 export class VFS {
   constructor(rootPath) {
@@ -70,7 +71,11 @@ export class VFS {
         } else if (fsChild.name === "index.ejs.html") {
           listing._addChild(
             "",
-            new EJSVFSFile(path.join(dirPath, "index.ejs.html"), uri)
+            new EJSVFSFile(
+              path.join(dirPath, "index.ejs.html"),
+              uri,
+              await this._getCustomComponentsFromIndexScriptsAsync(uri)
+            )
           );
         } else if (fsChild.name === "index.mjs") {
           // Ignore. index.mjs is imported later.
@@ -103,6 +108,27 @@ export class VFS {
     for (let { routes } of await this._loadIndexScriptsAsync(uri)) {
       await this._loadFromIndexScriptRoutesAsync(uri, routes, listing);
     }
+  }
+
+  async _getCustomComponentsFromIndexScriptsAsync(uri) {
+    let allComponents = {};
+    for (let { customComponents } of await this._loadIndexScriptsAsync(uri)) {
+      for (let componentName in customComponents) {
+        if (
+          Object.prototype.hasOwnProperty.call(customComponents, componentName)
+        ) {
+          if (
+            Object.prototype.hasOwnProperty.call(allComponents, componentName)
+          ) {
+            throw new Error(
+              `custom component defined in multiple index.mjs files: ${componentName}`
+            );
+          }
+          allComponents[componentName] = customComponents[componentName];
+        }
+      }
+    }
+    return allComponents;
   }
 
   async _loadIndexScriptsAsync(uri) {
@@ -145,6 +171,7 @@ export class VFS {
             case "build-ejs":
               // TODO(strager): The path should be relative to index.mjs's
               // parent directory instead.
+              // TODO(strager): Include custom components.
               childEntry = new EJSVFSFile(
                 path.join(this._rootPath, route.path),
                 routeURI
@@ -244,20 +271,38 @@ export class StaticVFSFile extends VFSEntry {
 
 // An template file (usually generating HTML).
 export class EJSVFSFile extends VFSEntry {
-  constructor(path, uri) {
+  constructor(path, uri, customComponents = {}) {
     super();
     this._path = path;
     this._uri = uri;
+
+    this._customComponents = {};
+    for (let name in customComponents) {
+      if (Object.prototype.hasOwnProperty.call(customComponents, name)) {
+        let component = customComponents[name];
+        this._customComponents[name] = (attributes) => {
+          return component(attributes, { currentURI: uri });
+        };
+      }
+    }
   }
 
   get path() {
     return this._path;
   }
 
+  get customComponents() {
+    return this._customComponents;
+  }
+
   async getContentsAsync() {
     let data = await renderEJSFileAsync(this._path, {
       currentURI: this._uri,
     });
+    data = await substituteCustomHTMLComponentsAsync(
+      data,
+      this._customComponents
+    );
     return Buffer.from(data);
   }
 

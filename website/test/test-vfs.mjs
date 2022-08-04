@@ -283,7 +283,7 @@ describe("VFS", () => {
     });
   });
 
-  describe("index.mjs", () => {
+  describe("index.mjs routes", () => {
     it("creates directory and file routes", async () => {
       fs.writeFileSync(
         path.join(rootPath, "index.mjs"),
@@ -410,6 +410,79 @@ describe("VFS", () => {
       await assertSameFileAsync(
         testfile.config.entryPoints[0],
         path.join(rootPath, ".hello.js")
+      );
+    });
+  });
+
+  describe("index.mjs customComponents", () => {
+    it("is used for index.ejs.html", async () => {
+      fs.writeFileSync(
+        path.join(rootPath, "index.mjs"),
+        `export let customComponents = {
+          "x-example": () => {
+            throw new Error("should not be called");
+          },
+        };`
+      );
+      fs.writeFileSync(path.join(rootPath, "index.ejs.html"), "hello world");
+
+      let children = await vfs.listDirectoryAsync("/");
+
+      let index = children.get("");
+      expect(index).toBeInstanceOf(EJSVFSFile);
+      expect(Object.keys(index.customComponents)).toEqual(["x-example"]);
+    });
+
+    it("are combined from multiple index.mjs scripts", async () => {
+      fs.mkdirSync(path.join(rootPath, "dir"));
+      fs.writeFileSync(
+        path.join(rootPath, "index.mjs"),
+        `export let customComponents = {
+          "x-from-root": () => {},
+        };`
+      );
+      fs.writeFileSync(
+        path.join(rootPath, "dir", "index.mjs"),
+        `export let customComponents = {
+          "x-from-dir": () => {},
+        };`
+      );
+      fs.writeFileSync(
+        path.join(rootPath, "dir", "index.ejs.html"),
+        "hello world"
+      );
+
+      let children = await vfs.listDirectoryAsync("/dir/");
+
+      let index = children.get("");
+      expect(index).toBeInstanceOf(EJSVFSFile);
+      expect(Object.keys(index.customComponents).sort()).toEqual([
+        "x-from-dir",
+        "x-from-root",
+      ]);
+    });
+
+    it("disallows same custom component in multiple index.mjs scripts", async () => {
+      fs.mkdirSync(path.join(rootPath, "dir"));
+      fs.writeFileSync(
+        path.join(rootPath, "index.mjs"),
+        `export let customComponents = {
+          "x-example": () => {},
+        };`
+      );
+      fs.writeFileSync(
+        path.join(rootPath, "dir", "index.mjs"),
+        `export let customComponents = {
+          "x-example": () => {},
+        };`
+      );
+      fs.writeFileSync(
+        path.join(rootPath, "dir", "index.ejs.html"),
+        "hello world"
+      );
+
+      await expectAsync(vfs.listDirectoryAsync("/dir/")).toBeRejectedWithError(
+        /duplicate|multiple/
       );
     });
   });
@@ -545,6 +618,21 @@ describe("EJSVFSFile", () => {
       "/"
     );
     expect(await f.getContentsAsync()).toEqual(Buffer.from("hi-a hi-b"));
+  });
+
+  it("expands custom components with attributes and current URI", async () => {
+    let components = {
+      "x-test": (attributes, { currentURI }) => {
+        return `myattr:${attributes.myattr}, currentURI:${currentURI}`;
+      },
+    };
+    let p = path.join(temporaryDirectory, "hello.ejs.html");
+    fs.writeFileSync(p, "<x-test myattr=myvalue />");
+
+    let f = new EJSVFSFile(p, "/", components);
+    expect(await f.getContentsAsync()).toEqual(
+      Buffer.from("myattr:myvalue, currentURI:/")
+    );
   });
 });
 
