@@ -422,7 +422,6 @@ summary + h4 {
   margin-top: 0.75em;
 }
 
-.install-logo,
 .os-logo {
   height: 1.2em;
   vertical-align: text-bottom;
@@ -552,11 +551,6 @@ kbd.keystroke {
 
 .install-options {
   line-height: 1.4em;
-}
-.install-logo {
-  height: 1.2em;
-  width: 1.2em;
-  vertical-align: text-bottom;
 }
 
 /* Side-bar navigation, if the viewport is wide enough. */
