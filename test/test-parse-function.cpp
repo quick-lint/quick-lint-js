@@ -1050,6 +1050,34 @@ TEST_F(test_parse_function, arrow_function_expression_without_arrow_operator) {
   }
 
   {
+    test_parser p(u8"((a) {});"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"((a) "), u8"{")));
+  }
+
+  {
+    test_parser p(u8"(async (a) {});"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async (a) "), u8"{")));
+  }
+
+  {
     test_parser p(u8"((a, b) {});"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
