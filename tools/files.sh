@@ -18,7 +18,12 @@ find_non_vendor_files() {
 
 matching() {
   local pattern="${1}"
-  grep -E "${pattern}" || true
+  grep -E -- "${pattern}" || true
+}
+
+not_matching() {
+  local pattern="${1}"
+  grep -E -v -- "${pattern}" || true
 }
 
 # quick-lint-js finds bugs in JavaScript programs.
