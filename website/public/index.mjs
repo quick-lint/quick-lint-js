@@ -40,23 +40,21 @@ export let customComponents = {
 // replacing content.
 function qljsContentIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
-  if (icon.spriteSheetItem) {
-    return icon.spriteSheetItem.makeReferenceHTML({
-      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
-      attributes: {
-        class: `logo ${attributes.class || ""}`,
-        alt: icon.alt,
-        title: icon.alt,
-        ...getExtraIconAttributes(attributes),
-      },
-    });
-  }
-  return html`<img${makeAttributesHTML({
-    src: makeRelativeIconURI(icon, currentURI),
+  let elementAttributes = {
     class: `logo ${attributes.class || ""}`,
     alt: icon.alt,
     title: icon.alt,
     ...getExtraIconAttributes(attributes),
+  };
+  if (icon.spriteSheetItem) {
+    return icon.spriteSheetItem.makeReferenceHTML({
+      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
+      attributes: elementAttributes,
+    });
+  }
+  return html`<img${makeAttributesHTML({
+    src: makeRelativeIconURI(icon, currentURI),
+    ...elementAttributes,
   })} />`;
 }
 
@@ -66,23 +64,21 @@ function qljsContentIcon(attributes, { currentURI }) {
 // icons, with an explanation for the icon elsewhere.
 function qljsIcon(attributes, { currentURI }) {
   let icon = getIcon(attributes.name);
-  if (icon.spriteSheetItem) {
-    return icon.spriteSheetItem.makeReferenceHTML({
-      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
-      attributes: {
-        class: `logo ${attributes.class || ""}`,
-        alt: "",
-        title: icon.alt,
-        ...getExtraIconAttributes(attributes),
-      },
-    });
-  }
-  return html`<img${makeAttributesHTML({
-    src: makeRelativeIconURI(icon, currentURI),
+  let elementAttributes = {
     class: `logo ${attributes.class || ""}`,
     alt: "",
     title: icon.alt,
     ...getExtraIconAttributes(attributes),
+  };
+  if (icon.spriteSheetItem) {
+    return icon.spriteSheetItem.makeReferenceHTML({
+      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
+      attributes: elementAttributes,
+    });
+  }
+  return html`<img${makeAttributesHTML({
+    src: makeRelativeIconURI(icon, currentURI),
+    ...elementAttributes,
   })} />`;
 }
 
