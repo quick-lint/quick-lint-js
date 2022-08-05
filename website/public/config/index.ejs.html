@@ -11,7 +11,7 @@
       let asciidoctor = (await import("@asciidoctor/core")).default();
 
       let adoc = await fs.promises.readFile(
-        "../../../docs/config.adoc",
+        absoluteFilePath("../../../docs/config.adoc"),
         "utf-8"
       );
       let configDocumentation = asciidoctor.convert(adoc);

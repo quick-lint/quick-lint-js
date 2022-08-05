@@ -10,7 +10,7 @@
       let fs = await import("fs");
       let asciidoctor = (await import("@asciidoctor/core")).default();
 
-      let adoc = await fs.promises.readFile("../../../../docs/lsp.adoc", "utf-8");
+      let adoc = await fs.promises.readFile(absoluteFilePath("../../../../docs/lsp.adoc"), "utf-8");
       let lspDocumentation = asciidoctor.convert(adoc);
       //%>
     </script>

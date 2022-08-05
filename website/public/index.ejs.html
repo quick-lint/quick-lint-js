@@ -384,8 +384,8 @@
       //<%
       let {InlineSpriteSheet} = await importFileAsync("../src/sprite-sheet.mjs");
       let spriteSheet = new InlineSpriteSheet({symbolIDPrefix: "sprites-"});
-      let vscodeCodiconError = spriteSheet.addSVG("vscode-codicon-error.svg");
-      let vscodeCodiconWarning = spriteSheet.addSVG("vscode-codicon-warning.svg");
+      let vscodeCodiconError = spriteSheet.addSVG(absoluteFilePath("vscode-codicon-error.svg"));
+      let vscodeCodiconWarning = spriteSheet.addSVG(absoluteFilePath("vscode-codicon-warning.svg"));
       //%>
     </script>
   </head>

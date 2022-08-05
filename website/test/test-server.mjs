@@ -576,7 +576,7 @@ describe("server", () => {
       expect(response.data).toBe("/");
     });
 
-    it("included template can refer to relative paths", async () => {
+    it("included template can import relative paths using importFileAsync", async () => {
       fs.writeFileSync(
         path.join(wwwRootPath, "index.ejs.html"),
         "<%- await include('./dir/included.ejs.html') %>"
@@ -586,7 +586,7 @@ describe("server", () => {
         path.join(wwwRootPath, "dir/included.ejs.html"),
         `<%
           let url = await import("url");
-          let { hello } = await import(url.pathToFileURL("./hello.mjs"));
+          let { hello } = await importFileAsync("./hello.mjs");
           __append(hello());
         %>`
       );
@@ -606,7 +606,7 @@ describe("server", () => {
           __append(await include("./dir-a/included-a.ejs.html"));
           __append(" ");
           let url = await import("url");
-          let { hello } = await import(url.pathToFileURL("./dir-b/hello-b.mjs"));
+          let { hello } = await importFileAsync("./dir-b/hello-b.mjs");
           __append(hello());
         %>`
       );
@@ -615,7 +615,7 @@ describe("server", () => {
         path.join(wwwRootPath, "dir-a/included-a.ejs.html"),
         `<%
           let url = await import("url");
-          let { hello } = await import(url.pathToFileURL("./hello-a.mjs"));
+          let { hello } = await importFileAsync("./hello-a.mjs");
           __append(hello());
         %>`
       );

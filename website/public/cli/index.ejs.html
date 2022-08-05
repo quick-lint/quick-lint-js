@@ -10,7 +10,7 @@
       let fs = await import("fs");
       let asciidoctor = (await import("@asciidoctor/core")).default();
 
-      let adoc = await fs.promises.readFile("../../../docs/cli.adoc", "utf-8");
+      let adoc = await fs.promises.readFile(absoluteFilePath("../../../docs/cli.adoc"), "utf-8");
       let cliDocumentation = asciidoctor.convert(adoc);
       //%>
     </script>

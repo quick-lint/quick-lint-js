@@ -33,7 +33,8 @@
 
       <article>
         <%- releasesMarkdownToHTML(await
-        fs.promises.readFile("../../../docs/CHANGELOG.md", "utf-8")) %>
+        fs.promises.readFile(absoluteFilePath("../../../docs/CHANGELOG.md"),
+        "utf-8")) %>
       </article>
     </main>
 

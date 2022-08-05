@@ -29,7 +29,7 @@
         "TypeScript-JSX": {hue: 330.0, name: "TypeScript (JSX parser)"},
       };
 
-      let versions = JSON.parse(fs.readFileSync("full-change-wait-express-router-js.json", "utf-8")).metadata;
+      let versions = JSON.parse(fs.readFileSync(absoluteFilePath("full-change-wait-express-router-js.json"), "utf-8")).metadata;
       //%>
     </script>
     <link href="../main.css" rel="stylesheet" />
@@ -87,7 +87,7 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-express-router-js.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("incremental-change-wait-express-router-js.json"),
         seriesOptions)); %>
         <details>
           <summary><h3>Benchmark details</h3></summary>
@@ -135,7 +135,7 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-react-quickly-ch10-jsx.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("incremental-change-wait-react-quickly-ch10-jsx.json"),
         seriesOptions)); %>
         <details>
           <summary><h3>Benchmark details</h3></summary>
@@ -182,7 +182,7 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("full-change-wait-express-router-js.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("full-change-wait-express-router-js.json"),
         seriesOptions)); %>
         <details>
           <summary><h3>Benchmark details</h3></summary>

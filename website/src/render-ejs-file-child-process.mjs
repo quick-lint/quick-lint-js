@@ -46,53 +46,57 @@ async function renderEJSFileAsync({ currentURI, ejsFilePath }) {
   ejsFilePath = path.resolve(ejsFilePath);
   let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
 
+  let state = {
+    cwd: path.dirname(ejsFilePath),
+  };
+
   function includer(_path, resolvedPath) {
-    // include() (defined by our prelude) will restore the current working directory for us.
-    process.chdir(path.dirname(resolvedPath));
+    // include() (defined by our prelude) will restore state.cwd for us.
+    state.cwd = path.dirname(resolvedPath);
   }
 
   let prelude = `
     let __realInclude = include;
     include = async function (...args) {
-      let oldCWD = process.cwd();
+      let oldCWD = _state.cwd;
       try {
         /* __realInclude will call includer which will call process.chdir. */
         return await __realInclude(...args);
       } finally {
-        process.chdir(oldCWD);
+        _state.cwd = oldCWD;
       }
     }
   `;
   prelude = prelude.replace(/\n/g, " "); // Preserve line numbers in user code.
 
-  let oldCWD = process.cwd();
-  process.chdir(path.dirname(ejsFilePath));
-  try {
-    return await ejs.render(
-      `<% ${prelude} %>${ejsHTML}`,
-      {
-        currentURI: currentURI,
-        importFileAsync: async (path) => {
-          return await import(url.pathToFileURL(path));
-        },
-        makeRelativeURI: (uri) => {
-          return makeRelativeURI(currentURI, uri);
-        },
-        qljsVersionInfo: await getQuickLintJSVersionInfoAsync(),
-        collapseInteriorWhitespace: (s) => {
-          return s.replace(/\s+/g, " ");
-        },
-      },
-      {
-        async: true,
-        compileDebug: true,
-        filename: ejsFilePath,
-        includer: includer,
-      }
-    );
-  } finally {
-    process.chdir(oldCWD);
+  function absoluteFilePath(p) {
+    return path.resolve(state.cwd, p);
   }
+
+  return await ejs.render(
+    `<% ${prelude} %>${ejsHTML}`,
+    {
+      _state: state,
+      currentURI: currentURI,
+      absoluteFilePath: absoluteFilePath,
+      importFileAsync: async (pathToImport) => {
+        return await import(url.pathToFileURL(absoluteFilePath(pathToImport)));
+      },
+      makeRelativeURI: (uri) => {
+        return makeRelativeURI(currentURI, uri);
+      },
+      qljsVersionInfo: await getQuickLintJSVersionInfoAsync(),
+      collapseInteriorWhitespace: (s) => {
+        return s.replace(/\s+/g, " ");
+      },
+    },
+    {
+      async: true,
+      compileDebug: true,
+      filename: ejsFilePath,
+      includer: includer,
+    }
+  );
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
