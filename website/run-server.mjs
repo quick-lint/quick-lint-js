@@ -1,52 +1,60 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import http from "http";
+import chokidar from "chokidar";
+import cluster from "cluster";
 import path from "path";
 import url from "url";
-import { listenAsync, urlFromServerAddress } from "./src/net.mjs";
-import { makeServer } from "./src/server.mjs";
-import { websiteConfig } from "./src/config.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
-let DEFAULT_PORT = 9001;
-
 async function mainAsync() {
-  let { host, port } = parseArguments(process.argv.slice(2));
+  if (cluster.isPrimary) {
+    let activeWorker = null;
 
-  let server = http.createServer(makeServer(websiteConfig));
-  await listenAsync(server, { host: host, port: port });
-  console.log(`Server running: ${urlFromServerAddress(server.address())}`);
-}
-
-function parseArguments(args) {
-  let host = "localhost";
-  let port = DEFAULT_PORT;
-  switch (args.length) {
-    case 0:
-      break;
-
-    case 1:
-      port = parseInt(args[0]);
-      if (isNaN(port)) {
-        throw new Error(`Expected port number, but got: ${args[0]}`);
+    function makeNewWorker() {
+      if (activeWorker !== null) {
+        activeWorker.disconnect();
       }
-      break;
 
-    case 2:
-      host = args[0];
-      port = parseInt(args[1]);
-      if (isNaN(port)) {
-        throw new Error(`Expected port number, but got: ${args[1]}`);
+      console.log("note: creating worker");
+      let worker = cluster.fork();
+      worker.on("disconnect", () => {
+        if (activeWorker === worker) {
+          console.error("error: worker disconnected; existing");
+          process.exit(1);
+        } else {
+          console.log("note: old worker disconnected");
+        }
+      });
+
+      activeWorker = worker;
+    }
+
+    let watcher = chokidar.watch(
+      ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.wasm"],
+      {
+        cwd: __dirname,
       }
-      break;
-
-    default:
-      throw new Error("Too many arguments; expected 0, 1, or 2");
+    );
+    let watcherReady = false;
+    watcher.on("error", (error) => {
+      console.error(`warning: ${error}`);
+    });
+    watcher.on("all", (event, path) => {
+      if (watcherReady) {
+        makeNewWorker();
+      }
+    });
+    watcher.on("ready", (event, path) => {
+      watcherReady = true;
+      makeNewWorker();
+    });
+  } else {
+    let workerModule = await import("./run-server-worker.mjs");
+    await workerModule.mainAsync();
   }
-  return { host, port };
 }
 
 mainAsync().catch((error) => {

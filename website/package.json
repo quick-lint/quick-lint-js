@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@asciidoctor/core": "2.2.6",
+    "chokidar": "^3.5.3",
     "ejs": "3.1.8",
     "esbuild-wasm": "0.14.43",
     "jsdom": "19.0.0",
