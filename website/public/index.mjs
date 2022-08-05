@@ -39,23 +39,7 @@ export let customComponents = {
 // Create an <img> with a descriptive alt attribute. Intended for icons
 // replacing content.
 function qljsContentIcon(attributes, { currentURI }) {
-  let icon = getIcon(attributes.name);
-  let elementAttributes = {
-    class: `logo ${attributes.class || ""}`,
-    alt: icon.alt,
-    title: icon.alt,
-    ...getExtraIconAttributes(attributes),
-  };
-  if (icon.spriteSheetItem) {
-    return icon.spriteSheetItem.makeReferenceHTML({
-      externalFileURI: makeRelativeURI(currentURI, iconsSpriteSheetURI),
-      attributes: elementAttributes,
-    });
-  }
-  return html`<img${makeAttributesHTML({
-    src: makeRelativeIconURI(icon, currentURI),
-    ...elementAttributes,
-  })} />`;
+  return qljsAnyIcon(attributes, { currentURI, isContent: true });
 }
 
 // <qljs-icon name="ubuntu" />
@@ -63,10 +47,14 @@ function qljsContentIcon(attributes, { currentURI }) {
 // Create an <img> with a descriptive alt attribute. Intended for decorative
 // icons, with an explanation for the icon elsewhere.
 function qljsIcon(attributes, { currentURI }) {
+  return qljsAnyIcon(attributes, { currentURI, isContent: false });
+}
+
+function qljsAnyIcon(attributes, { currentURI, isContent }) {
   let icon = getIcon(attributes.name);
   let elementAttributes = {
     class: `logo ${attributes.class || ""}`,
-    alt: "",
+    alt: isContent ? icon.alt : "",
     title: icon.alt,
     ...getExtraIconAttributes(attributes),
   };
