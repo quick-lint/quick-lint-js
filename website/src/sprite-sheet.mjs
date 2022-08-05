@@ -5,6 +5,7 @@ import SVGSpriter from "svg-sprite";
 import Vinyl from "vinyl";
 import assert from "assert";
 import fs from "fs";
+import { makeAttributesHTML } from "./html.mjs";
 
 export class ExternalSpriteSheet {
   constructor() {
@@ -59,18 +60,18 @@ function makeSVGSymbolReference({
   symbolID,
   attributes: { alt, title, ...passthruAttributes },
 }) {
-  let svgAttributes = ' role="img"';
+  let svgAttributes = {
+    role: "img",
+    ...passthruAttributes,
+  };
   if (alt) {
-    // TODO(strager): HTML-escape.
-    svgAttributes += ` aria-label="${alt}"`;
-  }
-  for (let [name, value] of Object.entries(passthruAttributes)) {
-    // TODO(strager): HTML-escape.
-    svgAttributes += ` ${name}="${value}"`;
+    svgAttributes["aria-label"] = alt;
   }
   // TODO(strager): HTML-escape.
   let titleHTML = title ? `<title>${title}</title>` : "";
-  return `<svg${svgAttributes}><use xlink:href="${externalFileURI}#${symbolID}">${titleHTML}</use></svg>`;
+  return `<svg${makeAttributesHTML(
+    svgAttributes
+  )}><use xlink:href="${externalFileURI}#${symbolID}">${titleHTML}</use></svg>`;
 }
 
 class ExternalSpriteSheetImage {

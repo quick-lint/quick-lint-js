@@ -5,6 +5,7 @@ import path from "path";
 import url from "url";
 import { ExternalSpriteSheet } from "../src/sprite-sheet.mjs";
 import { html } from "../src/html-tag.mjs";
+import { makeAttributesHTML } from "../src/html.mjs";
 import { makeRelativeURI } from "../src/uri.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
@@ -50,13 +51,13 @@ function qljsContentIcon(attributes, { currentURI }) {
       },
     });
   }
-  return html`<img
-    src="${makeRelativeIconURI(icon, currentURI)}"
-    alt="${icon.alt}"
-    title="${icon.alt}"
-    class="logo ${attributes.class || ""}"
-    ${getExtraIconAttributesHTML(attributes)}
-  />`;
+  return html`<img${makeAttributesHTML({
+    src: makeRelativeIconURI(icon, currentURI),
+    class: `logo ${attributes.class || ""}`,
+    alt: icon.alt,
+    title: icon.alt,
+    ...getExtraIconAttributes(attributes),
+  })} />`;
 }
 
 // <qljs-icon name="ubuntu" />
@@ -76,27 +77,13 @@ function qljsIcon(attributes, { currentURI }) {
       },
     });
   }
-  return html`<img
-    src="${makeRelativeIconURI(icon, currentURI)}"
-    class="logo ${attributes.class || ""}"
-    alt=""
-    title="${icon.alt}"
-    ${getExtraIconAttributesHTML(attributes)}
-  />`;
-}
-
-function getExtraIconAttributesHTML(attributes) {
-  let html = "";
-  if (attributes.size) {
-    html += ` width="${attributes.size}" height="${attributes.size}"`;
-  }
-  for (let attrName in attributes) {
-    if (attrName.startsWith("aria-")) {
-      // TODO(strager): HTML-escape.
-      html += ` ${attrName}=${attributes[attrName]}`;
-    }
-  }
-  return html;
+  return html`<img${makeAttributesHTML({
+    src: makeRelativeIconURI(icon, currentURI),
+    class: `logo ${attributes.class || ""}`,
+    alt: "",
+    title: icon.alt,
+    ...getExtraIconAttributes(attributes),
+  })} />`;
 }
 
 function getExtraIconAttributes(attributes) {
@@ -107,7 +94,6 @@ function getExtraIconAttributes(attributes) {
   }
   for (let attrName in attributes) {
     if (attrName.startsWith("aria-")) {
-      // TODO(strager): HTML-escape.
       out[attrName] = attributes[attrName];
     }
   }
