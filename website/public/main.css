@@ -272,8 +272,7 @@ nav.breadcrumbs ol > li {
   body {
     color: white;
   }
-  .logo[src="macos.svg"],
-  .logo[src$="/macos.svg"] {
+  .logo[data-icon="macos"] {
     filter: invert(100%);
   }
 }

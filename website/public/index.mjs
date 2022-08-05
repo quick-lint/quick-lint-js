@@ -56,6 +56,7 @@ function qljsAnyIcon(attributes, { currentURI, isContent }) {
     class: `logo ${attributes.class || ""}`,
     alt: isContent ? icon.alt : "",
     title: icon.alt,
+    "data-icon": attributes.name,
     ...getExtraIconAttributes(attributes),
   };
   if (icon.spriteSheetItem) {
