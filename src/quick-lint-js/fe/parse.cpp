@@ -319,6 +319,9 @@ void parser::error_on_pointless_string_compare(
   auto is_comparison_operator = [](string8_view s) {
     return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
   };
+  auto char_is_a_quote = [](const char8* s) {
+    return *s == '"' || *s == '\'' || *s == '`';
+  };
 
   for (int i = 0; i < ast->child_count() - 1; i++) {
     expression* lhs = ast->child(i);
@@ -335,14 +338,24 @@ void parser::error_on_pointless_string_compare(
 
       // make sure the call is on the "left" and the literal on the "right"
       if (lhs->kind() == expression_kind::literal) {
-        expression* tmp = lhs;
-        lhs = rhs;
-        rhs = tmp;
+        std::swap(lhs, rhs);
+      }
+
+      if (lhs->child_0()->kind() != expression_kind::dot) {
+        continue;
+      }
+      // Hack: The literal could also be a number like 0xeF.
+      if (!char_is_a_quote(rhs->span().begin())) {
+        continue;
       }
 
       string8_view call =
           lhs->child_0()->variable_identifier().span().string_view();
       string8_view literal = rhs->span().string_view();
+
+      if (literal.find(u8"\\"_sv) != string8_view::npos) {
+        continue;
+      }
 
       if (call == u8"toLowerCase"sv) {
         if (hasupper(literal)) {
