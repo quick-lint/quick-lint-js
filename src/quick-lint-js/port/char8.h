@@ -58,6 +58,9 @@ char8 tolower(char8) noexcept;
 bool islower(char8) noexcept;
 bool isupper(char8) noexcept;
 
+bool haslower(string8_view);
+bool hasupper(string8_view);
+
 inline constexpr string8_view operator""_sv(const char8 *string,
                                             std::size_t length) noexcept {
   return string8_view(string, length);

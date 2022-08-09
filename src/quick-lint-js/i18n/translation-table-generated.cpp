@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0},              //
-        {1, 11611, 20779, 0, 39059},  //
+        {1, 11711, 20973, 0, 39253},  //
         {50, 61, 79, 0, 40},          //
         {62, 74, 53, 0, 46},          //
         {76, 89, 80, 0, 61},          //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 0, 52},          //
         {31, 56, 0, 0, 28},           //
         {0, 0, 0, 0, 67},             //
-        {79, 25, 30, 31484, 66},      //
+        {79, 25, 30, 31678, 66},      //
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
@@ -193,8 +193,9 @@ const translation_table translation_data = {
         {63, 28, 67, 46, 58},         //
         {54, 5, 62, 52, 39},          //
         {61, 50, 75, 64, 50},         //
-        {0, 0, 0, 0, 51},             //
-        {50, 22, 66, 53, 27},         //
+        {50, 22, 0, 0, 51},           //
+        {0, 0, 0, 0, 45},             //
+        {50, 47, 66, 53, 27},         //
         {68, 21, 0, 0, 46},           //
         {59, 43, 61, 50, 39},         //
         {0, 0, 0, 0, 42},             //
@@ -323,9 +324,10 @@ const translation_table translation_data = {
         {38, 35, 17, 13, 14},         //
         {38, 27, 34, 33, 27},         //
         {26, 41, 26, 0, 22},          //
-        {0, 0, 0, 0, 23},             //
+        {27, 3, 0, 0, 23},            //
+        {0, 0, 0, 0, 45},             //
         {0, 0, 0, 0, 42},             //
-        {27, 3, 31, 18, 53},          //
+        {50, 47, 31, 18, 53},         //
         {0, 33, 0, 0, 55},            //
         {64, 31, 79, 68, 28},         //
         {57, 29, 48, 41, 32},         //
@@ -480,6 +482,7 @@ const translation_table translation_data = {
         u8"Veraltete Oktalliterale sind in BigInts nicht erlaubt\0"
         u8"Veraltete Oktalliterale d\u00fcrfen keine Unterstriche enthalten\0"
         u8"let darf keine Variablen namens 'let' deklarieren\0"
+        u8"Kleinbuchstaben werden mit toUpperCase verglichen\0"
         u8"Methoden sollten nicht mehr das 'function'-Schl\u00fcsselwort verwenden\0"
         u8"Unpassender JSX-Tag; '</{1}>' wurde anstattdessen erwartet\0"
         u8"Komma fehlt zwischen Variablendeklarationen\0"
@@ -589,6 +592,7 @@ const translation_table translation_data = {
         u8"Zugeh\u00f6rige Indizierungsklammer fehlt\0"
         u8"Zugeh\u00f6rige Klammer fehlt\0"
         u8"Blockkommentar ohne Beginn\0"
+        u8"Gro\u00dfbuchstaben werden mit toLowerCase verglichen\0"
         u8"'while' benutzen, um zu iterieren, bis die Bedingung false wird\0"
         u8"Variable {0} wird verwendet, ist jedoch nicht deklariert\0"
         u8"Variable wurde zuvor hier deklariert\0"
@@ -742,6 +746,7 @@ const translation_table translation_data = {
         u8"0Ops\0"
         u8"legacy_octal_literals_may_not_contain_underscores\0"
         u8"st-stop st-stuttering\0"
+        u8"You sure you're getting what toUpperCase does?\0"
         u8"'function' is boomer\0"
         u8"can't you count? I wanted a '</{1}>'! \U0001f910\0"
         u8",\0"
@@ -853,6 +858,7 @@ const translation_table translation_data = {
         u8"unmatched indexing[bracket\0"
         u8"I have some extra: ) ) ) ) ) ) ) ) ) ) )\0"
         u8"/*\0"
+        u8"You sure you're getting what toLowerCase does?\0"
         u8"or use 'while', you silly Gopher\0"
         u8"I don't know what this type is\0"
         u8"did you fail spelling class?\0"
@@ -1429,6 +1435,7 @@ const translation_table translation_data = {
         u8"legacy octal literal may not be BigInt\0"
         u8"legacy octal literals may not contain underscores\0"
         u8"let statement cannot declare variables named 'let'\0"
+        u8"lower case letters compared with toUpperCase\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"
@@ -1559,6 +1566,7 @@ const translation_table translation_data = {
         u8"unmatched indexing bracket\0"
         u8"unmatched parenthesis\0"
         u8"unopened block comment\0"
+        u8"upper case letters compared with toLowerCase\0"
         u8"use ':' instead of '=' in object literals\0"
         u8"use ':' instead of 'as' to type a function parameter\0"
         u8"use 'while' instead to loop until a condition is false\0"

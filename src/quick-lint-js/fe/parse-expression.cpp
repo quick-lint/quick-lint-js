@@ -52,12 +52,16 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::array:
-  case expression_kind::binary_operator:
   case expression_kind::call:
   case expression_kind::jsx_element_with_namespace:
   case expression_kind::jsx_fragment:
   case expression_kind::tagged_template_literal:
     visit_children();
+    break;
+  case expression_kind::binary_operator:
+    visit_children();
+    error_on_pointless_string_compare(
+        static_cast<expression::binary_operator*>(ast));
     break;
   case expression_kind::trailing_comma: {
     auto& trailing_comma_ast = static_cast<expression::trailing_comma&>(*ast);

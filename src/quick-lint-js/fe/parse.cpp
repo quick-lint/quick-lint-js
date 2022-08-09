@@ -314,6 +314,64 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
+void parser::error_on_pointless_string_compare(
+    expression::binary_operator* ast) {
+  auto is_comparison_operator = [](string8_view s) {
+    return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
+  };
+  auto char_is_a_quote = [](const char8* s) {
+    return *s == '"' || *s == '\'' || *s == '`';
+  };
+
+  for (int i = 0; i < ast->child_count() - 1; i++) {
+    expression* lhs = ast->child(i);
+    expression* rhs = ast->child(i + 1);
+
+    if ((lhs->kind() == expression_kind::call &&
+         rhs->kind() == expression_kind::literal) ||
+        (lhs->kind() == expression_kind::literal &&
+         rhs->kind() == expression_kind::call)) {
+      source_code_span op_span = ast->operator_spans_[i];
+      if (!is_comparison_operator(op_span.string_view())) {
+        continue;
+      }
+
+      // make sure the call is on the "left" and the literal on the "right"
+      if (lhs->kind() == expression_kind::literal) {
+        std::swap(lhs, rhs);
+      }
+
+      if (lhs->child_0()->kind() != expression_kind::dot) {
+        continue;
+      }
+      // Hack: The literal could also be a number like 0xeF.
+      if (!char_is_a_quote(rhs->span().begin())) {
+        continue;
+      }
+
+      string8_view call =
+          lhs->child_0()->variable_identifier().span().string_view();
+      string8_view literal = rhs->span().string_view();
+
+      if (literal.find(u8"\\"_sv) != string8_view::npos) {
+        continue;
+      }
+
+      if (call == u8"toLowerCase"sv) {
+        if (hasupper(literal)) {
+          this->diag_reporter_->report(
+              diag_pointless_string_comp_contains_upper{op_span});
+        }
+      } else if (call == u8"toUpperCase"sv) {
+        if (haslower(literal)) {
+          this->diag_reporter_->report(
+              diag_pointless_string_comp_contains_lower{op_span});
+        }
+      }
+    }
+  }
+}
+
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{

@@ -1411,6 +1411,14 @@ msgstr "I'm going to break the loop, but I'm not in a loop"
 msgid "continue can only be used inside of a loop"
 msgstr "Just stop."
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "lower case letters compared with toUpperCase"
+msgstr "You sure you're getting what toUpperCase does?"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "upper case letters compared with toLowerCase"
+msgstr "You sure you're getting what toLowerCase does?"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

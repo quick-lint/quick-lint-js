@@ -77,6 +77,24 @@ char8 tolower(char8 c) noexcept {
 bool islower(char8 c) noexcept { return u8'a' <= c && c <= u8'z'; }
 
 bool isupper(char8 c) noexcept { return u8'A' <= c && c <= u8'Z'; }
+
+bool haslower(string8_view s) {
+  for (auto const &c : s) {
+    if (islower(c)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasupper(string8_view s) {
+  for (auto const &c : s) {
+    if (isupper(c)) {
+      return true;
+    }
+  }
+  return false;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
