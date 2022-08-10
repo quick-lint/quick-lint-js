@@ -120,7 +120,12 @@ let iconsSpriteSheet = new ExternalSpriteSheet();
 for (let [iconName, icon] of Object.entries(icons)) {
   let spriteSheetItem = null;
   if (path.extname(icon.path) === ".svg") {
-    spriteSheetItem = iconsSpriteSheet.addSVG(path.join(__dirname, icon.path));
+    // FIXME(#818): Broken in Chrome and Safari.
+    if (false) {
+      spriteSheetItem = iconsSpriteSheet.addSVG(
+        path.join(__dirname, icon.path)
+      );
+    }
   }
   icon.spriteSheetItem = spriteSheetItem;
 }
