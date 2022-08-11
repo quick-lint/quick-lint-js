@@ -10,7 +10,7 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 async function mainAsync() {
-  if (cluster.isPrimary) {
+  if (cluster.isMaster) {
     let activeWorker = null;
 
     function makeNewWorker() {
