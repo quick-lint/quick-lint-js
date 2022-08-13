@@ -2033,19 +2033,62 @@ found_end_of_file:
 }
 
 void lexer::skip_line_comment_body() {
-  for (const char8* c = this->input_;; ++c) {
-    int newline_size = this->newline_character_size(c);
-    if (newline_size > 0) {
-      this->input_ = c + newline_size;
+#if QLJS_HAVE_X86_SSE2
+  using bool_vector = bool_vector_16_sse2;
+  using char_vector = char_vector_16_sse2;
+#else
+  using bool_vector = bool_vector_1;
+  using char_vector = char_vector_1;
+#endif
+
+  auto found_comment_end = [&]() {
+    if (*this->input_ == '\n' || *this->input_ == '\r') {
+      this->input_ += 1;
       this->skip_whitespace();
-      break;
+      return true;
     }
-    // TODO(strager): Should we handle null bytes differently for #! comments?
-    if (*c == u8'\0' && this->is_eof(c)) {
-      this->input_ = c;
-      break;
+    if (*this->input_ == u8'\0' && this->is_eof(this->input_)) {
+      return true;
+    }
+    // U+2028 Line Separator
+    // U+2029 Paragraph Separator
+    if (static_cast<unsigned char>(this->input_[0]) == 0xe2 &&
+        static_cast<unsigned char>(this->input_[1]) == 0x80 &&
+        (static_cast<unsigned char>(this->input_[2]) == 0xa8 ||
+         static_cast<unsigned char>(this->input_[2]) == 0xa9)) {
+      this->input_ += 3;
+      this->skip_whitespace();
+      return true;
+    }
+
+    this->input_ += 1;
+    return false;
+  };
+
+  char_vector newLine = char_vector::repeated('\n');
+  char_vector carriageReturn = char_vector::repeated('\r');
+  char_vector unicodeFirstByte = char_vector::repeated(0xe2);  // U+2028 U+2029
+  char_vector zero = char_vector::repeated(0);
+
+  while (true) {
+    char_vector chars = char_vector::load(this->input_);
+
+    bool_vector matches = (chars == newLine) | (chars == carriageReturn) |
+                          (chars == unicodeFirstByte) | (chars == zero);
+
+    std::uint32_t mask = matches.mask();
+    if (mask == 0) {
+      // nothing found, go to the next chunk
+      this->input_ += char_vector::size;
+    } else {
+      // found an interesting char
+      this->input_ += countr_zero(mask);
+      if (found_comment_end()) {
+        break;
+      }
     }
   }
+
   this->last_token_.has_leading_newline = true;
 }
 

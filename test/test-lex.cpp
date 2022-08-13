@@ -235,6 +235,15 @@ TEST_F(test_lex, lex_line_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"// hello\n// world"_sv), IsEmpty());
   this->check_tokens(u8"hello//*/\n \n \nworld"_sv,
                      {token_type::identifier, token_type::identifier});
+
+  /**
+   * Also test for a unicode sign that starts with 0xe280, because the
+   * skip_line_comment() will also look for U+2028 and U+2029
+   *  > U+2028 Line Separator      (0xe280a8)
+   *  > U+2029 Paragraph Separator (0xe280a9)
+   *  > U+2030 Per Mille Sign      (0xe280b0)
+   */
+  EXPECT_THAT(this->lex_to_eof(u8"// 123‰"_sv), IsEmpty());
 }
 
 TEST_F(test_lex, lex_line_comments_with_control_characters) {
