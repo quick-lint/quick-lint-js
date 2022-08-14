@@ -8,8 +8,16 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* `tag.toUpperCase() === 'img'` now reports [E0286][], and
+  `tag.toLowerCase() === 'IMG'` now reports [E0287][] (implemented by [Roland
+  Strasser][]).
+
 ### Fixed
 
+* `(param) { body(); }` now reports [E0176][] ('missing arrow operator for arrow
+  function') (implemented by [Roland Strasser][]).
 * quick-lint-js no longer crashes if a TypeScript `type` alias appears in a
   JavaScript file.
 * quick-lint-js now recognizes the `jest` global variable from the Jest test
@@ -716,4 +724,6 @@ Beta release.
 [E0223]: https://quick-lint-js.com/errors/E0223/
 [E0253]: https://quick-lint-js.com/errors/E0253/
 [E0266]: https://quick-lint-js.com/errors/E0266/
+[E0286]: https://quick-lint-js.com/errors/E0286/
+[E0287]: https://quick-lint-js.com/errors/E0287/
 [E0707]: https://quick-lint-js.com/errors/E0707/
