@@ -10,6 +10,8 @@ Semantic Versioning.
 
 ### Fixed
 
+* quick-lint-js no longer crashes if a TypeScript `type` alias appears in a
+  JavaScript file.
 * quick-lint-js now recognizes the `jest` global variable from the Jest test
   framework. This suppresses undesired [E0057][] ("use of undeclared variable")
   warnings.
