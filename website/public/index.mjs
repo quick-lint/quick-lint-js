@@ -95,24 +95,28 @@ let icons = {
   },
   codespaces: { path: "codespaces.png", alt: "GitHub Codespaces" },
   debian: { path: "debian.svg", alt: "Debian" },
-  emacs: { path: "emacs.svg", alt: "Emacs" },
+  emacs: { path: "emacs.svg", alt: "Emacs", disableSpritesheet: true },
   github: { path: "github.svg", alt: "GitHub" },
   homebrew: { path: "homebrew.svg", alt: "Homebrew" },
-  kate: { path: "kate.svg", alt: "Kate" },
+  kate: { path: "kate.svg", alt: "Kate", disableSpritesheet: true },
   linux: { path: "linux.svg", alt: "GNU/Linux" },
   macos: { path: "macos.svg", alt: "macOS" },
-  neovim: { path: "neovim.svg", alt: "Neovim" },
-  nix: { path: "nix.svg", alt: "Nix" },
+  neovim: { path: "neovim.svg", alt: "Neovim", disableSpritesheet: true },
+  nix: { path: "nix.svg", alt: "Nix", disableSpritesheet: true },
   "notepad-plus-plus": { path: "notepad-plus-plus.svg", alt: "Notepad++" },
   npm: { path: "npm.svg", alt: "npm" },
   "open-vsx": { path: "open-vsx.svg", alt: "Open VSX" },
   "quick-lint-js": { path: "dusty.svg", alt: "quick-lint-js" },
   "quick-lint-js-small": { path: "favicon-32x32.png", alt: "quick-lint-js" },
-  "sublime-text": { path: "sublime-text.svg", alt: "Sublime Text" },
+  "sublime-text": {
+    path: "sublime-text.svg",
+    alt: "Sublime Text",
+    disableSpritesheet: true,
+  },
   ubuntu: { path: "ubuntu.svg", alt: "Ubuntu" },
   vim: { path: "vim.gif", alt: "Vim" },
   vscode: { path: "vscode.png", alt: "Visual Studio Code" },
-  webstorm: { path: "webstorm.svg", alt: "WebStorm" },
+  webstorm: { path: "webstorm.svg", alt: "WebStorm", disableSpritesheet: true },
   windows: { path: "windows.svg", alt: "Windows" },
 };
 
@@ -120,8 +124,10 @@ let iconsSpriteSheet = new ExternalSpriteSheet();
 for (let [iconName, icon] of Object.entries(icons)) {
   let spriteSheetItem = null;
   if (path.extname(icon.path) === ".svg") {
-    // FIXME(#818): Broken in Chrome and Safari.
-    if (false) {
+    // HACK(#818): Some SVGs are broken in Chrome and Safari when spritesheeted.
+    // This might be a bug in the svg-sprite library. Remove these offending
+    // SVGs from the spritesheet as a workaround.
+    if (!icon.disableSpritesheet) {
       spriteSheetItem = iconsSpriteSheet.addSVG(
         path.join(__dirname, icon.path)
       );
