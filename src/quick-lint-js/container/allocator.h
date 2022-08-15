@@ -5,35 +5,20 @@
 #define QUICK_LINT_JS_CONTAINER_ALLOCATOR_H
 
 #include <boost/container/pmr/memory_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <utility>
 
 namespace quick_lint_js {
 template <class T, class... Args>
-T* new_object(boost::container::pmr::polymorphic_allocator<T>& allocator,
-              Args&&... args) {
-  T* result = allocator.allocate(1);
+T* new_object(boost::container::pmr::memory_resource* memory, Args&&... args) {
+  T* result = reinterpret_cast<T*>(memory->allocate(sizeof(T), alignof(T)));
   result = new (result) T(std::forward<Args>(args)...);
   return result;
 }
 
-template <class T, class... Args>
-T* new_object(boost::container::pmr::memory_resource* memory, Args&&... args) {
-  boost::container::pmr::polymorphic_allocator<T> allocator(memory);
-  return new_object(allocator, std::forward<Args>(args)...);
-}
-
-template <class T>
-void delete_object(boost::container::pmr::polymorphic_allocator<T>& allocator,
-                   T* object) {
-  allocator.destroy(object);
-  allocator.deallocate(object, 1);
-}
-
 template <class T>
 void delete_object(boost::container::pmr::memory_resource* memory, T* object) {
-  boost::container::pmr::polymorphic_allocator<T> allocator(memory);
-  return delete_object(allocator, object);
+  object->~T();
+  memory->deallocate(object, sizeof(T), alignof(T));
 }
 }
 
