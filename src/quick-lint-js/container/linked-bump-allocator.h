@@ -178,13 +178,7 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
 
   template <class T>
   boost::container::pmr::polymorphic_allocator<T> standard_allocator() {
-    return boost::container::pmr::polymorphic_allocator<T>(
-        this->memory_resource());
-  }
-
-  // TODO(strager): Inline.
-  boost::container::pmr::memory_resource* memory_resource() noexcept {
-    return this;
+    return boost::container::pmr::polymorphic_allocator<T>(this);
   }
 
   class disable_guard {
