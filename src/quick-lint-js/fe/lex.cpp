@@ -2042,22 +2042,21 @@ void lexer::skip_line_comment_body() {
 #endif
 
   auto found_comment_end = [&]() {
-    if (*this->input_ == '\n' || *this->input_ == '\r') {
+    int n = newline_character_size(this->input_);
+
+    if (n == 1) {
       this->input_ += 1;
       this->skip_whitespace();
       return true;
     }
-    if (*this->input_ == u8'\0' && this->is_eof(this->input_)) {
-      return true;
-    }
     // U+2028 Line Separator
     // U+2029 Paragraph Separator
-    if (static_cast<unsigned char>(this->input_[0]) == 0xe2 &&
-        static_cast<unsigned char>(this->input_[1]) == 0x80 &&
-        (static_cast<unsigned char>(this->input_[2]) == 0xa8 ||
-         static_cast<unsigned char>(this->input_[2]) == 0xa9)) {
+    if (n == 3) {
       this->input_ += 3;
       this->skip_whitespace();
+      return true;
+    }
+    if (*this->input_ == u8'\0' && this->is_eof(this->input_)) {
       return true;
     }
 
