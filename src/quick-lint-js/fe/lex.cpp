@@ -2033,7 +2033,13 @@ found_end_of_file:
 }
 
 void lexer::skip_line_comment_body() {
-#if QLJS_HAVE_X86_SSE2
+#if QLJS_HAVE_ARM_NEON
+  using bool_vector = bool_vector_16_neon;
+  using char_vector = char_vector_16_neon;
+#elif QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+  using bool_vector = bool_vector_16_wasm_simd128;
+  using char_vector = char_vector_16_wasm_simd128;
+#elif QLJS_HAVE_X86_SSE2
   using bool_vector = bool_vector_16_sse2;
   using char_vector = char_vector_16_sse2;
 #else
