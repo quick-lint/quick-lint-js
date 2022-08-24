@@ -23,6 +23,8 @@ Semantic Versioning.
 * quick-lint-js now recognizes the `jest` global variable from the Jest test
   framework. This suppresses undesired [E0057][] ("use of undeclared variable")
   warnings.
+* `await () => x` no longer reports `x` as undeclared multiple times. ([E0178][]
+  is still reported, as intended.)
 
 ## 2.8.0 (2022-07-25)
 

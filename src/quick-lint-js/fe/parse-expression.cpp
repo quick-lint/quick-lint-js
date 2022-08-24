@@ -1080,7 +1080,11 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
     expression* result;
     this->try_parse(
         [&] {
-          expression* child = this->parse_expression(v, prec);
+          buffering_visitor& temp_visits =
+              this->buffering_visitor_stack_.emplace(
+                  boost::container::pmr::new_delete_resource());
+
+          expression* child = this->parse_expression(temp_visits, prec);
 
           if (child->kind() == expression_kind::_missing) {
             this->diag_reporter_->report(diag_missing_operand_for_operator{
@@ -1105,6 +1109,7 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
 
           result =
               this->make_expression<expression::await>(child, operator_span);
+          temp_visits.move_into(v);
           return true;
         },
         [&] {

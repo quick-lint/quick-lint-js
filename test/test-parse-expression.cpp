@@ -951,6 +951,22 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
                       p.code, diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
     }
+
+    {
+      test_parser p(u8"await (param) => body"_sv, capture_diags);
+      [[maybe_unused]] auto guard = make_guard(p);
+      expression* ast = p.parse_expression();
+      EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                        "visit_variable_declaration",  // param
+                                        "visit_enter_function_scope_body",  //
+                                        "visit_variable_use",  // body
+                                        "visit_exit_function_scope"));
+      EXPECT_EQ(summarize(ast), "asyncarrowfunc(var param)");
+      EXPECT_THAT(p.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      p.code, diag_await_followed_by_arrow_function,  //
+                      await_operator, 0, u8"await")));
+    }
   };
 
   {
