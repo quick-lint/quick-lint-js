@@ -680,6 +680,19 @@ std::size_t parser::parse_expression_cache_key::hash::operator()(
     const parse_expression_cache_key& x) const noexcept {
   return std::hash<const char8*>()(x.begin);
 }
+
+parser::parse_expression_cache_key
+parser::parse_expression_cache_key_for_current_state() const {
+  return parse_expression_cache_key{
+      .begin = this->peek().begin,
+      .in_top_level = this->in_top_level_,
+      .in_async_function = this->in_async_function_,
+      .in_generator_function = this->in_generator_function_,
+      .in_loop_statement = this->in_loop_statement_,
+      .in_switch_statement = this->in_switch_statement_,
+      .in_class = this->in_class_,
+  };
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -645,6 +645,9 @@ class parser {
     };
   };
 
+  parse_expression_cache_key parse_expression_cache_key_for_current_state()
+      const;
+
   quick_lint_js::lexer lexer_;
   diag_reporter *diag_reporter_;
   diag_reporter *original_diag_reporter_;

@@ -983,15 +983,8 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       case token_type::less:
       case token_type::slash:
       case token_type::slash_equal: {
-        parse_expression_cache_key cache_key = {
-            .begin = this->peek().begin,
-            .in_top_level = this->in_top_level_,
-            .in_async_function = this->in_async_function_,
-            .in_generator_function = this->in_generator_function_,
-            .in_loop_statement = this->in_loop_statement_,
-            .in_switch_statement = this->in_switch_statement_,
-            .in_class = this->in_class_,
-        };
+        parse_expression_cache_key cache_key =
+            this->parse_expression_cache_key_for_current_state();
         auto cache_it = this->await_is_identifier_cache_.find(cache_key);
         if (cache_it != this->await_is_identifier_cache_.end()) {
           return cache_it->second;
