@@ -88,6 +88,27 @@ await/
 ()=>{{{{{{{await/
 ()=>{{{{{{{await/
 )"_sv);
+BENCHMARK_CAPTURE(benchmark_parse, pathological_await_arrow,
+                  u8R"(
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+a
+)"_sv);
 }  // namespace
 }  // namespace quick_lint_js
 
