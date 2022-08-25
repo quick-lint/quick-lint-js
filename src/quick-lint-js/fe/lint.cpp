@@ -119,6 +119,7 @@ void global_declared_variable_set::add_predefined_global_variable(
 
 void global_declared_variable_set::add_global_variable(
     global_declared_variable global_variable) {
+  this->undeclare_variable(global_variable.name);
   this->variables_[global_variable.is_shadowable][global_variable.is_writable]
       .emplace(global_variable.name);
 }
@@ -184,6 +185,14 @@ std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
     }
   }
   return result;
+}
+
+void global_declared_variable_set::undeclare_variable(string8_view name) {
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      this->variables_[is_shadowable][is_writable].erase(name);
+    }
+  }
 }
 
 linter::linter(diag_reporter *diag_reporter,

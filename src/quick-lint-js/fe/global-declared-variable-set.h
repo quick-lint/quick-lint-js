@@ -28,9 +28,6 @@ class global_declared_variable_set {
 
   void add_predefined_global_variable(const char8 *name, bool is_writable);
 
-  // FIXME(strager): Bug: if we add a variable with one set of flags (e.g.
-  // is_writable=false), then add it with a different set of flags (e.g.
-  // is_writable=true), then bad things might happen.
   void add_global_variable(global_declared_variable);
 
   void add_literally_everything();
@@ -54,6 +51,8 @@ class global_declared_variable_set {
   std::vector<string8_view> get_all_variable_names() const;
 
  private:
+  void undeclare_variable(string8_view name);
+
   // First index: is_shadowable
   // Second index: is_writable
   std::unordered_set<string8_view> variables_[2][2];

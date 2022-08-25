@@ -379,6 +379,43 @@ TEST(test_configuration, overwrite_global_variable_from_group) {
   }
 }
 
+TEST(test_configuration, overwrite_global_variable) {
+  string8_view var_name = u8"testvariable";
+
+  for (bool original_is_shadowable : {false, true}) {
+    for (bool original_is_writable : {false, true}) {
+      for (bool override_is_shadowable : {false, true}) {
+        for (bool override_is_writable : {false, true}) {
+          SCOPED_TRACE(original_is_shadowable ? "original is shadowable"
+                                              : "original is not shadowable");
+          SCOPED_TRACE(original_is_writable ? "original is writable"
+                                            : "original is not writable");
+          SCOPED_TRACE(override_is_shadowable ? "override is shadowable"
+                                              : "override is not shadowable");
+          SCOPED_TRACE(override_is_writable ? "override is writable"
+                                            : "override is not writable");
+          configuration c;
+          c.add_global_variable(global_declared_variable{
+              .name = var_name,
+              .is_writable = original_is_writable,
+              .is_shadowable = original_is_shadowable,
+          });
+          c.add_global_variable(global_declared_variable{
+              .name = var_name,
+              .is_writable = override_is_writable,
+              .is_shadowable = override_is_shadowable,
+          });
+          std::optional<global_declared_variable> var =
+              c.globals().find(var_name);
+          ASSERT_TRUE(var.has_value());
+          EXPECT_EQ(var->is_shadowable, override_is_shadowable);
+          EXPECT_EQ(var->is_writable, override_is_writable);
+        }
+      }
+    }
+  }
+}
+
 TEST(test_configuration_json, empty_json_creates_default_config) {
   configuration c;
   load_from_json(c, u8"{}"sv);
