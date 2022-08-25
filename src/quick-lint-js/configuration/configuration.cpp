@@ -66,6 +66,7 @@ bool configuration::add_global_group(string8_view group_name) {
 
 void configuration::add_global_variable(
     global_declared_variable global_variable) {
+  this->remove_global_variable(global_variable.name);
   this->globals_.add_global_variable(global_variable);
 }
 

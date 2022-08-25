@@ -201,6 +201,12 @@ TEST(test_configuration, add_new_global_variable) {
 }
 
 TEST(test_configuration, added_global_variable_shadows_default) {
+  {
+    configuration c;
+    ASSERT_TRUE(c.globals().find(u8"Array"_sv).has_value())
+        << "'Array' should be declared by default";
+  }
+
   configuration c;
 
   c.add_global_variable(global_declared_variable{
@@ -343,6 +349,34 @@ TEST(test_configuration,
   found_var = c.globals().find(u8"testGlobalVariable"sv);
   EXPECT_FALSE(found_var->is_shadowable);
   EXPECT_FALSE(found_var->is_writable);
+}
+
+TEST(test_configuration, overwrite_global_variable_from_group) {
+  string8_view var_name = u8"Infinity";
+
+  {
+    configuration c;
+    ASSERT_TRUE(c.globals().find(var_name).has_value())
+        << out_string8(var_name)
+        << " should be defined in a default global group";
+  }
+
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      SCOPED_TRACE(is_shadowable ? "shadowable" : "not shadowable");
+      SCOPED_TRACE(is_writable ? "writable" : "not writable");
+      configuration c;
+      c.add_global_variable(global_declared_variable{
+          .name = var_name,
+          .is_writable = is_writable,
+          .is_shadowable = is_shadowable,
+      });
+      std::optional<global_declared_variable> var = c.globals().find(var_name);
+      ASSERT_TRUE(var.has_value());
+      EXPECT_EQ(var->is_shadowable, is_shadowable);
+      EXPECT_EQ(var->is_writable, is_writable);
+    }
+  }
 }
 
 TEST(test_configuration_json, empty_json_creates_default_config) {

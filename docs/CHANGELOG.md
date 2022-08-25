@@ -25,6 +25,8 @@ Semantic Versioning.
   warnings.
 * `await () => x` no longer reports `x` as undeclared multiple times. ([E0178][]
   is still reported, as intended.)
+* Defining a global variable in `quick-lint-js.config` which is already declared
+  by default now always changes the `shadowable` and `writable` settings.
 
 ## 2.8.0 (2022-07-25)
 
