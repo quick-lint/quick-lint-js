@@ -3499,6 +3499,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           source_code_span in_token_span = this->peek().span();
           QLJS_ASSERT(!allow_in_operator);
 
+          // FIXME(#831): v should not be used here. We should use a
+          // buffering_visitor.
           this->try_parse(
               [&] {
                 expression *in_ast = this->parse_expression_remainder(

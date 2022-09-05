@@ -992,6 +992,8 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
 
         parser_transaction transaction = this->begin_transaction();
 
+        // FIXME(#831): v should not be used here. We should use a
+        // buffering_visitor.
         if (this->in_top_level_) {
           // Try to parse the / as a regular expression literal or the < as a
           // JSX element.
