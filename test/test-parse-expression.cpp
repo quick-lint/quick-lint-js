@@ -967,6 +967,9 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
                       p.code, diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
     }
+
+    // TODO(strager): Test an arrow function with TypeScript a return type
+    // annotation.
   };
 
   {
@@ -1031,8 +1034,10 @@ TEST_F(test_parse_expression,
          {u8"await/re/g"_sv,       "binary(var await, var re, var g)",           "await(literal)"},
          {u8"await+x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
          {u8"await-x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
-         {u8"await<x>y</x>/g"_sv,  "binary(var await, var x, var y, literal)",   "await(binary(jsxelement(x), var g))", jsx},
+         {u8"await<x>y</x>/g"_sv,  "binary(var await, var x, var y, literal)",   "binary(await(jsxelement(x)), var g)", jsx},
          {u8"await(x)"_sv,         "call(var await, var x)",                     "await(paren(var x))"},
+         {u8"await(x,)"_sv,        "call(var await, var x)",                     "await(paren(trailingcomma(var x)))"},
+         {u8"await(x, y)"_sv,      "call(var await, var x, var y)",              "await(paren(binary(var x, var y)))"},
          {u8"await[x]"_sv,         "index(var await, var x)",                    "await(array(var x))"},
          {u8"await++\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
          {u8"await--\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},

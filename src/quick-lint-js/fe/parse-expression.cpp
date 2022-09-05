@@ -714,14 +714,16 @@ expression* parser::parse_async_expression(parse_visitor_base& v,
   return this->parse_expression_remainder(v, ast, prec);
 }
 
-expression* parser::parse_async_expression_only(parse_visitor_base& v,
-                                                const token& async_token,
-                                                bool allow_in_operator) {
-  const char8* async_begin = async_token.begin;
+expression* parser::parse_async_expression_only(
+    parse_visitor_base& v, const token& async_or_await_token,
+    bool allow_in_operator) {
+  bool is_async = async_or_await_token.type == token_type::kw_async;
+  bool is_await = async_or_await_token.type == token_type::kw_await;
+  QLJS_ASSERT(is_async || is_await);
+  const char8* async_begin = async_or_await_token.begin;
 
   auto parse_arrow_function_arrow_and_body =
-      [this, allow_in_operator, async_begin, &v](
-          auto&& parameters, buffering_visitor* parameter_visits,
+      [&](auto&& parameters, buffering_visitor* parameter_visits,
           buffering_visitor* return_type_visits) {
         if (this->peek().type == token_type::equal_greater) {
           this->skip();
@@ -730,6 +732,11 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
               diag_missing_arrow_operator_in_arrow_function{
                   .where = this->peek().span(),
               });
+        }
+        if (is_await) {
+          this->diag_reporter_->report(diag_await_followed_by_arrow_function{
+              .await_operator = async_or_await_token.span(),
+          });
         }
 
         v.visit_enter_function_scope();
@@ -746,11 +753,14 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
       };
 
   switch (this->peek().type) {
-  // async () => {}  // Arrow function.
-  // async()         // Function call.
+  // async () => {}       // Arrow function.
+  // async()              // Function call.
+  // await (promise)      // Unary operator.
+  // await (param) => {}  // Arrow function (invalid).
   case token_type::left_paren: {
     bool newline_after_async = this->peek().has_leading_newline;
 
+    lexer_transaction transaction = this->lexer_.begin_transaction();
     source_code_span left_paren_span = this->peek().span();
     this->skip();
     expression_arena::vector<expression*> parameters =
@@ -771,10 +781,11 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
         !this->peek().has_leading_newline &&
         this->peek().type == token_type::left_curly;
     if (is_arrow_function || is_arrow_function_without_arrow) {
+      this->lexer_.commit_transaction(std::move(transaction));
       if (newline_after_async) {
         this->diag_reporter_->report(
             diag_newline_not_allowed_between_async_and_parameter_list{
-                .async = async_token.span(),
+                .async = async_or_await_token.span(),
                 .arrow = this->peek().span(),
             });
       }
@@ -793,15 +804,16 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
       return parse_arrow_function_arrow_and_body(std::move(parameters),
                                                  /*parameter_visits=*/nullptr,
                                                  &return_type_visits);
-    } else {
+    } else if (is_async) {
       // async as an identifier (variable reference)
       // Function call: async(arg)
+      this->lexer_.commit_transaction(std::move(transaction));
       // TODO(strager): Reduce copying of the arguments.
       expression_arena::vector<expression*> call_children(
           "parse_expression async call children",
           this->expressions_.allocator());
       call_children.emplace_back(this->make_expression<expression::variable>(
-          async_token.identifier_name(), async_token.type));
+          async_or_await_token.identifier_name(), async_or_await_token.type));
       for (std::size_t i = 0; i < parameters.size(); ++i) {
         if (parameters.data()[i]->kind() != expression_kind::_invalid) {
           call_children.emplace_back(parameters.data()[i]);
@@ -813,6 +825,10 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
           /*left_paren_span=*/left_paren_span,
           /*span_end=*/right_paren_span.end());
       return call_ast;
+    } else if (is_await) {
+      // await is an operator.
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto await_operator;
     }
 
     QLJS_UNREACHABLE();
@@ -822,6 +838,7 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
   // async <T>() => {}  // Arrow function. TypeScript only.
   // async<T>()         // Function call. TypeScript only.
   // async<T>           // Variable with generic arguments. TypeScript only.
+  // TODO(#832): Parse generic arrow with 'await' keyword.
   case token_type::less:
     if (this->options_.typescript) {
       parser_transaction transaction = this->begin_transaction();
@@ -882,20 +899,26 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
     // strict mode.
     [[fallthrough]];
   // async parameter => expression-or-block  // Arrow function.
+  // await parameter => expression-or-block  // Arrow function (invalid).
+  // await promise                           // Unary operator.
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
   case token_type::kw_await:
   case token_type::kw_yield: {
-    if (this->peek().has_leading_newline) {
+    if (is_async && this->peek().has_leading_newline) {
       goto variable_reference;
     }
 
-    if (this->peek().type == token_type::kw_await) {
+    bool parameter_is_await = this->peek().type == token_type::kw_await;
+    if (parameter_is_await && is_async) {
       // async await => {}  // Invalid
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
           .name = this->peek().identifier_name(),
       });
     }
+
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+
     const char8* parameter_begin = this->peek().begin;
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
@@ -919,25 +942,69 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
           });
     }
 
+    if (this->peek().type != token_type::equal_greater && is_await) {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      if (parameter_is_await) {
+        this->diag_reporter_->report(diag_redundant_await{
+            .await_operator = async_or_await_token.span(),
+        });
+      }
+      goto await_operator;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
     return parse_arrow_function_arrow_and_body(std::move(parameters),
                                                /*parameter_visits=*/nullptr,
                                                /*return_type_visits=*/nullptr);
   }
 
   // async function f(parameters) { statements; }
+  // await function f() {}
   case token_type::kw_function: {
+    if (is_await) {
+      goto await_operator;
+    }
     expression* function = this->parse_function_expression(
         v, function_attributes::async, async_begin);
     return function;
   }
 
   // async  // Identifier (variable reference).
+  // await p
+  // await []
+  await_operator:
   variable_reference:
-  default: {
-    expression* ast = this->make_expression<expression::variable>(
-        async_token.identifier_name(), async_token.type);
-    return ast;
-  }
+  default:
+    if (is_async) {
+      expression* ast = this->make_expression<expression::variable>(
+          async_or_await_token.identifier_name(), async_or_await_token.type);
+      return ast;
+    } else if (is_await) {
+      if (!(this->in_async_function_ || this->in_top_level_)) {
+        this->diag_reporter_->report(diag_await_operator_outside_async{
+            .await_operator = async_or_await_token.span(),
+        });
+      }
+
+      expression* child =
+          this->parse_expression(v, precedence{
+                                        .binary_operators = true,
+                                        .math_or_logical_or_assignment = false,
+                                        .equals_assignment = false,
+                                        .commas = false,
+                                        .in_operator = false,
+                                        .colon_type_annotation = false,
+                                        .trailing_curly_is_arrow_body = false,
+                                        .conditional_operator = false,
+                                    });
+      if (child->kind() == expression_kind::_missing) {
+        this->diag_reporter_->report(diag_missing_operand_for_operator{
+            .where = async_or_await_token.span(),
+        });
+      }
+      return this->make_expression<expression::await>(
+          child, async_or_await_token.span());
+    }
+    QLJS_UNREACHABLE();
   }
 
   QLJS_UNREACHABLE();
@@ -1070,51 +1137,8 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
     return this->make_expression<expression::variable>(
         await_token.identifier_name(), await_token.type);
   } else {
-    source_code_span operator_span = await_token.span();
-
-    expression* result;
-    this->try_parse(
-        [&] {
-          buffering_visitor& temp_visits =
-              this->buffering_visitor_stack_.emplace(
-                  boost::container::pmr::new_delete_resource());
-
-          expression* child = this->parse_expression(temp_visits, prec);
-
-          if (child->kind() == expression_kind::_missing) {
-            this->diag_reporter_->report(diag_missing_operand_for_operator{
-                .where = operator_span,
-            });
-          } else if (child->kind() == expression_kind::arrow_function &&
-                     child->attributes() != function_attributes::async) {
-            // await (param) => { }  // Invalid.
-            return false;
-          }
-
-          if (!(this->in_async_function_ || this->in_top_level_)) {
-            this->diag_reporter_->report(diag_await_operator_outside_async{
-                .await_operator = operator_span,
-            });
-          } else if (child->kind() == expression_kind::await) {
-            // await await
-            this->diag_reporter_->report(diag_redundant_await{
-                .await_operator = operator_span,
-            });
-          }
-
-          result =
-              this->make_expression<expression::await>(child, operator_span);
-          temp_visits.move_into(v);
-          return true;
-        },
-        [&] {
-          this->diag_reporter_->report(diag_await_followed_by_arrow_function{
-              .await_operator = operator_span,
-          });
-          // Re-parse as if the user wrote 'async' instead of 'await'.
-          result = this->parse_async_expression(v, await_token, prec);
-        });
-    return result;
+    return this->parse_async_expression_only(
+        v, await_token, /*allow_in_operator=*/prec.in_operator);
   }
 }
 

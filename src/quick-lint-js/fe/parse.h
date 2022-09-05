@@ -432,8 +432,12 @@ class parser {
   expression *parse_primary_expression(parse_visitor_base &, precedence);
   expression *parse_async_expression(parse_visitor_base &,
                                      const token &async_token, precedence);
+  // Parses either:
+  // * an expression starting with 'async', or
+  // * an expression starting with 'await' where we determined that it is either
+  //   a unary operator or a mistyped 'async'.
   expression *parse_async_expression_only(parse_visitor_base &,
-                                          const token &async_token,
+                                          const token &async_or_await_token,
                                           bool allow_in_operator);
   expression *parse_await_expression(parse_visitor_base &,
                                      const token &await_token, precedence prec);
