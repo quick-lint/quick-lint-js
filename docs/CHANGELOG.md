@@ -27,6 +27,8 @@ Semantic Versioning.
   is still reported, as intended.)
 * Defining a global variable in `quick-lint-js.config` which is already declared
   by default now always changes the `shadowable` and `writable` settings.
+* `await () => await () => ...` no longer slows down linting and consumes a lot
+  of memory.
 
 ## 2.8.0 (2022-07-25)
 
