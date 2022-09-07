@@ -170,9 +170,9 @@ global_declared_variable_set::find_runtime(identifier name) const noexcept {
 }
 
 std::optional<global_declared_variable> global_declared_variable_set::find_type(
-    identifier) const noexcept {
-  // global_declared_variable_set doesn't support type-only variables.
-  return std::nullopt;
+    identifier name) const noexcept {
+  // TODO(#690): Do not treat all globals as type-visible.
+  return this->find(name);
 }
 
 std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
@@ -560,8 +560,20 @@ void linter::visit_end_of_module() {
     // If a variable appears in declared_variables, then
     // propagate_variable_uses_to_parent_scope should have already removed it
     // from variables_used and variables_used_in_descendant_scope.
-    QLJS_ASSERT(!global_scope.declared_variables.find(var.name));
+    switch (var.kind) {
+    case used_variable_kind::_export:
+    case used_variable_kind::_delete:
+    case used_variable_kind::_typeof:
+    case used_variable_kind::assignment:
+    case used_variable_kind::use:
+      QLJS_ASSERT(!global_scope.declared_variables.find(var.name));
+      break;
+    case used_variable_kind::type:
+      QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));
+      break;
+    }
 
+    // TODO(#690): This should not affect type uses.
     return is_variable_declared_by_typeof(var);
   };
 

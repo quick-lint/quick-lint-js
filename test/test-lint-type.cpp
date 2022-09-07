@@ -18,6 +18,18 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
+TEST(test_lint_type, type_use_does_not_warn_on_predefined_global_classes) {
+  const char8 use[] = u8"Array";
+
+  // ([]) as Array;
+  diag_collector v;
+  linter l(&v, &default_globals);
+  l.visit_variable_type_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint_type, type_use_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
