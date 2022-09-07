@@ -360,7 +360,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::private_identifier:
         if (is_interface) {
           p->diag_reporter_->report(diag_interface_properties_cannot_be_private{
-              .property_name = p->peek().identifier_name(),
+              .property_name_or_private_keyword = p->peek().span(),
           });
         }
         [[fallthrough]];
@@ -925,10 +925,32 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void error_if_invalid_access_specifier() {
       if (const modifier *access_specifier = find_access_specifier()) {
         if (is_interface) {
-          p->diag_reporter_->report(
-              diag_typescript_interfaces_cannot_contain_access_specifiers{
-                  .specifier = access_specifier->span,
-              });
+          switch (access_specifier->type) {
+          case token_type::kw_private:
+            p->diag_reporter_->report(
+                diag_interface_properties_cannot_be_private{
+                    .property_name_or_private_keyword = access_specifier->span,
+                });
+            break;
+
+          case token_type::kw_protected:
+            p->diag_reporter_->report(
+                diag_interface_properties_cannot_be_protected{
+                    .protected_keyword = access_specifier->span,
+                });
+            break;
+
+          case token_type::kw_public:
+            p->diag_reporter_->report(
+                diag_interface_properties_cannot_be_explicitly_public{
+                    .public_keyword = access_specifier->span,
+                });
+            break;
+
+          default:
+            QLJS_UNREACHABLE();
+            break;
+          }
         } else if (!p->options_.typescript) {
           p->diag_reporter_->report(
               diag_typescript_access_specifiers_not_allowed_in_javascript{

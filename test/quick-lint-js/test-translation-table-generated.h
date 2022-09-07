@@ -519,6 +519,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface properties are always public and cannot be marked protected"_translatable,
+        {
+            u8"TypeScript interface properties are always public and cannot be marked protected",
+            u8"TypeScript interface properties are always public and cannot be marked protected",
+            u8"TypeScript interface properties are always public and cannot be marked protected",
+            u8"TypeScript interface properties are always public and cannot be marked protected",
+            u8"TypeScript interface properties are always public and cannot be marked protected",
+        },
+    },
+    {
         "TypeScript interface properties cannot be 'static'"_translatable,
         {
             u8"TypeScript interface properties cannot be 'static'",
@@ -526,16 +536,6 @@ inline constexpr translated_string test_translation_table[] = {
             u8"static makes no sense in interfaces",
             u8"TypeScript interface properties cannot be 'static'",
             u8"TypeScript interface properties cannot be 'static'",
-        },
-    },
-    {
-        "TypeScript interface properties cannot be private"_translatable,
-        {
-            u8"TypeScript interface properties cannot be private",
-            u8"TypeScript interface properties cannot be private",
-            u8"interface properties deserve no privacy",
-            u8"TypeScript interface properties cannot be private",
-            u8"TypeScript interface properties cannot be private",
         },
     },
     {
@@ -1719,13 +1719,23 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "interface properties are always public and cannot be marked {0}"_translatable,
+        "interface properties are always public and cannot be private"_translatable,
         {
-            u8"interface properties are always public and cannot be marked {0}",
-            u8"interface properties are always public and cannot be marked {0}",
-            u8"interface properties are always public and cannot be marked {0}",
-            u8"interface properties are always public and cannot be marked {0}",
-            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be private",
+            u8"interface properties are always public and cannot be private",
+            u8"interface properties are always public and cannot be private",
+            u8"interface properties are always public and cannot be private",
+            u8"interface properties are always public and cannot be private",
+        },
+    },
+    {
+        "interface properties cannot be marked public explicitly"_translatable,
+        {
+            u8"interface properties cannot be marked public explicitly",
+            u8"interface properties cannot be marked public explicitly",
+            u8"interface properties cannot be marked public explicitly",
+            u8"interface properties cannot be marked public explicitly",
+            u8"interface properties cannot be marked public explicitly",
         },
     },
     {

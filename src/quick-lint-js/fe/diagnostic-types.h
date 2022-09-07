@@ -1691,13 +1691,6 @@
           MESSAGE(QLJS_TRANSLATABLE("remove this 'type'"), type_only_keyword)) \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_interfaces_cannot_contain_access_specifiers, "E0237",    \
-      diagnostic_severity::error, { source_code_span specifier; },             \
-      MESSAGE(QLJS_TRANSLATABLE("interface properties are always public and "  \
-                                "cannot be marked {0}"),                       \
-              specifier))                                                      \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_cannot_contain_static_blocks, "E0243",        \
       diagnostic_severity::error, { source_code_span static_token; },          \
       MESSAGE(QLJS_TRANSLATABLE("interfaces cannot contain static blocks"),    \
@@ -2152,11 +2145,27 @@
               body_start))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_properties_cannot_be_explicitly_public, "E0237",          \
+      diagnostic_severity::error, { source_code_span public_keyword; },        \
+      MESSAGE(QLJS_TRANSLATABLE("interface properties "                        \
+                                "cannot be marked public explicitly"),         \
+              public_keyword))                                                 \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_properties_cannot_be_private, "E0219",                    \
-      diagnostic_severity::error, { identifier property_name; },               \
-      MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "TypeScript interface properties cannot be private"),        \
-              property_name))                                                  \
+      diagnostic_severity::error,                                              \
+      { source_code_span property_name_or_private_keyword; },                  \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "interface properties are always public and cannot be private"), \
+          property_name_or_private_keyword))                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_interface_properties_cannot_be_protected, "E0288",                  \
+      diagnostic_severity::error, { source_code_span protected_keyword; },     \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript interface properties are always "  \
+                                "public and cannot be marked protected"),      \
+              protected_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_interface_properties_cannot_be_static, "E0216",                     \

@@ -702,7 +702,8 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code, diag_interface_properties_cannot_be_private,  //
-                    property_name, strlen(u8"interface I { "), u8"#method")));
+                    property_name_or_private_keyword,
+                    strlen(u8"interface I { "), u8"#method")));
   }
 
   {
@@ -717,7 +718,8 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code, diag_interface_properties_cannot_be_private,  //
-                    property_name, strlen(u8"interface I { "), u8"#field")));
+                    property_name_or_private_keyword,
+                    strlen(u8"interface I { "), u8"#field")));
   }
 
   {
@@ -737,8 +739,8 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
                     DIAG_TYPE(diag_interface_properties_cannot_be_static),
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_interface_properties_cannot_be_private,  //
-                        property_name, strlen(u8"interface I { async static "),
-                        u8"#method")));
+                        property_name_or_private_keyword,
+                        strlen(u8"interface I { async static "), u8"#method")));
   }
 
   {
@@ -756,8 +758,8 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
             DIAG_TYPE(diag_interface_properties_cannot_be_static),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_interface_properties_cannot_be_private,  //
-                property_name, strlen(u8"interface I { readonly static "),
-                u8"#field")));
+                property_name_or_private_keyword,
+                strlen(u8"interface I { readonly static "), u8"#field")));
   }
 }
 
@@ -1213,19 +1215,43 @@ TEST_F(test_parse_typescript_interface, generic_interface) {
 }
 
 TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
-  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
-    padded_string code(u8"interface I { " + specifier + u8" method(); }");
-    SCOPED_TRACE(code);
+  {
+    padded_string code(u8"interface I { public method(); }"_sv);
     spy_visitor v;
     parser p(&code, &v, typescript_options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
-            diag_typescript_interfaces_cannot_contain_access_specifiers,  //
-            specifier, strlen(u8"interface I { "), specifier)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_interface_properties_cannot_be_explicitly_public,  //
+                    public_keyword, strlen(u8"interface I { "), u8"public")));
+  }
+
+  {
+    padded_string code(u8"interface I { protected method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_interface_properties_cannot_be_protected,  //
+                              protected_keyword, strlen(u8"interface I { "),
+                              u8"protected")));
+  }
+
+  {
+    padded_string code(u8"interface I { private method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_interface_properties_cannot_be_private,  //
+                              property_name_or_private_keyword,
+                              strlen(u8"interface I { "), u8"private")));
   }
 }
 

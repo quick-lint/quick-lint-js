@@ -1158,10 +1158,6 @@ msgid "'type' cannot be used twice in import"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "interface properties are always public and cannot be marked {0}"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "interfaces cannot contain static blocks"
 msgstr ""
@@ -1497,7 +1493,23 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript interface properties cannot be private"
+msgid "interface properties cannot be marked public explicitly"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "interface properties are always public and cannot be private"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid ""
+"TypeScript interface properties are always public and cannot be marked "
+"protected"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
 "quick-lint-js"

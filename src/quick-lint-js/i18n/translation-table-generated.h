@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 337;
-constexpr std::size_t translation_table_string_table_size = 53393;
+constexpr std::uint16_t translation_table_mapping_table_size = 338;
+constexpr std::size_t translation_table_string_table_size = 53437;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -77,8 +77,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript interface methods cannot be marked 'async'"sv,
           "TypeScript interface methods cannot be marked as a generator"sv,
           "TypeScript interface methods cannot contain a body"sv,
+          "TypeScript interface properties are always public and cannot be marked protected"sv,
           "TypeScript interface properties cannot be 'static'"sv,
-          "TypeScript interface properties cannot be private"sv,
           "TypeScript interfaces cannot be named 'await' in async function"sv,
           "TypeScript namespaces are not allowed in JavaScript"sv,
           "TypeScript non-null assertion is not allowed on parameters"sv,
@@ -197,7 +197,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "index signatures require a value type"sv,
           "indexing requires an expression"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
-          "interface properties are always public and cannot be marked {0}"sv,
+          "interface properties are always public and cannot be private"sv,
+          "interface properties cannot be marked public explicitly"sv,
           "interfaces cannot contain static blocks"sv,
           "invalid UTF-8 sequence"sv,
           "invalid expression left of assignment"sv,

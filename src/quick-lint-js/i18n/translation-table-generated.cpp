@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0},              //
-        {1, 11711, 20973, 0, 39253},  //
+        {1, 11711, 20933, 0, 39213},  //
         {50, 61, 79, 0, 40},          //
         {62, 74, 53, 0, 46},          //
         {76, 89, 80, 0, 61},          //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 0, 52},          //
         {31, 56, 0, 0, 28},           //
         {0, 0, 0, 0, 67},             //
-        {79, 25, 30, 31678, 66},      //
+        {79, 25, 30, 31638, 66},      //
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
@@ -60,9 +60,9 @@ const translation_table translation_data = {
         {0, 64, 0, 0, 49},            //
         {0, 41, 0, 0, 54},            //
         {0, 45, 0, 0, 61},            //
-        {0, 44, 0, 0, 51},            //
+        {0, 0, 0, 0, 51},             //
+        {0, 44, 0, 0, 81},            //
         {0, 36, 0, 0, 51},            //
-        {0, 40, 0, 0, 50},            //
         {0, 0, 0, 0, 64},             //
         {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 59},             //
@@ -181,7 +181,8 @@ const translation_table translation_data = {
         {175, 14, 144, 175, 38},      //
         {0, 30, 0, 0, 32},            //
         {0, 0, 0, 0, 59},             //
-        {0, 0, 0, 0, 64},             //
+        {0, 0, 0, 0, 61},             //
+        {0, 0, 0, 0, 56},             //
         {37, 68, 39, 31, 40},         //
         {25, 46, 25, 22, 23},         //
         {47, 43, 47, 35, 38},         //
@@ -642,7 +643,6 @@ const translation_table translation_data = {
         u8"interfaces are allergic to generator methods\0"
         u8"you probably want a class, not an interface\0"
         u8"static makes no sense in interfaces\0"
-        u8"interface properties deserve no privacy\0"
         u8"I await your swift demise\0"
         u8"this isn't TypeScript\0"
         u8"a do-whiley do\0"
@@ -1302,8 +1302,8 @@ const translation_table translation_data = {
         u8"TypeScript interface methods cannot be marked 'async'\0"
         u8"TypeScript interface methods cannot be marked as a generator\0"
         u8"TypeScript interface methods cannot contain a body\0"
+        u8"TypeScript interface properties are always public and cannot be marked protected\0"
         u8"TypeScript interface properties cannot be 'static'\0"
-        u8"TypeScript interface properties cannot be private\0"
         u8"TypeScript interfaces cannot be named 'await' in async function\0"
         u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
@@ -1422,7 +1422,8 @@ const translation_table translation_data = {
         u8"index signatures require a value type\0"
         u8"indexing requires an expression\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
-        u8"interface properties are always public and cannot be marked {0}\0"
+        u8"interface properties are always public and cannot be private\0"
+        u8"interface properties cannot be marked public explicitly\0"
         u8"interfaces cannot contain static blocks\0"
         u8"invalid UTF-8 sequence\0"
         u8"invalid expression left of assignment\0"
