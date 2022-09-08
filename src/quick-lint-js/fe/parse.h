@@ -358,13 +358,25 @@ class parser {
                              std::optional<source_code_span> declaring_token,
                              variable_init_kind init_kind);
 
+  // FIXME(strager): This should be an enum class, but that causes GCC 8.3.0 to
+  // fail compilation:
+  //
+  // > error: cannot convert 'quick_lint_js::parser::allow_type_annotations' to
+  // > 'unsigned char:2' in initialization
+  enum allow_type_annotations : std::uint8_t {
+    typescript_only,
+    always,
+    never,
+  };
+
   struct precedence {
     bool binary_operators : 1 = true;
     bool math_or_logical_or_assignment : 1 = true;
     bool equals_assignment : 1 = true;
     bool commas : 1 = true;
     bool in_operator : 1 = true;
-    bool colon_type_annotation : 1 = true;
+    allow_type_annotations colon_type_annotation : 2 =
+        allow_type_annotations::typescript_only;
 
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).

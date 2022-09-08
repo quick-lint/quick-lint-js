@@ -985,17 +985,17 @@ expression* parser::parse_async_expression_only(
         });
       }
 
-      expression* child =
-          this->parse_expression(v, precedence{
-                                        .binary_operators = true,
-                                        .math_or_logical_or_assignment = false,
-                                        .equals_assignment = false,
-                                        .commas = false,
-                                        .in_operator = false,
-                                        .colon_type_annotation = false,
-                                        .trailing_curly_is_arrow_body = false,
-                                        .conditional_operator = false,
-                                    });
+      expression* child = this->parse_expression(
+          v, precedence{
+                 .binary_operators = true,
+                 .math_or_logical_or_assignment = false,
+                 .equals_assignment = false,
+                 .commas = false,
+                 .in_operator = false,
+                 .colon_type_annotation = allow_type_annotations::never,
+                 .trailing_curly_is_arrow_body = false,
+                 .conditional_operator = false,
+             });
       if (child->kind() == expression_kind::_missing) {
         this->diag_reporter_->report(diag_missing_operand_for_operator{
             .where = async_or_await_token.span(),
@@ -1643,10 +1643,10 @@ next:
           this->make_expression<expression::_missing>(source_code_span(
               this->lexer_.end_of_previous_token(), this->peek().begin));
     } else {
-      true_expression =
-          this->parse_expression(v, precedence{
-                                        .colon_type_annotation = false,
-                                    });
+      true_expression = this->parse_expression(
+          v, precedence{
+                 .colon_type_annotation = allow_type_annotations::never,
+             });
     }
 
     if (this->peek().type != token_type::colon) {
@@ -1826,7 +1826,19 @@ next:
 
   // x: Type  // TypeScript only.
   case token_type::colon: {
-    if (!this->options_.typescript || !prec.colon_type_annotation) {
+    bool should_parse_annotation;
+    switch (prec.colon_type_annotation) {
+    case allow_type_annotations::typescript_only:
+      should_parse_annotation = this->options_.typescript;
+      break;
+    case allow_type_annotations::always:
+      should_parse_annotation = true;
+      break;
+    case allow_type_annotations::never:
+      should_parse_annotation = false;
+      break;
+    }
+    if (!should_parse_annotation) {
       break;
     }
     expression* child = binary_builder.last_expression();

@@ -730,9 +730,10 @@ parse_statement:
         .case_token = this->peek().span(),
     });
     this->skip();
-    this->parse_and_visit_expression(v, precedence{
-                                            .colon_type_annotation = false,
-                                        });
+    this->parse_and_visit_expression(
+        v, precedence{
+               .colon_type_annotation = allow_type_annotations::never,
+           });
     if (this->peek().type == token_type::colon) {
       this->skip();
     }
@@ -1481,7 +1482,11 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
     case token_type::number:
     case token_type::reserved_keyword_with_escape_sequence: {
       expression *parameter = this->parse_expression(
-          v, precedence{.commas = false, .in_operator = true});
+          v, precedence{
+                 .commas = false,
+                 .in_operator = true,
+                 .colon_type_annotation = allow_type_annotations::always,
+             });
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                   /*declaring_token=*/std::nullopt,
                                   /*init_kind=*/variable_init_kind::normal);
@@ -1571,9 +1576,10 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
         });
         this->skip();
       } else {
-        this->parse_and_visit_expression(v, precedence{
-                                                .colon_type_annotation = false,
-                                            });
+        this->parse_and_visit_expression(
+            v, precedence{
+                   .colon_type_annotation = allow_type_annotations::never,
+               });
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
         this->skip();
       }

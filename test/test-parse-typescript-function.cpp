@@ -27,6 +27,21 @@ namespace {
 class test_parse_typescript_function : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_function,
+       parameter_type_annotation_is_disallowed_in_javascript) {
+  {
+    test_parser p(u8"function f(p: T) { }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_type_annotations_not_allowed_in_javascript,  //
+            type_colon, strlen(u8"function f(p"), u8":")));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
        return_type_annotation_is_disallowed_in_javascript) {
   {
     test_parser p(u8"function f(): C { }"_sv, capture_diags);
