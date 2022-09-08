@@ -684,14 +684,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         // field = initialValue;
       case token_type::equal:
         check_modifiers_for_field();
-        if (is_interface) {
-          p->diag_reporter_->report(
-              diag_interface_fields_cannot_have_initializers{
-                  .equal = p->peek().span(),
-              });
-        }
-        p->skip();
-        p->parse_and_visit_expression(v);
+        this->parse_field_initializer();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
         break;
@@ -750,6 +743,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       case token_type::colon:
         p->parse_and_visit_typescript_colon_type_expression(v);
+        if (p->peek().type == token_type::equal) {
+          this->parse_field_initializer();
+        }
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
         break;
@@ -758,6 +754,18 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         break;
       }
+    }
+
+    void parse_field_initializer() {
+      QLJS_ASSERT(p->peek().type == token_type::equal);
+      if (is_interface) {
+        p->diag_reporter_->report(
+            diag_interface_fields_cannot_have_initializers{
+                .equal = p->peek().span(),
+            });
+      }
+      p->skip();
+      p->parse_and_visit_expression(v);
     }
 
     function_attributes function_attributes_from_modifiers(

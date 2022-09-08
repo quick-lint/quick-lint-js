@@ -1107,6 +1107,17 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
                     p.code, diag_interface_fields_cannot_have_initializers,  //
                     equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
   }
+
+  {
+    test_parser p(u8"interface I { fieldName: typeName = init; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code, diag_interface_fields_cannot_have_initializers,  //
+            equal, strlen(u8"interface I { fieldName: typeName "), u8"=")));
+  }
 }
 
 TEST_F(test_parse_typescript_interface,

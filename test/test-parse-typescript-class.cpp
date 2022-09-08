@@ -56,6 +56,20 @@ TEST_F(test_parse_typescript_class, field_with_type_is_allowed_in_typescript) {
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"FieldType"));
   }
+
+  {
+    test_parser p(u8"class C { fieldName: FieldType = init; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_enter_class_scope_body",  //
+                            "visit_variable_type_use",       // FieldType
+                            "visit_variable_use",            // init
+                            "visit_property_declaration",    // fieldName
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
+  }
 }
 
 TEST_F(test_parse_typescript_class,
