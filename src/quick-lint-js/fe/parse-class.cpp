@@ -1037,9 +1037,9 @@ void parser::parse_and_visit_typescript_interface(
   switch (this->peek().type) {
   case token_type::kw_await:
     if (this->in_async_function_) {
-      this->diag_reporter_->report(
-          diag_cannot_declare_interface_named_await_in_async_function{
-              .name = this->peek().identifier_name().span()});
+      this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
+          .name = this->peek().identifier_name(),
+      });
     }
     goto interface_name;
 
