@@ -2743,6 +2743,65 @@ TEST(test_lint_interface, generic_interface_parameters_are_usable_inside) {
   }
 }
 
+TEST(test_lint_class, generic_class_parameters_are_usable_inside) {
+  const char8 class_declaration[] = u8"C";
+  const char8 parameter_declaration[] = u8"T";
+  const char8 parameter_use[] = u8"T";
+  const char8 method_name[] = u8"method";
+
+  {
+    // class C<T> {
+    //   method(): T;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_class_scope();
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_generic_parameter,
+                                 variable_init_kind::normal);
+    l.visit_enter_class_scope_body(identifier_of(class_declaration));
+    l.visit_property_declaration(identifier_of(method_name));
+    l.visit_enter_function_scope();
+    l.visit_variable_type_use(identifier_of(parameter_use));
+    l.visit_exit_function_scope();
+    l.visit_exit_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration),
+                                 variable_kind::_class,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint_class, generic_class_parameters_are_not_usable_outside) {
+  const char8 class_declaration[] = u8"C";
+  const char8 parameter_declaration[] = u8"T";
+  const char8 parameter_use[] = u8"T";
+
+  {
+    // class C<T> { }
+    // (null: T); // ERROR
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_class_scope();
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_generic_parameter,
+                                 variable_init_kind::normal);
+    l.visit_enter_class_scope_body(identifier_of(class_declaration));
+    l.visit_exit_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration),
+                                 variable_kind::_class,
+                                 variable_init_kind::normal);
+    l.visit_variable_type_use(identifier_of(parameter_use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                           span_of(parameter_use))));
+  }
+}
+
 TEST(test_lint_interface, interface_index_signature_can_use_outside_types) {
   const char8 type_declaration[] = u8"C";
   const char8 interface_declaration[] = u8"I";

@@ -271,13 +271,6 @@ void linter::visit_exit_class_scope() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
-
-  // No variable declarations should be propagatable to the parent scope.
-  for (const declared_variable &var :
-       this->current_scope().declared_variables) {
-    QLJS_ASSERT(var.kind == variable_kind::_class);
-  }
-
   this->scopes_.pop();
 }
 
