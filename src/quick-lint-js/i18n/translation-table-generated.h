@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 385;
-constexpr std::size_t translation_table_string_table_size = 55280;
+constexpr std::uint16_t translation_table_mapping_table_size = 391;
+constexpr std::size_t translation_table_string_table_size = 55610;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -66,6 +66,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'type' cannot be used twice in import"sv,
           "'while' loop"sv,
           "'with' statement"sv,
+          "'{0} []' is always '{1}'"sv,
           "'{0}' found here"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
           "'{0}' is not allowed on methods"sv,
@@ -396,6 +397,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "use 'while' instead to loop until a condition is false"sv,
           "use of undeclared type: {0}"sv,
           "use of undeclared variable: {0}"sv,
+          "using '{0}' against a class literal always returns '{1}'"sv,
+          "using '{0}' against a regular expression literal always returns '{1}'"sv,
+          "using '{0}' against an array literal does not compare items"sv,
+          "using '{0}' against an arrow function always returns '{1}'"sv,
+          "using '{0}' against an object literal always returns '{1}'"sv,
           "variable already declared here"sv,
           "variable assigned before its declaration"sv,
           "variable declared here"sv,

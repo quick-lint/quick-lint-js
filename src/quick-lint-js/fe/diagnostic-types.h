@@ -2530,6 +2530,67 @@
           QLJS_TRANSLATABLE("upper case letters compared with toLowerCase"),    \
           span_operator))                                                       \
                                                                                 \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_strict_comp_against_array_literal, "E0341",                \
+      diagnostic_severity::warning, { source_code_span equals_operator; },      \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "using '{0}' against an array literal does not compare items"),   \
+          equals_operator))                                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_comp_against_arrow_function, "E0342",                      \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span equals_operator;                                       \
+        string8_view comparison_result;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("using '{0}' against an arrow "                 \
+                                "function always returns '{1}'"),               \
+              equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_comp_against_class_literal, "E0343",                       \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span equals_operator;                                       \
+        string8_view comparison_result;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("using '{0}' against a class "                  \
+                                "literal always returns '{1}'"),                \
+              equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_strict_comp_against_empty_array_literal, "E0344",          \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span equals_operator;                                       \
+        string8_view comparison_result;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'{0} []' is always '{1}'"), equals_operator,   \
+              comparison_result))                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_comp_against_object_literal, "E0345",                      \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span equals_operator;                                       \
+        string8_view comparison_result;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("using '{0}' against an object "                \
+                                "literal always returns '{1}'"),                \
+              equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_comp_against_regular_expression_literal, "E0346",          \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span equals_operator;                                       \
+        string8_view comparison_result;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("using '{0}' against a regular "                \
+                                "expression literal always returns '{1}'"),     \
+              equals_operator, comparison_result))                              \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

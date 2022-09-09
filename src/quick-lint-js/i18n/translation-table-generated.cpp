@@ -49,7 +49,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 38},             //
         {73, 31, 0, 0, 38},           //
         {15, 14, 0, 0, 13},           //
-        {15, 38, 0, 0, 17},           //
+        {0, 0, 0, 0, 17},             //
+        {15, 38, 0, 0, 25},           //
         {15, 17, 0, 0, 17},           //
         {0, 0, 0, 0, 50},             //
         {69, 48, 0, 0, 32},           //
@@ -379,7 +380,12 @@ const translation_table translation_data = {
         {50, 47, 31, 18, 53},         //
         {0, 33, 0, 0, 55},            //
         {64, 31, 79, 68, 28},         //
-        {57, 29, 48, 41, 32},         //
+        {0, 0, 0, 0, 32},             //
+        {0, 0, 0, 0, 57},             //
+        {0, 0, 0, 0, 70},             //
+        {0, 0, 0, 0, 60},             //
+        {0, 0, 0, 0, 59},             //
+        {57, 29, 48, 41, 59},         //
         {37, 26, 31, 35, 31},         //
         {38, 49, 41, 37, 41},         //
         {30, 29, 24, 27, 23},         //
@@ -1333,6 +1339,7 @@ const translation_table translation_data = {
         u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
+        u8"'{0} []' is always '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
@@ -1663,6 +1670,11 @@ const translation_table translation_data = {
         u8"use 'while' instead to loop until a condition is false\0"
         u8"use of undeclared type: {0}\0"
         u8"use of undeclared variable: {0}\0"
+        u8"using '{0}' against a class literal always returns '{1}'\0"
+        u8"using '{0}' against a regular expression literal always returns '{1}'\0"
+        u8"using '{0}' against an array literal does not compare items\0"
+        u8"using '{0}' against an arrow function always returns '{1}'\0"
+        u8"using '{0}' against an object literal always returns '{1}'\0"
         u8"variable already declared here\0"
         u8"variable assigned before its declaration\0"
         u8"variable declared here\0"
