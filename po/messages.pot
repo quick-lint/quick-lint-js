@@ -184,10 +184,6 @@ msgid "classes cannot be named 'await' in async function"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "TypeScript interfaces cannot be named 'await' in async function"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr ""
 
@@ -947,14 +943,6 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'{0}' is not allowed on methods"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "TypeScript call signatures are only allowed in classes"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "write a name to declare a class method"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

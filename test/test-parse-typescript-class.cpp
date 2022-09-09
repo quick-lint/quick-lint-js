@@ -491,11 +491,10 @@ TEST_F(test_parse_typescript_class,
                     "visit_exit_class_scope",           // C
                     "visit_variable_declaration"));     // C
     EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_typescript_call_signatures_not_allowed_in_classes,  //
-                    expected_method_name, strlen(u8"class C { "), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
+                              diag_missing_class_method_name,  //
+                              expected_name, strlen(u8"class C { "), u8"")));
   }
 }
 

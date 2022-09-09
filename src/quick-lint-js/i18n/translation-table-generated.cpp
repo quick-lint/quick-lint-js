@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0},              //
-        {1, 11711, 20933, 0, 39213},  //
+        {1, 11711, 20907, 0, 39187},  //
         {50, 61, 79, 0, 40},          //
         {62, 74, 53, 0, 46},          //
         {76, 89, 80, 0, 61},          //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 0, 52},          //
         {31, 56, 0, 0, 28},           //
         {0, 0, 0, 0, 67},             //
-        {79, 25, 30, 31638, 66},      //
+        {79, 25, 30, 31612, 66},      //
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
@@ -55,15 +55,13 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 62},             //
         {0, 0, 0, 0, 70},             //
         {0, 0, 0, 0, 55},             //
-        {0, 0, 0, 0, 55},             //
         {0, 38, 0, 0, 56},            //
         {0, 64, 0, 0, 49},            //
         {0, 41, 0, 0, 54},            //
         {0, 45, 0, 0, 61},            //
         {0, 0, 0, 0, 51},             //
         {0, 44, 0, 0, 81},            //
-        {0, 36, 0, 0, 51},            //
-        {0, 0, 0, 0, 64},             //
+        {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 59},             //
         {0, 0, 0, 0, 61},             //
@@ -75,7 +73,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 54},             //
         {0, 0, 0, 0, 69},             //
         {0, 0, 0, 0, 47},             //
-        {0, 26, 0, 0, 57},            //
+        {0, 36, 0, 0, 57},            //
         {0, 0, 0, 0, 67},             //
         {56, 22, 0, 0, 66},           //
         {23, 15, 0, 0, 18},           //
@@ -342,7 +340,6 @@ const translation_table translation_data = {
         {43, 55, 61, 43, 50},         //
         {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 36},             //
-        {0, 0, 0, 0, 39},             //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 42},             //
         {47, 55, 72, 48, 33},         //
@@ -643,7 +640,6 @@ const translation_table translation_data = {
         u8"interfaces are allergic to generator methods\0"
         u8"you probably want a class, not an interface\0"
         u8"static makes no sense in interfaces\0"
-        u8"I await your swift demise\0"
         u8"this isn't TypeScript\0"
         u8"a do-whiley do\0"
         u8"a 'for' loop \U0001f503\0"
@@ -1295,7 +1291,6 @@ const translation_table translation_data = {
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
-        u8"TypeScript call signatures are only allowed in classes\0"
         u8"TypeScript generics are not allowed in JavaScript code\0"
         u8"TypeScript import aliases are not allowed in JavaScript\0"
         u8"TypeScript interface fields cannot be initalized\0"
@@ -1304,7 +1299,6 @@ const translation_table translation_data = {
         u8"TypeScript interface methods cannot contain a body\0"
         u8"TypeScript interface properties are always public and cannot be marked protected\0"
         u8"TypeScript interface properties cannot be 'static'\0"
-        u8"TypeScript interfaces cannot be named 'await' in async function\0"
         u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"
@@ -1583,7 +1577,6 @@ const translation_table translation_data = {
         u8"with statement is missing '{1}' around expression\0"
         u8"with statement needs parentheses around expression\0"
         u8"write 'const' instead of '{0}' here\0"
-        u8"write a name to declare a class method\0"
         u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not allowed in JavaScript\0"

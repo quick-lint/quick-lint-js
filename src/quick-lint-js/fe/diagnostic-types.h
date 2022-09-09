@@ -1514,15 +1514,6 @@
       MESSAGE(QLJS_TRANSLATABLE("'{0}' is not allowed on methods"), bang))     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_call_signatures_not_allowed_in_classes, "E0234",         \
-      diagnostic_severity::error, { source_code_span expected_method_name; },  \
-      MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "TypeScript call signatures are only allowed in classes"),   \
-              expected_method_name)                                            \
-          MESSAGE(QLJS_TRANSLATABLE("write a name to declare a class method"), \
-                  expected_method_name))                                       \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_catch_type_annotation_must_be_any, "E0256",              \
       diagnostic_severity::error, { source_code_span type_expression; },       \
       MESSAGE(                                                                 \

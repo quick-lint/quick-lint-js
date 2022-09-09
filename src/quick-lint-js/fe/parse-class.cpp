@@ -482,10 +482,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             } else {
               p->parse_and_visit_function_parameters_and_body_no_scope(
                   v, property_name_span, attributes);
-              p->diag_reporter_->report(
-                  diag_typescript_call_signatures_not_allowed_in_classes{
-                      .expected_method_name = property_name_span,
-                  });
+              p->diag_reporter_->report(diag_missing_class_method_name{
+                  .expected_name = property_name_span,
+              });
             }
           }
           v.visit_exit_function_scope();

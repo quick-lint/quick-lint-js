@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 338;
-constexpr std::size_t translation_table_string_table_size = 53437;
+constexpr std::uint16_t translation_table_mapping_table_size = 335;
+constexpr std::size_t translation_table_string_table_size = 53253;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -70,7 +70,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
-          "TypeScript call signatures are only allowed in classes"sv,
           "TypeScript generics are not allowed in JavaScript code"sv,
           "TypeScript import aliases are not allowed in JavaScript"sv,
           "TypeScript interface fields cannot be initalized"sv,
@@ -79,7 +78,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript interface methods cannot contain a body"sv,
           "TypeScript interface properties are always public and cannot be marked protected"sv,
           "TypeScript interface properties cannot be 'static'"sv,
-          "TypeScript interfaces cannot be named 'await' in async function"sv,
           "TypeScript namespaces are not allowed in JavaScript"sv,
           "TypeScript non-null assertion is not allowed on parameters"sv,
           "TypeScript non-null assertions are not allowed in JavaScript"sv,
@@ -358,7 +356,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "with statement is missing '{1}' around expression"sv,
           "with statement needs parentheses around expression"sv,
           "write 'const' instead of '{0}' here"sv,
-          "write a name to declare a class method"sv,
           "write the type assertion with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
           "{0} is not allowed in JavaScript"sv,

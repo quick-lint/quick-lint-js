@@ -449,16 +449,6 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript call signatures are only allowed in classes"_translatable,
-        {
-            u8"TypeScript call signatures are only allowed in classes",
-            u8"TypeScript call signatures are only allowed in classes",
-            u8"TypeScript call signatures are only allowed in classes",
-            u8"TypeScript call signatures are only allowed in classes",
-            u8"TypeScript call signatures are only allowed in classes",
-        },
-    },
-    {
         "TypeScript generics are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript generics are not allowed in JavaScript code",
@@ -536,16 +526,6 @@ inline constexpr translated_string test_translation_table[] = {
             u8"static makes no sense in interfaces",
             u8"TypeScript interface properties cannot be 'static'",
             u8"TypeScript interface properties cannot be 'static'",
-        },
-    },
-    {
-        "TypeScript interfaces cannot be named 'await' in async function"_translatable,
-        {
-            u8"TypeScript interfaces cannot be named 'await' in async function",
-            u8"TypeScript interfaces cannot be named 'await' in async function",
-            u8"I await your swift demise",
-            u8"TypeScript interfaces cannot be named 'await' in async function",
-            u8"TypeScript interfaces cannot be named 'await' in async function",
         },
     },
     {
@@ -3326,16 +3306,6 @@ inline constexpr translated_string test_translation_table[] = {
             u8"write 'const' instead of '{0}' here",
             u8"write 'const' instead of '{0}' here",
             u8"write 'const' instead of '{0}' here",
-        },
-    },
-    {
-        "write a name to declare a class method"_translatable,
-        {
-            u8"write a name to declare a class method",
-            u8"write a name to declare a class method",
-            u8"write a name to declare a class method",
-            u8"write a name to declare a class method",
-            u8"write a name to declare a class method",
         },
     },
     {
