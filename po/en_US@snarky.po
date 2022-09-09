@@ -957,11 +957,6 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "{0} is not allowed in JavaScript"
-msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
@@ -1119,6 +1114,21 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 #, fuzzy
 msgid "class methods cannot be optional"
 msgstr "classes cannot be named 'let'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'private' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'protected' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'public' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1454,6 +1464,10 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "{0} is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #~ msgid "TypeScript interfaces cannot be named 'await' in async function"
 #~ msgstr "I await your swift demise"

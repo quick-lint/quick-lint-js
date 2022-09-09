@@ -33,6 +33,9 @@ const translation_table translation_data = {
         {13, 16, 0, 0, 11},           //
         {13, 24, 37, 31, 15},         //
         {0, 0, 0, 0, 48},             //
+        {0, 0, 0, 0, 39},             //
+        {0, 0, 0, 0, 41},             //
+        {0, 0, 0, 0, 38},             //
         {0, 0, 0, 0, 66},             //
         {0, 0, 0, 0, 38},             //
         {73, 31, 0, 0, 38},           //
@@ -341,8 +344,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 36},             //
         {0, 0, 0, 0, 48},             //
-        {0, 0, 0, 0, 42},             //
-        {47, 55, 72, 48, 33},         //
+        {47, 55, 72, 48, 42},         //
         {0, 0, 0, 0, 21},             //
         {0, 15, 0, 0, 53},            //
     }}),
@@ -1270,6 +1272,9 @@ const translation_table translation_data = {
         u8"'for' loop\0"
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
+        u8"'private' is not allowed in JavaScript\0"
+        u8"'protected' is not allowed in JavaScript\0"
+        u8"'public' is not allowed in JavaScript\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
         u8"'type' cannot be used twice in export\0"
         u8"'type' cannot be used twice in import\0"
@@ -1579,7 +1584,6 @@ const translation_table translation_data = {
         u8"write 'const' instead of '{0}' here\0"
         u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
-        u8"{0} is not allowed in JavaScript\0"
         u8"{0} with no bindings\0"
         u8"{1:headlinese} value must be a compile-time constant\0"
         u8"~~~ invalid string, do not use outside benchmark ~~~",

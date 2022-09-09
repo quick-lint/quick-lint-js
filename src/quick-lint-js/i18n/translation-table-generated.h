@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 335;
-constexpr std::size_t translation_table_string_table_size = 53253;
+constexpr std::uint16_t translation_table_mapping_table_size = 337;
+constexpr std::size_t translation_table_string_table_size = 53338;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -49,6 +49,9 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'for' loop"sv,
           "'if' statement"sv,
           "'in' disallowed in C-style for loop initializer"sv,
+          "'private' is not allowed in JavaScript"sv,
+          "'protected' is not allowed in JavaScript"sv,
+          "'public' is not allowed in JavaScript"sv,
           "'readonly static' is not allowed; write 'static readonly' instead"sv,
           "'type' cannot be used twice in export"sv,
           "'type' cannot be used twice in import"sv,
@@ -358,7 +361,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "write 'const' instead of '{0}' here"sv,
           "write the type assertion with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
-          "{0} is not allowed in JavaScript"sv,
           "{0} with no bindings"sv,
           "{1:headlinese} value must be a compile-time constant"sv,
           "~~~ invalid string, do not use outside benchmark ~~~"sv,

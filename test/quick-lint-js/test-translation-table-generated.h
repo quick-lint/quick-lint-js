@@ -239,6 +239,36 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'private' is not allowed in JavaScript"_translatable,
+        {
+            u8"'private' is not allowed in JavaScript",
+            u8"'private' is not allowed in JavaScript",
+            u8"'private' is not allowed in JavaScript",
+            u8"'private' is not allowed in JavaScript",
+            u8"'private' is not allowed in JavaScript",
+        },
+    },
+    {
+        "'protected' is not allowed in JavaScript"_translatable,
+        {
+            u8"'protected' is not allowed in JavaScript",
+            u8"'protected' is not allowed in JavaScript",
+            u8"'protected' is not allowed in JavaScript",
+            u8"'protected' is not allowed in JavaScript",
+            u8"'protected' is not allowed in JavaScript",
+        },
+    },
+    {
+        "'public' is not allowed in JavaScript"_translatable,
+        {
+            u8"'public' is not allowed in JavaScript",
+            u8"'public' is not allowed in JavaScript",
+            u8"'public' is not allowed in JavaScript",
+            u8"'public' is not allowed in JavaScript",
+            u8"'public' is not allowed in JavaScript",
+        },
+    },
+    {
         "'readonly static' is not allowed; write 'static readonly' instead"_translatable,
         {
             u8"'readonly static' is not allowed; write 'static readonly' instead",
@@ -3326,16 +3356,6 @@ inline constexpr translated_string test_translation_table[] = {
             u8"{0} classes are not allowed in JavaScript",
             u8"{0} classes are not allowed in JavaScript",
             u8"{0} classes are not allowed in JavaScript",
-        },
-    },
-    {
-        "{0} is not allowed in JavaScript"_translatable,
-        {
-            u8"{0} is not allowed in JavaScript",
-            u8"{0} is not allowed in JavaScript",
-            u8"{0} is not allowed in JavaScript",
-            u8"{0} is not allowed in JavaScript",
-            u8"{0} is not allowed in JavaScript",
         },
     },
     {

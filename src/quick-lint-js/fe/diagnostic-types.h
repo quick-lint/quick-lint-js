@@ -1461,12 +1461,6 @@
               abstract_keyword))                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_access_specifiers_not_allowed_in_javascript, "E0236",    \
-      diagnostic_severity::error, { source_code_span specifier; },             \
-      MESSAGE(QLJS_TRANSLATABLE("{0} is not allowed in JavaScript"),           \
-              specifier))                                                      \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_angle_type_assertion_not_allowed_in_tsx, "E0283",        \
       diagnostic_severity::error,                                              \
       {                                                                        \
@@ -1714,6 +1708,24 @@
       diagnostic_severity::error, { source_code_span question; },              \
       MESSAGE(QLJS_TRANSLATABLE("class methods cannot be optional"),           \
               question))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_private_not_allowed_in_javascript, "E0222",              \
+      diagnostic_severity::error, { source_code_span specifier; },             \
+      MESSAGE(QLJS_TRANSLATABLE("'private' is not allowed in JavaScript"),     \
+              specifier))                                                      \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_protected_not_allowed_in_javascript, "E0234",            \
+      diagnostic_severity::error, { source_code_span specifier; },             \
+      MESSAGE(QLJS_TRANSLATABLE("'protected' is not allowed in JavaScript"),   \
+              specifier))                                                      \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_public_not_allowed_in_javascript, "E0289",               \
+      diagnostic_severity::error, { source_code_span specifier; },             \
+      MESSAGE(QLJS_TRANSLATABLE("'public' is not allowed in JavaScript"),      \
+              specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_readonly_fields_not_allowed_in_javascript, "E0230",      \

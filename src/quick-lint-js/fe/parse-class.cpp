@@ -959,10 +959,32 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             break;
           }
         } else if (!p->options_.typescript) {
-          p->diag_reporter_->report(
-              diag_typescript_access_specifiers_not_allowed_in_javascript{
-                  .specifier = access_specifier->span,
-              });
+          switch (access_specifier->type) {
+          case token_type::kw_private:
+            p->diag_reporter_->report(
+                diag_typescript_private_not_allowed_in_javascript{
+                    .specifier = access_specifier->span,
+                });
+            break;
+
+          case token_type::kw_protected:
+            p->diag_reporter_->report(
+                diag_typescript_protected_not_allowed_in_javascript{
+                    .specifier = access_specifier->span,
+                });
+            break;
+
+          case token_type::kw_public:
+            p->diag_reporter_->report(
+                diag_typescript_public_not_allowed_in_javascript{
+                    .specifier = access_specifier->span,
+                });
+            break;
+
+          default:
+            QLJS_UNREACHABLE();
+            break;
+          }
         }
       }
     }

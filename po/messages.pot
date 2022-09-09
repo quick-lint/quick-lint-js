@@ -914,10 +914,6 @@ msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "{0} is not allowed in JavaScript"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
 msgstr ""
 
@@ -1055,6 +1051,18 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "class methods cannot be optional"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'private' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'protected' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'public' is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

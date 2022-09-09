@@ -970,13 +970,6 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "{0} is not allowed in JavaScript"
-msgstr ""
-"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
-"implementiert"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
@@ -1167,6 +1160,27 @@ msgstr ""
 #, fuzzy
 msgid "class methods cannot be optional"
 msgstr "Klassen dürfen nicht mit 'let' benannt werden"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'private' is not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'protected' is not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'public' is not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1548,6 +1562,12 @@ msgstr "{1:singular} erwartet"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "hier"
+
+#, fuzzy
+#~ msgid "{0} is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
 
 #, fuzzy
 #~ msgid "TypeScript interfaces cannot be named 'await' in async function"

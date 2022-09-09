@@ -500,54 +500,86 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class,
        access_specifiers_are_disallowed_in_javascript) {
-  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
-    {
-      string8 code = u8"class C { " + specifier + u8" method() {} }";
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_enter_class_scope",          // C
-                              "visit_enter_class_scope_body",     //
-                              "visit_property_declaration",       // method
-                              "visit_enter_function_scope",       // method
-                              "visit_enter_function_scope_body",  // method
-                              "visit_exit_function_scope",        // method
-                              "visit_exit_class_scope",           // C
-                              "visit_variable_declaration"));     // C
-      EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
-    }
+  {
+    test_parser p(u8"class C { public method() {} }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_typescript_public_not_allowed_in_javascript,  //
+                    specifier, strlen(u8"class C { "), u8"public")));
+  }
 
-    {
-      string8 code = u8"class C { " + specifier + u8" field }";
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
-    }
+  {
+    test_parser p(u8"class C { protected method() {} }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_typescript_protected_not_allowed_in_javascript,  //
+                    specifier, strlen(u8"class C { "), u8"protected")));
+  }
+
+  {
+    test_parser p(u8"class C { private method() {} }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_typescript_private_not_allowed_in_javascript,  //
+                    specifier, strlen(u8"class C { "), u8"private")));
+  }
+
+  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
+#define MATCH_ACCESS_SPECIFIER_ERROR(code_before)                            \
+  ::testing::AnyOf(                                                          \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_private_not_allowed_in_javascript,   \
+                        specifier, strlen(u8"class C { "), u8"private"),     \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_protected_not_allowed_in_javascript, \
+                        specifier, strlen(u8"class C { "), u8"protected"),   \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_public_not_allowed_in_javascript,    \
+                        specifier, strlen(u8"class C { "), u8"public"))
 
     {
       string8 code = u8"class C { " + specifier + u8" field = init; }";
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
@@ -555,12 +587,8 @@ TEST_F(test_parse_typescript_class,
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
@@ -569,12 +597,8 @@ TEST_F(test_parse_typescript_class,
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
@@ -588,10 +612,7 @@ TEST_F(test_parse_typescript_class,
               DIAG_TYPE(
                   diag_typescript_optional_properties_not_allowed_in_javascript),
               DIAG_TYPE(diag_missing_semicolon_after_field),
-              DIAG_TYPE_OFFSETS(
-                  p.code,
-                  diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-                  specifier, strlen(u8"class C { "), specifier)));
+              MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
@@ -600,13 +621,10 @@ TEST_F(test_parse_typescript_class,
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code,
-              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
-              specifier, strlen(u8"class C { "), specifier)));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
+#undef MATCH_ACCESS_SPECIFIER_ERROR
   }
 }
 
