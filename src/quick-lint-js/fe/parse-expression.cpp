@@ -65,6 +65,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     break;
   case expression_kind::binary_operator:
     visit_children();
+    this->error_on_pointless_compare_against_literal(
+        static_cast<expression::binary_operator*>(ast));
     error_on_pointless_string_compare(
         static_cast<expression::binary_operator*>(ast));
     break;

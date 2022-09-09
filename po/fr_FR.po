@@ -1789,6 +1789,30 @@ msgstr ""
 msgid "upper case letters compared with toLowerCase"
 msgstr ""
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "using '{0}' against an array literal does not compare items"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "using '{0}' against an arrow function always returns '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "using '{0}' against a class literal always returns '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'{0} []' is always '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "using '{0}' against an object literal always returns '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "using '{0}' against a regular expression literal always returns '{1}'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

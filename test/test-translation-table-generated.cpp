@@ -391,6 +391,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'{0} []' is always '{1}'"_translatable,
+        {
+            u8"'{0} []' is always '{1}'",
+            u8"'{0} []' is always '{1}'",
+            u8"'{0} []' is always '{1}'",
+            u8"'{0} []' is always '{1}'",
+            u8"'{0} []' is always '{1}'",
+        },
+    },
+    {
         "'{0}' found here"_translatable,
         {
             u8"'{0}' found here",
@@ -3688,6 +3698,56 @@ const translated_string test_translation_table[] = {
             u8"did you fail spelling class?",
             u8"utilisation d'une variable non d\u00e9clar\u00e9e : {0}",
             u8"anv\u00e4ndning av odeklarerad variabel: {0}",
+        },
+    },
+    {
+        "using '{0}' against a class literal always returns '{1}'"_translatable,
+        {
+            u8"using '{0}' against a class literal always returns '{1}'",
+            u8"using '{0}' against a class literal always returns '{1}'",
+            u8"using '{0}' against a class literal always returns '{1}'",
+            u8"using '{0}' against a class literal always returns '{1}'",
+            u8"using '{0}' against a class literal always returns '{1}'",
+        },
+    },
+    {
+        "using '{0}' against a regular expression literal always returns '{1}'"_translatable,
+        {
+            u8"using '{0}' against a regular expression literal always returns '{1}'",
+            u8"using '{0}' against a regular expression literal always returns '{1}'",
+            u8"using '{0}' against a regular expression literal always returns '{1}'",
+            u8"using '{0}' against a regular expression literal always returns '{1}'",
+            u8"using '{0}' against a regular expression literal always returns '{1}'",
+        },
+    },
+    {
+        "using '{0}' against an array literal does not compare items"_translatable,
+        {
+            u8"using '{0}' against an array literal does not compare items",
+            u8"using '{0}' against an array literal does not compare items",
+            u8"using '{0}' against an array literal does not compare items",
+            u8"using '{0}' against an array literal does not compare items",
+            u8"using '{0}' against an array literal does not compare items",
+        },
+    },
+    {
+        "using '{0}' against an arrow function always returns '{1}'"_translatable,
+        {
+            u8"using '{0}' against an arrow function always returns '{1}'",
+            u8"using '{0}' against an arrow function always returns '{1}'",
+            u8"using '{0}' against an arrow function always returns '{1}'",
+            u8"using '{0}' against an arrow function always returns '{1}'",
+            u8"using '{0}' against an arrow function always returns '{1}'",
+        },
+    },
+    {
+        "using '{0}' against an object literal always returns '{1}'"_translatable,
+        {
+            u8"using '{0}' against an object literal always returns '{1}'",
+            u8"using '{0}' against an object literal always returns '{1}'",
+            u8"using '{0}' against an object literal always returns '{1}'",
+            u8"using '{0}' against an object literal always returns '{1}'",
+            u8"using '{0}' against an object literal always returns '{1}'",
         },
     },
     {

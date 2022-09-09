@@ -408,6 +408,80 @@ void parser::error_on_invalid_as_const(expression* ast,
   }
 }
 
+void parser::error_on_pointless_compare_against_literal(
+    expression::binary_operator* ast) {
+  auto is_comparison_operator = [](string8_view s) -> bool {
+    return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
+  };
+
+  for (int i = 0; i < ast->child_count() - 1; i++) {
+    source_code_span op_span = ast->operator_spans_[i];
+    if (is_comparison_operator(op_span.string_view())) {
+      this->check_compare_against_literal(ast->child(i), ast->child(i + 1),
+                                          op_span);
+    }
+  }
+}
+
+void parser::check_compare_against_literal(expression* lhs, expression* rhs,
+                                           source_code_span op_span) {
+  auto get_comparison_result =
+      [](string8_view equals_operator) -> string8_view {
+    return (equals_operator == u8"==="sv || equals_operator == u8"=="sv)
+               ? u8"false"sv
+               : u8"true"sv;
+  };
+  auto is_strict_operator = [](string8_view op) -> bool {
+    return op == u8"==="sv || op == u8"!=="sv;
+  };
+
+  for (expression* child : {lhs, rhs}) {
+    string8_view comparison_result =
+        get_comparison_result(op_span.string_view());
+    child = child->without_paren();
+    switch (child->kind()) {
+    case expression_kind::_class:
+      this->diag_reporter_->report(diag_pointless_comp_against_class_literal{
+          .equals_operator = op_span, .comparison_result = comparison_result});
+      return;
+    case expression_kind::array:
+      if (is_strict_operator(op_span.string_view())) {
+        if (child->child_count() == 0) {
+          this->diag_reporter_->report(
+              diag_pointless_strict_comp_against_empty_array_literal{
+                  .equals_operator = op_span,
+                  .comparison_result = comparison_result});
+        } else {
+          this->diag_reporter_->report(
+              diag_pointless_strict_comp_against_array_literal{
+                  .equals_operator = op_span});
+        }
+        return;
+      }
+      break;
+    case expression_kind::arrow_function:
+      this->diag_reporter_->report(diag_pointless_comp_against_arrow_function{
+          .equals_operator = op_span, .comparison_result = comparison_result});
+      return;
+    case expression_kind::object:
+      this->diag_reporter_->report(diag_pointless_comp_against_object_literal{
+          .equals_operator = op_span, .comparison_result = comparison_result});
+      return;
+    case expression_kind::literal:
+      if (static_cast<expression::literal*>(child)->is_regexp()) {
+        this->diag_reporter_->report(
+            diag_pointless_comp_against_regular_expression_literal{
+                .equals_operator = op_span,
+                .comparison_result = comparison_result});
+        return;
+      }
+      break;
+    default:
+      break;
+    }
+  }
+}
+
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
