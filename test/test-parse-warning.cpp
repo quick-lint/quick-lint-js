@@ -274,6 +274,23 @@ TEST_F(test_parse_warning,
                     span_operator, strlen(u8"if(s.toLowerCase() "), u8"===")));
   }
   {
+    test_parser p(u8"((s.toLowerCase())) === 'BANANA'"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_pointless_string_comp_contains_upper,
+                    span_operator, strlen(u8"((s.toLowerCase())) "), u8"===")));
+  }
+  {
+    test_parser p(u8"(((s.toLowerCase())) === ((('BANANA'))))"_sv,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_pointless_string_comp_contains_upper,
+                              span_operator, strlen(u8"(((s.toLowerCase())) "),
+                              u8"===")));
+  }
+  {
     test_parser p(
         u8"s.toLowerCase() == 'BANANA' && s.toUpperCase() !== 'orange'"_sv,
         capture_diags);

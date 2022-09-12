@@ -324,8 +324,8 @@ void parser::error_on_pointless_string_compare(
   };
 
   for (int i = 0; i < ast->child_count() - 1; i++) {
-    expression* lhs = ast->child(i);
-    expression* rhs = ast->child(i + 1);
+    expression* lhs = ast->child(i)->without_paren();
+    expression* rhs = ast->child(i + 1)->without_paren();
 
     if ((lhs->kind() == expression_kind::call &&
          rhs->kind() == expression_kind::literal) ||
