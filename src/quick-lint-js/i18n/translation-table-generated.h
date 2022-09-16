@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 336;
-constexpr std::size_t translation_table_string_table_size = 53305;
+constexpr std::uint16_t translation_table_mapping_table_size = 338;
+constexpr std::size_t translation_table_string_table_size = 53375;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -174,6 +174,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "exporting requires '{{' and '}'"sv,
           "extra ',' is not allowed between enum members"sv,
           "extra ',' is not allowed between function call arguments"sv,
+          "field declared here"sv,
           "for loop needs an iterable, or condition and update clauses"sv,
           "for-in loop expression cannot have semicolons"sv,
           "for-of loop expression cannot have semicolons"sv,
@@ -282,6 +283,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "newline is not allowed after 'namespace'"sv,
           "newline is not allowed after 'type'"sv,
           "newline is not allowed between 'async' and arrow function parameter list"sv,
+          "newline is not allowed between field name and '!'"sv,
           "number literal contains consecutive underscores"sv,
           "number literal contains trailing underscore(s)"sv,
           "object literal started here"sv,

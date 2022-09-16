@@ -889,6 +889,17 @@ msgid "newline is not allowed after 'type'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed between field name and '!'"
+msgstr ""
+"Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "field declared here"
+msgstr "Variablendeklaration ist hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "number literal contains consecutive underscores"
 msgstr "Zahlenliteral darf keine aufeinanderfolgenden Unterstriche enthalten"
 

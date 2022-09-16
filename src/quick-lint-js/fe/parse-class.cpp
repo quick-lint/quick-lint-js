@@ -633,9 +633,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       if (p->peek().type == token_type::bang) {
         // field!: Type;
-        source_code_span span = p->peek().span();
+        source_code_span bang_span = p->peek().span();
+        if (p->peek().has_leading_newline) {
+          p->diag_reporter_->report(
+              diag_newline_not_allowed_before_assignment_assertion_operator{
+                  .bang = bang_span,
+                  .field_name = property_name_span,
+              });
+        }
         modifiers.push_back(modifier{
-            .span = span,
+            .span = bang_span,
             .type = p->peek().type,
         });
         p->skip();

@@ -157,7 +157,8 @@ const translation_table translation_data = {
         {32, 30, 35, 30, 29},         //
         {0, 0, 0, 0, 32},             //
         {35, 45, 38, 33, 46},         //
-        {77, 32, 77, 63, 57},         //
+        {0, 0, 0, 0, 57},             //
+        {77, 32, 77, 63, 20},         //
         {85, 29, 86, 70, 60},         //
         {61, 59, 69, 41, 46},         //
         {61, 26, 69, 41, 46},         //
@@ -265,7 +266,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 41},             //
         {52, 31, 25, 21, 36},         //
-        {63, 34, 103, 73, 73},        //
+        {0, 0, 0, 0, 73},             //
+        {63, 34, 103, 73, 50},        //
         {69, 23, 79, 51, 48},         //
         {40, 26, 61, 56, 47},         //
         {27, 36, 29, 30, 28},         //
@@ -1396,6 +1398,7 @@ const translation_table translation_data = {
         u8"exporting requires '{{' and '}'\0"
         u8"extra ',' is not allowed between enum members\0"
         u8"extra ',' is not allowed between function call arguments\0"
+        u8"field declared here\0"
         u8"for loop needs an iterable, or condition and update clauses\0"
         u8"for-in loop expression cannot have semicolons\0"
         u8"for-of loop expression cannot have semicolons\0"
@@ -1504,6 +1507,7 @@ const translation_table translation_data = {
         u8"newline is not allowed after 'namespace'\0"
         u8"newline is not allowed after 'type'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
+        u8"newline is not allowed between field name and '!'\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"
         u8"object literal started here\0"

@@ -1489,6 +1489,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "field declared here"_translatable,
+        {
+            u8"field declared here",
+            u8"field declared here",
+            u8"field declared here",
+            u8"field declared here",
+            u8"field declared here",
+        },
+    },
+    {
         "for loop needs an iterable, or condition and update clauses"_translatable,
         {
             u8"for loop needs an iterable, or condition and update clauses",
@@ -2566,6 +2576,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"put this on a single line, please",
             u8"un saut de ligne n'est pas autoris\u00e9 entre 'async' et la liste de param\u00e8tres d'une fonction fl\u00e9ch\u00e9e",
             u8"nyrad \u00e4r inte till\u00e5ten mellan 'async' och pilfunktions parameter lista",
+        },
+    },
+    {
+        "newline is not allowed between field name and '!'"_translatable,
+        {
+            u8"newline is not allowed between field name and '!'",
+            u8"newline is not allowed between field name and '!'",
+            u8"newline is not allowed between field name and '!'",
+            u8"newline is not allowed between field name and '!'",
+            u8"newline is not allowed between field name and '!'",
         },
     },
     {

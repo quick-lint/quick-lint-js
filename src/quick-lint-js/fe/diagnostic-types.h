@@ -1345,6 +1345,18 @@
               type_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_newline_not_allowed_before_assignment_assertion_operator, "E0241",  \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span bang;                                                 \
+        source_code_span field_name;                                           \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "newline is not allowed between field name and '!'"),        \
+              bang)                                                            \
+          MESSAGE(QLJS_TRANSLATABLE("field declared here"), field_name))       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_number_literal_contains_consecutive_underscores, "E0028",           \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

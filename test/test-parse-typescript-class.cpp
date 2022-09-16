@@ -277,6 +277,27 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class,
+       newline_not_allowed_before_assignment_asserted_field_bang) {
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field\n"
+        u8"  !: any;\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_newline_not_allowed_before_assignment_assertion_operator,  //
+            bang, strlen(u8"class C {\n  field\n  "), u8"!",                //
+            field_name, strlen(u8"class C {\n  "), u8"field")));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
        assignment_asserted_methods_are_not_allowed) {
   {
     test_parser p(u8"class C { method!() {} }"_sv, typescript_options,
