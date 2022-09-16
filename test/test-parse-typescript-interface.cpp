@@ -1165,6 +1165,36 @@ TEST_F(test_parse_typescript_interface, call_signature) {
 }
 
 TEST_F(test_parse_typescript_interface,
+       call_signature_after_invalid_field_with_newline) {
+  {
+    test_parser p(
+        u8"interface I {\n"
+        u8"  field!\n"
+        u8"  (param);\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_property_declaration",   // field
+                            // TODO(strager): Emit something other than
+                            // visit_property_declaration instead?
+                            "visit_property_declaration",    // (call signature)
+                            "visit_enter_function_scope",    // (call signature)
+                            "visit_variable_declaration",    // param
+                            "visit_exit_function_scope",     // (call signature)
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+            bang, strlen(u8"interface I {\n  field"), u8"!")));
+  }
+}
+
+TEST_F(test_parse_typescript_interface,
        call_signature_cannot_have_generator_star) {
   {
     test_parser p(u8"interface I { *(param); }"_sv, typescript_options,

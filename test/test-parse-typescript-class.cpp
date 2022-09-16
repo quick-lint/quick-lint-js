@@ -496,6 +496,38 @@ TEST_F(test_parse_typescript_class,
                               diag_missing_class_method_name,  //
                               expected_name, strlen(u8"class C { "), u8"")));
   }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field!\n"
+        u8"  (param) {}\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field", std::nullopt));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_missing_class_method_name,  //
+                    expected_name, strlen(u8"class C {\n  field!\n  "), u8"")));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field!\n"
+        u8"  <T>(param) {}\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field", std::nullopt));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_missing_class_method_name,  //
+                    expected_name, strlen(u8"class C {\n  field!\n  "), u8"")));
+  }
 }
 
 TEST_F(test_parse_typescript_class,

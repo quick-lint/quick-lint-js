@@ -654,7 +654,28 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::left_paren:
       case token_type::less: {
         v.visit_property_declaration(property_name);
+
+        if (p->options_.typescript) {
+          if (const modifier *assignment_assertion_modifier =
+                  find_modifier(token_type::bang)) {
+            if (p->peek().has_leading_newline) {
+              // field!
+              // () {}  // Invalid for classes.
+
+              // Stop parsing the field. We will report
+              // diag_missing_class_method_name later if needed.
+              break;
+            } else {
+              // method!() {}  // Invalid.
+              p->diag_reporter_->report(
+                  diag_typescript_assignment_asserted_method{
+                      .bang = assignment_assertion_modifier->span,
+                  });
+            }
+          }
+        }
         check_modifiers_for_method();
+
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         if (is_interface) {
@@ -792,7 +813,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_invalid_access_specifier();
       error_if_static_in_interface();
       error_if_optional_method();
-      error_if_assignment_asserted_method();
     }
 
     void error_if_optional_field_in_not_typescript() {
@@ -891,18 +911,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // method?() {}  // Invalid.
           p->diag_reporter_->report(diag_typescript_optional_class_method{
               .question = optional_modifier->span,
-          });
-        }
-      }
-    }
-
-    void error_if_assignment_asserted_method() {
-      if (!is_interface && p->options_.typescript) {
-        if (const modifier *assignment_assertion_modifier =
-                find_modifier(token_type::bang)) {
-          // method!() {}  // Invalid.
-          p->diag_reporter_->report(diag_typescript_assignment_asserted_method{
-              .bang = assignment_assertion_modifier->span,
           });
         }
       }
