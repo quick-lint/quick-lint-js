@@ -879,11 +879,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             diag_typescript_interfaces_cannot_contain_static_blocks{
                 .static_token = static_modifier.span,
             });
-      } else if (!p->options_.typescript) {
-        p->diag_reporter_->report(
-            diag_typescript_static_blocks_not_allowed_in_javascript{
-                .static_token = static_modifier.span,
-            });
       }
     }
 

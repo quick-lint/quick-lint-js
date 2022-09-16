@@ -69,7 +69,6 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 59},             //
         {0, 0, 0, 0, 61},             //
         {0, 0, 0, 0, 66},             //
-        {0, 0, 0, 0, 57},             //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 63},             //
         {0, 0, 0, 0, 54},             //
@@ -1312,7 +1311,6 @@ const translation_table translation_data = {
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
-        u8"TypeScript static blocks are not supported in JavaScript\0"
         u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
         u8"TypeScript type exports are not allowed in JavaScript\0"

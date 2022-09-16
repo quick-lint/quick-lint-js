@@ -1768,13 +1768,6 @@
               readonly_keyword))                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_static_blocks_not_allowed_in_javascript, "E0242",        \
-      diagnostic_severity::error, { source_code_span static_token; },          \
-      MESSAGE(QLJS_TRANSLATABLE("TypeScript static blocks are "                \
-                                "not supported in JavaScript"),                \
-              static_token))                                                   \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_type_annotation_in_expression, "E0254",                  \
       diagnostic_severity::error, { source_code_span type_colon; },            \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

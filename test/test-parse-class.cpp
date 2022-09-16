@@ -1362,6 +1362,23 @@ TEST_F(test_parse_class, class_expression_body_is_visited_first_in_expression) {
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"before", u8"after"));
   }
 }
+
+TEST_F(test_parse_class, static_blocks) {
+  {
+    test_parser p(u8"class C { static #private; static { C.#private; } }");
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_enter_class_scope_body",  //
+                            "visit_property_declaration",    // #private
+                            "visit_enter_block_scope",       // static
+                            "visit_variable_use",            // C
+                            "visit_exit_block_scope",        // static
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+  }
+}
 }
 }
 

@@ -1161,11 +1161,6 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript static blocks are not supported in JavaScript"
-msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "förväntade ett uttryck efter 'case'"
 
@@ -1498,6 +1493,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "TypeScript static blocks are not supported in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #, fuzzy
 #~ msgid "class methods cannot be optional"

@@ -599,16 +599,6 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript static blocks are not supported in JavaScript"_translatable,
-        {
-            u8"TypeScript static blocks are not supported in JavaScript",
-            u8"TypeScript static blocks are not supported in JavaScript",
-            u8"TypeScript static blocks are not supported in JavaScript",
-            u8"TypeScript static blocks are not supported in JavaScript",
-            u8"TypeScript static blocks are not supported in JavaScript",
-        },
-    },
-    {
         "TypeScript type annotation requires parentheses"_translatable,
         {
             u8"TypeScript type annotation requires parentheses",

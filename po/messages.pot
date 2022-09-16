@@ -1090,10 +1090,6 @@ msgid "methods cannot be readonly"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "TypeScript static blocks are not supported in JavaScript"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr ""
 

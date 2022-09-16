@@ -889,50 +889,6 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class,
-       static_blocks_are_disallowed_in_javascript) {
-  {
-    test_parser p(u8"class C { static #private; static { C.#private; } }"_sv,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",       // C
-                            "visit_enter_class_scope_body",  //
-                            "visit_property_declaration",    // #private
-                            "visit_enter_block_scope",       // static
-                            "visit_variable_use",            // C
-                            "visit_exit_block_scope",        // static
-                            "visit_exit_class_scope",        // C
-                            "visit_variable_declaration"));  // C
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"#private"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_typescript_static_blocks_not_allowed_in_javascript,  //
-                    static_token, strlen(u8"class C { static #private; "),
-                    u8"static")));
-  }
-}
-
-TEST_F(test_parse_typescript_class, static_blocks_are_allowed_in_typescript) {
-  {
-    test_parser p(u8"class C { static #private; static { C.#private; } }",
-                  typescript_options);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",       // C
-                            "visit_enter_class_scope_body",  //
-                            "visit_property_declaration",    // #private
-                            "visit_enter_block_scope",       // static
-                            "visit_variable_use",            // C
-                            "visit_exit_block_scope",        // static
-                            "visit_exit_class_scope",        // C
-                            "visit_variable_declaration"));  // C
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
-  }
-}
-
-TEST_F(test_parse_typescript_class,
        method_return_type_annotations_are_disallowed_in_javascript) {
   {
     test_parser p(u8"class C { method(): T { } }"_sv, capture_diags);

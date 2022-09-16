@@ -1160,11 +1160,6 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript static blocks are not supported in JavaScript"
-msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "this 'case' is awful lonely"
 
@@ -1483,6 +1478,10 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "TypeScript static blocks are not supported in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #, fuzzy
 #~ msgid "class methods cannot be optional"

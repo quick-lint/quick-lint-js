@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* `static` code blocks in classes no longer report E0242 ("TypeScript static
+  blocks are not supported in JavaScript").
+
 ## 2.9.0 (2022-09-05)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.9.0/)
