@@ -996,6 +996,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "assignment-asserted field must have a type annotation"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'{0}' is not allowed on methods"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

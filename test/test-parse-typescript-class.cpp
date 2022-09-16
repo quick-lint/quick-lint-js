@@ -237,7 +237,8 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        assignment_asserted_fields_are_disallowed_in_javascript) {
   {
-    test_parser p(u8"class C { field1!; field2! = init; }"_sv, capture_diags);
+    test_parser p(u8"class C { field1!: any; field2!: any = init; }"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -256,14 +257,14 @@ TEST_F(test_parse_typescript_class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
-                bang, strlen(u8"class C { field1!; field2"), u8"!")));
+                bang, strlen(u8"class C { field1!: any; field2"), u8"!")));
   }
 }
 
 TEST_F(test_parse_typescript_class,
        assignment_asserted_fields_are_allowed_in_typescript) {
   {
-    test_parser p(u8"class C { field1!; field2! = init; }"_sv,
+    test_parser p(u8"class C { field1!: any; field2!: any = init; }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
@@ -294,6 +295,69 @@ TEST_F(test_parse_typescript_class,
             diag_newline_not_allowed_before_assignment_assertion_operator,  //
             bang, strlen(u8"class C {\n  field\n  "), u8"!",                //
             field_name, strlen(u8"class C {\n  "), u8"field")));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       assignment_asserted_field_must_have_a_type) {
+  {
+    test_parser p(u8"class C { field!; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_field_must_have_a_type,  //
+            bang, strlen(u8"class C { field"), u8"!")));
+  }
+
+  {
+    test_parser p(u8"class C { field! = init; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_field_must_have_a_type,  //
+            bang, strlen(u8"class C { field"), u8"!")));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field1!\n"
+        u8"  field2;\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field1", u8"field2"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_field_must_have_a_type,  //
+            bang, strlen(u8"class C {\n  field1"), u8"!")));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field1!\n"
+        u8"  'field2';\n"
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field1", std::nullopt));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_field_must_have_a_type,  //
+            bang, strlen(u8"class C {\n  field1"), u8"!")));
   }
 }
 

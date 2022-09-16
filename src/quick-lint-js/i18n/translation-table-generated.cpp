@@ -97,6 +97,7 @@ const translation_table translation_data = {
         {48, 49, 0, 0, 52},           //
         {34, 32, 60, 51, 32},         //
         {0, 0, 0, 0, 34},             //
+        {0, 0, 0, 0, 54},             //
         {40, 35, 0, 0, 59},           //
         {80, 38, 43, 49, 56},         //
         {36, 32, 52, 42, 36},         //
@@ -1337,6 +1338,7 @@ const translation_table translation_data = {
         u8"assignment to const variable before its declaration\0"
         u8"assignment to imported variable\0"
         u8"assignment to undeclared variable\0"
+        u8"assignment-asserted field must have a type annotation\0"
         u8"assignment-asserted fields are not supported in interfaces\0"
         u8"attribute has wrong capitalization; write '{1}' instead\0"
         u8"binary number literal has no digits\0"

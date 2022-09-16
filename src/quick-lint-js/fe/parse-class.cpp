@@ -264,7 +264,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             case token_type::identifier:
             case token_type::private_identifier:
             case token_type::star:
-              check_modifiers_for_field();
+              check_modifiers_for_field_without_type_annotation();
               v.visit_property_declaration(last_ident);
               return true;
             default:
@@ -703,14 +703,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::end_of_file:
       case token_type::right_curly:
       case token_type::semicolon:
-        check_modifiers_for_field();
+        check_modifiers_for_field_without_type_annotation();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
         break;
 
         // field = initialValue;
       case token_type::equal:
-        check_modifiers_for_field();
+        check_modifiers_for_field_without_type_annotation();
         this->parse_field_initializer();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
@@ -724,7 +724,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   method() {}
           // }
-          check_modifiers_for_field();
+          check_modifiers_for_field_without_type_annotation();
           v.visit_property_declaration(property_name);
         } else {
           if (u8"const" == property_name_span.string_view()) {
@@ -738,7 +738,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             // class C {
             //   field? method() {}  // Invalid.
             // }
-            check_modifiers_for_field();
+            check_modifiers_for_field_without_type_annotation();
             v.visit_property_declaration(property_name);
             p->consume_semicolon<diag_missing_semicolon_after_field>();
           } else {
@@ -761,7 +761,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   [expr]() {}
           // }
-          check_modifiers_for_field();
+          check_modifiers_for_field_without_type_annotation();
           v.visit_property_declaration(property_name);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
@@ -769,7 +769,18 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         break;
 
       case token_type::colon:
-        p->parse_and_visit_typescript_colon_type_expression(v);
+        if (!p->options_.typescript && !p->in_typescript_only_construct_ &&
+            !this->find_modifier(token_type::bang)) {
+          // If we have a bang modifier, we already reported
+          // diag_typescript_assignment_asserted_fields_not_allowed_in_javascript.
+          p->diag_reporter_->report(
+              diag_typescript_type_annotations_not_allowed_in_javascript{
+                  .type_colon = p->peek().span(),
+              });
+        }
+        p->skip();
+        p->parse_and_visit_typescript_type_expression(v);
+
         if (p->peek().type == token_type::equal) {
           this->parse_field_initializer();
         }
@@ -804,6 +815,19 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       if (!has_async && has_star) return function_attributes::generator;
       if (!has_async && !has_star) return function_attributes::normal;
       QLJS_UNREACHABLE();
+    }
+
+    void check_modifiers_for_field_without_type_annotation() {
+      this->check_modifiers_for_field();
+
+      if (!this->is_interface) {
+        if (const modifier *bang = this->find_modifier(token_type::bang)) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_field_must_have_a_type{
+                  .bang = bang->span,
+              });
+        }
+      }
     }
 
     void check_modifiers_for_field() {

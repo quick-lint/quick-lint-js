@@ -1515,6 +1515,13 @@
               bang))                                                           \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_assignment_asserted_field_must_have_a_type, "E0236",     \
+      diagnostic_severity::error, { source_code_span bang; },                  \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "assignment-asserted field must have a type annotation"),    \
+              bang))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_assignment_asserted_method, "E0240",                     \
       diagnostic_severity::error, { source_code_span bang; },                  \
       MESSAGE(QLJS_TRANSLATABLE("'{0}' is not allowed on methods"), bang))     \

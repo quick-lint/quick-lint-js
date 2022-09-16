@@ -879,6 +879,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "assignment-asserted field must have a type annotation"_translatable,
+        {
+            u8"assignment-asserted field must have a type annotation",
+            u8"assignment-asserted field must have a type annotation",
+            u8"assignment-asserted field must have a type annotation",
+            u8"assignment-asserted field must have a type annotation",
+            u8"assignment-asserted field must have a type annotation",
+        },
+    },
+    {
         "assignment-asserted fields are not supported in interfaces"_translatable,
         {
             u8"assignment-asserted fields are not supported in interfaces",
