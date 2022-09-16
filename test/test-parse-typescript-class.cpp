@@ -182,7 +182,7 @@ TEST_F(test_parse_typescript_class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
-                bang, strlen(u8"class C { field1?; field2"), u8"!")));
+                bang, strlen(u8"class C { field1!; field2"), u8"!")));
   }
 }
 
