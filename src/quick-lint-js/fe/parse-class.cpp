@@ -803,7 +803,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_invalid_access_specifier();
       error_if_readonly_in_not_typescript();
       error_if_static_in_interface();
-      error_if_optional_field_in_not_typescript();
+      error_if_optional_in_not_typescript();
     }
 
     void check_modifiers_for_method() {
@@ -812,10 +812,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_generator_star_in_interface();
       error_if_invalid_access_specifier();
       error_if_static_in_interface();
-      error_if_optional_method();
+      error_if_optional_in_not_typescript();
     }
 
-    void error_if_optional_field_in_not_typescript() {
+    void error_if_optional_in_not_typescript() {
       if (!p->options_.typescript) {
         if (const modifier *optional_modifier =
                 find_modifier(token_type::question)) {
@@ -899,18 +899,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           p->diag_reporter_->report(diag_readonly_static_field{
               .readonly_static = source_code_span(
                   readonly_modifier->span.begin(), static_modifier->span.end()),
-          });
-        }
-      }
-    }
-
-    void error_if_optional_method() {
-      if (!is_interface) {
-        if (const modifier *optional_modifier =
-                find_modifier(token_type::question)) {
-          // method?() {}  // Invalid.
-          p->diag_reporter_->report(diag_typescript_optional_class_method{
-              .question = optional_modifier->span,
           });
         }
       }

@@ -1170,11 +1170,6 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "class methods cannot be optional"
-msgstr "une classe ne peut être nommée 'let'"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
@@ -1576,6 +1571,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "class methods cannot be optional"
+#~ msgstr "une classe ne peut être nommée 'let'"
 
 #, fuzzy
 #~ msgid "{0} is not allowed in JavaScript"

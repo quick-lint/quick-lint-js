@@ -115,8 +115,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 53},             //
         {72, 31, 71, 56, 61},         //
         {34, 30, 0, 0, 40},           //
-        {0, 0, 0, 0, 18},             //
-        {0, 12, 0, 0, 33},            //
+        {0, 12, 0, 0, 18},            //
         {20, 72, 47, 44, 50},         //
         {47, 34, 39, 0, 30},          //
         {84, 58, 96, 31, 72},         //
@@ -1355,7 +1354,6 @@ const translation_table translation_data = {
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
-        u8"class methods cannot be optional\0"
         u8"classes cannot be named 'await' in async function\0"
         u8"classes cannot be named 'let'\0"
         u8"code point in Unicode escape sequence must not be greater than U+10FFFF\0"

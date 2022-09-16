@@ -1704,12 +1704,6 @@
               question))                                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_optional_class_method, "E0241",                          \
-      diagnostic_severity::error, { source_code_span question; },              \
-      MESSAGE(QLJS_TRANSLATABLE("class methods cannot be optional"),           \
-              question))                                                       \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_private_not_allowed_in_javascript, "E0222",              \
       diagnostic_severity::error, { source_code_span specifier; },             \
       MESSAGE(QLJS_TRANSLATABLE("'private' is not allowed in JavaScript"),     \

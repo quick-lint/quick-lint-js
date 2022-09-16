@@ -1050,10 +1050,6 @@ msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "class methods cannot be optional"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'private' is not allowed in JavaScript"
 msgstr ""
 

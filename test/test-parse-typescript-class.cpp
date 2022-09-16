@@ -133,16 +133,31 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class,
-       optional_methods_are_disallowed_in_classes) {
-  for (parser_options options : {javascript_options, typescript_options}) {
-    SCOPED_TRACE(options.typescript ? "typescript" : "javascript");
-    test_parser p(u8"class C { method?() {} }"_sv, options, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
-                              diag_typescript_optional_class_method,  //
-                              question, strlen(u8"class C { method"), u8"?")));
-  }
+       optional_methods_are_allowed_in_typescript_classes) {
+  test_parser p(u8"class C { method?() {} }"_sv, typescript_options);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits,
+              ElementsAre("visit_enter_class_scope",          // C
+                          "visit_enter_class_scope_body",     //
+                          "visit_property_declaration",       // method
+                          "visit_enter_function_scope",       // method
+                          "visit_enter_function_scope_body",  // method
+                          "visit_exit_function_scope",        // method
+                          "visit_exit_class_scope",           // C
+                          "visit_variable_declaration"));     // C
+}
+
+TEST_F(test_parse_typescript_class,
+       optional_methods_are_not_allowed_in_javascript_classes) {
+  test_parser p(u8"class C { method?() {} }"_sv, javascript_options,
+                capture_diags);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(
+      p.errors,
+      ElementsAre(DIAG_TYPE_OFFSETS(
+          p.code,
+          diag_typescript_optional_properties_not_allowed_in_javascript,  //
+          question, strlen(u8"class C { method"), u8"?")));
 }
 
 TEST_F(test_parse_typescript_class,
