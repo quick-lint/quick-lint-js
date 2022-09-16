@@ -946,6 +946,14 @@ msgid "TypeScript assignment-asserted fields are not supported in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "assignment-assertion fields cannot have default values"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "here is the assignment assertion operator"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment-asserted field must have a type annotation"
 msgstr ""
 

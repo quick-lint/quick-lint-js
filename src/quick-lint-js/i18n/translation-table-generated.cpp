@@ -98,7 +98,8 @@ const translation_table translation_data = {
         {34, 32, 60, 51, 32},         //
         {0, 0, 0, 0, 34},             //
         {0, 0, 0, 0, 54},             //
-        {40, 35, 0, 0, 59},           //
+        {0, 0, 0, 0, 59},             //
+        {40, 35, 0, 0, 55},           //
         {80, 38, 43, 49, 56},         //
         {36, 32, 52, 42, 36},         //
         {73, 51, 90, 0, 50},          //
@@ -173,7 +174,8 @@ const translation_table translation_data = {
         {84, 28, 66, 25, 54},         //
         {0, 0, 0, 0, 52},             //
         {70, 27, 0, 0, 45},           //
-        {5, 11, 66, 54, 5},           //
+        {0, 0, 0, 0, 5},              //
+        {5, 11, 66, 54, 42},          //
         {41, 33, 48, 36, 33},         //
         {42, 24, 59, 33, 47},         //
         {46, 52, 0, 0, 48},           //
@@ -1340,6 +1342,7 @@ const translation_table translation_data = {
         u8"assignment to undeclared variable\0"
         u8"assignment-asserted field must have a type annotation\0"
         u8"assignment-asserted fields are not supported in interfaces\0"
+        u8"assignment-assertion fields cannot have default values\0"
         u8"attribute has wrong capitalization; write '{1}' instead\0"
         u8"binary number literal has no digits\0"
         u8"break can only be used inside of a loop or switch\0"
@@ -1415,6 +1418,7 @@ const translation_table translation_data = {
         u8"generator function '*' belongs before function name\0"
         u8"generic arrow function needs ',' here in TSX\0"
         u8"here\0"
+        u8"here is the assignment assertion operator\0"
         u8"hex number literal has no digits\0"
         u8"if statement is missing '{1}' around condition\0"
         u8"if statement needs parentheses around condition\0"

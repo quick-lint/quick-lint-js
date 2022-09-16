@@ -1515,6 +1515,20 @@
               bang))                                                           \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_assignment_asserted_field_cannot_have_initializer,       \
+      "E0290", diagnostic_severity::error,                                     \
+      {                                                                        \
+        source_code_span equal;                                                \
+        source_code_span bang;                                                 \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "assignment-assertion fields cannot have default values"),   \
+              equal)                                                           \
+          MESSAGE(                                                             \
+              QLJS_TRANSLATABLE("here is the assignment assertion operator"),  \
+              bang))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_assignment_asserted_field_must_have_a_type, "E0236",     \
       diagnostic_severity::error, { source_code_span bang; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

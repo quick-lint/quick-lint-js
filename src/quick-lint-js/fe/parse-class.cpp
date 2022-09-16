@@ -803,6 +803,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                 .equal = p->peek().span(),
             });
       }
+      if (p->options_.typescript) {
+        if (const modifier *bang = this->find_modifier(token_type::bang)) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_field_cannot_have_initializer{
+                  .equal = p->peek().span(),
+                  .bang = bang->span,
+              });
+        }
+      }
       p->skip();
       p->parse_and_visit_expression(v);
     }

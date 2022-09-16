@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 339;
-constexpr std::size_t translation_table_string_table_size = 53429;
+constexpr std::uint16_t translation_table_mapping_table_size = 341;
+constexpr std::size_t translation_table_string_table_size = 53526;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -115,6 +115,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "assignment to undeclared variable"sv,
           "assignment-asserted field must have a type annotation"sv,
           "assignment-asserted fields are not supported in interfaces"sv,
+          "assignment-assertion fields cannot have default values"sv,
           "attribute has wrong capitalization; write '{1}' instead"sv,
           "binary number literal has no digits"sv,
           "break can only be used inside of a loop or switch"sv,
@@ -190,6 +191,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "generator function '*' belongs before function name"sv,
           "generic arrow function needs ',' here in TSX"sv,
           "here"sv,
+          "here is the assignment assertion operator"sv,
           "hex number literal has no digits"sv,
           "if statement is missing '{1}' around condition"sv,
           "if statement needs parentheses around condition"sv,

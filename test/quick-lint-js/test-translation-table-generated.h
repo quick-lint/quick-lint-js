@@ -899,6 +899,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "assignment-assertion fields cannot have default values"_translatable,
+        {
+            u8"assignment-assertion fields cannot have default values",
+            u8"assignment-assertion fields cannot have default values",
+            u8"assignment-assertion fields cannot have default values",
+            u8"assignment-assertion fields cannot have default values",
+            u8"assignment-assertion fields cannot have default values",
+        },
+    },
+    {
         "attribute has wrong capitalization; write '{1}' instead"_translatable,
         {
             u8"attribute has wrong capitalization; write '{1}' instead",
@@ -1646,6 +1656,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"there \U0001f448",
             u8"here",
             u8"here",
+        },
+    },
+    {
+        "here is the assignment assertion operator"_translatable,
+        {
+            u8"here is the assignment assertion operator",
+            u8"here is the assignment assertion operator",
+            u8"here is the assignment assertion operator",
+            u8"here is the assignment assertion operator",
+            u8"here is the assignment assertion operator",
         },
     },
     {

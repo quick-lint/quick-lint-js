@@ -237,41 +237,40 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        assignment_asserted_fields_are_disallowed_in_javascript) {
   {
-    test_parser p(u8"class C { field1!: any; field2!: any = init; }"_sv,
-                  capture_diags);
+    test_parser p(u8"class C { field!: any; }"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
-                                      "visit_enter_class_scope_body",  //
-                                      "visit_property_declaration",    // field1
-                                      "visit_variable_use",            // init
-                                      "visit_property_declaration",    // field2
-                                      "visit_exit_class_scope",        // C
-                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
-                bang, strlen(u8"class C { field1"), u8"!"),
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
-                bang, strlen(u8"class C { field1!: any; field2"), u8"!")));
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
+            bang, strlen(u8"class C { field"), u8"!")));
+  }
+
+  {
+    test_parser p(u8"class C { field!: any = init; }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
+            bang, strlen(u8"class C { field"), u8"!")))
+        << "should not also report "
+           "diag_typescript_assignment_asserted_field_cannot_have_initializer";
   }
 }
 
 TEST_F(test_parse_typescript_class,
        assignment_asserted_fields_are_allowed_in_typescript) {
   {
-    test_parser p(u8"class C { field1!: any; field2!: any = init; }"_sv,
-                  typescript_options);
+    test_parser p(u8"class C { field!: any; }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
-                                      "visit_property_declaration",    // field1
-                                      "visit_variable_use",            // init
-                                      "visit_property_declaration",    // field2
+                                      "visit_property_declaration",    // field
                                       "visit_exit_class_scope",        // C
                                       "visit_variable_declaration"));  // C
   }
@@ -320,10 +319,13 @@ TEST_F(test_parse_typescript_class,
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_assignment_asserted_field_must_have_a_type,  //
-            bang, strlen(u8"class C { field"), u8"!")));
+        UnorderedElementsAre(
+            DIAG_TYPE(
+                diag_typescript_assignment_asserted_field_cannot_have_initializer),
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_assignment_asserted_field_must_have_a_type,  //
+                bang, strlen(u8"class C { field"), u8"!")));
   }
 
   {
@@ -358,6 +360,23 @@ TEST_F(test_parse_typescript_class,
             p.code,
             diag_typescript_assignment_asserted_field_must_have_a_type,  //
             bang, strlen(u8"class C {\n  field1"), u8"!")));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       assignment_asserted_field_cannot_have_initializers) {
+  {
+    test_parser p(u8"class C { field!: any = init; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_field_cannot_have_initializer,  //
+            equal, strlen(u8"class C { field!: any "), u8"=",  //
+            bang, strlen(u8"class C { field"), u8"!")));
   }
 }
 
