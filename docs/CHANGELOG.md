@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* [E0286][] and [E0287][] are now reported if the string or the value have extra
+  parentheses (such as in `(tag.toUpperCase()) === 'img'`) (implemented by
+  [Rebraws][]).
+
 ### Fixed
 
 * `static` code blocks in classes no longer report E0242 ("TypeScript static
@@ -114,6 +120,7 @@ Semantic Versioning.
 * Using some TypeScript features, such as class generics and interfaces, in
   JavaScript code is now reported with a friendly error message.
 * [E0199][] ("unclosed class") is now reported in more scenarios.
+* `static` code blocks in classes are now supported.
 
 ### Fixed
 
@@ -664,6 +671,7 @@ Beta release.
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
+[Rebraws]: https://github.com/Rebraws
 [Rob Miner]: https://github.com/robminer6
 [Roland Strasser]: https://github.com/rol1510
 [Sarah Schulte]: https://github.com/cgsdev0
