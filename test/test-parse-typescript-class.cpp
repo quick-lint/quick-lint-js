@@ -107,9 +107,10 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class,
-       optional_properties_are_disallowed_in_javascript) {
+       optional_fields_are_disallowed_in_javascript) {
   {
-    test_parser p(u8"class C { field1?; field2? = init; }"_sv, capture_diags);
+    test_parser p(u8"class C { field1?; field2? = init; }"_sv,
+                  javascript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -132,19 +133,92 @@ TEST_F(test_parse_typescript_class,
   }
 }
 
+TEST_F(test_parse_typescript_class, optional_fields_are_allowed_in_typescript) {
+  {
+    test_parser p(u8"class C { field1?; field2? = init; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  //
+                                      "visit_property_declaration",    // field1
+                                      "visit_variable_use",            // init
+                                      "visit_property_declaration",    // field2
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  field1\n"
+        u8"  ?;\n"
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  //
+                                      "visit_property_declaration",    // field1
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"))   // C
+        << "newline should be allowed before '?' (no ASI)";
+  }
+}
+
 TEST_F(test_parse_typescript_class,
        optional_methods_are_allowed_in_typescript_classes) {
-  test_parser p(u8"class C { method?() {} }"_sv, typescript_options);
-  p.parse_and_visit_statement();
-  EXPECT_THAT(p.visits,
-              ElementsAre("visit_enter_class_scope",          // C
-                          "visit_enter_class_scope_body",     //
-                          "visit_property_declaration",       // method
-                          "visit_enter_function_scope",       // method
-                          "visit_enter_function_scope_body",  // method
-                          "visit_exit_function_scope",        // method
-                          "visit_exit_class_scope",           // C
-                          "visit_variable_declaration"));     // C
+  {
+    test_parser p(u8"class C { method?() {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  method?\n"
+        u8"  () {}\n"
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"))      // C
+        << "newline is allowed after '?'";
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"
+        u8"  method\n"
+        u8"  ?() {}\n"
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"))      // C
+        << "newline is allowed before '?'";
+  }
 }
 
 TEST_F(test_parse_typescript_class,
