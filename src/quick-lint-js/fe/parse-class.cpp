@@ -847,7 +847,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void error_if_optional_in_not_typescript() {
-      if (!p->options_.typescript) {
+      if (!p->options_.typescript && !is_interface) {
         if (const modifier *optional_modifier =
                 find_modifier(token_type::question)) {
           p->diag_reporter_->report(

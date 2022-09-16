@@ -318,6 +318,17 @@ TEST_F(test_parse_typescript_interface, optional_property) {
                             "visit_exit_interface_scope"));  // I
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
   }
+
+  {
+    test_parser p(u8"interface I { field?; }"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_typescript_interfaces_not_allowed_in_javascript)))
+        << "should parse optional field but not complain about it";
+  }
 }
 
 TEST_F(test_parse_typescript_interface,
