@@ -32,29 +32,47 @@ async function mainAsync() {
       activeWorker = worker;
     }
 
-    let watcher = chokidar.watch(
-      ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.wasm"],
-      {
-        cwd: __dirname,
-      }
-    );
-    let watcherReady = false;
-    watcher.on("error", (error) => {
-      console.error(`warning: ${error}`);
-    });
-    watcher.on("all", (event, path) => {
-      if (watcherReady) {
-        makeNewWorker();
-      }
-    });
-    watcher.on("ready", (event, path) => {
-      watcherReady = true;
+    // When any server code is updated, restart the server.
+    let websiteWatcher = await watchDirectoryAsync(__dirname, [
+      "**/*.js",
+      "**/*.mjs",
+      "**/*.cjs",
+      "**/*.wasm",
+    ]);
+    websiteWatcher.on("all", (_event, _path) => {
       makeNewWorker();
     });
+
+    // When a new error doc file is created, invalidate the routes in
+    // website/public/errors/index.mjs.
+    let docsWatcher = await watchDirectoryAsync(
+      path.join(__dirname, "..", "docs", "errors"),
+      ["**/*.md"]
+    );
+    docsWatcher.on("add", (_event, _path) => {
+      makeNewWorker();
+    });
+
+    makeNewWorker();
   } else {
     let workerModule = await import("./run-server-worker.mjs");
     await workerModule.mainAsync();
   }
+}
+
+function watchDirectoryAsync(directory, wildcards) {
+  return new Promise((resolve, _reject) => {
+    let watcher = chokidar.watch(wildcards, {
+      cwd: directory,
+    });
+    let watcherReady = false;
+    watcher.on("error", (error) => {
+      console.error(`warning: ${error}`);
+    });
+    watcher.on("ready", (event, path) => {
+      resolve(watcher);
+    });
+  });
 }
 
 mainAsync().catch((error) => {
