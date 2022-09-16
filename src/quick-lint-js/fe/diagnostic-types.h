@@ -36,6 +36,9 @@
 // * MESSAGE's second argument must be a member variable of the *error_name*
 //   class (i.e. listed in *struct_body*)
 // * MESSAGE's second argument must have type *identifier* or *source_code_span*
+//
+// When removing a diagnostic from this list, add an entry to
+// QLJS_X_RESERVED_DIAG_TYPES.
 #define QLJS_X_DIAG_TYPES                                                      \
   QLJS_DIAG_TYPE(                                                              \
       diag_adjacent_jsx_without_parent, "E0189", diagnostic_severity::error,   \
@@ -2217,6 +2220,26 @@
           QLJS_TRANSLATABLE("upper case letters compared with toLowerCase"),   \
           span_operator))                                                      \
                                                                                \
+  /* END */
+
+// QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
+// in the past but no longer mean anything.
+//
+// When removing a diagnostic from QLJS_X_DIAG_TYPES, add an entry to
+// QLJS_X_RESERVED_DIAG_TYPES.
+//
+// QLJS_DIAG_TYPE should have the following signature:
+//
+// #define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body,
+// format) ...
+//
+// * error_name: (unset)
+// * error_code: string literal
+// * severity: (unset)
+// * struct_body: (unset)
+// * format: (unset)
+#define QLJS_X_RESERVED_DIAG_TYPES \
+  QLJS_DIAG_TYPE(, "E0242", , , )  \
   /* END */
 
 namespace quick_lint_js {

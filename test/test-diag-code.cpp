@@ -19,6 +19,11 @@ static constexpr diag_name_and_code all_diags[] = {
   {.name = #diag_name, .code = diag_code},
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE(_diag_name, diag_code, _severity, _struct_body, \
+                       _format)                                        \
+  {.name = "(reserved)", .code = diag_code},
+        QLJS_X_RESERVED_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 };
 
 std::string next_unused_diag_code() {
