@@ -473,6 +473,21 @@ TEST_F(test_parse_typescript_class,
                 diag_typescript_readonly_fields_not_allowed_in_javascript,  //
                 readonly_keyword, strlen(u8"class C { "), u8"readonly")));
   }
+
+  {
+    test_parser p(u8"class C { readonly field: any; }"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE(
+                diag_typescript_type_annotations_not_allowed_in_javascript),
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_readonly_fields_not_allowed_in_javascript,  //
+                readonly_keyword, strlen(u8"class C { "), u8"readonly")));
+  }
 }
 
 TEST_F(test_parse_typescript_class, readonly_fields_are_allowed_in_typescript) {

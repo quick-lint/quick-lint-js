@@ -769,6 +769,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         break;
 
       case token_type::colon:
+        this->check_modifiers_for_field_with_type_annotation();
         if (!p->options_.typescript && !p->in_typescript_only_construct_ &&
             !this->find_modifier(token_type::bang)) {
           // If we have a bang modifier, we already reported
@@ -828,6 +829,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               });
         }
       }
+    }
+
+    void check_modifiers_for_field_with_type_annotation() {
+      this->check_modifiers_for_field();
     }
 
     void check_modifiers_for_field() {
