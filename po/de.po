@@ -1061,7 +1061,7 @@ msgid "computed value disables enum autoincrement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "computer enum member name must be a simple string"
+msgid "computed enum member name must be a simple string"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

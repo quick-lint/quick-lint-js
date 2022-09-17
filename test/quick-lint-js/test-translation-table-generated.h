@@ -1139,6 +1139,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "computed enum member name must be a simple string"_translatable,
+        {
+            u8"computed enum member name must be a simple string",
+            u8"computed enum member name must be a simple string",
+            u8"computed enum member name must be a simple string",
+            u8"computed enum member name must be a simple string",
+            u8"computed enum member name must be a simple string",
+        },
+    },
+    {
         "computed value disables enum autoincrement"_translatable,
         {
             u8"computed value disables enum autoincrement",
@@ -1146,16 +1156,6 @@ inline constexpr translated_string test_translation_table[] = {
             u8"computed value disables enum autoincrement",
             u8"computed value disables enum autoincrement",
             u8"computed value disables enum autoincrement",
-        },
-    },
-    {
-        "computer enum member name must be a simple string"_translatable,
-        {
-            u8"computer enum member name must be a simple string",
-            u8"computer enum member name must be a simple string",
-            u8"computer enum member name must be a simple string",
-            u8"computer enum member name must be a simple string",
-            u8"computer enum member name must be a simple string",
         },
     },
     {

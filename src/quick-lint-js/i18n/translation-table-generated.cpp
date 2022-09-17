@@ -123,8 +123,8 @@ const translation_table translation_data = {
         {46, 18, 26, 18, 24},         //
         {40, 42, 70, 0, 46},          //
         {0, 0, 0, 0, 45},             //
-        {0, 0, 0, 0, 43},             //
-        {58, 31, 67, 0, 50},          //
+        {0, 0, 0, 0, 50},             //
+        {58, 31, 67, 0, 43},          //
         {90, 38, 91, 53, 75},         //
         {41, 16, 34, 34, 29},         //
         {49, 11, 64, 39, 43},         //
@@ -1365,8 +1365,8 @@ const translation_table translation_data = {
         u8"code point out of range\0"
         u8"commas are not allowed after spread parameter\0"
         u8"commas are not allowed between class methods\0"
+        u8"computed enum member name must be a simple string\0"
         u8"computed value disables enum autoincrement\0"
-        u8"computer enum member name must be a simple string\0"
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
         u8"const variable declared here\0"
         u8"continue can only be used inside of a loop\0"
