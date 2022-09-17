@@ -19,7 +19,8 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
+TEST(test_variable_analyzer_parse,
+     let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals);
@@ -34,7 +35,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer_parse,
     variables_with_different_escape_sequences_are_equivalent_after_normalization) {
   padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;"_sv);
   diag_collector v;
@@ -46,7 +47,7 @@ TEST(
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer_parse,
      errors_for_variables_with_escape_sequences_cover_entire_variable_name) {
   padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
   diag_collector v;
@@ -62,7 +63,8 @@ TEST(test_lint,
                   declaration, offsets_matcher(&input, 6, 6 + 14))));
 }
 
-TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
+TEST(test_variable_analyzer_parse,
+     escape_sequences_are_allowed_for_arguments_variable) {
   padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })"_sv);
   diag_collector v;
 
@@ -73,7 +75,7 @@ TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer_parse,
      function_statement_inside_if_does_not_conflict_with_let_variable) {
   padded_string input(u8"let f;\nif (true)\n  function f() {}"_sv);
 
@@ -86,7 +88,7 @@ TEST(test_lint,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, typeof_with_conditional_operator) {
+TEST(test_variable_analyzer_parse, typeof_with_conditional_operator) {
   {
     padded_string input(u8"typeof x ? 10 : 20;"_sv);
     diag_collector v;
@@ -99,7 +101,7 @@ TEST(test_lint, typeof_with_conditional_operator) {
   }
 }
 
-TEST(test_lint, prefix_plusplus_on_const_variable) {
+TEST(test_variable_analyzer_parse, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = 42; ++x;"_sv);
     diag_collector v;
@@ -126,7 +128,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
   }
 }
 
-TEST(test_lint, prefix_plusplus_plus_operand) {
+TEST(test_variable_analyzer_parse, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = [42]; ++x[0];"_sv);
     diag_collector v;
@@ -153,7 +155,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   }
 }
 
-TEST(test_lint, use_await_label_in_non_async_function) {
+TEST(test_variable_analyzer_parse, use_await_label_in_non_async_function) {
   padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals);
@@ -164,7 +166,7 @@ TEST(test_lint, use_await_label_in_non_async_function) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, use_yield_label_in_non_generator_function) {
+TEST(test_variable_analyzer_parse, use_yield_label_in_non_generator_function) {
   padded_string input(u8"function f() {yield: for(;;){break yield;}}"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals);
@@ -175,7 +177,7 @@ TEST(test_lint, use_yield_label_in_non_generator_function) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, escape_sequence_in_keyword_identifier) {
+TEST(test_variable_analyzer_parse, escape_sequence_in_keyword_identifier) {
   // The parser should not report a stray 'finally' keyword.
   // The linter should not report that 'finally' is undeclared.
   padded_string input(u8"let which = \\u{66}inally;"_sv);
@@ -190,7 +192,7 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
       ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
 }
 
-TEST(test_lint, delete_local_variable) {
+TEST(test_variable_analyzer_parse, delete_local_variable) {
   padded_string input(
       u8"function f(param) { let v; delete v; delete param; }"_sv);
   diag_collector v;
@@ -205,7 +207,7 @@ TEST(test_lint, delete_local_variable) {
                   DIAG_TYPE(diag_redundant_delete_statement_on_variable)));
 }
 
-TEST(test_lint, extends_self) {
+TEST(test_variable_analyzer_parse, extends_self) {
   {
     padded_string input(
         u8"function C() {}\n"_sv
@@ -255,7 +257,8 @@ TEST(test_lint, extends_self) {
   }
 }
 
-TEST(test_lint, typescript_static_block_can_reference_class) {
+TEST(test_variable_analyzer_parse,
+     typescript_static_block_can_reference_class) {
   {
     padded_string input(u8"class C { static { C; } }"_sv);
     diag_collector v;

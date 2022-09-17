@@ -89,7 +89,7 @@ constexpr const char8 *non_writable_global_variables[] = {
     u8"undefined",
 };
 
-TEST(test_lint, global_variables_are_usable) {
+TEST(test_variable_analyzer, global_variables_are_usable) {
   // Array = null;
   // Array;
   for (const char8 *global_variable : writable_global_variables) {
@@ -113,7 +113,7 @@ TEST(test_lint, global_variables_are_usable) {
   }
 }
 
-TEST(test_lint, immutable_global_variables_are_not_assignable) {
+TEST(test_variable_analyzer, immutable_global_variables_are_not_assignable) {
   for (const char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
@@ -228,7 +228,7 @@ constexpr const char8 *nodejs_global_variables[] = {
 };
 }
 
-TEST(test_lint, nodejs_global_variables_are_usable) {
+TEST(test_variable_analyzer, nodejs_global_variables_are_usable) {
   for (const char8 *global_variable : nodejs_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
     diag_collector v;
@@ -239,7 +239,8 @@ TEST(test_lint, nodejs_global_variables_are_usable) {
   }
 }
 
-TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
+TEST(test_variable_analyzer,
+     non_module_nodejs_global_variables_are_shadowable) {
   for (variable_init_kind init_kind :
        {variable_init_kind::normal,
         variable_init_kind::initialized_with_equals}) {
@@ -256,7 +257,8 @@ TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
   }
 }
 
-TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
+TEST(test_variable_analyzer,
+     any_variable_is_declarable_and_usable_if_opted_into) {
   // This tests the "literally-anything" global group.
 
   global_declared_variable_set globals;
@@ -280,7 +282,8 @@ TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
+TEST(test_variable_analyzer,
+     let_or_const_or_class_variable_use_before_declaration) {
   for (variable_kind kind :
        {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
     const char8 declaration[] = u8"x";
@@ -302,7 +305,7 @@ TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
   }
 }
 
-TEST(test_lint, import_use_before_declaration_is_okay) {
+TEST(test_variable_analyzer, import_use_before_declaration_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -319,7 +322,7 @@ TEST(test_lint, import_use_before_declaration_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, export_use_after_declaration_is_okay) {
+TEST(test_variable_analyzer, export_use_after_declaration_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -347,7 +350,7 @@ TEST(test_lint, export_use_after_declaration_is_okay) {
   }
 }
 
-TEST(test_lint, export_use_before_declaration_is_okay) {
+TEST(test_variable_analyzer, export_use_before_declaration_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -375,7 +378,8 @@ TEST(test_lint, export_use_before_declaration_is_okay) {
   }
 }
 
-TEST(test_lint, let_variable_use_before_declaration_within_function) {
+TEST(test_variable_analyzer,
+     let_variable_use_before_declaration_within_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -399,7 +403,8 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
                             declaration, span_of(declaration))));
 }
 
-TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
+TEST(test_variable_analyzer,
+     let_variable_use_before_declaration_within_for_loop_scope) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -423,7 +428,8 @@ TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
                             declaration, span_of(declaration))));
 }
 
-TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
+TEST(test_variable_analyzer,
+     let_variable_use_before_declaration_of_shadowing_variable) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -450,7 +456,7 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
                             declaration, span_of(declaration))));
 }
 
-TEST(test_lint, var_or_function_variable_use_before_declaration) {
+TEST(test_variable_analyzer, var_or_function_variable_use_before_declaration) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
@@ -468,7 +474,7 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
   }
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      var_or_function_variable_use_before_declaration_all_in_for_scope) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
@@ -492,7 +498,8 @@ TEST(test_lint,
   }
 }
 
-TEST(test_lint, var_or_function_variable_use_after_declaration_in_block_scope) {
+TEST(test_variable_analyzer,
+     var_or_function_variable_use_after_declaration_in_block_scope) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
@@ -515,7 +522,7 @@ TEST(test_lint, var_or_function_variable_use_after_declaration_in_block_scope) {
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     var_or_function_variable_cannot_be_used_after_declaration_in_inner_function_scope) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
@@ -541,7 +548,8 @@ TEST(
   }
 }
 
-TEST(test_lint, var_variable_use_before_declaration_in_block_scope) {
+TEST(test_variable_analyzer,
+     var_variable_use_before_declaration_in_block_scope) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -561,7 +569,8 @@ TEST(test_lint, var_variable_use_before_declaration_in_block_scope) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
+TEST(test_variable_analyzer,
+     function_variable_use_before_declaration_in_block_scope) {
   const char8 declaration[] = u8"f";
   const char8 use[] = u8"f";
 
@@ -589,7 +598,7 @@ TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
                   declaration, span_of(declaration))));
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      var_variable_use_before_declaration_in_block_scope_all_in_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
@@ -615,7 +624,7 @@ TEST(test_lint,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      function_variable_use_before_declaration_in_block_scope_all_in_function) {
   const char8 declaration[] = u8"f";
   const char8 use[] = u8"f";
@@ -650,7 +659,7 @@ TEST(test_lint,
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     var_or_function_variable_use_before_declaration_in_different_block_scopes) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
@@ -678,7 +687,7 @@ TEST(
   }
 }
 
-TEST(test_lint, variable_use_after_declaration) {
+TEST(test_variable_analyzer, variable_use_after_declaration) {
   for (variable_kind kind :
        {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
@@ -696,7 +705,7 @@ TEST(test_lint, variable_use_after_declaration) {
   }
 }
 
-TEST(test_lint, variable_use_with_no_declaration) {
+TEST(test_variable_analyzer, variable_use_with_no_declaration) {
   const char8 use[] = u8"x";
 
   // x;  // ERROR
@@ -710,7 +719,7 @@ TEST(test_lint, variable_use_with_no_declaration) {
                                          span_of(use))));
 }
 
-TEST(test_lint, variable_export_with_no_declaration) {
+TEST(test_variable_analyzer, variable_export_with_no_declaration) {
   const char8 use[] = u8"x";
 
   // export {x};  // ERROR
@@ -724,7 +733,7 @@ TEST(test_lint, variable_export_with_no_declaration) {
                                          span_of(use))));
 }
 
-TEST(test_lint, variable_use_in_function_with_no_declaration) {
+TEST(test_variable_analyzer, variable_use_in_function_with_no_declaration) {
   const char8 use[] = u8"x";
 
   // (() => {
@@ -743,7 +752,8 @@ TEST(test_lint, variable_use_in_function_with_no_declaration) {
                                          span_of(use))));
 }
 
-TEST(test_lint, variable_use_with_declaration_in_different_function) {
+TEST(test_variable_analyzer,
+     variable_use_with_declaration_in_different_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -771,7 +781,7 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
                                          span_of(use))));
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      use_of_shadowed_let_variable_before_declaration_in_parent_scope) {
   const char8 outer_declaration[] = u8"x";
   const char8 use[] = u8"x";
@@ -803,7 +813,7 @@ TEST(test_lint,
                             declaration, span_of(inner_declaration))));
 }
 
-TEST(test_lint, use_of_variable_declared_in_grandparent_scope) {
+TEST(test_variable_analyzer, use_of_variable_declared_in_grandparent_scope) {
   const char8 use[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -834,7 +844,8 @@ TEST(test_lint, use_of_variable_declared_in_grandparent_scope) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, name_of_named_function_expression_is_usable_within_function) {
+TEST(test_variable_analyzer,
+     name_of_named_function_expression_is_usable_within_function) {
   const char8 declaration[] = u8"f";
   const char8 use[] = u8"f";
 
@@ -852,7 +863,7 @@ TEST(test_lint, name_of_named_function_expression_is_usable_within_function) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      name_of_named_function_expression_is_usable_within_inner_function) {
   const char8 declaration[] = u8"f";
   const char8 use[] = u8"f";
@@ -879,7 +890,7 @@ TEST(test_lint,
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     name_of_named_function_expression_is_usable_within_default_parameter_values) {
   const char8 declaration[] = u8"f";
   const char8 parameter_declaration[] = u8"x";
@@ -901,7 +912,7 @@ TEST(
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      name_of_named_function_expression_is_not_usable_outside_function) {
   const char8 declaration[] = u8"f";
   const char8 use_before[] = u8"f";
@@ -927,7 +938,7 @@ TEST(test_lint,
                                          span_of(use_after))));
 }
 
-TEST(test_lint, use_global_variable_within_functions) {
+TEST(test_variable_analyzer, use_global_variable_within_functions) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -955,7 +966,8 @@ TEST(test_lint, use_global_variable_within_functions) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, function_uses_variable_declared_in_outer_function) {
+TEST(test_variable_analyzer,
+     function_uses_variable_declared_in_outer_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -993,7 +1005,8 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
+TEST(test_variable_analyzer,
+     function_uses_global_variable_declared_later_in_module) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
@@ -1014,7 +1027,7 @@ TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, assign_to_mutable_variable) {
+TEST(test_variable_analyzer, assign_to_mutable_variable) {
   for (variable_kind kind :
        {variable_kind::_let, variable_kind::_var, variable_kind::_class,
         variable_kind::_function, variable_kind::_catch,
@@ -1040,7 +1053,8 @@ TEST(test_lint, assign_to_mutable_variable) {
   }
 }
 
-TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
+TEST(test_variable_analyzer,
+     assign_to_mutable_variable_shadowing_immutable_variable) {
   const char8 immutable_declaration[] = u8"x";
   const char8 mutable_declaration[] = u8"x";
   const char8 assignment[] = u8"x";
@@ -1066,7 +1080,7 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, assign_to_immutable_const_variable) {
+TEST(test_variable_analyzer, assign_to_immutable_const_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
@@ -1116,7 +1130,7 @@ TEST(test_lint, assign_to_immutable_const_variable) {
   }
 }
 
-TEST(test_lint, assign_to_immutable_imported_variable) {
+TEST(test_variable_analyzer, assign_to_immutable_imported_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
@@ -1161,7 +1175,7 @@ TEST(test_lint, assign_to_immutable_imported_variable) {
   }
 }
 
-TEST(test_lint, assign_to_immutable_variable_before_declaration) {
+TEST(test_variable_analyzer, assign_to_immutable_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -1182,7 +1196,8 @@ TEST(test_lint, assign_to_immutable_variable_before_declaration) {
                   declaration, span_of(declaration))));
 }
 
-TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
+TEST(test_variable_analyzer,
+     assign_to_shadowing_immutable_variable_before_declaration) {
   const char8 outer_declaration[] = u8"x";
   const char8 assignment[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -1211,7 +1226,8 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
                   declaration, span_of(inner_declaration))));
 }
 
-TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
+TEST(test_variable_analyzer,
+     assign_to_immutable_variable_declared_in_parent_scope) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -1237,7 +1253,8 @@ TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
                             var_kind, variable_kind::_const)));
 }
 
-TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
+TEST(test_variable_analyzer,
+     assign_to_immutable_variable_declared_later_in_parent_scope) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -1263,7 +1280,7 @@ TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
                             var_kind, variable_kind::_const)));
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      assignment_to_shadowed_const_variable_before_declaration_in_parent_scope) {
   const char8 assignment[] = u8"x";
   const char8 outer_declaration[] = u8"x";
@@ -1297,7 +1314,8 @@ TEST(test_lint,
                   declaration, span_of(inner_declaration))));
 }
 
-TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
+TEST(test_variable_analyzer,
+     assignment_to_const_variable_declared_in_grandparent_scope) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
@@ -1328,7 +1346,7 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
                             var_kind, variable_kind::_const)));
 }
 
-TEST(test_lint, assign_to_undeclared_variable) {
+TEST(test_variable_analyzer, assign_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
 
   // x = null;  // ERROR
@@ -1342,7 +1360,7 @@ TEST(test_lint, assign_to_undeclared_variable) {
                                          assignment, span_of(assignment))));
 }
 
-TEST(test_lint, assign_inside_function_to_undeclared_variable) {
+TEST(test_variable_analyzer, assign_inside_function_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
 
   // (function() {
@@ -1361,7 +1379,7 @@ TEST(test_lint, assign_inside_function_to_undeclared_variable) {
                                          assignment, span_of(assignment))));
 }
 
-TEST(test_lint, assign_to_variable_before_declaration) {
+TEST(test_variable_analyzer, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -1380,7 +1398,7 @@ TEST(test_lint, assign_to_variable_before_declaration) {
                             declaration, span_of(declaration))));
 }
 
-TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
+TEST(test_variable_analyzer, assign_to_variable_before_hoistable_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
@@ -1396,7 +1414,7 @@ TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, use_variable_declared_in_parent_function) {
+TEST(test_variable_analyzer, use_variable_declared_in_parent_function) {
   for (variable_kind var_kind :
        {variable_kind::_function, variable_kind::_let}) {
     SCOPED_TRACE(::testing::PrintToString(var_kind));
@@ -1427,7 +1445,7 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
   }
 }
 
-TEST(test_lint, use_variable_declared_in_grandparent_function) {
+TEST(test_variable_analyzer, use_variable_declared_in_grandparent_function) {
   for (variable_kind var_kind :
        {variable_kind::_function, variable_kind::_let}) {
     SCOPED_TRACE(::testing::PrintToString(var_kind));
@@ -1463,7 +1481,7 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
   }
 }
 
-TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
+TEST(test_variable_analyzer, use_for_loop_let_variable_before_or_after_loop) {
   const char8 declaration[] = u8"element";
   const char8 use_before[] = u8"element";
   const char8 use_after[] = u8"element";
@@ -1488,7 +1506,8 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
                                          span_of(use_after))));
 }
 
-TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
+TEST(test_variable_analyzer,
+     use_variable_in_for_scope_declared_outside_for_scope) {
   {
     const char8 declaration[] = u8"v";
     const char8 use[] = u8"v";
@@ -1553,7 +1572,8 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
   }
 }
 
-TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
+TEST(test_variable_analyzer,
+     use_undeclared_variable_in_function_scope_in_for_scope) {
   const char8 use[] = u8"v";
 
   // for (let _ of [])
@@ -1575,7 +1595,7 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
                                          span_of(use))));
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      use_variable_in_function_scope_in_for_scope_before_declaration) {
   const char8 declaration[] = u8"v";
   const char8 use[] = u8"v";
@@ -1600,7 +1620,7 @@ TEST(test_lint,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      use_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
   const char8 outer_declaration[] = u8"v";
   const char8 inner_declaration[] = u8"v";
@@ -1630,7 +1650,7 @@ TEST(test_lint,
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     assign_to_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
   const char8 outer_declaration[] = u8"v";
   const char8 inner_declaration[] = u8"v";
@@ -1659,7 +1679,7 @@ TEST(
                             declaration, span_of(inner_declaration))));
 }
 
-TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {
+TEST(test_variable_analyzer, shadowing_variable_in_parent_block_scope_is_okay) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
 
@@ -1680,7 +1700,7 @@ TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, declaring_variable_twice_is_an_error) {
+TEST(test_variable_analyzer, declaring_variable_twice_is_an_error) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
   const char8 third_declaration[] = u8"x";
@@ -1710,7 +1730,7 @@ TEST(test_lint, declaring_variable_twice_is_an_error) {
                             original_declaration, span_of(declaration))));
 }
 
-TEST(test_lint, declaring_variable_twice_with_var_is_okay) {
+TEST(test_variable_analyzer, declaring_variable_twice_with_var_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
 
@@ -1727,7 +1747,7 @@ TEST(test_lint, declaring_variable_twice_with_var_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, declaring_parameter_twice_is_okay) {
+TEST(test_variable_analyzer, declaring_parameter_twice_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
 
@@ -1748,7 +1768,7 @@ TEST(test_lint, declaring_parameter_twice_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, declaring_function_twice_is_okay) {
+TEST(test_variable_analyzer, declaring_function_twice_is_okay) {
   const char8 declaration[] = u8"f";
   const char8 second_declaration[] = u8"f";
 
@@ -1773,7 +1793,8 @@ TEST(test_lint, declaring_function_twice_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
+TEST(test_variable_analyzer,
+     mixing_var_and_function_in_same_function_scope_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
 
@@ -1839,7 +1860,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
   }
 }
 
-TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
+TEST(test_variable_analyzer, mixing_parameter_and_var_or_function_is_okay) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
 
@@ -1888,7 +1909,7 @@ TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     mixing_let_or_const_or_class_with_other_variable_kind_in_same_scope_is_an_error) {
   const char8 declaration[] = u8"x";
   const char8 second_declaration[] = u8"x";
@@ -1942,7 +1963,8 @@ TEST(
   }
 }
 
-TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
+TEST(test_variable_analyzer,
+     strict_variables_conflict_with_var_in_block_scope) {
   const char8 var_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
 
@@ -1999,7 +2021,7 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
   }
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      strict_variables_do_not_conflict_with_functions_in_block_scope) {
   const char8 function_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
@@ -2049,7 +2071,7 @@ TEST(test_lint,
   }
 }
 
-TEST(test_lint, import_conflicts_with_any_variable_declaration) {
+TEST(test_variable_analyzer, import_conflicts_with_any_variable_declaration) {
   const char8 import_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
 
@@ -2098,7 +2120,7 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
   }
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      catch_variable_conflicts_with_catch_variable_declared_in_same_scope) {
   const char8 catch_declaration_1[] = u8"e";
   const char8 catch_declaration_2[] = u8"e";
@@ -2127,7 +2149,8 @@ TEST(test_lint,
                   original_declaration, span_of(catch_declaration_1))));
 }
 
-TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
+TEST(test_variable_analyzer,
+     let_style_variable_in_same_scope_as_parameter_redeclares) {
   const char8 parameter_declaration[] = u8"x";
   const char8 local_declaration[] = u8"x";
 
@@ -2157,7 +2180,7 @@ TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
   }
 }
 
-TEST(test_lint, let_variable_in_inner_scope_as_parameter_shadows) {
+TEST(test_variable_analyzer, let_variable_in_inner_scope_as_parameter_shadows) {
   const char8 parameter_declaration[] = u8"x";
   const char8 local_declaration[] = u8"x";
 
@@ -2187,7 +2210,8 @@ TEST(test_lint, let_variable_in_inner_scope_as_parameter_shadows) {
   }
 }
 
-TEST(test_lint, catch_variable_does_not_conflict_with_var_variable) {
+TEST(test_variable_analyzer,
+     catch_variable_does_not_conflict_with_var_variable) {
   const char8 catch_declaration[] = u8"e";
   const char8 var_declaration[] = u8"e";
 
@@ -2209,7 +2233,7 @@ TEST(test_lint, catch_variable_does_not_conflict_with_var_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
+TEST(test_variable_analyzer, catch_variable_conflicts_with_non_var_variables) {
   const char8 catch_declaration[] = u8"e";
   const char8 local_declaration[] = u8"e";
 
@@ -2240,7 +2264,8 @@ TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
   }
 }
 
-TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
+TEST(test_variable_analyzer,
+     parameter_default_value_cannot_refer_to_local_variables) {
   const char8 parameter_declaration[] = u8"p";
   const char8 parameter_default_value[] = u8"l";
   const char8 local_declaration[] = u8"l";
@@ -2298,7 +2323,7 @@ TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
   }
 }
 
-TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
+TEST(test_variable_analyzer, parameter_default_value_uses_undeclared_variable) {
   const char8 parameter_declaration[] = u8"p";
   const char8 parameter_default_value[] = u8"x";
 
@@ -2347,7 +2372,7 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
   }
 }
 
-TEST(test_lint, parameter_shadows_named_function_name) {
+TEST(test_variable_analyzer, parameter_shadows_named_function_name) {
   const char8 function_declaration[] = u8"f";
   const char8 parameter_declaration[] = u8"f";
   const char8 parameter_use[] = u8"f";
@@ -2369,7 +2394,7 @@ TEST(test_lint, parameter_shadows_named_function_name) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, let_shadows_named_function_name) {
+TEST(test_variable_analyzer, let_shadows_named_function_name) {
   const char8 function_declaration[] = u8"f";
   const char8 var_declaration[] = u8"f";
   const char8 var_use[] = u8"f";
@@ -2416,7 +2441,7 @@ TEST(test_lint, let_shadows_named_function_name) {
   }
 }
 
-TEST(test_lint, let_shadows_global_variable) {
+TEST(test_variable_analyzer, let_shadows_global_variable) {
   const char8 var_declaration[] = u8"Array";
   const char8 var_use[] = u8"Array";
 
@@ -2450,7 +2475,7 @@ TEST(test_lint, let_shadows_global_variable) {
   }
 }
 
-TEST(test_lint,
+TEST(test_variable_analyzer,
      class_declared_inside_class_scope_is_not_accessible_outside_class_scope) {
   {
     // (class C {});
@@ -2501,7 +2526,7 @@ TEST(test_lint,
   }
 }
 
-TEST(test_lint, class_extends_cannot_use_declared_class_name) {
+TEST(test_variable_analyzer, class_extends_cannot_use_declared_class_name) {
   {
     // class C extends C {} // ERROR
     const char8 class_declaration[] = u8"C";
@@ -2524,7 +2549,7 @@ TEST(test_lint, class_extends_cannot_use_declared_class_name) {
 }
 
 TEST(
-    test_lint,
+    test_variable_analyzer,
     regression_assigning_to_variable_in_function_scope_does_not_interact_with_different_variable_in_parent_scope) {
   // (function() {
   //   b = null;
@@ -2553,7 +2578,7 @@ TEST(
          "with 'b'";
 }
 
-TEST(test_lint, with_does_not_propagate_variable_uses) {
+TEST(test_variable_analyzer, with_does_not_propagate_variable_uses) {
   const char8 declaration[] = u8"a";
   const char8 assignment[] = u8"a";
   const char8 use[] = u8"a";
@@ -2660,7 +2685,8 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
   }
 }
 
-TEST(test_lint_interface, interface_body_can_reference_types_outside) {
+TEST(test_variable_analyzer_interface,
+     interface_body_can_reference_types_outside) {
   const char8 interface_declaration[] = u8"I";
   const char8 type_declaration[] = u8"C";
   const char8 type_use[] = u8"C";
@@ -2713,7 +2739,8 @@ TEST(test_lint_interface, interface_body_can_reference_types_outside) {
   }
 }
 
-TEST(test_lint_interface, generic_interface_parameters_are_usable_inside) {
+TEST(test_variable_analyzer_interface,
+     generic_interface_parameters_are_usable_inside) {
   const char8 interface_declaration[] = u8"I";
   const char8 parameter_declaration[] = u8"T";
   const char8 parameter_use[] = u8"T";
@@ -2743,7 +2770,8 @@ TEST(test_lint_interface, generic_interface_parameters_are_usable_inside) {
   }
 }
 
-TEST(test_lint_class, generic_class_parameters_are_usable_inside) {
+TEST(test_variable_analyzer_typeof_class,
+     generic_class_parameters_are_usable_inside) {
   const char8 class_declaration[] = u8"C";
   const char8 parameter_declaration[] = u8"T";
   const char8 parameter_use[] = u8"T";
@@ -2774,7 +2802,8 @@ TEST(test_lint_class, generic_class_parameters_are_usable_inside) {
   }
 }
 
-TEST(test_lint_class, generic_class_parameters_are_not_usable_outside) {
+TEST(test_variable_analyzer_typeof_class,
+     generic_class_parameters_are_not_usable_outside) {
   const char8 class_declaration[] = u8"C";
   const char8 parameter_declaration[] = u8"T";
   const char8 parameter_use[] = u8"T";
@@ -2802,7 +2831,8 @@ TEST(test_lint_class, generic_class_parameters_are_not_usable_outside) {
   }
 }
 
-TEST(test_lint_interface, interface_index_signature_can_use_outside_types) {
+TEST(test_variable_analyzer_interface,
+     interface_index_signature_can_use_outside_types) {
   const char8 type_declaration[] = u8"C";
   const char8 interface_declaration[] = u8"I";
   const char8 index_declaration[] = u8"index";
@@ -2864,7 +2894,8 @@ TEST(test_lint_interface, interface_index_signature_can_use_outside_types) {
   }
 }
 
-TEST(test_lint_interface, interface_index_signature_variable_is_usable_inside) {
+TEST(test_variable_analyzer_interface,
+     interface_index_signature_variable_is_usable_inside) {
   const char8 interface_declaration[] = u8"I";
   const char8 index_declaration[] = u8"index";
   const char8 index_use[] = u8"index";
@@ -2892,7 +2923,7 @@ TEST(test_lint_interface, interface_index_signature_variable_is_usable_inside) {
   }
 }
 
-TEST(test_lint_interface,
+TEST(test_variable_analyzer_interface,
      interface_index_signature_variable_is_not_usable_outside) {
   const char8 interface_declaration[] = u8"I";
   const char8 index_declaration[] = u8"index";
@@ -2932,7 +2963,7 @@ TEST(test_lint_interface,
   }
 }
 
-TEST(test_lint_type_alias, type_alias_can_use_outside_types) {
+TEST(test_variable_analyzer_type_alias, type_alias_can_use_outside_types) {
   const char8 imported_declaration[] = u8"C";
   const char8 type_alias_declaration[] = u8"Alias";
   const char8 type_use[] = u8"C";
@@ -2974,7 +3005,8 @@ TEST(test_lint_type_alias, type_alias_can_use_outside_types) {
   }
 }
 
-TEST(test_lint_type_alias, generic_type_alias_parameters_are_usable_inside) {
+TEST(test_variable_analyzer_type_alias,
+     generic_type_alias_parameters_are_usable_inside) {
   const char8 type_alias_declaration[] = u8"Alias";
   const char8 parameter_declaration[] = u8"T";
   const char8 parameter_use[] = u8"T";
@@ -2998,7 +3030,7 @@ TEST(test_lint_type_alias, generic_type_alias_parameters_are_usable_inside) {
   }
 }
 
-TEST(test_lint_type_alias,
+TEST(test_variable_analyzer_type_alias,
      generic_type_alias_parameters_are_not_usable_outside) {
   const char8 type_alias_declaration[] = u8"Alias";
   const char8 parameter_declaration[] = u8"T";
@@ -3026,7 +3058,7 @@ TEST(test_lint_type_alias,
   }
 }
 
-TEST(test_lint_magic_arguments,
+TEST(test_variable_analyzer_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
 
@@ -3044,7 +3076,7 @@ TEST(test_lint_magic_arguments,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_magic_arguments,
+TEST(test_variable_analyzer_magic_arguments,
      arguments_magic_variable_is_unusable_in_global_scope) {
   const char8 arguments_use[] = u8"arguments";
 
@@ -3059,7 +3091,8 @@ TEST(test_lint_magic_arguments,
                                          span_of(arguments_use))));
 }
 
-TEST(test_lint_magic_arguments, parameter_named_arguments_does_not_conflict) {
+TEST(test_variable_analyzer_magic_arguments,
+     parameter_named_arguments_does_not_conflict) {
   const char8 parameter_declaration[] = u8"arguments";
   const char8 parameter_use[] = u8"arguments";
 
@@ -3080,7 +3113,7 @@ TEST(test_lint_magic_arguments, parameter_named_arguments_does_not_conflict) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_magic_arguments,
+TEST(test_variable_analyzer_magic_arguments,
      parameter_default_values_can_reference_arguments) {
   const char8 parameter_declaration[] = u8"p";
   const char8 parameter_default_value[] = u8"arguments";
@@ -3129,7 +3162,8 @@ TEST(test_lint_magic_arguments,
   }
 }
 
-TEST(test_lint_magic_arguments, var_does_not_conflict_with_magic_arguments) {
+TEST(test_variable_analyzer_magic_arguments,
+     var_does_not_conflict_with_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
   // (function() {
@@ -3147,7 +3181,7 @@ TEST(test_lint_magic_arguments, var_does_not_conflict_with_magic_arguments) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_magic_arguments, let_shadows_magic_arguments) {
+TEST(test_variable_analyzer_magic_arguments, let_shadows_magic_arguments) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_let}) {
     const char8 arguments_declaration[] = u8"arguments";
 
@@ -3192,7 +3226,7 @@ TEST(test_lint_magic_arguments, let_shadows_magic_arguments) {
   }
 }
 
-TEST(test_lint_magic_arguments, function_shadows_magic_arguments) {
+TEST(test_variable_analyzer_magic_arguments, function_shadows_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
   // (function() {
@@ -3213,7 +3247,8 @@ TEST(test_lint_magic_arguments, function_shadows_magic_arguments) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
+TEST(test_variable_analyzer_magic_arguments,
+     catch_variable_shadows_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
   // (function() {
@@ -3240,7 +3275,7 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
 
 // TODO(#204): 'arguments' should not be declared in arrow functions.
 
-TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
+TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
   source_code_span delete_keyword_span(delete_expression.data(),
@@ -3395,7 +3430,8 @@ TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
   }
 }
 
-TEST(test_lint_delete, deleting_local_variable_declared_later_is_a_warning) {
+TEST(test_variable_analyzer_delete,
+     deleting_local_variable_declared_later_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
   source_code_span delete_keyword_span(delete_expression.data(),
@@ -3427,7 +3463,8 @@ TEST(test_lint_delete, deleting_local_variable_declared_later_is_a_warning) {
           offsets_matcher(&delete_expression, 0, u8"delete x"))));
 }
 
-TEST(test_lint_delete, deleting_declared_module_variable_is_a_warning) {
+TEST(test_variable_analyzer_delete,
+     deleting_declared_module_variable_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
   source_code_span delete_keyword_span(delete_expression.data(),
@@ -3454,7 +3491,7 @@ TEST(test_lint_delete, deleting_declared_module_variable_is_a_warning) {
           offsets_matcher(&delete_expression, 0, u8"delete x"))));
 }
 
-TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
+TEST(test_variable_analyzer_delete, deleting_declared_global_variable_is_ok) {
   padded_string code(u8"delete myGlobalVariable"_sv);
   source_code_span delete_keyword_span(code.data(), code.data() + 6);
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
@@ -3496,7 +3533,7 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
   }
 }
 
-TEST(test_lint_delete, deleting_undeclared_global_variable_is_ok) {
+TEST(test_variable_analyzer_delete, deleting_undeclared_global_variable_is_ok) {
   padded_string code(u8"delete myGlobalVariable"_sv);
   source_code_span delete_keyword_span(code.data(), code.data() + 6);
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
@@ -3531,7 +3568,8 @@ TEST(test_lint_delete, deleting_undeclared_global_variable_is_ok) {
   }
 }
 
-TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
+TEST(test_variable_analyzer_typeof_typeof,
+     using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";
 
   // typeof v;
@@ -3543,7 +3581,8 @@ TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_typeof, typeof_declares_variable_automagically) {
+TEST(test_variable_analyzer_typeof_typeof,
+     typeof_declares_variable_automagically) {
   const char8 typeof_use[] = u8"v";
   const char8 other_use[] = u8"v";
 
@@ -3558,7 +3597,7 @@ TEST(test_lint_typeof, typeof_declares_variable_automagically) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_typeof,
+TEST(test_variable_analyzer_typeof_typeof,
      typeof_declares_variable_automagically_in_parent_function) {
   const char8 use_before[] = u8"v";
   const char8 typeof_use[] = u8"v";
@@ -3582,7 +3621,8 @@ TEST(test_lint_typeof,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_typeof, typeof_refers_to_already_declared_variable) {
+TEST(test_variable_analyzer_typeof_typeof,
+     typeof_refers_to_already_declared_variable) {
   const char8 declaration[] = u8"v";
   const char8 use[] = u8"v";
 
@@ -3598,7 +3638,8 @@ TEST(test_lint_typeof, typeof_refers_to_already_declared_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
+TEST(test_variable_analyzer_typeof_typeof,
+     typeof_variable_declared_later_is_an_error) {
   const char8 declaration[] = u8"v";
   const char8 use[] = u8"v";
 
@@ -3618,7 +3659,7 @@ TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
 }
 
 TEST(
-    test_lint_typeof,
+    test_variable_analyzer_typeof_typeof,
     typeof_already_declared_variable_does_not_declare_variable_in_parent_function) {
   const char8 use_before[] = u8"v";
   const char8 declaration[] = u8"v";
@@ -3650,7 +3691,8 @@ TEST(
                                          span_of(use_after))));
 }
 
-TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
+TEST(test_variable_analyzer_typeof_eval,
+     disable_variable_lookup_in_presence_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
 
@@ -3775,7 +3817,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 }
 
-TEST(test_lint_eval,
+TEST(test_variable_analyzer_typeof_eval,
      disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
@@ -3940,7 +3982,8 @@ TEST(test_lint_eval,
   }
 }
 
-TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
+TEST(test_variable_analyzer_typeof_eval,
+     false_negatives_on_redeclaration_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
 
@@ -3998,7 +4041,7 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      shadowing_initialized_var_without_use_in_block_scope_is_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4077,7 +4120,7 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      shadowing_function_scope_var_without_use_in_block_scope_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4103,7 +4146,7 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      shadowing_unassigned_var_in_block_scope_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4129,7 +4172,7 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      shadowing_var_without_use_in_function_scope_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4156,7 +4199,8 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow, shadowing_parameter_is_not_a_warning) {
+TEST(test_variable_analyzer_typeof_unused_shadow,
+     shadowing_parameter_is_not_a_warning) {
   const char8 parameter[] = u8"x";
   const char8 let[] = u8"x";
 
@@ -4182,7 +4226,7 @@ TEST(test_lint_unused_shadow, shadowing_parameter_is_not_a_warning) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      shadowing_class_or_function_or_import_is_not_a_warning) {
   const char8 outer_declaration[] = u8"C";
   const char8 inner_declaration[] = u8"C";
@@ -4216,7 +4260,8 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow, shadowing_catch_variable_is_not_a_warning) {
+TEST(test_variable_analyzer_typeof_unused_shadow,
+     shadowing_catch_variable_is_not_a_warning) {
   const char8 outer_declaration[] = u8"e";
   const char8 inner_declaration[] = u8"e";
 
@@ -4245,7 +4290,8 @@ TEST(test_lint_unused_shadow, shadowing_catch_variable_is_not_a_warning) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_unused_shadow, using_shadowing_variable_is_not_a_warning) {
+TEST(test_variable_analyzer_typeof_unused_shadow,
+     using_shadowing_variable_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
   const char8 use[] = u8"x";
@@ -4326,7 +4372,7 @@ TEST(test_lint_unused_shadow, using_shadowing_variable_is_not_a_warning) {
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      using_shadowing_variable_before_its_declaration_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4410,7 +4456,7 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      using_shadowing_variable_with_eval_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
@@ -4554,7 +4600,7 @@ TEST(test_lint_unused_shadow,
   }
 }
 
-TEST(test_lint_unused_shadow,
+TEST(test_variable_analyzer_typeof_unused_shadow,
      assigning_to_shadowing_variable_is_not_a_warning) {
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";

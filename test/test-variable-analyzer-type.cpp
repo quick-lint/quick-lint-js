@@ -18,7 +18,8 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lint_type, type_use_does_not_warn_on_predefined_global_classes) {
+TEST(test_variable_analyzer_type,
+     type_use_does_not_warn_on_predefined_global_classes) {
   const char8 use[] = u8"Array";
 
   // ([]) as Array;
@@ -30,7 +31,7 @@ TEST(test_lint_type, type_use_does_not_warn_on_predefined_global_classes) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_type, type_use_after_declaration_is_okay) {
+TEST(test_variable_analyzer_type, type_use_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -51,7 +52,8 @@ TEST(test_lint_type, type_use_after_declaration_is_okay) {
   }
 }
 
-TEST(test_lint_type, type_use_in_block_scope_after_declaration_is_okay) {
+TEST(test_variable_analyzer_type,
+     type_use_in_block_scope_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -76,7 +78,7 @@ TEST(test_lint_type, type_use_in_block_scope_after_declaration_is_okay) {
   }
 }
 
-TEST(test_lint_type, type_use_with_no_declaration_is_an_error) {
+TEST(test_variable_analyzer_type, type_use_with_no_declaration_is_an_error) {
   const char8 use[] = u8"C";
 
   // ({}) as C;  // ERROR
@@ -89,7 +91,8 @@ TEST(test_lint_type, type_use_with_no_declaration_is_an_error) {
                                                    name, span_of(use))));
 }
 
-TEST(test_lint_type, type_use_after_declaration_in_block_scope_is_an_error) {
+TEST(test_variable_analyzer_type,
+     type_use_after_declaration_in_block_scope_is_an_error) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -116,7 +119,7 @@ TEST(test_lint_type, type_use_after_declaration_in_block_scope_is_an_error) {
   }
 }
 
-TEST(test_lint_type, type_use_before_declaration_is_okay) {
+TEST(test_variable_analyzer_type, type_use_before_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -157,7 +160,7 @@ TEST(test_lint_type, type_use_before_declaration_is_okay) {
   }
 }
 
-TEST(test_lint_type, type_use_of_import_is_okay) {
+TEST(test_variable_analyzer_type, type_use_of_import_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -190,7 +193,7 @@ TEST(test_lint_type, type_use_of_import_is_okay) {
   }
 }
 
-TEST(test_lint_type, interface_can_be_exported) {
+TEST(test_variable_analyzer_type, interface_can_be_exported) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -285,7 +288,7 @@ TEST(test_lint_type, interface_can_be_exported) {
   }
 }
 
-TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
+TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
@@ -388,7 +391,8 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
   }
 }
 
-TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
+TEST(test_variable_analyzer_type,
+     interfaces_are_ignored_in_runtime_expressions) {
   using diags_matcher =
       testing::Matcher<const std::vector<diag_collector::diag>&>;
 
@@ -654,7 +658,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
   }
 }
 
-TEST(test_lint_type, mixing_non_type_and_type_only_is_okay) {
+TEST(test_variable_analyzer_type, mixing_non_type_and_type_only_is_okay) {
   const char8 type_declaration[] = u8"C";
   const char8 non_type_declaration[] = u8"C";
 
@@ -705,7 +709,8 @@ TEST(test_lint_type, mixing_non_type_and_type_only_is_okay) {
   }
 }
 
-TEST(test_lint_type, interfaces_merge_with_interfaces_and_classes) {
+TEST(test_variable_analyzer_type,
+     interfaces_merge_with_interfaces_and_classes) {
   const char8 interface_declaration[] = u8"C";
   const char8 other_declaration[] = u8"C";
 
@@ -753,7 +758,7 @@ TEST(test_lint_type, interfaces_merge_with_interfaces_and_classes) {
 // (interface), runtime-only (function or variable), or mixed (class). We take
 // the conservative approach and assume that the user wrote correct code (thus
 // we report no diagnostic).
-TEST(test_lint_type, mixing_interface_and_import_is_not_an_error) {
+TEST(test_variable_analyzer_type, mixing_interface_and_import_is_not_an_error) {
   const char8 interface_declaration[] = u8"C";
   const char8 imported_declaration[] = u8"C";
 
@@ -790,7 +795,7 @@ TEST(test_lint_type, mixing_interface_and_import_is_not_an_error) {
   }
 }
 
-TEST(test_lint_type, interfaces_conflict_with_generic_parameters) {
+TEST(test_variable_analyzer_type, interfaces_conflict_with_generic_parameters) {
   const char8 generic_parameter_declaration[] = u8"I";
   const char8 interface_declaration[] = u8"I";
 

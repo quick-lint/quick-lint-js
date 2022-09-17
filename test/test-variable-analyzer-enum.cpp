@@ -17,7 +17,8 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lint_enum, member_initializers_can_reference_other_members) {
+TEST(test_variable_analyzer_enum,
+     member_initializers_can_reference_other_members) {
   const char8 enum_declaration[] = u8"E";
   const char8 member_use[] = u8"A";
 
@@ -38,7 +39,7 @@ TEST(test_lint_enum, member_initializers_can_reference_other_members) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_enum, enum_can_merge_with_another_enum) {
+TEST(test_variable_analyzer_enum, enum_can_merge_with_another_enum) {
   const char8 enum_declaration_1[] = u8"E";
   const char8 enum_declaration_2[] = u8"E";
 
@@ -61,7 +62,7 @@ TEST(test_lint_enum, enum_can_merge_with_another_enum) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_enum, enum_can_shadow_catch_variables) {
+TEST(test_variable_analyzer_enum, enum_can_shadow_catch_variables) {
   const char8 catch_declaration[] = u8"e";
   const char8 enum_declaration[] = u8"e";
 
@@ -88,7 +89,8 @@ TEST(test_lint_enum, enum_can_shadow_catch_variables) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_enum, enum_conflicts_with_most_variables_in_same_scope) {
+TEST(test_variable_analyzer_enum,
+     enum_conflicts_with_most_variables_in_same_scope) {
   const char8 enum_declaration[] = u8"E";
   const char8 other_declaration[] = u8"E";
 
@@ -149,7 +151,7 @@ TEST(test_lint_enum, enum_conflicts_with_most_variables_in_same_scope) {
   }
 }
 
-TEST(test_lint_enum, function_shadows_enum_in_outer_scope) {
+TEST(test_variable_analyzer_enum, function_shadows_enum_in_outer_scope) {
   const char8 enum_declaration[] = u8"E";
   const char8 function_declaration[] = u8"E";
 
@@ -177,7 +179,7 @@ TEST(test_lint_enum, function_shadows_enum_in_outer_scope) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint_enum, var_conflicts_with_enum_in_outer_scope) {
+TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
   const char8 enum_declaration[] = u8"e";
   const char8 var_declaration[] = u8"e";
 
@@ -234,7 +236,7 @@ TEST(test_lint_enum, var_conflicts_with_enum_in_outer_scope) {
   }
 }
 
-TEST(test_lint_enum, enum_shadows_most_variables_in_outer_scope) {
+TEST(test_variable_analyzer_enum, enum_shadows_most_variables_in_outer_scope) {
   const char8 outer_declaration[] = u8"E";
   const char8 enum_declaration[] = u8"E";
 
