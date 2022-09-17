@@ -981,21 +981,63 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
-  test_parser p(u8"class C implements Base {}"_sv, javascript_options,
-                capture_diags);
-  p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
-                                    "visit_variable_type_use",       // Base
-                                    "visit_enter_class_scope_body",  // C
-                                    "visit_exit_class_scope",        // }
-                                    "visit_variable_declaration",    // C
-                                    "visit_end_of_module"));
-  EXPECT_THAT(
-      p.errors,
-      ElementsAre(DIAG_TYPE_OFFSETS(
-          p.code,
-          diag_typescript_class_implements_not_allowed_in_javascript,  //
-          implements_keyword, strlen(u8"class C "), u8"implements")));
+  {
+    test_parser p(u8"class C implements Base {}"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_type_use",       // Base
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration",    // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_class_implements_not_allowed_in_javascript,  //
+            implements_keyword, strlen(u8"class C "), u8"implements")));
+  }
+
+  {
+    test_parser p(u8"class C extends Base implements I {}"_sv,
+                  javascript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_use",            // Base
+                                      "visit_variable_type_use",       // I
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration",    // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_class_implements_not_allowed_in_javascript,  //
+            implements_keyword, strlen(u8"class C extends Base "),
+            u8"implements")));
+  }
+
+  {
+    test_parser p(u8"class C implements I extends Base {}"_sv,
+                  javascript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_type_use",       // I
+                                      "visit_variable_use",            // Base
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration",    // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_class_implements_not_allowed_in_javascript,  //
+            implements_keyword, strlen(u8"class C "), u8"implements")))
+        << "should not report diag_typescript_implements_must_be_after_extends";
+  }
 }
 
 TEST_F(test_parse_typescript_class, implements) {

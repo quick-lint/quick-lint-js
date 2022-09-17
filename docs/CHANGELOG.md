@@ -18,6 +18,9 @@ Semantic Versioning.
 
 * `static` code blocks in classes no longer report E0242 ("TypeScript static
   blocks are not supported in JavaScript").
+* When writing `implements` in JavaScript code, quick-lint-js will no longer
+  possibly report [E0246][] in addition to [E0247][]. quick-lint-js will now
+  only report [E0247][].
 
 ## 2.9.0 (2022-09-05)
 
@@ -745,6 +748,8 @@ Beta release.
 [E0211]: https://quick-lint-js.com/errors/E0211/
 [E0212]: https://quick-lint-js.com/errors/E0212/
 [E0223]: https://quick-lint-js.com/errors/E0223/
+[E0246]: https://quick-lint-js.com/errors/E0246/
+[E0247]: https://quick-lint-js.com/errors/E0247/
 [E0253]: https://quick-lint-js.com/errors/E0253/
 [E0266]: https://quick-lint-js.com/errors/E0266/
 [E0286]: https://quick-lint-js.com/errors/E0286/

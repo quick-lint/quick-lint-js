@@ -124,13 +124,19 @@ void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
 
   if (this->peek().type == token_type::kw_extends &&
       !extends_keyword.has_value() && implements_keyword.has_value()) {
-    // class C implements Iface extends Base {}
+    // class C implements Iface extends Base {}  // Invalid.
     extends_keyword = this->peek().span();
-    this->diag_reporter_->report(
-        diag_typescript_implements_must_be_after_extends{
-            .implements_keyword = *implements_keyword,
-            .extends_keyword = *extends_keyword,
-        });
+    if (this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_implements_must_be_after_extends{
+              .implements_keyword = *implements_keyword,
+              .extends_keyword = *extends_keyword,
+          });
+    } else {
+      // We already reported
+      // diag_typescript_class_implements_not_allowed_in_javascript. Don't
+      // report another diagnostic.
+    }
     this->parse_and_visit_class_extends(v);
   }
 }
