@@ -23,11 +23,11 @@
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/multi-parse-visitor.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/reported-diag-statistics.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file.h>

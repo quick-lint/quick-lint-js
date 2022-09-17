@@ -1,13 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/fe/global-declared-variable-set.h>
-#include <quick-lint-js/lint-support.h>
+#ifndef QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
+#define QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
 
 namespace quick_lint_js {
-global_declared_variable_set default_globals = configuration().globals();
+class global_declared_variable_set;
+
+extern global_declared_variable_set default_globals;
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

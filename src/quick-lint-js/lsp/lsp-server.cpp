@@ -14,8 +14,8 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>

@@ -7,7 +7,7 @@
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/global-variables.h>
-#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>

@@ -7,7 +7,7 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>
 #include <string_view>
 #include <vector>

@@ -12,7 +12,6 @@ quick_lint_js_add_executable(
   failing-diag-reporter.cpp
   fake-configuration-filesystem.cpp
   filesystem-test.cpp
-  lint-support.cpp
   parse-json.cpp
   parse-support.cpp
   quick-lint-js/array.h
@@ -23,7 +22,6 @@ quick_lint_js_add_executable(
   quick-lint-js/failing-diag-reporter.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
-  quick-lint-js/lint-support.h
   quick-lint-js/mock-inotify.h
   quick-lint-js/mock-kqueue.h
   quick-lint-js/mock-win32.h
@@ -33,6 +31,7 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
   quick-lint-js/test-translation-table-generated.h
+  quick-lint-js/variable-analyzer-support.h
   spy-visitor.cpp
   test-array.cpp
   test-assert.cpp
@@ -66,10 +65,6 @@ quick_lint_js_add_executable(
   test-lex.cpp
   test-linked-bump-allocator.cpp
   test-linked-vector.cpp
-  test-lint-enum.cpp
-  test-lint-parse.cpp
-  test-lint-type.cpp
-  test-lint.cpp
   test-locale.cpp
   test-lsp-diag-reporter.cpp
   test-lsp-endpoint.cpp
@@ -124,12 +119,17 @@ quick_lint_js_add_executable(
   test-translation.cpp
   test-utf-16.cpp
   test-utf-8.cpp
+  test-variable-analyzer-enum.cpp
+  test-variable-analyzer-parse.cpp
+  test-variable-analyzer-type.cpp
+  test-variable-analyzer.cpp
   test-vector-profiler.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-diag-reporter.cpp
   test-web-demo-location.cpp
   test-write-integer.cpp
+  variable-analyzer-support.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(

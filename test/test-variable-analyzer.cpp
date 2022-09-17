@@ -7,10 +7,10 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/identifier-support.h>
-#include <quick-lint-js/lint-support.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;

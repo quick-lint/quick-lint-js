@@ -9,7 +9,7 @@
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/vector-erase.h>

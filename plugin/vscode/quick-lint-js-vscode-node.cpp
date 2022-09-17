@@ -15,8 +15,8 @@
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
-#include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
