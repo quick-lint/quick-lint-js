@@ -13,7 +13,6 @@
         border-collapse: collapse;
         width: 100%;
       }
-
       .feature-comparison td,
       .feature-comparison th {
         border-color: #888888;
@@ -22,11 +21,9 @@
         padding: 0.5rem 1rem;
         text-align: center;
       }
-
       .feature-comparison th:first-child {
         text-align: right;
       }
-
       .feature-comparison tbody td,
       .feature-comparison tbody th {
         border-top-width: 1px;
@@ -52,7 +49,6 @@
       .feature-comparison .editors th:first-child {
         white-space: nowrap;
       }
-
       .feature-comparison .editors th:first-child a + a,
       .feature-comparison .editors th:first-child > img.logo,
       .feature-comparison .editors th:first-child > svg.logo {
@@ -68,12 +64,10 @@
       .feature-comparison table {
         height: 0;
       }
-
       .feature-comparison td.has-link {
         height: 100%;
         padding: 0;
       }
-
       .feature-comparison td.has-link > a {
         align-items: center;
         display: flex;
@@ -82,11 +76,9 @@
         justify-content: center;
         text-decoration: none;
       }
-
       .feature-comparison td.has-link > a:hover {
         background-color: rgba(0, 0, 0, 0.05);
       }
-
       @media (prefers-color-scheme: dark) {
         .feature-comparison td.has-link > a:hover {
           background-color: rgba(255, 255, 255, 0.3);
@@ -109,7 +101,6 @@
         max-width: 500px;
         margin: 1rem auto;
       }
-
       /* Make the demonstration look like Visual Studio Code. */
       #demonstration .window-title {
         background-color: #dddddd;
@@ -121,7 +112,6 @@
         position: relative;
         text-align: center;
       }
-
       #demonstration .traffic-light {
         display: inline-block;
         position: absolute;
@@ -130,22 +120,18 @@
         top: 0.66em;
         border-radius: 1.25em;
       }
-
       #demonstration .traffic-light-red {
         left: 1em;
         background-color: #ff5e57;
       }
-
       #demonstration .traffic-light-yellow {
         left: 2.5em;
         background-color: #febd30;
       }
-
       #demonstration .traffic-light-green {
         left: 4em;
         background-color: #2bc740;
       }
-
       #demonstration .tab-bar {
         background-color: #f3f3f3;
         color: #333333;
@@ -153,12 +139,10 @@
         flex-direction: row;
         font-size: 0.75rem;
       }
-
       #demonstration .tab {
         background-color: #ffffff;
         padding: 0.5em 1em;
       }
-
       #demonstration .tab:before {
         content: "JS";
         padding-left: 0.5em;
@@ -167,7 +151,6 @@
         font-size: 0.6rem;
         color: #b7b73b;
       }
-
       #demonstration .tab .close-button {
         display: inline-block;
         padding-left: 0.5em;
@@ -176,14 +159,12 @@
         width: 1em;
         text-align: center;
       }
-
       #demonstration .editor {
         background-color: #ffffff;
         margin: 0;
         padding: 1em 2em;
         font-size: 0.85rem;
       }
-
       #demonstration .footer-bar {
         background-color: #007ad3;
         border-radius: 0 0 0.75em 0.75em;
@@ -195,30 +176,25 @@
         line-height: 1em;
         padding: 0.25em 1.5em;
       }
-
       #demonstration .footer-bar img,
       #demonstration .footer-bar svg {
         height: 1em;
         width: 1em;
         vertical-align: bottom;
       }
-
       @media (prefers-color-scheme: dark) {
         #demonstration .window-title {
           background-color: #3c3c3c;
           border-top-color: #828282;
           color: #cccccc;
         }
-
         #demonstration .tab-bar {
           background-color: #2d2d2d;
           color: #ffffff;
         }
-
         #demonstration .tab {
           background-color: #1e1e1e;
         }
-
         #demonstration .editor {
           background-color: #1e1e1e;
         }
@@ -240,7 +216,6 @@
         animation-fill-mode: forwards;
         animation-duration: 5s;
       }
-
       @media (prefers-reduced-motion) {
         #demonstration .to-insert,
         #demonstration .to-remove,
@@ -264,7 +239,6 @@
         /* Place the cursor in front of the error box. */
         z-index: 200;
       }
-
       #demonstration .error-box {
         max-width: initial;
         white-space: nowrap;
@@ -275,14 +249,12 @@
         /* Fix the font because it's inside a pre. */
         font-family: sans-serif;
       }
-
       #demonstration mark {
         text-decoration-color: red;
         text-decoration-line: underline;
         text-decoration-skip-ink: none;
         text-decoration-style: wavy;
       }
-
       @media (prefers-color-scheme: dark) {
         #demonstration .cursor {
           background-color: rgba(230, 230, 230, 0.7);
@@ -298,53 +270,42 @@
         margin-left: 2.5em;
         opacity: 0;
       }
-
       @keyframes demonstration-cursor {
         0% {
           visibility: visible;
           opacity: 0;
           transform: translate(150px, -30px);
         }
-
         6% {
           transform: translate(150px, -30px);
         }
-
         14% {
           opacity: 1;
         }
-
         30% {
           transform: translate(0, 0);
         }
-
         65% {
           transform: scale(1, 1);
         }
-
         70% {
           transform: scale(0.7, 0.7);
         }
-
         73% {
           transform: scale(1, 1);
         }
-
         90% {
           opacity: 1;
         }
-
         95% {
           visibility: visible;
           opacity: 0;
         }
-
         100% {
           visibility: hidden;
           opacity: 0;
         }
       }
-
       /* Show the error box when the cursor hovers over it. Then, hide the
          error box when the cursor taps. */
       #demonstration .error-box {
@@ -352,36 +313,29 @@
         opacity: 0;
         position: absolute;
       }
-
       @keyframes demonstration-error-box {
         0% {
           opacity: 0;
           transform: translate(0, 0.5em);
         }
-
         20% {
           opacity: 0;
           transform: translate(0, 0.5em);
         }
-
         30% {
           opacity: 1;
           transform: translate(0, 0);
         }
-
         73% {
           opacity: 1;
         }
-
         78% {
           opacity: 0;
         }
-
         100% {
           opacity: 0;
         }
       }
-
       /* By default, show the text to remove. Make it disappear when the cursor
          taps. */
       #demonstration .to-remove {
@@ -390,24 +344,20 @@
         visibility: visible;
         width: auto;
       }
-
       @keyframes demonstration-to-remove {
         73% {
           width: auto;
           visibility: visible;
         }
-
         73.001% {
           visibility: hidden;
           width: 0;
         }
-
         100% {
           visibility: hidden;
           width: 0;
         }
       }
-
       /* By default, hide the text to insert. Make it appear when the cursor
          taps. */
       #demonstration .to-insert {
@@ -416,18 +366,15 @@
         visibility: hidden;
         width: 0;
       }
-
       @keyframes demonstration-to-insert {
         73% {
           width: 0;
           visibility: hidden;
         }
-
         73.001% {
           visibility: visible;
           width: auto;
         }
-
         100% {
           visibility: visible;
           width: auto;
@@ -436,14 +383,13 @@
     </style>
     <script>
       //<%
-      let { InlineSpriteSheet } = await importFileAsync("../src/sprite-sheet.mjs");
-      let spriteSheet = new InlineSpriteSheet({ symbolIDPrefix: "sprites-" });
+      let {InlineSpriteSheet} = await importFileAsync("../src/sprite-sheet.mjs");
+      let spriteSheet = new InlineSpriteSheet({symbolIDPrefix: "sprites-"});
       let vscodeCodiconError = spriteSheet.addSVG(absoluteFilePath("vscode-codicon-error.svg"));
       let vscodeCodiconWarning = spriteSheet.addSVG(absoluteFilePath("vscode-codicon-warning.svg"));
       //%>
     </script>
   </head>
-
   <body>
     <header><%- await include("./common-nav.ejs.html") %></header>
 
@@ -482,9 +428,9 @@ const language = "JavaScript";
 </code></pre>
         <div class="footer-bar">
           <div class="diagnostic-counts">
-            <%- vscodeCodiconError.makeReferenceHTML({ alt: "Errors:" , width:
+            <%- vscodeCodiconError.makeReferenceHTML({ alt: "Errors:", width:
             10, height: 10, }) %> 2 <%- vscodeCodiconWarning.makeReferenceHTML({
-            alt: "Warnings:" , width: 10, height: 10, }) %>
+            alt: "Warnings:", width: 10, height: 10, }) %>
             <span class="to-remove">1</span><ins class="to-insert">0</ins>
           </div>
           <div class="language">JavaScript</div>
@@ -498,13 +444,13 @@ const language = "JavaScript";
       <h2>Install quick-lint-js</h2>
       <p>
         Latest version:
-        <a href="releases/" title="Release history">
-          <%= qljsVersionInfo.version %>
-        </a>
+        <a href="releases/" title="Release history"
+          ><%= qljsVersionInfo.version %></a
+        >
         (released
-        <time datetime="<%= qljsVersionInfo.releaseDate %>">
-          <%= new Intl.DateTimeFormat("en-US", {dateStyle: "long" , timeZone:
-          "UTC" }).format(new Date(qljsVersionInfo.releaseDate)) %> </time
+        <time datetime="<%= qljsVersionInfo.releaseDate %>"
+          ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
+          "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
         >)
       </p>
 
@@ -512,46 +458,45 @@ const language = "JavaScript";
         <li>
           <a
             href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
-          >
-            <qljs-icon
+            ><qljs-icon
               name="vscode"
               size="19"
               aria-labelledby="install-vs-code"
             />
-            <span id="install-vs-code">install VS Code plugin</span>
-          </a>
+            <span id="install-vs-code">install VS Code plugin</span></a
+          >
         </li>
         <li>
-          <a href="install/neovim/">
-            <qljs-icon
+          <a href="install/neovim/"
+            ><qljs-icon
               name="neovim"
               size="19"
               aria-labelledby="install-neovim"
             />
-            <span id="install-neovim">install Neovim plugin</span>
-          </a>
+            <span id="install-neovim">install Neovim plugin</span></a
+          >
         </li>
         <li>
-          <a href="install/vim/">
-            <qljs-icon name="vim" size="19" aria-labelledby="install-vim" />
-            <span id="install-vim">install Vim plugin</span>
-          </a>
+          <a href="install/vim/"
+            ><qljs-icon name="vim" size="19" aria-labelledby="install-vim" />
+            <span id="install-vim">install Vim plugin</span></a
+          >
         </li>
         <li>
-          <a href="install/cli/">
-            <qljs-icon
+          <a href="install/cli/"
+            ><qljs-icon
               name="cli-and-lsp-server"
               size="19"
               aria-labelledby="install-cli"
             />
-            <span id="install-cli">install CLI</span>
-          </a>
+            <span id="install-cli">install CLI</span></a
+          >
         </li>
         <li>
-          <a href="https://www.npmjs.com/package/quick-lint-js">
-            <qljs-icon name="npm" size="19" aria-labelledby="install-npm" />
-            <span id="install-npm">install CLI on npm</span>
-          </a>
+          <a href="https://www.npmjs.com/package/quick-lint-js"
+            ><qljs-icon name="npm" size="19" aria-labelledby="install-npm" />
+            <span id="install-npm">install CLI on npm</span></a
+          >
         </li>
       </ul>
       <p>
@@ -714,9 +659,9 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/vscode/">VS Code</a>
-                <a href="install/vscode/">
-                  <qljs-icon name="vscode" size="19" />
-                </a>
+                <a href="install/vscode/"
+                  ><qljs-icon name="vscode" size="19"
+                /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/vscode/" aria-label="yes">✅</a>
@@ -729,9 +674,7 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/vim/">Vim</a>
-                <a href="install/vim/">
-                  <qljs-icon name="vim" size="19" />
-                </a>
+                <a href="install/vim/"><qljs-icon name="vim" size="19" /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/vim/" aria-label="yes">✅</a>
@@ -744,9 +687,9 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/neovim/">Neovim</a>
-                <a href="install/neovim/">
-                  <qljs-icon name="neovim" size="19" />
-                </a>
+                <a href="install/neovim/"
+                  ><qljs-icon name="neovim" size="19"
+                /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/neovim/" aria-label="yes">✅</a>
@@ -770,9 +713,9 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/sublime/">Sublime Text</a>
-                <a href="install/sublime/">
-                  <qljs-icon name="sublime-text" size="19" />
-                </a>
+                <a href="install/sublime/"
+                  ><qljs-icon name="sublime-text" size="19"
+                /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/sublime/" aria-label="yes">✅</a>
@@ -808,9 +751,9 @@ const language = "JavaScript";
             <tr>
               <th>
                 <a href="install/emacs/">Emacs</a>
-                <a href="install/emacs/">
-                  <qljs-icon name="emacs" size="19" />
-                </a>
+                <a href="install/emacs/"
+                  ><qljs-icon name="emacs" size="19"
+                /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/emacs/" aria-label="yes">✅</a>
@@ -834,9 +777,7 @@ const language = "JavaScript";
             <tr>
               <th class="has-link">
                 <a href="install/kate/">Kate</a>
-                <a href="install/kate/">
-                  <qljs-icon name="kate" size="19" />
-                </a>
+                <a href="install/kate/"><qljs-icon name="kate" size="19" /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/kate/" aria-label="yes">✅</a>
