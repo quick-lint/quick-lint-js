@@ -90,20 +90,21 @@ and continue parsing.
 Analysis is interleaved with parsing. As parsing emits events, analyses update
 state and report errors.
 
-There is currently only one analysis: `linter`. `linter` tracks variable uses
-and declarations:
+There is currently only one analysis: `variable_analyzer`. `variable_analyzer`
+tracks variable uses and declarations:
 
-* A `visit_variable_use` event causes `linter` to add the variable to a list of
-  used variables.
-* A `visit_variable_declaration` event causes `linter` to add the variable to a
-  list of declared variables and check for use-before-declaration errors.
-* A `visit_enter_function_scope` event causes `linter` to push an empty set of
-  variable uses and declarations onto a stack.
-* A `visit_exit_function_scope` event causes `linter` to pop a variable uses and
-  declarations off of a stack. Unbound variable uses are copied to the parent
-  scope. Variable declarations are discarded.
-* A `visit_end_of_module` event causes `linter` to report errors for variable
-  uses which have no corresponding declaration.
+* A `visit_variable_use` event causes `variable_analyzer` to add the variable to
+  a list of used variables.
+* A `visit_variable_declaration` event causes `variable_analyzer` to add the
+  variable to a list of declared variables and check for use-before-declaration
+  errors.
+* A `visit_enter_function_scope` event causes `variable_analyzer` to push an
+  empty set of variable uses and declarations onto a stack.
+* A `visit_exit_function_scope` event causes `variable_analyzer` to pop a
+  variable uses and declarations off of a stack. Unbound variable uses are
+  copied to the parent scope. Variable declarations are discarded.
+* A `visit_end_of_module` event causes `variable_analyzer` to report errors for
+  variable uses which have no corresponding declaration.
 
 ### Error reporting
 

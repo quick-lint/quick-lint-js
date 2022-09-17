@@ -16,7 +16,7 @@ which require less allocation and copying.
 
 When parsing an expression, the parser maintains a stack of nodes. When the
 parser is certain how a node should be treated, it immediately removes that node
-from the stack and tells the linter about it.
+from the stack and tells the variable analyzer about it.
 
 When parsing an expression such as `a+b`, the parser performs these steps:
 

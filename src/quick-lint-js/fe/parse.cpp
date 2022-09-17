@@ -28,7 +28,8 @@
 //
 // The parser class currently builds an AST for expressions. (See expression.h.)
 // Therefore, parsing and linting are not truly single-pass. This detail is not
-// exposed to the linter, however; the linter does not see the expression ASTs.
+// exposed to the variable_analyzer, however; the variable_analyzer does not see
+// the expression ASTs.
 //
 // Each parser stores a lexer object internally. From the caller's perspective,
 // the parser class takes characters as input.

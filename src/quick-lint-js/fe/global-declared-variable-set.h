@@ -39,11 +39,11 @@ class global_declared_variable_set {
   std::optional<global_declared_variable> find(string8_view name) const
       noexcept;
 
-  // See linter::declared_variable_set::find_runtime.
+  // See variable_analyzer::declared_variable_set::find_runtime.
   std::optional<global_declared_variable> find_runtime(identifier name) const
       noexcept;
 
-  // See linter::declared_variable_set::find_type.
+  // See variable_analyzer::declared_variable_set::find_type.
   std::optional<global_declared_variable> find_type(identifier name) const
       noexcept;
 
