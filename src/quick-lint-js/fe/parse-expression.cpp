@@ -1855,7 +1855,8 @@ next:
   // x   // ASI
   // as
   //
-  // x as Type  // TypeScript only.
+  // x as Type    // TypeScript only.
+  // {} as const  // TypeScript only.
   case token_type::kw_as: {
     if (this->peek().has_leading_newline) {
       // ASI. End this expression.
@@ -1871,10 +1872,22 @@ next:
     }
     this->skip();
 
-    this->parse_and_visit_typescript_type_expression(v);
+    bool is_as_const = this->peek().type == token_type::kw_const;
+    if (is_as_const) {
+      // {} as const
+      this->skip();
+    } else {
+      // x as Type
+      this->parse_and_visit_typescript_type_expression(v);
+    }
     const char8* type_end = this->lexer_.end_of_previous_token();
 
     expression* child = binary_builder.last_expression();
+    if (is_as_const) {
+      this->error_on_invalid_as_const(
+          child,
+          /*as_const_span=*/source_code_span(as_span.begin(), type_end));
+    }
     binary_builder.replace_last(
         this->make_expression<expression::as_type_assertion>(child, as_span,
                                                              type_end));

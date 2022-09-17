@@ -149,6 +149,26 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'as const' is only allowed on literals (array, object, string, boolean) and enum members"_translatable,
+        {
+            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
+            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
+            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
+            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
+            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
+        },
+    },
+    {
+        "'as const' located here"_translatable,
+        {
+            u8"'as const' located here",
+            u8"'as const' located here",
+            u8"'as const' located here",
+            u8"'as const' located here",
+            u8"'as const' located here",
+        },
+    },
+    {
         "'async static' is not allowed; write 'static async' instead"_translatable,
         {
             u8"'async static' is not allowed; write 'static async' instead",

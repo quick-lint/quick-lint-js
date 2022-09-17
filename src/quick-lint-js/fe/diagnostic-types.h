@@ -1490,6 +1490,19 @@
                   expected_as))                                                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_as_const_with_non_literal_typeable, "E0291",             \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span expression;                                           \
+        source_code_span as_const;                                             \
+      },                                                                       \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("'as const' is only allowed on literals (array, "  \
+                            "object, string, boolean) and enum members"),      \
+          expression)                                                          \
+          MESSAGE(QLJS_TRANSLATABLE("'as const' located here"), as_const))     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_as_type_assertion_not_allowed_in_javascript, "E0281",    \
       diagnostic_severity::error, { source_code_span as_keyword; },            \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript 'as' type assertions are not "     \

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 340;
-constexpr std::size_t translation_table_string_table_size = 53469;
+constexpr std::uint16_t translation_table_mapping_table_size = 342;
+constexpr std::size_t translation_table_string_table_size = 53582;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -40,6 +40,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'=' changes variables; to compare, use '===' instead"sv,
           "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"sv,
           "'?' creates a conditional expression"sv,
+          "'as const' is only allowed on literals (array, object, string, boolean) and enum members"sv,
+          "'as const' located here"sv,
           "'async static' is not allowed; write 'static async' instead"sv,
           "'await' cannot be followed by an arrow function; use 'async' instead"sv,
           "'await' is only allowed in async functions"sv,

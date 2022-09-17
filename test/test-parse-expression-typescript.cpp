@@ -142,6 +142,17 @@ TEST_F(test_parse_expression_typescript,
             diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
             as_keyword, strlen(u8"x "), u8"as")));
   }
+
+  {
+    test_parser p(u8"{} as const"_sv, javascript_options, capture_diags);
+    EXPECT_EQ(summarize(p.parse_expression()), "as(object())");
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
+            as_keyword, strlen(u8"{} "), u8"as")));
+  }
 }
 
 TEST_F(test_parse_expression_typescript, as_type_assertion) {
@@ -214,6 +225,74 @@ TEST_F(test_parse_expression_typescript,
             as_keyword, strlen(u8"function f(x "), u8"as")));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"), param_decl(u8"x")));
+  }
+
+  {
+    test_parser p(u8"{} as const"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
+    EXPECT_EQ(summarize(ast->child_0()), "object()");
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"{} as const"));
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       as_const_is_allowed_for_certain_expressions) {
+  for (const char8* expression : {
+           u8"MyEnum.MEMBER",
+           u8"'string literal'",
+           u8"\"string literal\"",
+           u8"`untagged template`",
+           u8"42",
+           u8"42.0",
+           u8"42n",
+           u8"true",
+           u8"false",
+           u8"[]",
+           u8"{}",
+           u8"(((true)))",
+           // Any expression is allowed inside array and object literals:
+           u8"[null, x, f()]",
+           u8"{k: v, [f()]: null}",
+       }) {
+    padded_string code(expression + u8" as const"s);
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options);
+    p.parse_and_visit_expression();
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       as_const_is_disallowed_for_most_expressions) {
+  for (const char8* expression : {
+           u8"/regexp literal/",
+           u8"myVariable",
+           u8"'string' as string",
+           u8"'string' as const",
+           u8"f()",
+           u8"null",
+           u8"f`tagged template`",
+       }) {
+    padded_string code(expression + u8" as const"s);
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_typescript_as_const_with_non_literal_typeable,  //
+                    expression, 0, expression,                           //
+                    as_const, strlen(expression) + 1, u8"as const")));
+  }
+
+  {
+    test_parser p(u8"(f()) as const", typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_typescript_as_const_with_non_literal_typeable,  //
+                    expression, strlen(u8"("), u8"f()")));
   }
 }
 }

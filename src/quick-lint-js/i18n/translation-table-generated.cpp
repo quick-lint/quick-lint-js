@@ -23,7 +23,9 @@ const translation_table translation_data = {
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
-        {50, 77, 41, 0, 37},          //
+        {0, 0, 0, 0, 37},             //
+        {0, 0, 0, 0, 89},             //
+        {50, 77, 41, 0, 24},          //
         {70, 31, 69, 0, 60},          //
         {93, 15, 80, 26, 69},         //
         {71, 48, 0, 0, 43},           //
@@ -1266,6 +1268,8 @@ const translation_table translation_data = {
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
         u8"'?' creates a conditional expression\0"
+        u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"
+        u8"'as const' located here\0"
         u8"'async static' is not allowed; write 'static async' instead\0"
         u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
         u8"'await' is only allowed in async functions\0"

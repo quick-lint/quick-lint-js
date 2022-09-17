@@ -322,6 +322,7 @@ class parser {
 
   void error_on_sketchy_condition(expression *);
   void error_on_pointless_string_compare(expression::binary_operator *);
+  void error_on_invalid_as_const(expression *, source_code_span as_const_span);
 
   void error_on_class_statement(statement_kind statement_kind);
   void error_on_lexical_declaration(statement_kind statement_kind);

@@ -762,6 +762,10 @@ class expression::literal final : public expression {
   explicit literal(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
+  bool is_null() const { return this->span_.string_view()[0] == u8'n'; }
+
+  bool is_regexp() const { return this->span_.string_view()[0] == u8'/'; }
+
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::literal>);

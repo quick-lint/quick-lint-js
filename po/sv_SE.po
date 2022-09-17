@@ -975,6 +975,17 @@ msgid "write the type assertion with 'as' here instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"'as const' is only allowed on literals (array, object, string, boolean) and "
+"enum members"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'as const' located here"
+msgstr "lista startar här"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript 'as' type assertions are not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"

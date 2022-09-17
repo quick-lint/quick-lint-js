@@ -372,6 +372,34 @@ void parser::error_on_pointless_string_compare(
   }
 }
 
+void parser::error_on_invalid_as_const(expression* ast,
+                                       source_code_span as_const_span) {
+  ast = ast->without_paren();
+  switch (ast->kind()) {
+  case expression_kind::dot:
+  case expression_kind::array:
+  case expression_kind::object:
+    break;
+
+  case expression_kind::literal: {
+    auto* literal = static_cast<expression::literal*>(ast);
+    if (literal->is_null() || literal->is_regexp()) {
+      goto invalid;
+    }
+    break;
+  }
+
+  invalid:
+  default:
+    this->diag_reporter_->report(
+        diag_typescript_as_const_with_non_literal_typeable{
+            .expression = ast->span(),
+            .as_const = as_const_span,
+        });
+    break;
+  }
+}
+
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
