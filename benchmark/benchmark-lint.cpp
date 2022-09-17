@@ -41,7 +41,7 @@ void benchmark_lint(benchmark::State &state) {
   p.parse_and_visit_module(visitor);
 
   for (auto _ : state) {
-    linter l(&null_diag_reporter::instance, &config.globals());
+    variable_analyzer l(&null_diag_reporter::instance, &config.globals());
     visitor.copy_into(l);
   }
 }
@@ -64,7 +64,7 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   configuration config;
   for (auto _ : state) {
     parser p(&source, &null_diag_reporter::instance);
-    linter l(&null_diag_reporter::instance, &config.globals());
+    variable_analyzer l(&null_diag_reporter::instance, &config.globals());
     p.parse_and_visit_module(l);
   }
 }
@@ -102,7 +102,7 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   }
 
   for (auto _ : state) {
-    linter l(&null_diag_reporter::instance, &globals);
+    variable_analyzer l(&null_diag_reporter::instance, &globals);
     for (identifier &variable_use : variable_use_identifiers) {
       l.visit_variable_use(variable_use);
     }

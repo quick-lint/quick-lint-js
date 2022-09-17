@@ -689,7 +689,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   parser_options p_options;
   p_options.jsx = true;
   parser p(code, &diag_reporter, p_options);
-  linter l(&diag_reporter, &config.globals());
+  variable_analyzer l(&diag_reporter, &config.globals());
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
   if (!ok) {
     // TODO(strager): Send a window/logMessage to the client reporting that the

@@ -283,7 +283,7 @@ void process_file(padded_string_view input, configuration &config,
   parser_options p_options;
   p_options.jsx = true;
   parser p(input, diag_reporter, p_options);
-  linter l(diag_reporter, &config.globals());
+  variable_analyzer l(diag_reporter, &config.globals());
 
   if (print_parser_visits) {
     debug_parse_visitor logger;

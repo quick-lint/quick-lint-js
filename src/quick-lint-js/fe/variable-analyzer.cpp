@@ -19,8 +19,8 @@
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
-// The linter class implements single-pass variable lookup. A single-pass
-// algorithm is complicated in JavaScript for a few reasons:
+// The variable_analyzer class implements single-pass variable lookup. A
+// single-pass algorithm is complicated in JavaScript for a few reasons:
 //
 // * Variables declared with 'var' or 'function' statements are hoisted. This
 //   means that the declaration might be *textually-after* a use of that
@@ -54,8 +54,8 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 //       let x;
 //     }
 //
-// To satisfy these requirements, the linter class implements the following
-// algorithm (simplified for digestion):
+// To satisfy these requirements, the variable_analyzer class implements the
+// following algorithm (simplified for digestion):
 //
 // * When we see a variable declaration (visit_variable_declaration):
 //   * Remember the declaration for the current scope (declared_variables).
@@ -195,17 +195,18 @@ void global_declared_variable_set::undeclare_variable(string8_view name) {
   }
 }
 
-linter::linter(diag_reporter *diag_reporter,
-               const global_declared_variable_set *global_variables)
+variable_analyzer::variable_analyzer(
+    diag_reporter *diag_reporter,
+    const global_declared_variable_set *global_variables)
     : global_scope_(global_variables), diag_reporter_(diag_reporter) {}
 
-void linter::visit_enter_block_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_block_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_with_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_with_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_class_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_class_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_class_scope_body(
+void variable_analyzer::visit_enter_class_scope_body(
     const std::optional<identifier> &class_name) {
   if (class_name.has_value()) {
     this->declare_variable(
@@ -217,23 +218,26 @@ void linter::visit_enter_class_scope_body(
   }
 }
 
-void linter::visit_enter_enum_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_for_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_for_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_function_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_function_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_function_scope_body() {
+void variable_analyzer::visit_enter_function_scope_body() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
       /*consume_arguments=*/true);
 }
 
-void linter::visit_enter_index_signature_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_index_signature_scope() {
+  this->scopes_.push();
+}
 
-void linter::visit_enter_interface_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_interface_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_named_function_scope(identifier function_name) {
+void variable_analyzer::visit_enter_named_function_scope(
+    identifier function_name) {
   scope &current_scope = this->scopes_.push();
   current_scope.function_expression_declaration = declared_variable{
       .declaration = function_name,
@@ -244,13 +248,13 @@ void linter::visit_enter_named_function_scope(identifier function_name) {
   };
 }
 
-void linter::visit_enter_namespace_scope() {
+void variable_analyzer::visit_enter_namespace_scope() {
   QLJS_UNIMPLEMENTED();  // TODO(#690)
 }
 
-void linter::visit_enter_type_alias_scope() { this->scopes_.push(); }
+void variable_analyzer::visit_enter_type_alias_scope() { this->scopes_.push(); }
 
-void linter::visit_exit_block_scope() {
+void variable_analyzer::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -259,14 +263,14 @@ void linter::visit_exit_block_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_with_scope() {
+void variable_analyzer::visit_exit_with_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   // Don't propagate variable uses, only declarations
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
 
-void linter::visit_exit_class_scope() {
+void variable_analyzer::visit_exit_class_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -274,7 +278,7 @@ void linter::visit_exit_class_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_enum_scope() {
+void variable_analyzer::visit_exit_enum_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   // TODO(#756): For now, we don't propagate variable uses. We should declare
   // enum members so we can find typos in enum initializers.
@@ -282,7 +286,7 @@ void linter::visit_exit_enum_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_for_scope() {
+void variable_analyzer::visit_exit_for_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -291,7 +295,7 @@ void linter::visit_exit_for_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_function_scope() {
+void variable_analyzer::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
@@ -299,7 +303,7 @@ void linter::visit_exit_function_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_index_signature_scope() {
+void variable_analyzer::visit_exit_index_signature_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
@@ -307,7 +311,7 @@ void linter::visit_exit_index_signature_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_interface_scope() {
+void variable_analyzer::visit_exit_interface_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -315,11 +319,11 @@ void linter::visit_exit_interface_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_namespace_scope() {
+void variable_analyzer::visit_exit_namespace_scope() {
   QLJS_UNIMPLEMENTED();  // TODO(#690)
 }
 
-void linter::visit_exit_type_alias_scope() {
+void variable_analyzer::visit_exit_type_alias_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -327,14 +331,15 @@ void linter::visit_exit_type_alias_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_keyword_variable_use(identifier) {
+void variable_analyzer::visit_keyword_variable_use(identifier) {
   // Ignore. The parser should have already reported E0023.
 }
 
-void linter::visit_property_declaration(const std::optional<identifier> &) {}
+void variable_analyzer::visit_property_declaration(
+    const std::optional<identifier> &) {}
 
-void linter::visit_variable_declaration(identifier name, variable_kind kind,
-                                        variable_init_kind init_kind) {
+void variable_analyzer::visit_variable_declaration(
+    identifier name, variable_kind kind, variable_init_kind init_kind) {
   this->declare_variable(
       /*scope=*/this->current_scope(),
       /*name=*/name,
@@ -344,9 +349,10 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind,
           variable_init_kind::initialized_with_equals);
 }
 
-void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
-                              declared_variable_scope declared_scope,
-                              bool declaration_possibly_looks_like_assignment) {
+void variable_analyzer::declare_variable(
+    scope &scope, identifier name, variable_kind kind,
+    declared_variable_scope declared_scope,
+    bool declaration_possibly_looks_like_assignment) {
   bool is_function_or_var =
       kind == variable_kind::_function || kind == variable_kind::_var;
   if (declared_scope == declared_variable_scope::declared_in_descendant_scope) {
@@ -443,7 +449,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
            });
 }
 
-void linter::visit_variable_assignment(identifier name) {
+void variable_analyzer::visit_variable_assignment(identifier name) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
   declared_variable *var = current_scope.declared_variables.find_runtime(name);
@@ -457,8 +463,8 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
-void linter::visit_variable_delete_use(identifier name,
-                                       source_code_span delete_keyword) {
+void variable_analyzer::visit_variable_delete_use(
+    identifier name, source_code_span delete_keyword) {
   QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
 
   QLJS_ASSERT(!this->scopes_.empty());
@@ -476,27 +482,28 @@ void linter::visit_variable_delete_use(identifier name,
   }
 }
 
-void linter::visit_variable_export_use(identifier name) {
+void variable_analyzer::visit_variable_export_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_export);
 }
 
-void linter::visit_variable_namespace_use(identifier) {
+void variable_analyzer::visit_variable_namespace_use(identifier) {
   // TODO(#690): Look up TypeScript namespace variables and imports.
 }
 
-void linter::visit_variable_type_use(identifier name) {
+void variable_analyzer::visit_variable_type_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::type);
 }
 
-void linter::visit_variable_typeof_use(identifier name) {
+void variable_analyzer::visit_variable_typeof_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_typeof);
 }
 
-void linter::visit_variable_use(identifier name) {
+void variable_analyzer::visit_variable_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::use);
 }
 
-void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
+void variable_analyzer::visit_variable_use(identifier name,
+                                           used_variable_kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
   declared_variable *var =
@@ -515,11 +522,11 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   }
 }
 
-void linter::visit_end_of_module() {
+void variable_analyzer::visit_end_of_module() {
   // We expect only the module scope.
   QLJS_ASSERT(this->scopes_.size() == 1);
 
-  linter::global_scope &global_scope = this->global_scope_;
+  variable_analyzer::global_scope &global_scope = this->global_scope_;
 
   for (const declared_variable &var :
        this->scopes_.module_scope().declared_variables) {
@@ -607,7 +614,7 @@ void linter::visit_end_of_module() {
   }
 }
 
-void linter::propagate_variable_uses_to_parent_scope(
+void variable_analyzer::propagate_variable_uses_to_parent_scope(
     bool allow_variable_use_before_declaration, bool consume_arguments) {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/this->parent_scope(),
@@ -617,7 +624,7 @@ void linter::propagate_variable_uses_to_parent_scope(
 }
 
 template <class Scope>
-void linter::propagate_variable_uses_to_parent_scope(
+void variable_analyzer::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
     bool consume_arguments) {
   // found_variable_type is either declared_variable* or
@@ -725,7 +732,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   current_scope.variables_used_in_descendant_scope.clear();
 }
 
-void linter::propagate_variable_declarations_to_parent_scope() {
+void variable_analyzer::propagate_variable_declarations_to_parent_scope() {
   scope &current_scope = this->current_scope();
   scope &parent_scope = this->parent_scope();
 
@@ -764,14 +771,14 @@ void linter::propagate_variable_declarations_to_parent_scope() {
   }
 }
 
-void linter::report_error_if_assignment_is_illegal(
+void variable_analyzer::report_error_if_assignment_is_illegal(
     const declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(*var, assignment,
                                               is_assigned_before_declaration);
 }
 
-void linter::report_error_if_assignment_is_illegal(
+void variable_analyzer::report_error_if_assignment_is_illegal(
     const declared_variable &var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(
@@ -782,7 +789,7 @@ void linter::report_error_if_assignment_is_illegal(
       /*is_assigned_before_declaration=*/is_assigned_before_declaration);
 }
 
-void linter::report_error_if_assignment_is_illegal(
+void variable_analyzer::report_error_if_assignment_is_illegal(
     const std::optional<global_declared_variable> &var,
     const identifier &assignment, bool is_assigned_before_declaration) const {
   QLJS_ASSERT(var.has_value());
@@ -790,7 +797,7 @@ void linter::report_error_if_assignment_is_illegal(
                                               is_assigned_before_declaration);
 }
 
-void linter::report_error_if_assignment_is_illegal(
+void variable_analyzer::report_error_if_assignment_is_illegal(
     const global_declared_variable &var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(
@@ -801,7 +808,7 @@ void linter::report_error_if_assignment_is_illegal(
       /*is_assigned_before_declaration=*/is_assigned_before_declaration);
 }
 
-void linter::report_error_if_assignment_is_illegal(
+void variable_analyzer::report_error_if_assignment_is_illegal(
     variable_kind kind, bool is_global_variable, const identifier *declaration,
     const identifier &assignment, bool is_assigned_before_declaration) const {
   if (is_global_variable) {
@@ -878,7 +885,7 @@ void linter::report_error_if_assignment_is_illegal(
 }
 
 template <class DeclaredVariableType>
-void linter::report_errors_for_variable_use(
+void variable_analyzer::report_errors_for_variable_use(
     const used_variable &used_var, const DeclaredVariableType &declared,
     bool use_is_before_declaration) const {
   constexpr bool declared_in_global_scope =
@@ -901,9 +908,9 @@ void linter::report_errors_for_variable_use(
   }
 }
 
-void linter::report_error_if_variable_declaration_conflicts_in_scope(
-    const linter::scope &scope, identifier name, variable_kind kind,
-    linter::declared_variable_scope declaration_scope) const {
+void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
+    const variable_analyzer::scope &scope, identifier name, variable_kind kind,
+    variable_analyzer::declared_variable_scope declaration_scope) const {
   const declared_variable *already_declared_variable =
       scope.declared_variables.find(name);
   if (already_declared_variable) {
@@ -919,7 +926,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
   }
 }
 
-void linter::report_error_if_variable_declaration_conflicts_in_scope(
+void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
     const global_scope &scope, const declared_variable &var) const {
   std::optional<global_declared_variable> already_declared_variable =
       scope.declared_variables.find(var.declaration);
@@ -938,7 +945,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
   }
 }
 
-void linter::report_error_if_variable_declaration_conflicts(
+void variable_analyzer::report_error_if_variable_declaration_conflicts(
     const identifier *already_declared, variable_kind already_declared_kind,
     declared_variable_scope already_declared_declaration_scope,
     bool already_declared_is_global_variable, identifier newly_declared_name,
@@ -1020,15 +1027,15 @@ void linter::report_error_if_variable_declaration_conflicts(
   }
 }
 
-bool linter::declared_variable::is_runtime() const noexcept {
+bool variable_analyzer::declared_variable::is_runtime() const noexcept {
   return quick_lint_js::is_runtime(kind);
 }
 
-bool linter::declared_variable::is_type() const noexcept {
+bool variable_analyzer::declared_variable::is_type() const noexcept {
   return quick_lint_js::is_type(this->kind);
 }
 
-bool linter::used_variable::is_runtime() const noexcept {
+bool variable_analyzer::used_variable::is_runtime() const noexcept {
   switch (this->kind) {
   case used_variable_kind::_delete:
   case used_variable_kind::_export:
@@ -1042,7 +1049,7 @@ bool linter::used_variable::is_runtime() const noexcept {
   QLJS_UNREACHABLE();
 }
 
-bool linter::used_variable::is_type() const noexcept {
+bool variable_analyzer::used_variable::is_type() const noexcept {
   switch (this->kind) {
   case used_variable_kind::_export:
   case used_variable_kind::type:
@@ -1056,8 +1063,8 @@ bool linter::used_variable::is_type() const noexcept {
   QLJS_UNREACHABLE();
 }
 
-linter::declared_variable *
-linter::declared_variable_set::add_variable_declaration(
+variable_analyzer::declared_variable *
+variable_analyzer::declared_variable_set::add_variable_declaration(
     identifier name, variable_kind kind, declared_variable_scope declared_scope,
     bool declaration_possibly_looks_like_assignment) {
   this->variables_.emplace_back(declared_variable{
@@ -1071,13 +1078,13 @@ linter::declared_variable_set::add_variable_declaration(
   return &this->variables_.back();
 }
 
-const linter::declared_variable *linter::declared_variable_set::find(
-    identifier name) const noexcept {
+const variable_analyzer::declared_variable *
+variable_analyzer::declared_variable_set::find(identifier name) const noexcept {
   return const_cast<declared_variable_set *>(this)->find(name);
 }
 
-linter::declared_variable *linter::declared_variable_set::find(
-    identifier name) noexcept {
+variable_analyzer::declared_variable *
+variable_analyzer::declared_variable_set::find(identifier name) noexcept {
   string8_view name_view = name.normalized_name();
   for (declared_variable &var : this->variables_) {
     if (var.declaration.normalized_name() == name_view) {
@@ -1087,7 +1094,8 @@ linter::declared_variable *linter::declared_variable_set::find(
   return nullptr;
 }
 
-linter::declared_variable *linter::declared_variable_set::find_runtime(
+variable_analyzer::declared_variable *
+variable_analyzer::declared_variable_set::find_runtime(
     identifier name) noexcept {
   string8_view name_view = name.normalized_name();
   for (declared_variable &var : this->variables_) {
@@ -1098,8 +1106,8 @@ linter::declared_variable *linter::declared_variable_set::find_runtime(
   return nullptr;
 }
 
-linter::declared_variable *linter::declared_variable_set::find_type(
-    identifier name) noexcept {
+variable_analyzer::declared_variable *
+variable_analyzer::declared_variable_set::find_type(identifier name) noexcept {
   string8_view name_view = name.normalized_name();
   for (declared_variable &var : this->variables_) {
     if (var.is_type() && var.declaration.normalized_name() == name_view) {
@@ -1109,25 +1117,25 @@ linter::declared_variable *linter::declared_variable_set::find_type(
   return nullptr;
 }
 
-void linter::declared_variable_set::clear() noexcept {
+void variable_analyzer::declared_variable_set::clear() noexcept {
   this->variables_.clear();
 }
 
-bool linter::declared_variable_set::empty() const noexcept {
+bool variable_analyzer::declared_variable_set::empty() const noexcept {
   return this->variables_.empty();
 }
 
-std::vector<linter::declared_variable>::const_iterator
-linter::declared_variable_set::begin() const noexcept {
+std::vector<variable_analyzer::declared_variable>::const_iterator
+variable_analyzer::declared_variable_set::begin() const noexcept {
   return this->variables_.cbegin();
 }
 
-std::vector<linter::declared_variable>::const_iterator
-linter::declared_variable_set::end() const noexcept {
+std::vector<variable_analyzer::declared_variable>::const_iterator
+variable_analyzer::declared_variable_set::end() const noexcept {
   return this->variables_.cend();
 }
 
-void linter::scope::clear() {
+void variable_analyzer::scope::clear() {
   this->declared_variables.clear();
   this->variables_used.clear();
   this->variables_used_in_descendant_scope.clear();
@@ -1136,25 +1144,25 @@ void linter::scope::clear() {
   this->used_eval_in_descendant_scope = false;
 }
 
-linter::scopes::scopes() {
+variable_analyzer::scopes::scopes() {
   this->push();  // module_scope
 }
 
-linter::scope &linter::scopes::module_scope() noexcept {
+variable_analyzer::scope &variable_analyzer::scopes::module_scope() noexcept {
   return this->scopes_[0];
 }
 
-linter::scope &linter::scopes::current_scope() noexcept {
+variable_analyzer::scope &variable_analyzer::scopes::current_scope() noexcept {
   QLJS_ASSERT(!this->empty());
   return this->scopes_[narrow_cast<std::size_t>(this->size()) - 1];
 }
 
-linter::scope &linter::scopes::parent_scope() noexcept {
+variable_analyzer::scope &variable_analyzer::scopes::parent_scope() noexcept {
   QLJS_ASSERT(this->size() >= 2);
   return this->scopes_[narrow_cast<std::size_t>(this->size()) - 2];
 }
 
-linter::scope &linter::scopes::push() {
+variable_analyzer::scope &variable_analyzer::scopes::push() {
   bool full = this->scope_count_ == narrow_cast<int>(this->scopes_.size());
   scope *s;
   if (full) {
@@ -1167,14 +1175,18 @@ linter::scope &linter::scopes::push() {
   return *s;
 }
 
-void linter::scopes::pop() {
+void variable_analyzer::scopes::pop() {
   QLJS_ASSERT(!this->empty());
   this->scope_count_ -= 1;
 }
 
-bool linter::scopes::empty() const noexcept { return this->scope_count_ == 0; }
+bool variable_analyzer::scopes::empty() const noexcept {
+  return this->scope_count_ == 0;
+}
 
-int linter::scopes::size() const noexcept { return this->scope_count_; }
+int variable_analyzer::scopes::size() const noexcept {
+  return this->scope_count_;
+}
 
 namespace {
 bool is_runtime(variable_kind kind) noexcept {

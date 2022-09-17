@@ -17,19 +17,20 @@ class diag_reporter;
 class global_declared_variable_set;
 struct global_declared_variable;
 
-// A linter is a parse_visitor which finds non-syntax bugs.
+// A variable_analyzer is a parse_visitor which finds non-syntax bugs.
 //
-// linter-s detect the following bugs (and possibly more):
+// variable_analyzer-s detect the following bugs (and possibly more):
 //
 // * Assignments to const-declared variables
 // * Assignments to let-declared variables before their initialization
 // * Use of undeclared variables
 //
-// The linter class implements variable lookup internally.
-class linter final : public parse_visitor_base {
+// The variable_analyzer class implements variable lookup internally.
+class variable_analyzer final : public parse_visitor_base {
  public:
-  explicit linter(diag_reporter *diag_reporter,
-                  const global_declared_variable_set *global_variables);
+  explicit variable_analyzer(
+      diag_reporter *diag_reporter,
+      const global_declared_variable_set *global_variables);
 
   void visit_enter_block_scope() override;
   void visit_enter_with_scope() override;

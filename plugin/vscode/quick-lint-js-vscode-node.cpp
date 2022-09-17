@@ -108,7 +108,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     parser_options p_options;
     p_options.jsx = true;
     parser p(this->document_.string(), &diag_reporter, p_options);
-    linter l(&diag_reporter, &this->config_->globals());
+    variable_analyzer l(&diag_reporter, &this->config_->globals());
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
     if (!ok) {
       // TODO(strager): Show a pop-up message explaining that the parser

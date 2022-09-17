@@ -22,7 +22,7 @@ namespace {
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
@@ -39,7 +39,7 @@ TEST(
   padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;"_sv);
   diag_collector v;
 
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -51,7 +51,7 @@ TEST(test_lint,
   padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
   diag_collector v;
 
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -66,7 +66,7 @@ TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
   padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })"_sv);
   diag_collector v;
 
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -78,7 +78,7 @@ TEST(test_lint,
   padded_string input(u8"let f;\nif (true)\n  function f() {}"_sv);
 
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -90,7 +90,7 @@ TEST(test_lint, typeof_with_conditional_operator) {
   {
     padded_string input(u8"typeof x ? 10 : 20;"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -103,7 +103,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = 42; ++x;"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -117,7 +117,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = {y : 10};\n ++x.y;"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -130,7 +130,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = [42]; ++x[0];"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -141,7 +141,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -156,7 +156,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
 TEST(test_lint, use_await_label_in_non_async_function) {
   padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -167,7 +167,7 @@ TEST(test_lint, use_await_label_in_non_async_function) {
 TEST(test_lint, use_yield_label_in_non_generator_function) {
   padded_string input(u8"function f() {yield: for(;;){break yield;}}"_sv);
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -180,7 +180,7 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
   // The linter should not report that 'finally' is undeclared.
   padded_string input(u8"let which = \\u{66}inally;"_sv);
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -194,7 +194,7 @@ TEST(test_lint, delete_local_variable) {
   padded_string input(
       u8"function f(param) { let v; delete v; delete param; }"_sv);
   diag_collector v;
-  linter l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -213,7 +213,7 @@ TEST(test_lint, extends_self) {
         u8"  class C extends C {}"_sv
         u8"}"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -229,7 +229,7 @@ TEST(test_lint, extends_self) {
         u8"  class C extends (null, [C][0], Object) {}"_sv
         u8"}"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -245,7 +245,7 @@ TEST(test_lint, extends_self) {
         u8"  (class C extends C {})"_sv
         u8"}"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -259,7 +259,7 @@ TEST(test_lint, typescript_static_block_can_reference_class) {
   {
     padded_string input(u8"class C { static { C; } }"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v, typescript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -269,7 +269,7 @@ TEST(test_lint, typescript_static_block_can_reference_class) {
   {
     padded_string input(u8"(class C { static { C; } });"_sv);
     diag_collector v;
-    linter l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals);
     parser p(&input, &v, typescript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();

@@ -14,7 +14,7 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
       reinterpret_cast<const quick_lint_js::char8 *>(data), size));
   quick_lint_js::parser p(&source,
                           &quick_lint_js::null_diag_reporter::instance);
-  quick_lint_js::linter l;
+  quick_lint_js::variable_analyzer l;
   [[maybe_unused]] bool ok =
       p.parse_and_visit_module_catching_fatal_parse_errors(l);
 

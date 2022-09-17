@@ -33,7 +33,7 @@ class qljs_document_base {
                                    &this->document_.locator());
     parser p(this->document_.string(), &this->diag_reporter_,
              this->parser_options_);
-    linter l(&this->diag_reporter_, &this->config_.globals());
+    variable_analyzer l(&this->diag_reporter_, &this->config_.globals());
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
     return this->diag_reporter_.get_diagnostics();
