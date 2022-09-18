@@ -80,39 +80,32 @@ TEST_F(test_parse_statement, return_statement) {
 
 TEST_F(test_parse_statement, return_statement_disallows_newline) {
   {
-    padded_string code(u8"return\nx"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"return\nx"_sv, capture_diags);
 
     // Parse 'return'.
-    EXPECT_TRUE(p.parse_and_visit_statement(
-        v, parser::parse_statement_type::any_statement_in_block));
-    EXPECT_THAT(v.variable_uses, IsEmpty());
+    p.parse_and_visit_statement(
+        parser::parse_statement_type::any_statement_in_block);
+    EXPECT_THAT(p.variable_uses, IsEmpty());
 
     // Parse 'x' (separate statement from 'return')
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_return_statement_returns_nothing,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_return_statement_returns_nothing,  //
                               return_keyword, 0, u8"return")));
   }
 
   {
-    padded_string code(u8"if (true) return\nx"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"if (true) return\nx"_sv);
 
     // Parse 'if (true) return'.
-    EXPECT_TRUE(p.parse_and_visit_statement(
-        v, parser::parse_statement_type::any_statement));
-    EXPECT_THAT(v.variable_uses, IsEmpty());
+    p.parse_and_visit_statement(parser::parse_statement_type::any_statement);
+    EXPECT_THAT(p.variable_uses, IsEmpty());
 
     // Parse 'x' (separate statement from 'return')
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
-
-    EXPECT_THAT(v.errors, IsEmpty());
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
   }
 
   // TODO(strager): These cases might be dead code instead (e.g. a method call).
@@ -150,56 +143,50 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
            // a statement.)
        }) {
     {
-      padded_string code(u8"return\n"s + second_line);
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, jsx_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
+      test_parser p(u8"return\n"s + second_line, jsx_options, capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_return_statement_returns_nothing,  //
+                      p.code, diag_return_statement_returns_nothing,  //
                       return_keyword, 0, u8"return")));
     }
 
     {
-      padded_string code(u8"{ return\n"s + second_line + u8"}");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, jsx_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
+      test_parser p(u8"{ return\n"s + second_line + u8"}", jsx_options,
+                    capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_return_statement_returns_nothing,  //
+                      p.code, diag_return_statement_returns_nothing,  //
                       return_keyword, strlen(u8"{ "), u8"return")));
     }
 
     {
-      padded_string code(u8"async function f() { return\n"s + second_line +
-                         u8"}");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, jsx_options);
-      p.parse_and_visit_module(v);
+      test_parser p(u8"async function f() { return\n"s + second_line + u8"}",
+                    jsx_options, capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              &code, diag_return_statement_returns_nothing,  //
+              p.code, diag_return_statement_returns_nothing,  //
               return_keyword, strlen(u8"async function f() { "), u8"return")));
     }
 
     {
-      padded_string code(
+      test_parser p(
           u8"switch (cond) {\n"s
           u8"default:\n"s
           u8"return\n"s +
-          second_line + u8"}");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, jsx_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
+              second_line + u8"}",
+          jsx_options, capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_return_statement_returns_nothing,  //
+                      p.code, diag_return_statement_returns_nothing,  //
                       return_keyword, strlen(u8"switch (cond) {\ndefault:\n"),
                       u8"return")));
     }

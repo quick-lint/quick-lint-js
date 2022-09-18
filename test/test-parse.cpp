@@ -179,15 +179,12 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
            u8"switch (cond) {}"_sv,
            u8"while (cond) {}"_sv,
        }) {
-    spy_visitor v;
-    padded_string code(string8(u8"let x = 2\n"_sv) + string8(second_statement));
-    SCOPED_TRACE(code);
-    parser p(&code, &v);
+    test_parser p(string8(u8"let x = 2\n"_sv) + string8(second_statement));
+    SCOPED_TRACE(p.code);
     auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"cond"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"cond"));
   }
 
   {
@@ -274,23 +271,19 @@ TEST_F(test_parse, asi_between_expression_statements) {
   }
 
   {
-    padded_string code(u8"true\nawait myPromise;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"true\nawait myPromise;"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::async);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myPromise"));
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
   }
 
   {
-    padded_string code(u8"true\nyield myValue;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"true\nyield myValue;"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myValue"));
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
   }
 
   for (string8 keyword : contextual_keywords) {
@@ -765,24 +758,23 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
            repeated_str(u8"class C { m() { ", u8"", u8"} }",
                         parser::stack_limit - 1),
        }) {
-    padded_string code(exps);
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    test_parser p(exps, capture_diags);
+    SCOPED_TRACE(p.code);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_TRUE(ok);
-    EXPECT_THAT(v.errors, ::testing::Not(::testing::Contains(
+    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
                               DIAG_TYPE(diag_depth_limit_exceeded))));
   }
 
   {
-    padded_string code(
+    test_parser p(
         u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3) +
-        u8")");
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+            u8")",
+        capture_diags);
+    SCOPED_TRACE(p.code);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_TRUE(ok);
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   for (const string8& jsx : {
@@ -852,25 +844,23 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    padded_string code(
-        repeated_str(u8"await ", u8"10", u8"", parser::stack_limit + 1));
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    test_parser p(
+        repeated_str(u8"await ", u8"10", u8"", parser::stack_limit + 1),
+        capture_diags);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ::testing::Contains(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 
   {
-    padded_string code(
+    test_parser p(
         u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
-        u8")");
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+            u8")",
+        capture_diags);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 
   for (const string8& jsx : {

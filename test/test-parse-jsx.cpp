@@ -30,27 +30,25 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
   // If parsing was not started with
   // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
   // parsing at the '<'. Error recovery will do a bad job.
-  padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
-  spy_visitor v;
   parser_options options;
   options.jsx = false;
-  parser p(&code, &v, options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.errors, Contains(DIAG_TYPE_OFFSETS(
-                            &code, diag_jsx_not_yet_implemented,  //
+  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv, options,
+                capture_diags);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.errors, Contains(DIAG_TYPE_OFFSETS(
+                            p.code, diag_jsx_not_yet_implemented,  //
                             jsx_start, 0, u8"<")));
 }
 
 TEST_F(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
-  padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
-  spy_visitor v;
   parser_options options;
   options.jsx = false;
-  parser p(&code, &v, options);
-  bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv, options,
+                capture_diags);
+  bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
   EXPECT_FALSE(ok);
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                            &code, diag_jsx_not_yet_implemented,  //
+  EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                            p.code, diag_jsx_not_yet_implemented,  //
                             jsx_start, 0, u8"<")));
 }
 
@@ -384,12 +382,10 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
            u8"<A></A:A>"sv,
            u8"<A:A></A>"sv,
        }) {
-    padded_string code(u8"c = " + string8(jsx) + u8";");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v, jsx_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_mismatched_jsx_tags)));
+    test_parser p(u8"c = " + string8(jsx) + u8";", jsx_options, capture_diags);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_mismatched_jsx_tags)));
   }
 }
 

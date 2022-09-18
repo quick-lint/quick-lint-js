@@ -145,14 +145,12 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum,
        enum_cannot_be_named_await_in_async_function) {
-  padded_string code(u8"enum await {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
+  test_parser p(u8"enum await {}"_sv, typescript_options, capture_diags);
   auto guard = p.enter_function(function_attributes::async);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.errors,
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
-                  &code, diag_cannot_declare_await_in_async_function,  //
+                  p.code, diag_cannot_declare_await_in_async_function,  //
                   name, strlen(u8"enum "), u8"await")));
 }
 
@@ -377,39 +375,36 @@ TEST_F(test_parse_typescript_enum,
   for (string8 decl :
        {u8"const enum", u8"declare enum", u8"declare const enum"}) {
     {
-      padded_string code(decl + u8" E { A = f() }");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
+      test_parser p(decl + u8" E { A = f() }", typescript_options,
+                    capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_typescript_enum_value_must_be_constant,  //
+                      p.code, diag_typescript_enum_value_must_be_constant,  //
                       expression, (decl + u8" E { A = ").size(), u8"f()")));
     }
 
     {
-      padded_string code(decl + u8" E { A = f(), B, C, D }");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
+      test_parser p(decl + u8" E { A = f(), B, C, D }", typescript_options,
+                    capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE(diag_typescript_enum_value_must_be_constant)))
           << "shouldn't complain about auto member following computed member";
     }
 
     {
-      padded_string code(decl + u8" E { A = (2 + f()) }");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
+      test_parser p(decl + u8" E { A = (2 + f()) }", typescript_options,
+                    capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              &code, diag_typescript_enum_value_must_be_constant,  //
+              p.code, diag_typescript_enum_value_must_be_constant,  //
               expression, (decl + u8" E { A = ").size(), u8"(2 + f())")));
     }
   }

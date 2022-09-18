@@ -722,6 +722,7 @@ class parser {
   };
   try_catch_stack<fatal_parse_error> fatal_parse_error_stack_;
 
+ public:
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
@@ -729,7 +730,6 @@ class parser {
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
 
- public:
   int depth_ = 0;
 
   // TODO(#735): Reduce stack usage in our parse functions and increase this

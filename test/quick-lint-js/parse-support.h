@@ -100,12 +100,17 @@ class test_parser {
     EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
   }
 
+  void parse_and_visit_statement(parser::parse_statement_type statement_type) {
+    EXPECT_TRUE(
+        this->parser_.parse_and_visit_statement(this->errors_, statement_type));
+  }
+
   void parse_and_visit_module() {
     this->parser_.parse_and_visit_module(this->errors_);
   }
 
-  void parse_and_visit_module_catching_fatal_parse_errors() {
-    this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
+  bool parse_and_visit_module_catching_fatal_parse_errors() {
+    return this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
         this->errors_);
   }
 
@@ -115,6 +120,14 @@ class test_parser {
 
   void parse_and_visit_typescript_generic_parameters() {
     this->parser_.parse_and_visit_typescript_generic_parameters(this->errors_);
+  }
+
+  [[nodiscard]] quick_lint_js::parser::class_guard enter_class() {
+    return this->parser_.enter_class();
+  }
+
+  [[nodiscard]] quick_lint_js::parser::loop_guard enter_loop() {
+    return this->parser_.enter_loop();
   }
 
   [[nodiscard]] quick_lint_js::parser::function_guard enter_function(

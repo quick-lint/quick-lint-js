@@ -942,13 +942,12 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
            u8"(html`<strong>hello</strong>`)"_sv,
            u8"(html`<strong>${hello}</strong>`)"_sv,
        }) {
-    padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v, jsx_options);
+    test_parser p(u8"(" + string8(parameter_list) + u8" => {});", jsx_options,
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     auto guard = p.enter_function(function_attributes::async_generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
   }
 
   {
@@ -961,27 +960,23 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
   }
 
   {
-    padded_string code(u8"([(x,)] => {});"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"([(x,)] => {});"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_stray_comma_in_parameter,  //
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_stray_comma_in_parameter,  //
                               comma, strlen(u8"([(x"), u8",")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }
 
   {
-    padded_string code(u8"((yield) => {});"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
+    test_parser p(u8"((yield) => {});"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_cannot_declare_yield_in_generator_function)));
   }

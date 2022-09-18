@@ -213,14 +213,11 @@ TEST_F(test_parse_typescript_generic,
                 u8"static",
                 u8"yield",
             })) {
-    padded_string code(u8"<" + name + u8">");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // (name)
-    EXPECT_THAT(v.variable_declarations, ElementsAre(generic_param_decl(name)));
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser p(u8"<" + name + u8">", typescript_options);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // (name)
+    EXPECT_THAT(p.variable_declarations, ElementsAre(generic_param_decl(name)));
   }
 }
 

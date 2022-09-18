@@ -166,21 +166,20 @@ TEST_F(test_parse_typescript_var,
 TEST_F(test_parse_typescript_var,
        catch_variable_type_annotations_are_not_allowed_in_javascript) {
   for (string8 type : {u8"*", u8"any", u8"unknown", u8"SomeType"}) {
-    padded_string code(u8"try { } catch (e: " + type + u8") {} ");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // try {
+    test_parser p(u8"try { } catch (e: " + type + u8") {} ", javascript_options,
+                  capture_diags);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // try {
                                       "visit_exit_block_scope",      // } try
                                       "visit_enter_block_scope",     // catch {
                                       "visit_variable_declaration",  // e
                                       "visit_exit_block_scope"))     // } catch
         << "type should be ignored (no visit_variable_type_use)";
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code,
             diag_typescript_type_annotations_not_allowed_in_javascript,  //
             type_colon, strlen(u8"try { } catch (e"), u8":")));
   }

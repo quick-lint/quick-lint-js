@@ -1154,44 +1154,38 @@ TEST_F(test_parse_var, declare_await_in_non_async_function) {
 
 TEST_F(test_parse_var, declare_await_in_async_function) {
   {
-    spy_visitor v;
-    padded_string code(u8"function await() { }"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"function await() { }"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::async);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"await")));
     // TODO(strager): Include a note referencing the origin of the async
     // function.
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_await_in_async_function,  //
+                    p.code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"function "), u8"await")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"var await;"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"var await;"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::async);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(var_noinit_decl(u8"await")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_await_in_async_function,  //
+                    p.code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"var "), u8"await")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"try {} catch (await) {}"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"try {} catch (await) {}"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::async);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"await")));
-    EXPECT_THAT(v.errors,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(catch_decl(u8"await")));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_await_in_async_function,  //
+                    p.code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"try {} catch ("), u8"await")));
   }
 
@@ -1497,44 +1491,38 @@ TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
 
 TEST_F(test_parse_var, declare_yield_in_generator_function) {
   {
-    spy_visitor v;
-    padded_string code(u8"function yield() { }"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"function yield() { }"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"yield")));
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"yield")));
     // TODO(strager): Include a note referencing the origin of the generator
     // function.
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_yield_in_generator_function,  //
+                    p.code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"function "), u8"yield")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"var yield;"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"var yield;"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(var_noinit_decl(u8"yield")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_yield_in_generator_function,  //
+                    p.code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"var "), u8"yield")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"try {} catch (yield) {}"_sv);
-    parser p(&code, &v);
+    test_parser p(u8"try {} catch (yield) {}"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"yield")));
-    EXPECT_THAT(v.errors,
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(catch_decl(u8"yield")));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_declare_yield_in_generator_function,  //
+                    p.code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"try {} catch ("), u8"yield")));
   }
 

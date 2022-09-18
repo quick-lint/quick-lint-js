@@ -1160,12 +1160,11 @@ TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   }
 
   for (string8 keyword : keywords) {
-    padded_string code(u8"typeof Class<T>." + keyword);
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.errors,
+    test_parser p(u8"typeof Class<T>." + keyword, typescript_options,
+                  capture_diags);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_dot_not_allowed_after_generic_arguments_in_type)));
   }

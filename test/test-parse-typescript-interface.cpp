@@ -27,19 +27,17 @@ namespace {
 class test_parse_typescript_interface : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
-  padded_string code(u8"interface I {}"_sv);
-  spy_visitor v;
   parser_options options;
   options.typescript = false;
-  parser p(&code, &v, options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+  test_parser p(u8"interface I {}"_sv, options, capture_diags);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                     "visit_enter_interface_scope",  // I
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.errors,
+  EXPECT_THAT(p.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
-                  &code,
+                  p.code,
                   diag_typescript_interfaces_not_allowed_in_javascript,  //
                   interface_keyword, 0, u8"interface")));
 }
@@ -1295,39 +1293,36 @@ TEST_F(test_parse_typescript_interface, generic_interface) {
 
 TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
   {
-    padded_string code(u8"interface I { public method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(v.errors,
+    test_parser p(u8"interface I { public method(); }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code,
                     diag_interface_properties_cannot_be_explicitly_public,  //
                     public_keyword, strlen(u8"interface I { "), u8"public")));
   }
 
   {
-    padded_string code(u8"interface I { protected method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    test_parser p(u8"interface I { protected method(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
                               diag_interface_properties_cannot_be_protected,  //
                               protected_keyword, strlen(u8"interface I { "),
                               u8"protected")));
   }
 
   {
-    padded_string code(u8"interface I { private method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    test_parser p(u8"interface I { private method(); }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
                               diag_interface_properties_cannot_be_private,  //
                               property_name_or_private_keyword,
                               strlen(u8"interface I { "), u8"private")));
