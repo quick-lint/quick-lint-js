@@ -347,6 +347,13 @@
           unexpected_comma))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+    diag_config_character_disallowed_in_identifiers, "E0292",                  \
+    diagnostic_severity::error, { source_code_span character; },               \
+    MESSAGE(                                                                   \
+          QLJS_TRANSLATABLE("character is not allowed in global identifiers"), \
+          character))                                                          \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_config_json_syntax_error, "E0164", diagnostic_severity::error,      \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("JSON syntax error"), where))                  \
