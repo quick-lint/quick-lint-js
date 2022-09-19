@@ -97,8 +97,8 @@ void lsp_overlay_configuration_filesystem::open_document(
 
 void lsp_overlay_configuration_filesystem::close_document(
     const std::string& path) {
-  bool erased = this->overlaid_documents_.erase(path);
-  QLJS_ASSERT(erased);
+  std::size_t erased = this->overlaid_documents_.erase(path);
+  QLJS_ASSERT(erased > 0);
 }
 
 linting_lsp_server_handler::linting_lsp_server_handler(
