@@ -9,6 +9,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -32,7 +33,6 @@
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 namespace quick_lint_js {
@@ -259,7 +259,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
     return doc_it->second;
   }
 
-  std::unordered_map<std::string, qljs_document*> overlaid_documents_;
+  hash_map<std::string, qljs_document*> overlaid_documents_;
   configuration_filesystem* underlying_fs_;
 };
 

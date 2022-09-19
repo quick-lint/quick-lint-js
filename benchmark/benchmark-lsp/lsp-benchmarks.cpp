@@ -12,6 +12,7 @@
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/lsp-benchmarks.h>
@@ -20,7 +21,6 @@
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -165,7 +165,7 @@ class change_wait_benchmark : public benchmark {
 
     if (server_config.wait_for_empty_diagnostics_on_open &&
         server_config.parallelize_open) {
-      std::unordered_map<string8, int> remaining_uris;
+      hash_map<string8, int> remaining_uris;
       for (iteration_data& iteration : this->iterations_) {
         remaining_uris.emplace(
             iteration.uri, server_config.diagnostics_messages_to_ignore + 1);

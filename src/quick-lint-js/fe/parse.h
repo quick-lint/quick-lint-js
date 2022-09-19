@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/try-catch-stack.h>
 #include <stack>
-#include <unordered_map>
 #include <utility>
 
 #if QLJS_HAVE_FILE_NAME_MACRO
@@ -707,8 +707,7 @@ class parser {
   //   '/=' or '<' is the division operator.
   // * false means 'await' looks like an operator, thus '/' begins a regular
   //   expression literal or '<' begins a JSX element.
-  std::unordered_map<parse_expression_cache_key, bool,
-                     parse_expression_cache_key::hash>
+  hash_map<parse_expression_cache_key, bool, parse_expression_cache_key::hash>
       await_is_identifier_cache_;
 
   enum class fatal_parse_error_kind {

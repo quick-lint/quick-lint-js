@@ -3,10 +3,10 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <string>
-#include <unordered_map>
 
 namespace quick_lint_js {
 namespace {
@@ -41,7 +41,7 @@ std::string next_unused_diag_code() {
 }
 
 TEST(test_diag_code, diag_codes_are_unique) {
-  std::unordered_map<std::string, const char*> code_to_diag_name;
+  hash_map<std::string, const char*> code_to_diag_name;
   for (const diag_name_and_code& diag : all_diags) {
     auto existing_it = code_to_diag_name.find(diag.code);
     if (existing_it == code_to_diag_name.end()) {

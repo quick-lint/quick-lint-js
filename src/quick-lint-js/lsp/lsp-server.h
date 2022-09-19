@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/io/file-canonical.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/simdjson-fwd.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace quick_lint_js {
@@ -64,7 +64,7 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 
  private:
   configuration_filesystem* underlying_fs_;
-  std::unordered_map<std::string, document<lsp_locator>*> overlaid_documents_;
+  hash_map<std::string, document<lsp_locator>*> overlaid_documents_;
 };
 
 struct linting_lsp_server_config {
@@ -177,7 +177,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   configuration_loader config_loader_;
   configuration default_config_;
   lsp_linter& linter_;
-  std::unordered_map<string8, document> documents_;
+  hash_map<string8, document> documents_;
   // Stores notifications and requests destined for the client.
   // TODO(strager): Rename.
   std::vector<byte_buffer> pending_notification_jsons_;

@@ -10,13 +10,13 @@
 
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 namespace quick_lint_js {
@@ -45,7 +45,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
   void clear();
 
  private:
-  std::unordered_map<canonical_path, heap_function<read_file_result()> > files_;
+  hash_map<canonical_path, heap_function<read_file_result()> > files_;
 };
 }
 

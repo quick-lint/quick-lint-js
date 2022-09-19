@@ -13,11 +13,11 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-const std::unordered_map<string8_view, jsx_attribute>& jsx_attribute_aliases() {
+const hash_map<string8_view, jsx_attribute>& jsx_attribute_aliases() {
   static linked_bump_allocator<1> string_allocator;
-  static const std::unordered_map<string8_view, jsx_attribute> cache = [] {
+  static const hash_map<string8_view, jsx_attribute> cache = [] {
     // FIXME(strager): This is very inefficient.
-    std::unordered_map<string8_view, jsx_attribute> aliases{
+    hash_map<string8_view, jsx_attribute> aliases{
         {u8"class"sv, {u8"className"sv}},
     };
 

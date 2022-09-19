@@ -4,15 +4,15 @@
 #ifndef QUICK_LINT_JS_FE_JSX_H
 #define QUICK_LINT_JS_FE_JSX_H
 
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/port/char8.h>
-#include <unordered_map>
 
 namespace quick_lint_js {
 struct jsx_attribute {
   string8_view expected;
 };
 
-const std::unordered_map<string8_view, jsx_attribute> &jsx_attribute_aliases();
+const hash_map<string8_view, jsx_attribute> &jsx_attribute_aliases();
 }
 
 #endif

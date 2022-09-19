@@ -11,13 +11,13 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #if QLJS_HAVE_POLL
@@ -136,13 +136,13 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
   // Sets errno and returns false on failure.
   bool watch_directory(const canonical_path&);
 
-  std::unordered_map<canonical_path, watched_file>::iterator watch_file(
-      canonical_path&&, posix_fd_file);
+  hash_map<canonical_path, watched_file>::iterator watch_file(canonical_path&&,
+                                                              posix_fd_file);
 
   posix_fd_file_ref kqueue_fd_;
   void* udata_;
 
-  std::unordered_map<canonical_path, watched_file> watched_files_;
+  hash_map<canonical_path, watched_file> watched_files_;
   std::vector<watch_io_error> watch_errors_;
 };
 #endif
@@ -211,7 +211,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   windows_handle_file_ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  std::unordered_map<canonical_path, std::unique_ptr<watched_directory> >
+  hash_map<canonical_path, std::unique_ptr<watched_directory> >
       watched_directories_;
   std::vector<std::unique_ptr<watched_directory> >
       cancelling_watched_directories_;

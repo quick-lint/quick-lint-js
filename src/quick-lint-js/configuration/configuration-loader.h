@@ -10,13 +10,13 @@
 
 #include <optional>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 namespace quick_lint_js {
@@ -166,7 +166,7 @@ class configuration_loader {
 
   // Key: config file path
   // Value: cached parsed configuration
-  std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
+  hash_map<canonical_path, loaded_config_file> loaded_config_files_;
 
   std::vector<watched_config_path> watched_config_paths_;
   std::vector<watched_input_path> watched_input_paths_;

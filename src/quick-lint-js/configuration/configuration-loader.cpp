@@ -8,6 +8,7 @@
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
@@ -16,7 +17,6 @@
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
@@ -276,7 +276,7 @@ void configuration_loader::unwatch_all_files() {
 std::vector<configuration_change> configuration_loader::refresh() {
   std::vector<configuration_change> changes;
 
-  std::unordered_map<canonical_path, loaded_config_file> loaded_config_files =
+  hash_map<canonical_path, loaded_config_file> loaded_config_files =
       std::move(this->loaded_config_files_);
 
   for (watched_config_path& watch : this->watched_config_paths_) {

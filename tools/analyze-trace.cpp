@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <limits>
 #include <quick-lint-js/cli/arg-parser.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/io/file-path.h>
@@ -21,7 +22,6 @@
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
@@ -266,7 +266,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     document<lsp_locator> data;
   };
 
-  std::unordered_map<std::uint64_t, document_info> documents_;
+  hash_map<std::uint64_t, document_info> documents_;
 };
 
 class event_dumper : public counting_trace_stream_event_visitor {

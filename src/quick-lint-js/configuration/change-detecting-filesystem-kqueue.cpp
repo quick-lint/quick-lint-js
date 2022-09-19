@@ -14,6 +14,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
@@ -27,7 +28,6 @@
 #include <sys/event.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -193,8 +193,8 @@ bool change_detecting_filesystem_kqueue::watch_directory(
   return true;
 }
 
-std::unordered_map<canonical_path,
-                   change_detecting_filesystem_kqueue::watched_file>::iterator
+hash_map<canonical_path,
+         change_detecting_filesystem_kqueue::watched_file>::iterator
 change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
                                                posix_fd_file file) {
   auto register_watch = [this](posix_fd_file_ref fd) -> void {

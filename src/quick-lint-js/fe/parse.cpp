@@ -7,6 +7,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -158,7 +159,7 @@ expression* parser::build_expression(binary_expression_builder& builder) {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 void parser::check_jsx_attribute(const identifier& attribute_name) {
-  const std::unordered_map<string8_view, jsx_attribute>& aliases =
+  const hash_map<string8_view, jsx_attribute>& aliases =
       jsx_attribute_aliases();
   string8_view name = attribute_name.normalized_name();
 
