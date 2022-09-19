@@ -15,6 +15,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
@@ -42,8 +43,6 @@
 #include <quick-lint-js/version.h>
 #include <string>
 #include <tuple>
-#include <unordered_map>
-#include <unordered_set>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -229,7 +228,7 @@ void run(options o) {
   configuration default_config;
   configuration_loader config_loader(
       basic_configuration_filesystem::instance());
-  std::unordered_set<loaded_config_file *> loaded_config_files;
+  hash_set<loaded_config_file *> loaded_config_files;
   for (const file_to_lint &file : o.files_to_lint) {
     auto config_result = config_loader.load_for_file(file);
     if (!config_result.ok()) {
@@ -238,7 +237,7 @@ void run(options o) {
       std::exit(1);
     }
     loaded_config_file *config_file = *config_result;
-    if (config_file && !loaded_config_files.count(config_file)) {
+    if (config_file && !loaded_config_files.contains(config_file)) {
       reporter.set_source(&config_file->file_content,
                           file_to_lint{
                               .path = config_file->config_path->c_str(),

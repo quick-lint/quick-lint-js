@@ -5,10 +5,10 @@
 #define QUICK_LINT_JS_FE_GLOBAL_DECLARED_VARIABLE_SET_H
 
 #include <optional>
+#include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
-#include <unordered_set>
 #include <vector>
 
 namespace quick_lint_js {
@@ -55,7 +55,7 @@ class global_declared_variable_set {
 
   // First index: is_shadowable
   // Second index: is_writable
-  std::unordered_set<string8_view> variables_[2][2];
+  hash_set<string8_view> variables_[2][2];
   bool all_variables_declared_ = false;
 };
 }

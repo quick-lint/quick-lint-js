@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CONTAINER_HASH_MAP_H
 
 #include <unordered_map>
+#include <utility>
 
 namespace quick_lint_js {
 // Like std::hash.
@@ -43,6 +44,8 @@ class hash_map {
   const_iterator end() const noexcept { return this->map_.end(); }
 
   bool empty() const noexcept { return this->map_.empty(); }
+
+  size_type size() const noexcept { return this->map_.size(); }
 
   // Copies the key if successful.
   template <class... Args>
@@ -87,6 +90,8 @@ class hash_map {
   void erase(iterator it) { this->map_.erase(it); }
 
   void clear() { this->map_.clear(); }
+
+  void reserve(size_type size) { this->map_.reserve(size); }
 
  private:
   unordered_map map_;

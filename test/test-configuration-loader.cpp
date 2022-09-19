@@ -16,6 +16,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/filesystem-test.h>
@@ -32,8 +33,6 @@
 #include <quick-lint-js/port/windows-error.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #if QLJS_HAVE_STD_FILESYSTEM
@@ -1200,7 +1199,7 @@ TEST_F(test_configuration_loader,
        creating_config_in_same_dir_as_many_watched_files_is_detected) {
   std::string project_dir = this->make_temporary_directory();
 
-  std::unordered_set<std::string> js_files;
+  hash_set<std::string> js_files;
   for (int i = 0; i < 10; ++i) {
     std::string js_file = project_dir + "/hello" + std::to_string(i) + ".js";
     write_file_or_exit(js_file, u8"");
@@ -1218,14 +1217,15 @@ TEST_F(test_configuration_loader,
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
-  std::unordered_set<std::string> unconfigured_js_files = js_files;
+  hash_set<std::string> unconfigured_js_files = js_files;
   for (const configuration_change& change : changes) {
     SCOPED_TRACE(*change.watched_path);
-    EXPECT_EQ(js_files.count(*change.watched_path), 1)
+    EXPECT_TRUE(js_files.contains(*change.watched_path))
         << "change should report a watched file";
     const std::string* token =
         reinterpret_cast<const std::string*>(change.token);
-    EXPECT_EQ(js_files.count(*token), 1) << "change should have a valid token";
+    EXPECT_TRUE(js_files.contains(*token))
+        << "change should have a valid token";
     EXPECT_EQ(unconfigured_js_files.erase(*change.watched_path), 1)
         << "change should report no duplicate watched files";
     EXPECT_SAME_FILE(*change.config_file->config_path, config_file);

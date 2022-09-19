@@ -143,7 +143,7 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
     string8_view name) const noexcept {
   for (bool is_shadowable : {false, true}) {
     for (bool is_writable : {false, true}) {
-      if (this->variables_[is_shadowable][is_writable].count(name)) {
+      if (this->variables_[is_shadowable][is_writable].contains(name)) {
         return global_declared_variable{
             .name = name,
             .is_writable = is_writable,
