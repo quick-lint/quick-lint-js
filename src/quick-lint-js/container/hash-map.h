@@ -4,14 +4,11 @@
 #ifndef QUICK_LINT_JS_CONTAINER_HASH_MAP_H
 #define QUICK_LINT_JS_CONTAINER_HASH_MAP_H
 
+#include <quick-lint-js/container/hash.h>
 #include <unordered_map>
 #include <utility>
 
 namespace quick_lint_js {
-// Like std::hash.
-template <class T>
-using hash = std::hash<T>;
-
 // Like std::unordered_map.
 template <class Key, class Value, class Hash = hash<Key>>
 class hash_map {
