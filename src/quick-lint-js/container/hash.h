@@ -4,14 +4,56 @@
 #ifndef QUICK_LINT_JS_CONTAINER_HASH_H
 #define QUICK_LINT_JS_CONTAINER_HASH_H
 
+#include <cstddef>
 #include <functional>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <string_view>
+#include <type_traits>
 
 namespace quick_lint_js {
-// A hash functor for containers.
+// A hash functor for containers like hash_map.
 //
-// Like std::hash.
+// Implements the C++ standard Hash requirement.
+template <class T, class = void>
+struct hasher;
+
 template <class T>
-using hash = std::hash<T>;
+struct hasher<T, std::enable_if_t<std::is_integral_v<T>>> {
+  template <class U>
+  std::size_t operator()(U data) const noexcept {
+    static_assert(std::is_same_v<T, U>,
+                  "implicit integer conversions are not allowed");
+    return std::hash<T>()(data);
+  }
+};
+
+template <class T>
+struct hasher<T*> {
+  std::size_t operator()(T* data) const noexcept {
+    return std::hash<T*>()(data);
+  }
+};
+
+template <>
+struct hasher<std::string_view> {
+  std::size_t operator()(std::string_view s) const noexcept {
+    return std::hash<std::string_view>()(s);
+  }
+};
+template <>
+struct hasher<std::string> : hasher<std::string_view> {};
+
+#if QLJS_HAVE_CHAR8_T
+template <>
+struct hasher<string8_view> {
+  std::size_t operator()(string8_view s) const noexcept {
+    return std::hash<string8_view>()(s);
+  }
+};
+template <>
+struct hasher<string8> : hasher<string8_view> {};
+#endif
 }
 
 #endif

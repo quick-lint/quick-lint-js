@@ -10,7 +10,7 @@
 
 namespace quick_lint_js {
 // Like std::unordered_map.
-template <class Key, class Value, class Hash = hash<Key>>
+template <class Key, class Value, class Hash = hasher<Key>>
 class hash_map {
  private:
   using unordered_map = std::unordered_map<Key, Value, Hash>;
