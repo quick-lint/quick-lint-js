@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <quick-lint-js/container/hash.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <string>
@@ -133,10 +134,9 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path, canonicalize_observer *);
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path, canonicalize_observer *);
-}
 
 template <>
-struct std::hash<quick_lint_js::canonical_path> {
+struct hasher<quick_lint_js::canonical_path> {
   using is_transparent = void;
 
   std::size_t operator()(const quick_lint_js::canonical_path &path) const
@@ -148,6 +148,7 @@ struct std::hash<quick_lint_js::canonical_path> {
     return std::hash<std::string_view>()(path);
   }
 };
+}
 
 #endif
 
