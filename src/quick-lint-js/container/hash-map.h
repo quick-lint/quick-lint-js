@@ -13,7 +13,7 @@ namespace quick_lint_js {
 template <class Key, class Value, class Hash = hasher<Key>>
 class hash_map {
  private:
-  using unordered_map = std::unordered_map<Key, Value, Hash>;
+  using unordered_map = std::unordered_map<Key, Value, Hash, std::equal_to<>>;
 
  public:
   using const_iterator = typename unordered_map::const_iterator;

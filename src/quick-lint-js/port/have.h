@@ -439,10 +439,14 @@
 #endif
 #endif
 
-#if !defined(QLJS_HAVE_STD_TRANSPARENT_KEYS)
-// TODO(strager): Set this to 1 if is_transparent is supported by
+// Set QLJS_HAVE_STD_TRANSPARENT_KEYS to 1 if is_transparent is supported by
 // std::unordered_map::find (C++20).
+#if !defined(QLJS_HAVE_STD_TRANSPARENT_KEYS)
+#if __cplusplus > 201703
+#define QLJS_HAVE_STD_TRANSPARENT_KEYS 1
+#else
 #define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
 #endif
 
 #if !defined(QLJS_HAVE_SIZED_ALIGNED_NEW)

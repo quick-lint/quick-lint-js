@@ -39,6 +39,8 @@ struct hasher<T*> {
 
 template <>
 struct hasher<std::string_view> {
+  using is_transparent = void;
+
   std::size_t operator()(std::string_view s) const noexcept {
     return std::hash<std::string_view>()(s);
   }
