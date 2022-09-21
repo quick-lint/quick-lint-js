@@ -261,6 +261,20 @@ TEST_F(test_parse_typescript_class,
         << "should not also report "
            "diag_typescript_assignment_asserted_field_cannot_have_initializer";
   }
+
+  {
+    test_parser p(u8"class C { field!; }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
+            bang, strlen(u8"class C { field"), u8"!")))
+        << "should not also report "
+           "diag_typescript_assignment_asserted_field_must_have_a_type";
+  }
 }
 
 TEST_F(test_parse_typescript_class,

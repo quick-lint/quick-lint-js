@@ -26,6 +26,9 @@ Semantic Versioning.
   completely ignored during variable analysis.)
 * `{ x = z }` now only reports [E0253][], instead of also reporting [E0059][]
   for `x`.
+* `class C { field!; }` now only reports [E0239][] (TypeScript assignment-asserted
+  fields are not supported in JavaScript) instead of both E0239 and
+  [E0236][] (assignment-asserted field must have a type annotation).
 
 ## 2.9.0 (2022-09-05)
 

@@ -837,7 +837,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void check_modifiers_for_field_without_type_annotation() {
       this->check_modifiers_for_field();
 
-      if (!this->is_interface) {
+      if (!this->is_interface && p->options_.typescript) {
         if (const modifier *bang = this->find_modifier(token_type::bang)) {
           p->diag_reporter_->report(
               diag_typescript_assignment_asserted_field_must_have_a_type{
