@@ -28,9 +28,9 @@ class hash_set {
     using reference = const Key&;
     using value_type = Key;
 
-    const Key& operator*() noexcept { return this->it_->first; }
+    const Key& operator*() const noexcept { return this->it_->first; }
 
-    const Key* operator->() noexcept { return &**this; }
+    const Key* operator->() const noexcept { return &**this; }
 
     iterator& operator++() noexcept {
       ++this->it_;
@@ -67,9 +67,9 @@ class hash_set {
     using reference = const Key&;
     using value_type = Key;
 
-    const Key& operator*() noexcept { return this->it_->first; }
+    const Key& operator*() const noexcept { return this->it_->first; }
 
-    const Key* operator->() noexcept { return &**this; }
+    const Key* operator->() const noexcept { return &**this; }
 
     const_iterator& operator++() noexcept {
       ++this->it_;
