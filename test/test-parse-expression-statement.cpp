@@ -1382,6 +1382,21 @@ TEST_F(test_parse_expression_statement,
   {
     test_parser p(u8"({x: y = z})"_sv);
     p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_use",           // z
+                            "visit_variable_assignment"));  // y
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"z"));
+    EXPECT_THAT(p.variable_assignments, ElementsAre(u8"y"));
+  }
+
+  {
+    test_parser p(u8"({x: y[index] = z})"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_use",    // z
+                            "visit_variable_use",    // y
+                            "visit_variable_use"));  // index
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"z", u8"y", u8"index"));
   }
 }
 

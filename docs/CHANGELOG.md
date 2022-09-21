@@ -22,6 +22,8 @@ Semantic Versioning.
   possibly report [E0246][] in addition to [E0247][]. quick-lint-js will now
   only report [E0247][].
 * `{ x: y = z }` in an expression no longer incorrectly reports [E0253][].
+* `{ x: y = z }` now reports errors such as [E0057][] for `z`. (`z` used to be
+  completely ignored during variable analysis.)
 
 ## 2.9.0 (2022-09-05)
 
