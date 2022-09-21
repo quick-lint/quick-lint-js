@@ -21,6 +21,7 @@ Semantic Versioning.
 * When writing `implements` in JavaScript code, quick-lint-js will no longer
   possibly report [E0246][] in addition to [E0247][]. quick-lint-js will now
   only report [E0247][].
+* `{ x: y = z }` in an expression no longer incorrectly reports [E0253][].
 
 ## 2.9.0 (2022-09-05)
 

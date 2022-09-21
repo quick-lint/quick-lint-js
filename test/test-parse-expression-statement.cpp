@@ -1375,6 +1375,16 @@ TEST_F(test_parse_expression_statement,
   }
 }
 
+TEST_F(test_parse_expression_statement,
+       object_property_with_equals_is_allowed) {
+  // {x: y = z} means something special when destructuring. However, in
+  // expressions, it's the same as {x: (y = z)}.
+  {
+    test_parser p(u8"({x: y = z})"_sv);
+    p.parse_and_visit_expression();
+  }
+}
+
 TEST_F(test_parse_expression_statement, invalid_parentheses) {
   {
     test_parser p(u8"()"_sv, capture_diags);

@@ -129,6 +129,15 @@ struct object_property_value_pair {
     return source_code_span(this->init_equal_begin, this->init_equal_begin + 1);
   }
 
+  // true examples:
+  // * {x}
+  // * {x = z}
+  // false examples:
+  // * {x: x}
+  // * {[x]: x}
+  // * {x: x = z}
+  bool is_merged_property_and_value_shorthand();
+
   expression *property;           // Optional.
   expression *value;              // Required.
   expression *init;               // Optional.
@@ -264,6 +273,13 @@ class expression {
  private:
   expression_kind kind_;
 };
+
+inline bool
+object_property_value_pair::is_merged_property_and_value_shorthand() {
+  return this->property && this->property->kind() == expression_kind::literal &&
+         this->value->kind() == expression_kind::variable &&
+         this->property->span().begin() == this->value->span().begin();
+}
 
 template <class Derived>
 Derived *expression_cast(expression *p) noexcept {
