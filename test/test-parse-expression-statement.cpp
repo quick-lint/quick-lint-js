@@ -1366,12 +1366,16 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        object_property_default_is_not_allowed) {
   {
-    test_parser p(u8"({banana = 42})"_sv, capture_diags);
+    test_parser p(u8"({key = value})"_sv, capture_diags);
     p.parse_and_visit_expression();
+    // Important: 'key' should be treated as a literal (like in {key: value}),
+    // thus shouldn't be visited.
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // value
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"value"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code, diag_object_literal_default_in_expression,  //
-                    equal, strlen(u8"({banana "), u8"=")));
+                    equal, strlen(u8"({eky "), u8"=")));
   }
 }
 

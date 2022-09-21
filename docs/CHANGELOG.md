@@ -24,6 +24,8 @@ Semantic Versioning.
 * `{ x: y = z }` in an expression no longer incorrectly reports [E0253][].
 * `{ x: y = z }` now reports errors such as [E0057][] for `z`. (`z` used to be
   completely ignored during variable analysis.)
+* `{ x = z }` now only reports [E0253][], instead of also reporting [E0059][]
+  for `x`.
 
 ## 2.9.0 (2022-09-05)
 

@@ -143,6 +143,18 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::object:
     for (int i = 0; i < ast->object_entry_count(); ++i) {
       auto entry = ast->object_entry(i);
+
+      if (entry.init && entry.is_merged_property_and_value_shorthand()) {
+        // { key = value }  // Invalid.
+        this->diag_reporter_->report(diag_object_literal_default_in_expression{
+            .equal = entry.init_equals_span(),
+        });
+        // Behave as if the code was instead: { key: value }
+        this->visit_expression(entry.property, v, variable_context::rhs);
+        this->visit_expression(entry.init, v, context);
+        continue;
+      }
+
       if (entry.property) {
         this->visit_expression(entry.property, v, variable_context::rhs);
       }
@@ -154,12 +166,6 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
       } else {
         // { key: value }
         this->visit_expression(entry.value, v, context);
-      }
-      if (entry.init && entry.is_merged_property_and_value_shorthand()) {
-        // { key = value }  // Invalid.
-        this->diag_reporter_->report(diag_object_literal_default_in_expression{
-            .equal = entry.init_equals_span(),
-        });
       }
     }
     break;
