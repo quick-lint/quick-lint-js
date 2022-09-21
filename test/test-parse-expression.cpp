@@ -2006,6 +2006,12 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");
     EXPECT_EQ(summarize(ast), "object(spread(var other), literal: var v)");
   }
+
+  {
+    test_parser p(u8"{...other = init}"_sv);
+    EXPECT_EQ(summarize(p.parse_expression()),
+              "object(spread(assign(var other, var init)))");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal_with_method_key) {

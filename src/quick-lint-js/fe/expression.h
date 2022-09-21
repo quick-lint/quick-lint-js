@@ -91,25 +91,29 @@ enum class expression_kind {
 // * { propertyAndValue }
 // * { property: value = init }
 // * { propertyAndValue = init }
-// property is omitted:
 // * { [omittedProperty]: value }
 // * { [omittedProperty]: value = init }
+// property is omitted:
+// * { ...value }
+// * { ...value = init }
 //
 // init is present:
 // * { property: value = init }
 // * { propertyAndValue = init }
 // * { [omittedProperty]: value = init }
+// * { ...value = init }
 // init is omitted:
 // * { [omittedProperty]: value }
 // * { property: value }
 // * { propertyAndValue }
+// * { ...value }
 struct object_property_value_pair {
   // property is optional.
   explicit object_property_value_pair(expression *property,
                                       expression *value) noexcept
       : property(property), value(value), init(nullptr) {}
 
-  // property is optional.
+  // property is required.
   // init is required.
   explicit object_property_value_pair(expression *property, expression *value,
                                       expression *init,
@@ -118,6 +122,7 @@ struct object_property_value_pair {
         value(value),
         init(init),
         init_equal_begin(init_equal_begin) {
+    QLJS_ASSERT(property);
     QLJS_ASSERT(init);
     QLJS_ASSERT(init_equal_begin);
   }
