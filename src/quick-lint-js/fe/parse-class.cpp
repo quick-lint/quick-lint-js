@@ -57,9 +57,9 @@ std::optional<identifier> parser::parse_class_and_optional_name() {
   switch (this->peek().type) {
   case token_type::kw_await:
     if (this->in_async_function_) {
-      this->diag_reporter_->report(
-          diag_cannot_declare_class_named_await_in_async_function{
-              .name = this->peek().identifier_name().span()});
+      this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
+          .name = this->peek().identifier_name(),
+      });
     }
     goto class_name;
 

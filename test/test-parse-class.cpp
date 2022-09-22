@@ -1204,11 +1204,10 @@ TEST_F(test_parse_class, class_named_await_in_async_function) {
   {
     test_parser p(u8"async function g() { class await {} }"_sv, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_cannot_declare_class_named_await_in_async_function,
-            name, strlen(u8"async function g() { class "), u8"await")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_cannot_declare_await_in_async_function, name,
+                    strlen(u8"async function g() { class "), u8"await")));
   }
 }
 

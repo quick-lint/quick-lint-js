@@ -210,13 +210,6 @@
       MESSAGE(QLJS_TRANSLATABLE("classes cannot be named 'let'"), name))       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_cannot_declare_class_named_await_in_async_function, "E0707",        \
-      diagnostic_severity::error, { source_code_span name; },                  \
-      MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "classes cannot be named 'await' in async function"),        \
-              name))                                                           \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
       diag_cannot_declare_variable_named_let_with_let, "E0008",                \
       diagnostic_severity::error, { source_code_span name; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
@@ -2241,6 +2234,7 @@
   QLJS_DIAG_TYPE(, "E0242", , , )  \
   QLJS_DIAG_TYPE(, "E0271", , , )  \
   QLJS_DIAG_TYPE(, "E0279", , , )  \
+  QLJS_DIAG_TYPE(, "E0707", , , )  \
   /* END */
 
 namespace quick_lint_js {

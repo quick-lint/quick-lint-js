@@ -30,6 +30,10 @@ Semantic Versioning.
   fields are not supported in JavaScript) instead of both E0239 and
   [E0236][] (assignment-asserted field must have a type annotation).
 
+### Changed
+
+* [E0707][] has been merged into [E0069][].
+
 ## 2.9.0 (2022-09-05)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.9.0/)
@@ -714,6 +718,7 @@ Beta release.
 [E0057]: https://quick-lint-js.com/errors/E0057/
 [E0059]: https://quick-lint-js.com/errors/E0059/
 [E0060]: https://quick-lint-js.com/errors/E0060/
+[E0069]: https://quick-lint-js.com/errors/E0069/
 [E0073]: https://quick-lint-js.com/errors/E0073/
 [E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
