@@ -90,7 +90,7 @@ TEST_F(test_parse_typescript_module,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_type_only_import_not_allowed_in_javascript,
+            p.code, diag_typescript_type_import_not_allowed_in_javascript,
             type_keyword, strlen(u8"import "), u8"type")));
   }
 }
@@ -225,8 +225,7 @@ TEST_F(test_parse_typescript_module,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_inline_type_import_not_allowed_in_javascript,
+            p.code, diag_typescript_type_import_not_allowed_in_javascript,
             type_keyword, strlen(u8"import {"), u8"type")));
   }
 
@@ -239,8 +238,7 @@ TEST_F(test_parse_typescript_module,
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_inline_type_import_not_allowed_in_javascript,
+            p.code, diag_typescript_type_import_not_allowed_in_javascript,
             type_keyword, strlen(u8"import {"), u8"type")));
   }
 }

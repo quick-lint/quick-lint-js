@@ -2812,7 +2812,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     auto report_type_only_import_in_javascript_if_needed = [&] {
       if (!this->options_.typescript) {
         this->diag_reporter_->report(
-            diag_typescript_type_only_import_not_allowed_in_javascript{
+            diag_typescript_type_import_not_allowed_in_javascript{
                 .type_keyword = type_span,
             });
       }
@@ -3202,7 +3202,7 @@ void parser::parse_and_visit_named_exports(
                 });
           } else {
             this->diag_reporter_->report(
-                diag_typescript_inline_type_import_not_allowed_in_javascript{
+                diag_typescript_type_import_not_allowed_in_javascript{
                     .type_keyword = type_span,
                 });
           }
