@@ -193,6 +193,52 @@ TEST_F(test_parse_typescript_interface,
 TEST_F(test_parse_typescript_interface,
        interface_cannot_have_newline_after_interface_keyword) {
   {
+    test_parser p(u8"interface\nI {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_exit_interface_scope"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_newline_not_allowed_after_interface_keyword,
+                    interface_keyword, 0, u8"interface")));
+  }
+
+  {
+    // NOTE(strager): This example is interpreted differently in JavaScript than
+    // in TypeScript.
+    test_parser p(u8"interface\nI<T> {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_variable_declaration",   // T
+                                      "visit_exit_interface_scope"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_newline_not_allowed_after_interface_keyword,
+                    interface_keyword, 0, u8"interface")));
+  }
+
+  {
+    // NOTE(strager): This example is interpreted differently in JavaScript than
+    // in TypeScript.
+    test_parser p(u8"interface\nI<T>\n{}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_variable_declaration",   // T
+                                      "visit_exit_interface_scope"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_newline_not_allowed_after_interface_keyword,
+                    interface_keyword, 0, u8"interface")));
+  }
+}
+
+TEST_F(test_parse_typescript_interface,
+       interface_keyword_with_following_newline_is_variable_name) {
+  {
     test_parser p(u8"interface\nI\n{}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // interface
@@ -201,6 +247,17 @@ TEST_F(test_parse_typescript_interface,
                                       "visit_exit_block_scope",   // }
                                       "visit_end_of_module"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"interface", u8"I"));
+  }
+
+  {
+    // NOTE(strager): This example is interpreted differently in JavaScript than
+    // in TypeScript.
+    test_parser p(u8"interface\nI<T> {}"_sv, javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // interface
+                                      "visit_variable_use",  // I
+                                      "visit_variable_use",  // T
+                                      "visit_end_of_module"));
   }
 }
 

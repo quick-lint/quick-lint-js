@@ -467,7 +467,38 @@ parse_statement:
     case token_type::kw_await:
     case token_type::identifier:
       if (this->peek().has_leading_newline) {
-        goto initial_keyword_is_expression;
+        bool is_expression = true;
+        if (initial_keyword.type == token_type::kw_interface) {
+          parser_transaction inner_transaction = this->begin_transaction();
+          this->skip();
+          bool has_generic_parameters = false;
+          if (this->options_.typescript &&
+              this->peek().type == token_type::less) {
+            // interface
+            //   I<T> {}  // Invalid TypeScript.
+            this->parse_and_visit_typescript_generic_parameters(
+                null_visitor::instance);
+            has_generic_parameters = true;
+          }
+          if (this->peek().type == token_type::left_curly &&
+              (!this->peek().has_leading_newline || has_generic_parameters)) {
+            // interface
+            //   I {}     // Invalid.
+            // Treat 'interface' as a keyword.
+            is_expression = false;
+          }
+          this->roll_back_transaction(std::move(inner_transaction));
+
+          if (!is_expression) {
+            this->diag_reporter_->report(
+                diag_newline_not_allowed_after_interface_keyword{
+                    .interface_keyword = initial_keyword.span(),
+                });
+          }
+        }
+        if (is_expression) {
+          goto initial_keyword_is_expression;
+        }
       }
       switch (initial_keyword.type) {
       case token_type::kw_interface:
