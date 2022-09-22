@@ -33,6 +33,8 @@ Semantic Versioning.
 ### Changed
 
 * [E0707][] has been merged into [E0069][].
+* [E0271][] has been merged into [E0270][].
+* [E0279][] has been merged into [E0278][].
 
 ## 2.9.0 (2022-09-05)
 
@@ -768,6 +770,10 @@ Beta release.
 [E0247]: https://quick-lint-js.com/errors/E0247/
 [E0253]: https://quick-lint-js.com/errors/E0253/
 [E0266]: https://quick-lint-js.com/errors/E0266/
+[E0270]: https://quick-lint-js.com/errors/E0270/
+[E0271]: https://quick-lint-js.com/errors/E0271/
+[E0278]: https://quick-lint-js.com/errors/E0278/
+[E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
 [E0707]: https://quick-lint-js.com/errors/E0707/
