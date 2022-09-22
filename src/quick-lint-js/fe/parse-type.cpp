@@ -761,8 +761,18 @@ void parser::parse_and_visit_typescript_generic_arguments(
     this->parse_and_visit_typescript_type_expression(v);
   }
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
-  this->skip();
+  switch (this->peek().type) {
+  case token_type::greater:
+    this->skip();
+    break;
+  case token_type::greater_greater:
+  case token_type::greater_greater_greater:
+    this->lexer_.skip_as_greater();
+    break;
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
 }
 }
 

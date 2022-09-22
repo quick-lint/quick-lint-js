@@ -121,6 +121,15 @@ class lexer {
   // Postcondition: this->peek().type == token_type::less
   void skip_less_less_as_less();
 
+  // After parsing a '>>', or '>>>' token, call this function to
+  // reinterpret the token as a '>' (greater) token followed by another token,
+  // then skip the first token.
+  //
+  // Precondition:  this->peek().type == token_type::greater_greater ||
+  //                this->peek().type == token_type::greater_greater_greater
+  // Postcondition: this->peek().type == token_type::greater
+  void skip_as_greater();
+
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
   // Precondition: this->peek().type == token_type::slash or

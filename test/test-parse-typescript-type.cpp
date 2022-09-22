@@ -112,6 +112,27 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(generic_param_decl(u8"T")));
   }
+
+  {
+    SCOPED_TRACE("'>>' should be split into two tokens");
+    test_parser p(u8"A<B<C>>"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use",    // B
+                                      "visit_variable_type_use"));  // C
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+  }
+
+  {
+    SCOPED_TRACE("'>>>' should be split into three tokens");
+    test_parser p(u8"A<B<C<D>>>"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use",    // B
+                                      "visit_variable_type_use",    // C
+                                      "visit_variable_type_use"));  // D
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C", u8"D"));
+  }
 }
 
 TEST_F(test_parse_typescript_type, namespaced_type_reference) {

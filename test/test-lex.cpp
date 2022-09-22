@@ -1588,6 +1588,48 @@ TEST_F(test_lex, split_less_less_has_no_leading_newline) {
   EXPECT_FALSE(l.peek().has_leading_newline);
 }
 
+TEST_F(test_lex, split_greater_from_bigger_token) {
+  {
+    padded_string input(u8">>;"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_greater);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[2]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+  }
+
+  {
+    padded_string input(u8">>>;"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_greater_greater);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::greater_greater);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[3]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+  }
+}
+
+TEST_F(test_lex, split_greater_from_bigger_token_has_no_leading_newline) {
+  {
+    padded_string input(u8"\n>>"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_greater);
+    EXPECT_TRUE(l.peek().has_leading_newline);
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    EXPECT_FALSE(l.peek().has_leading_newline);
+  }
+}
+
 TEST_F(test_lex, lex_identifiers) {
   this->check_tokens(u8"i"_sv, {token_type::identifier});
   this->check_tokens(u8"_"_sv, {token_type::identifier});

@@ -1047,6 +1047,23 @@ void lexer::skip_less_less_as_less() {
   this->last_last_token_end_ = this->last_token_.begin;
 }
 
+void lexer::skip_as_greater() {
+  switch (this->last_token_.type) {
+  case token_type::greater_greater:
+    this->last_token_.type = token_type::greater;
+    break;
+  case token_type::greater_greater_greater:
+    this->last_token_.type = token_type::greater_greater;
+    break;
+  default:
+    QLJS_UNREACHABLE();
+    break;
+  }
+  this->last_token_.has_leading_newline = false;
+  this->last_token_.begin += 1;
+  this->last_last_token_end_ = this->last_token_.begin;
+}
+
 void lexer::reparse_as_regexp() {
   QLJS_ASSERT(this->last_token_.type == token_type::slash ||
               this->last_token_.type == token_type::slash_equal);
