@@ -1030,7 +1030,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       typescript_type_only_keyword = type_keyword;
       if (!this->options_.typescript) {
         this->diag_reporter_->report(
-            diag_typescript_type_only_export_not_allowed_in_javascript{
+            diag_typescript_type_export_not_allowed_in_javascript{
                 .type_keyword = type_keyword,
             });
       }
@@ -3243,7 +3243,7 @@ void parser::parse_and_visit_named_exports(
         if (!this->options_.typescript) {
           if (is_export) {
             this->diag_reporter_->report(
-                diag_typescript_inline_type_export_not_allowed_in_javascript{
+                diag_typescript_type_export_not_allowed_in_javascript{
                     .type_keyword = type_span,
                 });
           } else {

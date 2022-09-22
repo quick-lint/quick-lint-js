@@ -1682,7 +1682,7 @@
               opening_less))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_inline_type_export_not_allowed_in_javascript, "E0278",   \
+      diag_typescript_type_export_not_allowed_in_javascript, "E0278",          \
       diagnostic_severity::error, { source_code_span type_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type exports are not "             \
                                 "allowed in JavaScript"),                      \
@@ -1802,13 +1802,6 @@
       "E0268", diagnostic_severity::error, { source_code_span type_keyword; }, \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports cannot import both "  \
                                 "default and named exports"),                  \
-              type_keyword))                                                   \
-                                                                               \
-  QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_type_only_export_not_allowed_in_javascript, "E0279",     \
-      diagnostic_severity::error, { source_code_span type_keyword; },          \
-      MESSAGE(QLJS_TRANSLATABLE("TypeScript type exports are not "             \
-                                "allowed in JavaScript"),                      \
               type_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
@@ -2247,6 +2240,7 @@
 #define QLJS_X_RESERVED_DIAG_TYPES \
   QLJS_DIAG_TYPE(, "E0242", , , )  \
   QLJS_DIAG_TYPE(, "E0271", , , )  \
+  QLJS_DIAG_TYPE(, "E0279", , , )  \
   /* END */
 
 namespace quick_lint_js {
