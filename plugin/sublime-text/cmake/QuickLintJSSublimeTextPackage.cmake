@@ -2,12 +2,12 @@
 # See end of file for extended copyright information.
 
 function (quick_lint_js_sublime_text_add_colored_compiler_output)
-  string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" CMAKE_CXX_COMPILER_ID_LOWER)
-  if ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "gnu")
-    add_compile_options(-fdiagnostics-color=always)
-  elseif ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "clang")
-    add_compile_options(-fcolor-diagnostics)
-  endif ()
+  #  string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" CMAKE_CXX_COMPILER_ID_LOWER)
+  #  if ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "gnu")
+  #    add_compile_options(-fdiagnostics-color=always)
+  #  elseif ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "clang")
+  #    add_compile_options(-fcolor-diagnostics)
+  #  endif ()
 endfunction ()
 
 function (quick_lint_js_sublime_text_set_compiler_definitions)
@@ -49,38 +49,40 @@ function (quick_lint_js_sublime_text_get_package_platform PACKAGE_PLATFORM)
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_filename PACKAGE_FILENAME)
-  quick_lint_js_sublime_text_get_package_distribution(PACKAGE_DISTRIBUTION)
+  #quick_lint_js_sublime_text_get_package_distribution(PACKAGE_DISTRIBUTION)
+  set(PACKAGE_DISTRIBUTION "whattheheq")
   quick_lint_js_sublime_text_get_package_version(PACKAGE_VERSION)
   quick_lint_js_sublime_text_get_package_tag(PACKAGE_TAG)
   quick_lint_js_sublime_text_get_package_platform(PACKAGE_PLATFORM)
-  set(PACKAGE_FILENAME "${PACKAGE_DISTRIBUTION}-${PACKAGE_VERSION}-${PACKAGE_TAG}-${PACKAGE_PLATFORM}")
+  set("${PACKAGE_FILENAME}" "${PACKAGE_DISTRIBUTION}-${PACKAGE_VERSION}-${PACKAGE_TAG}-${PACKAGE_PLATFORM}" PARENT_SCOPE)
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_pathname PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_filename(PACKAGE_FILENAME)
-  set(PACKAGE_PATHNAME "${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_FILENAME}")
+  set("${PACKAGE_PATHNAME}" "${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_FILENAME}" PARENT_SCOPE)
 endfunction ()
 
-function (quick_lint_js_sublime_text_get_package_files PACKAGE_FILES)
+function (quick_lint_js_sublime_text_get_package_files OUT_PACKAGE_FILES)
   set(
     PACKAGE_FILES
     $<TARGET_FILE:quick-lint-js-sublime-text>
-    "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
-    "${CMAKE_CURRENT_SOURCE_DIR}/extension.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
+    "${CMAKE_CURRENT_LIST_DIR}/../.no-sublime-package"
+    "${CMAKE_CURRENT_LIST_DIR}/../extension.py"
+    "${CMAKE_CURRENT_LIST_DIR}/../interface.py"
   )
   if (WIN32)
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
       list(
         APPEND
-        SUBLIME_TEXT_PACKAGE_FILES
+        PACKAGE_FILES
         $<TARGET_RUNTIME_DLLS:quick-lint-js-sublime-text>
       )
     else ()
-      list(APPEND SUBLIME_TEXT_PACKAGE_FILES $<TARGET_FILE:boost>)
+      list(APPEND PACKAGE_FILES $<TARGET_FILE:boost>)
       message(WARNING "Please use CMake version 3.21 or higher. Maybe the plugin will not work on Windows due to the lack of DLL files that could not be automatically detected.")
     endif ()
   endif ()
+  set("${OUT_PACKAGE_FILES}" "${PACKAGE_FILES}" PARENT_SCOPE)
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_destination PACKAGE_DESTINATION)
@@ -98,15 +100,17 @@ function (quick_lint_js_sublime_text_get_package_destination PACKAGE_DESTINATION
     set(SUBLIME_TEXT_PACKAGE_LOCATION "${HOME}/.config/sublime-text/Packages")
   endif ()
 
+  set(QUICK_LINT_JS_SUBLIME_TEXT_VERSION 4) # @@@
+
   if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION EQUAL 3)
-    set(PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
+    set("${PACKAGE_DESTINATION}" "${SUBLIME_TEXT_3_PACKAGE_LOCATION}" PARENT_SCOPE)
   elseif (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER 3)
     if (IS_DIRECTORY SUBLIME_TEXT_4_PACKAGE_LOCATION)
-      set(PACKAGE_DESTINATION "${SUBLIME_TEXT_PACKAGE_LOCATION}")
+      set("${PACKAGE_DESTINATION}" "${SUBLIME_TEXT_PACKAGE_LOCATION}" PARENT_SCOPE)
     elseif (IS_DIRECTORY SUBLIME_TEXT_3_PACKAGE_LOCATION)
-      set(PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
+      set("${PACKAGE_DESTINATION}" "${SUBLIME_TEXT_3_PACKAGE_LOCATION}" PARENT_SCOPE)
     else ()
-      set(PACKAGE_DESTINATION "${SUBLIME_TEXT_PACKAGE_LOCATION}")
+      set("${PACKAGE_DESTINATION}" "${SUBLIME_TEXT_PACKAGE_LOCATION}" PARENT_SCOPE)
     endif ()
   endif ()
 endfunction ()

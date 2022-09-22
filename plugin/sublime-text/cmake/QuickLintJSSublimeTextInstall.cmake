@@ -1,12 +1,15 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 include(QuickLintJSSublimeTextPackage)
 
 quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
 quick_lint_js_sublime_text_get_package_destination(SUBLIME_TEXT_PACKAGE_DESTINATION)
+#message(FATAL_ERROR "SUBLIME_TEXT_PACKAGE_PATHNAME=${SUBLIME_TEXT_PACKAGE_PATHNAME}")
+#message(FATAL_ERROR "SUBLIME_TEXT_PACKAGE_DESTINATION=${SUBLIME_TEXT_PACKAGE_DESTINATION}")
+#message(FATAL_ERROR "SUBLIME_TEXT_PACKAGE_FILES=${SUBLIME_TEXT_PACKAGE_FILES}")
 
 # Create package.
 execute_process(

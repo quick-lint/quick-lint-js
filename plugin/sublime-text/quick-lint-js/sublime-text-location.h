@@ -34,7 +34,7 @@ using sublime_text_offset = unsigned int;
 //------------------------------------------------------------------------------
 // region
 
-struct sublime_text_region final : public qljs_sublime_text_region {};
+using sublime_text_region = qljs_sublime_text_region;
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ using sublime_text_position = sublime_text_offset;
 // range
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-struct sublime_text_range final : public qljs_sublime_text_range {};
+using sublime_text_range = qljs_sublime_text_range;
 #else
 using sublime_text_range = sublime_text_region;
 #endif
@@ -156,7 +156,7 @@ struct sublime_text_lines {
 //------------------------------------------------------------------------------
 // locator
 
-struct sublime_text_locator {
+class sublime_text_locator {
  public:
   using range_type = sublime_text_range;
   using position_type = sublime_text_position;

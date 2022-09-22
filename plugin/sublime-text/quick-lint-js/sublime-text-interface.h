@@ -11,7 +11,6 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
 
-#include <quick-lint-js/sublime-text-have.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)

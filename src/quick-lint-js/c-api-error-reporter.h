@@ -20,6 +20,8 @@ struct qljs_web_demo_diagnostic;
 
 namespace quick_lint_js {
 class lsp_locator;
+class sublime_text_diagnostic;
+class sublime_text_locator;
 class web_demo_locator;
 
 template <class Diagnostic, class Locator>
@@ -74,6 +76,8 @@ extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                             web_demo_locator>;
 extern template class c_api_error_reporter<qljs_web_demo_diagnostic,
                                            web_demo_locator>;
+
+extern template class c_api_error_reporter<sublime_text_diagnostic, sublime_text_locator>;
 
 QLJS_WARNING_POP
 }

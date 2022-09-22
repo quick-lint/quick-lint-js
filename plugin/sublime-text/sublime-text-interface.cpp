@@ -19,11 +19,9 @@
 // diagnostic
 
 namespace quick_lint_js {
-namespace {
 
-struct sublime_text_diagnostic final : public qljs_sublime_text_diagnostic {};
+class sublime_text_diagnostic final : public qljs_sublime_text_diagnostic {};
 
-}  // namespace
 }  // namespace quick_lint_js
 
 //==============================================================================
@@ -61,8 +59,8 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
                                          qljs_sublime_text_text text) {
   using char_type = quick_lint_js::char8;
 
-  auto cpp_content = reinterpret_cast<const char_type *>(text->content);
-  auto cpp_replacement = quick_lint_js::string8_view(cpp_content, text->length);
+  auto cpp_content = reinterpret_cast<const char_type *>(text.content);
+  auto cpp_replacement = quick_lint_js::string8_view(cpp_content, text.length);
   document->set_text(cpp_replacement);
 }
 

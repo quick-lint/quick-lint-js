@@ -363,8 +363,6 @@ def plugin_error_message(message):
 def view_entire_content(view):
     region = sublime.Region(0, view.size())
     return view.substr(region)
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
----------------------------------------
 
 
 # quick-lint-js finds bugs in JavaScript programs.
