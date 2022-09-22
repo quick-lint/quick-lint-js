@@ -248,9 +248,7 @@ void variable_analyzer::visit_enter_named_function_scope(
   };
 }
 
-void variable_analyzer::visit_enter_namespace_scope() {
-  QLJS_UNIMPLEMENTED();  // TODO(#690)
-}
+void variable_analyzer::visit_enter_namespace_scope() { this->scopes_.push(); }
 
 void variable_analyzer::visit_enter_type_alias_scope() { this->scopes_.push(); }
 
@@ -320,7 +318,11 @@ void variable_analyzer::visit_exit_interface_scope() {
 }
 
 void variable_analyzer::visit_exit_namespace_scope() {
-  QLJS_UNIMPLEMENTED();  // TODO(#690)
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/true);
+  this->scopes_.pop();
 }
 
 void variable_analyzer::visit_exit_type_alias_scope() {

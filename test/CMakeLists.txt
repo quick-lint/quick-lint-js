@@ -120,6 +120,7 @@ quick_lint_js_add_executable(
   test-utf-16.cpp
   test-utf-8.cpp
   test-variable-analyzer-enum.cpp
+  test-variable-analyzer-namespace.cpp
   test-variable-analyzer-parse.cpp
   test-variable-analyzer-type.cpp
   test-variable-analyzer.cpp
