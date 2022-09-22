@@ -496,6 +496,21 @@ parse_statement:
                 });
           }
         }
+        if (initial_keyword.type == token_type::kw_namespace) {
+          lexer_transaction inner_transaction =
+              this->lexer_.begin_transaction();
+          this->skip();
+          if (this->peek().type == token_type::left_curly &&
+              !this->peek().has_leading_newline) {
+            // namespace
+            //   ns {}     // Invalid.
+            // Treat 'namespace' as a keyword.
+            is_expression = false;
+            // diag_newline_not_allowed_after_namespace_keyword is reported
+            // later by parse_and_visit_typescript_namespace.
+          }
+          this->lexer_.roll_back_transaction(std::move(inner_transaction));
+        }
         if (is_expression) {
           goto initial_keyword_is_expression;
         }
