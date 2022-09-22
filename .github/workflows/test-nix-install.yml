@@ -24,9 +24,8 @@ jobs:
       - name: install
         run: nix-env -f . -i
 
-      # TODO(#792): Re-enable when Nixpkgs fixes things.
-      #- name: test executable
-      #  run: cd / && quick-lint-js --help
+      - name: test executable
+        run: cd / && quick-lint-js --help
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

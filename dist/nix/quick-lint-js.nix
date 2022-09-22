@@ -23,6 +23,9 @@ mkDerivation {
   doCheck = doCheck;
   dontFixCmake = dontFixCmake;
 
+  # Temporary workaround for https://github.com/NixOS/nixpkgs/pull/108496#issuecomment-1192083379
+  cmakeFlags = [ "-DCMAKE_SKIP_BUILD_RPATH=ON" ];
+
   meta = with lib; {
     description = "quick-lint-js finds bugs in JavaScript programs";
     homepage = "https://github.com/strager/quick-lint-js";
