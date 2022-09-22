@@ -1262,6 +1262,18 @@ TEST_F(test_parse_typescript_type, missing) {
                               expected_type, strlen(u8" "), u8"")));
   }
 }
+
+TEST_F(test_parse_typescript_type, doesnt_warn_in_javascript_code) {
+  // When parsing a type in JavaScript code, we already reported elsewhere that
+  // types are not supported. Therefore, we should not complain about things
+  // like type annotations inside a type.
+
+  {
+    test_parser p(u8"{ prop: MyType }"_sv, javascript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // MyType
+  }
+}
 }
 }
 
