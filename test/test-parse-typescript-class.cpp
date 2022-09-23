@@ -963,6 +963,28 @@ TEST_F(test_parse_typescript_class,
             diag_typescript_abstract_class_not_allowed_in_javascript,  //
             abstract_keyword, strlen(u8""), u8"abstract")));
   }
+
+  {
+    test_parser p(u8"export abstract class C { }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_abstract_class_not_allowed_in_javascript,  //
+            abstract_keyword, strlen(u8"export "), u8"abstract")));
+  }
+
+  {
+    test_parser p(u8"export default abstract class C { }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_abstract_class_not_allowed_in_javascript,  //
+            abstract_keyword, strlen(u8"export default "), u8"abstract")));
+  }
 }
 
 TEST_F(test_parse_typescript_class, abstract_class) {

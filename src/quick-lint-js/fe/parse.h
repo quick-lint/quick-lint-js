@@ -264,8 +264,9 @@ class parser {
   // In this case `*async` is consumed.
   std::optional<function_attributes> try_parse_function_with_leading_star();
 
-  void parse_and_visit_class(parse_visitor_base &v,
-                             name_requirement require_name, bool is_abstract);
+  void parse_and_visit_class(
+      parse_visitor_base &v, name_requirement require_name,
+      std::optional<source_code_span> abstract_keyword_span);
   // Parse the 'class' keyword and the class's optional name.
   std::optional<identifier> parse_class_and_optional_name();
   // Parse any extends clauses after the class's name.
