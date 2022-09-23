@@ -859,12 +859,23 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       break;
 
     // export default abstract class C {}
+    // export default abstract
     case token_type::kw_abstract: {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
-      this->parse_and_visit_class(v,
-                                  /*require_name=*/name_requirement::optional,
-                                  /*is_abstract=*/true);
+      if (this->peek().has_leading_newline) {
+        // export default abstract  // ASI.
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon_after_statement();
+      } else {
+        // export default abstract class C {}
+        this->lexer_.commit_transaction(std::move(transaction));
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
+        this->parse_and_visit_class(v,
+                                    /*require_name=*/name_requirement::optional,
+                                    /*is_abstract=*/true);
+      }
       break;
     }
 
