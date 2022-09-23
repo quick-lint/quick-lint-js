@@ -942,6 +942,12 @@ msgid "arrow is here"
 msgstr "la flèche est ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed after 'abstract'"
+msgstr ""
+"',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 

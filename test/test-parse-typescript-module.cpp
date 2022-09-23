@@ -451,6 +451,20 @@ TEST_F(test_parse_typescript_module, export_abstract_class) {
   }
 }
 
+TEST_F(test_parse_typescript_module,
+       export_abstract_class_cannot_have_newline_after_abstract) {
+  {
+    test_parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_newline_not_allowed_after_abstract_keyword,
+                    abstract_keyword, strlen(u8"export "), u8"abstract")));
+  }
+}
+
 TEST_F(test_parse_typescript_module, export_namespace) {
   {
     test_parser p(u8"export namespace ns {}"_sv, typescript_options);

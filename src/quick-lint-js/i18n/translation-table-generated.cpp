@@ -276,6 +276,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 48},             //
         {69, 26, 0, 0, 51},           //
         {0, 0, 0, 0, 39},             //
+        {0, 0, 0, 0, 40},             //
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 41},             //
         {52, 31, 25, 21, 36},         //
@@ -1528,6 +1529,7 @@ const translation_table translation_data = {
         u8"misspelled React attribute; write '{1}' instead\0"
         u8"move the 'extends' clause before 'implements' here\0"
         u8"new variable shadows existing variable\0"
+        u8"newline is not allowed after 'abstract'\0"
         u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed after 'namespace'\0"
         u8"newline is not allowed after 'type'\0"

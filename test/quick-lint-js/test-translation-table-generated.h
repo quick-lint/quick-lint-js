@@ -2669,6 +2669,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "newline is not allowed after 'abstract'"_translatable,
+        {
+            u8"newline is not allowed after 'abstract'",
+            u8"newline is not allowed after 'abstract'",
+            u8"newline is not allowed after 'abstract'",
+            u8"newline is not allowed after 'abstract'",
+            u8"newline is not allowed after 'abstract'",
+        },
+    },
+    {
         "newline is not allowed after 'interface'"_translatable,
         {
             u8"newline is not allowed after 'interface'",

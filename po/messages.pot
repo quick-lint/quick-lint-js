@@ -865,6 +865,10 @@ msgid "arrow is here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "newline is not allowed after 'abstract'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 

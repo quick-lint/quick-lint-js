@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 351;
-constexpr std::size_t translation_table_string_table_size = 53877;
+constexpr std::uint16_t translation_table_mapping_table_size = 352;
+constexpr std::size_t translation_table_string_table_size = 53917;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -292,6 +292,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "misspelled React attribute; write '{1}' instead"sv,
           "move the 'extends' clause before 'implements' here"sv,
           "new variable shadows existing variable"sv,
+          "newline is not allowed after 'abstract'"sv,
           "newline is not allowed after 'interface'"sv,
           "newline is not allowed after 'namespace'"sv,
           "newline is not allowed after 'type'"sv,

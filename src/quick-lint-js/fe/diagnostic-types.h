@@ -1393,6 +1393,12 @@
               async) MESSAGE(QLJS_TRANSLATABLE("arrow is here"), arrow))       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_newline_not_allowed_after_abstract_keyword, "E0300",                \
+      diagnostic_severity::error, { source_code_span abstract_keyword; },      \
+      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'abstract'"),    \
+              abstract_keyword))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_newline_not_allowed_after_interface_keyword, "E0275",               \
       diagnostic_severity::error, { source_code_span interface_keyword; },     \
       MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'interface'"),   \

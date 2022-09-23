@@ -913,6 +913,11 @@ msgid "arrow is here"
 msgstr "move this up"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed after 'abstract'"
+msgstr "that's way too many commas 🚮"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 
