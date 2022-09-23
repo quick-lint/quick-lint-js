@@ -789,6 +789,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "abstract fields cannot have default values"_translatable,
+        {
+            u8"abstract fields cannot have default values",
+            u8"abstract fields cannot have default values",
+            u8"abstract fields cannot have default values",
+            u8"abstract fields cannot have default values",
+            u8"abstract fields cannot have default values",
+        },
+    },
+    {
         "abstract methods cannot contain a body"_translatable,
         {
             u8"abstract methods cannot contain a body",
@@ -1526,6 +1536,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"field declared here",
             u8"field declared here",
             u8"field declared here",
+        },
+    },
+    {
+        "field marked abstract here"_translatable,
+        {
+            u8"field marked abstract here",
+            u8"field marked abstract here",
+            u8"field marked abstract here",
+            u8"field marked abstract here",
+            u8"field marked abstract here",
         },
     },
     {

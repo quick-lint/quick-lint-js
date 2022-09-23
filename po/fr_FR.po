@@ -91,6 +91,18 @@ msgstr "corps manquant pour l'instruction 'switch'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract fields cannot have default values"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "field marked abstract here"
+msgstr "variable déclarée ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract methods cannot contain a body"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

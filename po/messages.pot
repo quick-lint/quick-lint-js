@@ -88,6 +88,14 @@ msgid "a 'with' statement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract fields cannot have default values"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "field marked abstract here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "abstract methods cannot contain a body"
 msgstr ""
 

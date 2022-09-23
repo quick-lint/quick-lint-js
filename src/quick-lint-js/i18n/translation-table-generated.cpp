@@ -88,6 +88,7 @@ const translation_table translation_data = {
         {66, 50, 74, 65, 64},         //
         {77, 41, 0, 0, 65},           //
         {0, 0, 0, 0, 14},             //
+        {0, 0, 0, 0, 43},             //
         {14, 14, 0, 0, 39},           //
         {0, 26, 0, 0, 18},            //
         {18, 53, 70, 76, 53},         //
@@ -161,7 +162,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 32},             //
         {35, 45, 38, 33, 46},         //
         {0, 0, 0, 0, 57},             //
-        {77, 32, 77, 63, 20},         //
+        {0, 0, 0, 0, 20},             //
+        {77, 32, 77, 63, 27},         //
         {85, 29, 86, 70, 60},         //
         {61, 59, 69, 41, 46},         //
         {61, 26, 69, 41, 46},         //
@@ -1333,6 +1335,7 @@ const translation_table translation_data = {
         u8"a function statement is not allowed as the body of {1:singular}\0"
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
         u8"a {{0} b }} c\0"
+        u8"abstract fields cannot have default values\0"
         u8"abstract methods cannot contain a body\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
@@ -1407,6 +1410,7 @@ const translation_table translation_data = {
         u8"extra ',' is not allowed between enum members\0"
         u8"extra ',' is not allowed between function call arguments\0"
         u8"field declared here\0"
+        u8"field marked abstract here\0"
         u8"for loop needs an iterable, or condition and update clauses\0"
         u8"for-in loop expression cannot have semicolons\0"
         u8"for-of loop expression cannot have semicolons\0"

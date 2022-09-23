@@ -1065,6 +1065,44 @@ TEST_F(test_parse_typescript_class, abstract_methods_cannot_have_bodies) {
   }
 }
 
+TEST_F(test_parse_typescript_class, abstract_field) {
+  {
+    test_parser p(u8"abstract class C { abstract myField: string; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // myField;
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"myField"));
+  }
+}
+
+TEST_F(test_parse_typescript_class, abstract_fields_cannot_have_initializers) {
+  {
+    test_parser p(
+        u8"abstract class C { abstract myField: string = 'hello'; }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // myField
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_abstract_field_cannot_have_initializer,  //
+            equal, strlen(u8"abstract class C { abstract myField: string "),
+            u8"=",  //
+            abstract_keyword, strlen(u8"abstract class C { "), u8"abstract")));
+  }
+}
+
 TEST_F(test_parse_typescript_class,
        newline_before_class_causes_abstract_to_be_identifier) {
   {

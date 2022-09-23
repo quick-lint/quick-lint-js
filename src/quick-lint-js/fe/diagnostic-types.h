@@ -41,6 +41,17 @@
 // QLJS_X_RESERVED_DIAG_TYPES.
 #define QLJS_X_DIAG_TYPES                                                      \
   QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_field_cannot_have_initializer, "E0295",                    \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span equal;                                                \
+        source_code_span abstract_keyword;                                     \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("abstract fields cannot have default values"), \
+              equal) MESSAGE(QLJS_TRANSLATABLE("field marked abstract here"),  \
+                             abstract_keyword))                                \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_abstract_methods_cannot_contain_bodies, "E0294",                    \
       diagnostic_severity::error, { source_code_span body_start; },            \
       MESSAGE(QLJS_TRANSLATABLE("abstract methods cannot contain a body"),     \

@@ -820,6 +820,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void parse_field_initializer() {
       QLJS_ASSERT(p->peek().type == token_type::equal);
       const modifier *bang = this->find_modifier(token_type::bang);
+      const modifier *abstract = this->find_modifier(token_type::kw_abstract);
       if (is_interface && !bang) {
         // Don't report if we found a bang. We already reported
         // diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces.
@@ -834,6 +835,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                 .equal = p->peek().span(),
                 .bang = bang->span,
             });
+      }
+      if (abstract) {
+        p->diag_reporter_->report(diag_abstract_field_cannot_have_initializer{
+            .equal = p->peek().span(),
+            .abstract_keyword = abstract->span,
+        });
       }
       p->skip();
       p->parse_and_visit_expression(v);

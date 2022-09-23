@@ -87,6 +87,18 @@ msgstr "eine with-Anweisung"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract fields cannot have default values"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "field marked abstract here"
+msgstr "Variablendeklaration ist hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract methods cannot contain a body"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
