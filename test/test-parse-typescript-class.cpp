@@ -1065,6 +1065,16 @@ TEST_F(test_parse_typescript_class, abstract_methods_cannot_have_bodies) {
   }
 }
 
+TEST_F(test_parse_typescript_class,
+       abstract_method_prohibits_newline_after_abstract_keyword) {
+  {
+    test_parser p(u8"abstract class C { abstract\n m() { } }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"abstract", u8"m"));
+  }
+}
+
 TEST_F(test_parse_typescript_class, abstract_field) {
   {
     test_parser p(u8"abstract class C { abstract myField: string; }"_sv,

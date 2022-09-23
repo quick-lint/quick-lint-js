@@ -267,6 +267,8 @@ void parser::parse_and_visit_class_or_interface_member(
       for (;;) {
         switch (p->peek().type) {
         // async f() {}
+        // abstract f();
+        case token_type::kw_abstract:
         case token_type::kw_async:
           last_ident = p->peek().identifier_name();
           modifiers.push_back(modifier{
@@ -324,16 +326,6 @@ void parser::parse_and_visit_class_or_interface_member(
         case token_type::kw_private:
         case token_type::kw_protected:
         case token_type::kw_public:
-          last_ident = p->peek().identifier_name();
-          modifiers.push_back(modifier{
-              .span = p->peek().span(),
-              .type = p->peek().type,
-          });
-          p->skip();
-          continue;
-
-        // abstract f();
-        case token_type::kw_abstract:
           last_ident = p->peek().identifier_name();
           modifiers.push_back(modifier{
               .span = p->peek().span(),
