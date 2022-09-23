@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 342;
-constexpr std::size_t translation_table_string_table_size = 53582;
+constexpr std::uint16_t translation_table_mapping_table_size = 341;
+constexpr std::size_t translation_table_string_table_size = 53460;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -135,7 +135,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
           "children end here"sv,
-          "classes cannot be named 'await' in async function"sv,
           "classes cannot be named 'let'"sv,
           "code point in Unicode escape sequence must not be greater than U+10FFFF"sv,
           "code point out of range"sv,

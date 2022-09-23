@@ -169,11 +169,6 @@ msgid "classes cannot be named 'let'"
 msgstr "why would you call a class 'let'?"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "classes cannot be named 'await' in async function"
-msgstr ""
-"pro-tip: never name anything a keyword. it'll save you a lot of trouble"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr "st-stop st-stuttering"
 
@@ -1113,11 +1108,6 @@ msgid "remove this 'type'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "TypeScript type imports are not allowed in JavaScript"
-msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'type' cannot be used twice in import"
 msgstr ""
 
@@ -1187,6 +1177,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript type imports cannot import both default and named exports"
 msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
@@ -1489,6 +1484,10 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#~ msgid "classes cannot be named 'await' in async function"
+#~ msgstr ""
+#~ "pro-tip: never name anything a keyword. it'll save you a lot of trouble"
 
 #, fuzzy
 #~ msgid "TypeScript static blocks are not supported in JavaScript"

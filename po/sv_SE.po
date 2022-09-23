@@ -186,11 +186,6 @@ msgid "classes cannot be named 'let'"
 msgstr "klass kan inte benämnas 'let'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "classes cannot be named 'await' in async function"
-msgstr "kan inte deklarera 'await' inuti async funktion"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr "let påstående kan inte deklareras med namnet 'let'"
 
@@ -1113,11 +1108,6 @@ msgid "remove this 'type'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "TypeScript type imports are not allowed in JavaScript"
-msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'type' cannot be used twice in import"
 msgstr ""
 
@@ -1188,6 +1178,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript type imports cannot import both default and named exports"
 msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
@@ -1504,6 +1499,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "classes cannot be named 'await' in async function"
+#~ msgstr "kan inte deklarera 'await' inuti async funktion"
 
 #, fuzzy
 #~ msgid "TypeScript static blocks are not supported in JavaScript"

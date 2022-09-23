@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0},              //
-        {1, 11711, 20907, 0, 39187},  //
+        {1, 11711, 20835, 0, 39115},  //
         {50, 61, 79, 0, 40},          //
         {62, 74, 53, 0, 46},          //
         {76, 89, 80, 0, 61},          //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 0, 52},          //
         {31, 56, 0, 0, 28},           //
         {0, 0, 0, 0, 67},             //
-        {79, 25, 30, 31612, 66},      //
+        {79, 25, 30, 31540, 66},      //
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
@@ -118,8 +118,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 53},             //
         {72, 31, 71, 56, 61},         //
         {34, 30, 0, 0, 40},           //
-        {0, 12, 0, 0, 18},            //
-        {20, 72, 47, 44, 50},         //
+        {20, 12, 47, 44, 18},         //
         {47, 34, 39, 0, 30},          //
         {84, 58, 96, 31, 72},         //
         {46, 18, 26, 18, 24},         //
@@ -683,7 +682,6 @@ const translation_table translation_data = {
         u8"'{0}' makes no sense; try '='?\0"
         u8"hold up! \u270b no '{0}' allowed\0"
         u8"\U0001f6b8\U0001f6ab\u26d4\0"
-        u8"pro-tip: never name anything a keyword. it'll save you a lot of trouble\0"
         u8"why would you call a class 'let'?\0"
         u8"U+10FFFF is the limit. what are you trying to accomplish?\0"
         u8"it won't fit \U0001f930\0"
@@ -1363,7 +1361,6 @@ const translation_table translation_data = {
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
-        u8"classes cannot be named 'await' in async function\0"
         u8"classes cannot be named 'let'\0"
         u8"code point in Unicode escape sequence must not be greater than U+10FFFF\0"
         u8"code point out of range\0"

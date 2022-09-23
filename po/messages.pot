@@ -180,10 +180,6 @@ msgid "classes cannot be named 'let'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "classes cannot be named 'await' in async function"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr ""
 
@@ -1052,10 +1048,6 @@ msgid "remove this 'type'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "TypeScript type imports are not allowed in JavaScript"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'type' cannot be used twice in import"
 msgstr ""
 
@@ -1113,6 +1105,10 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript type imports cannot import both default and named exports"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript type imports are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

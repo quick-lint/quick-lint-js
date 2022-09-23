@@ -1099,16 +1099,6 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "classes cannot be named 'await' in async function"_translatable,
-        {
-            u8"classes cannot be named 'await' in async function",
-            u8"classes cannot be named 'await' in async function",
-            u8"pro-tip: never name anything a keyword. it'll save you a lot of trouble",
-            u8"classes cannot be named 'await' in async function",
-            u8"classes cannot be named 'await' in async function",
-        },
-    },
-    {
         "classes cannot be named 'let'"_translatable,
         {
             u8"classes cannot be named 'let'",
