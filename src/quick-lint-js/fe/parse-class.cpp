@@ -314,6 +314,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           p->skip();
           continue;
 
+        // abstract f();
+        case token_type::kw_abstract:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
         // static f() {}
         case token_type::kw_static:
           last_ident = p->peek().identifier_name();
@@ -691,7 +701,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
-        if (is_interface) {
+        bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
+        if (is_abstract_method) {
+          v.visit_enter_function_scope();
+          p->parse_and_visit_abstract_function_parameters_and_body_no_scope(
+              v, property_name_span, attributes);
+          v.visit_exit_function_scope();
+        } else if (is_interface) {
           v.visit_enter_function_scope();
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
               v, property_name_span, attributes);

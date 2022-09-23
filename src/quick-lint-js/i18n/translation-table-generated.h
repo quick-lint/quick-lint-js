@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 342;
-constexpr std::size_t translation_table_string_table_size = 53501;
+constexpr std::uint16_t translation_table_mapping_table_size = 344;
+constexpr std::size_t translation_table_string_table_size = 53580;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -104,6 +104,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a function statement is not allowed as the body of {1:singular}"sv,
           "a lexical declaration is not allowed as the body of {1:singular}"sv,
           "a {{0} b }} c"sv,
+          "abstract methods cannot contain a body"sv,
           "an 'if' statement"sv,
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
@@ -271,6 +272,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing property name after '.' operator"sv,
           "missing property name between '.' and '.'"sv,
           "missing quotes around module name '{0}'"sv,
+          "missing semicolon after abstract method"sv,
           "missing semicolon after field"sv,
           "missing semicolon after index signature"sv,
           "missing semicolon after interface method"sv,

@@ -41,6 +41,12 @@
 // QLJS_X_RESERVED_DIAG_TYPES.
 #define QLJS_X_DIAG_TYPES                                                      \
   QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_methods_cannot_contain_bodies, "E0294",                    \
+      diagnostic_severity::error, { source_code_span body_start; },            \
+      MESSAGE(QLJS_TRANSLATABLE("abstract methods cannot contain a body"),     \
+              body_start))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_adjacent_jsx_without_parent, "E0189", diagnostic_severity::error,   \
       {                                                                        \
         source_code_span begin;                                                \
@@ -1229,6 +1235,12 @@
       diagnostic_severity::error, { source_code_span dot; },                   \
       MESSAGE(QLJS_TRANSLATABLE("missing property name after '.' operator"),   \
               dot))                                                            \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_missing_semicolon_after_abstract_method, "E0293",                   \
+      diagnostic_severity::error, { source_code_span expected_semicolon; },    \
+      MESSAGE(QLJS_TRANSLATABLE("missing semicolon after abstract method"),    \
+              expected_semicolon))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_missing_semicolon_after_statement, "E0027",                         \

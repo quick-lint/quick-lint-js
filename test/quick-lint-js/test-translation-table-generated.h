@@ -789,6 +789,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "abstract methods cannot contain a body"_translatable,
+        {
+            u8"abstract methods cannot contain a body",
+            u8"abstract methods cannot contain a body",
+            u8"abstract methods cannot contain a body",
+            u8"abstract methods cannot contain a body",
+            u8"abstract methods cannot contain a body",
+        },
+    },
+    {
         "an 'if' statement"_translatable,
         {
             u8"an 'if' statement",
@@ -2456,6 +2466,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"missing quotes around module name '{0}'",
             u8"missing quotes around module name '{0}'",
             u8"missing quotes around module name '{0}'",
+        },
+    },
+    {
+        "missing semicolon after abstract method"_translatable,
+        {
+            u8"missing semicolon after abstract method",
+            u8"missing semicolon after abstract method",
+            u8"missing semicolon after abstract method",
+            u8"missing semicolon after abstract method",
+            u8"missing semicolon after abstract method",
         },
     },
     {

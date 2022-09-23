@@ -1387,6 +1387,29 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
   }
 }
 
+void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
+    parse_visitor_base &v, std::optional<source_code_span> name,
+    function_attributes attributes) {
+  function_guard guard = this->enter_function(attributes);
+  function_parameter_parse_result result =
+      this->parse_and_visit_function_parameters(v, name);
+  switch (result) {
+  case function_parameter_parse_result::missing_parameters_ignore_body:
+  case function_parameter_parse_result::parsed_parameters_missing_body:
+    this->consume_semicolon<diag_missing_semicolon_after_abstract_method>();
+    break;
+
+  case function_parameter_parse_result::parsed_parameters:
+  case function_parameter_parse_result::missing_parameters:
+    this->diag_reporter_->report(diag_abstract_methods_cannot_contain_bodies{
+        .body_start = this->peek().span(),
+    });
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    break;
+  }
+}
+
 void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
     function_attributes attributes) {

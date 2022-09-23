@@ -246,6 +246,9 @@ class parser {
   void parse_and_visit_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
+  void parse_and_visit_abstract_function_parameters_and_body_no_scope(
+      parse_visitor_base &v, std::optional<source_code_span> name,
+      function_attributes attributes);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
@@ -782,6 +785,8 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
   }
 }
 
+extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_field>();
 extern template void

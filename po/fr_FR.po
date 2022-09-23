@@ -90,6 +90,13 @@ msgid "a 'with' statement"
 msgstr "corps manquant pour l'instruction 'switch'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot contain a body"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '<>' and '</>' to enclose multiple children"
 msgstr ""
 
@@ -812,6 +819,11 @@ msgstr ""
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing property name after '.' operator"
 msgstr "nom de propriété manquant après l'opérateur '.'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after abstract method"
+msgstr "point-virgule manquant après l'instruction"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"

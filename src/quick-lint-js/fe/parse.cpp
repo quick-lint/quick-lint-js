@@ -600,6 +600,8 @@ void parser::consume_semicolon() {
   }
 }
 
+template void
+parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
 template void parser::consume_semicolon<diag_missing_semicolon_after_field>();
 template void
 parser::consume_semicolon<diag_missing_semicolon_after_interface_method>();

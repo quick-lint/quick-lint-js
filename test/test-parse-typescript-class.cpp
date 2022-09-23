@@ -965,8 +965,7 @@ TEST_F(test_parse_typescript_class,
   }
 }
 
-TEST_F(test_parse_typescript_class,
-       abstract_classes_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, abstract_class) {
   {
     test_parser p(u8"abstract class C { }"_sv, typescript_options);
     p.parse_and_visit_statement();
@@ -975,6 +974,94 @@ TEST_F(test_parse_typescript_class,
                             "visit_enter_class_scope_body",  // C
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration"));  // C
+  }
+}
+
+TEST_F(test_parse_typescript_class, abstract_class_method) {
+  {
+    test_parser p(u8"abstract class C { abstract myMethod(param); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // myMethod
+                            "visit_enter_function_scope",    // myMethod
+                            "visit_variable_declaration",    // param
+                            "visit_exit_function_scope",     // myMethod
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"myMethod"));
+  }
+
+  {
+    test_parser p(
+        u8"abstract class C {\n"
+        u8"  abstract f()\n"      // ASI
+        u8"  abstract g() }"_sv,  // ASI
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // f
+                            "visit_enter_function_scope",    // f
+                            "visit_exit_function_scope",     // f
+                            "visit_property_declaration",    // g
+                            "visit_enter_function_scope",    // g
+                            "visit_exit_function_scope",     // g
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
+  }
+}
+
+TEST_F(test_parse_typescript_class, abstract_class_method_requires_semicolon) {
+  {
+    test_parser p(u8"abstract class C { abstract f() abstract g(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // f
+                            "visit_enter_function_scope",    // f
+                            "visit_exit_function_scope",     // f
+                            "visit_property_declaration",    // g
+                            "visit_enter_function_scope",    // g
+                            "visit_exit_function_scope",     // g
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_missing_semicolon_after_abstract_method,  //
+                    expected_semicolon,
+                    strlen(u8"abstract class C { abstract f()"), u8"")));
+  }
+}
+
+TEST_F(test_parse_typescript_class, abstract_methods_cannot_have_bodies) {
+  {
+    test_parser p(u8"abstract class C { abstract f() { } }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // {
+                            "visit_enter_class_scope_body",     // C
+                            "visit_property_declaration",       // f
+                            "visit_enter_function_scope",       // f
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_exit_class_scope",           // }
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_abstract_methods_cannot_contain_bodies,  //
+            body_start, strlen(u8"abstract class C { abstract f() "), u8"{")));
   }
 }
 

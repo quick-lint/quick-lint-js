@@ -88,6 +88,10 @@ msgid "a 'with' statement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract methods cannot contain a body"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '<>' and '</>' to enclose multiple children"
 msgstr ""
 
@@ -763,6 +767,10 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing property name after '.' operator"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "missing semicolon after abstract method"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

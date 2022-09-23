@@ -87,7 +87,8 @@ const translation_table translation_data = {
         {67, 28, 78, 61, 61},         //
         {66, 50, 74, 65, 64},         //
         {77, 41, 0, 0, 65},           //
-        {14, 14, 0, 0, 14},           //
+        {0, 0, 0, 0, 14},             //
+        {14, 14, 0, 0, 39},           //
         {0, 26, 0, 0, 18},            //
         {18, 53, 70, 76, 53},         //
         {19, 30, 21, 19, 19},         //
@@ -254,6 +255,7 @@ const translation_table translation_data = {
         {46, 29, 49, 36, 49},         //
         {45, 11, 52, 0, 41},          //
         {0, 0, 0, 0, 42},             //
+        {0, 0, 0, 0, 40},             //
         {0, 0, 0, 0, 40},             //
         {0, 0, 0, 0, 30},             //
         {0, 0, 0, 0, 40},             //
@@ -1331,6 +1333,7 @@ const translation_table translation_data = {
         u8"a function statement is not allowed as the body of {1:singular}\0"
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
         u8"a {{0} b }} c\0"
+        u8"abstract methods cannot contain a body\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
@@ -1498,6 +1501,7 @@ const translation_table translation_data = {
         u8"missing property name after '.' operator\0"
         u8"missing property name between '.' and '.'\0"
         u8"missing quotes around module name '{0}'\0"
+        u8"missing semicolon after abstract method\0"
         u8"missing semicolon after field\0"
         u8"missing semicolon after index signature\0"
         u8"missing semicolon after interface method\0"

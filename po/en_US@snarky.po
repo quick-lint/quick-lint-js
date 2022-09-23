@@ -71,6 +71,11 @@ msgid "a 'with' statement"
 msgstr "a what-the-heck-is-wrong-with statement"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot contain a body"
+msgstr "you probably want a class, not an interface"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '<>' and '</>' to enclose multiple children"
 msgstr "give 'em a big ol' hug 🫂 with '<>' and '</>'"
 
@@ -798,6 +803,11 @@ msgstr "'**' and '{1}' don't mix"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing property name after '.' operator"
 msgstr "dot WHAT?!"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after abstract method"
+msgstr "I know you hate semicolons, but you need one here"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
