@@ -449,10 +449,47 @@ TEST_F(test_parse_typescript_module, export_abstract_class) {
                                       "visit_variable_declaration"));  // C
     EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
   }
+
+  {
+    test_parser p(u8"export default abstract class C { abstract m(); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // m
+                                      "visit_enter_function_scope",    //
+                                      "visit_exit_function_scope",     //
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
+  }
+
+  {
+    test_parser p(u8"export default abstract class { abstract m(); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // m
+                                      "visit_enter_function_scope",    //
+                                      "visit_exit_function_scope",     //
+                                      "visit_exit_class_scope"));      // }
+  }
 }
 
 TEST_F(test_parse_typescript_module,
        export_abstract_class_cannot_have_newline_after_abstract) {
+  {
+    test_parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_newline_not_allowed_after_abstract_keyword,
+                    abstract_keyword, strlen(u8"export "), u8"abstract")));
+  }
+
   {
     test_parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
                   typescript_options, capture_diags);

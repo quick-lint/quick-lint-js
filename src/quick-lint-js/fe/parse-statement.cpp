@@ -851,12 +851,22 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       break;
     }
 
-      // export default class C {}
+    // export default class C {}
     case token_type::kw_class:
       this->parse_and_visit_class(v,
                                   /*require_name=*/name_requirement::optional,
                                   /*is_abstract=*/false);
       break;
+
+    // export default abstract class C {}
+    case token_type::kw_abstract: {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
+      this->parse_and_visit_class(v,
+                                  /*require_name=*/name_requirement::optional,
+                                  /*is_abstract=*/true);
+      break;
+    }
 
       // export default function f() {}
     case token_type::kw_function:
