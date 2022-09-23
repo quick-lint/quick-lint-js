@@ -902,8 +902,7 @@ void parser::parse_and_visit_class_or_interface_member(
 
     void check_modifiers_for_method() {
       error_if_readonly_method();
-      error_if_async_in_interface();
-      error_if_generator_star_in_interface();
+      error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
@@ -1104,7 +1103,7 @@ void parser::parse_and_visit_class_or_interface_member(
       }
     }
 
-    void error_if_async_in_interface() {
+    void error_if_async_or_generator_without_method_body() {
       if (is_interface) {
         if (const modifier *async_modifier =
                 find_modifier(token_type::kw_async)) {
@@ -1112,11 +1111,6 @@ void parser::parse_and_visit_class_or_interface_member(
               .async_keyword = async_modifier->span,
           });
         }
-      }
-    }
-
-    void error_if_generator_star_in_interface() {
-      if (is_interface) {
         if (const modifier *star_modifier = find_modifier(token_type::star)) {
           p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
               .star = star_modifier->span,
