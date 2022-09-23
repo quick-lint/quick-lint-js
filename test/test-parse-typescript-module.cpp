@@ -435,6 +435,22 @@ TEST_F(test_parse_typescript_module, export_default_interface) {
   }
 }
 
+TEST_F(test_parse_typescript_module, export_abstract_class) {
+  {
+    test_parser p(u8"export abstract class C { abstract m(); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // m
+                                      "visit_enter_function_scope",    //
+                                      "visit_exit_function_scope",     //
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
+  }
+}
+
 TEST_F(test_parse_typescript_module, export_namespace) {
   {
     test_parser p(u8"export namespace ns {}"_sv, typescript_options);
