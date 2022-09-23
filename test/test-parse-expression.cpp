@@ -82,7 +82,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
   {
     test_parser p(u8"this"_sv, capture_diags);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::literal);
+    EXPECT_EQ(ast->kind(), expression_kind::this_variable);
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
@@ -1054,7 +1054,7 @@ TEST_F(test_parse_expression,
          {u8"await 42"_sv,             nullptr, "await(literal)"},
          {u8"await false"_sv,          nullptr, "await(literal)"},
          {u8"await null"_sv,           nullptr, "await(literal)"},
-         {u8"await this"_sv,           nullptr, "await(literal)"},
+         {u8"await this"_sv,           nullptr, "await(this)"},
          {u8"await true"_sv,           nullptr, "await(literal)"},
          {u8"await new C()"_sv,        nullptr, "await(new(var C))"},
          {u8"await++x"_sv,             nullptr, "await(rwunary(var x))"},

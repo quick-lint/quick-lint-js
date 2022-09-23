@@ -407,6 +407,16 @@ TEST_F(test_parse_typescript_enum,
               p.code, diag_typescript_enum_value_must_be_constant,  //
               expression, (decl + u8" E { A = ").size(), u8"(2 + f())")));
     }
+
+    {
+      test_parser p(decl + u8" E { A = this }", typescript_options,
+                    capture_diags);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE(diag_typescript_enum_value_must_be_constant)));
+    }
   }
 }
 

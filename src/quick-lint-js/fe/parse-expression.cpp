@@ -47,6 +47,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::new_target:
   case expression_kind::private_variable:
   case expression_kind::super:
+  case expression_kind::this_variable:
   case expression_kind::yield_none:
     break;
   case expression_kind::_new:
@@ -302,12 +303,18 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   // 42
   case token_type::kw_false:
   case token_type::kw_null:
-  case token_type::kw_this:
   case token_type::kw_true:
   case token_type::number:
   case token_type::string: {
     expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
+    this->skip();
+    return ast;
+  }
+
+  case token_type::kw_this: {
+    expression* ast =
+        this->make_expression<expression::this_variable>(this->peek().span());
     this->skip();
     return ast;
   }
@@ -2100,6 +2107,7 @@ expression* parser::parse_arrow_function_expression_remainder(
 
   case expression_kind::dot:
   case expression_kind::literal:
+  case expression_kind::this_variable:
     // The code is invalid. An error is reported elsewhere.
     parameter_list_begin = parameters_expression->span().begin();
     break;

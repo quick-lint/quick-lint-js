@@ -2020,6 +2020,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   };
   switch (ast->kind()) {
   case expression_kind::call:
+  case expression_kind::this_variable:
     return enum_value_kind::computed;
 
   case expression_kind::literal:
@@ -4043,6 +4044,7 @@ void parser::visit_binding_element(
   }
 
   case expression_kind::literal:
+  case expression_kind::this_variable:
     this->diag_reporter_->report(diag_unexpected_literal_in_parameter_list{
         .literal = ast->span(),
     });

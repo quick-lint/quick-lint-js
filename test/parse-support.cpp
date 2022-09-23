@@ -189,6 +189,8 @@ std::string summarize(const expression& expression) {
     return "super";
   case expression_kind::tagged_template_literal:
     return "taggedtemplate(" + children() + ")";
+  case expression_kind::this_variable:
+    return "this";
   case expression_kind::trailing_comma:
     return "trailingcomma(" + children() + ")";
   case expression_kind::type_annotated:

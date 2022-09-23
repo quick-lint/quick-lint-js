@@ -77,6 +77,7 @@ enum class expression_kind {
   spread,
   super,
   tagged_template_literal,
+  this_variable,
   trailing_comma,
   type_annotated,  // TypeScript only.
   unary_operator,
@@ -238,6 +239,7 @@ class expression {
   class spread;
   class super;
   class tagged_template_literal;
+  class this_variable;
   class trailing_comma;
   class type_annotated;
   class unary_operator;
@@ -968,6 +970,17 @@ class expression::tagged_template_literal final : public expression {
 static_assert(
     expression_arena::is_allocatable<expression::tagged_template_literal>);
 
+class expression::this_variable final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::this_variable;
+
+  explicit this_variable(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::this_variable>);
+
 class expression::trailing_comma final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::trailing_comma;
@@ -1380,6 +1393,8 @@ inline source_code_span expression::span() const noexcept {
         literal->tag_and_template_children_[0]->span().begin(),
         literal->template_span_end_);
   }
+  case expression_kind::this_variable:
+    return static_cast<const this_variable *>(this)->span_;
   case expression_kind::trailing_comma: {
     auto *comma = static_cast<const trailing_comma *>(this);
     return source_code_span(comma->children_.front()->span().begin(),
