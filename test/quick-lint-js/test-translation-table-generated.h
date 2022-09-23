@@ -2479,6 +2479,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing semicolon after interface method"_translatable,
+        {
+            u8"missing semicolon after interface method",
+            u8"missing semicolon after interface method",
+            u8"missing semicolon after interface method",
+            u8"missing semicolon after interface method",
+            u8"missing semicolon after interface method",
+        },
+    },
+    {
         "missing semicolon after statement"_translatable,
         {
             u8"missing semicolon after statement",

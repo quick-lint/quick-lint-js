@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 341;
-constexpr std::size_t translation_table_string_table_size = 53460;
+constexpr std::uint16_t translation_table_mapping_table_size = 342;
+constexpr std::size_t translation_table_string_table_size = 53501;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -273,6 +273,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing quotes around module name '{0}'"sv,
           "missing semicolon after field"sv,
           "missing semicolon after index signature"sv,
+          "missing semicolon after interface method"sv,
           "missing semicolon after statement"sv,
           "missing semicolon between condition and update parts of for loop"sv,
           "missing semicolon between init and condition parts of for loop"sv,

@@ -1396,6 +1396,7 @@ void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
+    this->consume_semicolon<diag_missing_semicolon_after_interface_method>();
     break;
 
   case function_parameter_parse_result::parsed_parameters:

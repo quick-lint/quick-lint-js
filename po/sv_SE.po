@@ -810,6 +810,11 @@ msgid "missing semicolon after index signature"
 msgstr "saknar semikolon efter påstående"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after interface method"
+msgstr "saknar semikolon efter påstående"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr "saknar semikolon mellan vilkor och updaterings delen i for loopen"
 

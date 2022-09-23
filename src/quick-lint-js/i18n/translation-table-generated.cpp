@@ -256,7 +256,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 42},             //
         {0, 0, 0, 0, 40},             //
         {0, 0, 0, 0, 30},             //
-        {44, 4, 46, 42, 40},          //
+        {0, 0, 0, 0, 40},             //
+        {44, 4, 46, 42, 41},          //
         {31, 50, 44, 35, 34},         //
         {73, 55, 78, 66, 65},         //
         {0, 0, 0, 0, 63},             //
@@ -1499,6 +1500,7 @@ const translation_table translation_data = {
         u8"missing quotes around module name '{0}'\0"
         u8"missing semicolon after field\0"
         u8"missing semicolon after index signature\0"
+        u8"missing semicolon after interface method\0"
         u8"missing semicolon after statement\0"
         u8"missing semicolon between condition and update parts of for loop\0"
         u8"missing semicolon between init and condition parts of for loop\0"

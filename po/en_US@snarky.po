@@ -814,6 +814,11 @@ msgid "missing semicolon after index signature"
 msgstr "missing semicolon after statement"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after interface method"
+msgstr "I know you hate semicolons, but you need one here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr "automatic semicolon insertion doesn't work here, buddy"
 

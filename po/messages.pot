@@ -778,6 +778,10 @@ msgid "missing semicolon after index signature"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "missing semicolon after interface method"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr ""
 

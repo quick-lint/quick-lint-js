@@ -787,6 +787,8 @@ parser::consume_semicolon<diag_missing_semicolon_after_field>();
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_index_signature>();
 extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_interface_method>();
+extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_statement>();
 }
 

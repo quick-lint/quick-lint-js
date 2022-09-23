@@ -1414,6 +1414,50 @@ TEST_F(test_parse_typescript_interface,
            "not be reported";
   }
 }
+
+TEST_F(test_parse_typescript_interface, method_requires_semicolon_or_asi) {
+  {
+    test_parser p(
+        u8"interface I {\n"
+        u8"  f()\n"      // ASI
+        u8"  g() }"_sv,  // ASI
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // {
+                            "visit_property_declaration",    // f
+                            "visit_enter_function_scope",    // f
+                            "visit_exit_function_scope",     // f
+                            "visit_property_declaration",    // g
+                            "visit_enter_function_scope",    // g
+                            "visit_exit_function_scope",     // g
+                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
+  }
+
+  {
+    test_parser p(u8"interface I { f() g(); }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // {
+                            "visit_property_declaration",    // f
+                            "visit_enter_function_scope",    // f
+                            "visit_exit_function_scope",     // f
+                            "visit_property_declaration",    // g
+                            "visit_enter_function_scope",    // g
+                            "visit_exit_function_scope",     // g
+                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_missing_semicolon_after_interface_method,  //
+                    expected_semicolon, strlen(u8"interface I { f()"), u8"")));
+  }
+}
 }
 }
 
