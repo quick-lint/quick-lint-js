@@ -150,7 +150,8 @@ parse_statement:
             });
       }
       this->parse_and_visit_class(
-          v, /*require_name=*/name_requirement::required_for_statement);
+          v, /*require_name=*/name_requirement::required_for_statement,
+          /*is_abstract=*/true);
       break;
 
     // abstract:  // Label.
@@ -553,7 +554,8 @@ parse_statement:
   case token_type::kw_class: {
     this->parse_and_visit_class(
         v,
-        /*require_name=*/name_requirement::required_for_statement);
+        /*require_name=*/name_requirement::required_for_statement,
+        /*is_abstract=*/false);
     break;
   }
 
@@ -852,7 +854,8 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       // export default class C {}
     case token_type::kw_class:
       this->parse_and_visit_class(v,
-                                  /*require_name=*/name_requirement::optional);
+                                  /*require_name=*/name_requirement::optional,
+                                  /*is_abstract=*/false);
       break;
 
       // export default function f() {}
@@ -995,7 +998,8 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     // export class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
-        v, /*require_name=*/name_requirement::required_for_export);
+        v, /*require_name=*/name_requirement::required_for_export,
+        /*is_abstract=*/false);
     break;
 
   // export let x = 42;

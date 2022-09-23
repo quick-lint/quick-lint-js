@@ -103,6 +103,21 @@ msgstr "variable déclarée ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract properties are not allowed in interfaces"
+msgstr "les propriétés privées ne sont pas autorisées dans les littéraux objet"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract properties are only allowed in abstract classes"
+msgstr "les propriétés privées ne sont pas autorisées dans les littéraux objet"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "class is not marked abstract"
+msgstr "variable déclarée ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract methods cannot contain a body"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

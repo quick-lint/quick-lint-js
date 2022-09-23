@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 346;
-constexpr std::size_t translation_table_string_table_size = 53650;
+constexpr std::uint16_t translation_table_mapping_table_size = 349;
+constexpr std::size_t translation_table_string_table_size = 53786;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -106,6 +106,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a {{0} b }} c"sv,
           "abstract fields cannot have default values"sv,
           "abstract methods cannot contain a body"sv,
+          "abstract properties are not allowed in interfaces"sv,
+          "abstract properties are only allowed in abstract classes"sv,
           "an 'if' statement"sv,
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
@@ -137,6 +139,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
           "children end here"sv,
+          "class is not marked abstract"sv,
           "classes cannot be named 'let'"sv,
           "code point in Unicode escape sequence must not be greater than U+10FFFF"sv,
           "code point out of range"sv,

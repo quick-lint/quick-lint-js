@@ -96,6 +96,18 @@ msgid "field marked abstract here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract properties are not allowed in interfaces"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract properties are only allowed in abstract classes"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "class is not marked abstract"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "abstract methods cannot contain a body"
 msgstr ""
 

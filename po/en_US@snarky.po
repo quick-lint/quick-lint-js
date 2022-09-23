@@ -82,6 +82,21 @@ msgstr "👆 it's right here, doofus"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract properties are not allowed in interfaces"
+msgstr "objects can't have privates 🤫"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract properties are only allowed in abstract classes"
+msgstr "objects can't have privates 🤫"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "class is not marked abstract"
+msgstr "👆 it's right here, doofus"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract methods cannot contain a body"
 msgstr "you probably want a class, not an interface"
 

@@ -809,6 +809,26 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "abstract properties are not allowed in interfaces"_translatable,
+        {
+            u8"abstract properties are not allowed in interfaces",
+            u8"abstract properties are not allowed in interfaces",
+            u8"abstract properties are not allowed in interfaces",
+            u8"abstract properties are not allowed in interfaces",
+            u8"abstract properties are not allowed in interfaces",
+        },
+    },
+    {
+        "abstract properties are only allowed in abstract classes"_translatable,
+        {
+            u8"abstract properties are only allowed in abstract classes",
+            u8"abstract properties are only allowed in abstract classes",
+            u8"abstract properties are only allowed in abstract classes",
+            u8"abstract properties are only allowed in abstract classes",
+            u8"abstract properties are only allowed in abstract classes",
+        },
+    },
+    {
         "an 'if' statement"_translatable,
         {
             u8"an 'if' statement",
@@ -1116,6 +1136,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"\U0001f6b8\U0001f6ab\u26d4",
             u8"children end here",
             u8"children end here",
+        },
+    },
+    {
+        "class is not marked abstract"_translatable,
+        {
+            u8"class is not marked abstract",
+            u8"class is not marked abstract",
+            u8"class is not marked abstract",
+            u8"class is not marked abstract",
+            u8"class is not marked abstract",
         },
     },
     {

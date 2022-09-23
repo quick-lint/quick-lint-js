@@ -1104,6 +1104,49 @@ TEST_F(test_parse_typescript_class, abstract_fields_cannot_have_initializers) {
 }
 
 TEST_F(test_parse_typescript_class,
+       abstract_properties_are_not_allowed_in_non_abstract_classes) {
+  {
+    test_parser p(u8"class C { abstract myField; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // myField
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_abstract_property_not_allowed_in_non_abstract_class,  //
+            abstract_keyword, strlen(u8"class C { "), u8"abstract",    //
+            class_keyword, 0, u8"class")));
+  }
+
+  {
+    test_parser p(u8"class C { abstract myMethod(); }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_property_declaration",    // myMethod
+                            "visit_enter_function_scope",    // myMethod
+                            "visit_exit_function_scope",     // myMethod
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_abstract_property_not_allowed_in_non_abstract_class,  //
+            abstract_keyword, strlen(u8"class C { "), u8"abstract",    //
+            class_keyword, 0, u8"class")));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
        newline_before_class_causes_abstract_to_be_identifier) {
   {
     test_parser p(u8"abstract\nclass C { }"_sv, typescript_options);

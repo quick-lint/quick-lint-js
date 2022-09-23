@@ -1458,6 +1458,45 @@ TEST_F(test_parse_typescript_interface, method_requires_semicolon_or_asi) {
                     expected_semicolon, strlen(u8"interface I { f()"), u8"")));
   }
 }
+
+TEST_F(test_parse_typescript_interface,
+       abstract_properties_are_not_allowed_in_interfaces) {
+  {
+    test_parser p(u8"interface I { abstract myField; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // {
+                            "visit_property_declaration",    // myField
+                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_abstract_property_not_allowed_in_interface,  //
+            abstract_keyword, strlen(u8"interface I { "), u8"abstract")));
+  }
+
+  {
+    test_parser p(u8"interface I { abstract myMethod(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // {
+                            "visit_property_declaration",    // myMethod
+                            "visit_enter_function_scope",    // myMethod
+                            "visit_exit_function_scope",     // myMethod
+                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_abstract_property_not_allowed_in_interface,  //
+            abstract_keyword, strlen(u8"interface I { "), u8"abstract")));
+  }
+}
 }
 }
 

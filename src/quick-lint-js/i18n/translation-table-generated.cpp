@@ -89,7 +89,9 @@ const translation_table translation_data = {
         {77, 41, 0, 0, 65},           //
         {0, 0, 0, 0, 14},             //
         {0, 0, 0, 0, 43},             //
-        {14, 14, 0, 0, 39},           //
+        {0, 0, 0, 0, 39},             //
+        {0, 0, 0, 0, 50},             //
+        {14, 14, 0, 0, 57},           //
         {0, 26, 0, 0, 18},            //
         {18, 53, 70, 76, 53},         //
         {19, 30, 21, 19, 19},         //
@@ -120,7 +122,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 53},             //
         {72, 31, 71, 56, 61},         //
         {34, 30, 0, 0, 40},           //
-        {20, 12, 47, 44, 18},         //
+        {0, 0, 0, 0, 18},             //
+        {20, 12, 47, 44, 29},         //
         {47, 34, 39, 0, 30},          //
         {84, 58, 96, 31, 72},         //
         {46, 18, 26, 18, 24},         //
@@ -1337,6 +1340,8 @@ const translation_table translation_data = {
         u8"a {{0} b }} c\0"
         u8"abstract fields cannot have default values\0"
         u8"abstract methods cannot contain a body\0"
+        u8"abstract properties are not allowed in interfaces\0"
+        u8"abstract properties are only allowed in abstract classes\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
@@ -1368,6 +1373,7 @@ const translation_table translation_data = {
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
+        u8"class is not marked abstract\0"
         u8"classes cannot be named 'let'\0"
         u8"code point in Unicode escape sequence must not be greater than U+10FFFF\0"
         u8"code point out of range\0"

@@ -52,6 +52,26 @@
                              abstract_keyword))                                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_property_not_allowed_in_interface, "E0297",                \
+      diagnostic_severity::error, { source_code_span abstract_keyword; },      \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "abstract properties are not allowed in interfaces"),        \
+              abstract_keyword))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_property_not_allowed_in_non_abstract_class, "E0296",       \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span abstract_keyword;                                     \
+        source_code_span class_keyword;                                        \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "abstract properties are only allowed in abstract classes"), \
+              abstract_keyword)                                                \
+          MESSAGE(QLJS_TRANSLATABLE("class is not marked abstract"),           \
+                  class_keyword))                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_abstract_methods_cannot_contain_bodies, "E0294",                    \
       diagnostic_severity::error, { source_code_span body_start; },            \
       MESSAGE(QLJS_TRANSLATABLE("abstract methods cannot contain a body"),     \

@@ -265,7 +265,7 @@ class parser {
   std::optional<function_attributes> try_parse_function_with_leading_star();
 
   void parse_and_visit_class(parse_visitor_base &v,
-                             name_requirement require_name);
+                             name_requirement require_name, bool is_abstract);
   // Parse the 'class' keyword and the class's optional name.
   std::optional<identifier> parse_class_and_optional_name();
   // Parse any extends clauses after the class's name.
@@ -276,14 +276,18 @@ class parser {
                         std::optional<identifier> class_name,
                         source_code_span class_keyword_span,
                         name_requirement require_name);
-  void parse_and_visit_class_body(parse_visitor_base &v);
-  void parse_and_visit_class_or_interface_member(parse_visitor_base &v,
-                                                 bool is_interface);
+  void parse_and_visit_class_body(parse_visitor_base &v,
+                                  source_code_span class_keyword_span,
+                                  bool is_abstract);
+  void parse_and_visit_class_or_interface_member(
+      parse_visitor_base &v, source_code_span class_or_interface_keyword_span,
+      bool is_interface, bool is_abstract);
 
   void parse_and_visit_typescript_interface(
       parse_visitor_base &v, source_code_span interface_keyword_span);
   void parse_and_visit_typescript_interface_extends(parse_visitor_base &v);
-  void parse_and_visit_typescript_interface_body(parse_visitor_base &v);
+  void parse_and_visit_typescript_interface_body(
+      parse_visitor_base &v, source_code_span interface_keyword_span);
 
   // Parse a single item in a class 'implements' clause or an interface
   // 'extends' clause.

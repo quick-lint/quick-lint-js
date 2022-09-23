@@ -99,6 +99,21 @@ msgstr "Variablendeklaration ist hier"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract properties are not allowed in interfaces"
+msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract properties are only allowed in abstract classes"
+msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "class is not marked abstract"
+msgstr "Variablendeklaration ist hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract methods cannot contain a body"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

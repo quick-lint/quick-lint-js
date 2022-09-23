@@ -23,7 +23,8 @@
 
 namespace quick_lint_js {
 void parser::parse_and_visit_class(parse_visitor_base &v,
-                                   parser::name_requirement require_name) {
+                                   parser::name_requirement require_name,
+                                   bool is_abstract) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   source_code_span class_keyword_span = this->peek().span();
 
@@ -35,7 +36,9 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
 
   switch (this->peek().type) {
   case token_type::left_curly:
-    this->parse_and_visit_class_body(v);
+    this->parse_and_visit_class_body(v,
+                                     /*class_keyword_span=*/class_keyword_span,
+                                     /*is_abstract=*/is_abstract);
     break;
 
   default:
@@ -195,14 +198,20 @@ void parser::visit_class_name(parse_visitor_base &v,
   }
 }
 
-void parser::parse_and_visit_class_body(parse_visitor_base &v) {
+void parser::parse_and_visit_class_body(parse_visitor_base &v,
+                                        source_code_span class_keyword_span,
+                                        bool is_abstract) {
   class_guard g(this, std::exchange(this->in_class_, true));
 
   source_code_span left_curly_span = this->peek().span();
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_class_or_interface_member(v, /*is_interface=*/false);
+    this->parse_and_visit_class_or_interface_member(
+        v,
+        /*class_or_interface_keyword_span=*/class_keyword_span,
+        /*is_interface=*/false,
+        /*is_abstract=*/is_abstract);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_class_block{
           .block_open = left_curly_span,
@@ -215,15 +224,24 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v) {
   this->skip();
 }
 
-void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
-                                                       bool is_interface) {
+void parser::parse_and_visit_class_or_interface_member(
+    parse_visitor_base &v, source_code_span class_or_interface_keyword_span,
+    bool is_interface, bool is_abstract) {
   struct class_parser {
-    explicit class_parser(parser *p, parse_visitor_base &v, bool is_interface)
-        : p(p), v(v), is_interface(is_interface) {}
+    explicit class_parser(parser *p, parse_visitor_base &v,
+                          source_code_span class_or_interface_keyword_span,
+                          bool is_interface, bool is_abstract)
+        : p(p),
+          v(v),
+          class_or_interface_keyword_span(class_or_interface_keyword_span),
+          is_interface(is_interface),
+          is_abstract(is_abstract) {}
 
     parser *p;
     parse_visitor_base &v;
+    source_code_span class_or_interface_keyword_span;
     bool is_interface;
+    bool is_abstract;
 
     std::optional<identifier> last_ident;
 
@@ -879,6 +897,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_readonly_in_not_typescript();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
+      error_if_abstract_not_in_abstract_class();
     }
 
     void check_modifiers_for_method() {
@@ -888,6 +907,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_invalid_access_specifier();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
+      error_if_abstract_not_in_abstract_class();
     }
 
     void error_if_optional_in_not_typescript() {
@@ -1066,6 +1086,24 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
+    void error_if_abstract_not_in_abstract_class() {
+      if (const modifier *abstract_modifier =
+              find_modifier(token_type::kw_abstract)) {
+        if (is_interface) {
+          p->diag_reporter_->report(
+              diag_abstract_property_not_allowed_in_interface{
+                  .abstract_keyword = abstract_modifier->span,
+              });
+        } else if (!is_abstract) {
+          p->diag_reporter_->report(
+              diag_abstract_property_not_allowed_in_non_abstract_class{
+                  .abstract_keyword = abstract_modifier->span,
+                  .class_keyword = class_or_interface_keyword_span,
+              });
+        }
+      }
+    }
+
     void error_if_async_in_interface() {
       if (is_interface) {
         if (const modifier *async_modifier =
@@ -1105,7 +1143,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       return nullptr;
     }
   };
-  class_parser state(this, v, is_interface);
+  class_parser state(this, v, class_or_interface_keyword_span, is_interface,
+                     is_abstract);
   state.parse_stuff();
 }
 
@@ -1175,7 +1214,9 @@ void parser::parse_and_visit_typescript_interface(
     this->parse_and_visit_typescript_interface_extends(v);
   }
   if (this->peek().type == token_type::left_curly) {
-    this->parse_and_visit_typescript_interface_body(v);
+    this->parse_and_visit_typescript_interface_body(
+        v,
+        /*interface_keyword_span=*/interface_keyword_span);
   } else {
     this->diag_reporter_->report(diag_missing_body_for_typescript_interface{
         .interface_keyword_and_name_and_heritage =
@@ -1218,13 +1259,18 @@ void parser::parse_and_visit_typescript_interface_reference(
   }
 }
 
-void parser::parse_and_visit_typescript_interface_body(parse_visitor_base &v) {
+void parser::parse_and_visit_typescript_interface_body(
+    parse_visitor_base &v, source_code_span interface_keyword_span) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   source_code_span left_curly_span = this->peek().span();
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_class_or_interface_member(v, /*is_interface=*/true);
+    this->parse_and_visit_class_or_interface_member(
+        v,
+        /*class_or_interface_keyword_span=*/interface_keyword_span,
+        /*is_interface=*/true,
+        /*is_abstract=*/false);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_interface_block{
           .block_open = left_curly_span,
