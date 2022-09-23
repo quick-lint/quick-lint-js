@@ -82,6 +82,16 @@ msgstr "👆 it's right here, doofus"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract methods cannot be marked 'async'"
+msgstr "interfaces are allergic to async methods"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot be marked as a generator"
+msgstr "interfaces are allergic to generator methods"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract properties are not allowed in interfaces"
 msgstr "objects can't have privates 🤫"
 

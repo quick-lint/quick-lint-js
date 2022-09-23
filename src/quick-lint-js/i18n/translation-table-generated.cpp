@@ -89,6 +89,8 @@ const translation_table translation_data = {
         {77, 41, 0, 0, 65},           //
         {0, 0, 0, 0, 14},             //
         {0, 0, 0, 0, 43},             //
+        {0, 0, 0, 0, 42},             //
+        {0, 0, 0, 0, 49},             //
         {0, 0, 0, 0, 39},             //
         {0, 0, 0, 0, 50},             //
         {14, 14, 0, 0, 57},           //
@@ -1339,6 +1341,8 @@ const translation_table translation_data = {
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
         u8"a {{0} b }} c\0"
         u8"abstract fields cannot have default values\0"
+        u8"abstract methods cannot be marked 'async'\0"
+        u8"abstract methods cannot be marked as a generator\0"
         u8"abstract methods cannot contain a body\0"
         u8"abstract properties are not allowed in interfaces\0"
         u8"abstract properties are only allowed in abstract classes\0"

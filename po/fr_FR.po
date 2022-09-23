@@ -103,6 +103,20 @@ msgstr "variable déclarée ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract methods cannot be marked 'async'"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot be marked as a generator"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract properties are not allowed in interfaces"
 msgstr "les propriétés privées ne sont pas autorisées dans les littéraux objet"
 

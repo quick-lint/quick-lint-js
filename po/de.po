@@ -99,6 +99,20 @@ msgstr "Variablendeklaration ist hier"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract methods cannot be marked 'async'"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot be marked as a generator"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract properties are not allowed in interfaces"
 msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
 

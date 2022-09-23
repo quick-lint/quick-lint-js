@@ -1075,6 +1075,81 @@ TEST_F(test_parse_typescript_class,
   }
 }
 
+TEST_F(test_parse_typescript_class, abstract_methods_cannot_be_async) {
+  {
+    test_parser p(u8"abstract class C { abstract async method(); }",
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // method
+                                      "visit_enter_function_scope",    // method
+                                      "visit_exit_function_scope",     // method
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_abstract_methods_cannot_be_async,  //
+            async_keyword, strlen(u8"abstract class C { abstract "), u8"async",
+            abstract_keyword, strlen(u8"abstract class C { "), u8"abstract")));
+  }
+
+  {
+    test_parser p(u8"abstract class C { async abstract method(); }",
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // method
+                                      "visit_enter_function_scope",    // method
+                                      "visit_exit_function_scope",     // method
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code, diag_abstract_methods_cannot_be_async,  //
+                    async_keyword, strlen(u8"abstract class C { "), u8"async",
+                    abstract_keyword, strlen(u8"abstract class C { async "),
+                    u8"abstract")));
+  }
+
+  {
+    // ASI activates after 'async'.
+    test_parser p(u8"abstract class C { async\n abstract f(); }",
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"async", u8"f"));
+  }
+
+  {
+    // ASI activates after 'abstract'.
+    test_parser p(u8"abstract class C { abstract\n async f() {} }",
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"abstract", u8"f"));
+  }
+}
+
+TEST_F(test_parse_typescript_class, abstract_methods_cannot_be_generators) {
+  test_parser p(u8"abstract class C { abstract *method(); }",
+                typescript_options, capture_diags);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
+                                    "visit_enter_class_scope_body",  // {
+                                    "visit_property_declaration",    // method
+                                    "visit_enter_function_scope",    // method
+                                    "visit_exit_function_scope",     // method
+                                    "visit_exit_class_scope",        // }
+                                    "visit_variable_declaration"));  // C
+  EXPECT_THAT(
+      p.errors,
+      ElementsAre(DIAG_TYPE_2_OFFSETS(
+          p.code, diag_abstract_methods_cannot_be_generators,     //
+          star, strlen(u8"abstract class C { abstract "), u8"*",  //
+          abstract_keyword, strlen(u8"abstract class C { "), u8"abstract")));
+}
+
 TEST_F(test_parse_typescript_class, abstract_field) {
   {
     test_parser p(u8"abstract class C { abstract myField: string; }"_sv,

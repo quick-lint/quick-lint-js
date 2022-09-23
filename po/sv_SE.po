@@ -101,6 +101,16 @@ msgstr "variabel deklarerades här"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "abstract methods cannot be marked 'async'"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "abstract methods cannot be marked as a generator"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "abstract properties are not allowed in interfaces"
 msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
 

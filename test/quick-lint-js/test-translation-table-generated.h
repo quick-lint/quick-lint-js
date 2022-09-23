@@ -799,6 +799,26 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "abstract methods cannot be marked 'async'"_translatable,
+        {
+            u8"abstract methods cannot be marked 'async'",
+            u8"abstract methods cannot be marked 'async'",
+            u8"abstract methods cannot be marked 'async'",
+            u8"abstract methods cannot be marked 'async'",
+            u8"abstract methods cannot be marked 'async'",
+        },
+    },
+    {
+        "abstract methods cannot be marked as a generator"_translatable,
+        {
+            u8"abstract methods cannot be marked as a generator",
+            u8"abstract methods cannot be marked as a generator",
+            u8"abstract methods cannot be marked as a generator",
+            u8"abstract methods cannot be marked as a generator",
+            u8"abstract methods cannot be marked as a generator",
+        },
+    },
+    {
         "abstract methods cannot contain a body"_translatable,
         {
             u8"abstract methods cannot contain a body",

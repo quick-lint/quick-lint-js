@@ -1109,6 +1109,24 @@ void parser::parse_and_visit_class_or_interface_member(
           });
         }
       }
+
+      const modifier *abstract_modifier =
+          find_modifier(token_type::kw_abstract);
+      if (abstract_modifier) {
+        if (const modifier *async_modifier =
+                find_modifier(token_type::kw_async)) {
+          p->diag_reporter_->report(diag_abstract_methods_cannot_be_async{
+              .async_keyword = async_modifier->span,
+              .abstract_keyword = abstract_modifier->span,
+          });
+        }
+        if (const modifier *star_modifier = find_modifier(token_type::star)) {
+          p->diag_reporter_->report(diag_abstract_methods_cannot_be_generators{
+              .star = star_modifier->span,
+              .abstract_keyword = abstract_modifier->span,
+          });
+        }
+      }
     }
 
     const modifier *find_modifier(token_type modifier_type) const {

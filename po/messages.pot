@@ -96,6 +96,14 @@ msgid "field marked abstract here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract methods cannot be marked 'async'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "abstract methods cannot be marked as a generator"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "abstract properties are not allowed in interfaces"
 msgstr ""
 

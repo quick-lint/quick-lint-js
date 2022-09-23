@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 349;
-constexpr std::size_t translation_table_string_table_size = 53786;
+constexpr std::uint16_t translation_table_mapping_table_size = 351;
+constexpr std::size_t translation_table_string_table_size = 53877;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -105,6 +105,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a lexical declaration is not allowed as the body of {1:singular}"sv,
           "a {{0} b }} c"sv,
           "abstract fields cannot have default values"sv,
+          "abstract methods cannot be marked 'async'"sv,
+          "abstract methods cannot be marked as a generator"sv,
           "abstract methods cannot contain a body"sv,
           "abstract properties are not allowed in interfaces"sv,
           "abstract properties are only allowed in abstract classes"sv,

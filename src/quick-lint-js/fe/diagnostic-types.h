@@ -52,6 +52,27 @@
                              abstract_keyword))                                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_methods_cannot_be_async, "E0298",                          \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span async_keyword;                                        \
+        source_code_span abstract_keyword;                                     \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("abstract methods cannot be marked 'async'"),  \
+              async_keyword))                                                  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_abstract_methods_cannot_be_generators, "E0299",                     \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span star;                                                 \
+        source_code_span abstract_keyword;                                     \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "abstract methods cannot be marked as a generator"),         \
+              star))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_abstract_property_not_allowed_in_interface, "E0297",                \
       diagnostic_severity::error, { source_code_span abstract_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
