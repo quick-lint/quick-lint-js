@@ -201,6 +201,23 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_when_destructuring) {
   }
 }
 
+TEST_F(test_parse_typescript_this_parameters, not_allowed_when_spreading) {
+  {
+    test_parser p(u8"function(...this) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_spread_parameter_cannot_be_this,              //
+                    this_keyword, strlen(u8"function(..."), u8"this",  //
+                    spread_operator, strlen(u8"function("), u8"...")));
+  }
+}
+
 TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
   {
     test_parser p(u8"function( other, this ) {}"_sv, typescript_options,
@@ -248,6 +265,24 @@ TEST_F(test_parse_typescript_this_parameters,
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_this_parameter_not_allowed_in_arrow_functions)))
+        << "should not also report diag_this_parameter_must_be_first";
+  }
+
+  {
+    test_parser p(u8"(...this) => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_in_arrow_functions)))
+        << "should not also report diag_spread_parameter_cannot_be_this";
+  }
+
+  {
+    test_parser p(u8"function(other, ...this) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(diag_spread_parameter_cannot_be_this)))
         << "should not also report diag_this_parameter_must_be_first";
   }
 }

@@ -1017,6 +1017,10 @@ msgid "return statement returns nothing (undefined)"
 msgstr "Return-Statement gibt nichts (undefined) zurück"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "cannot use '...' on 'this' parameter"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
 msgstr ""

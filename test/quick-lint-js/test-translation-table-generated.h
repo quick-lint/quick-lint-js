@@ -1159,6 +1159,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot use '...' on 'this' parameter"_translatable,
+        {
+            u8"cannot use '...' on 'this' parameter",
+            u8"cannot use '...' on 'this' parameter",
+            u8"cannot use '...' on 'this' parameter",
+            u8"cannot use '...' on 'this' parameter",
+            u8"cannot use '...' on 'this' parameter",
+        },
+    },
+    {
         "catch variable can only be typed as '*', 'any', or 'unknown'"_translatable,
         {
             u8"catch variable can only be typed as '*', 'any', or 'unknown'",

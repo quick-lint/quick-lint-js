@@ -998,6 +998,10 @@ msgid "return statement returns nothing (undefined)"
 msgstr "you forgot to return something"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "cannot use '...' on 'this' parameter"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
 msgstr "you got too excited and forgot 'case'"

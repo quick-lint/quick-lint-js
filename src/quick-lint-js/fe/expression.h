@@ -938,7 +938,18 @@ class expression::spread final
 
   explicit spread(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
-                                                         operator_span) {}
+                                                         operator_span) {
+    QLJS_ASSERT(operator_span.end() - operator_span.begin() ==
+                this->spread_operator_length);
+  }
+
+  source_code_span spread_operator_span() const noexcept {
+    return source_code_span(
+        this->unary_operator_begin_,
+        this->unary_operator_begin_ + this->spread_operator_length);
+  }
+
+  static constexpr int spread_operator_length = 3;  // "..."
 };
 static_assert(expression_arena::is_allocatable<expression::spread>);
 

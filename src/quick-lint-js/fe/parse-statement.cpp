@@ -3937,9 +3937,12 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     break;
   }
 
-  case expression_kind::spread:
-    this->visit_binding_element(ast->child_0(), v, info);
+  case expression_kind::spread: {
+    expression::spread *spread = static_cast<expression::spread *>(ast);
+    this->visit_binding_element(
+        spread->child_0(), v, info.with_spread(spread->spread_operator_span()));
     break;
+  }
 
   case expression_kind::await: {
     auto *await = expression_cast<expression::await>(ast);
@@ -4076,6 +4079,11 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
           diag_this_parameter_not_allowed_in_arrow_functions{
               .this_keyword = this_span,
           });
+    } else if (info.has_spread_operator()) {
+      this->diag_reporter_->report(diag_spread_parameter_cannot_be_this{
+          .this_keyword = this_span,
+          .spread_operator = info.spread_operator_span(),
+      });
     } else if (info.is_destructuring) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_when_destructuring{

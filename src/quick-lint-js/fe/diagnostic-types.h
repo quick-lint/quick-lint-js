@@ -1522,6 +1522,16 @@
           return_keyword))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_spread_parameter_cannot_be_this, "E0304",                           \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span this_keyword;                                         \
+        source_code_span spread_operator;                                      \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("cannot use '...' on 'this' parameter"),       \
+              spread_operator))                                                \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_statement_before_first_switch_case, "E0198",                        \
       diagnostic_severity::error, { source_code_span unexpected_statement; },  \
       MESSAGE(QLJS_TRANSLATABLE("unexpected statement before first switch "    \

@@ -373,6 +373,18 @@ class parser {
     const char8 *first_parameter_begin;
 
     bool is_destructuring = false;
+    const char8 *spread_operator_begin = nullptr;
+
+    bool has_spread_operator() const noexcept {
+      return this->spread_operator_begin != nullptr;
+    }
+
+    source_code_span spread_operator_span() const noexcept {
+      QLJS_ASSERT(this->has_spread_operator());
+      return source_code_span(
+          this->spread_operator_begin,
+          this->spread_operator_begin + this->spread_operator_length);
+    }
 
     binding_element_info with_init_kind(variable_init_kind init_kind) const
         noexcept {
@@ -386,6 +398,18 @@ class parser {
       result.is_destructuring = true;
       return result;
     }
+
+    binding_element_info with_spread(source_code_span spread_operator) const
+        noexcept {
+      QLJS_ASSERT(spread_operator.end() - spread_operator.begin() ==
+                  spread_operator_length);
+      binding_element_info result = *this;
+      result.spread_operator_begin = spread_operator.begin();
+      return result;
+    }
+
+    static constexpr int spread_operator_length =
+        expression::spread::spread_operator_length;
   };
   void visit_binding_element(expression *ast, parse_visitor_base &v,
                              const binding_element_info &);
