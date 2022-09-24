@@ -1546,6 +1546,13 @@
               this_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_this_parameter_not_allowed_when_destructuring, "E0302",             \
+      diagnostic_severity::error, { source_code_span this_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "'this' parameter not allowed when destructuring"),          \
+              this_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_abstract_class_not_allowed_in_javascript, "E0244",       \
       diagnostic_severity::error, { source_code_span abstract_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("{0} classes are not allowed in JavaScript"),  \

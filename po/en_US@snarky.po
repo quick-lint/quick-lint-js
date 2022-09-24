@@ -1017,6 +1017,11 @@ msgstr "you forgot the parameters"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'this' parameter not allowed when destructuring"
+msgstr "you forgot the parameters"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

@@ -1049,6 +1049,11 @@ msgstr "paramètres manquants pour la fonction fléchée"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'this' parameter not allowed when destructuring"
+msgstr "paramètres manquants pour la fonction fléchée"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

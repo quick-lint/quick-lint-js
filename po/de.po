@@ -1038,6 +1038,11 @@ msgstr "Parameter fehlen für Arrow-Funktion"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'this' parameter not allowed when destructuring"
+msgstr "Parameter fehlen für Arrow-Funktion"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

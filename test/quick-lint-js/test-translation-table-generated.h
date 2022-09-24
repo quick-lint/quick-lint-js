@@ -299,6 +299,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'this' parameter not allowed when destructuring"_translatable,
+        {
+            u8"'this' parameter not allowed when destructuring",
+            u8"'this' parameter not allowed when destructuring",
+            u8"'this' parameter not allowed when destructuring",
+            u8"'this' parameter not allowed when destructuring",
+            u8"'this' parameter not allowed when destructuring",
+        },
+    },
+    {
         "'this' parameters are not allowed in arrow functions"_translatable,
         {
             u8"'this' parameters are not allowed in arrow functions",

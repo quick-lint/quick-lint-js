@@ -576,6 +576,19 @@ TEST_F(test_parse_var, parse_invalid_let) {
                     p.code, diag_unexpected_literal_in_parameter_list,  //
                     literal, strlen(u8"let ["), u8"42")));
   }
+
+  {
+    test_parser p(u8"let [this] = x;"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    // TODO(strager): Report a better message. We should say 'let statement',
+    // not 'parameter'.
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code, diag_this_parameter_not_allowed_when_destructuring,  //
+            this_keyword, strlen(u8"let ["), u8"this")));
+  }
 }
 
 TEST_F(test_parse_var, parse_let_with_missing_equal) {

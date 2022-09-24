@@ -170,6 +170,36 @@ TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
                     this_keyword, strlen(u8"async ("), u8"this")));
   }
 }
+
+TEST_F(test_parse_typescript_this_parameters, not_allowed_when_destructuring) {
+  {
+    test_parser p(u8"function([this]) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_when_destructuring,  //
+                    this_keyword, strlen(u8"function(["), u8"this")));
+  }
+
+  {
+    test_parser p(u8"function({key: this}) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_when_destructuring,  //
+                    this_keyword, strlen(u8"function({key: "), u8"this")));
+  }
+}
 }
 }
 

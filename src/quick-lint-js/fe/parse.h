@@ -368,11 +368,18 @@ class parser {
     variable_kind declaration_kind;
     std::optional<source_code_span> declaring_token;
     variable_init_kind init_kind;
+    bool is_destructuring = false;
 
     binding_element_info with_init_kind(variable_init_kind init_kind) const
         noexcept {
       binding_element_info result = *this;
       result.init_kind = init_kind;
+      return result;
+    }
+
+    binding_element_info with_destructuring() const noexcept {
+      binding_element_info result = *this;
+      result.is_destructuring = true;
       return result;
     }
   };

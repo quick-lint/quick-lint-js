@@ -962,6 +962,10 @@ msgid "'this' parameters are not allowed in arrow functions"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'this' parameter not allowed when destructuring"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 

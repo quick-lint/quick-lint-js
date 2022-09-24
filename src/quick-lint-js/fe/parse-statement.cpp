@@ -3862,11 +3862,13 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   };
 
   switch (ast->kind()) {
-  case expression_kind::array:
+  case expression_kind::array: {
+    binding_element_info child_info = info.with_destructuring();
     for (expression *item : ast->children()) {
-      this->visit_binding_element(item, v, info);
+      this->visit_binding_element(item, v, child_info);
     }
     break;
+  }
 
   case expression_kind::compound_assignment:
     if (info.declaring_token.has_value()) {
@@ -3916,15 +3918,19 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     visit_variable_declaration(ident);
     break;
   }
-  case expression_kind::object:
+
+  case expression_kind::object: {
+    binding_element_info child_info = info.with_destructuring();
     for (int i = 0; i < ast->object_entry_count(); ++i) {
       const object_property_value_pair &entry = ast->object_entry(i);
       if (entry.init) {
         this->visit_expression(entry.init, v, variable_context::rhs);
       }
-      this->visit_binding_element(entry.value, v, info);
+      this->visit_binding_element(entry.value, v, child_info);
     }
     break;
+  }
+
   case expression_kind::spread:
     this->visit_binding_element(ast->child_0(), v, info);
     break;
@@ -4061,6 +4067,12 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     if (info.declaration_kind == variable_kind::_arrow_parameter) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_in_arrow_functions{
+              .this_keyword = ast->span(),
+          });
+    }
+    if (info.is_destructuring) {
+      this->diag_reporter_->report(
+          diag_this_parameter_not_allowed_when_destructuring{
               .this_keyword = ast->span(),
           });
     }
