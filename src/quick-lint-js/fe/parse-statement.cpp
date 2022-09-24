@@ -1583,6 +1583,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::dot_dot_dot:
     case token_type::identifier:
+    case token_type::kw_this:
     case token_type::kw_yield:
     case token_type::left_curly:
     case token_type::left_paren:
@@ -4050,10 +4051,13 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   }
 
   case expression_kind::literal:
-  case expression_kind::this_variable:
     this->diag_reporter_->report(diag_unexpected_literal_in_parameter_list{
         .literal = ast->span(),
     });
+    break;
+
+  // function f(this) {}
+  case expression_kind::this_variable:
     break;
 
   // const [x]: []number = xs;
