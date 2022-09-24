@@ -293,11 +293,13 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
   const char8 use[] = u8"I";
 
   for (variable_kind kind : {
+           variable_kind::_arrow_parameter,
            variable_kind::_catch,
            variable_kind::_const,
            variable_kind::_function,
+           variable_kind::_function_parameter,
+           variable_kind::_index_signature_parameter,
            variable_kind::_let,
-           variable_kind::_parameter,
            variable_kind::_var,
        }) {
     SCOPED_TRACE(kind);
@@ -548,11 +550,13 @@ TEST(test_variable_analyzer_type,
     }
 
     for (variable_kind outer_kind : {
+             variable_kind::_arrow_parameter,
              variable_kind::_catch,
              variable_kind::_const,
              variable_kind::_function,
+             variable_kind::_function_parameter,
+             variable_kind::_index_signature_parameter,
              variable_kind::_let,
-             variable_kind::_parameter,
              variable_kind::_var,
          }) {
       SCOPED_TRACE(outer_kind);
@@ -664,11 +668,13 @@ TEST(test_variable_analyzer_type, mixing_non_type_and_type_only_is_okay) {
 
   for (variable_kind type_declaration_kind : {variable_kind::_interface}) {
     for (variable_kind non_type_declaration_kind : {
+             variable_kind::_arrow_parameter,
              variable_kind::_catch,
              variable_kind::_const,
              variable_kind::_function,
+             variable_kind::_function_parameter,
+             variable_kind::_index_signature_parameter,
              variable_kind::_let,
-             variable_kind::_parameter,
              variable_kind::_var,
          }) {
       SCOPED_TRACE(type_declaration_kind);

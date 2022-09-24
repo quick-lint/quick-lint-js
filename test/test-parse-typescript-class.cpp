@@ -99,10 +99,9 @@ TEST_F(test_parse_typescript_class,
                                       "visit_exit_class_scope",            // C
                                       "visit_variable_declaration"));      // C
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
-    // TODO(strager): We probably should create a new kind of variable instead
-    // of 'parameter'.
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(param_decl(u8"key"), class_decl(u8"C")));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAre(index_signature_param_decl(u8"key"), class_decl(u8"C")));
   }
 }
 

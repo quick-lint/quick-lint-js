@@ -1507,7 +1507,8 @@ parser::parse_and_visit_function_parameters(
   case token_type::left_paren:
     this->skip();
 
-    this->parse_and_visit_function_parameters(v);
+    this->parse_and_visit_function_parameters(
+        v, variable_kind::_function_parameter);
 
     if (this->peek().type != token_type::right_paren) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -1558,7 +1559,8 @@ parser::parse_and_visit_function_parameters(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
+void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
+                                                 variable_kind parameter_kind) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
   bool first_parameter = true;
   for (;;) {
@@ -1594,13 +1596,12 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
                  .in_operator = true,
                  .colon_type_annotation = allow_type_annotations::always,
              });
-      this->visit_binding_element(
-          parameter, v,
-          binding_element_info{
-              .declaration_kind = variable_kind::_parameter,
-              .declaring_token = std::nullopt,
-              .init_kind = variable_init_kind::normal,
-          });
+      this->visit_binding_element(parameter, v,
+                                  binding_element_info{
+                                      .declaration_kind = parameter_kind,
+                                      .declaring_token = std::nullopt,
+                                      .init_kind = variable_init_kind::normal,
+                                  });
       if (parameter->kind() == expression_kind::spread) {
         last_parameter_spread_span = parameter->span();
       } else {

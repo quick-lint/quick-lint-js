@@ -478,7 +478,7 @@ TEST_F(
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"g"), param_decl(u8"if")));
+                ElementsAre(function_decl(u8"g"), func_param_decl(u8"if")));
   }
 
   {
@@ -491,7 +491,7 @@ TEST_F(
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"if")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"if")));
   }
 }
 

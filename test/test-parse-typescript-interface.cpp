@@ -554,7 +554,8 @@ TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(interface_decl(u8"I"), param_decl(u8"key")));
+                ElementsAre(interface_decl(u8"I"),
+                            index_signature_param_decl(u8"key")));
   }
 
   {
@@ -1328,7 +1329,7 @@ TEST_F(test_parse_typescript_interface, generic_call_signature) {
                             "visit_exit_interface_scope"));  // I
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(interface_decl(u8"I"), generic_param_decl(u8"T"),
-                            param_decl(u8"param")));
+                            func_param_decl(u8"param")));
   }
 }
 

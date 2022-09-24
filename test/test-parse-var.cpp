@@ -850,7 +850,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
                             "visit_enter_function_scope_body",
                             "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"let"), param_decl(u8"let")));
+                ElementsAre(function_decl(u8"let"), func_param_decl(u8"let")));
   }
 
   {
@@ -913,7 +913,8 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
                                       "visit_variable_declaration",       // let
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(arrow_param_decl(u8"let")));
   }
 
   {
@@ -1139,7 +1140,8 @@ TEST_F(test_parse_var, declare_await_in_non_async_function) {
         u8"  (function(await) { })\n"
         u8"})");
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"await")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_param_decl(u8"await")));
   }
 
   {
@@ -1194,7 +1196,7 @@ TEST_F(test_parse_var, declare_await_in_async_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
-                            param_decl(u8"await")));
+                            func_param_decl(u8"await")));
     EXPECT_THAT(
         p.errors,
         UnorderedElementsAre(
@@ -1476,7 +1478,8 @@ TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
         u8"  (function(yield) { })\n"
         u8"})");
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"yield")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_param_decl(u8"yield")));
   }
 
   {
@@ -1531,7 +1534,7 @@ TEST_F(test_parse_var, declare_yield_in_generator_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
-                            param_decl(u8"yield")));
+                            func_param_decl(u8"yield")));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code, diag_cannot_declare_yield_in_generator_function,  //
@@ -1602,7 +1605,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
                       "visit_enter_function_scope_body",  //
                       "visit_exit_function_scope"));
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAre(function_decl(name), param_decl(name)));
+                  ElementsAre(function_decl(name), func_param_decl(name)));
     }
 
     {
@@ -1719,7 +1722,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
                                         "visit_variable_declaration",  // (name)
                                         "visit_enter_function_scope_body",  //
                                         "visit_exit_function_scope"));
-      EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(name)));
     }
 
     {

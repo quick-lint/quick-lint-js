@@ -845,11 +845,15 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
 
     QLJS_WARNING_POP
     break;
+  case variable_kind::_arrow_parameter:
   case variable_kind::_catch:
   case variable_kind::_class:
   case variable_kind::_function:
+  case variable_kind::_function_parameter:
+  case variable_kind::_function_type_parameter:
+  // FIXME(strager): Is _index_signature_parameter correct here?
+  case variable_kind::_index_signature_parameter:
   case variable_kind::_let:
-  case variable_kind::_parameter:
   case variable_kind::_var:
     if (is_assigned_before_declaration) {
       QLJS_WARNING_PUSH
@@ -959,18 +963,30 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
 
   switch (other_kind) {
   case vk::_catch:
+    QLJS_ASSERT(kind != vk::_arrow_parameter);
+    QLJS_ASSERT(kind != vk::_function_parameter);
+    QLJS_ASSERT(kind != vk::_function_type_parameter);
     QLJS_ASSERT(kind != vk::_import);
-    QLJS_ASSERT(kind != vk::_parameter);
+    // FIXME(strager): Is _index_signature_parameter correct here?
+    QLJS_ASSERT(kind != vk::_index_signature_parameter);
     break;
   case vk::_class:
   case vk::_const:
   case vk::_function:
   case vk::_let:
   case vk::_var:
+    QLJS_ASSERT(kind != vk::_arrow_parameter);
     QLJS_ASSERT(kind != vk::_catch);
-    QLJS_ASSERT(kind != vk::_parameter);
+    QLJS_ASSERT(kind != vk::_function_parameter);
+    QLJS_ASSERT(kind != vk::_function_type_parameter);
+    // FIXME(strager): Is _index_signature_parameter correct here?
+    QLJS_ASSERT(kind != vk::_index_signature_parameter);
     break;
-  case vk::_parameter:
+  case vk::_arrow_parameter:
+  case vk::_function_parameter:
+  case vk::_function_type_parameter:
+  // FIXME(strager): Is _index_signature_parameter correct here?
+  case vk::_index_signature_parameter:
     QLJS_ASSERT(kind != vk::_catch);
     QLJS_ASSERT(kind != vk::_import);
     break;
@@ -993,16 +1009,26 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
     break;
   }
 
+  // FIXME(strager): Is _function_type_parameter correct here?
+  // FIXME(strager): Is _index_signature_parameter correct here?
+  auto is_parameter = [](vk k) {
+    return k == vk::_arrow_parameter || k == vk::_function_parameter ||
+           k == vk::_function_type_parameter ||
+           k == vk::_index_signature_parameter;
+  };
+  bool kind_is_parameter = is_parameter(kind);
+  bool other_kind_is_parameter = is_parameter(other_kind);
+
   bool redeclaration_ok =
-      (other_kind == vk::_function && kind == vk::_parameter) ||
+      (other_kind == vk::_function && kind_is_parameter) ||
       (other_kind == vk::_function && kind == vk::_function) ||
-      (other_kind == vk::_parameter && kind == vk::_function) ||
+      (other_kind_is_parameter && kind == vk::_function) ||
       (other_kind == vk::_var && kind == vk::_function) ||
-      (other_kind == vk::_parameter && kind == vk::_parameter) ||
+      (other_kind_is_parameter && kind_is_parameter) ||
       (other_kind == vk::_catch && kind == vk::_enum) ||
       (other_kind == vk::_catch && kind == vk::_var) ||
       (other_kind == vk::_function && kind == vk::_var) ||
-      (other_kind == vk::_parameter && kind == vk::_var) ||
+      (other_kind_is_parameter && kind == vk::_var) ||
       (other_kind == vk::_var && kind == vk::_var) ||
       (other_kind == vk::_function &&
        already_declared_declaration_scope ==
@@ -1193,16 +1219,19 @@ int variable_analyzer::scopes::size() const noexcept {
 namespace {
 bool is_runtime(variable_kind kind) noexcept {
   switch (kind) {
+  case variable_kind::_arrow_parameter:
   case variable_kind::_catch:
   case variable_kind::_class:
   case variable_kind::_const:
   case variable_kind::_enum:
   case variable_kind::_function:
+  case variable_kind::_function_parameter:
+  case variable_kind::_function_type_parameter:
   case variable_kind::_import:
   case variable_kind::_import_alias:
+  case variable_kind::_index_signature_parameter:
   case variable_kind::_let:
   case variable_kind::_namespace:
-  case variable_kind::_parameter:
   case variable_kind::_var:
     return true;
   case variable_kind::_generic_parameter:
@@ -1226,11 +1255,14 @@ bool is_type(variable_kind kind) noexcept {
   case variable_kind::_namespace:
   case variable_kind::_type_alias:
     return true;
+  case variable_kind::_arrow_parameter:
   case variable_kind::_catch:
   case variable_kind::_const:
   case variable_kind::_function:
+  case variable_kind::_function_parameter:
+  case variable_kind::_function_type_parameter:
+  case variable_kind::_index_signature_parameter:
   case variable_kind::_let:
-  case variable_kind::_parameter:
   case variable_kind::_var:
     return false;
   }

@@ -583,10 +583,9 @@ void parser::parse_and_visit_class_or_interface_member(
           const char8 *name_end = p->peek().end;
           p->skip();
 
-          // TODO(strager): We probably should create a new kind of variable
-          // instead of overloading 'parameter'.
-          v.visit_variable_declaration(key_variable, variable_kind::_parameter,
-                                       variable_init_kind::normal);
+          v.visit_variable_declaration(
+              key_variable, variable_kind::_index_signature_parameter,
+              variable_init_kind::normal);
 
           switch (p->peek().type) {
           // [key: KeyType]: ValueType;

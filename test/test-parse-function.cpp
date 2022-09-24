@@ -59,8 +59,9 @@ TEST_F(test_parse_function, parse_function_statement) {
   {
     test_parser p(u8"function sin(theta) {}"_sv);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"sin"), param_decl(u8"theta")));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAre(function_decl(u8"sin"), func_param_decl(u8"theta")));
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // sin
                                       "visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // theta
@@ -122,8 +123,8 @@ TEST_F(test_parse_function, parse_function_statement) {
     test_parser p(u8"function g(first, ...args) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"g"), param_decl(u8"first"),
-                            param_decl(u8"args")));
+                ElementsAre(function_decl(u8"g"), func_param_decl(u8"first"),
+                            func_param_decl(u8"args")));
   }
 }
 
@@ -377,7 +378,7 @@ TEST_F(test_parse_function, parse_function_expression) {
                             "visit_exit_function_scope",        //
                             "visit_variable_use",               // a
                             "visit_variable_use"));             // d
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"b")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(func_param_decl(u8"b")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"c", u8"a", u8"d"));
   }
 
@@ -412,7 +413,7 @@ TEST_F(test_parse_function, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"y"));
   }
 
@@ -425,7 +426,7 @@ TEST_F(test_parse_function, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // z
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"y", u8"z"));
   }
 
@@ -480,7 +481,7 @@ TEST_F(test_parse_function, arrow_function_expression_with_statements) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"y"));
   }
 }
@@ -506,7 +507,7 @@ TEST_F(test_parse_function, nested_arrow_function) {
                                       "visit_exit_function_scope",        //
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(param_decl(u8"x"), param_decl(u8"y")));
+                ElementsAre(arrow_param_decl(u8"x"), arrow_param_decl(u8"y")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 
@@ -1647,7 +1648,7 @@ TEST_F(test_parse_function, invalid_function_parameter) {
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), param_decl(u8"p")));
+                ElementsAre(function_decl(u8"f"), func_param_decl(u8"p")));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code, diag_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"g()")));
@@ -1661,7 +1662,7 @@ TEST_F(test_parse_function, invalid_function_parameter) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"p")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"p")));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code, diag_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"g()")));

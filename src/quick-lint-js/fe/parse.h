@@ -254,7 +254,8 @@ class parser {
       function_attributes attributes);
   function_parameter_parse_result parse_and_visit_function_parameters(
       parse_visitor_base &v, std::optional<source_code_span> name);
-  void parse_and_visit_function_parameters(parse_visitor_base &v);
+  void parse_and_visit_function_parameters(parse_visitor_base &v,
+                                           variable_kind parameter_kind);
   std::optional<source_code_span> is_maybe_function_statement();
   // If the function returns nullopt, no tokens are consumed.
   //

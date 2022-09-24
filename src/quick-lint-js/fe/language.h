@@ -23,19 +23,22 @@ enum class enum_kind {
 };
 
 enum class variable_kind {
+  _arrow_parameter,
   _catch,
   _class,
   _const,
   _enum,  // TypeScript only
   _function,
-  _generic_parameter,  // TypeScript only
+  _function_parameter,       // Non-arrow parameter
+  _function_type_parameter,  // TypeScript only
+  _generic_parameter,        // TypeScript only
   _import,
-  _import_alias,  // TypeScript only
-  _import_type,   // TypeScript only
-  _interface,     // TypeScript only
+  _import_alias,               // TypeScript only
+  _import_type,                // TypeScript only
+  _index_signature_parameter,  // TypeScript only
+  _interface,                  // TypeScript only
   _let,
-  _namespace,  // TypeScript only
-  _parameter,
+  _namespace,   // TypeScript only
   _type_alias,  // TypeScript only
   _var,
 };

@@ -164,7 +164,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                               p.code,
                               diag_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"<T>x")));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
   }
 
   {
@@ -176,7 +176,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                               diag_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"<T>x")));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), param_decl(u8"x")));
+                ElementsAre(function_decl(u8"f"), func_param_decl(u8"x")));
   }
 }
 }

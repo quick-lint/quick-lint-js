@@ -386,7 +386,8 @@ void parser::parse_and_visit_typescript_arrow_type_expression_after_left_paren(
 void parser::
     parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
         parse_visitor_base &v) {
-  this->parse_and_visit_function_parameters(v);
+  this->parse_and_visit_function_parameters(
+      v, variable_kind::_function_type_parameter);
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
@@ -601,8 +602,9 @@ void parser::parse_and_visit_typescript_object_type_expression(
           is_index_signature = true;
           v.visit_enter_index_signature_scope();
           this->parse_and_visit_typescript_colon_type_expression(v);
-          v.visit_variable_declaration(ident, variable_kind::_parameter,
-                                       variable_init_kind::normal);
+          v.visit_variable_declaration(
+              ident, variable_kind::_index_signature_parameter,
+              variable_init_kind::normal);
           break;
 
         // { [key in Type]: Type }

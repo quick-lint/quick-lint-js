@@ -11,19 +11,22 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
     out << #k;           \
     return out;
   switch (kind) {
+    QLJS_CASE(_arrow_parameter)
     QLJS_CASE(_catch)
     QLJS_CASE(_class)
     QLJS_CASE(_const)
     QLJS_CASE(_enum)
     QLJS_CASE(_function)
+    QLJS_CASE(_function_parameter)
+    QLJS_CASE(_function_type_parameter)
     QLJS_CASE(_generic_parameter)
     QLJS_CASE(_import)
     QLJS_CASE(_import_alias)
     QLJS_CASE(_import_type)
+    QLJS_CASE(_index_signature_parameter)
     QLJS_CASE(_interface)
     QLJS_CASE(_let)
     QLJS_CASE(_namespace)
-    QLJS_CASE(_parameter)
     QLJS_CASE(_type_alias)
     QLJS_CASE(_var)
   }

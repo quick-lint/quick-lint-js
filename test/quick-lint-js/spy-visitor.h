@@ -31,6 +31,13 @@ struct visited_variable_declaration {
   }
 };
 
+// An function/method parameter. Not an arrow function parameter.
+inline visited_variable_declaration arrow_param_decl(string8_view name) {
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_arrow_parameter,
+                                      variable_init_kind::normal};
+}
+
 inline visited_variable_declaration catch_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_catch,
                                       variable_init_kind::normal};
@@ -66,6 +73,20 @@ inline visited_variable_declaration function_decl(string8_view name) {
                                       variable_init_kind::normal};
 }
 
+// An function/method parameter. Not an arrow function parameter.
+inline visited_variable_declaration func_param_decl(string8_view name) {
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_function_parameter,
+                                      variable_init_kind::normal};
+}
+
+// An function parameter in a TypeScript type.
+inline visited_variable_declaration func_type_param_decl(string8_view name) {
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_function_type_parameter,
+                                      variable_init_kind::normal};
+}
+
 // A TypeScript namespace or module alias. Example: import A = B;
 inline visited_variable_declaration import_alias_decl(string8_view name) {
   return visited_variable_declaration{
@@ -80,6 +101,16 @@ inline visited_variable_declaration import_decl(string8_view name) {
 inline visited_variable_declaration import_type_decl(string8_view name) {
   return visited_variable_declaration{
       string8(name), variable_kind::_import_type, variable_init_kind::normal};
+}
+
+// A parameter in a TypeScript index signature.
+//
+// Example: [key: KeyType]: ValueType  // key is an index signature parameter.
+inline visited_variable_declaration index_signature_param_decl(
+    string8_view name) {
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_index_signature_parameter,
+                                      variable_init_kind::normal};
 }
 
 inline visited_variable_declaration interface_decl(string8_view name) {
@@ -103,12 +134,6 @@ inline visited_variable_declaration let_noinit_decl(string8_view name) {
 // A TypeScript namespace (declared with the 'namespace' keyword).
 inline visited_variable_declaration namespace_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_namespace,
-                                      variable_init_kind::normal};
-}
-
-// An arrow/function/method parameter.
-inline visited_variable_declaration param_decl(string8_view name) {
-  return visited_variable_declaration{string8(name), variable_kind::_parameter,
                                       variable_init_kind::normal};
 }
 

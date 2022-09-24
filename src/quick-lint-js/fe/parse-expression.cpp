@@ -2259,7 +2259,7 @@ expression* parser::parse_arrow_function_body_no_scope(
     this->visit_binding_element(
         parameter, v,
         binding_element_info{
-            .declaration_kind = variable_kind::_parameter,
+            .declaration_kind = variable_kind::_arrow_parameter,
             .declaring_token = std::nullopt,
             .init_kind = variable_init_kind::normal,
         });

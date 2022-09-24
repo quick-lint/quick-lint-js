@@ -48,7 +48,7 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
                                       "visit_exit_function_scope"));      // }
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAre(generic_param_decl(u8"Type"), param_decl(u8"param")));
+        ElementsAre(generic_param_decl(u8"Type"), arrow_param_decl(u8"param")));
   }
 
   {
@@ -63,7 +63,7 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAre(generic_param_decl(u8"Type"), param_decl(u8"param")));
+        ElementsAre(generic_param_decl(u8"Type"), arrow_param_decl(u8"param")));
   }
 }
 
@@ -171,8 +171,9 @@ TEST_F(test_parse_typescript_generic_arrow,
                                       "visit_variable_declaration",  // param
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAre(generic_param_decl(u8"T"), arrow_param_decl(u8"param")));
   }
 
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
@@ -201,8 +202,9 @@ TEST_F(test_parse_typescript_generic_arrow,
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAre(generic_param_decl(u8"T"), arrow_param_decl(u8"param")));
   }
 }
 
@@ -254,7 +256,7 @@ TEST_F(test_parse_typescript_generic_arrow,
                   ElementsAre(u8"ParamType", u8"ReturnType", u8"myPromise"));
       EXPECT_THAT(
           p.variable_declarations,
-          ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
+          ElementsAre(generic_param_decl(u8"T"), arrow_param_decl(u8"param")));
     }
   }
 }

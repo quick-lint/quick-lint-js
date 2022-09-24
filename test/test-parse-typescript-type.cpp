@@ -538,7 +538,8 @@ TEST_F(test_parse_typescript_type, object_type_with_index_signature) {
                                       "visit_variable_declaration",  // key
                                       "visit_variable_type_use",     // PropType
                                       "visit_exit_index_signature_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"key")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(index_signature_param_decl(u8"key")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"KeyType", u8"PropType"));
   }
 }
@@ -675,7 +676,8 @@ TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"param")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_param_decl(u8"param")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
   }
 }
@@ -689,8 +691,9 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAre(generic_param_decl(u8"T"), func_param_decl(u8"param")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
   }
 }
@@ -749,7 +752,8 @@ TEST_F(test_parse_typescript_type,
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
-      EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(keyword)));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAre(index_signature_param_decl(keyword)));
     }
 
     {
@@ -781,7 +785,8 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"param")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_type_param_decl(u8"param")));
   }
 
   {
@@ -796,7 +801,8 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAre(param_decl(u8"a"), param_decl(u8"b"), param_decl(u8"c")));
+        ElementsAre(func_type_param_decl(u8"a"), func_type_param_decl(u8"b"),
+                    func_type_param_decl(u8"c")));
   }
 
   {
@@ -808,7 +814,8 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"param")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_type_param_decl(u8"param")));
   }
 
   {
@@ -823,7 +830,8 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAre(param_decl(u8"a"), param_decl(u8"b"), param_decl(u8"c")));
+        ElementsAre(func_type_param_decl(u8"a"), func_type_param_decl(u8"b"),
+                    func_type_param_decl(u8"c")));
   }
 
   {
@@ -836,7 +844,8 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"param")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_type_param_decl(u8"param")));
   }
 }
 
@@ -887,7 +896,8 @@ TEST_F(test_parse_typescript_type, constructor_function) {
                                       "visit_exit_function_scope"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(param_decl(u8"param1"), param_decl(u8"param2")));
+                ElementsAre(func_type_param_decl(u8"param1"),
+                            func_type_param_decl(u8"param2")));
   }
 }
 

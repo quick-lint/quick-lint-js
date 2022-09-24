@@ -903,7 +903,7 @@ TEST(
   l.visit_enter_named_function_scope(identifier_of(declaration));
   l.visit_variable_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               variable_kind::_parameter,
+                               variable_kind::_function_parameter,
                                variable_init_kind::normal);
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -1031,7 +1031,7 @@ TEST(test_variable_analyzer, assign_to_mutable_variable) {
   for (variable_kind kind :
        {variable_kind::_let, variable_kind::_var, variable_kind::_class,
         variable_kind::_function, variable_kind::_catch,
-        variable_kind::_parameter}) {
+        variable_kind::_arrow_parameter, variable_kind::_function_parameter}) {
     const char8 declaration[] = u8"x";
     const char8 assignment[] = u8"x";
 
@@ -1756,10 +1756,10 @@ TEST(test_variable_analyzer, declaring_parameter_twice_is_okay) {
   variable_analyzer l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_parameter,
+                               variable_kind::_arrow_parameter,
                                variable_init_kind::normal);
   l.visit_variable_declaration(identifier_of(second_declaration),
-                               variable_kind::_parameter,
+                               variable_kind::_arrow_parameter,
                                variable_init_kind::normal);
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -1872,7 +1872,7 @@ TEST(test_variable_analyzer, mixing_parameter_and_var_or_function_is_okay) {
     variable_analyzer l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(second_declaration),
@@ -1892,7 +1892,7 @@ TEST(test_variable_analyzer, mixing_parameter_and_var_or_function_is_okay) {
     variable_analyzer l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(second_declaration),
@@ -2163,7 +2163,7 @@ TEST(test_variable_analyzer,
     variable_analyzer l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
@@ -2195,7 +2195,7 @@ TEST(test_variable_analyzer, let_variable_in_inner_scope_as_parameter_shadows) {
     variable_analyzer l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_enter_block_scope();
@@ -2279,7 +2279,7 @@ TEST(test_variable_analyzer,
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
@@ -2308,7 +2308,7 @@ TEST(test_variable_analyzer,
     l.visit_exit_function_scope();
 
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
@@ -2335,7 +2335,7 @@ TEST(test_variable_analyzer, parameter_default_value_uses_undeclared_variable) {
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -2360,7 +2360,7 @@ TEST(test_variable_analyzer, parameter_default_value_uses_undeclared_variable) {
     l.visit_exit_function_scope();
 
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_arrow_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -2384,7 +2384,7 @@ TEST(test_variable_analyzer, parameter_shadows_named_function_name) {
   variable_analyzer l(&v, &default_globals);
   l.visit_enter_named_function_scope(identifier_of(function_declaration));
   l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               variable_kind::_parameter,
+                               variable_kind::_function_parameter,
                                variable_init_kind::normal);
   l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(parameter_use));
@@ -2856,7 +2856,7 @@ TEST(test_variable_analyzer_interface,
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_index_signature_parameter,
                                  variable_init_kind::normal);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
@@ -2879,7 +2879,7 @@ TEST(test_variable_analyzer_interface,
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_index_signature_parameter,
                                  variable_init_kind::normal);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
@@ -2912,7 +2912,7 @@ TEST(test_variable_analyzer_interface,
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_index_signature_parameter,
                                  variable_init_kind::normal);
     l.visit_variable_use(identifier_of(index_use));
     l.visit_exit_index_signature_scope();
@@ -2945,7 +2945,7 @@ TEST(test_variable_analyzer_interface,
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_index_signature_parameter,
                                  variable_init_kind::normal);
     l.visit_exit_index_signature_scope();
     l.visit_property_declaration(identifier_of(property_declaration));
@@ -3103,7 +3103,7 @@ TEST(test_variable_analyzer_magic_arguments,
   variable_analyzer l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               variable_kind::_parameter,
+                               variable_kind::_function_parameter,
                                variable_init_kind::normal);
   l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(parameter_use));
@@ -3126,7 +3126,7 @@ TEST(test_variable_analyzer_magic_arguments,
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_function_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -3149,7 +3149,7 @@ TEST(test_variable_analyzer_magic_arguments,
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_function_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
@@ -3907,7 +3907,7 @@ TEST(test_variable_analyzer_typeof_eval,
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_parameter,
+                                 variable_kind::_function_parameter,
                                  variable_init_kind::normal);
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -4213,7 +4213,7 @@ TEST(test_variable_analyzer_typeof_unused_shadow,
   variable_analyzer l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter),
-                               variable_kind::_parameter,
+                               variable_kind::_function_parameter,
                                variable_init_kind::normal);
   l.visit_enter_function_scope_body();
   l.visit_enter_block_scope();

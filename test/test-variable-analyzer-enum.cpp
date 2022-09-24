@@ -95,14 +95,17 @@ TEST(test_variable_analyzer_enum,
   const char8 other_declaration[] = u8"E";
 
   for (variable_kind other_kind : {
+           variable_kind::_arrow_parameter,
            variable_kind::_class,
            variable_kind::_const,
            variable_kind::_function,
+           variable_kind::_function_parameter,
            variable_kind::_generic_parameter,
            variable_kind::_import,
+           // FIXME(strager): Is _index_signature_parameter even possible?
+           variable_kind::_index_signature_parameter,
            variable_kind::_interface,
            variable_kind::_let,
-           variable_kind::_parameter,
            variable_kind::_var,
        }) {
     SCOPED_TRACE(other_kind);
@@ -241,14 +244,17 @@ TEST(test_variable_analyzer_enum, enum_shadows_most_variables_in_outer_scope) {
   const char8 enum_declaration[] = u8"E";
 
   for (variable_kind outer_kind : {
+           variable_kind::_arrow_parameter,
            variable_kind::_class,
            variable_kind::_const,
            variable_kind::_function,
+           variable_kind::_function_parameter,
            variable_kind::_generic_parameter,
            variable_kind::_import,
+           // FIXME(strager): Is _index_signature_parameter even possible?
+           variable_kind::_index_signature_parameter,
            variable_kind::_interface,
            variable_kind::_let,
-           variable_kind::_parameter,
            variable_kind::_var,
        }) {
     SCOPED_TRACE(outer_kind);

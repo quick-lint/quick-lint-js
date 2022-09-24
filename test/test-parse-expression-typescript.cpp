@@ -197,7 +197,7 @@ TEST_F(test_parse_expression_typescript,
             p.code,
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"(x "), u8"as")));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
   }
 
   {
@@ -208,9 +208,9 @@ TEST_F(test_parse_expression_typescript,
         p.errors,
         ElementsAre(DIAG_TYPE(
             diag_typescript_as_keyword_used_for_parameter_type_annotation)));
-    EXPECT_THAT(
-        p.variable_declarations,
-        ElementsAre(param_decl(u8"x"), param_decl(u8"y"), param_decl(u8"z")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(arrow_param_decl(u8"x"), arrow_param_decl(u8"y"),
+                            arrow_param_decl(u8"z")));
   }
 
   {
@@ -224,7 +224,7 @@ TEST_F(test_parse_expression_typescript,
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"function f(x "), u8"as")));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), param_decl(u8"x")));
+                ElementsAre(function_decl(u8"f"), func_param_decl(u8"x")));
   }
 
   {
