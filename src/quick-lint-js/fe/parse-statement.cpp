@@ -4076,8 +4076,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
           diag_this_parameter_not_allowed_in_arrow_functions{
               .this_keyword = this_span,
           });
-    }
-    if (info.is_destructuring) {
+    } else if (info.is_destructuring) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_when_destructuring{
               .this_keyword = this_span,

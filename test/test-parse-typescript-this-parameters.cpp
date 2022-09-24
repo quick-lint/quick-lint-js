@@ -218,6 +218,39 @@ TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
                     first_parameter_begin, strlen(u8"function( "), u8"")));
   }
 }
+
+TEST_F(test_parse_typescript_this_parameters,
+       multiple_issues_reports_only_one_diagnostic) {
+  {
+    test_parser p(u8"function(other, [this]) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_when_destructuring)))
+        << "should not also report diag_this_parameter_must_be_first";
+  }
+
+  {
+    test_parser p(u8"([this]) => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_in_arrow_functions)))
+        << "should not also report "
+           "diag_this_parameter_not_allowed_when_destructuring";
+  }
+
+  {
+    test_parser p(u8"(other, this) => {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_in_arrow_functions)))
+        << "should not also report diag_this_parameter_must_be_first";
+  }
+}
 }
 }
 
