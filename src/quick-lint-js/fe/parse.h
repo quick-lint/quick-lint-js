@@ -362,10 +362,14 @@ class parser {
                                     bool is_in_for_initializer);
   bool is_let_token_a_variable_reference(const token &following_token,
                                          bool allow_declarations) noexcept;
+
+  struct binding_element_info {
+    variable_kind declaration_kind;
+    std::optional<source_code_span> declaring_token;
+    variable_init_kind init_kind;
+  };
   void visit_binding_element(expression *ast, parse_visitor_base &v,
-                             variable_kind declaration_kind,
-                             std::optional<source_code_span> declaring_token,
-                             variable_init_kind init_kind);
+                             const binding_element_info &);
 
   // FIXME(strager): This should be an enum class, but that causes GCC 8.3.0 to
   // fail compilation:

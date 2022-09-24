@@ -2256,9 +2256,13 @@ expression* parser::parse_arrow_function_body_no_scope(
   function_guard guard = this->enter_function(attributes);
 
   for (expression* parameter : parameters) {
-    this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                /*declaring_token=*/std::nullopt,
-                                /*init_kind=*/variable_init_kind::normal);
+    this->visit_binding_element(
+        parameter, v,
+        binding_element_info{
+            .declaration_kind = variable_kind::_parameter,
+            .declaring_token = std::nullopt,
+            .init_kind = variable_init_kind::normal,
+        });
   }
   if (return_type_visits) {
     std::move(*return_type_visits).move_into(v);
