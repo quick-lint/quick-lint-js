@@ -3693,13 +3693,12 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         });
         this->parse_and_visit_expression(
             v, precedence{.commas = false, .in_operator = allow_in_operator});
-        // TODO(strager): Would variable_init_kind::initialized_with_equals make
-        // more sense?
         this->visit_binding_element(
             variable, v,
             binding_element_info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = declaring_token.span(),
+                // TODO(strager): Would initialized_with_equals make more sense?
                 .init_kind = variable_init_kind::normal,
             });
         break;
@@ -3863,12 +3862,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   switch (ast->kind()) {
   case expression_kind::array:
     for (expression *item : ast->children()) {
-      this->visit_binding_element(item, v,
-                                  binding_element_info{
-                                      .declaration_kind = info.declaration_kind,
-                                      .declaring_token = info.declaring_token,
-                                      .init_kind = info.init_kind,
-                                  });
+      this->visit_binding_element(item, v, info);
     }
     break;
 
@@ -3900,11 +3894,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
       break;
     }
     this->visit_binding_element(ast->child_0(), v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = lhs_init_kind,
-                                });
+                                info.with_init_kind(lhs_init_kind));
     break;
   }
 
@@ -3930,21 +3920,11 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
       if (entry.init) {
         this->visit_expression(entry.init, v, variable_context::rhs);
       }
-      this->visit_binding_element(entry.value, v,
-                                  binding_element_info{
-                                      .declaration_kind = info.declaration_kind,
-                                      .declaring_token = info.declaring_token,
-                                      .init_kind = info.init_kind,
-                                  });
+      this->visit_binding_element(entry.value, v, info);
     }
     break;
   case expression_kind::spread:
-    this->visit_binding_element(ast->child_0(), v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(ast->child_0(), v, info);
     break;
 
   case expression_kind::await: {
@@ -4005,12 +3985,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
         diag_non_null_assertion_not_allowed_in_parameter{
             .bang = assertion->bang_span(),
         });
-    this->visit_binding_element(assertion->child_, v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(assertion->child_, v, info);
     break;
   }
 
@@ -4021,12 +3996,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     this->diag_reporter_->report(diag_invalid_parameter{
         .parameter = assertion->span(),
     });
-    this->visit_binding_element(assertion->child_, v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(assertion->child_, v, info);
     break;
   }
 
@@ -4037,12 +4007,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
         diag_typescript_as_keyword_used_for_parameter_type_annotation{
             .as_keyword = assertion->as_span(),
         });
-    this->visit_binding_element(assertion->child_, v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(assertion->child_, v, info);
     break;
   }
 
@@ -4051,12 +4016,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     this->diag_reporter_->report(diag_stray_comma_in_parameter{
         .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
     });
-    this->visit_binding_element(ast->child_0(), v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(ast->child_0(), v, info);
     break;
 
     // function f(#bananas) {}  // Invalid.
@@ -4077,12 +4037,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     // function f([(arg)]) {}  // Invalid.
   case expression_kind::paren:
     // TODO(strager): Report an error.
-    this->visit_binding_element(ast->child_0(), v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(ast->child_0(), v, info);
     break;
 
   // function f(()) {}  // Invalid.
@@ -4105,12 +4060,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     expression::type_annotated *annotated =
         static_cast<expression::type_annotated *>(ast);
     annotated->visit_type_annotation(v);
-    this->visit_binding_element(annotated->child_, v,
-                                binding_element_info{
-                                    .declaration_kind = info.declaration_kind,
-                                    .declaring_token = info.declaring_token,
-                                    .init_kind = info.init_kind,
-                                });
+    this->visit_binding_element(annotated->child_, v, info);
     break;
   }
   }

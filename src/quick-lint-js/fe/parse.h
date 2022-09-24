@@ -367,6 +367,13 @@ class parser {
     variable_kind declaration_kind;
     std::optional<source_code_span> declaring_token;
     variable_init_kind init_kind;
+
+    binding_element_info with_init_kind(variable_init_kind init_kind) const
+        noexcept {
+      binding_element_info result = *this;
+      result.init_kind = init_kind;
+      return result;
+    }
   };
   void visit_binding_element(expression *ast, parse_visitor_base &v,
                              const binding_element_info &);
