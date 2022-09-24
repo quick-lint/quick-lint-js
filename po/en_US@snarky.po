@@ -1012,6 +1012,11 @@ msgstr "take that stray comma out back and have it meet its maker 🔫"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'this' parameters are not allowed in arrow functions"
+msgstr "you forgot the parameters"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

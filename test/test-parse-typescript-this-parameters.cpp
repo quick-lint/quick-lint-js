@@ -122,6 +122,54 @@ TEST_F(test_parse_typescript_this_parameters,
                                       "visit_exit_function_scope"));      // }
   }
 }
+
+TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
+  {
+    test_parser p(u8"this => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  // method
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_in_arrow_functions,  //
+                    this_keyword, strlen(u8""), u8"this")));
+  }
+
+  {
+    test_parser p(u8"(this) => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  // method
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_in_arrow_functions,  //
+                    this_keyword, strlen(u8"("), u8"this")));
+  }
+
+  {
+    test_parser p(u8"async this => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_in_arrow_functions,  //
+                    this_keyword, strlen(u8"async "), u8"this")));
+  }
+
+  {
+    test_parser p(u8"async (this) => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code,
+                    diag_this_parameter_not_allowed_in_arrow_functions,  //
+                    this_keyword, strlen(u8"async ("), u8"this")));
+  }
+}
 }
 }
 

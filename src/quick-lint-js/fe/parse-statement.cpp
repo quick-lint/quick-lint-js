@@ -4058,6 +4058,12 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
 
   // function f(this) {}
   case expression_kind::this_variable:
+    if (info.declaration_kind == variable_kind::_arrow_parameter) {
+      this->diag_reporter_->report(
+          diag_this_parameter_not_allowed_in_arrow_functions{
+              .this_keyword = ast->span(),
+          });
+    }
     break;
 
   // const [x]: []number = xs;

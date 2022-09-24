@@ -1044,6 +1044,11 @@ msgstr "virgule isolée dans un paramètre de fonction"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'this' parameters are not allowed in arrow functions"
+msgstr "paramètres manquants pour la fonction fléchée"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

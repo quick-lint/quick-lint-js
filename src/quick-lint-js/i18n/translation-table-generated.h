@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 352;
-constexpr std::size_t translation_table_string_table_size = 53917;
+constexpr std::uint16_t translation_table_mapping_table_size = 353;
+constexpr std::size_t translation_table_string_table_size = 53970;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -55,6 +55,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'protected' is not allowed in JavaScript"sv,
           "'public' is not allowed in JavaScript"sv,
           "'readonly static' is not allowed; write 'static readonly' instead"sv,
+          "'this' parameters are not allowed in arrow functions"sv,
           "'type' cannot be used twice in export"sv,
           "'type' cannot be used twice in import"sv,
           "'while' loop"sv,

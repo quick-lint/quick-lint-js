@@ -39,6 +39,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 38},             //
         {0, 0, 0, 0, 66},             //
+        {0, 0, 0, 0, 53},             //
         {0, 0, 0, 0, 38},             //
         {73, 31, 0, 0, 38},           //
         {15, 14, 0, 0, 13},           //
@@ -1292,6 +1293,7 @@ const translation_table translation_data = {
         u8"'protected' is not allowed in JavaScript\0"
         u8"'public' is not allowed in JavaScript\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
+        u8"'this' parameters are not allowed in arrow functions\0"
         u8"'type' cannot be used twice in export\0"
         u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"

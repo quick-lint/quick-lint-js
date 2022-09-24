@@ -921,11 +921,13 @@ expression* parser::parse_async_expression_only(
     // strict mode.
     [[fallthrough]];
   // async parameter => expression-or-block  // Arrow function.
+  // async this => expression-or-block       // Arrow function (invalid).
   // await parameter => expression-or-block  // Arrow function (invalid).
   // await promise                           // Unary operator.
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
   case token_type::kw_await:
+  case token_type::kw_this:
   case token_type::kw_yield: {
     if (is_async && this->peek().has_leading_newline) {
       goto variable_reference;
@@ -941,10 +943,14 @@ expression* parser::parse_async_expression_only(
 
     lexer_transaction transaction = this->lexer_.begin_transaction();
 
-    const char8* parameter_begin = this->peek().begin;
+    source_code_span parameter_span = this->peek().span();
+    const char8* parameter_begin = parameter_span.begin();
     std::array<expression*, 1> parameters = {
-        this->make_expression<expression::variable>(
-            identifier(this->peek().span()), this->peek().type)};
+        this->peek().type == token_type::kw_this
+            ? this->make_expression<expression::this_variable>(parameter_span)
+            : this->make_expression<expression::variable>(
+                  identifier(parameter_span), this->peek().type),
+    };
     this->skip();
 
     if (this->peek().type == token_type::colon && this->options_.typescript) {
@@ -2033,6 +2039,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::rw_unary_suffix:
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
+  case expression_kind::this_variable:
   case expression_kind::unary_operator:
   case expression_kind::yield_many:
   case expression_kind::yield_none:
@@ -2107,7 +2114,6 @@ expression* parser::parse_arrow_function_expression_remainder(
 
   case expression_kind::dot:
   case expression_kind::literal:
-  case expression_kind::this_variable:
     // The code is invalid. An error is reported elsewhere.
     parameter_list_begin = parameters_expression->span().begin();
     break;

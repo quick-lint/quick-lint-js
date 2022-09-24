@@ -299,6 +299,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'this' parameters are not allowed in arrow functions"_translatable,
+        {
+            u8"'this' parameters are not allowed in arrow functions",
+            u8"'this' parameters are not allowed in arrow functions",
+            u8"'this' parameters are not allowed in arrow functions",
+            u8"'this' parameters are not allowed in arrow functions",
+            u8"'this' parameters are not allowed in arrow functions",
+        },
+    },
+    {
         "'type' cannot be used twice in export"_translatable,
         {
             u8"'type' cannot be used twice in export",

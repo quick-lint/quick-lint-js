@@ -1539,6 +1539,13 @@
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_this_parameter_not_allowed_in_arrow_functions, "E0301",             \
+      diagnostic_severity::error, { source_code_span this_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "'this' parameters are not allowed in arrow functions"),     \
+              this_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_abstract_class_not_allowed_in_javascript, "E0244",       \
       diagnostic_severity::error, { source_code_span abstract_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("{0} classes are not allowed in JavaScript"),  \
