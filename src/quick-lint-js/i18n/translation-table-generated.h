@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 354;
-constexpr std::size_t translation_table_string_table_size = 54018;
+constexpr std::uint16_t translation_table_mapping_table_size = 356;
+constexpr std::size_t translation_table_string_table_size = 54081;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -55,6 +55,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'protected' is not allowed in JavaScript"sv,
           "'public' is not allowed in JavaScript"sv,
           "'readonly static' is not allowed; write 'static readonly' instead"sv,
+          "'this' must be the first parameter"sv,
           "'this' parameter not allowed when destructuring"sv,
           "'this' parameters are not allowed in arrow functions"sv,
           "'type' cannot be used twice in export"sv,
@@ -187,6 +188,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "extra ',' is not allowed between function call arguments"sv,
           "field declared here"sv,
           "field marked abstract here"sv,
+          "first parameter starts here"sv,
           "for loop needs an iterable, or condition and update clauses"sv,
           "for-in loop expression cannot have semicolons"sv,
           "for-of loop expression cannot have semicolons"sv,

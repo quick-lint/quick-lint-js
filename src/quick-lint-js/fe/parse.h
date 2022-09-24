@@ -368,6 +368,10 @@ class parser {
     variable_kind declaration_kind;
     std::optional<source_code_span> declaring_token;
     variable_init_kind init_kind;
+
+    // Valid only if declaration_kind == variable_kind::_function_parameter.
+    const char8 *first_parameter_begin;
+
     bool is_destructuring = false;
 
     binding_element_info with_init_kind(variable_init_kind init_kind) const

@@ -958,6 +958,14 @@ msgid "stray comma in function parameter"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'this' must be the first parameter"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "first parameter starts here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'this' parameters are not allowed in arrow functions"
 msgstr ""
 

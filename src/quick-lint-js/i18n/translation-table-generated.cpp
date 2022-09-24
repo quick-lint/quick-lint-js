@@ -39,6 +39,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 38},             //
         {0, 0, 0, 0, 66},             //
+        {0, 0, 0, 0, 35},             //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 53},             //
         {0, 0, 0, 0, 38},             //
@@ -170,7 +171,8 @@ const translation_table translation_data = {
         {35, 45, 38, 33, 46},         //
         {0, 0, 0, 0, 57},             //
         {0, 0, 0, 0, 20},             //
-        {77, 32, 77, 63, 27},         //
+        {0, 0, 0, 0, 27},             //
+        {77, 32, 77, 63, 28},         //
         {85, 29, 86, 70, 60},         //
         {61, 59, 69, 41, 46},         //
         {61, 26, 69, 41, 46},         //
@@ -1294,6 +1296,7 @@ const translation_table translation_data = {
         u8"'protected' is not allowed in JavaScript\0"
         u8"'public' is not allowed in JavaScript\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
+        u8"'this' must be the first parameter\0"
         u8"'this' parameter not allowed when destructuring\0"
         u8"'this' parameters are not allowed in arrow functions\0"
         u8"'type' cannot be used twice in export\0"
@@ -1426,6 +1429,7 @@ const translation_table translation_data = {
         u8"extra ',' is not allowed between function call arguments\0"
         u8"field declared here\0"
         u8"field marked abstract here\0"
+        u8"first parameter starts here\0"
         u8"for loop needs an iterable, or condition and update clauses\0"
         u8"for-in loop expression cannot have semicolons\0"
         u8"for-of loop expression cannot have semicolons\0"

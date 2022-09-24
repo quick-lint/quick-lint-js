@@ -200,6 +200,24 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_when_destructuring) {
                     this_keyword, strlen(u8"function({key: "), u8"this")));
   }
 }
+
+TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
+  {
+    test_parser p(u8"function( other, this ) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // other
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_this_parameter_must_be_first,                      //
+                    this_keyword, strlen(u8"function( other, "), u8"this",  //
+                    first_parameter_begin, strlen(u8"function( "), u8"")));
+  }
+}
 }
 }
 

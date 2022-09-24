@@ -1032,6 +1032,15 @@ msgid "stray comma in function parameter"
 msgstr "Vereinzeltes Komme in Funktionsparameter"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'this' must be the first parameter"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "first parameter starts here"
+msgstr "try-Statement beginnt hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'this' parameters are not allowed in arrow functions"
 msgstr "Parameter fehlen für Arrow-Funktion"

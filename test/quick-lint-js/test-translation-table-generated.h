@@ -299,6 +299,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'this' must be the first parameter"_translatable,
+        {
+            u8"'this' must be the first parameter",
+            u8"'this' must be the first parameter",
+            u8"'this' must be the first parameter",
+            u8"'this' must be the first parameter",
+            u8"'this' must be the first parameter",
+        },
+    },
+    {
         "'this' parameter not allowed when destructuring"_translatable,
         {
             u8"'this' parameter not allowed when destructuring",
@@ -1616,6 +1626,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"field marked abstract here",
             u8"field marked abstract here",
             u8"field marked abstract here",
+        },
+    },
+    {
+        "first parameter starts here"_translatable,
+        {
+            u8"first parameter starts here",
+            u8"first parameter starts here",
+            u8"first parameter starts here",
+            u8"first parameter starts here",
+            u8"first parameter starts here",
         },
     },
     {

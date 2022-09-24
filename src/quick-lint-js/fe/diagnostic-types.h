@@ -1539,6 +1539,17 @@
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_this_parameter_must_be_first, "E0303", diagnostic_severity::error,  \
+      {                                                                        \
+        source_code_span this_keyword;                                         \
+        source_code_span first_parameter_begin;                                \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("'this' must be the first parameter"),         \
+              this_keyword)                                                    \
+          MESSAGE(QLJS_TRANSLATABLE("first parameter starts here"),            \
+                  first_parameter_begin))                                      \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_this_parameter_not_allowed_in_arrow_functions, "E0301",             \
       diagnostic_severity::error, { source_code_span this_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

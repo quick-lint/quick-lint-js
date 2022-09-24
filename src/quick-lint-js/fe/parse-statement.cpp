@@ -23,6 +23,9 @@
 #include <quick-lint-js/port/warning.h>
 #include <utility>
 
+// For parser::binding_element_info.
+QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
+
 namespace quick_lint_js {
 void parser::parse_and_visit_module(parse_visitor_base &v) {
   bool done = false;
@@ -1563,6 +1566,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                                                  variable_kind parameter_kind) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
   bool first_parameter = true;
+  const char8 *first_parameter_begin = this->peek().begin;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
     if (!first_parameter) {
@@ -1597,12 +1601,14 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                  .in_operator = true,
                  .colon_type_annotation = allow_type_annotations::always,
              });
-      this->visit_binding_element(parameter, v,
-                                  binding_element_info{
-                                      .declaration_kind = parameter_kind,
-                                      .declaring_token = std::nullopt,
-                                      .init_kind = variable_init_kind::normal,
-                                  });
+      this->visit_binding_element(
+          parameter, v,
+          binding_element_info{
+              .declaration_kind = parameter_kind,
+              .declaring_token = std::nullopt,
+              .init_kind = variable_init_kind::normal,
+              .first_parameter_begin = first_parameter_begin,
+          });
       if (parameter->kind() == expression_kind::spread) {
         last_parameter_spread_span = parameter->span();
       } else {
@@ -4063,20 +4069,29 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     break;
 
   // function f(this) {}
-  case expression_kind::this_variable:
+  case expression_kind::this_variable: {
+    source_code_span this_span = ast->span();
     if (info.declaration_kind == variable_kind::_arrow_parameter) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_in_arrow_functions{
-              .this_keyword = ast->span(),
+              .this_keyword = this_span,
           });
     }
     if (info.is_destructuring) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_when_destructuring{
-              .this_keyword = ast->span(),
+              .this_keyword = this_span,
           });
+    } else if (info.declaration_kind == variable_kind::_function_parameter &&
+               info.first_parameter_begin != this_span.begin()) {
+      this->diag_reporter_->report(diag_this_parameter_must_be_first{
+          .this_keyword = this_span,
+          .first_parameter_begin =
+              source_code_span::unit(info.first_parameter_begin),
+      });
     }
     break;
+  }
 
   // const [x]: []number = xs;
   case expression_kind::type_annotated: {

@@ -27,6 +27,9 @@
 #include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
+// For parser::binding_element_info.
+QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
+
 namespace quick_lint_js {
 void parser::visit_expression(expression* ast, parse_visitor_base& v,
                               parser::variable_context context) {
