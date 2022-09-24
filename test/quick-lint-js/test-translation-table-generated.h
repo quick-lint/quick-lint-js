@@ -319,6 +319,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'this' parameters are not allowed in JavaScript"_translatable,
+        {
+            u8"'this' parameters are not allowed in JavaScript",
+            u8"'this' parameters are not allowed in JavaScript",
+            u8"'this' parameters are not allowed in JavaScript",
+            u8"'this' parameters are not allowed in JavaScript",
+            u8"'this' parameters are not allowed in JavaScript",
+        },
+    },
+    {
         "'this' parameters are not allowed in arrow functions"_translatable,
         {
             u8"'this' parameters are not allowed in arrow functions",

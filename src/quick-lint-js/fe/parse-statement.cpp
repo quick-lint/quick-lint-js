@@ -4074,7 +4074,8 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   // function f(this) {}
   case expression_kind::this_variable: {
     source_code_span this_span = ast->span();
-    if (info.declaration_kind == variable_kind::_arrow_parameter) {
+    if (info.declaration_kind == variable_kind::_arrow_parameter &&
+        this->options_.typescript) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_in_arrow_functions{
               .this_keyword = this_span,
@@ -4087,6 +4088,11 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     } else if (info.is_destructuring) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_when_destructuring{
+              .this_keyword = this_span,
+          });
+    } else if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_this_parameter_not_allowed_in_javascript{
               .this_keyword = this_span,
           });
     } else if (info.declaration_kind == variable_kind::_function_parameter &&

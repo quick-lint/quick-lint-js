@@ -41,6 +41,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 66},             //
         {0, 0, 0, 0, 35},             //
         {0, 0, 0, 0, 48},             //
+        {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 53},             //
         {0, 0, 0, 0, 38},             //
         {73, 31, 0, 0, 38},           //
@@ -1299,6 +1300,7 @@ const translation_table translation_data = {
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
         u8"'this' must be the first parameter\0"
         u8"'this' parameter not allowed when destructuring\0"
+        u8"'this' parameters are not allowed in JavaScript\0"
         u8"'this' parameters are not allowed in arrow functions\0"
         u8"'type' cannot be used twice in export\0"
         u8"'type' cannot be used twice in import\0"
