@@ -123,6 +123,17 @@ TEST_F(test_parse_typescript_this_parameters,
   }
 }
 
+TEST_F(test_parse_typescript_this_parameters, allowed_in_function_types) {
+  {
+    test_parser p(u8"(this) => ReturnType"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
+  }
+}
+
 TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
   {
     test_parser p(u8"this => {}"_sv, typescript_options, capture_diags);
@@ -233,6 +244,17 @@ TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
                     diag_this_parameter_must_be_first,                      //
                     this_keyword, strlen(u8"function( other, "), u8"this",  //
                     first_parameter_begin, strlen(u8"function( "), u8"")));
+  }
+
+  {
+    test_parser p(u8"(other, this) => ReturnType"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code,
+                              diag_this_parameter_must_be_first,             //
+                              this_keyword, strlen(u8"(other, "), u8"this",  //
+                              first_parameter_begin, strlen(u8"("), u8"")));
   }
 }
 

@@ -4095,8 +4095,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
           diag_this_parameter_not_allowed_in_javascript{
               .this_keyword = this_span,
           });
-    } else if (info.declaration_kind == variable_kind::_function_parameter &&
-               info.first_parameter_begin != this_span.begin()) {
+    } else if (info.first_parameter_begin != this_span.begin()) {
       this->diag_reporter_->report(diag_this_parameter_must_be_first{
           .this_keyword = this_span,
           .first_parameter_begin =
