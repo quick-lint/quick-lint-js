@@ -161,8 +161,10 @@ void init();
 [[noreturn]] void run(int argc, char **argv);
 [[noreturn]] void run(options o);
 
-void process_file(padded_string_view input, configuration &, diag_reporter *,
+void process_file(padded_string_view input, configuration &,
+                  const parser_options &, diag_reporter *,
                   bool print_parser_visits);
+parser_options get_parser_options_from_language(input_file_language);
 
 void run_lsp_server();
 
@@ -242,6 +244,7 @@ void run(options o) {
                           file_to_lint{
                               .path = config_file->config_path->c_str(),
                               .config_file = nullptr,
+                              .language = std::nullopt,
                               .is_stdin = false,
                               .vim_bufnr = std::nullopt,
                           });
@@ -264,7 +267,9 @@ void run(options o) {
         source.error().print_and_exit();
       }
       reporter.set_source(&*source, file);
-      process_file(&*source, *config, reporter.get(), o.print_parser_visits);
+      process_file(&*source, *config,
+                   get_parser_options_from_language(file.get_language()),
+                   reporter.get(), o.print_parser_visits);
     }
   }
   reporter.finish();
@@ -278,9 +283,8 @@ void run(options o) {
 }
 
 void process_file(padded_string_view input, configuration &config,
-                  diag_reporter *diag_reporter, bool print_parser_visits) {
-  parser_options p_options;
-  p_options.jsx = true;
+                  const parser_options &p_options, diag_reporter *diag_reporter,
+                  bool print_parser_visits) {
   parser p(input, diag_reporter, p_options);
   variable_analyzer l(diag_reporter, &config.globals());
 
@@ -291,6 +295,21 @@ void process_file(padded_string_view input, configuration &config,
   } else {
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
   }
+}
+
+parser_options get_parser_options_from_language(input_file_language language) {
+  parser_options p;
+  switch (language) {
+  case input_file_language::javascript:
+    p.jsx = false;
+    p.typescript = false;
+    break;
+  case input_file_language::javascript_jsx:
+    p.jsx = true;
+    p.typescript = false;
+    break;
+  }
+  return p;
 }
 
 void run_lsp_server() {

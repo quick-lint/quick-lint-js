@@ -13,6 +13,9 @@ Semantic Versioning.
 * [E0286][] and [E0287][] are now reported if the string or the value have extra
   parentheses (such as in `(tag.toUpperCase()) === 'img'`) (implemented by
   [Rebraws][]).
+* CLI: The new [`--language` option][cli-language] lets you opt out of JSX
+  support. With `--language=javascript`, quick-lint-js will report [E0177][] for
+  any uses of JSX.
 
 ### Fixed
 
@@ -672,6 +675,7 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [Bun]: https://bun.sh/
+[cli-language]: ../cli/#language
 
 [AidenThing]: https://github.com/AidenThing
 [Amir]: https://github.com/ahmafi
@@ -736,6 +740,7 @@ Beta release.
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
+[E0177]: https://quick-lint-js.com/errors/E0177/
 [E0178]: https://quick-lint-js.com/errors/E0178/
 [E0179]: https://quick-lint-js.com/errors/E0179/
 [E0180]: https://quick-lint-js.com/errors/E0180/

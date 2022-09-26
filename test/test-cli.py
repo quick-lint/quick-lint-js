@@ -287,6 +287,21 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertIn("dir2", result.stderr)
             self.assertEqual(result.stderr.count("E0164"), 2)
 
+    def test_language_javascript(self) -> None:
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--language=javascript",
+                    "--stdin",
+                ],
+                capture_output=True,
+                encoding="utf-8",
+                input="let c = <JSX />;",
+            )
+            self.assertIn("E0177", result.stderr)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

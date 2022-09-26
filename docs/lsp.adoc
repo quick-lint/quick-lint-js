@@ -57,8 +57,13 @@ quick-lint-js sends the following LSP requests and notifications:
 * `window/showMessage`
 * `workspace/configuration`
 
-quick-lint-js interprets documents with the following document language IDs as
-if they were JavaScript files:
+quick-lint-js interprets documents with the following document language IDs as if they were JavaScript+JSX files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=javascript-jsx* command line option]):
+endif::[]
+ifndef::backend-html5[]
+*--language=javascript-jsx* command-line option):
+endif::[]
 
 * `javascript`
 * `javascriptreact`

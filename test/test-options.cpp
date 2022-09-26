@@ -326,6 +326,120 @@ TEST(test_options, config_file) {
   }
 }
 
+TEST(test_options, language) {
+  {
+    options o = parse_options({"one.js", "two.ts", "three.txt", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 4);
+    EXPECT_EQ(o.files_to_lint[0].language, std::nullopt) << "one.js";
+    EXPECT_EQ(o.files_to_lint[1].language, std::nullopt) << "two.ts";
+    EXPECT_EQ(o.files_to_lint[2].language, std::nullopt) << "three.txt";
+    EXPECT_EQ(o.files_to_lint[3].language, std::nullopt) << "--stdin";
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o = parse_options(
+        {"--language=javascript", "one.js", "two.ts", "three.txt"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::javascript);
+    EXPECT_EQ(o.files_to_lint[1].language, input_file_language::javascript);
+    EXPECT_EQ(o.files_to_lint[2].language, input_file_language::javascript);
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"--language=javascript", "one.js",
+                               "--language=javascript-jsx", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::javascript);
+    EXPECT_EQ(o.files_to_lint[1].language, input_file_language::javascript_jsx);
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o =
+        parse_options({"one.js", "--language=javascript-jsx", "two.jsx"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].language, std::nullopt);
+    EXPECT_EQ(o.files_to_lint[1].language, input_file_language::javascript_jsx);
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"--language=javascript-jsx", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::javascript_jsx);
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"--language=javascript-jsx", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::javascript_jsx);
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"file.js", "--language=javascript-jsx"});
+    EXPECT_THAT(o.warning_language_without_file,
+                ElementsAre("javascript-jsx"sv));
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(
+        dumped_errors.get_flushed_string8(),
+        u8"warning: flag '--language=javascript-jsx' should be followed by an "
+        u8"input file name or --stdin\n");
+  }
+
+  {
+    options o = parse_options(
+        {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
+    EXPECT_THAT(o.warning_language_without_file, ElementsAre("javascript"sv));
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(
+        dumped_errors.get_flushed_string8(),
+        u8"warning: flag '--language=javascript' should be followed by an "
+        u8"input file name or --stdin\n");
+  }
+
+  {
+    options o = parse_options({"--language=badlanguageid", "test.js"});
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+    // TODO(strager): Highlight the full option, not just the value.
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("badlanguageid"sv));
+  }
+}
+
+TEST(test_options, get_language_from_path) {
+  constexpr auto javascript_jsx = input_file_language::javascript_jsx;
+  EXPECT_EQ(get_language("<stdin>", std::nullopt), javascript_jsx);
+  EXPECT_EQ(get_language("hi.js", std::nullopt), javascript_jsx);
+  EXPECT_EQ(get_language("hi.jsx", std::nullopt), javascript_jsx);
+  EXPECT_EQ(get_language("hi.txt", std::nullopt), javascript_jsx);
+}
+
+TEST(test_options, get_language_overwritten) {
+  constexpr auto javascript = input_file_language::javascript;
+  constexpr auto javascript_jsx = input_file_language::javascript_jsx;
+
+  EXPECT_EQ(get_language("<stdin>", javascript_jsx), javascript_jsx);
+  EXPECT_EQ(get_language("hi.js", javascript_jsx), javascript_jsx);
+  EXPECT_EQ(get_language("hi.jsx", javascript_jsx), javascript_jsx);
+  EXPECT_EQ(get_language("hi.txt", javascript_jsx), javascript_jsx);
+
+  EXPECT_EQ(get_language("<stdin>", javascript), javascript);
+  EXPECT_EQ(get_language("hi.js", javascript), javascript);
+  EXPECT_EQ(get_language("hi.jsx", javascript), javascript);
+  EXPECT_EQ(get_language("hi.txt", javascript), javascript);
+}
+
 TEST(test_options, lsp_server) {
   {
     options o = parse_options({"--lsp-server"});
@@ -582,6 +696,32 @@ TEST(test_options, using_vim_file_bufnr_in_lsp_mode) {
   }
 }
 
+TEST(test_options, using_language_in_lsp_mode) {
+  {
+    options o = parse_options({"--lsp-server", "--language=javascript"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: ignoring --language in --lsp-server mode\n");
+  }
+  {
+    options o =
+        parse_options({"--lsp-server", "--language=javascript", "foo.js"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: ignoring files given on command line in --lsp-server "
+              u8"mode\n"
+              u8"warning: ignoring --language in --lsp-server mode\n");
+  }
+}
+
 TEST(test_options, invalid_option) {
   {
     options o = parse_options({"--option-does-not-exist", "foo.js"});
@@ -714,6 +854,7 @@ TEST(test_options, dump_errors) {
     const file_to_lint file = {
         .path = "file.js",
         .config_file = nullptr,
+        .language = std::nullopt,
         .is_stdin = false,
         .vim_bufnr = std::optional<int>(),
     };

@@ -114,6 +114,26 @@ endif::[]
 +
 Incompatible with *--lsp-server*.
 
+[#language]
+*--language*=_languageid_::
+  Interpret input files which are given later in the command line as if they were written in _languageid_. _languageid_ is one of the following:
++
+--
+* *default* (default): infer the _languageid_ from the file's extension:
+** *.js*: *javascript-jsx*
+** *.jsx*: *javascript-jsx*
+** (anything else): *javascript-jsx*
+* *javascript*: the latest ECMAScript standard with proposed features.
+* *javascript-jsx*: like *javascript* but with JSX (React) extensions.
+
+If *--language* is given twice, then the _languageid_ for the first *--language* option applies only to the input files between the two *--language* options, and the _languageid_ for the second *--language* option apples only to the input files after the second *--language* option.
+See the <<Example>> section for an example.
+
+If *--language* is the last option, it has no effect.
+
+Incompatible with *--lsp-server*.
+--
+
 *--exit-fail-on*=_errors_::
   Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
 +
@@ -289,6 +309,24 @@ ____
 ----
 $ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved12m1uz.js
 /tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E0057]
+----
+____
+
+To lint _.js_ files as JavaScript, and _.jsx_ files as JavaScript+JSX:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* \
+    --language javascript *.js \
+    --language javascript-jsx *.jsx
+----
+____
+
+To lint standard input as JavaScript:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --language javascript --stdin
 ----
 ____
 

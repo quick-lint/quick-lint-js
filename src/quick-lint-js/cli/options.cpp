@@ -32,6 +32,8 @@ options parse_options(int argc, char** argv) {
 
   const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
+  std::optional<input_file_language> language;
+  const char* unused_language_option = nullptr;
   bool has_stdin = false;
 
   arg_parser parser(argc, argv);
@@ -45,6 +47,7 @@ options parse_options(int argc, char** argv) {
         file_to_lint file{.path = "<stdin>",
                           .config_file = active_config_file,
                           .path_for_config_search = next_path_for_config_search,
+                          .language = language,
                           .is_stdin = true,
                           .vim_bufnr = next_vim_file_bufnr.number};
         has_stdin = true;
@@ -53,11 +56,13 @@ options parse_options(int argc, char** argv) {
         file_to_lint file{.path = argument,
                           .config_file = active_config_file,
                           .path_for_config_search = next_path_for_config_search,
+                          .language = language,
                           .is_stdin = false,
                           .vim_bufnr = next_vim_file_bufnr.number};
         o.files_to_lint.emplace_back(file);
       }
 
+      unused_language_option = nullptr;
       next_path_for_config_search = nullptr;
       next_vim_file_bufnr.number = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
@@ -89,6 +94,22 @@ options parse_options(int argc, char** argv) {
                    parser.match_option_with_value("--config-file"sv)) {
       active_config_file = arg_value;
       o.has_config_file = true;
+    } else if (const char* arg_value =
+                   parser.match_option_with_value("--language"sv)) {
+      o.has_language = true;
+      if (unused_language_option) {
+        o.warning_language_without_file.emplace_back(unused_language_option);
+      }
+      unused_language_option = arg_value;
+      if (arg_value == "default"sv) {
+        language = std::nullopt;
+      } else if (arg_value == "javascript"sv) {
+        language = input_file_language::javascript;
+      } else if (arg_value == "javascript-jsx"sv) {
+        language = input_file_language::javascript_jsx;
+      } else {
+        o.error_unrecognized_options.emplace_back(arg_value);
+      }
     } else if (const char* arg_value = parser.match_option_with_value(
                    "--path-for-config-search"sv)) {
       next_path_for_config_search = arg_value;
@@ -129,9 +150,11 @@ options parse_options(int argc, char** argv) {
       file_to_lint file{.path = "<stdin>",
                         .config_file = active_config_file,
                         .path_for_config_search = next_path_for_config_search,
+                        .language = language,
                         .is_stdin = true,
                         .vim_bufnr = next_vim_file_bufnr.number};
       o.files_to_lint.emplace_back(file);
+      unused_language_option = nullptr;
       has_stdin = true;
       next_path_for_config_search = nullptr;
       next_vim_file_bufnr.number = std::nullopt;
@@ -143,6 +166,9 @@ options parse_options(int argc, char** argv) {
   }
 done_parsing_options:
 
+  if (unused_language_option) {
+    o.warning_language_without_file.emplace_back(unused_language_option);
+  }
   if (next_vim_file_bufnr.number != std::nullopt) {
     o.warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.arg_var);
   }
@@ -192,6 +218,18 @@ bool options::dump_errors(output_stream& out) const {
     }
   }
 
+  if (this->has_language && this->lsp_server) {
+    out.append_copy(u8"warning: ignoring --language in --lsp-server mode\n"sv);
+  } else {
+    for (const char* argument : this->warning_language_without_file) {
+      QLJS_ASSERT(argument != nullptr);
+      out.append_copy(u8"warning: flag '--language="sv);
+      out.append_copy(to_string8_view(argument));
+      out.append_copy(
+          u8"' should be followed by an input file name or --stdin\n"sv);
+    }
+  }
+
   for (const auto& option : this->error_unrecognized_options) {
     out.append_copy(u8"error: unrecognized option: "sv);
     out.append_copy(to_string8_view(option));
@@ -216,6 +254,21 @@ bool options::dump_errors(output_stream& out) const {
   out.flush();
 
   return have_errors;
+}
+
+input_file_language file_to_lint::get_language() const noexcept {
+  return quick_lint_js::get_language(this->path, this->language);
+}
+
+input_file_language get_language(
+    const char* config_file,
+    const std::optional<input_file_language>& language) noexcept {
+  static_cast<void>(config_file);  // Unused for now.
+  if (language.has_value()) {
+    return *language;
+  } else {
+    return input_file_language::javascript_jsx;
+  }
 }
 }
 

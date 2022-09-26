@@ -18,15 +18,31 @@ enum class output_format {
   emacs_lisp,
 };
 
+enum class input_file_language : unsigned char {
+  javascript,
+  javascript_jsx,
+};
+
 enum class option_when { auto_, always, never };
 
 struct file_to_lint {
   const char *path;
   const char *config_file = nullptr;
   const char *path_for_config_search = nullptr;
+
+  // nullopt means --language=default: the language should be derived from the
+  // file extension.
+  std::optional<input_file_language> language;
+
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
+
+  input_file_language get_language() const noexcept;
 };
+
+input_file_language get_language(
+    const char *config_file,
+    const std::optional<input_file_language> &language) noexcept;
 
 struct options {
   bool help = false;
@@ -43,8 +59,10 @@ struct options {
 
   std::vector<const char *> error_unrecognized_options;
   std::vector<const char *> warning_vim_bufnr_without_file;
+  std::vector<const char *> warning_language_without_file;
   bool has_multiple_stdin = false;
   bool has_config_file = false;
+  bool has_language = false;
   bool has_vim_file_bufnr = false;
 
   bool dump_errors(output_stream &) const;
