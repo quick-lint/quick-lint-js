@@ -138,11 +138,6 @@ class parser {
                 .token = exception.error_span,
             });
             break;
-          case fatal_parse_error_kind::jsx_not_yet_implemented:
-            this->diag_reporter_->report(diag_jsx_not_yet_implemented{
-                .jsx_start = exception.error_span,
-            });
-            break;
           case fatal_parse_error_kind::unexpected_token:
             this->diag_reporter_->report(diag_unexpected_token{
                 .token = exception.error_span,
@@ -767,7 +762,6 @@ class parser {
 
   enum class fatal_parse_error_kind {
     depth_limit_exceeded,
-    jsx_not_yet_implemented,
     unexpected_token,
   };
   struct fatal_parse_error {

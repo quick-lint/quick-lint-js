@@ -851,9 +851,10 @@
               attribute_name, expected_attribute_name))                        \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_jsx_not_yet_implemented, "E0177", diagnostic_severity::error,       \
+      diag_jsx_not_allowed_in_javascript, "E0177", diagnostic_severity::error, \
       { source_code_span jsx_start; },                                         \
-      MESSAGE(QLJS_TRANSLATABLE("React/JSX is not yet implemented"),           \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "React/JSX is not allowed in vanilla JavaScript code"),      \
               jsx_start))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \

@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0},              //
-        {1, 11711, 20835, 0, 39115},  //
+        {1, 11672, 20759, 0, 38999},  //
         {50, 61, 79, 0, 40},          //
         {62, 74, 53, 0, 46},          //
         {76, 89, 80, 0, 61},          //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 0, 52},          //
         {31, 56, 0, 0, 28},           //
         {0, 0, 0, 0, 67},             //
-        {79, 25, 30, 31540, 66},      //
+        {79, 25, 30, 31424, 66},      //
         {143, 15, 0, 0, 97},          //
         {70, 23, 0, 0, 53},           //
         {93, 63, 151, 130, 70},       //
@@ -56,8 +56,8 @@ const translation_table translation_data = {
         {30, 33, 40, 44, 33},         //
         {48, 16, 55, 45, 48},         //
         {79, 39, 98, 0, 65},          //
-        {21, 38, 23, 0, 18},          //
-        {39, 37, 40, 0, 33},          //
+        {0, 0, 0, 0, 18},             //
+        {21, 38, 23, 0, 52},          //
         {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 62},             //
         {0, 0, 0, 0, 53},             //
@@ -403,7 +403,6 @@ const translation_table translation_data = {
         u8"C-\u00e4hnliche for-Schleife fehlt drittes Argument\0"
         u8"C-\u00e4hnliche for-Schleifen haben nur drei durch Semikolon getrennte Komponenten\0"
         u8"Syntaxfehler in JSON\0"
-        u8"React/JSX ist noch nicht implementiert\0"
         u8"RegExp-Literale d\u00fcrfen keine Unicode Escapes enthalten\0"
         u8"eine do-While-Schleife\0"
         u8"eine for-Schleife\0"
@@ -656,7 +655,6 @@ const translation_table translation_data = {
         u8"you forgot ;i++\0"
         u8"you went overboard with the semicolons\0"
         u8"yeah, JSON sucks; try quick-lint-json\0"
-        u8"if you see this message, I fucked up\0"
         u8"keep your RegExp flags simple, please\0"
         u8"why are you trying to initialize this field? it's an interface!\0"
         u8"interfaces are allergic to async methods\0"
@@ -909,7 +907,6 @@ const translation_table translation_data = {
         u8"troisi\u00e8me argument manquant pour la boucle de style C\0"
         u8"les boucles for de style C ne poss\u00e8dent que trois composantes s\u00e9par\u00e9es par des points-virgules\0"
         u8"erreur de syntaxe JSON\0"
-        u8"React/JSX n'est pas encore impl\u00e9ment\u00e9\0"
         u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode\0"
         u8"une d\u00e9claration de classe n'est pas autoris\u00e9e dans le corps de {1:singular}\0"
         u8"une instruction de fonction ne peut faire partie du corps de {1:singular}\0"
@@ -1316,7 +1313,7 @@ const translation_table translation_data = {
         u8"C-style for loop is missing its third component\0"
         u8"C-style for loops have only three semicolon-separated components\0"
         u8"JSON syntax error\0"
-        u8"React/JSX is not yet implemented\0"
+        u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
         u8"TypeScript 'as' type assertions are not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"

@@ -554,8 +554,9 @@ msgid "event attributes must be camelCase: '{1}'"
 msgstr "event attributes must be 🐪Case: '{1}'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "React/JSX is not yet implemented"
-msgstr "if you see this message, I fucked up"
+#, fuzzy
+msgid "React/JSX is not allowed in vanilla JavaScript code"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
@@ -1567,6 +1568,9 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#~ msgid "React/JSX is not yet implemented"
+#~ msgstr "if you see this message, I fucked up"
 
 #~ msgid "classes cannot be named 'await' in async function"
 #~ msgstr ""

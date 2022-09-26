@@ -538,7 +538,7 @@ msgid "event attributes must be camelCase: '{1}'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "React/JSX is not yet implemented"
+msgid "React/JSX is not allowed in vanilla JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

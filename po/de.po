@@ -583,8 +583,11 @@ msgid "event attributes must be camelCase: '{1}'"
 msgstr "Event-Attribute müssen im camelCase geschrieben werden: '{1}'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "React/JSX is not yet implemented"
-msgstr "React/JSX ist noch nicht implementiert"
+#, fuzzy
+msgid "React/JSX is not allowed in vanilla JavaScript code"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
@@ -1677,6 +1680,9 @@ msgstr "{1:singular} erwartet"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "hier"
+
+#~ msgid "React/JSX is not yet implemented"
+#~ msgstr "React/JSX ist noch nicht implementiert"
 
 #, fuzzy
 #~ msgid "classes cannot be named 'await' in async function"

@@ -3049,13 +3049,8 @@ expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
-    diag_jsx_not_yet_implemented diag = {.jsx_start = this->peek().span()};
-    this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
-        diag.jsx_start,
-        fatal_parse_error_kind::jsx_not_yet_implemented,
-    });
-    this->diag_reporter_->report(diag);
-    return this->make_expression<expression::_missing>(this->peek().span());
+    this->diag_reporter_->report(
+        diag_jsx_not_allowed_in_javascript{.jsx_start = this->peek().span()});
   }
 
   const char8* jsx_begin = this->peek().begin;
@@ -3088,7 +3083,6 @@ expression* parser::parse_jsx_expression(parse_visitor_base& v) {
 }
 
 expression* parser::parse_jsx_element_or_fragment(parse_visitor_base& v) {
-  QLJS_ASSERT(this->options_.jsx);
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   const char8* jsx_begin = this->peek().begin;

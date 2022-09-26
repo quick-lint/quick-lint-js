@@ -27,29 +27,17 @@ namespace {
 class test_parse_jsx : public test_parse_expression {};
 
 TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
-  // If parsing was not started with
-  // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
-  // parsing at the '<'. Error recovery will do a bad job.
   parser_options options;
   options.jsx = false;
-  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv, options,
-                capture_diags);
+  test_parser p(
+      u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
+      options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.errors, Contains(DIAG_TYPE_OFFSETS(
-                            p.code, diag_jsx_not_yet_implemented,  //
-                            jsx_start, 0, u8"<")));
-}
-
-TEST_F(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
-  parser_options options;
-  options.jsx = false;
-  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv, options,
-                capture_diags);
-  bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
-  EXPECT_FALSE(ok);
   EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                            p.code, diag_jsx_not_yet_implemented,  //
+                            p.code, diag_jsx_not_allowed_in_javascript,  //
                             jsx_start, 0, u8"<")));
+  EXPECT_THAT(p.variable_uses,
+              ElementsAre(u8"MyComponent", u8"value", u8"Inner"));
 }
 
 TEST_F(test_parse_jsx, empty_intrinsic_element) {

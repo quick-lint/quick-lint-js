@@ -479,13 +479,13 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "React/JSX is not yet implemented"_translatable,
+        "React/JSX is not allowed in vanilla JavaScript code"_translatable,
         {
-            u8"React/JSX is not yet implemented",
-            u8"React/JSX ist noch nicht implementiert",
-            u8"if you see this message, I fucked up",
-            u8"React/JSX n'est pas encore impl\u00e9ment\u00e9",
-            u8"React/JSX is not yet implemented",
+            u8"React/JSX is not allowed in vanilla JavaScript code",
+            u8"React/JSX is not allowed in vanilla JavaScript code",
+            u8"React/JSX is not allowed in vanilla JavaScript code",
+            u8"React/JSX is not allowed in vanilla JavaScript code",
+            u8"React/JSX is not allowed in vanilla JavaScript code",
         },
     },
     {
