@@ -393,6 +393,8 @@ let DiagnosticSeverity = {
 exports.DiagnosticSeverity = DiagnosticSeverity;
 
 let LanguageOptions = {
+  NONE: 0,
+
   JSX: 1 << 0,
   TYPESCRIPT: 1 << 1,
 };

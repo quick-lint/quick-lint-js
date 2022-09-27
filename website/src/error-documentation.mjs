@@ -177,6 +177,9 @@ export class ErrorDocumentation {
         doc.setText(text);
         switch (language) {
           case "javascript":
+            doc.setLanguageOptions(LanguageOptions.NONE);
+            break;
+          case "javascript-jsx":
             doc.setLanguageOptions(LanguageOptions.JSX);
             break;
           case "typescript":
