@@ -555,14 +555,13 @@ TEST(test_options, exit_fail_on) {
 TEST(test_options, invalid_vim_file_bufnr) {
   {
     options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "garbage"sv);
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("garbage"sv));
   }
 
   {
     options o = parse_options({"--vim-file-bufnr"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "--vim-file-bufnr"sv);
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAre("--vim-file-bufnr"sv));
   }
 }
 
@@ -710,29 +709,28 @@ TEST(test_options, using_language_in_lsp_mode) {
 TEST(test_options, invalid_option) {
   {
     options o = parse_options({"--option-does-not-exist", "foo.js"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAre("--option-does-not-exist"sv));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"--debug-parse-vixxx", "foo.js"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "--debug-parse-vixxx"sv);
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAre("--debug-parse-vixxx"sv));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"--debug-parse-visits-xxx", "foo.js"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "--debug-parse-visits-xxx"sv);
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAre("--debug-parse-visits-xxx"sv));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"-version", "foo.js"});
-    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-    EXPECT_EQ(o.error_unrecognized_options[0], "-version"sv);
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("-version"sv));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 }
