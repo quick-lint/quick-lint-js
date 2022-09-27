@@ -29,6 +29,21 @@ options parse_options(std::initializer_list<const char *> arguments) {
                                       argv.data());
 }
 
+struct dumped_errors {
+  bool have_errors;
+  string8 output;
+};
+
+dumped_errors dump_errors(const options &o) {
+  memory_output_stream output;
+  bool have_errors = o.dump_errors(output);
+  output.flush();
+  return dumped_errors{
+      .have_errors = have_errors,
+      .output = output.get_flushed_string8(),
+  };
+}
+
 TEST(test_options, default_options_with_no_files) {
   options o = parse_options({});
   EXPECT_FALSE(o.print_parser_visits);
@@ -384,12 +399,10 @@ TEST(test_options, language) {
     EXPECT_THAT(o.warning_language_without_file,
                 ElementsAre("javascript-jsx"sv));
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
     EXPECT_EQ(
-        dumped_errors.get_flushed_string8(),
+        errors.output,
         u8"warning: flag '--language=javascript-jsx' should be followed by an "
         u8"input file name or --stdin\n");
   }
@@ -399,12 +412,10 @@ TEST(test_options, language) {
         {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
     EXPECT_THAT(o.warning_language_without_file, ElementsAre("javascript"sv));
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
     EXPECT_EQ(
-        dumped_errors.get_flushed_string8(),
+        errors.output,
         u8"warning: flag '--language=javascript' should be followed by an "
         u8"input file name or --stdin\n");
   }
@@ -560,11 +571,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
     options o = parse_options({"foo.js", "--vim-file-bufnr=1"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
               u8"input file name or --stdin\n");
   }
@@ -573,11 +582,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
         parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2", "foo.js"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
               u8"input file name or --stdin\n");
   }
@@ -586,11 +593,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
         parse_options({"--vim-file-bufnr=1", "foo.js", "--vim-file-bufnr=2"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: flag: '--vim-file-bufnr=2' should be followed by an "
               u8"input file name or --stdin\n");
   }
@@ -598,11 +603,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
     options o = parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
               u8"input file name or --stdin\n"
               u8"warning: flag: '--vim-file-bufnr=2' should be followed by an "
@@ -615,11 +618,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
                                "--stdin"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output, u8"");
   }
   {
     // test if the right argument gets inserted into the error message
@@ -628,11 +629,9 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
                        "--vim-file-bufnr=22", "foo.js"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: flag: '--vim-file-bufnr=11' should be followed by an "
               u8"input file name or --stdin\n");
   }
@@ -648,12 +647,9 @@ TEST(test_options, using_vim_file_bufnr_without_format) {
       options o = parse_options({"--vim-file-bufnr=1", "file.js"});
       o.output_format = format;
 
-      memory_output_stream dumped_errors;
-      bool have_errors = o.dump_errors(dumped_errors);
-      EXPECT_FALSE(have_errors);
-      dumped_errors.flush();
-
-      EXPECT_EQ(dumped_errors.get_flushed_string8(),
+      dumped_errors errors = dump_errors(o);
+      EXPECT_FALSE(errors.have_errors);
+      EXPECT_EQ(errors.output,
                 u8"warning: --output-format selected which doesn't use "
                 u8"--vim-file-bufnr\n");
     }
@@ -662,12 +658,9 @@ TEST(test_options, using_vim_file_bufnr_without_format) {
     options o = parse_options({"--vim-file-bufnr=1", "file.js"});
     o.output_format = output_format::vim_qflist_json;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-
-    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output, u8"");
   }
 }
 
@@ -675,21 +668,17 @@ TEST(test_options, using_vim_file_bufnr_in_lsp_mode) {
   {
     options o = parse_options({"--lsp-server", "--vim-file-bufnr=1"});
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n");
   }
   {
     options o = parse_options({"--lsp-server", "--vim-file-bufnr=1", "foo.js"});
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: ignoring files given on command line in --lsp-server "
               u8"mode\n"
               u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n");
@@ -700,22 +689,18 @@ TEST(test_options, using_language_in_lsp_mode) {
   {
     options o = parse_options({"--lsp-server", "--language=javascript"});
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: ignoring --language in --lsp-server mode\n");
   }
   {
     options o =
         parse_options({"--lsp-server", "--language=javascript", "foo.js"});
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: ignoring files given on command line in --lsp-server "
               u8"mode\n"
               u8"warning: ignoring --language in --lsp-server mode\n");
@@ -757,23 +742,18 @@ TEST(test_options, dump_errors) {
     options o;
     o.error_unrecognized_options.clear();
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output, u8"");
   }
 
   {
     options o;
     o.error_unrecognized_options.push_back("--bad-option");
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
-              u8"error: unrecognized option: --bad-option\n");
+    dumped_errors errors = dump_errors(o);
+    EXPECT_TRUE(errors.have_errors);
+    EXPECT_EQ(errors.output, u8"error: unrecognized option: --bad-option\n");
   }
 
   {
@@ -784,11 +764,9 @@ TEST(test_options, dump_errors) {
     parsed_errors.excluded_codes.emplace_back("E9999");
     o.exit_fail_on.add(parsed_errors);
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: unknown error category: banana\n"
               u8"warning: unknown error code: E9999\n");
   }
@@ -797,11 +775,9 @@ TEST(test_options, dump_errors) {
     options o;
     o.exit_fail_on.add(parsed_diag_code_list());
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_TRUE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"error: --exit-fail-on must be given at least one category or "
               u8"code\n");
   }
@@ -811,11 +787,9 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.output_format = output_format::default_format;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output, u8"");
   }
 
   {
@@ -828,11 +802,9 @@ TEST(test_options, dump_errors) {
       o.lsp_server = true;
       o.output_format = format;
 
-      memory_output_stream dumped_errors;
-      bool have_errors = o.dump_errors(dumped_errors);
-      EXPECT_FALSE(have_errors);
-      dumped_errors.flush();
-      EXPECT_EQ(dumped_errors.get_flushed_string8(),
+      dumped_errors errors = dump_errors(o);
+      EXPECT_FALSE(errors.have_errors);
+      EXPECT_EQ(errors.output,
                 u8"warning: --output-format ignored with --lsp-server\n");
     }
   }
@@ -842,11 +814,9 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.has_config_file = true;
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: --config-file ignored in --lsp-server mode\n");
   }
 
@@ -863,11 +833,9 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.files_to_lint.emplace_back(file);
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: ignoring files given on command line in "
               u8"--lsp-server mode\n");
   }
@@ -877,11 +845,9 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.exit_fail_on.add(parse_diag_code_list("E0001"));
 
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_FALSE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+    dumped_errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
               u8"warning: --exit-fail-on ignored with --lsp-server\n");
   }
 }
