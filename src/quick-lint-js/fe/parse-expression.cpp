@@ -1090,23 +1090,25 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
 
         parser_transaction transaction = this->begin_transaction();
 
-        // FIXME(#831): v should not be used here. We should use a
-        // buffering_visitor.
-        if (this->in_top_level_) {
-          // Try to parse the / as a regular expression literal or the < as a
-          // JSX element.
-          [[maybe_unused]] expression* ast = this->parse_expression(v, prec);
-        } else {
-          // Try to parse the / or < as a binary operator.
-          [[maybe_unused]] expression* ast = this->parse_expression_remainder(
-              v,
-              this->make_expression<expression::variable>(
-                  await_token.identifier_name(), await_token.type),
-              prec);
-        }
-        bool parsed_ok = transaction.reporter.empty() &&
-                         !this->lexer_.transaction_has_lex_diagnostics(
-                             transaction.lex_transaction);
+        bool parsed_ok = this->catch_fatal_parse_errors([&] {
+          // FIXME(#831): v should not be used here. We should use a
+          // buffering_visitor.
+          if (this->in_top_level_) {
+            // Try to parse the / as a regular expression literal or the < as a
+            // JSX element.
+            [[maybe_unused]] expression* ast = this->parse_expression(v, prec);
+          } else {
+            // Try to parse the / or < as a binary operator.
+            [[maybe_unused]] expression* ast = this->parse_expression_remainder(
+                v,
+                this->make_expression<expression::variable>(
+                    await_token.identifier_name(), await_token.type),
+                prec);
+          }
+        });
+        parsed_ok = parsed_ok && transaction.reporter.empty() &&
+                    !this->lexer_.transaction_has_lex_diagnostics(
+                        transaction.lex_transaction);
 
         this->roll_back_transaction(std::move(transaction));
 

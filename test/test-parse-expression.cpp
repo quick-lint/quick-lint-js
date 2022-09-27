@@ -1221,6 +1221,13 @@ TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
     EXPECT_THAT(p.errors, IsEmpty());
   }
+
+  {
+    test_parser p(u8"await < rhs"_sv, jsx_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var await, var rhs)");
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
 }
 
 TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
