@@ -559,6 +559,11 @@ msgid "React/JSX is not allowed in vanilla JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "React/JSX is not allowed in TypeScript code"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr ""
 "that sequence should escape from this keyword cuz it's not allowed here"

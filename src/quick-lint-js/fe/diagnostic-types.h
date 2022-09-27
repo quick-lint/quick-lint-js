@@ -858,6 +858,13 @@
               jsx_start))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_jsx_not_allowed_in_typescript, "E0306", diagnostic_severity::error, \
+      { source_code_span jsx_start; },                                         \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("React/JSX is not allowed in TypeScript code"),    \
+          jsx_start))                                                          \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_keywords_cannot_contain_escape_sequences, "E0023",                  \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("keywords cannot contain escape sequences"),   \

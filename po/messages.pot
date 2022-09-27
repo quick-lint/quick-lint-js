@@ -542,6 +542,10 @@ msgid "React/JSX is not allowed in vanilla JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "React/JSX is not allowed in TypeScript code"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr ""
 

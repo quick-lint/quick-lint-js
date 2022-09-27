@@ -590,6 +590,13 @@ msgstr ""
 "implementiert"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "React/JSX is not allowed in TypeScript code"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr "Schlüsselworte dürfen keine Escapesequenzen beinhalten"
 

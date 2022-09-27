@@ -567,6 +567,11 @@ msgid "React/JSX is not allowed in vanilla JavaScript code"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "React/JSX is not allowed in TypeScript code"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr "nyckelord kan inte innehålla en flyktsekvens"
 

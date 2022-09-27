@@ -596,6 +596,13 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "React/JSX is not allowed in TypeScript code"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr "les mots-clés ne peuvent pas contenir de séquence d'échappement"
 

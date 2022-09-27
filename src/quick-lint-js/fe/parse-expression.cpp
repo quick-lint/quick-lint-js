@@ -3049,8 +3049,14 @@ expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
-    this->diag_reporter_->report(
-        diag_jsx_not_allowed_in_javascript{.jsx_start = this->peek().span()});
+    source_code_span jsx_start = this->peek().span();
+    if (this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_jsx_not_allowed_in_typescript{.jsx_start = jsx_start});
+    } else {
+      this->diag_reporter_->report(
+          diag_jsx_not_allowed_in_javascript{.jsx_start = jsx_start});
+    }
   }
 
   const char8* jsx_begin = this->peek().begin;

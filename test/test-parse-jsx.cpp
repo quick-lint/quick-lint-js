@@ -40,6 +40,37 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
               ElementsAre(u8"MyComponent", u8"value", u8"Inner"));
 }
 
+TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
+  parser_options options;
+  options.jsx = false;
+  options.typescript = true;
+
+  {
+    test_parser p(
+        u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
+        options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_jsx_not_allowed_in_typescript,  //
+                              jsx_start, 0, u8"<")));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAre(u8"MyComponent", u8"value", u8"Inner"));
+  }
+
+  {
+    test_parser p(u8"<><Inner>hello</Inner><Inner /></>"_sv, options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_jsx_not_allowed_in_typescript,  //
+                              jsx_start, 0, u8"<")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Inner", u8"Inner"));
+  }
+
+  // TODO(strager): Detect more cases. There is syntax overlap with generic
+  // arrow functions and with type assertions.
+}
+
 TEST_F(test_parse_jsx, empty_intrinsic_element) {
   test_parser p(u8"c = <div></div>;"_sv, jsx_options, capture_diags);
   p.parse_and_visit_module();
