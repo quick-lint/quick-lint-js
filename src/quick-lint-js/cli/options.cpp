@@ -36,35 +36,41 @@ options parse_options(int argc, char** argv) {
   const char* unused_language_option = nullptr;
   bool has_stdin = false;
 
+  auto add_file = [&](const char* path, bool is_stdin) {
+    if (is_stdin && has_stdin) {
+      o.has_multiple_stdin = true;
+    } else {
+      file_to_lint file{.path = path,
+                        .config_file = active_config_file,
+                        .path_for_config_search = next_path_for_config_search,
+                        .language = language,
+                        .is_stdin = is_stdin,
+                        .vim_bufnr = next_vim_file_bufnr.number};
+      o.files_to_lint.emplace_back(file);
+    }
+    if (is_stdin) {
+      has_stdin = true;
+    }
+
+    unused_language_option = nullptr;
+    next_path_for_config_search = nullptr;
+    next_vim_file_bufnr.number = std::nullopt;
+  };
+
+  auto add_stdin_file = [&]() { add_file("<stdin>", /*is_stdin=*/true); };
+
+  auto add_regular_file = [&](const char* path) {
+    add_file(path, /*is_stdin=*/false);
+  };
+
   arg_parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
       if (argument == "-"sv) {
-        if (has_stdin) {
-          o.has_multiple_stdin = true;
-          continue;
-        }
-        file_to_lint file{.path = "<stdin>",
-                          .config_file = active_config_file,
-                          .path_for_config_search = next_path_for_config_search,
-                          .language = language,
-                          .is_stdin = true,
-                          .vim_bufnr = next_vim_file_bufnr.number};
-        has_stdin = true;
-        o.files_to_lint.emplace_back(file);
+        add_stdin_file();
       } else {
-        file_to_lint file{.path = argument,
-                          .config_file = active_config_file,
-                          .path_for_config_search = next_path_for_config_search,
-                          .language = language,
-                          .is_stdin = false,
-                          .vim_bufnr = next_vim_file_bufnr.number};
-        o.files_to_lint.emplace_back(file);
+        add_regular_file(argument);
       }
-
-      unused_language_option = nullptr;
-      next_path_for_config_search = nullptr;
-      next_vim_file_bufnr.number = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
                                         "--debug-p"sv)) {
       o.print_parser_visits = true;
@@ -143,21 +149,7 @@ options parse_options(int argc, char** argv) {
     } else if (parser.match_flag_option("--snarky"sv, "--snarky"sv)) {
       o.snarky = true;
     } else if (parser.match_flag_option("--stdin"sv, ""sv)) {
-      if (has_stdin) {
-        o.has_multiple_stdin = true;
-        continue;
-      }
-      file_to_lint file{.path = "<stdin>",
-                        .config_file = active_config_file,
-                        .path_for_config_search = next_path_for_config_search,
-                        .language = language,
-                        .is_stdin = true,
-                        .vim_bufnr = next_vim_file_bufnr.number};
-      o.files_to_lint.emplace_back(file);
-      unused_language_option = nullptr;
-      has_stdin = true;
-      next_path_for_config_search = nullptr;
-      next_vim_file_bufnr.number = std::nullopt;
+      add_stdin_file();
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);
