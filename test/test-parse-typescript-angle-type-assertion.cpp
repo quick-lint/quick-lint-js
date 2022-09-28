@@ -131,6 +131,12 @@ TEST_F(test_parse_typescript_angle_type_assertion,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(Component)");
   }
+
+  {
+    test_parser p(u8"<number>text;\n// </number>;"_sv, typescript_jsx_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(number)");
+  }
 }
 
 TEST_F(test_parse_typescript_angle_type_assertion,

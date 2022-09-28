@@ -3083,15 +3083,6 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
     // <(Type)>expr
     // < | Type>expr
     case token_type::ampersand:
-    case token_type::kw_bigint:
-    case token_type::kw_boolean:
-    case token_type::kw_null:
-    case token_type::kw_number:
-    case token_type::kw_object:
-    case token_type::kw_string:
-    case token_type::kw_symbol:
-    case token_type::kw_undefined:
-    case token_type::kw_void:
     case token_type::left_curly:
     case token_type::left_paren:
     case token_type::left_square:
@@ -3105,6 +3096,15 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
     // <T,>(params) => {}    // Arrow function.
     // <Component></Component>  // JSX element.
     case token_type::identifier:
+    case token_type::kw_bigint:
+    case token_type::kw_boolean:
+    case token_type::kw_null:
+    case token_type::kw_number:
+    case token_type::kw_object:
+    case token_type::kw_string:
+    case token_type::kw_symbol:
+    case token_type::kw_undefined:
+    case token_type::kw_void:
       this->skip();
       switch (this->peek().type) {
       // <T,>() => {}                 // Generic arrow function.
