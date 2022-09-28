@@ -113,6 +113,10 @@ options parse_options(int argc, char** argv) {
         language = input_file_language::javascript;
       } else if (arg_value == "javascript-jsx"sv) {
         language = input_file_language::javascript_jsx;
+      } else if (arg_value == "experimental-typescript"sv) {
+        language = input_file_language::typescript;
+      } else if (arg_value == "experimental-typescript-jsx"sv) {
+        language = input_file_language::typescript_jsx;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }

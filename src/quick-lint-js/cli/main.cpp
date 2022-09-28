@@ -308,6 +308,14 @@ parser_options get_parser_options_from_language(input_file_language language) {
     p.jsx = true;
     p.typescript = false;
     break;
+  case input_file_language::typescript:
+    p.jsx = false;
+    p.typescript = true;
+    break;
+  case input_file_language::typescript_jsx:
+    p.jsx = true;
+    p.typescript = true;
+    break;
   }
   return p;
 }

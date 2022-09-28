@@ -386,6 +386,20 @@ TEST(test_options, language) {
   }
 
   {
+    options o = parse_options_no_errors(
+        {"--language=experimental-typescript", "one.txt"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::typescript);
+  }
+
+  {
+    options o = parse_options_no_errors(
+        {"--language=experimental-typescript-jsx", "one.txt"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language, input_file_language::typescript_jsx);
+  }
+
+  {
     options o = parse_options_no_errors({"--language=javascript-jsx", "-"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language, input_file_language::javascript_jsx);

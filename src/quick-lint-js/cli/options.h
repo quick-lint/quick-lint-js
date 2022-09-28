@@ -21,6 +21,8 @@ enum class output_format {
 enum class input_file_language : unsigned char {
   javascript,
   javascript_jsx,
+  typescript,
+  typescript_jsx,
 };
 
 enum class option_when { auto_, always, never };
