@@ -1683,8 +1683,12 @@ next:
     switch (this->peek().type) {
     // function(param?)
     // function(param?, ...otherParams)
+    // let [x?] = y;
+    // let {p: x?} = y;
     case token_type::comma:
+    case token_type::right_curly:
     case token_type::right_paren:
+    case token_type::right_square:
       is_optional = true;
       break;
 

@@ -326,7 +326,8 @@ const translation_table translation_data = {
         {19, 19, 20, 15, 18},         //
         {0, 0, 0, 0, 15},             //
         {0, 0, 0, 0, 49},             //
-        {16, 12, 14, 17, 15},         //
+        {0, 0, 0, 0, 15},             //
+        {16, 12, 14, 17, 34},         //
         {17, 11, 14, 17, 15},         //
         {31, 12, 34, 33, 29},         //
         {53, 46, 52, 41, 43},         //
@@ -1586,6 +1587,7 @@ const translation_table translation_data = {
         u8"unexpected '#'\0"
         u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '?'\0"
+        u8"unexpected '?' when destructuring\0"
         u8"unexpected '@'\0"
         u8"unexpected '\\' in identifier\0"
         u8"unexpected 'case' outside switch statement\0"

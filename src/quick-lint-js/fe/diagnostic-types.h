@@ -2112,6 +2112,12 @@
       MESSAGE(QLJS_TRANSLATABLE("unexpected '?'"), question))                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_unexpected_question_when_destructuring, "E0309",                    \
+      diagnostic_severity::error, { source_code_span question; },              \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected '?' when destructuring"),          \
+              question))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_unexpected_semicolon_in_c_style_for_loop, "E0102",                  \
       diagnostic_severity::error, { source_code_span semicolon; },             \
       MESSAGE(QLJS_TRANSLATABLE("C-style for loops have only three "           \

@@ -1485,6 +1485,11 @@ msgid "unexpected '?'"
 msgstr "'@' inattendu"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "unexpected '?' when destructuring"
+msgstr "'\\' inattendu dans un identifiant"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr ""
 "les boucles for de style C ne possèdent que trois composantes séparées par "

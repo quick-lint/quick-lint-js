@@ -4054,13 +4054,22 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     break;
 
   // function f(param?) {}  // TypeScript only.
+  // let [x?] = xs;         // Invalid.
   case expression_kind::optional: {
     auto *optional = static_cast<const expression::optional *>(ast);
-    if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          diag_typescript_optional_parameters_not_allowed_in_javascript{
-              .question = optional->question_span(),
-          });
+    if (info.is_destructuring) {
+      // let [x?] = xs;  // Invalid.
+      this->diag_reporter_->report(diag_unexpected_question_when_destructuring{
+          .question = optional->question_span(),
+      });
+    } else {
+      // function f(param?) {}  // TypeScript only.
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_optional_parameters_not_allowed_in_javascript{
+                .question = optional->question_span(),
+            });
+      }
     }
     this->visit_binding_element(optional->child_, v, info);
     break;

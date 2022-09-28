@@ -1388,6 +1388,11 @@ msgstr "Facebook says '}' is not allowed; write {{'}'} instead"
 msgid "unexpected '?'"
 msgstr "unexp@cted"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "unexpected '?' when destructuring"
+msgstr "unex\\pected"
+
 # that's so Meta xD
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"

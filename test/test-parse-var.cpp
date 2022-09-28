@@ -589,6 +589,26 @@ TEST_F(test_parse_var, parse_invalid_let) {
             p.code, diag_this_parameter_not_allowed_when_destructuring,  //
             this_keyword, strlen(u8"let ["), u8"this")));
   }
+
+  {
+    test_parser p(u8"let [y?] = x;"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"y")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_unexpected_question_when_destructuring,  //
+                    question, strlen(u8"let [y"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"let {p: y?} = x;"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"y")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_unexpected_question_when_destructuring,  //
+                    question, strlen(u8"let {p: y"), u8"?")));
+  }
 }
 
 TEST_F(test_parse_var, parse_let_with_missing_equal) {

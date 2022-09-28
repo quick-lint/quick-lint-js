@@ -3179,6 +3179,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "unexpected '?' when destructuring"_translatable,
+        {
+            u8"unexpected '?' when destructuring",
+            u8"unexpected '?' when destructuring",
+            u8"unexpected '?' when destructuring",
+            u8"unexpected '?' when destructuring",
+            u8"unexpected '?' when destructuring",
+        },
+    },
+    {
         "unexpected '@'"_translatable,
         {
             u8"unexpected '@'",

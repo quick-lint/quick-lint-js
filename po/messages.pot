@@ -1297,6 +1297,10 @@ msgid "unexpected '?'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '?' when destructuring"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr ""
 
