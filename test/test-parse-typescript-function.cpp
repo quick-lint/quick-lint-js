@@ -458,6 +458,32 @@ TEST_F(test_parse_typescript_function, optional_parameter) {
                                       "visit_exit_function_scope"));
   }
 }
+
+TEST_F(test_parse_typescript_function,
+       optional_parameters_are_not_allowed_in_javascript) {
+  {
+    test_parser p(u8"(param?) => {}"_sv, javascript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_optional_parameters_not_allowed_in_javascript,  //
+            question, strlen(u8"(param"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"function f(param?) {}"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_optional_parameters_not_allowed_in_javascript,  //
+            question, strlen(u8"function f(param"), u8"?")));
+  }
+}
 }
 }
 

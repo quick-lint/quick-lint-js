@@ -659,6 +659,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript optional parameters are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript optional parameters are not allowed in JavaScript",
+            u8"TypeScript optional parameters are not allowed in JavaScript",
+            u8"TypeScript optional parameters are not allowed in JavaScript",
+            u8"TypeScript optional parameters are not allowed in JavaScript",
+            u8"TypeScript optional parameters are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript optional properties are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript optional properties are not allowed in JavaScript code",

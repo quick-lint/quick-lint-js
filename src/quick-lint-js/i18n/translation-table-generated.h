@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 360;
-constexpr std::size_t translation_table_string_table_size = 54128;
+constexpr std::uint16_t translation_table_mapping_table_size = 361;
+constexpr std::size_t translation_table_string_table_size = 54189;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -91,6 +91,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript namespaces are not allowed in JavaScript"sv,
           "TypeScript non-null assertion is not allowed on parameters"sv,
           "TypeScript non-null assertions are not allowed in JavaScript"sv,
+          "TypeScript optional parameters are not allowed in JavaScript"sv,
           "TypeScript optional properties are not allowed in JavaScript code"sv,
           "TypeScript type annotation requires parentheses"sv,
           "TypeScript type annotations are not allowed in JavaScript code"sv,

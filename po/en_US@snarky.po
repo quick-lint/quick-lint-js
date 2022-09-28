@@ -1221,6 +1221,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript optional parameters are not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

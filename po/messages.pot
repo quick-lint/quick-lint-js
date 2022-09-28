@@ -1140,6 +1140,10 @@ msgid "TypeScript non-null assertions are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript optional parameters are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr ""
 
