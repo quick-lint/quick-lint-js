@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 366;
-constexpr std::size_t translation_table_string_table_size = 54438;
+constexpr std::uint16_t translation_table_mapping_table_size = 369;
+constexpr std::size_t translation_table_string_table_size = 54585;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -55,6 +55,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'protected' is not allowed in JavaScript"sv,
           "'public' is not allowed in JavaScript"sv,
           "'readonly static' is not allowed; write 'static readonly' instead"sv,
+          "'readonly' must be followed by an array type or a tuple type"sv,
+          "'readonly' only works with array types and tuple types"sv,
           "'this' must be the first parameter"sv,
           "'this' parameter not allowed when destructuring"sv,
           "'this' parameters are not allowed in JavaScript"sv,
@@ -319,6 +321,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "opening '<{1}>' tag here"sv,
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "private properties are not allowed in object literals"sv,
+          "readonly array is missing '[]'"sv,
           "redeclaration of global variable"sv,
           "redeclaration of variable: {0}"sv,
           "redundant 'await'"sv,

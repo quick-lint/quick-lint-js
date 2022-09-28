@@ -1273,6 +1273,18 @@ msgid "methods cannot be readonly"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'readonly' must be followed by an array type or a tuple type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "readonly array is missing '[]'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'readonly' only works with array types and tuple types"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "this 'case' is awful lonely"

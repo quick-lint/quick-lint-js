@@ -183,13 +183,19 @@ class parser {
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
 
+  enum class typescript_type_arrow_or_paren {
+    arrow,
+    paren,
+  };
+
   void parse_and_visit_typescript_arrow_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_arrow_type_expression_after_left_paren(
       parse_visitor_base &v);
   void
   parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
       parse_visitor_base &v);
-  void parse_and_visit_typescript_arrow_or_paren_type_expression(
+  typescript_type_arrow_or_paren
+  parse_and_visit_typescript_arrow_or_paren_type_expression(
       parse_visitor_base &v);
   void parse_and_visit_typescript_object_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_template_type_expression(
