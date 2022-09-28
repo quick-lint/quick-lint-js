@@ -133,10 +133,12 @@ TEST_F(test_parse_typescript_angle_type_assertion,
     EXPECT_EQ(summarize(ast), "jsxelement(Component)");
   }
 
-  {
-    test_parser p(u8"<number>text;\n// </number>;"_sv, typescript_jsx_options);
+  for (const string8& tag : keywords) {
+    string8 code = u8"<" + tag + u8">text;\n// </" + tag + u8">;";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_jsx_options);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "jsxelement(number)");
+    EXPECT_EQ(summarize(ast), "jsxelement(" + to_string(tag) + ")");
   }
 }
 
