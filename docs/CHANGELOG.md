@@ -16,10 +16,10 @@ Semantic Versioning.
 * CLI: The new [`--language` option][cli-language] lets you opt out of JSX
   support. With `--language=javascript`, quick-lint-js will report [E0177][] for
   any uses of JSX.
-* You can opt into TypeScript support in the CLI using [the
-  `--language=experimental-typescript` option][cli-language]. TypeScript support
-  is experimental, so there will be bugs (including crashes) in quick-lint-js.
-  This option does not affect the LSP server.
+* You can opt into TypeScript support in the CLI using the
+  [`--language=experimental-typescript` option][cli-language]. TypeScript
+  support is experimental, so there will be bugs (including crashes) in
+  quick-lint-js. This option does not affect the LSP server.
 
 ### Fixed
 
