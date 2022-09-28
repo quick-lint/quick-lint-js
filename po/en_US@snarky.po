@@ -972,6 +972,11 @@ msgid "TypeScript optional parameter requires parentheses"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript optional parameter with type annotation requires parentheses"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "optional parameter cannot have both '?' and initializer; remove '?'"
 msgstr ""
 

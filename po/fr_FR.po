@@ -1010,6 +1010,13 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript optional parameter with type annotation requires parentheses"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "optional parameter cannot have both '?' and initializer; remove '?'"
 msgstr ""
 

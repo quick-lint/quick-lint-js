@@ -917,6 +917,10 @@ msgid "TypeScript optional parameter requires parentheses"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript optional parameter with type annotation requires parentheses"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "optional parameter cannot have both '?' and initializer; remove '?'"
 msgstr ""
 

@@ -557,6 +557,48 @@ TEST_F(test_parse_typescript_function,
                     question, strlen(u8"async param"), u8"?")));
   }
 }
+
+TEST_F(test_parse_typescript_function,
+       optional_arrow_parameter_with_type_must_have_parentheses) {
+  {
+    // TODO(strager): Don't require surrounding parentheses for this diagnostic.
+    test_parser p(u8"(param?: Type => {})"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_3_OFFSETS(
+            p.code,
+            diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
+            parameter_and_annotation, strlen(u8"("), u8"param?: Type",  //
+            question, strlen(u8"(param"), u8"?",                        //
+            type_colon, strlen(u8"(param?"), u8":")));
+  }
+
+  {
+    test_parser p(u8"async param?: Type => {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_3_OFFSETS(
+            p.code,
+            diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
+            parameter_and_annotation, strlen(u8"async "), u8"param?: Type",  //
+            question, strlen(u8"async param"), u8"?",                        //
+            type_colon, strlen(u8"async param?"), u8":")));
+  }
+}
 }
 }
 

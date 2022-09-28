@@ -969,33 +969,47 @@ expression* parser::parse_async_expression_only(
     };
     this->skip();
 
+    std::optional<source_code_span> optional_question_span;
     if (this->peek().type == token_type::question) {
       // async param? => {}  // Invalid.
-      source_code_span question_span = this->peek().span();
+      optional_question_span = this->peek().span();
       parameters[0] = this->make_expression<expression::optional>(
-          parameters[0], question_span);
-      this->diag_reporter_->report(
-          diag_optional_arrow_parameter_requires_parentheses{
-              .parameter_and_question = parameters[0]->span(),
-              .question = question_span,
-          });
+          parameters[0], *optional_question_span);
       this->skip();
     }
 
+    std::optional<source_code_span> type_colon_span;
+    const char8* type_end;
     if (this->peek().type == token_type::colon && this->options_.typescript) {
       // async param: Type => {}  // Invalid.
-      source_code_span colon_span = this->peek().span();
+      type_colon_span = this->peek().span();
       buffering_visitor type_visits(&this->type_expression_memory_);
       this->parse_and_visit_typescript_colon_type_expression(type_visits);
-      const char8* type_end = this->lexer_.end_of_previous_token();
+      type_end = this->lexer_.end_of_previous_token();
 
       parameters[0] = this->make_expression<expression::type_annotated>(
-          parameters[0], colon_span, std::move(type_visits), type_end);
+          parameters[0], *type_colon_span, std::move(type_visits), type_end);
+    }
+
+    if (optional_question_span.has_value() && type_colon_span.has_value()) {
+      this->diag_reporter_->report(
+          diag_optional_arrow_parameter_with_type_annotation_requires_parentheses{
+              .parameter_and_annotation = parameters[0]->span(),
+              .question = *optional_question_span,
+              .type_colon = *type_colon_span,
+          });
+    } else if (optional_question_span.has_value()) {
+      this->diag_reporter_->report(
+          diag_optional_arrow_parameter_requires_parentheses{
+              .parameter_and_question = parameters[0]->span(),
+              .question = *optional_question_span,
+          });
+    } else if (type_colon_span.has_value()) {
       this->diag_reporter_->report(
           diag_arrow_parameter_with_type_annotation_requires_parentheses{
               .parameter_and_annotation =
                   source_code_span(parameter_begin, type_end),
-              .type_colon = colon_span,
+              .type_colon = *type_colon_span,
           });
     }
 
@@ -2149,17 +2163,31 @@ expression* parser::parse_arrow_function_expression_remainder(
     break;
 
   // param: Type => {}    // Invalid.
+  // param?: Type => {}   // Invalid.
   // (param: Type) => {}  // TypeScript only.
   case expression_kind::type_annotated: {
     // NOTE(strager): '(param): ReturnType => {}' is handled above.
     if (!parameter_list_begin) {
       expression::type_annotated* param =
           static_cast<expression::type_annotated*>(parameters_expression);
-      this->diag_reporter_->report(
-          diag_arrow_parameter_with_type_annotation_requires_parentheses{
-              .parameter_and_annotation = param->span(),
-              .type_colon = param->colon_span(),
-          });
+      if (param->child_->kind() == expression_kind::optional) {
+        // param?: Type => {}  // Invalid.
+        expression::optional* optional =
+            static_cast<expression::optional*>(param->child_);
+        this->diag_reporter_->report(
+            diag_optional_arrow_parameter_with_type_annotation_requires_parentheses{
+                .parameter_and_annotation = param->span(),
+                .question = optional->question_span(),
+                .type_colon = param->colon_span(),
+            });
+      } else {
+        // param: Type => {}  // Invalid.
+        this->diag_reporter_->report(
+            diag_arrow_parameter_with_type_annotation_requires_parentheses{
+                .parameter_and_annotation = param->span(),
+                .type_colon = param->colon_span(),
+            });
+      }
     }
     parameters.emplace_back(parameters_expression);
     break;
