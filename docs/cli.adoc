@@ -66,6 +66,8 @@ On Windows it behaves like 'never'.
 - *never*: never shows error codes as hyperlinks.
 
 Incompatible with *--lsp-server*.
+
+Added in quick-lint-js version 0.7.0.
 --
 
 *--vim-file-bufnr*=_number_::
@@ -91,6 +93,8 @@ Therefore, if multiple input files are given, *--path-for-config-search* can be 
 If *--path-for-config-search* is the last option, it has no effect.
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.4.0.
 
 [#config-file]
 *--config-file*=_file_::
@@ -113,6 +117,8 @@ If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a 
 endif::[]
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.3.0.
 
 [#language]
 *--language*=_languageid_::
@@ -132,6 +138,8 @@ See the <<Example>> section for an example.
 If *--language* is the last option, it has no effect.
 
 Incompatible with *--lsp-server*.
+
+Added in quick-lint-js version 2.10.0.
 --
 
 *--exit-fail-on*=_errors_::
@@ -156,6 +164,8 @@ endif::[]
 starting from *--path-for-config-search*'s _path_.
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.3.0.
 
 *--lsp*::
 *--lsp-server*::
@@ -174,6 +184,8 @@ Incompatible with *--output-format*.
 *--snarky*::
   Add spice to your failures.
   This option makes error messages more interesting.
++
+Added in quick-lint-js version 2.5.0.
 
 *-h*::
 *--help*::
