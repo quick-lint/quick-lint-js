@@ -1681,11 +1681,13 @@ next:
 
     bool is_optional;
     switch (this->peek().type) {
-    // function(param?)
-    // function(param?, ...otherParams)
-    // let [x?] = y;
-    // let {p: x?} = y;
+    // function(param?)                  // TypeScript only.
+    // function(param? = init)           // Invalid.
+    // function(param?, ...otherParams)  // TypeScript only.
+    // let [x?] = y;                     // Invalid.
+    // let {p: x?} = y;                  // Invalid.
     case token_type::comma:
+    case token_type::equal:
     case token_type::right_curly:
     case token_type::right_paren:
     case token_type::right_square:
@@ -3750,6 +3752,9 @@ try_again:
   case expression_kind::variable:
   case expression_kind::private_variable:
     break;
+  case expression_kind::optional:
+    ast = static_cast<expression::optional*>(ast)->child_;
+    goto try_again;
   case expression_kind::type_annotated:
     // TODO(strager): Distinguish between the following:
     // const [x]: y = z;  // Valid TypeScript.

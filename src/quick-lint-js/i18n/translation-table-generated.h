@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 362;
-constexpr std::size_t translation_table_string_table_size = 54223;
+constexpr std::uint16_t translation_table_mapping_table_size = 364;
+constexpr std::size_t translation_table_string_table_size = 54315;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -216,6 +216,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "index signature must be a field, not a method"sv,
           "index signatures require a value type"sv,
           "indexing requires an expression"sv,
+          "initializer starts here"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
           "interface properties are always public and cannot be private"sv,
           "interface properties cannot be marked public explicitly"sv,
@@ -314,6 +315,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "octal number literal has no digits"sv,
           "only one comma is allowed between or after generic parameters"sv,
           "opening '<{1}>' tag here"sv,
+          "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "private properties are not allowed in object literals"sv,
           "redeclaration of global variable"sv,
           "redeclaration of variable: {0}"sv,

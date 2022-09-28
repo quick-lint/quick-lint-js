@@ -1469,6 +1469,18 @@
               equal))                                                          \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_optional_parameter_cannot_have_initializer, "E0310",                \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span equal;                                                \
+        source_code_span question;                                             \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("optional parameter cannot have both '?' and " \
+                                "initializer; remove '?'"),                    \
+              question)                                                        \
+          MESSAGE(QLJS_TRANSLATABLE("initializer starts here"), equal))        \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_integer_literal_will_lose_precision, "E0212",                       \
       diagnostic_severity::warning,                                            \
       {                                                                        \

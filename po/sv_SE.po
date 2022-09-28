@@ -966,6 +966,15 @@ msgid "use ':' instead of '=' in object literals"
 msgstr "ogiltigt låneuttryck i objektliteral"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "optional parameter cannot have both '?' and initializer; remove '?'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "initializer starts here"
+msgstr "funktionkallelse startar här"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 

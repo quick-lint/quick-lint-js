@@ -199,7 +199,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 147},            //
         {0, 0, 0, 0, 46},             //
         {175, 14, 144, 175, 38},      //
-        {0, 30, 0, 0, 32},            //
+        {0, 0, 0, 0, 32},             //
+        {0, 30, 0, 0, 24},            //
         {0, 0, 0, 0, 59},             //
         {0, 0, 0, 0, 61},             //
         {0, 0, 0, 0, 56},             //
@@ -297,7 +298,8 @@ const translation_table translation_data = {
         {48, 27, 44, 43, 36},         //
         {0, 0, 0, 0, 35},             //
         {35, 37, 0, 0, 62},           //
-        {32, 13, 50, 38, 25},         //
+        {0, 0, 0, 0, 25},             //
+        {32, 13, 50, 38, 68},         //
         {66, 33, 76, 58, 54},         //
         {40, 29, 35, 33, 33},         //
         {0, 0, 0, 0, 31},             //
@@ -1460,6 +1462,7 @@ const translation_table translation_data = {
         u8"index signature must be a field, not a method\0"
         u8"index signatures require a value type\0"
         u8"indexing requires an expression\0"
+        u8"initializer starts here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
         u8"interface properties are always public and cannot be private\0"
         u8"interface properties cannot be marked public explicitly\0"
@@ -1558,6 +1561,7 @@ const translation_table translation_data = {
         u8"octal number literal has no digits\0"
         u8"only one comma is allowed between or after generic parameters\0"
         u8"opening '<{1}>' tag here\0"
+        u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"
         u8"redeclaration of variable: {0}\0"

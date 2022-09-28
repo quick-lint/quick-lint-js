@@ -3894,7 +3894,22 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     }
     [[fallthrough]];
   case expression_kind::assignment: {
-    this->visit_expression(ast->child_1(), v, variable_context::rhs);
+    auto *assignment = static_cast<const expression::assignment *>(ast);
+    expression *lhs = assignment->children_[0];
+    expression *rhs = assignment->children_[1];
+
+    if (lhs->kind() == expression_kind::optional) {
+      // TODO(strager): Only report this for parameters, not for other variable
+      // kinds.
+      this->diag_reporter_->report(
+          diag_optional_parameter_cannot_have_initializer{
+              .equal = assignment->operator_span_,
+              .question = static_cast<const expression::optional *>(lhs)
+                              ->question_span(),
+          });
+    }
+
+    this->visit_expression(rhs, v, variable_context::rhs);
     variable_init_kind lhs_init_kind;
     switch (info.declaration_kind) {
     case variable_kind::_const:
@@ -3906,8 +3921,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
       lhs_init_kind = variable_init_kind::normal;
       break;
     }
-    this->visit_binding_element(ast->child_0(), v,
-                                info.with_init_kind(lhs_init_kind));
+    this->visit_binding_element(lhs, v, info.with_init_kind(lhs_init_kind));
     break;
   }
 

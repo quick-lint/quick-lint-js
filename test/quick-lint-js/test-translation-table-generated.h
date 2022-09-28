@@ -1909,6 +1909,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "initializer starts here"_translatable,
+        {
+            u8"initializer starts here",
+            u8"initializer starts here",
+            u8"initializer starts here",
+            u8"initializer starts here",
+            u8"initializer starts here",
+        },
+    },
+    {
         "integer cannot be represented and will be rounded to '{1}'"_translatable,
         {
             u8"integer cannot be represented and will be rounded to '{1}'",
@@ -2886,6 +2896,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"\U0001f631 '<{1}>'",
             u8"opening '<{1}>' tag here",
             u8"opening '<{1}>' tag here",
+        },
+    },
+    {
+        "optional parameter cannot have both '?' and initializer; remove '?'"_translatable,
+        {
+            u8"optional parameter cannot have both '?' and initializer; remove '?'",
+            u8"optional parameter cannot have both '?' and initializer; remove '?'",
+            u8"optional parameter cannot have both '?' and initializer; remove '?'",
+            u8"optional parameter cannot have both '?' and initializer; remove '?'",
+            u8"optional parameter cannot have both '?' and initializer; remove '?'",
         },
     },
     {

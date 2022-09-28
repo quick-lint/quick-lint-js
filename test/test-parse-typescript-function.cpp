@@ -484,6 +484,33 @@ TEST_F(test_parse_typescript_function,
             question, strlen(u8"function f(param"), u8"?")));
   }
 }
+
+TEST_F(test_parse_typescript_function,
+       optional_parameters_cannot_have_initializers) {
+  {
+    test_parser p(u8"(param? = init) => {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_optional_parameter_cannot_have_initializer,  //
+                    equal, strlen(u8"(param? "), u8"=",               //
+                    question, strlen(u8"(param"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"function f(param? = init) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_optional_parameter_cannot_have_initializer,  //
+                    equal, strlen(u8"function f(param? "), u8"=",     //
+                    question, strlen(u8"function f(param"), u8"?")));
+  }
+}
 }
 }
 
