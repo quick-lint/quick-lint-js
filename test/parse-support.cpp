@@ -172,6 +172,8 @@ std::string summarize(const expression& expression) {
     result += ")";
     return result;
   }
+  case expression_kind::optional:
+    return "optional(" + summarize(expression.child_0()) + ")";
   case expression_kind::paren:
     return "paren(" + summarize(expression.child_0()) + ")";
   case expression_kind::paren_empty:

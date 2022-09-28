@@ -1381,6 +1381,11 @@ msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "unexpected '?'"
+msgstr "oförväntad '@'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr "C-stil for loops har enbart tre semikolon separerande komponenter"
 

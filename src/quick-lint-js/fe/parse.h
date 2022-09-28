@@ -443,6 +443,13 @@ class parser {
     bool trailing_curly_is_arrow_body : 1 = true;
 
     bool conditional_operator : 1 = true;
+
+    // If true, parse '?:' as the '?' optional indicator on a function parameter
+    // followed by the ':' type annotation indicator on that function parameter.
+    //
+    // If false, parse '?:' as the conditional operator with no expression in
+    // between.
+    bool colon_question_is_typescript_optional_with_type_annotation : 1 = false;
   };
 
   // binary_expression_builder helps in the creation of a

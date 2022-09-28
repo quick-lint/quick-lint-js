@@ -69,6 +69,7 @@ enum class expression_kind {
   new_target,
   non_null_assertion,  // TypeScript only.
   object,
+  optional,  // TypeScript only.
   paren,
   paren_empty,
   private_variable,
@@ -231,6 +232,7 @@ class expression {
   class new_target;
   class non_null_assertion;
   class object;
+  class optional;
   class paren;
   class paren_empty;
   class private_variable;
@@ -854,6 +856,24 @@ class expression::object final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::object>);
 
+class expression::optional final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::optional;
+
+  explicit optional(expression *child, source_code_span question_span) noexcept
+      : expression(kind), child_(child), question_end_(question_span.end()) {
+    QLJS_ASSERT(question_span.end() - question_span.begin() == 1);
+  }
+
+  source_code_span question_span() const noexcept {
+    return source_code_span(this->question_end_ - 1, this->question_end_);
+  }
+
+  expression *child_;
+  const char8 *question_end_;
+};
+static_assert(expression_arena::is_allocatable<expression::optional>);
+
 class expression::paren final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::paren;
@@ -1229,6 +1249,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *paren = static_cast<const expression::paren *>(this);
     return expression_arena::array_ptr<expression *>(&paren->child_, 1);
   }
+  case expression_kind::optional: {
+    auto *optional = static_cast<const expression::optional *>(this);
+    return expression_arena::array_ptr<expression *>(&optional->child_, 1);
+  }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =
         static_cast<const expression::rw_unary_suffix *>(this);
@@ -1384,6 +1408,11 @@ inline source_code_span expression::span() const noexcept {
   }
   case expression_kind::object:
     return static_cast<const object *>(this)->span_;
+  case expression_kind::optional: {
+    auto *optional = static_cast<const expression::optional *>(this);
+    return source_code_span(optional->child_->span().begin(),
+                            optional->question_end_);
+  }
   case expression_kind::paren:
     return static_cast<const paren *>(this)->span_;
   case expression_kind::paren_empty:

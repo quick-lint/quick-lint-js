@@ -347,6 +347,117 @@ TEST_F(test_parse_typescript_function,
             type_colon, strlen(u8"(async param"), u8":")));
   }
 }
+
+TEST_F(test_parse_typescript_function, optional_expression) {
+  {
+    test_parser p(u8"(x?)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "paren(optional(var x))");
+  }
+
+  {
+    test_parser p(u8"(x?)"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code,
+                              diag_unexpected_question_in_expression,  //
+                              question, strlen(u8"(x"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"(x?: Type)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    ASSERT_THAT(summarize(ast), "paren(typed(optional(var x)))");
+
+    auto* type_annotated =
+        static_cast<expression::type_annotated*>(ast->without_paren());
+    spy_visitor v;
+    type_annotated->visit_type_annotation(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+  }
+
+  {
+    test_parser p(u8"(x?, y)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "paren(binary(optional(var x), var y))");
+  }
+
+  {
+    test_parser p(u8"(x?, other)"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // x
+                                      "visit_variable_use"));  // other
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(diag_unexpected_question_in_expression)));
+  }
+}
+
+TEST_F(test_parse_typescript_function, optional_parameter) {
+  {
+    test_parser p(u8"function f(param1?, param2?) {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param1
+                                      "visit_variable_declaration",  // param2
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    test_parser p(u8"function f(param?: ParamType) {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ParamType
+                                      "visit_variable_declaration",  // param1
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    test_parser p(u8"(param?) => {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    test_parser p(u8"(param1?, param2?) => {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param1
+                                      "visit_variable_declaration",  // param2
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    test_parser p(u8"(param?: ParamType) => {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ParamType
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    test_parser p(u8"(param1?: ParamType, param2?, param3?) => ReturnType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ParamType
+                                      "visit_variable_declaration",  // param1
+                                      "visit_variable_declaration",  // param2
+                                      "visit_variable_declaration",  // param3
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+  }
+}
 }
 }
 

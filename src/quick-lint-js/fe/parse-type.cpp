@@ -434,8 +434,10 @@ void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
 
         // (param, param) => ReturnType
         // (param: Type) => ReturnType
+        // (param?) => ReturnType
         case token_type::colon:
         case token_type::comma:
+        case token_type::question:
           return false;
 
         default:

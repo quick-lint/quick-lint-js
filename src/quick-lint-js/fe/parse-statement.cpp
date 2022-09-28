@@ -1600,6 +1600,8 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                  .commas = false,
                  .in_operator = true,
                  .colon_type_annotation = allow_type_annotations::always,
+                 .colon_question_is_typescript_optional_with_type_annotation =
+                     true,
              });
       this->visit_binding_element(
           parameter, v,
@@ -2070,6 +2072,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::new_target:
   case expression_kind::non_null_assertion:
   case expression_kind::object:
+  case expression_kind::optional:
   case expression_kind::paren_empty:
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
@@ -3963,7 +3966,6 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
         });
     break;
   }
-
   case expression_kind::_class:
   case expression_kind::_delete:
   case expression_kind::_new:
@@ -4049,6 +4051,11 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     this->diag_reporter_->report(diag_invalid_parameter{
         .parameter = ast->span(),
     });
+    break;
+
+  // function f(param?) {}  // TypeScript only.
+  case expression_kind::optional:
+    this->visit_binding_element(ast->child_0(), v, info);
     break;
 
     // function f([(arg)]) {}  // Invalid.

@@ -53,6 +53,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::this_variable:
   case expression_kind::yield_none:
     break;
+
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::array:
@@ -173,6 +174,14 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
       }
     }
     break;
+  case expression_kind::optional: {
+    auto* optional = static_cast<const expression::optional*>(ast);
+    this->visit_expression(optional->child_, v, context);
+    this->diag_reporter_->report(diag_unexpected_question_in_expression{
+        .question = optional->question_span(),
+    });
+    break;
+  }
   case expression_kind::paren:
     this->visit_expression(ast->child_0(), v, context);
     break;
@@ -485,8 +494,12 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
 
     // (x) => {}
     // (x + y * z)
-    expression* child =
-        this->parse_expression(v, precedence{.trailing_identifiers = true});
+    expression* child = this->parse_expression(
+        v, precedence{
+               .trailing_identifiers = true,
+               .colon_question_is_typescript_optional_with_type_annotation =
+                   this->options_.typescript,
+           });
     switch (this->peek().type) {
     case token_type::right_paren:
       this->skip();
@@ -1658,12 +1671,39 @@ next:
   }
 
   // x ? y : z  // Conditional operator.
+  // x?         // TypeScript only.
   case token_type::question: {
     if (!prec.conditional_operator) {
       break;
     }
     source_code_span question_span = this->peek().span();
     this->skip();
+
+    bool is_optional;
+    switch (this->peek().type) {
+    // function(param?)
+    // function(param?, ...otherParams)
+    case token_type::comma:
+    case token_type::right_paren:
+      is_optional = true;
+      break;
+
+    // function(param?: ParamType)
+    case token_type::colon:
+      is_optional =
+          prec.colon_question_is_typescript_optional_with_type_annotation;
+      break;
+
+    default:
+      is_optional = false;
+      break;
+    }
+    if (is_optional) {
+      expression* lhs = binary_builder.last_expression();
+      binary_builder.replace_last(
+          this->make_expression<expression::optional>(lhs, question_span));
+      goto next;
+    }
 
     expression* condition = this->build_expression(binary_builder);
 
@@ -2059,6 +2099,11 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::object:
   case expression_kind::spread:
   case expression_kind::variable:
+    parameters.emplace_back(parameters_expression);
+    break;
+
+  // (param?) => {}  // TypeScript only.
+  case expression_kind::optional:
     parameters.emplace_back(parameters_expression);
     break;
 
