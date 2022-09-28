@@ -960,7 +960,6 @@ expression* parser::parse_async_expression_only(
     lexer_transaction transaction = this->lexer_.begin_transaction();
 
     source_code_span parameter_span = this->peek().span();
-    const char8* parameter_begin = parameter_span.begin();
     std::array<expression*, 1> parameters = {
         this->peek().type == token_type::kw_this
             ? this->make_expression<expression::this_variable>(parameter_span)
@@ -979,13 +978,12 @@ expression* parser::parse_async_expression_only(
     }
 
     std::optional<source_code_span> type_colon_span;
-    const char8* type_end;
     if (this->peek().type == token_type::colon && this->options_.typescript) {
       // async param: Type => {}  // Invalid.
       type_colon_span = this->peek().span();
       buffering_visitor type_visits(&this->type_expression_memory_);
       this->parse_and_visit_typescript_colon_type_expression(type_visits);
-      type_end = this->lexer_.end_of_previous_token();
+      const char8* type_end = this->lexer_.end_of_previous_token();
 
       parameters[0] = this->make_expression<expression::type_annotated>(
           parameters[0], *type_colon_span, std::move(type_visits), type_end);
@@ -1007,8 +1005,7 @@ expression* parser::parse_async_expression_only(
     } else if (type_colon_span.has_value()) {
       this->diag_reporter_->report(
           diag_arrow_parameter_with_type_annotation_requires_parentheses{
-              .parameter_and_annotation =
-                  source_code_span(parameter_begin, type_end),
+              .parameter_and_annotation = parameters[0]->span(),
               .type_colon = *type_colon_span,
           });
     }
