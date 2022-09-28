@@ -524,6 +524,39 @@ TEST_F(test_parse_typescript_function,
                     question, strlen(u8"function f(param"), u8"?")));
   }
 }
+
+TEST_F(test_parse_typescript_function,
+       optional_arrow_parameter_must_have_parentheses) {
+  {
+    test_parser p(u8"param? => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_optional_arrow_parameter_requires_parentheses,  //
+                    parameter_and_question, 0, u8"param?",               //
+                    question, strlen(u8"param"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"async param? => {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code,
+                    diag_optional_arrow_parameter_requires_parentheses,      //
+                    parameter_and_question, strlen(u8"async "), u8"param?",  //
+                    question, strlen(u8"async param"), u8"?")));
+  }
+}
 }
 }
 

@@ -75,6 +75,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 59},             //
         {0, 0, 0, 0, 61},             //
+        {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 61},             //
         {0, 0, 0, 0, 66},             //
         {0, 0, 0, 0, 48},             //
@@ -1337,6 +1338,7 @@ const translation_table translation_data = {
         u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"
+        u8"TypeScript optional parameter requires parentheses\0"
         u8"TypeScript optional parameters are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
         u8"TypeScript type annotation requires parentheses\0"

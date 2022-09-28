@@ -966,6 +966,11 @@ msgid "use ':' instead of '=' in object literals"
 msgstr "ogiltigt låneuttryck i objektliteral"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript optional parameter requires parentheses"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "optional parameter cannot have both '?' and initializer; remove '?'"
 msgstr ""
 

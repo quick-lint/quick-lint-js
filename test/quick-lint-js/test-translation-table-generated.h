@@ -659,6 +659,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript optional parameter requires parentheses"_translatable,
+        {
+            u8"TypeScript optional parameter requires parentheses",
+            u8"TypeScript optional parameter requires parentheses",
+            u8"TypeScript optional parameter requires parentheses",
+            u8"TypeScript optional parameter requires parentheses",
+            u8"TypeScript optional parameter requires parentheses",
+        },
+    },
+    {
         "TypeScript optional parameters are not allowed in JavaScript"_translatable,
         {
             u8"TypeScript optional parameters are not allowed in JavaScript",

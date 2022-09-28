@@ -1469,6 +1469,19 @@
               equal))                                                          \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_optional_arrow_parameter_requires_parentheses, "E0311",             \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span parameter_and_question;                               \
+        source_code_span question;                                             \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("missing parentheses around parameter"),       \
+              parameter_and_question)                                          \
+          MESSAGE(QLJS_TRANSLATABLE(                                           \
+                      "TypeScript optional parameter requires parentheses"),   \
+                  question))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_optional_parameter_cannot_have_initializer, "E0310",                \
       diagnostic_severity::error,                                              \
       {                                                                        \

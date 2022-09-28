@@ -969,6 +969,19 @@ expression* parser::parse_async_expression_only(
     };
     this->skip();
 
+    if (this->peek().type == token_type::question) {
+      // async param? => {}  // Invalid.
+      source_code_span question_span = this->peek().span();
+      parameters[0] = this->make_expression<expression::optional>(
+          parameters[0], question_span);
+      this->diag_reporter_->report(
+          diag_optional_arrow_parameter_requires_parentheses{
+              .parameter_and_question = parameters[0]->span(),
+              .question = question_span,
+          });
+      this->skip();
+    }
+
     if (this->peek().type == token_type::colon && this->options_.typescript) {
       // async param: Type => {}  // Invalid.
       source_code_span colon_span = this->peek().span();
@@ -1693,10 +1706,12 @@ next:
     // function(param?)                  // TypeScript only.
     // function(param? = init)           // Invalid.
     // function(param?, ...otherParams)  // TypeScript only.
+    // param? => {}                      // Invalid.
     // let [x?] = y;                     // Invalid.
     // let {p: x?} = y;                  // Invalid.
     case token_type::comma:
     case token_type::equal:
+    case token_type::equal_greater:
     case token_type::right_curly:
     case token_type::right_paren:
     case token_type::right_square:
@@ -2118,7 +2133,18 @@ expression* parser::parse_arrow_function_expression_remainder(
     break;
 
   // (param?) => {}  // TypeScript only.
+  // param? => {}    // Invalid.
   case expression_kind::optional:
+    if (!parameter_list_begin) {
+      // param? => {}  // Invalid.
+      expression::optional* param =
+          static_cast<expression::optional*>(parameters_expression);
+      this->diag_reporter_->report(
+          diag_optional_arrow_parameter_requires_parentheses{
+              .parameter_and_question = param->span(),
+              .question = param->question_span(),
+          });
+    }
     parameters.emplace_back(parameters_expression);
     break;
 
