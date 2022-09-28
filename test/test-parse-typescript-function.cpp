@@ -446,6 +446,19 @@ TEST_F(test_parse_typescript_function, optional_parameter) {
   }
 
   {
+    test_parser p(u8"(param1?: Param1Type, param2?: Param2Type) => {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // Param1Type
+                                      "visit_variable_declaration",  // param1
+                                      "visit_variable_type_use",  // Param2Type
+                                      "visit_variable_declaration",  // param2
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
     test_parser p(u8"(param1?: ParamType, param2?, param3?) => ReturnType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();

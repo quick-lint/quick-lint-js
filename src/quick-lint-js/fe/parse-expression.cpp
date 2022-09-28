@@ -1214,8 +1214,17 @@ next:
           binary_builder.move_expressions(this->expressions_), comma_span);
     } else {
       // Comma expression: a, b, c
+      // FIXME(strager): Should we overwrite the precedence here? Overwriting
+      // has caused bugs before.
       expression* rhs = binary_builder.add_child(
-          comma_span, this->parse_expression(v, precedence{.commas = false}));
+          comma_span,
+          this->parse_expression(
+              v,
+              precedence{
+                  .commas = false,
+                  .colon_question_is_typescript_optional_with_type_annotation =
+                      prec.colon_question_is_typescript_optional_with_type_annotation,
+              }));
       if (rhs->kind() == expression_kind::_invalid) {
         this->diag_reporter_->report(
             diag_missing_operand_for_operator{comma_span});
