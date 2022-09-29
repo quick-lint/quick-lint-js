@@ -2207,13 +2207,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
 
       if (this->peek().type == token_type::colon) {
         // catch (e: Type)  // TypeScript only.
-        if (!this->options_.typescript) {
-          this->diag_reporter_->report(
-              diag_typescript_type_annotations_not_allowed_in_javascript{
-                  .type_colon = this->peek().span(),
-              });
-        }
-        this->skip();
+        this->parse_typescript_colon_for_type();
         switch (this->peek().type) {
         // catch (e: *)
         // catch (e: any)

@@ -24,8 +24,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-void parser::parse_and_visit_typescript_colon_type_expression(
-    parse_visitor_base &v) {
+void parser::parse_typescript_colon_for_type() {
   QLJS_ASSERT(this->peek().type == token_type::colon);
   if (!this->options_.typescript && !this->in_typescript_only_construct_) {
     this->diag_reporter_->report(
@@ -34,6 +33,11 @@ void parser::parse_and_visit_typescript_colon_type_expression(
         });
   }
   this->skip();
+}
+
+void parser::parse_and_visit_typescript_colon_type_expression(
+    parse_visitor_base &v) {
+  this->parse_typescript_colon_for_type();
   this->parse_and_visit_typescript_type_expression(v);
 }
 

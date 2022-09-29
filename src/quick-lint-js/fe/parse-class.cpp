@@ -809,16 +809,13 @@ void parser::parse_and_visit_class_or_interface_member(
 
       case token_type::colon:
         this->check_modifiers_for_field_with_type_annotation();
-        if (!p->options_.typescript && !p->in_typescript_only_construct_ &&
-            !this->find_modifier(token_type::bang)) {
+        if (this->find_modifier(token_type::bang)) {
           // If we have a bang modifier, we already reported
           // diag_typescript_assignment_asserted_fields_not_allowed_in_javascript.
-          p->diag_reporter_->report(
-              diag_typescript_type_annotations_not_allowed_in_javascript{
-                  .type_colon = p->peek().span(),
-              });
+          p->skip();
+        } else {
+          p->parse_typescript_colon_for_type();
         }
-        p->skip();
         p->parse_and_visit_typescript_type_expression(v);
 
         if (p->peek().type == token_type::equal) {
