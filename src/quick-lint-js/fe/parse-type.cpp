@@ -73,6 +73,7 @@ again:
   case token_type::kw_any:
   case token_type::kw_bigint:
   case token_type::kw_boolean:
+  case token_type::kw_false:
   case token_type::kw_never:
   case token_type::kw_null:
   case token_type::kw_number:
@@ -80,6 +81,7 @@ again:
   case token_type::kw_string:
   case token_type::kw_symbol:
   case token_type::kw_this:
+  case token_type::kw_true:
   case token_type::kw_undefined:
   case token_type::kw_unknown:
   case token_type::kw_void:

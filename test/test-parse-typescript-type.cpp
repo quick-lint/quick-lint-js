@@ -216,15 +216,15 @@ TEST_F(test_parse_typescript_type, this_type) {
 }
 
 TEST_F(test_parse_typescript_type, literal_type) {
-  {
-    test_parser p(u8"42"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.variable_uses, IsEmpty());
-  }
-
-  {
-    test_parser p(u8"'hello'"_sv, typescript_options);
+  for (string8_view code : {
+           u8"42"_sv,
+           u8"'hello'"_sv,
+           u8"null"_sv,
+           u8"true"_sv,
+           u8"false"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
