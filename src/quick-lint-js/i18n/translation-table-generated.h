@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 369;
-constexpr std::size_t translation_table_string_table_size = 54585;
+constexpr std::uint16_t translation_table_mapping_table_size = 370;
+constexpr std::size_t translation_table_string_table_size = 54620;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -393,6 +393,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "write 'const' instead of '{0}' here"sv,
           "write the type assertion with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
+          "{0} is not the name of a parameter"sv,
           "{0} with no bindings"sv,
           "{1:headlinese} value must be a compile-time constant"sv,
           "~~~ invalid string, do not use outside benchmark ~~~"sv,

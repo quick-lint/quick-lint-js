@@ -1604,6 +1604,10 @@ msgid "unmatched '}'"
 msgstr "Zugehörige geschweifte Klammer fehlt"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "{0} is not the name of a parameter"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "use of undeclared type: {0}"
 msgstr "Variable {0} wird verwendet, ist jedoch nicht deklariert"

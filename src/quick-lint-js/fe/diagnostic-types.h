@@ -2301,6 +2301,11 @@
       MESSAGE(QLJS_TRANSLATABLE("unmatched '}'"), right_curly))                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_use_of_undeclared_parameter_in_type_predicate, "E0315",             \
+      diagnostic_severity::error, { identifier name; },                        \
+      MESSAGE(QLJS_TRANSLATABLE("{0} is not the name of a parameter"), name))  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_use_of_undeclared_type, "E0214", diagnostic_severity::warning,      \
       { identifier name; },                                                    \
       MESSAGE(QLJS_TRANSLATABLE("use of undeclared type: {0}"), name))         \

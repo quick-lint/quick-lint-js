@@ -495,6 +495,18 @@ void variable_analyzer::visit_variable_namespace_use(identifier) {
 void variable_analyzer::visit_variable_type_predicate_use(identifier name) {
   // TODO(#690)
   static_cast<void>(name);
+
+  QLJS_ASSERT(!this->scopes_.empty());
+  scope &current_scope = this->current_scope();
+  declared_variable *var = current_scope.declared_variables.find_runtime(name);
+  if (var) {
+    // FIXME(strager): Should we mark the parameter as used?
+  } else {
+    this->diag_reporter_->report(
+        diag_use_of_undeclared_parameter_in_type_predicate{
+            .name = name,
+        });
+  }
 }
 
 void variable_analyzer::visit_variable_type_use(identifier name) {

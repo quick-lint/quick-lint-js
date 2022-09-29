@@ -3679,6 +3679,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "{0} is not the name of a parameter"_translatable,
+        {
+            u8"{0} is not the name of a parameter",
+            u8"{0} is not the name of a parameter",
+            u8"{0} is not the name of a parameter",
+            u8"{0} is not the name of a parameter",
+            u8"{0} is not the name of a parameter",
+        },
+    },
+    {
         "{0} with no bindings"_translatable,
         {
             u8"{0} with no bindings",

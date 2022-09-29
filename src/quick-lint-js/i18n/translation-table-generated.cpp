@@ -376,7 +376,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 36},             //
         {0, 0, 0, 0, 48},             //
-        {47, 55, 72, 48, 42},         //
+        {0, 0, 0, 0, 42},             //
+        {47, 55, 72, 48, 35},         //
         {0, 0, 0, 0, 21},             //
         {0, 15, 0, 0, 53},            //
     }}),
@@ -1644,6 +1645,7 @@ const translation_table translation_data = {
         u8"write 'const' instead of '{0}' here\0"
         u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
+        u8"{0} is not the name of a parameter\0"
         u8"{0} with no bindings\0"
         u8"{1:headlinese} value must be a compile-time constant\0"
         u8"~~~ invalid string, do not use outside benchmark ~~~",

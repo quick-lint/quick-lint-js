@@ -831,6 +831,87 @@ TEST(test_variable_analyzer_type, interfaces_conflict_with_generic_parameters) {
                                     original_declaration,
                                     span_of(generic_parameter_declaration))));
 }
+
+TEST(test_variable_analyzer_type, type_predicate_finds_function_parameter) {
+  const char8 parameter_declaration[] = u8"p";
+  const char8 parameter_use[] = u8"p";
+
+  // ((p): p is any => {
+  // });
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(parameter_declaration),
+                               variable_kind::_arrow_parameter,
+                               variable_init_kind::normal);
+  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_variable_analyzer_type,
+     type_predicate_does_not_find_outer_function_parameter) {
+  const char8 outer_parameter_declaration[] = u8"outer";
+  const char8 inner_parameter_declaration[] = u8"inner";
+  const char8 parameter_use[] = u8"outer";
+
+  // ((outer) => {
+  //   ((inner): outer is any => {  // ERROR
+  //   });
+  // });
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(outer_parameter_declaration),
+                               variable_kind::_arrow_parameter,
+                               variable_init_kind::normal);
+  l.visit_enter_function_scope_body();
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(inner_parameter_declaration),
+                               variable_kind::_arrow_parameter,
+                               variable_init_kind::normal);
+  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_SPAN(
+                  diag_use_of_undeclared_parameter_in_type_predicate,  //
+                  name, span_of(parameter_use))));
+}
+
+TEST(test_variable_analyzer_type,
+     type_predicate_does_not_find_generic_parameter) {
+  const char8 generic_parameter_declaration[] = u8"T";
+  const char8 parameter_declaration[] = u8"p";
+  const char8 parameter_use[] = u8"T";
+
+  // (<T>(p): T is any => {
+  // });
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
+  l.visit_variable_declaration(identifier_of(parameter_declaration),
+                               variable_kind::_arrow_parameter,
+                               variable_init_kind::normal);
+  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_SPAN(
+                  diag_use_of_undeclared_parameter_in_type_predicate,  //
+                  name, span_of(parameter_use))));
+}
 }
 }
 
