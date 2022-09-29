@@ -22,7 +22,6 @@
 
 using ::testing::_;
 using ::testing::ElementsAre;
-using ::testing::IsEmpty;
 using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
@@ -33,14 +32,13 @@ class test_parse_conditional_expression
 
 TEST_P(test_parse_conditional_expression, conditional_expression) {
   {
-    test_parser p(u8"x?y:z"_sv, GetParam(), capture_diags);
+    test_parser p(u8"x?y:z"_sv, GetParam());
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::conditional);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_EQ(summarize(ast->child_2()), "var z");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
