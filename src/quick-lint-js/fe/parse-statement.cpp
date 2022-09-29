@@ -1354,6 +1354,7 @@ void parser::parse_and_visit_function_declaration(
               this->parse_end_of_typescript_overload_signature(function_name);
           if (r.is_overload_signature) {
             v.visit_exit_function_scope();
+            attributes = r.second_function_attributes;
             goto next_overload;
           }
           if (!r.has_missing_body_error) {
@@ -1689,12 +1690,14 @@ parser::parse_end_of_typescript_overload_signature(
   // function f(); banana();        // Invalid (not an overload).
 
   lexer_transaction transaction = this->lexer_.begin_transaction();
+  function_attributes second_function_attributes = function_attributes::normal;
 
   auto roll_back_missing_body = [&]() -> overload_signature_parse_result {
     this->lexer_.roll_back_transaction(std::move(transaction));
     return overload_signature_parse_result{
         .is_overload_signature = false,
         .has_missing_body_error = true,
+        .second_function_attributes = second_function_attributes,
     };
   };
 
@@ -1706,11 +1709,22 @@ parser::parse_end_of_typescript_overload_signature(
     return roll_back_missing_body();
   }
 
+  std::optional<source_code_span> async_keyword;
+  if (this->peek().type == token_type::kw_async) {
+    async_keyword = this->peek().span();
+    this->skip();
+    second_function_attributes = function_attributes::async;
+  }
+
   if (this->peek().type != token_type::kw_function) {
     return roll_back_missing_body();
   }
 
+  source_code_span function_keyword = this->peek().span();
+  bool has_newline_after_async_keyword =
+      async_keyword.has_value() && this->peek().has_leading_newline;
   this->skip();
+
   // FIXME(strager): What about contextual keyword function names?
   if (this->peek().type != token_type::identifier) {
     return roll_back_missing_body();
@@ -1731,6 +1745,7 @@ parser::parse_end_of_typescript_overload_signature(
       return overload_signature_parse_result{
           .is_overload_signature = false,
           .has_missing_body_error = false,
+          .second_function_attributes = second_function_attributes,
       };
     } else {
       // function f()  // ASI
@@ -1741,9 +1756,18 @@ parser::parse_end_of_typescript_overload_signature(
 
   this->skip();
   this->lexer_.commit_transaction(std::move(transaction));
+  if (has_newline_after_async_keyword) {
+    QLJS_ASSERT(async_keyword.has_value());
+    this->diag_reporter_->report(
+        diag_newline_not_allowed_between_async_and_function_keyword{
+            .async_keyword = *async_keyword,
+            .function_keyword = function_keyword,
+        });
+  }
   return overload_signature_parse_result{
       .is_overload_signature = true,
       .has_missing_body_error = false,
+      .second_function_attributes = second_function_attributes,
   };
 }
 

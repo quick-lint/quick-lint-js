@@ -941,6 +941,16 @@ msgstr "Arrow ist hier"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "newline is not allowed between 'async' and 'function'"
+msgstr "Zeilenumbruch ist zwischen 'async' und Arrow-Funktion verboten"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function' is here"
+msgstr "Funktionsaufruf beginnt hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "newline is not allowed after 'abstract'"
 msgstr ""
 "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"

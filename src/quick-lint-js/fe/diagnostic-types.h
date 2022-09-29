@@ -1401,6 +1401,18 @@
               async) MESSAGE(QLJS_TRANSLATABLE("arrow is here"), arrow))       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_newline_not_allowed_between_async_and_function_keyword, "E0317",    \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span async_keyword;                                        \
+        source_code_span function_keyword;                                     \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed between 'async' and "  \
+                                "'function'"),                                 \
+              async_keyword)                                                   \
+          MESSAGE(QLJS_TRANSLATABLE("'function' is here"), function_keyword))  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_newline_not_allowed_after_abstract_keyword, "E0300",                \
       diagnostic_severity::error, { source_code_span abstract_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'abstract'"),    \

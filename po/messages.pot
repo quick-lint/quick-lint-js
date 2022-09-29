@@ -869,6 +869,14 @@ msgid "arrow is here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "newline is not allowed between 'async' and 'function'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'function' is here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "newline is not allowed after 'abstract'"
 msgstr ""
 

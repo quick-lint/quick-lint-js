@@ -919,6 +919,16 @@ msgstr "pilen är här"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "newline is not allowed between 'async' and 'function'"
+msgstr "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function' is here"
+msgstr "funktionkallelse startar här"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "newline is not allowed after 'abstract'"
 msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
 

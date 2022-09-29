@@ -32,7 +32,8 @@ const translation_table translation_data = {
         {18, 13, 53, 51, 16},         //
         {0, 0, 0, 0, 33},             //
         {30, 39, 0, 0, 38},           //
-        {13, 16, 0, 0, 11},           //
+        {0, 0, 0, 0, 11},             //
+        {13, 16, 0, 0, 19},           //
         {13, 24, 37, 31, 15},         //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 39},             //
@@ -293,7 +294,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 40},             //
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 41},             //
-        {52, 31, 25, 21, 36},         //
+        {0, 0, 0, 0, 36},             //
+        {52, 31, 25, 21, 54},         //
         {0, 0, 0, 0, 73},             //
         {63, 34, 103, 73, 50},        //
         {69, 23, 79, 51, 48},         //
@@ -1303,6 +1305,7 @@ const translation_table translation_data = {
         u8"'else' has no corresponding 'if'\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
+        u8"'function' is here\0"
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
         u8"'private' is not allowed in JavaScript\0"
@@ -1564,6 +1567,7 @@ const translation_table translation_data = {
         u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed after 'namespace'\0"
         u8"newline is not allowed after 'type'\0"
+        u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"newline is not allowed between field name and '!'\0"
         u8"number literal contains consecutive underscores\0"

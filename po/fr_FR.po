@@ -953,6 +953,18 @@ msgstr "la flèche est ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "newline is not allowed between 'async' and 'function'"
+msgstr ""
+"un saut de ligne n'est pas autorisé entre 'async' et la liste de paramètres "
+"d'une fonction fléchée"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function' is here"
+msgstr "appel de fonction débuté ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "newline is not allowed after 'abstract'"
 msgstr ""
 "',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"

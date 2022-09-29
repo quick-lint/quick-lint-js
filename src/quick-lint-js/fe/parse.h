@@ -287,6 +287,10 @@ class parser {
     // If true, the first function's missing body is an error. If false, the
     // first function's missing body is not an error.
     bool has_missing_body_error;
+
+    // If is_overload_signature is true, then second_function_attributes is the
+    // attributes of the second function.
+    function_attributes second_function_attributes;
   };
 
   // Given the following code:

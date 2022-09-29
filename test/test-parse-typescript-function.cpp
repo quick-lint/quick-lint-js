@@ -758,6 +758,16 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"async function f() { await(myPromise); }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
 }
 
 TEST_F(test_parse_typescript_function,
@@ -811,6 +821,70 @@ TEST_F(test_parse_typescript_function,
                               strlen(u8"function f()"), u8"")))
         << "missing function body is more likely, so don't report "
            "diag_typescript_function_overload_signature_must_have_same_name";
+  }
+
+  {
+    test_parser p(
+        u8"function f()\n"_sv  // ASI
+        u8"async\n"_sv
+        u8"function g() { await(myPromise); }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_variable_use",               // async
+                            "visit_variable_declaration",       // g
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_variable_use",               // await
+                            "visit_variable_use",               // myPromise
+                            "visit_exit_function_scope",        // }
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAre(u8"async", u8"await", u8"myPromise"))
+        << "'async' should be a variable reference, not a keyword";
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_function_body, expected_body,
+                              strlen(u8"function f()"), u8"")))
+        << "missing function body is more likely, so don't report "
+           "diag_typescript_function_overload_signature_must_have_same_name";
+  }
+}
+
+TEST_F(test_parse_typescript_function,
+       function_overload_signature_with_newline_after_async) {
+  {
+    // Normally, we would treat 'async' as a variable name here. However, we
+    // know that there's a syntax error anyway (missing function body), so
+    // diag_newline_not_allowed_between_async_and_function_keyword seems more
+    // helpful.
+    test_parser p(
+        u8"function f()\n"_sv
+        u8"async\n"_sv
+        u8"function f() { await(myPromise); }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_variable_use",               // myPromise
+                            "visit_exit_function_scope",        // }
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_newline_not_allowed_between_async_and_function_keyword,
+            async_keyword, strlen(u8"function f()\n"), u8"async",  //
+            function_keyword, strlen(u8"function f()\nasync\n"),
+            u8"function")));
   }
 }
 }

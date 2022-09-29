@@ -239,6 +239,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'function' is here"_translatable,
+        {
+            u8"'function' is here",
+            u8"'function' is here",
+            u8"'function' is here",
+            u8"'function' is here",
+            u8"'function' is here",
+        },
+    },
+    {
         "'if' statement"_translatable,
         {
             u8"'if' statement",
@@ -2846,6 +2856,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"newline is not allowed after 'type'",
             u8"newline is not allowed after 'type'",
             u8"newline is not allowed after 'type'",
+        },
+    },
+    {
+        "newline is not allowed between 'async' and 'function'"_translatable,
+        {
+            u8"newline is not allowed between 'async' and 'function'",
+            u8"newline is not allowed between 'async' and 'function'",
+            u8"newline is not allowed between 'async' and 'function'",
+            u8"newline is not allowed between 'async' and 'function'",
+            u8"newline is not allowed between 'async' and 'function'",
         },
     },
     {

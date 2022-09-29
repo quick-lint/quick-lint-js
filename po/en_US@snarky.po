@@ -920,6 +920,16 @@ msgstr "move this up"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "newline is not allowed between 'async' and 'function'"
+msgstr "put this on a single line, please"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function' is here"
+msgstr "IIFE started here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "newline is not allowed after 'abstract'"
 msgstr "that's way too many commas 🚮"
 
