@@ -1690,12 +1690,20 @@ parser::parse_end_of_typescript_overload_signature(
 
   lexer_transaction transaction = this->lexer_.begin_transaction();
 
+  auto roll_back_missing_body = [&]() -> overload_signature_parse_result {
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return overload_signature_parse_result{
+        .is_overload_signature = false,
+        .has_missing_body_error = true,
+    };
+  };
+
   std::optional<source_code_span> semicolon_span;
   if (this->peek().type == token_type::semicolon) {
     semicolon_span = this->peek().span();
     this->skip();
   } else if (!this->peek().has_leading_newline) {
-    goto roll_back_missing_body;
+    return roll_back_missing_body();
   }
 
   switch (this->peek().type) {
@@ -1722,7 +1730,7 @@ parser::parse_end_of_typescript_overload_signature(
         } else {
           // function f()  // ASI
           // function g() {}
-          goto roll_back_missing_body;
+          return roll_back_missing_body();
         }
       }
       this->skip();
@@ -1732,19 +1740,12 @@ parser::parse_end_of_typescript_overload_signature(
           .has_missing_body_error = false,
       };
     }
-    goto roll_back_missing_body;
+    return roll_back_missing_body();
 
   default:
-    goto roll_back_missing_body;
+    return roll_back_missing_body();
   }
   QLJS_UNREACHABLE();
-
-roll_back_missing_body:
-  this->lexer_.roll_back_transaction(std::move(transaction));
-  return overload_signature_parse_result{
-      .is_overload_signature = false,
-      .has_missing_body_error = true,
-  };
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {
