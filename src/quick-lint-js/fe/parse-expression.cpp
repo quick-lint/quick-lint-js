@@ -430,14 +430,15 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     token_type type = this->peek().type;
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child =
-        this->parse_expression(v, precedence{
-                                      .binary_operators = true,
-                                      .math_or_logical_or_assignment = false,
-                                      .commas = false,
-                                      .in_operator = prec.in_operator,
-                                      .conditional_operator = false,
-                                  });
+    expression* child = this->parse_expression(
+        v, precedence{
+               .binary_operators = true,
+               .math_or_logical_or_assignment = false,
+               .commas = false,
+               .in_operator = prec.in_operator,
+               .colon_type_annotation = allow_type_annotations::never,
+               .conditional_operator = false,
+           });
     if (child->kind() == expression_kind::_missing) {
       this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,

@@ -434,6 +434,13 @@ TEST_F(test_parse_expression, conditional_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, cond(var c, var d, var e))");
   }
+
+  {
+    // Regression test: This code once failed to parse with TypeScript.
+    test_parser p(u8"a ? !b : !c"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, unary(var b), unary(var c))");
+  }
 }
 
 TEST_F(test_parse_expression, conditional_expression_with_missing_condition) {
