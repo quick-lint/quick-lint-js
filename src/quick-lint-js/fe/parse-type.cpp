@@ -407,6 +407,47 @@ again:
   }
 }
 
+void parser::parse_and_visit_typescript_colon_type_expression_or_type_predicate(
+    parse_visitor_base &v) {
+  this->parse_typescript_colon_for_type();
+  this->parse_and_visit_typescript_type_expression_or_type_predicate(v);
+}
+
+void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
+    parse_visitor_base &v) {
+  switch (this->peek().type) {
+  // param is Type
+  // Type
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+  case token_type::identifier:
+  case token_type::kw_await:
+  case token_type::kw_yield: {
+    identifier parameter_name = this->peek().identifier_name();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().type == token_type::kw_is) {
+      // param is Type
+      this->lexer_.commit_transaction(std::move(transaction));
+      this->skip();
+      v.visit_variable_type_predicate_use(parameter_name);
+      this->parse_and_visit_typescript_type_expression(v);
+    } else {
+      // Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      this->parse_and_visit_typescript_type_expression(v);
+    }
+    break;
+  }
+
+  // {key: Value}
+  // typeof v
+  // () => ReturnType
+  default:
+    this->parse_and_visit_typescript_type_expression(v);
+  }
+}
+
 void parser::parse_and_visit_typescript_arrow_type_expression(
     parse_visitor_base &v) {
   v.visit_enter_function_scope();

@@ -1519,7 +1519,8 @@ parser::parse_and_visit_function_parameters(
     this->skip();
 
     if (this->peek().type == token_type::colon) {
-      this->parse_and_visit_typescript_colon_type_expression(v);
+      this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
+          v);
     }
 
     if (this->peek().type == token_type::equal_greater) {

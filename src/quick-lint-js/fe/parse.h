@@ -185,6 +185,11 @@ class parser {
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
 
+  void parse_and_visit_typescript_colon_type_expression_or_type_predicate(
+      parse_visitor_base &v);
+  void parse_and_visit_typescript_type_expression_or_type_predicate(
+      parse_visitor_base &v);
+
   enum class typescript_type_arrow_or_paren {
     arrow,
     paren,

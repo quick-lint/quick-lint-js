@@ -810,7 +810,7 @@ expression* parser::parse_async_expression_only(
     buffering_visitor return_type_visits(&this->type_expression_memory_);
     if (this->peek().type == token_type::colon && this->options_.typescript) {
       // async (params): ReturnType => {}  // TypeScript only.
-      this->parse_and_visit_typescript_colon_type_expression(
+      this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
           return_type_visits);
     }
 
@@ -920,7 +920,7 @@ expression* parser::parse_async_expression_only(
         // code path).
         buffering_visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == token_type::colon) {
-          this->parse_and_visit_typescript_colon_type_expression(
+          this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
               return_type_visits);
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
@@ -1958,7 +1958,8 @@ next:
     expression* child = binary_builder.last_expression();
     source_code_span colon_span = this->peek().span();
     buffering_visitor type_visitor(&this->type_expression_memory_);
-    this->parse_and_visit_typescript_colon_type_expression(type_visitor);
+    this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
+        type_visitor);
     const char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(
         this->make_expression<expression::type_annotated>(
@@ -3573,7 +3574,8 @@ expression* parser::parse_typescript_generic_arrow_expression(
 
   buffering_visitor return_type_visits(&this->type_expression_memory_);
   if (this->peek().type == token_type::colon) {
-    this->parse_and_visit_typescript_colon_type_expression(return_type_visits);
+    this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
+        return_type_visits);
   }
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
@@ -3643,7 +3645,7 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
           ast->kind() == expression_kind::paren_empty) {
         buffering_visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == token_type::colon) {
-          this->parse_and_visit_typescript_colon_type_expression(
+          this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
               return_type_visits);
         }
         if (this->peek().type == token_type::equal_greater) {

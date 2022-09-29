@@ -64,6 +64,7 @@ class variable_analyzer final : public parse_visitor_base {
                                  source_code_span delete_keyword) override;
   void visit_variable_export_use(identifier name) override;
   void visit_variable_namespace_use(identifier name) override;
+  void visit_variable_type_predicate_use(identifier name) override;
   void visit_variable_type_use(identifier name) override;
   void visit_variable_typeof_use(identifier name) override;
   void visit_variable_use(identifier name) override;

@@ -69,6 +69,7 @@ class buffering_visitor final : public parse_visitor_base {
                                  source_code_span delete_keyword) override;
   void visit_variable_export_use(identifier name) override;
   void visit_variable_namespace_use(identifier name) override;
+  void visit_variable_type_predicate_use(identifier parameter_name) override;
   void visit_variable_type_use(identifier name) override;
   void visit_variable_typeof_use(identifier name) override;
   void visit_variable_use(identifier name) override;
@@ -107,6 +108,7 @@ class buffering_visitor final : public parse_visitor_base {
     variable_delete_use,
     variable_export_use,
     variable_namespace_use,
+    variable_type_predicate_use,
     variable_type_use,
     variable_typeof_use,
     variable_use,

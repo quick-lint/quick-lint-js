@@ -316,6 +316,11 @@ struct parse_visit_collector : public parse_visitor_base {
     this->visits.emplace_back("visit_variable_namespace_use");
   }
 
+  void visit_variable_type_predicate_use(identifier parameter_name) override {
+    this->variable_uses.emplace_back(parameter_name.normalized_name());
+    this->visits.emplace_back("visit_variable_type_predicate_use");
+  }
+
   void visit_variable_type_use(identifier name) override {
     this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_type_use");

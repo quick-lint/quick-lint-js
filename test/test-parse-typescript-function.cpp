@@ -599,6 +599,113 @@ TEST_F(test_parse_typescript_function,
             type_colon, strlen(u8"async param?"), u8":")));
   }
 }
+
+TEST_F(test_parse_typescript_function, type_predicate) {
+  {
+    test_parser p(u8"function f(param): param is SomeType {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",         // f
+                            "visit_enter_function_scope",         //
+                            "visit_variable_declaration",         // param
+                            "visit_variable_type_predicate_use",  // param
+                            "visit_variable_type_use",            // SomeType
+                            "visit_enter_function_scope_body",    // {
+                            "visit_exit_function_scope"));        // }
+  }
+
+  {
+    test_parser p(u8"(param): param is SomeType => {}"_sv, typescript_options);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_function_scope",         //
+                            "visit_variable_declaration",         // param
+                            "visit_variable_type_predicate_use",  // param
+                            "visit_variable_type_use",            // SomeType
+                            "visit_enter_function_scope_body",    // {
+                            "visit_exit_function_scope"));        // }
+  }
+
+  {
+    test_parser p(u8"<T>(param): param is SomeType => {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_function_scope",         //
+                            "visit_variable_declaration",         // T
+                            "visit_variable_declaration",         // param
+                            "visit_variable_type_predicate_use",  // param
+                            "visit_variable_type_use",            // SomeType
+                            "visit_enter_function_scope_body",    // {
+                            "visit_exit_function_scope"));        // }
+  }
+
+  {
+    test_parser p(u8"<T, U>(param): param is SomeType => {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_function_scope",         //
+                            "visit_variable_declaration",         // T
+                            "visit_variable_declaration",         // U
+                            "visit_variable_declaration",         // param
+                            "visit_variable_type_predicate_use",  // param
+                            "visit_variable_type_use",            // SomeType
+                            "visit_enter_function_scope_body",    // {
+                            "visit_exit_function_scope"));        // }
+  }
+}
+
+TEST_F(test_parse_typescript_function, type_predicate_on_async_function) {
+  // TODO(#856): Report a diagnostic for these cases.
+
+  {
+    test_parser p(u8"async function f(param): param is SomeType {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+  }
+
+  {
+    test_parser p(u8"async <T>(param): param is SomeType => {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+  }
+}
+
+TEST_F(test_parse_typescript_function, type_predicate_on_generator_function) {
+  // TODO(#856): Report a diagnostic for these cases.
+
+  {
+    test_parser p(u8"function *f(param): param is SomeType {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
+       type_predicate_parameter_name_can_be_contextual_keyword) {
+  for (string8 parameter_name :
+       keywords - disallowed_binding_identifier_keywords) {
+    string8 code = u8"function f(" + parameter_name + u8"): " + parameter_name +
+                   u8" is SomeType {}";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.visits,
+        ElementsAre("visit_variable_declaration",         // f
+                    "visit_enter_function_scope",         //
+                    "visit_variable_declaration",         // (parameter_name)
+                    "visit_variable_type_predicate_use",  // (parameter_name)
+                    "visit_variable_type_use",            // SomeType
+                    "visit_enter_function_scope_body",    // {
+                    "visit_exit_function_scope"));        // }
+  }
+}
 }
 }
 

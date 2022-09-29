@@ -492,6 +492,11 @@ void variable_analyzer::visit_variable_namespace_use(identifier) {
   // TODO(#690): Look up TypeScript namespace variables and imports.
 }
 
+void variable_analyzer::visit_variable_type_predicate_use(identifier name) {
+  // TODO(#690)
+  static_cast<void>(name);
+}
+
 void variable_analyzer::visit_variable_type_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::type);
 }

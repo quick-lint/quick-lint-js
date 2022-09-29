@@ -199,6 +199,13 @@ class debug_parse_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_variable_type_predicate_use(identifier parameter_name) override {
+    this->output_->append_copy(u8"variable type predicate use: "sv);
+    this->output_->append_copy(parameter_name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
+  }
+
   void visit_variable_typeof_use(identifier name) override {
     this->output_->append_copy(u8"variable typeof use: "sv);
     this->output_->append_copy(name.normalized_name());

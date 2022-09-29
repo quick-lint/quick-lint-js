@@ -173,6 +173,11 @@ class multi_parse_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_variable_namespace_use(name);
   }
 
+  void visit_variable_type_predicate_use(identifier parameter_name) override {
+    this->visitor_1_->visit_variable_type_predicate_use(parameter_name);
+    this->visitor_2_->visit_variable_type_predicate_use(parameter_name);
+  }
+
   void visit_variable_type_use(identifier name) override {
     this->visitor_1_->visit_variable_type_use(name);
     this->visitor_2_->visit_variable_type_use(name);
