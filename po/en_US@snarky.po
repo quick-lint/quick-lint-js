@@ -1189,6 +1189,15 @@ msgid "index signatures require a value type"
 msgstr "indexing requires an expression"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "function overload signature must be named '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "overloaded function '{0}' declared here"
+msgstr "Safari hates this"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "generic arrow function needs ',' here in TSX"
 msgstr ""
 

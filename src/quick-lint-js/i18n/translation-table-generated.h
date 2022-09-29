@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 370;
-constexpr std::size_t translation_table_string_table_size = 54620;
+constexpr std::uint16_t translation_table_mapping_table_size = 372;
+constexpr std::size_t translation_table_string_table_size = 54708;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -205,6 +205,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "function call started here"sv,
           "function called before declaration in block scope: {0}"sv,
           "function declared here"sv,
+          "function overload signature must be named '{1}'"sv,
           "function starts here"sv,
           "functions/methods should not have '=>'"sv,
           "generator function '*' belongs after keyword function"sv,
@@ -320,6 +321,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "only one comma is allowed between or after generic parameters"sv,
           "opening '<{1}>' tag here"sv,
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
+          "overloaded function '{0}' declared here"sv,
           "private properties are not allowed in object literals"sv,
           "readonly array is missing '[]'"sv,
           "redeclaration of global variable"sv,

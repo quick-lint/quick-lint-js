@@ -689,6 +689,26 @@ TEST_F(test_parse_function, named_function_statement_without_body) {
   }
 
   {
+    // This should not be interpreted as a TypeScript overloaded function.
+    test_parser p(u8"function f(x) function f(y) {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // y
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope",        // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_function_body,  //
+                              expected_body, strlen(u8"function f(x)"), u8"")));
+  }
+
+  {
     test_parser p(u8"class f { m() }"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //

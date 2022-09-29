@@ -1799,6 +1799,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "function overload signature must be named '{1}'"_translatable,
+        {
+            u8"function overload signature must be named '{1}'",
+            u8"function overload signature must be named '{1}'",
+            u8"function overload signature must be named '{1}'",
+            u8"function overload signature must be named '{1}'",
+            u8"function overload signature must be named '{1}'",
+        },
+    },
+    {
         "function starts here"_translatable,
         {
             u8"function starts here",
@@ -2946,6 +2956,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
+        },
+    },
+    {
+        "overloaded function '{0}' declared here"_translatable,
+        {
+            u8"overloaded function '{0}' declared here",
+            u8"overloaded function '{0}' declared here",
+            u8"overloaded function '{0}' declared here",
+            u8"overloaded function '{0}' declared here",
+            u8"overloaded function '{0}' declared here",
         },
     },
     {

@@ -706,6 +706,113 @@ TEST_F(test_parse_typescript_function,
                     "visit_exit_function_scope"));        // }
   }
 }
+
+TEST_F(test_parse_typescript_function, function_overload_signatures) {
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function f() {}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
+
+  {
+    // ASI
+    test_parser p(
+        u8"function f()\n"_sv
+        u8"function f() {}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function \\u{66}() {}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
+
+  {
+    test_parser p(
+        u8"function \\u{66}();\n"_sv
+        u8"function f() {}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
+       function_overload_signature_with_wrong_name) {
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function g() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_variable_declaration",       // g
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_3_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_have_same_name,
+            first_name, strlen(u8"function "), u8"f",                  //
+            second_name, strlen(u8"function f();\nfunction "), u8"g",  //
+            first_semicolon, strlen(u8"function f()"), u8";")));
+  }
+
+  {
+    test_parser p(
+        u8"function f()\n"_sv  // ASI
+        u8"function g() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_variable_declaration",       // g
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_function_body, expected_body,
+                              strlen(u8"function f()"), u8"")))
+        << "missing function body is more likely, so don't report "
+           "diag_typescript_function_overload_signature_must_have_same_name";
+  }
+}
 }
 }
 

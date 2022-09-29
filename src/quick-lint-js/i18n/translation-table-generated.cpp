@@ -188,7 +188,8 @@ const translation_table translation_data = {
         {27, 25, 64, 59, 25},         //
         {29, 17, 31, 0, 27},          //
         {68, 28, 70, 30, 55},         //
-        {30, 18, 0, 0, 23},           //
+        {0, 0, 0, 0, 23},             //
+        {30, 18, 0, 0, 48},           //
         {29, 18, 24, 0, 21},          //
         {44, 18, 49, 0, 39},          //
         {84, 28, 66, 25, 54},         //
@@ -303,7 +304,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 35},             //
         {35, 37, 0, 0, 62},           //
         {0, 0, 0, 0, 25},             //
-        {32, 13, 50, 38, 68},         //
+        {0, 0, 0, 0, 68},             //
+        {32, 13, 50, 38, 40},         //
         {0, 0, 0, 0, 54},             //
         {66, 33, 76, 58, 31},         //
         {40, 29, 35, 33, 33},         //
@@ -1457,6 +1459,7 @@ const translation_table translation_data = {
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"
+        u8"function overload signature must be named '{1}'\0"
         u8"function starts here\0"
         u8"functions/methods should not have '=>'\0"
         u8"generator function '*' belongs after keyword function\0"
@@ -1572,6 +1575,7 @@ const translation_table translation_data = {
         u8"only one comma is allowed between or after generic parameters\0"
         u8"opening '<{1}>' tag here\0"
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
+        u8"overloaded function '{0}' declared here\0"
         u8"private properties are not allowed in object literals\0"
         u8"readonly array is missing '[]'\0"
         u8"redeclaration of global variable\0"

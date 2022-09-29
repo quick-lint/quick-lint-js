@@ -1332,8 +1332,88 @@ void parser::parse_and_visit_function_declaration(
                                  variable_init_kind::normal);
     this->skip();
 
-    this->parse_and_visit_function_parameters_and_body(
-        v, /*name=*/function_name.span(), attributes);
+  next_overload:
+    v.visit_enter_function_scope();
+    {
+      function_guard guard = this->enter_function(attributes);
+      function_parameter_parse_result result =
+          this->parse_and_visit_function_parameters(v, function_name.span());
+      switch (result) {
+      case function_parameter_parse_result::parsed_parameters:
+      case function_parameter_parse_result::missing_parameters:
+        v.visit_enter_function_scope_body();
+        this->parse_and_visit_statement_block_no_scope(v);
+        break;
+
+      case function_parameter_parse_result::missing_parameters_ignore_body:
+        break;
+
+      case function_parameter_parse_result::parsed_parameters_missing_body:
+        if (this->options_.typescript) {
+          // Check if this is a function overload signature by parsing
+          // everything before the following function's parameter list.
+          //
+          // function f()  // ASI
+          // function f() {}
+          //
+          // function f(); function f() {}
+          // function f(); function g() {}  // Invalid (not an overload).
+          // function f(); banana();        // Invalid (not an overload).
+
+          lexer_transaction transaction = this->lexer_.begin_transaction();
+          std::optional<source_code_span> semicolon_span;
+          if (this->peek().type == token_type::semicolon) {
+            semicolon_span = this->peek().span();
+            this->skip();
+          } else if (!this->peek().has_leading_newline) {
+            goto not_a_typescript_function_overload_signature;
+          }
+          switch (this->peek().type) {
+          case token_type::kw_function:
+            this->skip();
+            // FIXME(strager): What about contextual keyword function names?
+            if (this->peek().type == token_type::identifier) {
+              identifier second_function_name = this->peek().identifier_name();
+              if (second_function_name.normalized_name() !=
+                  function_name.normalized_name()) {
+                if (semicolon_span.has_value()) {
+                  // function f(); function g() {}
+                  this->diag_reporter_->report(
+                      diag_typescript_function_overload_signature_must_have_same_name{
+                          .first_name = function_name,
+                          .second_name = second_function_name,
+                          .first_semicolon = *semicolon_span,
+                      });
+                  this->lexer_.roll_back_transaction(std::move(transaction));
+                  goto invalid_typescript_function_overload_signature;
+                } else {
+                  // function f()  // ASI
+                  // function g() {}
+                  goto not_a_typescript_function_overload_signature;
+                }
+              }
+              this->skip();
+              this->lexer_.commit_transaction(std::move(transaction));
+              v.visit_exit_function_scope();
+              goto next_overload;
+            }
+            break;
+
+          default:
+            break;
+          }
+        not_a_typescript_function_overload_signature:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+        }
+        this->diag_reporter_->report(diag_missing_function_body{
+            .expected_body =
+                source_code_span::unit(this->lexer_.end_of_previous_token())});
+      invalid_typescript_function_overload_signature:
+        break;
+      }
+    }
+    v.visit_exit_function_scope();
+
     break;
   }
 

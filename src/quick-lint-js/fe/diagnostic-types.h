@@ -1813,6 +1813,21 @@
               expected_type))                                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_function_overload_signature_must_have_same_name,         \
+      "E0316", diagnostic_severity::error,                                     \
+      {                                                                        \
+        identifier first_name;                                                 \
+        identifier second_name;                                                \
+        source_code_span first_semicolon;                                      \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "function overload signature must be named '{1}'"),          \
+              first_name, second_name)                                         \
+          MESSAGE(                                                             \
+              QLJS_TRANSLATABLE("overloaded function '{0}' declared here"),    \
+              second_name))                                                    \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_generic_arrow_needs_comma_in_jsx_mode, "E0285",          \
       diagnostic_severity::error,                                              \
       {                                                                        \
