@@ -1350,60 +1350,15 @@ void parser::parse_and_visit_function_declaration(
 
       case function_parameter_parse_result::parsed_parameters_missing_body:
         if (this->options_.typescript) {
-          // Check if this is a function overload signature by parsing
-          // everything before the following function's parameter list.
-          //
-          // function f()  // ASI
-          // function f() {}
-          //
-          // function f(); function f() {}
-          // function f(); function g() {}  // Invalid (not an overload).
-          // function f(); banana();        // Invalid (not an overload).
-
-          lexer_transaction transaction = this->lexer_.begin_transaction();
-          std::optional<source_code_span> semicolon_span;
-          if (this->peek().type == token_type::semicolon) {
-            semicolon_span = this->peek().span();
-            this->skip();
-          } else if (!this->peek().has_leading_newline) {
-            goto not_a_typescript_function_overload_signature;
+          overload_signature_parse_result r =
+              this->parse_end_of_typescript_overload_signature(function_name);
+          if (r.is_overload_signature) {
+            v.visit_exit_function_scope();
+            goto next_overload;
           }
-          switch (this->peek().type) {
-          case token_type::kw_function:
-            this->skip();
-            // FIXME(strager): What about contextual keyword function names?
-            if (this->peek().type == token_type::identifier) {
-              identifier second_function_name = this->peek().identifier_name();
-              if (second_function_name.normalized_name() !=
-                  function_name.normalized_name()) {
-                if (semicolon_span.has_value()) {
-                  // function f(); function g() {}
-                  this->diag_reporter_->report(
-                      diag_typescript_function_overload_signature_must_have_same_name{
-                          .first_name = function_name,
-                          .second_name = second_function_name,
-                          .first_semicolon = *semicolon_span,
-                      });
-                  this->lexer_.roll_back_transaction(std::move(transaction));
-                  goto invalid_typescript_function_overload_signature;
-                } else {
-                  // function f()  // ASI
-                  // function g() {}
-                  goto not_a_typescript_function_overload_signature;
-                }
-              }
-              this->skip();
-              this->lexer_.commit_transaction(std::move(transaction));
-              v.visit_exit_function_scope();
-              goto next_overload;
-            }
-            break;
-
-          default:
-            break;
+          if (!r.has_missing_body_error) {
+            goto invalid_typescript_function_overload_signature;
           }
-        not_a_typescript_function_overload_signature:
-          this->lexer_.roll_back_transaction(std::move(transaction));
         }
         this->diag_reporter_->report(diag_missing_function_body{
             .expected_body =
@@ -1719,6 +1674,78 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
 done:;
 }
 QLJS_WARNING_POP
+
+parser::overload_signature_parse_result
+parser::parse_end_of_typescript_overload_signature(
+    const identifier &function_name) {
+  // Check if this is a function overload signature by parsing everything before
+  // the following function's parameter list.
+  //
+  // function f()  // ASI
+  // function f() {}
+  //
+  // function f(); function f() {}
+  // function f(); function g() {}  // Invalid (not an overload).
+  // function f(); banana();        // Invalid (not an overload).
+
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+
+  std::optional<source_code_span> semicolon_span;
+  if (this->peek().type == token_type::semicolon) {
+    semicolon_span = this->peek().span();
+    this->skip();
+  } else if (!this->peek().has_leading_newline) {
+    goto roll_back_missing_body;
+  }
+
+  switch (this->peek().type) {
+  case token_type::kw_function:
+    this->skip();
+    // FIXME(strager): What about contextual keyword function names?
+    if (this->peek().type == token_type::identifier) {
+      identifier second_function_name = this->peek().identifier_name();
+      if (second_function_name.normalized_name() !=
+          function_name.normalized_name()) {
+        if (semicolon_span.has_value()) {
+          // function f(); function g() {}
+          this->diag_reporter_->report(
+              diag_typescript_function_overload_signature_must_have_same_name{
+                  .first_name = function_name,
+                  .second_name = second_function_name,
+                  .first_semicolon = *semicolon_span,
+              });
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          return overload_signature_parse_result{
+              .is_overload_signature = false,
+              .has_missing_body_error = false,
+          };
+        } else {
+          // function f()  // ASI
+          // function g() {}
+          goto roll_back_missing_body;
+        }
+      }
+      this->skip();
+      this->lexer_.commit_transaction(std::move(transaction));
+      return overload_signature_parse_result{
+          .is_overload_signature = true,
+          .has_missing_body_error = false,
+      };
+    }
+    goto roll_back_missing_body;
+
+  default:
+    goto roll_back_missing_body;
+  }
+  QLJS_UNREACHABLE();
+
+roll_back_missing_body:
+  this->lexer_.roll_back_transaction(std::move(transaction));
+  return overload_signature_parse_result{
+      .is_overload_signature = false,
+      .has_missing_body_error = true,
+  };
+}
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_switch);

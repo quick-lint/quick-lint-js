@@ -273,6 +273,34 @@ class parser {
   // In this case `*async` is consumed.
   std::optional<function_attributes> try_parse_function_with_leading_star();
 
+  // See parse_end_of_typescript_overload_signature.
+  struct overload_signature_parse_result {
+    // Invariant: is_overload_signature ? !has_missing_body_error : true
+
+    // If true, the first function was an overload signature, and the lexer is
+    // at the '(' in the second function.
+    //
+    // If false, the first function was not an overload signature, and the lexer
+    // did not change position.
+    bool is_overload_signature;
+
+    // If true, the first function's missing body is an error. If false, the
+    // first function's missing body is not an error.
+    bool has_missing_body_error;
+  };
+
+  // Given the following code:
+  //
+  //     function f()
+  //     function f() {}
+  //
+  // Immediately after parsing ')', you should call this function.
+  //
+  // See overload_signature_parse_result's members for details on the effects of
+  // this function.
+  overload_signature_parse_result parse_end_of_typescript_overload_signature(
+      const identifier &function_name);
+
   void parse_and_visit_class(
       parse_visitor_base &v, name_requirement require_name,
       std::optional<source_code_span> abstract_keyword_span);
