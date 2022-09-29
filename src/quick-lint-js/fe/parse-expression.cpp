@@ -2396,10 +2396,12 @@ expression* parser::parse_arrow_function_body_no_scope(
   if (this->peek().type == token_type::left_curly) {
     this->parse_and_visit_statement_block_no_scope(v);
   } else {
-    this->parse_and_visit_expression(v, precedence{
-                                            .commas = false,
-                                            .in_operator = allow_in_operator,
-                                        });
+    this->parse_and_visit_expression(
+        v, precedence{
+               .commas = false,
+               .in_operator = allow_in_operator,
+               .colon_type_annotation = allow_type_annotations::never,
+           });
   }
 
   const char8* span_end = this->lexer_.end_of_previous_token();

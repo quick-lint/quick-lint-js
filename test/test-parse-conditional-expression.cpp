@@ -62,6 +62,13 @@ TEST_P(test_parse_conditional_expression, conditional_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, unary(var b), unary(var c))");
   }
+
+  {
+    // Regression test: This code once failed to parse with TypeScript.
+    test_parser p(u8"a ? () => foo : c"_sv, GetParam());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, arrowfunc(), var c)");
+  }
 }
 
 TEST_P(test_parse_conditional_expression,
