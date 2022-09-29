@@ -873,6 +873,20 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(func_type_param_decl(u8"param")));
   }
+
+  {
+    test_parser p(u8"(...params: ParamsType) => ReturnType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ParamsType
+                                      "visit_variable_declaration",  // params
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ParamsType", u8"ReturnType"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(func_type_param_decl(u8"params")));
+  }
 }
 
 TEST_F(test_parse_typescript_type, generic_arrow_function) {

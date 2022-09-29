@@ -505,7 +505,13 @@ parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
         buffering_visitor &params_visitor =
             this->buffering_visitor_stack_.emplace(
                 boost::container::pmr::new_delete_resource());
+        const char8 *old_begin = this->peek().begin;
         this->parse_and_visit_typescript_type_expression(params_visitor);
+        if (this->peek().begin == old_begin) {
+          // We didn't parse anything.
+          // (...params) => ReturnType
+          return false;
+        }
         switch (this->peek().type) {
         // (typeexpr)
         // (param) => ReturnType
