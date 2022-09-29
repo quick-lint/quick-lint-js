@@ -1706,46 +1706,45 @@ parser::parse_end_of_typescript_overload_signature(
     return roll_back_missing_body();
   }
 
-  switch (this->peek().type) {
-  case token_type::kw_function:
-    this->skip();
-    // FIXME(strager): What about contextual keyword function names?
-    if (this->peek().type == token_type::identifier) {
-      identifier second_function_name = this->peek().identifier_name();
-      if (second_function_name.normalized_name() !=
-          function_name.normalized_name()) {
-        if (semicolon_span.has_value()) {
-          // function f(); function g() {}
-          this->diag_reporter_->report(
-              diag_typescript_function_overload_signature_must_have_same_name{
-                  .first_name = function_name,
-                  .second_name = second_function_name,
-                  .first_semicolon = *semicolon_span,
-              });
-          this->lexer_.roll_back_transaction(std::move(transaction));
-          return overload_signature_parse_result{
-              .is_overload_signature = false,
-              .has_missing_body_error = false,
-          };
-        } else {
-          // function f()  // ASI
-          // function g() {}
-          return roll_back_missing_body();
-        }
-      }
-      this->skip();
-      this->lexer_.commit_transaction(std::move(transaction));
-      return overload_signature_parse_result{
-          .is_overload_signature = true,
-          .has_missing_body_error = false,
-      };
-    }
-    return roll_back_missing_body();
-
-  default:
+  if (this->peek().type != token_type::kw_function) {
     return roll_back_missing_body();
   }
-  QLJS_UNREACHABLE();
+
+  this->skip();
+  // FIXME(strager): What about contextual keyword function names?
+  if (this->peek().type != token_type::identifier) {
+    return roll_back_missing_body();
+  }
+
+  identifier second_function_name = this->peek().identifier_name();
+  if (second_function_name.normalized_name() !=
+      function_name.normalized_name()) {
+    if (semicolon_span.has_value()) {
+      // function f(); function g() {}
+      this->diag_reporter_->report(
+          diag_typescript_function_overload_signature_must_have_same_name{
+              .first_name = function_name,
+              .second_name = second_function_name,
+              .first_semicolon = *semicolon_span,
+          });
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return overload_signature_parse_result{
+          .is_overload_signature = false,
+          .has_missing_body_error = false,
+      };
+    } else {
+      // function f()  // ASI
+      // function g() {}
+      return roll_back_missing_body();
+    }
+  }
+
+  this->skip();
+  this->lexer_.commit_transaction(std::move(transaction));
+  return overload_signature_parse_result{
+      .is_overload_signature = true,
+      .has_missing_body_error = false,
+  };
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {
