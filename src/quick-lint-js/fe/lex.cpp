@@ -1227,6 +1227,10 @@ padded_string_view lexer::original_input() const noexcept {
   return this->original_input_;
 }
 
+void lexer::debug_dump_location() const {
+  this->debug_dump_location(this->input_);
+}
+
 void lexer::debug_dump_location(const char8* c) const {
   cli_locator locator(this->original_input_);
   cli_source_position token_position = locator.position(this->peek().begin);

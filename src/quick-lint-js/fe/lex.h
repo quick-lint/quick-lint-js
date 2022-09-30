@@ -185,6 +185,7 @@ class lexer {
 
   padded_string_view original_input() const noexcept;
 
+  void debug_dump_location() const;
   void debug_dump_location(const char8*) const;
 
   static constexpr std::size_t unicode_table_chunk_size = 256;
