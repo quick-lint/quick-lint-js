@@ -948,12 +948,12 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     // export {a, b, c} from "module";
   named_export_list:
   case token_type::left_curly: {
-    buffering_visitor &exports_visitor = this->buffering_visitor_stack_.emplace(
-        boost::container::pmr::new_delete_resource());
+    stacked_buffering_visitor exports_visitor =
+        this->buffering_visitor_stack_.push();
     bump_vector<token, monotonic_allocator> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
     this->parse_and_visit_named_exports(
-        exports_visitor,
+        exports_visitor.visitor(),
         /*typescript_type_only_keyword=*/typescript_type_only_keyword,
         /*out_exported_bad_tokens=*/&exported_bad_tokens);
     if (this->peek().type == token_type::kw_from) {
@@ -984,11 +984,8 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
           break;
         }
       }
-      exports_visitor.move_into(v);
+      exports_visitor.visitor().move_into(v);
     }
-
-    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &exports_visitor);
-    this->buffering_visitor_stack_.pop();
 
     this->consume_semicolon_after_statement();
     break;
@@ -2627,8 +2624,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
 
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    buffering_visitor &lhs = this->buffering_visitor_stack_.emplace(
-        boost::container::pmr::new_delete_resource());
+    stacked_buffering_visitor lhs = this->buffering_visitor_stack_.push();
     if (declaring_token.type == token_type::kw_let &&
         this->is_let_token_a_variable_reference(this->peek(),
                                                 /*allow_declarations=*/true)) {
@@ -2639,8 +2635,8 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       this->lexer_.roll_back_transaction(std::move(transaction));
       expression *ast =
           this->parse_expression(v, precedence{.in_operator = false});
-      this->visit_expression(ast, lhs, variable_context::lhs);
-      this->maybe_visit_assignment(ast, lhs);
+      this->visit_expression(ast, lhs.visitor(), variable_context::lhs);
+      this->maybe_visit_assignment(ast, lhs.visitor());
     } else if (declaring_token.type == token_type::kw_let &&
                this->peek().type == token_type::kw_of) {
       this->skip();
@@ -2663,7 +2659,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->skip();  // Re-parse 'let'.
         this->parse_and_visit_let_bindings(
-            lhs, declaring_token,
+            lhs.visitor(), declaring_token,
             /*allow_in_operator=*/false,
             /*allow_const_without_initializer=*/false,
             /*is_in_for_initializer=*/true);
@@ -2674,7 +2670,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       // for (let x of xs) {}
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_let_bindings(
-          lhs, declaring_token,
+          lhs.visitor(), declaring_token,
           /*allow_in_operator=*/false,
           /*allow_const_without_initializer=*/true,
           /*is_in_for_initializer=*/true);
@@ -2684,7 +2680,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
     case token_type::semicolon: {
       source_code_span first_semicolon_span = this->peek().span();
       this->skip();
-      lhs.move_into(v);
+      lhs.visitor().move_into(v);
       for_loop_style = loop_style::c_style;
       parse_c_style_head_remainder(first_semicolon_span);
       break;
@@ -2704,14 +2700,14 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
         // In the following code, 'init' is evaluated before 'array':
         //
         //   for (var x = init in array) {}
-        lhs.move_into(v);
+        lhs.visitor().move_into(v);
       }
       this->visit_expression(rhs, v, variable_context::rhs);
       if (!is_var_in) {
         // In the following code, 'array' is evaluated before 'x' is declared:
         //
         //   for (let x in array) {}
-        lhs.move_into(v);
+        lhs.visitor().move_into(v);
       }
       break;
     }
@@ -2724,7 +2720,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
                   source_code_span(left_paren_token_begin, this->peek().end),
               .for_token = for_token_span,
           });
-      lhs.move_into(v);
+      lhs.visitor().move_into(v);
       for_loop_style = loop_style::for_of;
       break;
 
@@ -2732,9 +2728,6 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
-
-    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &lhs);
-    this->buffering_visitor_stack_.pop();
 
     break;
   }

@@ -882,14 +882,13 @@ expression* parser::parse_async_expression_only(
     if (this->options_.typescript) {
       parser_transaction transaction = this->begin_transaction();
 
-      buffering_visitor& parameter_visits =
-          this->buffering_visitor_stack_.emplace(
-              boost::container::pmr::new_delete_resource());
+      stacked_buffering_visitor parameter_visits =
+          this->buffering_visitor_stack_.push();
       std::optional<expression_arena::vector<expression*>> parameters;
       bool parsed_arrow_function_parameters_without_fatal_error =
           this->catch_fatal_parse_errors([&] {
             this->parse_and_visit_typescript_generic_parameters(
-                parameter_visits);
+                parameter_visits.visitor());
 
             // NOTE(strager): QLJS_PARSER_UNIMPLEMENTED here will make
             // parsed_arrow_function_parameters_without_fatal_error false.
@@ -897,7 +896,7 @@ expression* parser::parse_async_expression_only(
             this->skip();
             parameters.emplace(
                 this->parse_arrow_function_parameters_or_call_arguments(
-                    parameter_visits));
+                    parameter_visits.visitor()));
             QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
             this->skip();
 
@@ -927,7 +926,8 @@ expression* parser::parse_async_expression_only(
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
         return parse_arrow_function_arrow_and_body(
             std::move(*parameters),
-            /*parameter_visits=*/&parameter_visits, &return_type_visits);
+            /*parameter_visits=*/&parameter_visits.visitor(),
+            &return_type_visits);
       }
       this->roll_back_transaction(std::move(transaction));
     }
@@ -1350,15 +1350,14 @@ next:
   case token_type::less_less:
     if (this->options_.typescript) {
       bool parsed_as_generic_arguments;
-      buffering_visitor& generic_arguments_visits =
-          this->buffering_visitor_stack_.emplace(
-              boost::container::pmr::new_delete_resource());
+      stacked_buffering_visitor generic_arguments_visits =
+          this->buffering_visitor_stack_.push();
       this->try_parse(
           [&] {
             bool parsed_without_fatal_error = this->catch_fatal_parse_errors(
                 [this, &generic_arguments_visits] {
                   this->parse_and_visit_typescript_generic_arguments(
-                      generic_arguments_visits);
+                      generic_arguments_visits.visitor());
                 });
             if (!parsed_without_fatal_error) {
               return false;
@@ -1408,7 +1407,7 @@ next:
           },
           [&] { parsed_as_generic_arguments = false; });
       if (parsed_as_generic_arguments) {
-        generic_arguments_visits.move_into(v);
+        generic_arguments_visits.visitor().move_into(v);
         goto next;
       } else {
         goto binary_operator;

@@ -9,6 +9,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/fe/buffering-visitor-stack.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/try-catch-stack.h>
-#include <stack>
 #include <utility>
 
 #if QLJS_HAVE_FILE_NAME_MACRO
@@ -793,7 +793,7 @@ class parser {
 
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.
-  std::stack<buffering_visitor> buffering_visitor_stack_;
+  buffering_visitor_stack buffering_visitor_stack_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

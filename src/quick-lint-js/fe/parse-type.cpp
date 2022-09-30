@@ -502,11 +502,11 @@ parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
   typescript_type_arrow_or_paren result = typescript_type_arrow_or_paren::paren;
   this->try_parse(
       [&] {
-        buffering_visitor &params_visitor =
-            this->buffering_visitor_stack_.emplace(
-                boost::container::pmr::new_delete_resource());
+        stacked_buffering_visitor params_visitor =
+            this->buffering_visitor_stack_.push();
         const char8 *old_begin = this->peek().begin;
-        this->parse_and_visit_typescript_type_expression(params_visitor);
+        this->parse_and_visit_typescript_type_expression(
+            params_visitor.visitor());
         if (this->peek().begin == old_begin) {
           // We didn't parse anything.
           // (...params) => ReturnType
@@ -523,7 +523,7 @@ parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
             return false;
           } else {
             // (typeexpr)
-            params_visitor.move_into(v);
+            params_visitor.visitor().move_into(v);
             return true;
           }
           break;
@@ -540,6 +540,7 @@ parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
           QLJS_PARSER_UNIMPLEMENTED();
           break;
         }
+        QLJS_UNREACHABLE();
       },
       [&] {
         result = typescript_type_arrow_or_paren::arrow;
