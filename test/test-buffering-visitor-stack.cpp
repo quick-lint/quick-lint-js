@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/fe/buffering-visitor-stack.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/tracking-memory-resource.h>
 
 namespace quick_lint_js {
 namespace {
-// These tests assume a leak checker will fail if a memory leak occurs.
-// TODO(strager): Create a leak-checking memory resource.
+// All of these tests fail if the buffering_visitor_stack leaks memory.
 
 // NOTE[setjmp-in-tests]: setjmp requires that all local variables in the
 // current function be marked 'volatile' if they are modified after the first
@@ -17,22 +17,30 @@ namespace {
 // buffering_visitor_stack), so instead of marking variables as 'volatile' we
 // use a lambda to make our mutated variables not technically local.
 
-TEST(test_buffering_visitor_stack, empty) {
-  buffering_visitor_stack stack;
-  // This test assumes a leak checker will fail if a memory leak occurs.
+class test_buffering_visitor_stack : public ::testing::Test {
+ protected:
+  void TearDown() override {
+    EXPECT_EQ(this->leak_detecting_memory_.alive_bytes(), 0)
+        << "test should not have leaked memory";
+  }
+
+  tracking_memory_resource leak_detecting_memory_;
+};
+
+TEST_F(test_buffering_visitor_stack, empty) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
 }
 
-TEST(test_buffering_visitor_stack, push_one_pop_one) {
-  buffering_visitor_stack stack;
+TEST_F(test_buffering_visitor_stack, push_one_pop_one) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
   {
     stacked_buffering_visitor v = stack.push();
     // pop
   }
-  // This test assumes a leak checker will fail if a memory leak occurs.
 }
 
-TEST(test_buffering_visitor_stack, push_two_pop_two) {
-  buffering_visitor_stack stack;
+TEST_F(test_buffering_visitor_stack, push_two_pop_two) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
   {
     stacked_buffering_visitor outer_v = stack.push();
     {
@@ -41,11 +49,10 @@ TEST(test_buffering_visitor_stack, push_two_pop_two) {
     }
     // pop
   }
-  // This test assumes a leak checker will fail if a memory leak occurs.
 }
 
-TEST(test_buffering_visitor_stack, push_pop_push_pop) {
-  buffering_visitor_stack stack;
+TEST_F(test_buffering_visitor_stack, push_pop_push_pop) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
   {
     stacked_buffering_visitor v = stack.push();
     // pop
@@ -54,11 +61,10 @@ TEST(test_buffering_visitor_stack, push_pop_push_pop) {
     stacked_buffering_visitor v = stack.push();
     // pop
   }
-  // This test assumes a leak checker will fail if a memory leak occurs.
 }
 
-TEST(test_buffering_visitor_stack, longjmp_around_pop) {
-  buffering_visitor_stack stack;
+TEST_F(test_buffering_visitor_stack, longjmp_around_pop) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
 
   bool pushed = false;
   [&] {  // See NOTE[setjmp-in-tests].
@@ -71,11 +77,10 @@ TEST(test_buffering_visitor_stack, longjmp_around_pop) {
     }
   }();
   ASSERT_TRUE(pushed);
-  // This test assumes a leak checker will fail if a memory leak occurs.
 }
 
-TEST(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
-  buffering_visitor_stack stack;
+TEST_F(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
+  buffering_visitor_stack stack(&this->leak_detecting_memory_);
 
   {
     stacked_buffering_visitor outer_v = stack.push();
@@ -93,7 +98,6 @@ TEST(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
     ASSERT_TRUE(pushed_inner);
     // pop outer_v
   }
-  // This test assumes a leak checker will fail if a memory leak occurs.
 }
 }
 }

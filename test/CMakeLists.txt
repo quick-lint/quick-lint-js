@@ -31,6 +31,7 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
   quick-lint-js/test-translation-table-generated.h
+  quick-lint-js/tracking-memory-resource.h
   quick-lint-js/variable-analyzer-support.h
   spy-visitor.cpp
   test-array.cpp
@@ -119,6 +120,7 @@ quick_lint_js_add_executable(
   test-trace-flusher.cpp
   test-trace-stream-reader.cpp
   test-trace-writer.cpp
+  test-tracking-memory-resource.cpp
   test-translation.cpp
   test-utf-16.cpp
   test-utf-8.cpp
