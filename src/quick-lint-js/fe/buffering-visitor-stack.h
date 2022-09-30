@@ -23,8 +23,19 @@ class buffering_visitor_stack {
 
  private:
   void pop(buffering_visitor *v) {
-    QLJS_ASSERT(&this->stack_.back() == v);
-    this->stack_.pop_back();
+    for (;;) {
+      if (this->stack_.empty()) {
+        QLJS_ASSERT(false);
+        return;
+      }
+      if (&this->stack_.back() == v) {
+        this->stack_.pop_back();
+        return;
+      }
+      // Someone else pushed to the stack but didn't pop. This is probably due
+      // to stack unwinding. Pop on their behalf.
+      this->stack_.pop_back();
+    }
   }
 
   linked_vector<buffering_visitor> stack_{

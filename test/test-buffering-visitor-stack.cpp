@@ -65,6 +65,26 @@ TEST(test_buffering_visitor_stack, longjmp_around_pop) {
   ASSERT_TRUE(pushed);
   // This test assumes a leak checker will fail if a memory leak occurs.
 }
+
+TEST(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
+  buffering_visitor_stack stack;
+
+  {
+    stacked_buffering_visitor outer_v = stack.push();
+
+    volatile bool pushed_inner = false;
+    std::jmp_buf buf;
+    if (setjmp(buf) == 0) {
+      stacked_buffering_visitor inner_v = stack.push();
+      pushed_inner = true;
+      std::longjmp(buf, 1);
+      // pop (doesn't execute)
+    }
+    ASSERT_TRUE(pushed_inner);
+    // pop outer_v
+  }
+  // This test assumes a leak checker will fail if a memory leak occurs.
+}
 }
 }
 
