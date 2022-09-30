@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <memory>
 #include <new>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/allocator.h>
 #include <quick-lint-js/port/math.h>
 #include <type_traits>
@@ -27,7 +28,7 @@ class linked_vector {
  public:
   static constexpr std::size_t default_chunk_byte_size = 4096;
   static constexpr std::size_t items_per_chunk =
-      maximum(1U, (default_chunk_byte_size - sizeof(void*) * 2) / sizeof(T));
+      maximum(1U, (default_chunk_byte_size - sizeof(void*) * 3) / sizeof(T));
 
   explicit linked_vector(
       ::boost::container::pmr::memory_resource* memory) noexcept
@@ -62,6 +63,17 @@ class linked_vector {
     return *item;
   }
 
+  void pop_back() {
+    QLJS_ASSERT(!this->empty());
+    chunk* c = this->tail_;
+    T& item = c->item(c->item_count - 1);
+    item.~T();
+    c->item_count -= 1;
+    if (c->item_count == 0) {
+      this->remove_tail_chunk_slow();
+    }
+  }
+
   void clear() {
     chunk* c = this->head_;
     while (c) {
@@ -75,6 +87,11 @@ class linked_vector {
   }
 
   bool empty() const noexcept { return this->head_ == nullptr; }
+
+  T& back() noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->tail_->item(this->tail_->item_count - 1);
+  }
 
   template <class Func>
   void for_each(Func&& func) const {
@@ -91,6 +108,7 @@ class linked_vector {
 
  private:
   struct chunk {
+    chunk* prev = nullptr;
     chunk* next = nullptr;
     std::size_t item_count = 0;
     static constexpr std::size_t capacity = items_per_chunk;
@@ -108,8 +126,27 @@ class linked_vector {
     } else {
       this->head_ = c;
     }
+    c->prev = this->tail_;
     this->tail_ = c;
     return c;
+  }
+
+  [[gnu::noinline]] void remove_tail_chunk_slow() {
+    chunk* old_tail = this->tail_;
+    QLJS_ASSERT(old_tail);
+    QLJS_ASSERT(old_tail->item_count == 0);
+
+    chunk* new_tail = old_tail->prev;
+    QLJS_ASSERT((new_tail == nullptr) == (this->head_ == this->tail_));
+    delete_object<chunk>(this->memory_, old_tail);
+    if (new_tail) {
+      new_tail->next = nullptr;
+      this->tail_ = new_tail;
+    } else {
+      // We deallocated the only chunk.
+      this->head_ = nullptr;
+      this->tail_ = nullptr;
+    }
   }
 
   chunk* head_ = nullptr;
