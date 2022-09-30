@@ -768,6 +768,17 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
+
+  {
+    test_parser p(
+        u8"async function f();\n"_sv
+        u8"function f() { await(myPromise); }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"await", u8"myPromise"))
+        << "'async' keyword should not apply to implementation";
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
 }
 
 TEST_F(test_parse_typescript_function,
