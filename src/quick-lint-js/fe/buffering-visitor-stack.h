@@ -19,6 +19,14 @@ class stacked_buffering_visitor;
 // in case setjmp is called.
 class buffering_visitor_stack {
  public:
+  explicit buffering_visitor_stack()
+      : buffering_visitor_stack(
+            ::boost::container::pmr::new_delete_resource()) {}
+
+  explicit buffering_visitor_stack(
+      ::boost::container::pmr::memory_resource *memory)
+      : stack_(memory) {}
+
   [[nodiscard]] stacked_buffering_visitor push();
 
  private:
@@ -38,8 +46,7 @@ class buffering_visitor_stack {
     }
   }
 
-  linked_vector<buffering_visitor> stack_{
-      ::boost::container::pmr::new_delete_resource()};
+  linked_vector<buffering_visitor> stack_;
 
   friend class stacked_buffering_visitor;
 };
