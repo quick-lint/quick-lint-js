@@ -750,6 +750,18 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
 
+  for (string8 function_name : contextual_keywords) {
+    string8 code = u8"function " + function_name +
+                   u8"();\n"
+                   u8"function " +
+                   function_name + u8"() {}";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(function_name)));
+  }
+
   {
     test_parser p(
         u8"function \\u{66}();\n"_sv

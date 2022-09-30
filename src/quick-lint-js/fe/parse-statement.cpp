@@ -1739,8 +1739,12 @@ parser::parse_end_of_typescript_overload_signature(
   second_function_generator_star =
       this->parse_generator_star(&second_function_attributes);
 
-  // FIXME(strager): What about contextual keyword function names?
-  if (this->peek().type != token_type::identifier) {
+  switch (this->peek().type) {
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case token_type::identifier:
+    break;
+
+  default:
     return roll_back_missing_body();
   }
 
