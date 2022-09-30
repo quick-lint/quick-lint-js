@@ -1725,6 +1725,9 @@ parser::parse_end_of_typescript_overload_signature(
       async_keyword.has_value() && this->peek().has_leading_newline;
   this->skip();
 
+  second_function_attributes =
+      this->parse_generator_star(second_function_attributes);
+
   // FIXME(strager): What about contextual keyword function names?
   if (this->peek().type != token_type::identifier) {
     return roll_back_missing_body();

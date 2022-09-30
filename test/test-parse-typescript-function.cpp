@@ -779,6 +779,28 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         << "'async' keyword should not apply to implementation";
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function *f() { yield(myValue); }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"))
+        << "'yield' should be a keyword in the implementation";
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"async function *f() { yield(myValue); await(myPromise); }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue", u8"myPromise"))
+        << "both 'await' and 'yield' should be keywords in the implementation";
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+  }
 }
 
 TEST_F(test_parse_typescript_function,
