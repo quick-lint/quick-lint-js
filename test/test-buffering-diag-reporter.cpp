@@ -57,7 +57,7 @@ TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
   padded_string let_code(u8"let"_sv);
   diag_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
 
-  // Destruct memory, but don't destruct diag_reporter_storage.diag_reporter.
+  // Destruct memory, but don't destruct *diag_reporter.
 }
 }
 }
