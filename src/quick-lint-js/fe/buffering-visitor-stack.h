@@ -19,7 +19,7 @@ class stacked_buffering_visitor;
 // in case setjmp is called.
 class buffering_visitor_stack {
  public:
-  stacked_buffering_visitor push();
+  [[nodiscard]] stacked_buffering_visitor push();
 
  private:
   void pop(buffering_visitor *v) {

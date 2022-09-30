@@ -38,6 +38,7 @@ quick_lint_js_add_executable(
   test-async-byte-queue.cpp
   test-bit.cpp
   test-buffering-diag-reporter.cpp
+  test-buffering-visitor-stack.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
   test-c-api.cpp
