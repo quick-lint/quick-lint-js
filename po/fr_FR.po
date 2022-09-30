@@ -1272,6 +1272,10 @@ msgid "overloaded function '{0}' declared here"
 msgstr "fonction déclarée ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "function overload signature cannot have generator '*'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "generic arrow function needs ',' here in TSX"
 msgstr ""
 

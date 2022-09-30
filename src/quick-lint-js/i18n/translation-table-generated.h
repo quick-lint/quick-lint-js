@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 374;
-constexpr std::size_t translation_table_string_table_size = 54781;
+constexpr std::uint16_t translation_table_mapping_table_size = 375;
+constexpr std::size_t translation_table_string_table_size = 54835;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -206,6 +206,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "function call started here"sv,
           "function called before declaration in block scope: {0}"sv,
           "function declared here"sv,
+          "function overload signature cannot have generator '*'"sv,
           "function overload signature must be named '{1}'"sv,
           "function starts here"sv,
           "functions/methods should not have '=>'"sv,

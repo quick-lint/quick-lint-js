@@ -920,6 +920,71 @@ TEST_F(test_parse_typescript_function,
             u8"function")));
   }
 }
+
+TEST_F(test_parse_typescript_function,
+       function_overload_signature_declaration_cannot_have_generator_star) {
+  {
+    test_parser p(
+        u8"function *f();"_sv
+        u8"function *f() { yield(myValue); }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       //
+                            "visit_exit_function_scope",        //
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  // {
+                            "visit_variable_use",               // myValue
+                            "visit_exit_function_scope",        // }
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_not_have_generator_star,
+            generator_star, strlen(u8"function "), u8"*")));
+  }
+
+  {
+    test_parser p(
+        u8"function *f(a);"_sv
+        u8"function *f(a, b);"_sv
+        u8"function *f(...args) { yield(myValue); }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_not_have_generator_star,
+                generator_star, strlen(u8"function "), u8"*"),
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_not_have_generator_star,
+                generator_star, strlen(u8"function *f(a);function "), u8"*")));
+  }
+
+  {
+    test_parser p(
+        u8"function *f(a);"_sv
+        u8"function f(a, b);"_sv
+        u8"function f(...args) { yield(myValue); }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"yield", u8"myValue"))
+        << "'yield' should not be a keyword in the implementation";
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_not_have_generator_star,
+            generator_star, strlen(u8"function "), u8"*")));
+  }
+}
 }
 }
 

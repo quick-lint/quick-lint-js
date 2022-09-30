@@ -291,6 +291,11 @@ class parser {
     // If is_overload_signature is true, then second_function_attributes is the
     // attributes of the second function.
     function_attributes second_function_attributes;
+
+    // If is_overload_signature is true, then second_function_generator_star is
+    // the span of the second function's '*' (or nullopt if it doesn't have a
+    // '*').
+    std::optional<source_code_span> second_function_generator_star;
   };
 
   // Given the following code:
@@ -604,7 +609,10 @@ class parser {
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
   expression *parse_untagged_template(parse_visitor_base &);
 
-  function_attributes parse_generator_star(function_attributes);
+  // If a generator '*' is parsed, modifies *attributes and returns the span of
+  // the '*'.
+  std::optional<source_code_span> parse_generator_star(
+      function_attributes *attributes);
 
   void check_assignment_lhs(expression *);
 

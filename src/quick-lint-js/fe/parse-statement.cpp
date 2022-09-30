@@ -1293,7 +1293,8 @@ void parser::parse_and_visit_function_declaration(
   source_code_span function_token_span = this->peek().span();
   const char8 *function_token_begin = function_token_span.begin();
   this->skip();
-  attributes = this->parse_generator_star(attributes);
+  std::optional<source_code_span> generator_star =
+      this->parse_generator_star(&attributes);
 
   switch (this->peek().type) {
   case token_type::kw_await:
@@ -1353,8 +1354,15 @@ void parser::parse_and_visit_function_declaration(
           overload_signature_parse_result r =
               this->parse_end_of_typescript_overload_signature(function_name);
           if (r.is_overload_signature) {
+            if (generator_star.has_value()) {
+              this->diag_reporter_->report(
+                  diag_typescript_function_overload_signature_must_not_have_generator_star{
+                      .generator_star = *generator_star,
+                  });
+            }
             v.visit_exit_function_scope();
             attributes = r.second_function_attributes;
+            generator_star = r.second_function_generator_star;
             goto next_overload;
           }
           if (!r.has_missing_body_error) {
@@ -1692,12 +1700,15 @@ parser::parse_end_of_typescript_overload_signature(
   lexer_transaction transaction = this->lexer_.begin_transaction();
   function_attributes second_function_attributes = function_attributes::normal;
 
+  std::optional<source_code_span> second_function_generator_star;
+
   auto roll_back_missing_body = [&]() -> overload_signature_parse_result {
     this->lexer_.roll_back_transaction(std::move(transaction));
     return overload_signature_parse_result{
         .is_overload_signature = false,
         .has_missing_body_error = true,
         .second_function_attributes = second_function_attributes,
+        .second_function_generator_star = second_function_generator_star,
     };
   };
 
@@ -1725,8 +1736,8 @@ parser::parse_end_of_typescript_overload_signature(
       async_keyword.has_value() && this->peek().has_leading_newline;
   this->skip();
 
-  second_function_attributes =
-      this->parse_generator_star(second_function_attributes);
+  second_function_generator_star =
+      this->parse_generator_star(&second_function_attributes);
 
   // FIXME(strager): What about contextual keyword function names?
   if (this->peek().type != token_type::identifier) {
@@ -1749,6 +1760,7 @@ parser::parse_end_of_typescript_overload_signature(
           .is_overload_signature = false,
           .has_missing_body_error = false,
           .second_function_attributes = second_function_attributes,
+          .second_function_generator_star = second_function_generator_star,
       };
     } else {
       // function f()  // ASI
@@ -1771,6 +1783,7 @@ parser::parse_end_of_typescript_overload_signature(
       .is_overload_signature = true,
       .has_missing_body_error = false,
       .second_function_attributes = second_function_attributes,
+      .second_function_generator_star = second_function_generator_star,
   };
 }
 

@@ -2414,7 +2414,7 @@ expression* parser::parse_function_expression(parse_visitor_base& v,
                                               const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->skip();
-  attributes = this->parse_generator_star(attributes);
+  this->parse_generator_star(&attributes);
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")

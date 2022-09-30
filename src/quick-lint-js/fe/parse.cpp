@@ -223,32 +223,38 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
 }
 QLJS_WARNING_POP
 
-function_attributes parser::parse_generator_star(
-    function_attributes original_attributes) {
+std::optional<source_code_span> parser::parse_generator_star(
+    function_attributes* attributes) {
   bool is_generator = this->peek().type == token_type::star;
   if (is_generator) {
+    source_code_span star_span = this->peek().span();
     this->skip();
-    switch (original_attributes) {
+    switch (*attributes) {
     case function_attributes::async:
-      return function_attributes::async_generator;
+      *attributes = function_attributes::async_generator;
+      break;
     case function_attributes::async_generator:
       // This can happen if the user puts the generator * before and after the
       // function keyword:
       //
       //   (*async function* f() {})
-      return function_attributes::async_generator;
+      *attributes = function_attributes::async_generator;
+      break;
     case function_attributes::generator:
       // This can happen if the user puts the generator * before and after the
       // function keyword:
       //
       //   (*function* f() {})
-      return function_attributes::generator;
+      *attributes = function_attributes::generator;
+      break;
     case function_attributes::normal:
-      return function_attributes::generator;
+      *attributes = function_attributes::generator;
+      break;
     }
-    QLJS_UNREACHABLE();
+    return star_span;
   } else {
-    return original_attributes;
+    // Don't modify *attributes.
+    return std::nullopt;
   }
 }
 

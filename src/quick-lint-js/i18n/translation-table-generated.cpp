@@ -190,6 +190,7 @@ const translation_table translation_data = {
         {29, 17, 31, 0, 27},          //
         {68, 28, 70, 30, 55},         //
         {0, 0, 0, 0, 23},             //
+        {0, 0, 0, 0, 54},             //
         {30, 18, 0, 0, 48},           //
         {29, 18, 24, 0, 21},          //
         {44, 18, 49, 0, 39},          //
@@ -1462,6 +1463,7 @@ const translation_table translation_data = {
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"
+        u8"function overload signature cannot have generator '*'\0"
         u8"function overload signature must be named '{1}'\0"
         u8"function starts here\0"
         u8"functions/methods should not have '=>'\0"

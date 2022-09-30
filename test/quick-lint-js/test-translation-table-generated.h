@@ -1809,6 +1809,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "function overload signature cannot have generator '*'"_translatable,
+        {
+            u8"function overload signature cannot have generator '*'",
+            u8"function overload signature cannot have generator '*'",
+            u8"function overload signature cannot have generator '*'",
+            u8"function overload signature cannot have generator '*'",
+            u8"function overload signature cannot have generator '*'",
+        },
+    },
+    {
         "function overload signature must be named '{1}'"_translatable,
         {
             u8"function overload signature must be named '{1}'",
