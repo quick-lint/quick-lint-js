@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
 #define QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/char8.h>
@@ -24,6 +25,9 @@ class async_byte_queue {
   static constexpr size_type default_chunk_size = 1024;
 
   explicit async_byte_queue();
+  // The given memory resource must be thread-safe. allocate and deallocate are
+  // called from multiple threads without synchronization.
+  explicit async_byte_queue(::boost::container::pmr::memory_resource*);
 
   async_byte_queue(const async_byte_queue&) = delete;
   async_byte_queue& operator=(const async_byte_queue&) = delete;
@@ -93,13 +97,16 @@ class async_byte_queue {
       return this->capacity_begin() + this->capacity;
     }
 
-    static chunk* allocate(size_type data_size);
-
-    static void deallocate(chunk*);
+    static chunk* allocate(::boost::container::pmr::memory_resource*,
+                           size_type data_size);
+    static void deallocate(::boost::container::pmr::memory_resource*, chunk*);
 
    private:
     explicit chunk(size_type capacity) noexcept : capacity(capacity) {}
     ~chunk() = default;
+
+    static std::size_t allocation_size(size_type capacity) noexcept;
+    std::size_t allocation_size() const noexcept;
   };
 
   // Writer thread only:
@@ -111,8 +118,12 @@ class async_byte_queue {
   size_type bytes_remaining_in_current_chunk() const noexcept;
   size_type bytes_used_in_current_chunk() const noexcept;
 
+  // Usable by either reader or writer (mutex_ does not need to be held):
+  ::boost::container::pmr::memory_resource* memory_;
+
   // Exclusive to the writer:
-  chunk* writer_first_chunk_ = chunk::allocate(default_chunk_size);
+  chunk* writer_first_chunk_ =
+      chunk::allocate(this->memory_, default_chunk_size);
   chunk* writer_last_chunk_ = this->writer_first_chunk_;
   std::byte* writer_cursor_ = this->writer_last_chunk_->capacity_begin();
   std::byte* writer_chunk_end_ = this->writer_last_chunk_->capacity_end();
@@ -174,7 +185,7 @@ void async_byte_queue::take_committed(ChunkFunc&& chunk_callback,
   // last_chunk, so we know we can't data race with the writer in the
   // following loop.
   for (chunk* c = first_chunk; c != last_chunk;) {
-    chunk::deallocate(std::exchange(c, c->next));
+    chunk::deallocate(this->memory_, std::exchange(c, c->next));
   }
 }
 }
