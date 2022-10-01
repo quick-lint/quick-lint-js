@@ -59,6 +59,7 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->skip();
   }
 
+again:
   std::optional<source_code_span> readonly_keyword;
   if (this->peek().type == token_type::kw_readonly) {
     // readonly Type[]
@@ -67,7 +68,6 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->skip();
   }
 
-again:
   switch (this->peek().type) {
   case token_type::complete_template:
   case token_type::kw_any:

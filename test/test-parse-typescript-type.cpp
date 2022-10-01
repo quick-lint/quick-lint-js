@@ -1425,6 +1425,16 @@ TEST_F(test_parse_typescript_type, readonly_requires_tuple_or_array_type) {
             readonly_keyword, 0, u8"readonly")));
   }
 }
+
+TEST_F(test_parse_typescript_type, mixed) {
+  {
+    test_parser p(u8"readonly A[] | readonly B[]"_sv, javascript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+}
 }
 }
 
