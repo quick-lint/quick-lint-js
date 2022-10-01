@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/tracking-memory-resource.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <vector>
 
@@ -148,11 +149,16 @@ TEST(test_async_byte_queue, take_multiple_chunks_then_append) {
 }
 
 TEST(test_async_byte_queue, append_multiple_chunks_without_taking) {
-  async_byte_queue q;
-  q.append(q.default_chunk_size);
-  q.append(q.default_chunk_size);
+  tracking_memory_resource leak_detecting_memory;
 
-  // This test assumes a leak checker will fail if a memory leak occurs.
+  {
+    async_byte_queue q(&leak_detecting_memory);
+    q.append(q.default_chunk_size);
+    q.append(q.default_chunk_size);
+  }
+
+  EXPECT_EQ(leak_detecting_memory.alive_bytes(), 0)
+      << "async_byte_queue should not have leaked memory";
 }
 
 TEST(test_async_byte_queue, commit_big_write_then_small_writes) {
