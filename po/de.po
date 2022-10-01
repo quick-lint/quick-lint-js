@@ -1395,6 +1395,15 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "expected '?' to mark tuple element as optional"
+msgstr "')' für Funktionsaufruf fehlt"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "only optional tuple elements can follow this optional tuple element"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "Ausdruck nach 'case' erwartet"
 

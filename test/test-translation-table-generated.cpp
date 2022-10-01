@@ -1491,6 +1491,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "expected '?' to mark tuple element as optional"_translatable,
+        {
+            u8"expected '?' to mark tuple element as optional",
+            u8"expected '?' to mark tuple element as optional",
+            u8"expected '?' to mark tuple element as optional",
+            u8"expected '?' to mark tuple element as optional",
+            u8"expected '?' to mark tuple element as optional",
+        },
+    },
+    {
         "expected 'as' between '{1}' and '{2}'"_translatable,
         {
             u8"expected 'as' between '{1}' and '{2}'",
@@ -2958,6 +2968,16 @@ const translated_string test_translation_table[] = {
             u8"only one comma is allowed between or after generic parameters",
             u8"only one comma is allowed between or after generic parameters",
             u8"only one comma is allowed between or after generic parameters",
+        },
+    },
+    {
+        "only optional tuple elements can follow this optional tuple element"_translatable,
+        {
+            u8"only optional tuple elements can follow this optional tuple element",
+            u8"only optional tuple elements can follow this optional tuple element",
+            u8"only optional tuple elements can follow this optional tuple element",
+            u8"only optional tuple elements can follow this optional tuple element",
+            u8"only optional tuple elements can follow this optional tuple element",
         },
     },
     {

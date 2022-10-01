@@ -2022,6 +2022,20 @@
               readonly_keyword))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_required_tuple_element_after_optional_element, "E0321",   \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span expected_question;                                     \
+        source_code_span previous_optional_question;                            \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("expected '?' to mark tuple element as optional"),  \
+          expected_question)                                                    \
+          MESSAGE(QLJS_TRANSLATABLE("only optional tuple elements can follow "  \
+                                    "this optional tuple element"),             \
+                  previous_optional_question))                                  \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_type_annotation_in_expression, "E0254",                   \
       diagnostic_severity::error, { source_code_span type_colon; },             \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

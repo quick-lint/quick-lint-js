@@ -327,6 +327,73 @@ TEST_F(test_parse_typescript_type, readonly_tuple_type) {
   }
 }
 
+TEST_F(test_parse_typescript_type, tuple_type_optional_element) {
+  {
+    test_parser p(u8"[A?]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+  }
+
+  {
+    test_parser p(u8"[A, B?]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+
+  {
+    test_parser p(u8"[A?, B?]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+
+  {
+    test_parser p(u8"[A?, B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_required_tuple_element_after_optional_element,
+            expected_question, strlen(u8"[A?, B"), u8"",  //
+            previous_optional_question, strlen(u8"[A"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"[A?, B?, C]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_required_tuple_element_after_optional_element,
+            expected_question, strlen(u8"[A?, B?, C"), u8"",  //
+            previous_optional_question, strlen(u8"[A?, B"), u8"?")))
+        << "diagnostic should point to the last optional '?'";
+  }
+
+  {
+    test_parser p(u8"[A?, B, C]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_required_tuple_element_after_optional_element,
+                expected_question, strlen(u8"[A?, B"), u8"",  //
+                previous_optional_question, strlen(u8"[A"), u8"?"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_required_tuple_element_after_optional_element,
+                expected_question, strlen(u8"[A?, B, C"), u8"",  //
+                previous_optional_question, strlen(u8"[A"), u8"?")));
+  }
+}
+
 TEST_F(test_parse_typescript_type, named_tuple_type) {
   {
     test_parser p(u8"[a: A]"_sv, typescript_options);

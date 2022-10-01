@@ -159,7 +159,8 @@ const translation_table translation_data = {
         {63, 41, 0, 0, 42},           //
         {52, 22, 54, 48, 32},         //
         {31, 19, 44, 53, 36},         //
-        {49, 20, 54, 53, 44},         //
+        {0, 0, 0, 0, 44},             //
+        {49, 20, 54, 53, 47},         //
         {39, 40, 35, 41, 38},         //
         {37, 29, 36, 41, 37},         //
         {39, 25, 49, 44, 40},         //
@@ -306,7 +307,8 @@ const translation_table translation_data = {
         {50, 21, 53, 44, 35},         //
         {48, 27, 44, 43, 36},         //
         {0, 0, 0, 0, 35},             //
-        {35, 37, 0, 0, 62},           //
+        {0, 0, 0, 0, 62},             //
+        {35, 37, 0, 0, 68},           //
         {0, 0, 0, 0, 25},             //
         {0, 0, 0, 0, 68},             //
         {32, 13, 50, 38, 40},         //
@@ -1435,6 +1437,7 @@ const translation_table translation_data = {
         u8"existing variable declared here\0"
         u8"expected ')' to close function call\0"
         u8"expected ',' between object literal entries\0"
+        u8"expected '?' to mark tuple element as optional\0"
         u8"expected 'as' between '{1}' and '{2}'\0"
         u8"expected 'from \"name_of_module.mjs\"'\0"
         u8"expected 'from' before module specifier\0"
@@ -1582,6 +1585,7 @@ const translation_table translation_data = {
         u8"octal literal may not have exponent\0"
         u8"octal number literal has no digits\0"
         u8"only one comma is allowed between or after generic parameters\0"
+        u8"only optional tuple elements can follow this optional tuple element\0"
         u8"opening '<{1}>' tag here\0"
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"overloaded function '{0}' declared here\0"

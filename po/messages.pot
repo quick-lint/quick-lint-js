@@ -1225,6 +1225,14 @@ msgid "'readonly' only works with array types and tuple types"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "expected '?' to mark tuple element as optional"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "only optional tuple elements can follow this optional tuple element"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr ""
 

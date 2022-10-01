@@ -819,6 +819,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
   const char8 *first_unnamed_element_begin = nullptr;
   std::optional<source_code_span> first_named_tuple_name_and_colon;
+  std::optional<source_code_span> last_optional_question;
   bool is_first = true;
   for (;;) {
     if (!is_first) {
@@ -915,6 +916,20 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       this->parse_and_visit_typescript_type_expression(v);
       break;
     }
+
+    if (this->peek().type == token_type::question) {
+      // [Type?]
+      last_optional_question = this->peek().span();
+      this->skip();
+    } else if (last_optional_question.has_value()) {
+      this->diag_reporter_->report(
+          diag_typescript_required_tuple_element_after_optional_element{
+              .expected_question =
+                  source_code_span::unit(this->lexer_.end_of_previous_token()),
+              .previous_optional_question = *last_optional_question,
+          });
+    }
+
     is_first = false;
   }
 }
