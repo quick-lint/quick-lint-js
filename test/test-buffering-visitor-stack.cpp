@@ -11,6 +11,12 @@ namespace {
 // These tests assume a leak checker will fail if a memory leak occurs.
 // TODO(strager): Create a leak-checking memory resource.
 
+// NOTE[setjmp-in-tests]: setjmp requires that all local variables in the
+// current function be marked 'volatile' if they are modified after the first
+// call to setjmp. This is inconvenient for class objects (such as
+// buffering_visitor_stack), so instead of marking variables as 'volatile' we
+// use a lambda to make our mutated variables not technically local.
+
 TEST(test_buffering_visitor_stack, empty) {
   buffering_visitor_stack stack;
   // This test assumes a leak checker will fail if a memory leak occurs.
@@ -54,14 +60,16 @@ TEST(test_buffering_visitor_stack, push_pop_push_pop) {
 TEST(test_buffering_visitor_stack, longjmp_around_pop) {
   buffering_visitor_stack stack;
 
-  volatile bool pushed = false;
-  std::jmp_buf buf;
-  if (setjmp(buf) == 0) {
-    stacked_buffering_visitor v = stack.push();
-    pushed = true;
-    std::longjmp(buf, 1);
-    // pop (doesn't execute)
-  }
+  bool pushed = false;
+  [&] {  // See NOTE[setjmp-in-tests].
+    std::jmp_buf buf;
+    if (setjmp(buf) == 0) {
+      stacked_buffering_visitor v = stack.push();
+      pushed = true;
+      std::longjmp(buf, 1);
+      // pop (doesn't execute)
+    }
+  }();
   ASSERT_TRUE(pushed);
   // This test assumes a leak checker will fail if a memory leak occurs.
 }
@@ -72,14 +80,16 @@ TEST(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
   {
     stacked_buffering_visitor outer_v = stack.push();
 
-    volatile bool pushed_inner = false;
-    std::jmp_buf buf;
-    if (setjmp(buf) == 0) {
-      stacked_buffering_visitor inner_v = stack.push();
-      pushed_inner = true;
-      std::longjmp(buf, 1);
-      // pop (doesn't execute)
-    }
+    bool pushed_inner = false;
+    [&] {  // See NOTE[setjmp-in-tests].
+      std::jmp_buf buf;
+      if (setjmp(buf) == 0) {
+        stacked_buffering_visitor inner_v = stack.push();
+        pushed_inner = true;
+        std::longjmp(buf, 1);
+        // pop (doesn't execute)
+      }
+    }();
     ASSERT_TRUE(pushed_inner);
     // pop outer_v
   }
