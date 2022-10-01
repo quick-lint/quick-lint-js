@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/container/pmr/global_resource.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -12,12 +13,17 @@
 #include <utility>
 
 namespace quick_lint_js {
-async_byte_queue::async_byte_queue() = default;
+async_byte_queue::async_byte_queue()
+    : async_byte_queue(::boost::container::pmr::new_delete_resource()) {}
+
+async_byte_queue::async_byte_queue(
+    ::boost::container::pmr::memory_resource* memory)
+    : memory_(memory) {}
 
 async_byte_queue::~async_byte_queue() {
   chunk* c = this->reader_chunk_;
   while (c) {
-    chunk::deallocate(std::exchange(c, c->next));
+    chunk::deallocate(this->memory_, std::exchange(c, c->next));
   }
 }
 
@@ -79,7 +85,7 @@ void async_byte_queue::grow(size_type extra_byte_count) {
 }
 
 void async_byte_queue::add_new_chunk(size_type chunk_size) {
-  chunk* new_chunk = chunk::allocate(chunk_size);
+  chunk* new_chunk = chunk::allocate(this->memory_, chunk_size);
   {
     std::lock_guard<mutex> lock(this->mutex_);
     this->writer_last_chunk_->next = new_chunk;
@@ -106,14 +112,25 @@ async_byte_queue::size_type async_byte_queue::bytes_used_in_current_chunk()
 }
 
 async_byte_queue::chunk* async_byte_queue::chunk::allocate(
-    size_type data_size) {
-  void* memory = std::malloc(sizeof(chunk) + data_size);
-  return new (memory) chunk(data_size);
+    ::boost::container::pmr::memory_resource* memory, size_type data_size) {
+  void* c = memory->allocate(chunk::allocation_size(data_size), alignof(chunk));
+  return new (c) chunk(data_size);
 }
 
-void async_byte_queue::chunk::deallocate(chunk* c) {
+void async_byte_queue::chunk::deallocate(
+    ::boost::container::pmr::memory_resource* memory, chunk* c) {
+  std::size_t byte_size = c->allocation_size();
   c->~chunk();
-  std::free(c);
+  memory->deallocate(c, byte_size, alignof(chunk));
+}
+
+std::size_t async_byte_queue::chunk::allocation_size(
+    size_type capacity) noexcept {
+  return sizeof(chunk) + capacity;
+}
+
+std::size_t async_byte_queue::chunk::allocation_size() const noexcept {
+  return chunk::allocation_size(this->capacity);
 }
 }
 
