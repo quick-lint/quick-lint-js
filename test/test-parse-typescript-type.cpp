@@ -23,6 +23,7 @@
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
@@ -323,6 +324,153 @@ TEST_F(test_parse_typescript_type, readonly_tuple_type) {
     test_parser p(u8"readonly [A, B, C]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+  }
+}
+
+TEST_F(test_parse_typescript_type, named_tuple_type) {
+  {
+    test_parser p(u8"[a: A]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+  }
+
+  {
+    test_parser p(u8"[a: A, b: B]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+
+  {
+    test_parser p(u8"[a: A, b: B, ]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+
+  for (const string8& name :
+       (keywords - disallowed_binding_identifier_keywords) | dirty_set<string8>{
+                                                                 u8"false",
+                                                                 u8"function",
+                                                                 u8"import",
+                                                                 u8"new",
+                                                                 u8"null",
+                                                                 u8"this",
+                                                                 u8"true",
+                                                                 u8"typeof",
+                                                                 u8"void",
+                                                             }) {
+    string8 code = u8"[" + name + u8": A]";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+  }
+}
+
+TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
+  {
+    test_parser p(u8"[a: A, B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_typescript_missing_name_and_colon_in_named_tuple_type,
+            expected_name_and_colon, strlen(u8"[a: A, "), u8"",  //
+            existing_name, strlen(u8"["), u8"a:")));
+  }
+
+  {
+    test_parser p(u8"[a: A, b: B, C]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_typescript_missing_name_and_colon_in_named_tuple_type,
+            expected_name_and_colon, strlen(u8"[a: A, b: B, "), u8"",  //
+            existing_name, strlen(u8"["), u8"a:")));
+  }
+
+  {
+    test_parser p(u8"[A, b: B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_typescript_missing_name_and_colon_in_named_tuple_type,
+            expected_name_and_colon, strlen(u8"["), u8"",  //
+            existing_name, strlen(u8"[A, "), u8"b:")));
+  }
+
+  {
+    test_parser p(u8"[: A, b: B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_typescript_missing_name_in_named_tuple_type,
+                    colon, strlen(u8"["), u8":")));
+  }
+
+  {
+    test_parser p(u8"[: A, B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // A
+                                      "visit_variable_type_use"));  // B
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_typescript_missing_name_in_named_tuple_type,
+                    colon, strlen(u8"["), u8":")))
+        << "should not also report a missing name for the second element, "
+           "because maybe the ':' was a mistake";
+  }
+
+  {
+    test_parser p(u8"[: A, b: B, C]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_typescript_missing_name_in_named_tuple_type,
+                              colon, strlen(u8"["), u8":"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                expected_name_and_colon, strlen(u8"[: A, b: B, "), u8"",  //
+                existing_name, strlen(u8"[: A, "), u8"b:")));
+  }
+
+  {
+    test_parser p(u8"[: A, B, c: C]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_typescript_missing_name_in_named_tuple_type,
+                              colon, strlen(u8"["), u8":"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                expected_name_and_colon, strlen(u8"[: A, "), u8"",  //
+                existing_name, strlen(u8"[: A, B, "), u8"c:")));
   }
 }
 

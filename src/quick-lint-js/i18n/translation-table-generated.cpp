@@ -263,7 +263,8 @@ const translation_table translation_data = {
         {34, 63, 43, 33, 32},         //
         {41, 11, 49, 0, 39},          //
         {0, 0, 0, 0, 41},             //
-        {44, 96, 51, 41, 30},         //
+        {0, 0, 0, 0, 30},             //
+        {44, 96, 51, 41, 45},         //
         {40, 29, 44, 39, 35},         //
         {18, 26, 23, 23, 22},         //
         {35, 50, 33, 34, 31},         //
@@ -323,7 +324,8 @@ const translation_table translation_data = {
         {41, 63, 47, 57, 34},         //
         {36, 33, 41, 31, 29},         //
         {46, 25, 63, 39, 51},         //
-        {50, 25, 0, 0, 52},           //
+        {0, 0, 0, 0, 52},             //
+        {50, 25, 0, 0, 78},           //
         {33, 21, 0, 0, 21},           //
         {33, 21, 74, 44, 21},         //
         {27, 19, 30, 22, 26},         //
@@ -1537,6 +1539,7 @@ const translation_table translation_data = {
         u8"missing header and body for 'for' loop\0"
         u8"missing initializer in const declaration\0"
         u8"missing name for class method\0"
+        u8"missing name for element in named tuple type\0"
         u8"missing name in function statement\0"
         u8"missing name of class\0"
         u8"missing name of exported class\0"
@@ -1597,6 +1600,7 @@ const translation_table translation_data = {
         u8"stray comma in let statement\0"
         u8"switch statement is missing '{1}' around condition\0"
         u8"switch statement needs parentheses around condition\0"
+        u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"this {1} looks fishy\0"
         u8"try statement starts here\0"

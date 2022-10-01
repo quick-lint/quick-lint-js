@@ -1917,6 +1917,28 @@
               interface_keyword))                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_missing_name_and_colon_in_named_tuple_type, "E0319",      \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span expected_name_and_colon;                               \
+        source_code_span existing_name;                                         \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("missing name for element in named tuple type"),    \
+          expected_name_and_colon)                                              \
+          MESSAGE(                                                              \
+              QLJS_TRANSLATABLE("this tuple type is a named tuple type "        \
+                                "because at least one element has a name"),     \
+              existing_name))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_missing_name_in_named_tuple_type, "E0320",                \
+      diagnostic_severity::error, { source_code_span colon; },                  \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("missing name for element in named tuple type"),    \
+          colon))                                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_namespaces_not_allowed_in_javascript, "E0273",            \
       diagnostic_severity::error, { source_code_span namespace_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

@@ -1254,6 +1254,16 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "missing name for element in named tuple type"
+msgstr "saknar namn för klass"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"this tuple type is a named tuple type because at least one element has a name"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript namespaces are not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

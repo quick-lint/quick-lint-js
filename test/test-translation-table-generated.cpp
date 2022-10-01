@@ -2531,6 +2531,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "missing name for element in named tuple type"_translatable,
+        {
+            u8"missing name for element in named tuple type",
+            u8"missing name for element in named tuple type",
+            u8"missing name for element in named tuple type",
+            u8"missing name for element in named tuple type",
+            u8"missing name for element in named tuple type",
+        },
+    },
+    {
         "missing name in function statement"_translatable,
         {
             u8"missing name in function statement",
@@ -3128,6 +3138,16 @@ const translated_string test_translation_table[] = {
             u8"give the condition a hug",
             u8"une instruction switch n\u00e9cessite des parenth\u00e8ses autour de la condition",
             u8"switch sats beh\u00f6ver paranteser runt vilkor",
+        },
+    },
+    {
+        "this tuple type is a named tuple type because at least one element has a name"_translatable,
+        {
+            u8"this tuple type is a named tuple type because at least one element has a name",
+            u8"this tuple type is a named tuple type because at least one element has a name",
+            u8"this tuple type is a named tuple type because at least one element has a name",
+            u8"this tuple type is a named tuple type because at least one element has a name",
+            u8"this tuple type is a named tuple type because at least one element has a name",
         },
     },
     {

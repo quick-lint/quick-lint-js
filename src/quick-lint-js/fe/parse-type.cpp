@@ -816,6 +816,9 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_square);
   this->skip();
+
+  const char8 *first_unnamed_element_begin = nullptr;
+  std::optional<source_code_span> first_named_tuple_name_and_colon;
   bool is_first = true;
   for (;;) {
     if (!is_first) {
@@ -836,8 +839,79 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       this->skip();
       return;
 
+    // [: Type]  // Invalid.
+    case token_type::colon: {
+      source_code_span colon_span = this->peek().span();
+      this->diag_reporter_->report(
+          diag_typescript_missing_name_in_named_tuple_type{
+              .colon = colon_span,
+          });
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(v);
+      break;
+    }
+
+    // [name: Type]
+    // [Type]
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
     case token_type::identifier:
+    case token_type::kw_await:
+    case token_type::kw_false:
+    case token_type::kw_function:
+    case token_type::kw_import:
+    case token_type::kw_new:
+    case token_type::kw_null:
+    case token_type::kw_this:
+    case token_type::kw_true:
+    case token_type::kw_typeof:
+    case token_type::kw_void:
+    case token_type::kw_yield: {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      const char8 *element_begin = this->peek().begin;
+      this->skip();
+      if (this->peek().type == token_type::colon) {
+        // [name: Type]
+        const char8 *colon_end = this->peek().end;
+        if (!first_named_tuple_name_and_colon.has_value()) {
+          source_code_span name_and_colon(element_begin, colon_end);
+          if (first_unnamed_element_begin) {
+            // [Type1, name: Type2]  // Invalid.
+            this->diag_reporter_->report(
+                diag_typescript_missing_name_and_colon_in_named_tuple_type{
+                    .expected_name_and_colon =
+                        source_code_span::unit(first_unnamed_element_begin),
+                    .existing_name = name_and_colon,
+                });
+          }
+          first_named_tuple_name_and_colon = name_and_colon;
+        }
+
+        this->skip();
+        this->lexer_.commit_transaction(std::move(transaction));
+        this->parse_and_visit_typescript_type_expression(v);
+      } else {
+        // [Type]
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        if (first_named_tuple_name_and_colon.has_value()) {
+          // [name: Type1, Type2]  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_missing_name_and_colon_in_named_tuple_type{
+                  .expected_name_and_colon =
+                      source_code_span::unit(this->peek().begin),
+                  .existing_name = *first_named_tuple_name_and_colon,
+              });
+        }
+        first_unnamed_element_begin = this->peek().begin;
+
+        this->parse_and_visit_typescript_type_expression(v);
+      }
+      break;
+    }
+
+    // [(Type)]
     default:
+      first_unnamed_element_begin = this->peek().begin;
       this->parse_and_visit_typescript_type_expression(v);
       break;
     }

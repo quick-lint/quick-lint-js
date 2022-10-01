@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 375;
-constexpr std::size_t translation_table_string_table_size = 54835;
+constexpr std::uint16_t translation_table_mapping_table_size = 377;
+constexpr std::size_t translation_table_string_table_size = 54958;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -280,6 +280,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing header and body for 'for' loop"sv,
           "missing initializer in const declaration"sv,
           "missing name for class method"sv,
+          "missing name for element in named tuple type"sv,
           "missing name in function statement"sv,
           "missing name of class"sv,
           "missing name of exported class"sv,
@@ -340,6 +341,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "stray comma in let statement"sv,
           "switch statement is missing '{1}' around condition"sv,
           "switch statement needs parentheses around condition"sv,
+          "this tuple type is a named tuple type because at least one element has a name"sv,
           "this {0} looks fishy"sv,
           "this {1} looks fishy"sv,
           "try statement starts here"sv,

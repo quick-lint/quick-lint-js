@@ -1168,6 +1168,15 @@ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "missing name for element in named tuple type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"this tuple type is a named tuple type because at least one element has a name"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript namespaces are not allowed in JavaScript"
 msgstr ""
 
