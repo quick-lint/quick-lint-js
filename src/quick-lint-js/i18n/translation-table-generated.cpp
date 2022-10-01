@@ -104,7 +104,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 49},             //
         {0, 0, 0, 0, 39},             //
         {0, 0, 0, 0, 50},             //
-        {14, 14, 0, 0, 57},           //
+        {0, 0, 0, 0, 57},             //
+        {14, 14, 0, 0, 20},           //
         {0, 26, 0, 0, 18},            //
         {18, 53, 70, 76, 53},         //
         {19, 30, 21, 19, 19},         //
@@ -330,7 +331,8 @@ const translation_table translation_data = {
         {50, 25, 0, 0, 78},           //
         {33, 21, 0, 0, 21},           //
         {33, 21, 74, 44, 21},         //
-        {27, 19, 30, 22, 26},         //
+        {0, 0, 0, 0, 26},             //
+        {27, 19, 30, 22, 40},         //
         {25, 50, 0, 0, 23},           //
         {66, 43, 31, 30, 44},         //
         {70, 22, 62, 61, 49},         //
@@ -1382,6 +1384,7 @@ const translation_table translation_data = {
         u8"abstract methods cannot contain a body\0"
         u8"abstract properties are not allowed in interfaces\0"
         u8"abstract properties are only allowed in abstract classes\0"
+        u8"already spread here\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
@@ -1608,6 +1611,7 @@ const translation_table translation_data = {
         u8"this {0} looks fishy\0"
         u8"this {1} looks fishy\0"
         u8"try statement starts here\0"
+        u8"tuple type cannot have multiple spreads\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
         u8"unclosed code block; expected '}' by end of file\0"

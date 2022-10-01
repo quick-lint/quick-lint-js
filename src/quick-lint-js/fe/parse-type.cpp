@@ -820,6 +820,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
   const char8 *first_unnamed_element_begin = nullptr;
   std::optional<source_code_span> first_named_tuple_name_and_colon;
   std::optional<source_code_span> last_optional_question;
+  std::optional<source_code_span> first_spread;
   bool is_first = true;
   for (;;) {
     if (!is_first) {
@@ -835,6 +836,23 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
         QLJS_PARSER_UNIMPLEMENTED();
       }
     }
+
+    if (this->peek().type == token_type::dot_dot_dot) {
+      // [...Type]
+      source_code_span spread = this->peek().span();
+      if (first_spread.has_value()) {
+        // [...Type1, ...Type2]  // Invalid.
+        this->diag_reporter_->report(
+            diag_typescript_tuple_cannot_have_multiple_spreads{
+                .spread = spread,
+                .previous_spread = *first_spread,
+            });
+      } else {
+        first_spread = spread;
+      }
+      this->skip();
+    }
+
     switch (this->peek().type) {
     case token_type::right_square:
       this->skip();

@@ -1327,6 +1327,15 @@ msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "tuple type cannot have multiple spreads"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "already spread here"
+msgstr "you opened Pandora's Box here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "this 'case' is awful lonely"

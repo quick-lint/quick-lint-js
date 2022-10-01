@@ -2036,6 +2036,17 @@
                   previous_optional_question))                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_tuple_cannot_have_multiple_spreads, "E0322",              \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span spread;                                                \
+        source_code_span previous_spread;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("tuple type cannot have multiple spreads"),     \
+              spread)                                                           \
+          MESSAGE(QLJS_TRANSLATABLE("already spread here"), previous_spread))   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_type_annotation_in_expression, "E0254",                   \
       diagnostic_severity::error, { source_code_span type_colon; },             \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

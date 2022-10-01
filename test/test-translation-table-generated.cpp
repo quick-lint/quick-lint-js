@@ -941,6 +941,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "already spread here"_translatable,
+        {
+            u8"already spread here",
+            u8"already spread here",
+            u8"already spread here",
+            u8"already spread here",
+            u8"already spread here",
+        },
+    },
+    {
         "an 'if' statement"_translatable,
         {
             u8"an 'if' statement",
@@ -3198,6 +3208,16 @@ const translated_string test_translation_table[] = {
             u8"at least you tried",
             u8"l'instruction try d\u00e9bute ici",
             u8"try sats startar h\u00e4r",
+        },
+    },
+    {
+        "tuple type cannot have multiple spreads"_translatable,
+        {
+            u8"tuple type cannot have multiple spreads",
+            u8"tuple type cannot have multiple spreads",
+            u8"tuple type cannot have multiple spreads",
+            u8"tuple type cannot have multiple spreads",
+            u8"tuple type cannot have multiple spreads",
         },
     },
     {
