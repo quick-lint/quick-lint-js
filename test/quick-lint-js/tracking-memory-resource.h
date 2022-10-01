@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
 #define QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
 
+#include <boost/container/pmr/global_resource.hpp>
 #include <boost/container/pmr/memory_resource.hpp>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
