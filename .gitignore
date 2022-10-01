@@ -4,3 +4,6 @@
 
 # Nix symlink. Created by instructions in docs/BUILDING.md.
 /result
+
+# Created by clangd after the project has been analyzed.
+/.cache/
