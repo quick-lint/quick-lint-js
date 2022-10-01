@@ -66,11 +66,11 @@ dependencies:
 
 Run the following command to create a directory called `build`:
 
-    $ mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
+    $ mkdir build ; cd build ; cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 For Ubuntu 18.04 Bionic, instead run the following command:
 
-    $ mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
+    $ mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 #### 2. Build
 
@@ -113,7 +113,7 @@ Before building quick-lint-js, install the following third-party dependencies:
 
 Run the following command to create a directory called `build`:
 
-    $ mkdir build ; cd build ; cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
+    $ mkdir build ; cd build ; cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 #### 2. Build
 
@@ -162,7 +162,7 @@ directory called `build`:
       CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
       CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
       LDFLAGS="-L$(brew --prefix)/opt/llvm/lib" \
-      cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -S . -B build
+      cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -S . -B build
 
 #### 2. Build
 
@@ -206,7 +206,7 @@ Open *x64 Native Tools Command Prompt for VS*. Use `cd` to navigate to your
 quick-lint-js project directory. Run the following command to create a directory
 called `build`:
 
-    > cmake -G "Visual Studio 16 2019" -S . -B build
+    > cmake -G "Visual Studio 16 2019" -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 #### 2. Build
 
