@@ -1,0 +1,12 @@
+[project]
+name = "quick-lint-js"
+version = "2.9.0"
+
+git_repo_url = "https://github.com/quick-lint/quick-lint-js/blob/master/"
+
+[paths]
+compile_commands = "build/compile_commands.json"
+output_dir = "build/hdoc"
+
+[ignore]
+paths = ["/vendor/"]
