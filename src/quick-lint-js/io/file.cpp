@@ -242,7 +242,7 @@ result<padded_string, read_file_io_error> read_file(const std::string &path) {
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, read_file_io_error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
-  std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
     return failed_result(read_file_io_error{
         .path = path, .io_error = windows_file_io_error{::GetLastError()}});

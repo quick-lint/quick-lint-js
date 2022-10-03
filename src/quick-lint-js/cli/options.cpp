@@ -77,22 +77,22 @@ options parse_options(int argc, char** argv) {
     } else if (const char* arg_value =
                    parser.match_option_with_value("--output-format"sv)) {
       if (arg_value == "gnu-like"sv) {
-        o.output_format = quick_lint_js::output_format::gnu_like;
+        o.output_format = output_format::gnu_like;
       } else if (arg_value == "vim-qflist-json"sv) {
-        o.output_format = quick_lint_js::output_format::vim_qflist_json;
+        o.output_format = output_format::vim_qflist_json;
       } else if (arg_value == "emacs-lisp"sv) {
-        o.output_format = quick_lint_js::output_format::emacs_lisp;
+        o.output_format = output_format::emacs_lisp;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
     } else if (const char* arg_value = parser.match_option_with_value(
                    "--diagnostic-hyperlinks"sv)) {
       if (arg_value == "auto"sv) {
-        o.diagnostic_hyperlinks = quick_lint_js::option_when::auto_;
+        o.diagnostic_hyperlinks = option_when::auto_;
       } else if (arg_value == "always"sv) {
-        o.diagnostic_hyperlinks = quick_lint_js::option_when::always;
+        o.diagnostic_hyperlinks = option_when::always;
       } else if (arg_value == "never"sv) {
-        o.diagnostic_hyperlinks = quick_lint_js::option_when::never;
+        o.diagnostic_hyperlinks = option_when::never;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }

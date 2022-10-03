@@ -54,8 +54,7 @@ struct options {
   bool snarky = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::default_format;
-  quick_lint_js::option_when diagnostic_hyperlinks =
-      quick_lint_js::option_when::auto_;
+  option_when diagnostic_hyperlinks = option_when::auto_;
   std::vector<file_to_lint> files_to_lint;
   compiled_diag_code_list exit_fail_on;
 

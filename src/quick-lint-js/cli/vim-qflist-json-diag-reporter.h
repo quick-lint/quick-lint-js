@@ -46,7 +46,7 @@ class vim_qflist_json_diag_formatter
     : public diagnostic_formatter<vim_qflist_json_diag_formatter> {
  public:
   explicit vim_qflist_json_diag_formatter(translator, output_stream *output,
-                                          quick_lint_js::vim_locator &locator,
+                                          vim_locator &locator,
                                           std::string_view file_name,
                                           std::string_view bufnr);
   void write_before_message(std::string_view code, diagnostic_severity,
@@ -58,7 +58,7 @@ class vim_qflist_json_diag_formatter
 
  private:
   output_stream &output_;
-  quick_lint_js::vim_locator &locator_;
+  vim_locator &locator_;
   std::string_view file_name_;
   std::string_view bufnr_;
 };

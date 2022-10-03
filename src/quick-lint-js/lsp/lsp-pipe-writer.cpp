@@ -22,7 +22,7 @@ constexpr std::size_t max_header_size = header_prefix.size() +
 
 char8* make_header(std::size_t message_size, char8* out) {
   out = std::copy(header_prefix.begin(), header_prefix.end(), out);
-  out = quick_lint_js::write_integer(message_size, out);
+  out = write_integer(message_size, out);
   out = std::copy(header_suffix.begin(), header_suffix.end(), out);
   return out;
 }

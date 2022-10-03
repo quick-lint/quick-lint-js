@@ -48,7 +48,7 @@ class qljs_document_base {
     return this->diag_reporter_.get_diagnostics();
   }
 
-  quick_lint_js::document<Locator> document_;
+  document<Locator> document_;
   ErrorReporter diag_reporter_;
   configuration config_;
   parser_options parser_options_;

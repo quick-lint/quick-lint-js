@@ -779,7 +779,7 @@ class parser {
   diag_reporter *diag_reporter_;
   diag_reporter *original_diag_reporter_;
   parser_options options_;
-  quick_lint_js::expression_arena expressions_;
+  expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
