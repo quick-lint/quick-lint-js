@@ -283,12 +283,12 @@ func GetAllUntranslated(locales map[string][]TranslationEntry) [][]byte {
 }
 
 type TranslationTable struct {
-	ConstLookupTable []TranslationTableConstLookupEntry
-	AbsoluteMappingTable     []TranslationTableMappingEntry
-	RelativeMappingTable     []TranslationTableMappingEntry
-	StringTable      []byte
-	Locales          []string
-	LocaleTable      []byte
+	ConstLookupTable     []TranslationTableConstLookupEntry
+	AbsoluteMappingTable []TranslationTableMappingEntry
+	RelativeMappingTable []TranslationTableMappingEntry
+	StringTable          []byte
+	Locales              []string
+	LocaleTable          []byte
 }
 
 type TranslationTableConstLookupEntry struct {

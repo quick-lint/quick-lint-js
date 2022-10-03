@@ -134,8 +134,8 @@ func TestCreateTranslationTable(t *testing.T) {
 
 		if len(table.AbsoluteMappingTable) != len(table.RelativeMappingTable) {
 			t.Errorf("relative mapping table has %d entries but absolute mapping table has %d entries",
-			len(table.RelativeMappingTable),
-			len(table.AbsoluteMappingTable))
+				len(table.RelativeMappingTable),
+				len(table.AbsoluteMappingTable))
 		}
 		lastPresentStringOffsets := make([]uint32, len(table.Locales))
 		for i := 1; i < len(table.AbsoluteMappingTable); i += 1 {
@@ -151,9 +151,9 @@ func TestCreateTranslationTable(t *testing.T) {
 				}
 				if relativeEntry.StringOffsets[j] != expectedRelativeOffset {
 					t.Errorf("relative mapping table entry %d locale %d has relative offset %d but expected %d",
-					i, j,
-					expectedRelativeOffset,
-					relativeEntry.StringOffsets[j])
+						i, j,
+						expectedRelativeOffset,
+						relativeEntry.StringOffsets[j])
 				}
 				if stringOffset != 0 {
 					lastPresentStringOffsets[j] = stringOffset
@@ -297,7 +297,7 @@ func TestCreateTranslationTable(t *testing.T) {
 		checkTableIntegrity(t, &table)
 
 		expectedStringTable := []byte{
-			0x0, // 0: ""
+			0x0,                   // 0: ""
 			0x5b, 0x61, 0x5d, 0x0, // 1: "[a]"
 			0x5b, 0x62, 0x5d, 0x0, // 5: "[b]"
 			0x5b, 0x64, 0x5d, 0x0, // 9: "[d]"
