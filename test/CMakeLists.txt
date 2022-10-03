@@ -121,6 +121,7 @@ quick_lint_js_add_executable(
   test-trace-stream-reader.cpp
   test-trace-writer.cpp
   test-tracking-memory-resource.cpp
+  test-translation-table-generated.cpp
   test-translation.cpp
   test-utf-16.cpp
   test-utf-8.cpp
