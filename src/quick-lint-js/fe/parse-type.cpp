@@ -837,15 +837,15 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       }
     }
 
-    bool is_spread = this->peek().type == token_type::dot_dot_dot;
-    if (is_spread) {
+    std::optional<source_code_span> spread;
+    if (this->peek().type == token_type::dot_dot_dot) {
       // [...Type]
-      source_code_span spread = this->peek().span();
+      spread = this->peek().span();
       if (first_spread.has_value()) {
         // [...Type1, ...Type2]  // Invalid.
         this->diag_reporter_->report(
             diag_typescript_tuple_cannot_have_multiple_spreads{
-                .spread = spread,
+                .spread = *spread,
                 .previous_spread = *first_spread,
             });
       } else {
@@ -938,20 +938,29 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
     if (this->peek().type == token_type::question) {
       source_code_span optional_question = this->peek().span();
-      if (first_spread.has_value()) {
+      if (spread.has_value()) {
+        // [...Type?]  // Invalid.
+        this->diag_reporter_->report(
+            diag_typescript_spread_element_cannot_be_optional{
+                .optional_question = optional_question,
+                .spread = *spread,
+            });
+        // Don't set last_optional_question; pretend the '?' wasn't there.
+      } else if (first_spread.has_value()) {
         // [...Type1, Type2?]  // Invalid.
         this->diag_reporter_->report(
             diag_typescript_optional_tuple_element_cannot_follow_spread_element{
                 .optional_question = optional_question,
                 .previous_spread = *first_spread,
             });
+        last_optional_question = optional_question;
       } else {
         // [Type?]
+        last_optional_question = optional_question;
       }
-      last_optional_question = optional_question;
       this->skip();
     } else if (last_optional_question.has_value()) {
-      if (is_spread) {
+      if (spread.has_value()) {
         // [Type1?, ...Type2]
       } else {
         // [Type1?, Type2]  // Invalid.

@@ -325,7 +325,9 @@ const translation_table translation_data = {
         {53, 14, 55, 0, 19},          //
         {49, 31, 0, 0, 45},           //
         {11, 9, 0, 0, 9},             //
-        {14, 26, 53, 0, 19},          //
+        {0, 0, 0, 0, 19},             //
+        {0, 0, 0, 0, 19},             //
+        {14, 26, 53, 0, 41},          //
         {41, 63, 47, 57, 34},         //
         {36, 33, 41, 31, 29},         //
         {46, 25, 63, 39, 51},         //
@@ -1607,6 +1609,8 @@ const translation_table translation_data = {
         u8"return statement returns nothing (undefined)\0"
         u8"see here\0"
         u8"something happened\0"
+        u8"spread starts here\0"
+        u8"spread tuple elements cannot be optional\0"
         u8"stray comma in function parameter\0"
         u8"stray comma in let statement\0"
         u8"switch statement is missing '{1}' around condition\0"

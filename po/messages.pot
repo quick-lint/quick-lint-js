@@ -1269,6 +1269,14 @@ msgid "TypeScript type imports are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "spread tuple elements cannot be optional"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "spread starts here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""

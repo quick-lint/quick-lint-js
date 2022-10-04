@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 383;
-constexpr std::size_t translation_table_string_table_size = 55220;
+constexpr std::uint16_t translation_table_mapping_table_size = 385;
+constexpr std::size_t translation_table_string_table_size = 55280;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -342,6 +342,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "return statement returns nothing (undefined)"sv,
           "see here"sv,
           "something happened"sv,
+          "spread starts here"sv,
+          "spread tuple elements cannot be optional"sv,
           "stray comma in function parameter"sv,
           "stray comma in let statement"sv,
           "switch statement is missing '{1}' around condition"sv,

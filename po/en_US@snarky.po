@@ -1369,6 +1369,16 @@ msgid "TypeScript type imports are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "spread tuple elements cannot be optional"
+msgstr "classes cannot be named 'let'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "spread starts here"
+msgstr "you opened Pandora's Box here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr "this field is a bit CONSTipated 🤢 "
@@ -1694,10 +1704,6 @@ msgstr "there 👈"
 #, fuzzy
 #~ msgid "TypeScript static blocks are not supported in JavaScript"
 #~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
-
-#, fuzzy
-#~ msgid "class methods cannot be optional"
-#~ msgstr "classes cannot be named 'let'"
 
 #, fuzzy
 #~ msgid "{0} is not allowed in JavaScript"

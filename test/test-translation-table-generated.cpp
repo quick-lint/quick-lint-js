@@ -3151,6 +3151,26 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "spread starts here"_translatable,
+        {
+            u8"spread starts here",
+            u8"spread starts here",
+            u8"spread starts here",
+            u8"spread starts here",
+            u8"spread starts here",
+        },
+    },
+    {
+        "spread tuple elements cannot be optional"_translatable,
+        {
+            u8"spread tuple elements cannot be optional",
+            u8"spread tuple elements cannot be optional",
+            u8"spread tuple elements cannot be optional",
+            u8"spread tuple elements cannot be optional",
+            u8"spread tuple elements cannot be optional",
+        },
+    },
+    {
         "stray comma in function parameter"_translatable,
         {
             u8"stray comma in function parameter",

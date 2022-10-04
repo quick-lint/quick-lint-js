@@ -1465,6 +1465,16 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "spread tuple elements cannot be optional"
+msgstr "une classe ne peut être nommée 'let'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "spread starts here"
+msgstr "tableau débuté ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""
@@ -1832,10 +1842,6 @@ msgstr ""
 #~ msgstr ""
 #~ "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
 #~ "quick-lint-js"
-
-#, fuzzy
-#~ msgid "class methods cannot be optional"
-#~ msgstr "une classe ne peut être nommée 'let'"
 
 #, fuzzy
 #~ msgid "{0} is not allowed in JavaScript"

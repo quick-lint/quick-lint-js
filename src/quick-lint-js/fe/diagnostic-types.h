@@ -2096,6 +2096,17 @@
               type_keyword))                                                    \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_spread_element_cannot_be_optional, "E0324",               \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span optional_question;                                     \
+        source_code_span spread;                                                \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("spread tuple elements cannot be optional"),    \
+              optional_question)                                                \
+          MESSAGE(QLJS_TRANSLATABLE("spread starts here"), spread))             \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_style_const_field, "E0165", diagnostic_severity::error,   \
       { source_code_span const_token; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "         \
