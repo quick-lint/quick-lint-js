@@ -1364,6 +1364,15 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "optional tuple elements cannot come after spread elements"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "prior spread element is here"
+msgstr "l'instruction try débute ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr ""

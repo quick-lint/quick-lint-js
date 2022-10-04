@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 381;
-constexpr std::size_t translation_table_string_table_size = 55133;
+constexpr std::uint16_t translation_table_mapping_table_size = 383;
+constexpr std::size_t translation_table_string_table_size = 55220;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -328,7 +328,9 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "only optional tuple elements can follow this optional tuple element"sv,
           "opening '<{1}>' tag here"sv,
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
+          "optional tuple elements cannot come after spread elements"sv,
           "overloaded function '{0}' declared here"sv,
+          "prior spread element is here"sv,
           "private properties are not allowed in object literals"sv,
           "readonly array is missing '[]'"sv,
           "redeclaration of global variable"sv,

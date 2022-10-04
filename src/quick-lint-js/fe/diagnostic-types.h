@@ -1969,6 +1969,20 @@
               question))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_optional_tuple_element_cannot_follow_spread_element,      \
+      "E0323", diagnostic_severity::error,                                      \
+      {                                                                         \
+        source_code_span optional_question;                                     \
+        source_code_span previous_spread;                                       \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "optional tuple elements cannot come after spread elements"),     \
+          optional_question)                                                    \
+          MESSAGE(QLJS_TRANSLATABLE("prior spread element is here"),            \
+                  previous_spread))                                             \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_private_not_allowed_in_javascript, "E0222",               \
       diagnostic_severity::error, { source_code_span specifier; },              \
       MESSAGE(QLJS_TRANSLATABLE("'private' is not allowed in JavaScript"),      \

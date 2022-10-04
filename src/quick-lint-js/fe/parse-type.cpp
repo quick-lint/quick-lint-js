@@ -837,7 +837,8 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       }
     }
 
-    if (this->peek().type == token_type::dot_dot_dot) {
+    bool is_spread = this->peek().type == token_type::dot_dot_dot;
+    if (is_spread) {
       // [...Type]
       source_code_span spread = this->peek().span();
       if (first_spread.has_value()) {
@@ -936,16 +937,31 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
     }
 
     if (this->peek().type == token_type::question) {
-      // [Type?]
-      last_optional_question = this->peek().span();
+      source_code_span optional_question = this->peek().span();
+      if (first_spread.has_value()) {
+        // [...Type1, Type2?]  // Invalid.
+        this->diag_reporter_->report(
+            diag_typescript_optional_tuple_element_cannot_follow_spread_element{
+                .optional_question = optional_question,
+                .previous_spread = *first_spread,
+            });
+      } else {
+        // [Type?]
+      }
+      last_optional_question = optional_question;
       this->skip();
     } else if (last_optional_question.has_value()) {
-      this->diag_reporter_->report(
-          diag_typescript_required_tuple_element_after_optional_element{
-              .expected_question =
-                  source_code_span::unit(this->lexer_.end_of_previous_token()),
-              .previous_optional_question = *last_optional_question,
-          });
+      if (is_spread) {
+        // [Type1?, ...Type2]
+      } else {
+        // [Type1?, Type2]  // Invalid.
+        this->diag_reporter_->report(
+            diag_typescript_required_tuple_element_after_optional_element{
+                .expected_question = source_code_span::unit(
+                    this->lexer_.end_of_previous_token()),
+                .previous_optional_question = *last_optional_question,
+            });
+      }
     }
 
     is_first = false;

@@ -3011,6 +3011,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "optional tuple elements cannot come after spread elements"_translatable,
+        {
+            u8"optional tuple elements cannot come after spread elements",
+            u8"optional tuple elements cannot come after spread elements",
+            u8"optional tuple elements cannot come after spread elements",
+            u8"optional tuple elements cannot come after spread elements",
+            u8"optional tuple elements cannot come after spread elements",
+        },
+    },
+    {
         "overloaded function '{0}' declared here"_translatable,
         {
             u8"overloaded function '{0}' declared here",
@@ -3018,6 +3028,16 @@ const translated_string test_translation_table[] = {
             u8"overloaded function '{0}' declared here",
             u8"overloaded function '{0}' declared here",
             u8"overloaded function '{0}' declared here",
+        },
+    },
+    {
+        "prior spread element is here"_translatable,
+        {
+            u8"prior spread element is here",
+            u8"prior spread element is here",
+            u8"prior spread element is here",
+            u8"prior spread element is here",
+            u8"prior spread element is here",
         },
     },
     {

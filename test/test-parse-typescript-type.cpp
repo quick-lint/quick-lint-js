@@ -449,6 +449,30 @@ TEST_F(test_parse_typescript_type, tuple_type_spread_element) {
   }
 }
 
+TEST_F(test_parse_typescript_type,
+       tuple_type_spread_element_with_optional_element) {
+  // Rest element can follow optional element.
+  {
+    test_parser p(u8"[A?, ...B]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+  }
+
+  // Optional element cannot follow rest element.
+  {
+    test_parser p(u8"[...A, B?]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_optional_tuple_element_cannot_follow_spread_element,
+            optional_question, strlen(u8"[...A, B"), u8"?",  //
+            previous_spread, strlen(u8"["), u8"...")));
+  }
+}
+
 TEST_F(test_parse_typescript_type, named_tuple_type) {
   {
     test_parser p(u8"[a: A]"_sv, typescript_options);
