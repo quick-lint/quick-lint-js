@@ -18,9 +18,7 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-// TODO(strager): Rename the test suite to to test_variable_analyzer_arguments.
-
-TEST(test_variable_analyzer_magic_arguments,
+TEST(test_variable_analyzer_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
 
@@ -38,7 +36,7 @@ TEST(test_variable_analyzer_magic_arguments,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_magic_arguments,
+TEST(test_variable_analyzer_arguments,
      arguments_magic_variable_is_unusable_in_global_scope) {
   const char8 arguments_use[] = u8"arguments";
 
@@ -53,7 +51,7 @@ TEST(test_variable_analyzer_magic_arguments,
                                          span_of(arguments_use))));
 }
 
-TEST(test_variable_analyzer_magic_arguments,
+TEST(test_variable_analyzer_arguments,
      parameter_named_arguments_does_not_conflict) {
   const char8 parameter_declaration[] = u8"arguments";
   const char8 parameter_use[] = u8"arguments";
@@ -75,7 +73,7 @@ TEST(test_variable_analyzer_magic_arguments,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_magic_arguments,
+TEST(test_variable_analyzer_arguments,
      parameter_default_values_can_reference_arguments) {
   const char8 parameter_declaration[] = u8"p";
   const char8 parameter_default_value[] = u8"arguments";
@@ -124,7 +122,7 @@ TEST(test_variable_analyzer_magic_arguments,
   }
 }
 
-TEST(test_variable_analyzer_magic_arguments,
+TEST(test_variable_analyzer_arguments,
      var_does_not_conflict_with_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
@@ -143,7 +141,7 @@ TEST(test_variable_analyzer_magic_arguments,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_magic_arguments, let_shadows_magic_arguments) {
+TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_let}) {
     const char8 arguments_declaration[] = u8"arguments";
 
@@ -188,7 +186,7 @@ TEST(test_variable_analyzer_magic_arguments, let_shadows_magic_arguments) {
   }
 }
 
-TEST(test_variable_analyzer_magic_arguments, function_shadows_magic_arguments) {
+TEST(test_variable_analyzer_arguments, function_shadows_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
   // (function() {
@@ -209,8 +207,7 @@ TEST(test_variable_analyzer_magic_arguments, function_shadows_magic_arguments) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_magic_arguments,
-     catch_variable_shadows_magic_arguments) {
+TEST(test_variable_analyzer_arguments, catch_variable_shadows_magic_arguments) {
   const char8 arguments_declaration[] = u8"arguments";
 
   // (function() {
