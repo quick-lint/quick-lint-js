@@ -171,7 +171,6 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     return true;
   }
 
-  // For debugging and testing only.
   std::size_t remaining_bytes_in_current_chunk() const {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
