@@ -31,7 +31,7 @@ TEST(test_variable_analyzer_interface,
     //   method(): C;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
                                  variable_kind::_import,
                                  variable_init_kind::normal);
@@ -54,7 +54,7 @@ TEST(test_variable_analyzer_interface,
     //   method(): C;  // ERROR
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);
@@ -84,7 +84,7 @@ TEST(test_variable_analyzer_interface,
     //   method(): T;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);
@@ -117,7 +117,7 @@ TEST(test_variable_analyzer_interface,
     //   [index: C]: C;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
                                  variable_kind::_import,
                                  variable_init_kind::normal);
@@ -143,7 +143,7 @@ TEST(test_variable_analyzer_interface,
     //   [index: C]: C;  // ERROR
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);
@@ -177,7 +177,7 @@ TEST(test_variable_analyzer_interface,
     //   [index: number]: typeof index;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);
@@ -210,7 +210,7 @@ TEST(test_variable_analyzer_interface,
     // }
     // index;  // ERROR
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);

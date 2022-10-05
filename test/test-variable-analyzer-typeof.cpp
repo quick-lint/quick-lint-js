@@ -24,7 +24,7 @@ TEST(test_variable_analyzer_typeof,
 
   // typeof v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_end_of_module();
 
@@ -38,7 +38,7 @@ TEST(test_variable_analyzer_typeof, typeof_declares_variable_automagically) {
   // typeof v;
   // v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(typeof_use));
   l.visit_variable_use(identifier_of(other_use));
   l.visit_end_of_module();
@@ -58,7 +58,7 @@ TEST(test_variable_analyzer_typeof,
   // });
   // v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -78,7 +78,7 @@ TEST(test_variable_analyzer_typeof,
   // let v;
   // typeof v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
   l.visit_variable_typeof_use(identifier_of(use));
@@ -95,7 +95,7 @@ TEST(test_variable_analyzer_typeof,
   // typeof v;  // ERROR
   // let v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
@@ -122,7 +122,7 @@ TEST(
   // });
   // v;           // ERROR
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();

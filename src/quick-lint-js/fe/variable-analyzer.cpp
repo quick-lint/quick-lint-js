@@ -197,12 +197,6 @@ void global_declared_variable_set::undeclare_variable(string8_view name) {
 
 variable_analyzer::variable_analyzer(
     diag_reporter *diag_reporter,
-    const global_declared_variable_set *global_variables)
-    : variable_analyzer(diag_reporter, global_variables,
-                        variable_analyzer_options()) {}
-
-variable_analyzer::variable_analyzer(
-    diag_reporter *diag_reporter,
     const global_declared_variable_set *global_variables,
     variable_analyzer_options options)
     : global_scope_(global_variables),

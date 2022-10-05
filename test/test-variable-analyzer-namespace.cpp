@@ -23,7 +23,7 @@ TEST(test_variable_analyzer_namespace, empty_namespace) {
 
   // namespace NS { }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_init_kind::normal);
@@ -42,7 +42,7 @@ TEST(test_variable_analyzer_namespace,
   // namespace NS { }
   // NS;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_init_kind::normal);
@@ -65,7 +65,7 @@ TEST(test_variable_analyzer_namespace,
   // NS;
   // namespace NS { }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(namespace_use));
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
@@ -86,7 +86,7 @@ TEST(test_variable_analyzer_namespace,
   //   NS;
   // }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_init_kind::normal);
@@ -111,7 +111,7 @@ TEST(test_variable_analyzer_namespace,
     // }
     // C;  // ERROR
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_init_kind::normal);
@@ -153,7 +153,7 @@ TEST(test_variable_analyzer_namespace,
     //   null as MyType;           // visit_variable_type_use
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_init_kind::normal);
@@ -183,7 +183,7 @@ TEST(test_variable_analyzer_namespace,
     // }
     // myVar;  // ERROR
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_init_kind::normal);

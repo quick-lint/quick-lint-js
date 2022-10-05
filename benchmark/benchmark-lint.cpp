@@ -40,8 +40,11 @@ void benchmark_lint(benchmark::State &state) {
   buffering_visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
+  variable_analyzer_options var_options;
+
   for (auto _ : state) {
-    variable_analyzer l(&null_diag_reporter::instance, &config.globals());
+    variable_analyzer l(&null_diag_reporter::instance, &config.globals(),
+                        var_options);
     visitor.copy_into(l);
   }
 }
@@ -61,10 +64,12 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   }
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
+  variable_analyzer_options var_options;
   configuration config;
   for (auto _ : state) {
     parser p(&source, &null_diag_reporter::instance);
-    variable_analyzer l(&null_diag_reporter::instance, &config.globals());
+    variable_analyzer l(&null_diag_reporter::instance, &config.globals(),
+                        var_options);
     p.parse_and_visit_module(l);
   }
 }
@@ -101,8 +106,9 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
                                           make_string_view(begin, end));
   }
 
+  variable_analyzer_options var_options;
   for (auto _ : state) {
-    variable_analyzer l(&null_diag_reporter::instance, &globals);
+    variable_analyzer l(&null_diag_reporter::instance, &globals, var_options);
     for (identifier &variable_use : variable_use_identifiers) {
       l.visit_variable_use(variable_use);
     }

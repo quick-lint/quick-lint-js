@@ -46,7 +46,7 @@ TEST(test_variable_analyzer_unused_shadow,
       //   let x = 6;  // WARNING
       // }
       diag_collector v;
-      variable_analyzer l(&v, &default_globals);
+      variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(outer_declaration),
                                    tc.outer_declaration_kind,
                                    variable_init_kind::initialized_with_equals);
@@ -75,7 +75,7 @@ TEST(test_variable_analyzer_unused_shadow,
       //   }
       // }
       diag_collector v;
-      variable_analyzer l(&v, &default_globals);
+      variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(outer_declaration),
                                    tc.outer_declaration_kind,
                                    variable_init_kind::initialized_with_equals);
@@ -108,7 +108,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   var x = 6;  // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_var,
                                  variable_init_kind::initialized_with_equals);
@@ -134,7 +134,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x;  // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -160,7 +160,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -187,7 +187,7 @@ TEST(test_variable_analyzer_unused_shadow,
   //   }
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter),
                                variable_kind::_function_parameter,
@@ -223,7 +223,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let C = 6;  // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                  variable_init_kind::normal);
     l.visit_enter_block_scope();
@@ -249,7 +249,7 @@ TEST(test_variable_analyzer_unused_shadow,
   //   }
   // }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_block_scope();  // try
   l.visit_exit_block_scope();
   l.visit_enter_block_scope();  // catch
@@ -280,7 +280,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   x;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -304,7 +304,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   }
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -330,7 +330,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   });
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -362,7 +362,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -387,7 +387,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -414,7 +414,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;    // no warning
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -446,7 +446,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   eval("x");
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -470,7 +470,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   }
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -498,7 +498,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   }
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -526,7 +526,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   });
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -555,7 +555,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   });
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -590,7 +590,7 @@ TEST(test_variable_analyzer_unused_shadow,
     //   x = 7;
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);

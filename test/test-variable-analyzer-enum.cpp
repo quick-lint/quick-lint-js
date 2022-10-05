@@ -27,7 +27,7 @@ TEST(test_variable_analyzer_enum,
   //   B = A,
   // }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration),
                                variable_kind::_enum,
                                variable_init_kind::normal);
@@ -46,7 +46,7 @@ TEST(test_variable_analyzer_enum, enum_can_merge_with_another_enum) {
   // enum E {}
   // enum E {}
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration_1),
                                variable_kind::_enum,
                                variable_init_kind::normal);
@@ -71,7 +71,7 @@ TEST(test_variable_analyzer_enum, enum_can_shadow_catch_variables) {
   //   enum e {}
   // }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_block_scope();
   l.visit_exit_block_scope();
   l.visit_enter_block_scope();
@@ -114,7 +114,7 @@ TEST(test_variable_analyzer_enum,
       // var E;
       // enum E {}  // ERROR
       diag_collector v;
-      variable_analyzer l(&v, &default_globals);
+      variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(other_declaration), other_kind,
                                    variable_init_kind::normal);
       l.visit_variable_declaration(identifier_of(enum_declaration),
@@ -135,7 +135,7 @@ TEST(test_variable_analyzer_enum,
       // enum E {}
       // var E;     // ERROR
       diag_collector v;
-      variable_analyzer l(&v, &default_globals);
+      variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(enum_declaration),
                                    variable_kind::_enum,
                                    variable_init_kind::normal);
@@ -163,7 +163,7 @@ TEST(test_variable_analyzer_enum, function_shadows_enum_in_outer_scope) {
   //   function E() {}
   // }
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration),
                                variable_kind::_enum,
                                variable_init_kind::normal);
@@ -192,7 +192,7 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     //   var e;   // ERROR
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(enum_declaration),
                                  variable_kind::_enum,
                                  variable_init_kind::normal);
@@ -218,7 +218,7 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     // }
     // enum e {}  // ERROR
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(var_declaration),
                                  variable_kind::_var,
@@ -263,7 +263,7 @@ TEST(test_variable_analyzer_enum, enum_shadows_most_variables_in_outer_scope) {
     //   enum E {}
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                  variable_init_kind::normal);
     l.visit_enter_block_scope();

@@ -162,9 +162,11 @@ void init();
 [[noreturn]] void run(options o);
 
 void process_file(padded_string_view input, configuration &,
-                  const parser_options &, diag_reporter *,
-                  bool print_parser_visits);
+                  const parser_options &, variable_analyzer_options,
+                  diag_reporter *, bool print_parser_visits);
 parser_options get_parser_options_from_language(input_file_language);
+variable_analyzer_options get_variable_analyzer_options_from_language(
+    input_file_language);
 
 void run_lsp_server();
 
@@ -267,9 +269,11 @@ void run(options o) {
         source.error().print_and_exit();
       }
       reporter.set_source(&*source, file);
-      process_file(&*source, *config,
-                   get_parser_options_from_language(file.get_language()),
-                   reporter.get(), o.print_parser_visits);
+      process_file(
+          &*source, *config,
+          get_parser_options_from_language(file.get_language()),
+          get_variable_analyzer_options_from_language(file.get_language()),
+          reporter.get(), o.print_parser_visits);
     }
   }
   reporter.finish();
@@ -283,10 +287,11 @@ void run(options o) {
 }
 
 void process_file(padded_string_view input, configuration &config,
-                  const parser_options &p_options, diag_reporter *diag_reporter,
-                  bool print_parser_visits) {
+                  const parser_options &p_options,
+                  variable_analyzer_options var_options,
+                  diag_reporter *diag_reporter, bool print_parser_visits) {
   parser p(input, diag_reporter, p_options);
-  variable_analyzer l(diag_reporter, &config.globals());
+  variable_analyzer l(diag_reporter, &config.globals(), var_options);
 
   if (print_parser_visits) {
     debug_parse_visitor logger;
@@ -318,6 +323,11 @@ parser_options get_parser_options_from_language(input_file_language language) {
     break;
   }
   return p;
+}
+
+variable_analyzer_options get_variable_analyzer_options_from_language(
+    input_file_language) {
+  return variable_analyzer_options();
 }
 
 void run_lsp_server() {

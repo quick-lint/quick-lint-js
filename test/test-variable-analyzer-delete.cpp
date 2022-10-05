@@ -34,7 +34,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
     //   delete v;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -60,7 +60,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
     //   }
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -88,7 +88,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
     //   });
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -117,7 +117,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
     //   let v;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -148,7 +148,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
     //   });
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -189,7 +189,7 @@ TEST(test_variable_analyzer_delete,
   //   let v;
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_variable_delete_use(identifier(deleted_variable_span),
@@ -220,7 +220,7 @@ TEST(test_variable_analyzer_delete,
   // let v;
   // delete v;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
   l.visit_variable_delete_use(identifier(deleted_variable_span),
@@ -251,7 +251,7 @@ TEST(test_variable_analyzer_delete, deleting_declared_global_variable_is_ok) {
   {
     // delete myGlobalVariable;
     diag_collector v;
-    variable_analyzer l(&v, &globals);
+    variable_analyzer l(&v, &globals, javascript_var_options);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_end_of_module();
@@ -264,7 +264,7 @@ TEST(test_variable_analyzer_delete, deleting_declared_global_variable_is_ok) {
     //   delete myGlobalVariable;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &globals);
+    variable_analyzer l(&v, &globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_delete_use(identifier(deleted_variable_span),
@@ -286,7 +286,7 @@ TEST(test_variable_analyzer_delete, deleting_undeclared_global_variable_is_ok) {
   {
     // delete myGlobalVariable;
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_end_of_module();
@@ -299,7 +299,7 @@ TEST(test_variable_analyzer_delete, deleting_undeclared_global_variable_is_ok) {
     //   delete myGlobalVariable;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_delete_use(identifier(deleted_variable_span),

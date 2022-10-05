@@ -26,7 +26,7 @@ TEST(test_variable_analyzer_arguments,
   //   arguments;
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(arguments_use));
@@ -42,7 +42,7 @@ TEST(test_variable_analyzer_arguments,
 
   // arguments;
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(arguments_use));
   l.visit_end_of_module();
 
@@ -60,7 +60,7 @@ TEST(test_variable_analyzer_arguments,
   //   arguments;
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter_declaration),
                                variable_kind::_function_parameter,
@@ -82,7 +82,7 @@ TEST(test_variable_analyzer_arguments,
     // (function(p = arguments) {
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -105,7 +105,7 @@ TEST(test_variable_analyzer_arguments,
     //   let arguments;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -130,7 +130,7 @@ TEST(test_variable_analyzer_arguments,
   //   var arguments;
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(arguments_declaration),
@@ -149,7 +149,7 @@ TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
     //   let arguments;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(arguments_declaration), kind,
@@ -169,7 +169,7 @@ TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
     //   let arguments;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(arguments_use));
@@ -193,7 +193,7 @@ TEST(test_variable_analyzer_arguments, function_shadows_magic_arguments) {
   //   function arguments() {}
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(arguments_declaration),
@@ -216,7 +216,7 @@ TEST(test_variable_analyzer_arguments, catch_variable_shadows_magic_arguments) {
   //   }
   // });
   diag_collector v;
-  variable_analyzer l(&v, &default_globals);
+  variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_enter_block_scope();

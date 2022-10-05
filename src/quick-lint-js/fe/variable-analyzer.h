@@ -35,11 +35,6 @@ struct variable_analyzer_options {
 // * Use of undeclared variables
 class variable_analyzer final : public parse_visitor_base {
  public:
-  // TODO(strager): Deprecate in favor of explicit variable_analyzer_options.
-  explicit variable_analyzer(
-      diag_reporter *diag_reporter,
-      const global_declared_variable_set *global_variables);
-
   explicit variable_analyzer(
       diag_reporter *diag_reporter,
       const global_declared_variable_set *global_variables,
