@@ -18,7 +18,8 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
+TEST(test_variable_analyzer_eval_javascript,
+     disable_variable_lookup_in_presence_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
 
@@ -27,7 +28,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     // x;
     // x = 10;
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_assignment(identifier_of(use));
@@ -43,7 +44,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     // x;
     // x = 10;
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
@@ -61,7 +62,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x = 10;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -80,7 +81,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     // });
     // eval("var x = 42");
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -101,7 +102,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x = 10;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -126,7 +127,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x = 10;
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -143,7 +144,7 @@ TEST(test_variable_analyzer_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 }
 
-TEST(test_variable_analyzer_eval,
+TEST(test_variable_analyzer_eval_javascript,
      disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
@@ -156,7 +157,7 @@ TEST(test_variable_analyzer_eval,
     //   x;  // ERROR (use of undeclared variable)
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -178,7 +179,7 @@ TEST(test_variable_analyzer_eval,
     // });
     // x;  // ERROR (use of undeclared variable)
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -200,7 +201,7 @@ TEST(test_variable_analyzer_eval,
     //   x = 10; // ERROR (assignment to undeclared variable)
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -229,7 +230,7 @@ TEST(test_variable_analyzer_eval,
     // }
     // x; // ERROR (use of undeclared variable)
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -254,7 +255,7 @@ TEST(test_variable_analyzer_eval,
     // x;  // ERROR (use of undeclared variable)
     // x = 10;  // ERROR (assignment to undeclared variable)
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -284,7 +285,7 @@ TEST(test_variable_analyzer_eval,
     //   }
     // }
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_assignment(identifier_of(use_eval));
@@ -308,7 +309,8 @@ TEST(test_variable_analyzer_eval,
   }
 }
 
-TEST(test_variable_analyzer_eval, false_negatives_on_redeclaration_of_eval) {
+TEST(test_variable_analyzer_eval_javascript,
+     false_negatives_on_redeclaration_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
 
@@ -322,7 +324,7 @@ TEST(test_variable_analyzer_eval, false_negatives_on_redeclaration_of_eval) {
     //   x = 10;  // TODO: ERROR (assignment to undeclared variable)
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_let,
                                  variable_init_kind::initialized_with_equals);
@@ -349,7 +351,7 @@ TEST(test_variable_analyzer_eval, false_negatives_on_redeclaration_of_eval) {
     //   }
     // });
     diag_collector v;
-    variable_analyzer l(&v, &default_globals);
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(const_declaration),
@@ -363,6 +365,32 @@ TEST(test_variable_analyzer_eval, false_negatives_on_redeclaration_of_eval) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_eval_typescript,
+     eval_does_not_disable_variable_lookup) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+  const char8 assignment[] = u8"x";
+
+  {
+    // eval("var x = 42");
+    // x;                   // ERROR
+    // x = 10;              // ERROR
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+                           span_of(assignment))));
   }
 }
 }

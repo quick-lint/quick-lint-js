@@ -17,6 +17,14 @@ class diag_reporter;
 class global_declared_variable_set;
 struct global_declared_variable;
 
+// TODO(strager): Accept parser options from quick-lint-js.config.
+struct variable_analyzer_options {
+  // If true, eval can declare variables, like in vanilla JavaScript.
+  //
+  // If false, eval is not supposed to declare variables, like in TypeScript.
+  bool eval_can_declare_variables = true;
+};
+
 // A variable_analyzer is a parse_visitor which implements variable lookup
 // rules.
 //
@@ -27,9 +35,15 @@ struct global_declared_variable;
 // * Use of undeclared variables
 class variable_analyzer final : public parse_visitor_base {
  public:
+  // TODO(strager): Deprecate in favor of explicit variable_analyzer_options.
   explicit variable_analyzer(
       diag_reporter *diag_reporter,
       const global_declared_variable_set *global_variables);
+
+  explicit variable_analyzer(
+      diag_reporter *diag_reporter,
+      const global_declared_variable_set *global_variables,
+      variable_analyzer_options options);
 
   void visit_enter_block_scope() override;
   void visit_enter_with_scope() override;
@@ -295,6 +309,8 @@ class variable_analyzer final : public parse_visitor_base {
   global_scope global_scope_;
 
   diag_reporter *diag_reporter_;
+
+  variable_analyzer_options options_;
 };
 }
 

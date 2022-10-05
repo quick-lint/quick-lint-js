@@ -198,7 +198,16 @@ void global_declared_variable_set::undeclare_variable(string8_view name) {
 variable_analyzer::variable_analyzer(
     diag_reporter *diag_reporter,
     const global_declared_variable_set *global_variables)
-    : global_scope_(global_variables), diag_reporter_(diag_reporter) {}
+    : variable_analyzer(diag_reporter, global_variables,
+                        variable_analyzer_options()) {}
+
+variable_analyzer::variable_analyzer(
+    diag_reporter *diag_reporter,
+    const global_declared_variable_set *global_variables,
+    variable_analyzer_options options)
+    : global_scope_(global_variables),
+      diag_reporter_(diag_reporter),
+      options_(options) {}
 
 void variable_analyzer::visit_enter_block_scope() { this->scopes_.push(); }
 
@@ -674,7 +683,8 @@ void variable_analyzer::propagate_variable_uses_to_parent_scope(
         current_scope.used_eval_in_descendant_scope;
   }
 
-  if (!current_scope.used_eval_in_this_scope) {
+  if (!(this->options_.eval_can_declare_variables &&
+        current_scope.used_eval_in_this_scope)) {
     for (const used_variable &used_var : current_scope.variables_used) {
       found_variable_type var = {};
       switch (used_var.kind) {

@@ -4,10 +4,22 @@
 #ifndef QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
 #define QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
 
+#include <quick-lint-js/fe/variable-analyzer.h>
+
 namespace quick_lint_js {
 class global_declared_variable_set;
 
 extern global_declared_variable_set default_globals;
+
+constexpr variable_analyzer_options javascript_var_options =
+    variable_analyzer_options{
+        .eval_can_declare_variables = true,
+    };
+
+constexpr variable_analyzer_options typescript_var_options =
+    variable_analyzer_options{
+        .eval_can_declare_variables = false,
+    };
 }
 
 #endif
