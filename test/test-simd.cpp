@@ -101,7 +101,7 @@ TYPED_TEST(test_bool_vector_16, first_false_of_all_true) {
   EXPECT_EQ(bools.find_first_false(), 16);
 }
 
-TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive) {
+TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive_SLOW) {
   using bool_vector_16 = TypeParam;
   for (std::uint32_t i = 0; i <= 0xffff; ++i) {
     SCOPED_TRACE(i);
