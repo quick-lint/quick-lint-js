@@ -594,7 +594,7 @@ TEST_F(test_parse,
 padded_string unimplemented_token_code(u8"]"_sv);
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
-TEST_F(test_parse, unimplemented_token_crashes) {
+TEST_F(test_parse, unimplemented_token_crashes_SLOW) {
   auto check = [] {
     spy_visitor v;
     parser p(&unimplemented_token_code, &v, javascript_options);

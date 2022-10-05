@@ -454,7 +454,7 @@ TEST_F(test_linting_lsp_server, shutdown) {
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit
 TEST_F(test_linting_lsp_server,
-       exit_without_shutdown_quits_program_with_exit_code_1) {
+       exit_without_shutdown_quits_program_with_exit_code_1_SLOW) {
   auto send_exit = [this]() {
     this->server->append(
         make_message(u8R"({
@@ -470,7 +470,7 @@ TEST_F(test_linting_lsp_server,
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit
 TEST_F(test_linting_lsp_server,
-       exit_with_shutdown_quits_program_with_exit_code_0) {
+       exit_with_shutdown_quits_program_with_exit_code_0_SLOW) {
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
