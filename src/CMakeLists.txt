@@ -108,6 +108,8 @@ quick_lint_js_add_library(
   quick-lint-js/fe/diagnostic.cpp
   quick-lint-js/fe/diagnostic.h
   quick-lint-js/fe/expression.h
+  quick-lint-js/fe/global-declared-variable-set.cpp
+  quick-lint-js/fe/global-declared-variable-set.h
   quick-lint-js/fe/global-variables-browser-generated.cpp
   quick-lint-js/fe/global-variables.cpp
   quick-lint-js/fe/global-variables.h
