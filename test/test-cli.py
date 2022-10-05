@@ -302,6 +302,21 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.returncode, 1)
 
+    def test_language_typescript_warns_about_undeclared_variables_despite_eval(self) -> None:
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--language=experimental-typescript",
+                    "--stdin",
+                ],
+                capture_output=True,
+                encoding="utf-8",
+                input="eval('var x = 42;'); console.log(x);",
+            )
+            self.assertIn("E0057", result.stderr)  # use of undeclared variable 'x'
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

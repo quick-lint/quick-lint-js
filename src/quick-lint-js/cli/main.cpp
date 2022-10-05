@@ -326,8 +326,19 @@ parser_options get_parser_options_from_language(input_file_language language) {
 }
 
 variable_analyzer_options get_variable_analyzer_options_from_language(
-    input_file_language) {
-  return variable_analyzer_options();
+    input_file_language language) {
+  variable_analyzer_options o;
+  switch (language) {
+  case input_file_language::javascript:
+  case input_file_language::javascript_jsx:
+    o.eval_can_declare_variables = true;
+    break;
+  case input_file_language::typescript:
+  case input_file_language::typescript_jsx:
+    o.eval_can_declare_variables = false;
+    break;
+  }
+  return o;
 }
 
 void run_lsp_server() {
