@@ -67,7 +67,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 1)
             self.assertIn(
-                "[]8;;https://quick-lint-js.com/errors/E0017/\E0017]8;;\]",
+                "[\u001b]8;;https://quick-lint-js.com/errors/E0017/\u001b\E0017\u001b]8;;\u001b\]",
                 result.stderr,
             )
 
