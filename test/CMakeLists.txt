@@ -134,6 +134,7 @@ quick_lint_js_add_executable(
   test-variable-analyzer-parse.cpp
   test-variable-analyzer-type.cpp
   test-variable-analyzer-typeof.cpp
+  test-variable-analyzer-unused-shadow.cpp
   test-variable-analyzer.cpp
   test-vector-profiler.cpp
   test-vector.cpp
