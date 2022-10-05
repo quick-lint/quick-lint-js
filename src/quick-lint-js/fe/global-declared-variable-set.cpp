@@ -26,9 +26,10 @@ void global_declared_variable_set::add_predefined_global_variable(
 
 void global_declared_variable_set::add_global_variable(
     global_declared_variable global_variable) {
-  this->undeclare_variable(global_variable.name);
-  this->variables_[global_variable.is_shadowable][global_variable.is_writable]
-      .emplace(global_variable.name);
+  this->variables_[global_variable.name] = variable_options{
+      .is_writable = global_variable.is_writable,
+      .is_shadowable = global_variable.is_shadowable,
+  };
 }
 
 void global_declared_variable_set::add_literally_everything() {
@@ -36,9 +37,9 @@ void global_declared_variable_set::add_literally_everything() {
 }
 
 void global_declared_variable_set::reserve_more_global_variables(
-    std::size_t extra_count, bool is_shadowable, bool is_writable) {
-  auto &vars = this->variables_[is_shadowable][is_writable];
-  vars.reserve(vars.size() + extra_count);
+    std::size_t extra_count, [[maybe_unused]] bool is_shadowable,
+    [[maybe_unused]] bool is_writable) {
+  this->variables_.reserve(this->variables_.size() + extra_count);
 }
 
 std::optional<global_declared_variable> global_declared_variable_set::find(
@@ -48,16 +49,13 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
 
 std::optional<global_declared_variable> global_declared_variable_set::find(
     string8_view name) const noexcept {
-  for (bool is_shadowable : {false, true}) {
-    for (bool is_writable : {false, true}) {
-      if (this->variables_[is_shadowable][is_writable].contains(name)) {
-        return global_declared_variable{
-            .name = name,
-            .is_writable = is_writable,
-            .is_shadowable = is_shadowable,
-        };
-      }
-    }
+  auto it = this->variables_.find(name);
+  if (it != this->variables_.end()) {
+    return global_declared_variable{
+        .name = name,
+        .is_writable = it->second.is_writable,
+        .is_shadowable = it->second.is_shadowable,
+    };
   }
   if (this->all_variables_declared_) {
     return global_declared_variable{
@@ -85,21 +83,11 @@ std::optional<global_declared_variable> global_declared_variable_set::find_type(
 std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
     const {
   std::vector<string8_view> result;
-  for (bool is_shadowable : {false, true}) {
-    for (bool is_writable : {false, true}) {
-      auto &vars = this->variables_[is_shadowable][is_writable];
-      result.insert(result.end(), vars.begin(), vars.end());
-    }
+  result.reserve(this->variables_.size());
+  for (auto &[name, _options] : this->variables_) {
+    result.push_back(name);
   }
   return result;
-}
-
-void global_declared_variable_set::undeclare_variable(string8_view name) {
-  for (bool is_shadowable : {false, true}) {
-    for (bool is_writable : {false, true}) {
-      this->variables_[is_shadowable][is_writable].erase(name);
-    }
-  }
 }
 }
 

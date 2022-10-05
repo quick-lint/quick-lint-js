@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_FE_GLOBAL_DECLARED_VARIABLE_SET_H
 
 #include <optional>
-#include <quick-lint-js/container/hash-set.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
@@ -51,11 +51,14 @@ class global_declared_variable_set {
   std::vector<string8_view> get_all_variable_names() const;
 
  private:
-  void undeclare_variable(string8_view name);
+  struct variable_options {
+    // See global_declared_variable::is_writable.
+    bool is_writable;
+    // See global_declared_variable::is_shadowable.
+    bool is_shadowable;
+  };
 
-  // First index: is_shadowable
-  // Second index: is_writable
-  hash_set<string8_view> variables_[2][2];
+  hash_map<string8_view, variable_options> variables_;
   bool all_variables_declared_ = false;
 };
 }
