@@ -319,9 +319,9 @@ void variable_analyzer::visit_exit_interface_scope() {
 
 void variable_analyzer::visit_exit_namespace_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
-  this->propagate_variable_uses_to_parent_scope(
-      /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/true);
+  // Do not propagate variable uses. Namespaced code can see variables exported
+  // from other namespace blocks in other files (which we can't see), so assume
+  // that all undeclared variables might exist.
   this->scopes_.pop();
 }
 

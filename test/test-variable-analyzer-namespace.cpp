@@ -127,6 +127,77 @@ TEST(test_variable_analyzer_namespace,
                               span_of(namespace_member_use))));
   }
 }
+
+TEST(test_variable_analyzer_namespace,
+     uses_in_namespace_might_refer_to_symbols_in_other_files) {
+  const char8 namespace_declaration[] = u8"NS";
+  const char8 variable_use[] = u8"myVar";
+  const char8 assignment[] = u8"myVarWithAssignment";
+  const char8 typeof_use[] = u8"myVarWithTypeof";
+  const char8 type_use[] = u8"MyType";
+
+  static const padded_string delete_expression(u8"delete myVarWithDelete"_sv);
+  static const source_code_span delete_keyword_span(
+      delete_expression.data(), delete_expression.data() + strlen(u8"delete"));
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  static const source_code_span deleted_variable_span(
+      delete_expression.data() + strlen(u8"delete "), delete_expression.cend());
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"myVarWithDelete"_sv);
+
+  {
+    // namespace NS {
+    //   myVar;                    // visit_variable_use
+    //   myVarWithAssignment = 0;  // visit_variable_assignment
+    //   delete myVarWithDelete;   // visit_variable_delete_use
+    //   typeof myVarWithTypeof;   // visit_variable_typeof_use
+    //   null as MyType;           // visit_variable_type_use
+    // }
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    l.visit_enter_namespace_scope();
+    l.visit_variable_use(identifier_of(variable_use));
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_variable_typeof_use(identifier_of(typeof_use));
+    l.visit_variable_type_use(identifier_of(type_use));
+    l.visit_exit_namespace_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_namespace,
+     eval_in_namespace_cannot_declare_variables_outside_namespace) {
+  const char8 namespace_declaration[] = u8"NS";
+  const char8 eval_use[] = u8"eval";
+  const char8 variable_use[] = u8"myVar";
+
+  {
+    // namespace NS {
+    //   eval("let myVar");
+    // }
+    // myVar;  // ERROR
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    l.visit_enter_namespace_scope();
+    l.visit_variable_use(identifier_of(eval_use));
+    l.visit_exit_namespace_scope();
+    l.visit_variable_use(identifier_of(variable_use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(variable_use))));
+  }
+}
 }
 }
 
