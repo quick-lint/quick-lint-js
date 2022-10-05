@@ -91,7 +91,6 @@ class parser {
   class depth_guard;
   class function_guard;
 
-  explicit parser(padded_string_view input, diag_reporter *diag_reporter);
   explicit parser(padded_string_view input, diag_reporter *diag_reporter,
                   parser_options options);
 

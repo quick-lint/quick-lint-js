@@ -29,8 +29,9 @@ void benchmark_parse_file(benchmark::State &state) {
   }
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
+  parser_options p_options;
   for (auto _ : state) {
-    parser p(&source, &null_diag_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance, p_options);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }
@@ -40,8 +41,9 @@ BENCHMARK(benchmark_parse_file);
 
 void benchmark_parse(benchmark::State &state, string8_view raw_source) {
   padded_string source(raw_source);
+  parser_options p_options;
   for (auto _ : state) {
-    parser p(&source, &null_diag_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance, p_options);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }

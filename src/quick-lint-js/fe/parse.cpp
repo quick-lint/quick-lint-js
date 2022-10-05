@@ -44,9 +44,6 @@ parser_transaction::parser_transaction(lexer* l,
       old_diag_reporter(
           std::exchange(*diag_reporter_pointer, &this->reporter)) {}
 
-parser::parser(padded_string_view input, diag_reporter* diag_reporter)
-    : parser(input, diag_reporter, parser_options()) {}
-
 parser::parser(padded_string_view input, diag_reporter* diag_reporter,
                parser_options options)
     : lexer_(input, diag_reporter),

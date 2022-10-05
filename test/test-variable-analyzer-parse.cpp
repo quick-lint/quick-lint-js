@@ -24,7 +24,7 @@ TEST(test_variable_analyzer_parse,
   padded_string input(u8"let x = y, y = x;"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
 
@@ -41,7 +41,7 @@ TEST(
   diag_collector v;
 
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
 
   EXPECT_THAT(v.errors, IsEmpty());
@@ -53,7 +53,7 @@ TEST(test_variable_analyzer_parse,
   diag_collector v;
 
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
 
   EXPECT_THAT(v.errors,
@@ -69,7 +69,7 @@ TEST(test_variable_analyzer_parse,
   diag_collector v;
 
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
 
   EXPECT_THAT(v.errors, IsEmpty());
@@ -81,7 +81,7 @@ TEST(test_variable_analyzer_parse,
 
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
@@ -93,7 +93,7 @@ TEST(test_variable_analyzer_parse, typeof_with_conditional_operator) {
     padded_string input(u8"typeof x ? 10 : 20;"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -106,7 +106,7 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_on_const_variable) {
     padded_string input(u8"const x = 42; ++x;"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -120,7 +120,7 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_on_const_variable) {
     padded_string input(u8"const x = {y : 10};\n ++x.y;"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -133,7 +133,7 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_plus_operand) {
     padded_string input(u8"const x = [42]; ++x[0];"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -144,7 +144,7 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_plus_operand) {
     padded_string input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -159,7 +159,7 @@ TEST(test_variable_analyzer_parse, use_await_label_in_non_async_function) {
   padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
@@ -170,7 +170,7 @@ TEST(test_variable_analyzer_parse, use_yield_label_in_non_generator_function) {
   padded_string input(u8"function f() {yield: for(;;){break yield;}}"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
@@ -183,7 +183,7 @@ TEST(test_variable_analyzer_parse, escape_sequence_in_keyword_identifier) {
   padded_string input(u8"let which = \\u{66}inally;"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
@@ -197,7 +197,7 @@ TEST(test_variable_analyzer_parse, delete_local_variable) {
       u8"function f(param) { let v; delete v; delete param; }"_sv);
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  parser p(&input, &v);
+  parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
@@ -216,7 +216,7 @@ TEST(test_variable_analyzer_parse, extends_self) {
         u8"}"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -232,7 +232,7 @@ TEST(test_variable_analyzer_parse, extends_self) {
         u8"}"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
@@ -248,7 +248,7 @@ TEST(test_variable_analyzer_parse, extends_self) {
         u8"}"_sv);
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    parser p(&input, &v);
+    parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 

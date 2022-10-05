@@ -36,7 +36,8 @@ void benchmark_lint(benchmark::State &state) {
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
   configuration config;
-  parser p(&source, &null_diag_reporter::instance);
+  parser_options p_options;
+  parser p(&source, &null_diag_reporter::instance, p_options);
   buffering_visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
@@ -64,10 +65,11 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   }
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
+  parser_options p_options;
   variable_analyzer_options var_options;
   configuration config;
   for (auto _ : state) {
-    parser p(&source, &null_diag_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance, p_options);
     variable_analyzer l(&null_diag_reporter::instance, &config.globals(),
                         var_options);
     p.parse_and_visit_module(l);

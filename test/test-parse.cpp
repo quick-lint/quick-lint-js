@@ -597,7 +597,7 @@ padded_string unimplemented_token_code(u8"]"_sv);
 TEST_F(test_parse, unimplemented_token_crashes) {
   auto check = [] {
     spy_visitor v;
-    parser p(&unimplemented_token_code, &v);
+    parser p(&unimplemented_token_code, &v, javascript_options);
     p.parse_and_visit_module(v);
   };
   EXPECT_DEATH(check(), "token not implemented");
@@ -607,7 +607,7 @@ TEST_F(test_parse, unimplemented_token_crashes) {
 TEST_F(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   {
     spy_visitor v;
-    parser p(&unimplemented_token_code, &v);
+    parser p(&unimplemented_token_code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -622,7 +622,7 @@ TEST_F(test_parse, unimplemented_token_returns_to_innermost_handler) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
-    parser p(&code, &v);
+    parser p(&code, &v, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors(
@@ -641,7 +641,7 @@ TEST_F(test_parse,
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
-    parser p(&code, &v);
+    parser p(&code, &v, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors([] {
@@ -661,7 +661,7 @@ TEST_F(test_parse, unimplemented_token_rolls_back_parser_depth) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
-    parser p(&code, &v);
+    parser p(&code, &v, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       parser::depth_guard outer_g(&p);
@@ -684,7 +684,7 @@ TEST_F(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
-    parser p(&code, &v);
+    parser p(&code, &v, javascript_options);
 
     parser_transaction transaction = p.begin_transaction();
     bool ok = p.catch_fatal_parse_errors(
