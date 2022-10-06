@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -125,7 +126,7 @@ TEST_F(test_parse_typescript,
                 u8"static",
                 u8"yield",
             })) {
-    string8 code = u8"type " + name + u8" = T;";
+    string8 code = concat(u8"type ", name, u8" = T;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_statement();

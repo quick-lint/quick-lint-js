@@ -81,6 +81,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/async-byte-queue.h
   quick-lint-js/container/byte-buffer.cpp
   quick-lint-js/container/byte-buffer.h
+  quick-lint-js/container/concat.h
   quick-lint-js/container/hash-map.h
   quick-lint-js/container/hash-set.h
   quick-lint-js/container/hash.h

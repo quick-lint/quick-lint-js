@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -46,7 +47,7 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
            u8":",
            u8"?",
        }) {
-    string8 code = string8(token) + u8" x";
+    string8 code = concat(string8(token), u8" x");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_module();
@@ -179,7 +180,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
            u8"switch (cond) {}"_sv,
            u8"while (cond) {}"_sv,
        }) {
-    test_parser p(string8(u8"let x = 2\n"_sv) + string8(second_statement));
+    test_parser p(concat(u8"let x = 2\n"_sv, second_statement));
     SCOPED_TRACE(p.code);
     auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
     p.parse_and_visit_module();
@@ -202,8 +203,9 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
                     where, end_of_first_expression, u8"")));
   }
 
-  for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
-    string8 code = variable_kind + u8" a = 1\n" + variable_kind + u8" b = 2\n";
+  for (string8_view variable_kind : {u8"const", u8"let", u8"var"}) {
+    string8 code =
+        concat(variable_kind, u8" a = 1\n", variable_kind, u8" b = 2\n");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -418,7 +420,7 @@ TEST_F(
     }
 
     {
-      string8 code = u8"(" + escaped_keyword + u8")";
+      string8 code = concat(u8"(", escaped_keyword, u8")");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -513,7 +515,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"({ " + escaped_keyword + u8" })";
+      string8 code = concat(u8"({ ", escaped_keyword, u8" })");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -524,7 +526,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"({ " + escaped_keyword + u8"() {} })";
+      string8 code = concat(u8"({ ", escaped_keyword, u8"() {} })");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -536,7 +538,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"({ " + escaped_keyword + u8": null })";
+      string8 code = concat(u8"({ ", escaped_keyword, u8": null })");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -545,7 +547,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"var " + escaped_keyword + u8" = null;";
+      string8 code = concat(u8"var ", escaped_keyword, u8" = null;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -556,7 +558,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"var { " + escaped_keyword + u8" = a } = b;";
+      string8 code = concat(u8"var { ", escaped_keyword, u8" = a } = b;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -569,7 +571,7 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = u8"class C { " + escaped_keyword + u8"() {} }";
+      string8 code = concat(u8"class C { ", escaped_keyword, u8"() {} }");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -768,8 +770,9 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
 
   {
     test_parser p(
-        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3) +
-            u8")",
+        concat(u8"(",
+               repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3),
+               u8")"),
         capture_diags);
     SCOPED_TRACE(p.code);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
@@ -855,8 +858,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
 
   {
     test_parser p(
-        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
-            u8")",
+        concat(u8"(",
+               repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1),
+               u8")"),
         capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);

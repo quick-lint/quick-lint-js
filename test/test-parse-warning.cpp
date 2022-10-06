@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -210,7 +211,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
 TEST_F(test_parse_warning, warn_on_pointless_string_compare_all_operators) {
   {
     for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
-      test_parser p(u8"s.toLowerCase() " + string8(op) + u8" 'Banana'",
+      test_parser p(concat(u8"s.toLowerCase() ", string8(op), u8" 'Banana'"),
                     capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(
@@ -349,7 +350,7 @@ TEST_F(test_parse_warning,
        warn_on_pointless_strict_compare_against_array_literals) {
   for (string8 op : {u8"===", u8"!=="}) {
     {
-      test_parser p(u8"x " + op + u8" []", capture_diags);
+      test_parser p(concat(u8"x ", op, u8" []"), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
           p.errors,
@@ -358,7 +359,7 @@ TEST_F(test_parse_warning,
               equals_operator, strlen(u8"x "), op)));
     }
     {
-      test_parser p(u8"x " + op + u8" [1, 2, 3]", capture_diags);
+      test_parser p(concat(u8"x ", op, u8" [1, 2, 3]"), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
@@ -371,7 +372,7 @@ TEST_F(test_parse_warning,
 TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
   for (string8 op : {u8"==", u8"!=", u8"===", u8"!=="}) {
     {
-      test_parser p(u8"x " + op + u8" {}", capture_diags);
+      test_parser p(concat(u8"x ", op, u8" {}"), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
@@ -379,7 +380,7 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
                       equals_operator, strlen(u8"x "), op)));
     }
     {
-      test_parser p(u8"x " + op + u8" class C{}", capture_diags);
+      test_parser p(concat(u8"x ", op, u8" class C{}"), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
@@ -388,7 +389,8 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
     }
     {
       test_parser p(
-          u8"x " + op + u8" ((parameter) => { some_object.call(parameter); })",
+          concat(u8"x ", op,
+                 u8" ((parameter) => { some_object.call(parameter); })"),
           capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
@@ -397,7 +399,7 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
                       equals_operator, strlen(u8"x "), op)));
     }
     {
-      test_parser p(u8"x " + op + u8" /some_pattern/a", capture_diags);
+      test_parser p(concat(u8"x ", op, u8" /some_pattern/a"), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
           p.errors,

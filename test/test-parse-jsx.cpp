@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -401,7 +402,8 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
            u8"<A></A:A>"sv,
            u8"<A:A></A>"sv,
        }) {
-    test_parser p(u8"c = " + string8(jsx) + u8";", jsx_options, capture_diags);
+    test_parser p(concat(u8"c = ", string8(jsx), u8";"), jsx_options,
+                  capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_mismatched_jsx_tags)));

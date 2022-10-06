@@ -7,6 +7,7 @@
 #include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-collector.h>
@@ -520,7 +521,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
                                                                  u8"typeof",
                                                                  u8"void",
                                                              }) {
-    string8 code = u8"[" + name + u8": A]";
+    string8 code = concat(u8"[", name, u8": A]");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_typescript_type_expression();
@@ -1564,7 +1565,7 @@ TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   }
 
   for (string8 keyword : keywords) {
-    test_parser p(u8"typeof Class<T>." + keyword, typescript_options,
+    test_parser p(concat(u8"typeof Class<T>.", keyword), typescript_options,
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();

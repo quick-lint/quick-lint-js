@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -204,7 +205,7 @@ TEST_F(test_parse_expression_statement,
            u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
            u8"^",   u8"in",  u8"instanceof", u8"|",
        }) {
-    string8 code = string8(op) + u8" x";
+    string8 code = concat(op, u8" x");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -683,7 +684,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   for (string8 op : {u8"void ", u8"!", u8"~", u8"+", u8"-"}) {
-    string8 code = op + u8" x;";
+    string8 code = concat(op, u8" x;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code.c_str());
     p.parse_and_visit_statement();
@@ -904,32 +905,32 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      test_parser p(name + u8" = other;");
+      test_parser p(concat(name, u8" = other;"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
       EXPECT_THAT(p.variable_uses, ElementsAre(u8"other"));
     }
 
     {
-      test_parser p(name + u8"();");
+      test_parser p(concat(name, u8"();"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     {
-      test_parser p(name + u8".method();");
+      test_parser p(concat(name, u8".method();"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     {
-      test_parser p(name + u8";");
+      test_parser p(concat(name, u8";"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     for (const char8* unary_operator : {u8"++", u8"--"}) {
-      string8 code = name + unary_operator;
+      string8 code = concat(name, unary_operator);
       SCOPED_TRACE(out_string8(code));
 
       test_parser p(code.c_str());
@@ -940,13 +941,13 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      test_parser p(name + u8" ? a : b;");
+      test_parser p(concat(name, u8" ? a : b;"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"a", u8"b"));
     }
 
     {
-      test_parser p(name + u8" => {body;};");
+      test_parser p(concat(name, u8" => {body;};"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_enter_function_scope",       //
@@ -957,14 +958,14 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      test_parser p(name + u8"`template`;");
+      test_parser p(concat(name, u8"`template`;"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use"));  // (name)
     }
 
     {
-      test_parser p(name + u8"`template${variable}`;");
+      test_parser p(concat(name, u8"`template${variable}`;"));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",    // (name)
@@ -988,7 +989,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"|=",
              u8"||=",
          }) {
-      string8 code = name + u8" " + binary_operator + u8" other";
+      string8 code = concat(name, u8" ", binary_operator, u8" other");
       SCOPED_TRACE(out_string8(code));
 
       test_parser p(code.c_str());
@@ -1003,7 +1004,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>", u8"??",
              u8"^",  u8"in",  u8"instanceof", u8"|",  u8"||",
          }) {
-      string8 code = name + u8" " + binary_operator + u8" other";
+      string8 code = concat(name, u8" ", binary_operator, u8" other");
       SCOPED_TRACE(out_string8(code));
 
       test_parser p(code.c_str());
@@ -1012,7 +1013,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      string8 code = name + u8": while (go());";
+      string8 code = concat(name, u8": while (go());");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code);
       p.parse_and_visit_statement();
@@ -1094,7 +1095,7 @@ TEST_F(test_parse_expression_statement,
            u8"try"_sv,
            u8"var"_sv,
        }) {
-    string8 code = string8(u8"*\n"_sv) + string8(statement);
+    string8 code = concat(u8"*\n"_sv, statement);
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_module();
@@ -1111,7 +1112,7 @@ TEST_F(test_parse_expression_statement,
            u8"throw x;"_sv,
            u8"while(x);"_sv,
        }) {
-    string8 code = string8(u8"!\n"_sv) + string8(statement);
+    string8 code = concat(u8"!\n"_sv, statement);
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_module();

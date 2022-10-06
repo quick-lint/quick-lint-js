@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -97,7 +98,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
 
   for (const string8& type :
        typescript_builtin_type_keywords | typescript_special_type_keywords) {
-    string8 code = u8"<" + type + u8">expr;";
+    string8 code = concat(u8"<", type, u8">expr;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
@@ -134,7 +135,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   }
 
   for (const string8& tag : keywords) {
-    string8 code = u8"<" + tag + u8">text;\n// </" + tag + u8">;";
+    string8 code = concat(u8"<", tag, u8">text;\n// </", tag, u8">;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_jsx_options);
     expression* ast = p.parse_expression();

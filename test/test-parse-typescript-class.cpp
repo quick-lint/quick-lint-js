@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -827,16 +828,7 @@ TEST_F(test_parse_typescript_class,
                         specifier, strlen(u8"class C { "), u8"public"))
 
     {
-      string8 code = u8"class C { " + specifier + u8" field = init; }";
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.errors,
-                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
-    }
-
-    {
-      string8 code = u8"class C { " + specifier + u8" field\nmethod() {} }";
+      string8 code = concat(u8"class C { ", specifier, u8" field = init; }");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -846,7 +838,7 @@ TEST_F(test_parse_typescript_class,
 
     {
       string8 code =
-          u8"class C { " + specifier + u8" field\n[methodName]() {} }";
+          concat(u8"class C { ", specifier, u8" field\nmethod() {} }");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -855,7 +847,18 @@ TEST_F(test_parse_typescript_class,
     }
 
     {
-      string8 code = u8"class C { " + specifier + u8" field? method() {} }";
+      string8 code =
+          concat(u8"class C { ", specifier, u8" field\n[methodName]() {} }");
+      SCOPED_TRACE(out_string8(code));
+      test_parser p(code, capture_diags);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.errors,
+                  ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
+    }
+
+    {
+      string8 code =
+          concat(u8"class C { ", specifier, u8" field? method() {} }");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -869,8 +872,8 @@ TEST_F(test_parse_typescript_class,
     }
 
     {
-      string8 code = u8"class C { " + specifier +
-                     u8" async\nmethod() { const await = null; } }";
+      string8 code = concat(u8"class C { ", specifier,
+                            u8" async\nmethod() { const await = null; } }");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();

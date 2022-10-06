@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -133,7 +134,7 @@ TEST_F(test_parse_typescript_enum,
                               u8"static",
                               u8"yield",
                           }) {
-    string8 code = u8"enum " + name + u8" {}";
+    string8 code = concat(u8"enum ", name, u8" {}");
     test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
@@ -203,7 +204,7 @@ TEST_F(test_parse_typescript_enum, enum_with_initialized_members) {
 
 TEST_F(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
   for (string8 keyword : keywords) {
-    test_parser p(u8"enum E { " + keyword + u8" }", typescript_options);
+    test_parser p(concat(u8"enum E { ", keyword, u8" }"), typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -375,7 +376,7 @@ TEST_F(test_parse_typescript_enum,
   for (string8 decl :
        {u8"const enum", u8"declare enum", u8"declare const enum"}) {
     {
-      test_parser p(decl + u8" E { A = f() }", typescript_options,
+      test_parser p(concat(decl, u8" E { A = f() }"), typescript_options,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -386,8 +387,8 @@ TEST_F(test_parse_typescript_enum,
     }
 
     {
-      test_parser p(decl + u8" E { A = f(), B, C, D }", typescript_options,
-                    capture_diags);
+      test_parser p(concat(decl, u8" E { A = f(), B, C, D }"),
+                    typescript_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(
@@ -397,7 +398,7 @@ TEST_F(test_parse_typescript_enum,
     }
 
     {
-      test_parser p(decl + u8" E { A = (2 + f()) }", typescript_options,
+      test_parser p(concat(decl, u8" E { A = (2 + f()) }"), typescript_options,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -409,7 +410,7 @@ TEST_F(test_parse_typescript_enum,
     }
 
     {
-      test_parser p(decl + u8" E { A = this }", typescript_options,
+      test_parser p(concat(decl, u8" E { A = this }"), typescript_options,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();

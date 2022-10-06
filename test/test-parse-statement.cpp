@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -143,7 +144,8 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
            // a statement.)
        }) {
     {
-      test_parser p(u8"return\n"s + second_line, jsx_options, capture_diags);
+      test_parser p(concat(u8"return\n"s, second_line), jsx_options,
+                    capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.errors,
@@ -153,7 +155,7 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
     }
 
     {
-      test_parser p(u8"{ return\n"s + second_line + u8"}", jsx_options,
+      test_parser p(concat(u8"{ return\n"s, second_line, u8"}"), jsx_options,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -164,8 +166,9 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
     }
 
     {
-      test_parser p(u8"async function f() { return\n"s + second_line + u8"}",
-                    jsx_options, capture_diags);
+      test_parser p(
+          concat(u8"async function f() { return\n"s, second_line, u8"}"),
+          jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(
@@ -176,12 +179,11 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
     }
 
     {
-      test_parser p(
-          u8"switch (cond) {\n"s
-          u8"default:\n"s
-          u8"return\n"s +
-              second_line + u8"}",
-          jsx_options, capture_diags);
+      test_parser p(concat(u8"switch (cond) {\n"s
+                           u8"default:\n"s
+                           u8"return\n"s,
+                           second_line, u8"}"),
+                    jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.errors,

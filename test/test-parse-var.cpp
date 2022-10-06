@@ -7,6 +7,7 @@
 #include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-collector.h>
@@ -311,7 +312,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     {
-      string8 code = u8"var " + keyword;
+      string8 code = concat(u8"var ", keyword);
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -324,7 +325,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     }
 
     {
-      string8 code = u8"var " + keyword + u8";";
+      string8 code = concat(u8"var ", keyword, u8";");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -337,7 +338,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     }
 
     {
-      string8 code = u8"var " + keyword + u8" = x;";
+      string8 code = concat(u8"var ", keyword, u8" = x;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -434,7 +435,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   for (string8 prefix_operator : {u8"--", u8"++"}) {
-    string8 code = u8"var " + prefix_operator + u8"x;";
+    string8 code = concat(u8"var ", prefix_operator, u8"x;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_module();
@@ -522,7 +523,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
            u8"|=",
        }) {
     {
-      string8 code = u8"let x " + compound_assignment_operator + u8" y, z";
+      string8 code =
+          concat(u8"let x ", compound_assignment_operator, u8" y, z");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -544,7 +546,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
 
     {
       string8 code =
-          u8"const [x, y] " + compound_assignment_operator + u8" init;";
+          concat(u8"const [x, y] ", compound_assignment_operator, u8" init;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_module();
@@ -996,7 +998,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
 
 TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   for (string8 declaration_kind : {u8"const", u8"let"}) {
-    test_parser p(declaration_kind + u8" let = null;", capture_diags);
+    test_parser p(concat(declaration_kind, u8" let = null;"), capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1587,7 +1589,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      test_parser p(u8"var " + name + u8" = initial;");
+      test_parser p(concat(u8"var ", name, u8" = initial;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1597,7 +1599,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"let " + name + u8" = initial;");
+      test_parser p(concat(u8"let ", name, u8" = initial;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1607,7 +1609,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"let {" + name + u8" = 10 } = initial;");
+      test_parser p(concat(u8"let {", name, u8" = 10 } = initial;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1617,7 +1619,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"const " + name + u8" = initial;");
+      test_parser p(concat(u8"const ", name, u8" = initial;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1627,7 +1629,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"function " + name + u8"(" + name + u8") {}");
+      test_parser p(concat(u8"function ", name, u8"(", name, u8") {}"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(
@@ -1642,7 +1644,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"(function " + name + u8"() {})");
+      test_parser p(concat(u8"(function ", name, u8"() {})"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(
@@ -1654,7 +1656,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"class " + name + u8" {}");
+      test_parser p(concat(u8"class ", name, u8" {}"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1666,7 +1668,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"(class " + name + u8" {})");
+      test_parser p(concat(u8"(class ", name, u8" {})"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1676,7 +1678,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"try { } catch (" + name + u8") { }");
+      test_parser p(concat(u8"try { } catch (", name, u8") { }"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
@@ -1688,7 +1690,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"let {x = " + name + u8"} = o;");
+      test_parser p(concat(u8"let {x = ", name, u8"} = o;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // o
@@ -1698,7 +1700,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"console.log(" + name + u8");");
+      test_parser p(concat(u8"console.log(", name, u8");"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // console
@@ -1717,7 +1719,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      string8 code = name + u8";";
+      string8 code = concat(name, u8";");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code.c_str());
       auto guard = p.enter_function(function_attributes::normal);
@@ -1727,7 +1729,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(name + u8".method();");
+      test_parser p(concat(name, u8".method();"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1759,7 +1761,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (" + name + u8" in xs) ;");
+      test_parser p(concat(u8"for (", name, u8" in xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1769,7 +1771,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (" + name + u8".prop in xs) ;");
+      test_parser p(concat(u8"for (", name, u8".prop in xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"xs"));
@@ -1778,7 +1780,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     if (name != u8"async") {
       // NOTE(strager): async isn't allowed here. See
       // test_parse.cannot_assign_to_variable_named_async_in_for_of.
-      test_parser p(u8"for (" + name + u8" of xs) ;");
+      test_parser p(concat(u8"for (", name, u8" of xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
@@ -1786,7 +1788,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for ((" + name + u8") of xs) ;");
+      test_parser p(concat(u8"for ((", name, u8") of xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
@@ -1794,7 +1796,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (" + name + u8".prop of xs) ;");
+      test_parser p(concat(u8"for (", name, u8".prop of xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());
@@ -1802,7 +1804,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (let " + name + u8" of xs) ;");
+      test_parser p(concat(u8"for (let ", name, u8" of xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(name)));
@@ -1810,7 +1812,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (var " + name + u8" of xs) ;");
+      test_parser p(concat(u8"for (var ", name, u8" of xs) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(name)));
@@ -1818,7 +1820,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (" + name + u8"; cond;) ;");
+      test_parser p(concat(u8"for (", name, u8"; cond;) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());
@@ -1826,7 +1828,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser p(u8"for (" + name + u8".prop; cond;) ;");
+      test_parser p(concat(u8"for (", name, u8".prop; cond;) ;"));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());
@@ -1838,7 +1840,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
 TEST_F(test_parse_var,
        lexical_declaration_as_do_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = u8"do " + variable_kind + u8" x = y; while (cond);";
+    string8 code = concat(u8"do ", variable_kind, u8" x = y; while (cond);");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -1858,7 +1860,7 @@ TEST_F(test_parse_var,
 
 TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = u8"for (;cond;) " + variable_kind + u8" x = y;";
+    string8 code = concat(u8"for (;cond;) ", variable_kind, u8" x = y;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -1881,7 +1883,7 @@ TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
 TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     {
-      string8 code = u8"if (cond) " + variable_kind + u8" x = y;";
+      string8 code = concat(u8"if (cond) ", variable_kind, u8" x = y;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -1900,7 +1902,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     }
 
     {
-      string8 code = u8"if (cond) " + variable_kind + u8" x = y; else {}";
+      string8 code = concat(u8"if (cond) ", variable_kind, u8" x = y; else {}");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -1921,7 +1923,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     }
 
     {
-      string8 code = u8"if (cond) {} else " + variable_kind + u8" x = y;";
+      string8 code = concat(u8"if (cond) {} else ", variable_kind, u8" x = y;");
       SCOPED_TRACE(out_string8(code));
       test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
@@ -1947,7 +1949,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
 
 TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = u8"while (cond) " + variable_kind + u8" x = y;";
+    string8 code = concat(u8"while (cond) ", variable_kind, u8" x = y;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -1970,7 +1972,7 @@ TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
 TEST_F(test_parse_var,
        lexical_declaration_as_with_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = u8"with (obj) " + variable_kind + u8" x = y;";
+    string8 code = concat(u8"with (obj) ", variable_kind, u8" x = y;");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();

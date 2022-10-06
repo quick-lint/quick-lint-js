@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -688,10 +689,10 @@ TEST_F(test_parse_typescript_function, type_predicate_on_generator_function) {
 
 TEST_F(test_parse_typescript_function,
        type_predicate_parameter_name_can_be_contextual_keyword) {
-  for (string8 parameter_name :
+  for (string8_view parameter_name :
        keywords - disallowed_binding_identifier_keywords) {
-    string8 code = u8"function f(" + parameter_name + u8"): " + parameter_name +
-                   u8" is SomeType {}";
+    string8 code = concat(u8"function f(", parameter_name, u8"): ",
+                          parameter_name, u8" is SomeType {}");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
@@ -750,11 +751,11 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
 
-  for (string8 function_name : contextual_keywords) {
-    string8 code = u8"function " + function_name +
-                   u8"();\n"
-                   u8"function " +
-                   function_name + u8"() {}";
+  for (string8_view function_name : contextual_keywords) {
+    string8 code = concat(u8"function ", function_name,
+                          u8"();\n"
+                          u8"function ",
+                          function_name, u8"() {}");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_module();

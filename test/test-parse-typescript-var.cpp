@@ -7,6 +7,7 @@
 #include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-collector.h>
@@ -166,8 +167,8 @@ TEST_F(test_parse_typescript_var,
 TEST_F(test_parse_typescript_var,
        catch_variable_type_annotations_are_not_allowed_in_javascript) {
   for (string8 type : {u8"*", u8"any", u8"unknown", u8"SomeType"}) {
-    test_parser p(u8"try { } catch (e: " + type + u8") {} ", javascript_options,
-                  capture_diags);
+    test_parser p(concat(u8"try { } catch (e: ", type, u8") {} "),
+                  javascript_options, capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // try {

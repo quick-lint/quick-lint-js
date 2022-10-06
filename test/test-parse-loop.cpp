@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -195,8 +196,8 @@ TEST_F(test_parse_loop, c_style_for_loop) {
 
   for (const char8* variable_kind : {u8"const", u8"let"}) {
     SCOPED_TRACE(out_string8(variable_kind));
-    string8 code =
-        string8(u8"for (") + variable_kind + u8" i = 0; cond; after) { body; }";
+    string8 code = concat(string8(u8"for ("), variable_kind,
+                          u8" i = 0; cond; after) { body; }");
     test_parser p(code.c_str());
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
@@ -1285,9 +1286,9 @@ TEST_F(test_parse_loop,
 TEST_F(test_parse_loop,
        break_and_continue_statements_allows_contextual_keyword_as_label) {
   for (const char8* statement : {u8"break", u8"continue"}) {
-    for (string8 keyword : contextual_keywords) {
-      padded_string code(keyword + u8": for (;;) { " + statement + u8" " +
-                         keyword + u8"; }");
+    for (string8_view keyword : contextual_keywords) {
+      padded_string code(concat(keyword, u8": for (;;) { ", statement, u8" ",
+                                keyword, u8"; }"));
       SCOPED_TRACE(code);
 
       {

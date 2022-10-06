@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -914,7 +915,7 @@ TEST_F(test_parse_function, function_with_invalid_parameters) {
            u8"x.prop"_sv,
            u8"html`<strong>hello</strong>`"_sv,
        }) {
-    string8 code = u8"function f(" + string8(parameter_list) + u8") {}";
+    string8 code = concat(u8"function f(", string8(parameter_list), u8") {}");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
@@ -963,8 +964,8 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
            u8"(html`<strong>hello</strong>`)"_sv,
            u8"(html`<strong>${hello}</strong>`)"_sv,
        }) {
-    test_parser p(u8"(" + string8(parameter_list) + u8" => {});", jsx_options,
-                  capture_diags);
+    test_parser p(concat(u8"(", string8(parameter_list), u8" => {});"),
+                  jsx_options, capture_diags);
     SCOPED_TRACE(p.code);
     auto guard = p.enter_function(function_attributes::async_generator);
     p.parse_and_visit_statement();
@@ -1711,7 +1712,7 @@ TEST_F(test_parse_function, invalid_function_parameter) {
 
 TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
-    string8 code = u8"[a, " + string8(function) + u8", c];";
+    string8 code = concat(u8"[a, ", string8(function), u8", c];");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code);
     p.parse_and_visit_statement();
@@ -1726,7 +1727,7 @@ TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
 
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
     string8 code =
-        u8"[a, (" + string8(function) + u8")().prop, c] = [1, 2, 3];";
+        concat(u8"[a, (", string8(function), u8")().prop, c] = [1, 2, 3];");
     SCOPED_TRACE(out_string8(code));
     test_parser p(code);
     p.parse_and_visit_statement();
