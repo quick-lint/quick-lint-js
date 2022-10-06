@@ -13,6 +13,8 @@ Semantic Versioning.
 * [E0286][] and [E0287][] are now reported if the string or the value have extra
   parentheses (such as in `(tag.toUpperCase()) === 'img'`) (implemented by
   [Rebraws][]).
+* `myArray === []` now reports [E0344][] (implemented by [Rebraws][]).
+* `myArray === [a, b, c]` now reports [E0341][] (implemented by [Rebraws][]).
 * CLI: The new [`--language` option][cli-language] lets you opt out of JSX
   support. With `--language=javascript`, quick-lint-js will report [E0177][] for
   any uses of JSX.
@@ -785,4 +787,6 @@ Beta release.
 [E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
+[E0341]: https://quick-lint-js.com/errors/E0341/
+[E0344]: https://quick-lint-js.com/errors/E0344/
 [E0707]: https://quick-lint-js.com/errors/E0707/
