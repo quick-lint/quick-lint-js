@@ -19,6 +19,12 @@ struct global_declared_variable;
 
 // TODO(strager): Accept parser options from quick-lint-js.config.
 struct variable_analyzer_options {
+  // If true, 'delete somevar;' is legal (but might be still issue a warning).
+  //
+  // If false, 'delete somevar;' is invalid, and variable_analyzer will report a
+  // diagnostic mentioning TypeScript.
+  bool allow_deleting_typescript_variable = true;
+
   // If true, eval can declare variables, like in vanilla JavaScript.
   //
   // If false, eval is not supposed to declare variables, like in TypeScript.

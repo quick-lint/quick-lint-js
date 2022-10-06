@@ -18,7 +18,8 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
+TEST(test_variable_analyzer_delete_javascript,
+     deleting_local_variable_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
   source_code_span delete_keyword_span(delete_expression.data(),
@@ -173,7 +174,7 @@ TEST(test_variable_analyzer_delete, deleting_local_variable_is_a_warning) {
   }
 }
 
-TEST(test_variable_analyzer_delete,
+TEST(test_variable_analyzer_delete_javascript,
      deleting_local_variable_declared_later_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
@@ -206,7 +207,7 @@ TEST(test_variable_analyzer_delete,
           offsets_matcher(&delete_expression, 0, u8"delete x"))));
 }
 
-TEST(test_variable_analyzer_delete,
+TEST(test_variable_analyzer_delete_javascript,
      deleting_declared_module_variable_is_a_warning) {
   const char8 declaration[] = u8"v";
   padded_string delete_expression(u8"delete v"_sv);
@@ -234,7 +235,8 @@ TEST(test_variable_analyzer_delete,
           offsets_matcher(&delete_expression, 0, u8"delete x"))));
 }
 
-TEST(test_variable_analyzer_delete, deleting_declared_global_variable_is_ok) {
+TEST(test_variable_analyzer_delete_javascript,
+     deleting_declared_global_variable_is_ok) {
   padded_string code(u8"delete myGlobalVariable"_sv);
   source_code_span delete_keyword_span(code.data(), code.data() + 6);
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
@@ -276,7 +278,8 @@ TEST(test_variable_analyzer_delete, deleting_declared_global_variable_is_ok) {
   }
 }
 
-TEST(test_variable_analyzer_delete, deleting_undeclared_global_variable_is_ok) {
+TEST(test_variable_analyzer_delete_javascript,
+     deleting_undeclared_global_variable_is_ok) {
   padded_string code(u8"delete myGlobalVariable"_sv);
   source_code_span delete_keyword_span(code.data(), code.data() + 6);
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
@@ -308,6 +311,103 @@ TEST(test_variable_analyzer_delete, deleting_undeclared_global_variable_is_ok) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_delete_typescript,
+     deleting_local_variable_is_an_error) {
+  const char8 my_var_declaration[] = u8"myVar";
+  padded_string delete_expression(u8"delete myVar"_sv);
+  source_code_span delete_keyword_span(
+      delete_expression.data(), delete_expression.data() + strlen(u8"delete"));
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(
+      delete_expression.data() + strlen(u8"delete "), delete_expression.cend());
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"myVar"_sv);
+
+  {
+    // let myVar;
+    // delete myVar;  // ERROR
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_declaration(identifier_of(my_var_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_typescript_delete_cannot_delete_variables, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete myVar"))));
+  }
+
+  {
+    // delete myVar;  // ERROR
+    // let myVar;
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_variable_declaration(identifier_of(my_var_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_typescript_delete_cannot_delete_variables, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete myVar"))));
+  }
+}
+
+TEST(test_variable_analyzer_delete_typescript,
+     deleting_global_variable_is_an_error) {
+  padded_string delete_expression(u8"delete myGlobalVariable"_sv);
+  source_code_span delete_keyword_span(
+      delete_expression.data(), delete_expression.data() + strlen(u8"delete"));
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(
+      delete_expression.data() + strlen(u8"delete "), delete_expression.cend());
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
+
+  {
+    // delete myGlobalVariable;  // ERROR
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+                              diag_typescript_delete_cannot_delete_variables,
+                              delete_expression,
+                              offsets_matcher(&delete_expression, 0,
+                                              u8"delete myGlobalVariable"))));
+  }
+
+  {
+    // delete myGlobalVariable;  // ERROR
+    global_declared_variable_set globals;
+    globals.add_global_variable(global_declared_variable{
+        .name = u8"myGlobalVariable",
+        .is_writable = true,
+        .is_shadowable = true,
+    });
+    diag_collector v;
+    variable_analyzer l(&v, &globals, typescript_var_options);
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+                              diag_typescript_delete_cannot_delete_variables,
+                              delete_expression,
+                              offsets_matcher(&delete_expression, 0,
+                                              u8"delete myGlobalVariable"))));
   }
 }
 }

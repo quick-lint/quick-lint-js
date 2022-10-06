@@ -1181,6 +1181,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot delete variables in TypeScript"_translatable,
+        {
+            u8"cannot delete variables in TypeScript",
+            u8"cannot delete variables in TypeScript",
+            u8"cannot delete variables in TypeScript",
+            u8"cannot delete variables in TypeScript",
+            u8"cannot delete variables in TypeScript",
+        },
+    },
+    {
         "cannot export variable named 'let'"_translatable,
         {
             u8"cannot export variable named 'let'",

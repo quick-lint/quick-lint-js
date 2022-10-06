@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 391;
-constexpr std::size_t translation_table_string_table_size = 55610;
+constexpr std::uint16_t translation_table_mapping_table_size = 392;
+constexpr std::size_t translation_table_string_table_size = 55648;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -145,6 +145,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "cannot declare 'yield' inside generator function"sv,
           "cannot declare and export variable with 'export default'"sv,
           "cannot declare variable named keyword '{0}'"sv,
+          "cannot delete variables in TypeScript"sv,
           "cannot export variable named 'let'"sv,
           "cannot export variable named keyword '{0}'"sv,
           "cannot import 'let'"sv,

@@ -128,7 +128,8 @@ const translation_table translation_data = {
         {62, 81, 69, 48, 45},         //
         {65, 37, 77, 54, 49},         //
         {61, 28, 73, 63, 57},         //
-        {45, 26, 69, 48, 44},         //
+        {0, 0, 0, 0, 44},             //
+        {45, 26, 69, 48, 38},         //
         {45, 35, 49, 43, 35},         //
         {76, 25, 67, 48, 43},         //
         {35, 37, 28, 25, 20},         //
@@ -1418,6 +1419,7 @@ const translation_table translation_data = {
         u8"cannot declare 'yield' inside generator function\0"
         u8"cannot declare and export variable with 'export default'\0"
         u8"cannot declare variable named keyword '{0}'\0"
+        u8"cannot delete variables in TypeScript\0"
         u8"cannot export variable named 'let'\0"
         u8"cannot export variable named keyword '{0}'\0"
         u8"cannot import 'let'\0"

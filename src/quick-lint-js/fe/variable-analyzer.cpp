@@ -380,18 +380,25 @@ void variable_analyzer::visit_variable_delete_use(
     identifier name, source_code_span delete_keyword) {
   QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
 
-  QLJS_ASSERT(!this->scopes_.empty());
-  scope &current_scope = this->current_scope();
+  if (this->options_.allow_deleting_typescript_variable) {
+    QLJS_ASSERT(!this->scopes_.empty());
+    scope &current_scope = this->current_scope();
 
-  used_variable used_var(name, used_variable_kind::_delete,
-                         delete_keyword.begin());
-  declared_variable *already_declared =
-      current_scope.declared_variables.find_runtime(name);
-  if (already_declared) {
-    this->report_errors_for_variable_use(used_var, *already_declared,
-                                         /*use_is_before_declaration=*/false);
+    used_variable used_var(name, used_variable_kind::_delete,
+                           delete_keyword.begin());
+    declared_variable *already_declared =
+        current_scope.declared_variables.find_runtime(name);
+    if (already_declared) {
+      this->report_errors_for_variable_use(used_var, *already_declared,
+                                           /*use_is_before_declaration=*/false);
+    } else {
+      current_scope.variables_used.push_back(std::move(used_var));
+    }
   } else {
-    current_scope.variables_used.push_back(std::move(used_var));
+    this->diag_reporter_->report(diag_typescript_delete_cannot_delete_variables{
+        .delete_expression =
+            source_code_span(delete_keyword.begin(), name.span().end()),
+    });
   }
 }
 

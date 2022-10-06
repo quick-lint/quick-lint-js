@@ -1194,6 +1194,11 @@ msgstr ""
 "implementiert"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "cannot delete variables in TypeScript"
+msgstr "Kann keine Variable namens 'let' exportieren"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "enum member needs initializer"
 msgstr ""
 

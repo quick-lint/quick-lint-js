@@ -1147,6 +1147,11 @@ msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "cannot delete variables in TypeScript"
+msgstr "kan inte exportera variabel vid namn 'let'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "enum member needs initializer"
 msgstr ""
 

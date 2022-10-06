@@ -13,11 +13,13 @@ extern global_declared_variable_set default_globals;
 
 constexpr variable_analyzer_options javascript_var_options =
     variable_analyzer_options{
+        .allow_deleting_typescript_variable = true,
         .eval_can_declare_variables = true,
     };
 
 constexpr variable_analyzer_options typescript_var_options =
     variable_analyzer_options{
+        .allow_deleting_typescript_variable = false,
         .eval_can_declare_variables = false,
     };
 }

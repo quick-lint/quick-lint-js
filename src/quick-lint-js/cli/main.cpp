@@ -331,10 +331,12 @@ variable_analyzer_options get_variable_analyzer_options_from_language(
   switch (language) {
   case input_file_language::javascript:
   case input_file_language::javascript_jsx:
+    o.allow_deleting_typescript_variable = true;
     o.eval_can_declare_variables = true;
     break;
   case input_file_language::typescript:
   case input_file_language::typescript_jsx:
+    o.allow_deleting_typescript_variable = false;
     o.eval_can_declare_variables = false;
     break;
   }

@@ -1147,6 +1147,11 @@ msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "cannot delete variables in TypeScript"
+msgstr "you should be ashamed of 'var let'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "enum member needs initializer"
 msgstr ""
 
