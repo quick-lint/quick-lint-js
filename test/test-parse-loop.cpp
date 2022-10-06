@@ -195,10 +195,9 @@ TEST_F(test_parse_loop, c_style_for_loop) {
   }
 
   for (const char8* variable_kind : {u8"const", u8"let"}) {
-    SCOPED_TRACE(out_string8(variable_kind));
-    string8 code = concat(string8(u8"for ("), variable_kind,
-                          u8" i = 0; cond; after) { body; }");
-    test_parser p(code.c_str());
+    test_parser p(
+        concat(u8"for (", variable_kind, u8" i = 0; cond; after) { body; }"));
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_declaration",  //

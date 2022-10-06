@@ -47,9 +47,8 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
            u8":",
            u8"?",
        }) {
-    string8 code = concat(string8(token), u8" x");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(string8(token), u8" x"), capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
@@ -204,10 +203,10 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
   }
 
   for (string8_view variable_kind : {u8"const", u8"let", u8"var"}) {
-    string8 code =
-        concat(variable_kind, u8" a = 1\n", variable_kind, u8" b = 2\n");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(
+        concat(variable_kind, u8" a = 1\n", variable_kind, u8" b = 2\n"),
+        capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -406,9 +405,8 @@ TEST_F(
     string8 escaped_keyword = escape_first_character_in_keyword(keyword);
 
     {
-      string8 code = escaped_keyword;
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(escaped_keyword, capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
@@ -420,9 +418,8 @@ TEST_F(
     }
 
     {
-      string8 code = concat(u8"(", escaped_keyword, u8")");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"(", escaped_keyword, u8")"), capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
@@ -504,9 +501,8 @@ TEST_F(test_parse,
     SCOPED_TRACE(out_string8(keyword));
 
     {
-      string8 code = escaped_keyword;
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(escaped_keyword, capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
@@ -515,9 +511,8 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = concat(u8"({ ", escaped_keyword, u8" })");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"({ ", escaped_keyword, u8" })"), capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
@@ -526,9 +521,9 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = concat(u8"({ ", escaped_keyword, u8"() {} })");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"({ ", escaped_keyword, u8"() {} })"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                         "visit_enter_function_scope_body",  //
@@ -538,18 +533,18 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = concat(u8"({ ", escaped_keyword, u8": null })");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"({ ", escaped_keyword, u8": null })"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      string8 code = concat(u8"var ", escaped_keyword, u8" = null;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"var ", escaped_keyword, u8" = null;"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  //
                                         "visit_end_of_module"));
@@ -558,9 +553,9 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = concat(u8"var { ", escaped_keyword, u8" = a } = b;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"var { ", escaped_keyword, u8" = a } = b;"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // a
                                         "visit_variable_use",          // b
@@ -571,9 +566,9 @@ TEST_F(test_parse,
     }
 
     {
-      string8 code = concat(u8"class C { ", escaped_keyword, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"class C { ", escaped_keyword, u8"() {} }"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",          //
                                         "visit_enter_class_scope_body",     //

@@ -698,17 +698,15 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
 TEST_F(test_parse_class, class_statement_with_keyword_property) {
   for (string8_view keyword : keywords) {
     {
-      string8 code = concat(u8"class C { ", keyword, u8"(){} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { ", keyword, u8"(){} }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
 
     {
-      string8 code = concat(u8"class C { *", keyword, u8"(){} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { *", keyword, u8"(){} }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
@@ -716,33 +714,29 @@ TEST_F(test_parse_class, class_statement_with_keyword_property) {
     for (string8_view prefix :
          {u8"async"_sv, u8"get"_sv, u8"set"_sv, u8"static"_sv,
           u8"static async"_sv, u8"static get"_sv, u8"static set"_sv}) {
-      string8 code = concat(u8"class C { ", prefix, u8" ", keyword, u8"(){} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { ", prefix, u8" ", keyword, u8"(){} }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
 
     {
-      string8 code = concat(u8"class C { ", keyword, u8" }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { ", keyword, u8" }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
 
     {
-      string8 code = concat(u8"class C { ", keyword, u8"; }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { ", keyword, u8"; }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
 
     {
-      string8 code = concat(u8"class C { ", keyword, u8" = init; }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"class C { ", keyword, u8" = init; }"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
@@ -768,9 +762,9 @@ TEST_F(test_parse_class,
        typescript_class_statement_with_readonly_keyword_property) {
   for (string8_view keyword : keywords) {
     {
-      string8 code = concat(u8"class C { readonly ", keyword, u8"; }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str(), typescript_options);
+      test_parser p(concat(u8"class C { readonly ", keyword, u8"; }"),
+                    typescript_options);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }
@@ -780,9 +774,9 @@ TEST_F(test_parse_class,
 TEST_F(test_parse_class, typescript_class_with_keyword_generic_method) {
   for (string8_view keyword : keywords) {
     {
-      string8 code = concat(u8"class C { ", keyword, u8"<T>(){} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str(), typescript_options);
+      test_parser p(concat(u8"class C { ", keyword, u8"<T>(){} }"),
+                    typescript_options);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
     }

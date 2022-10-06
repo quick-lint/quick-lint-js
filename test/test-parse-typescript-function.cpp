@@ -691,10 +691,10 @@ TEST_F(test_parse_typescript_function,
        type_predicate_parameter_name_can_be_contextual_keyword) {
   for (string8_view parameter_name :
        keywords - disallowed_binding_identifier_keywords) {
-    string8 code = concat(u8"function f(", parameter_name, u8"): ",
-                          parameter_name, u8" is SomeType {}");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"function f(", parameter_name, u8"): ",
+                         parameter_name, u8" is SomeType {}"),
+                  typescript_options);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.visits,
@@ -752,12 +752,12 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
   }
 
   for (string8_view function_name : contextual_keywords) {
-    string8 code = concat(u8"function ", function_name,
-                          u8"();\n"
-                          u8"function ",
-                          function_name, u8"() {}");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"function ", function_name,
+                         u8"();\n"
+                         u8"function ",
+                         function_name, u8"() {}"),
+                  typescript_options);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(function_name)));

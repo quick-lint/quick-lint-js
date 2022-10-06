@@ -312,9 +312,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
   // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     {
-      string8 code = concat(u8"var ", keyword);
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"var ", keyword), capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
@@ -325,9 +324,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
     }
 
     {
-      string8 code = concat(u8"var ", keyword, u8";");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"var ", keyword, u8";"), capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
@@ -338,9 +336,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
     }
 
     {
-      string8 code = concat(u8"var ", keyword, u8" = x;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"var ", keyword, u8" = x;"), capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
@@ -435,9 +432,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   for (string8 prefix_operator : {u8"--", u8"++"}) {
-    string8 code = concat(u8"var ", prefix_operator, u8"x;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"var ", prefix_operator, u8"x;"), capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // x
                                       "visit_variable_assignment",  // x
@@ -523,10 +519,9 @@ TEST_F(test_parse_var, parse_invalid_let) {
            u8"|=",
        }) {
     {
-      string8 code =
-          concat(u8"let x ", compound_assignment_operator, u8" y, z");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"let x ", compound_assignment_operator, u8" y, z"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // y
@@ -545,10 +540,10 @@ TEST_F(test_parse_var, parse_invalid_let) {
     }
 
     {
-      string8 code =
-          concat(u8"const [x, y] ", compound_assignment_operator, u8" init;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(
+          concat(u8"const [x, y] ", compound_assignment_operator, u8" init;"),
+          capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // init
@@ -1709,9 +1704,8 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      string8 code = name;
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(name);
+      SCOPED_TRACE(p.code);
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
@@ -1719,9 +1713,8 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      string8 code = concat(name, u8";");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code.c_str());
+      test_parser p(concat(name, u8";"));
+      SCOPED_TRACE(p.code);
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
@@ -1840,9 +1833,9 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
 TEST_F(test_parse_var,
        lexical_declaration_as_do_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = concat(u8"do ", variable_kind, u8" x = y; while (cond);");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"do ", variable_kind, u8" x = y; while (cond);"),
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // y
                                       "visit_variable_declaration",  // x
@@ -1860,9 +1853,9 @@ TEST_F(test_parse_var,
 
 TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = concat(u8"for (;cond;) ", variable_kind, u8" x = y;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"for (;cond;) ", variable_kind, u8" x = y;"),
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // y
@@ -1883,9 +1876,9 @@ TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
 TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     {
-      string8 code = concat(u8"if (cond) ", variable_kind, u8" x = y;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"if (cond) ", variable_kind, u8" x = y;"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                         "visit_variable_use",            // y
@@ -1902,9 +1895,9 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     }
 
     {
-      string8 code = concat(u8"if (cond) ", variable_kind, u8" x = y; else {}");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"if (cond) ", variable_kind, u8" x = y; else {}"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // cond
                                         "visit_variable_use",          // y
@@ -1923,9 +1916,9 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     }
 
     {
-      string8 code = concat(u8"if (cond) {} else ", variable_kind, u8" x = y;");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"if (cond) {} else ", variable_kind, u8" x = y;"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                         "visit_enter_block_scope",       // if
@@ -1949,9 +1942,9 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
 
 TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = concat(u8"while (cond) ", variable_kind, u8" x = y;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"while (cond) ", variable_kind, u8" x = y;"),
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // y
@@ -1972,9 +1965,9 @@ TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
 TEST_F(test_parse_var,
        lexical_declaration_as_with_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
-    string8 code = concat(u8"with (obj) ", variable_kind, u8" x = y;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"with (obj) ", variable_kind, u8" x = y;"),
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // obj
                                       "visit_enter_with_scope",      // with

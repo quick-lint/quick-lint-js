@@ -828,39 +828,39 @@ TEST_F(test_parse_typescript_class,
                         specifier, strlen(u8"class C { "), u8"public"))
 
     {
-      string8 code = concat(u8"class C { ", specifier, u8" field = init; }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"class C { ", specifier, u8" field = init; }"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors,
                   ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
-      string8 code =
-          concat(u8"class C { ", specifier, u8" field\nmethod() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(
+          concat(u8"class C { ", specifier, u8" field\nmethod() {} }"),
+          capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors,
                   ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
-      string8 code =
-          concat(u8"class C { ", specifier, u8" field\n[methodName]() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(
+          concat(u8"class C { ", specifier, u8" field\n[methodName]() {} }"),
+          capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors,
                   ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
     }
 
     {
-      string8 code =
-          concat(u8"class C { ", specifier, u8" field? method() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(
+          concat(u8"class C { ", specifier, u8" field? method() {} }"),
+          capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(
           p.errors,
@@ -872,10 +872,10 @@ TEST_F(test_parse_typescript_class,
     }
 
     {
-      string8 code = concat(u8"class C { ", specifier,
-                            u8" async\nmethod() { const await = null; } }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"class C { ", specifier,
+                           u8" async\nmethod() { const await = null; } }"),
+                    capture_diags);
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors,
                   ElementsAre(MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));

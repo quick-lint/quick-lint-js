@@ -134,8 +134,7 @@ TEST_F(test_parse_typescript_enum,
                               u8"static",
                               u8"yield",
                           }) {
-    string8 code = concat(u8"enum ", name, u8" {}");
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"enum ", name, u8" {}"), typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
                                       "visit_enter_enum_scope",      // {

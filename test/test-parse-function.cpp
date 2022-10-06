@@ -915,9 +915,9 @@ TEST_F(test_parse_function, function_with_invalid_parameters) {
            u8"x.prop"_sv,
            u8"html`<strong>hello</strong>`"_sv,
        }) {
-    string8 code = concat(u8"function f(", string8(parameter_list), u8") {}");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"function f(", string8(parameter_list), u8") {}"),
+                  capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
   }
@@ -1712,9 +1712,8 @@ TEST_F(test_parse_function, invalid_function_parameter) {
 
 TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
-    string8 code = concat(u8"[a, ", string8(function), u8", c];");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(concat(u8"[a, ", string8(function), u8", c];"));
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -1726,10 +1725,9 @@ TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   }
 
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
-    string8 code =
-        concat(u8"[a, (", string8(function), u8")().prop, c] = [1, 2, 3];");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(
+        concat(u8"[a, (", string8(function), u8")().prop, c] = [1, 2, 3];"));
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //

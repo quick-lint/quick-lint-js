@@ -713,34 +713,34 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
   for (string8_view suffix : {u8""_sv, u8"?"_sv}) {
     for (string8_view keyword : keywords) {
       {
-        string8 code = concat(u8"interface I { ", keyword, suffix, u8"(); }");
-        SCOPED_TRACE(out_string8(code));
-        test_parser p(code.c_str(), typescript_options);
+        test_parser p(concat(u8"interface I { ", keyword, suffix, u8"(); }"),
+                      typescript_options);
+        SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
         EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
       }
 
       for (string8_view prefix : {u8"get"_sv, u8"set"_sv}) {
-        string8 code = concat(u8"interface I { ", prefix, u8" ", keyword,
-                              suffix, u8"(); }");
-        SCOPED_TRACE(out_string8(code));
-        test_parser p(code.c_str(), typescript_options);
+        test_parser p(concat(u8"interface I { ", prefix, u8" ", keyword, suffix,
+                             u8"(); }"),
+                      typescript_options);
+        SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
         EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
       }
 
       {
-        string8 code = concat(u8"interface I { ", keyword, suffix, u8" }");
-        SCOPED_TRACE(out_string8(code));
-        test_parser p(code.c_str(), typescript_options);
+        test_parser p(concat(u8"interface I { ", keyword, suffix, u8" }"),
+                      typescript_options);
+        SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
         EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
       }
 
       {
-        string8 code = concat(u8"interface I { ", keyword, suffix, u8"; }");
-        SCOPED_TRACE(out_string8(code));
-        test_parser p(code.c_str(), typescript_options);
+        test_parser p(concat(u8"interface I { ", keyword, suffix, u8"; }"),
+                      typescript_options);
+        SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
         EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
       }

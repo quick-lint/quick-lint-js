@@ -238,9 +238,8 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   // expression literal.
   for (string8_view op : {u8"*=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=",
                           u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
-    string8 code = concat(op, u8" 2");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(op, u8" 2"), capture_diags);
+    SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "upassign(missing, literal)");
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -503,8 +502,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
 
   for (string8_view keyword : keywords) {
     SCOPED_TRACE(out_string8(keyword));
-    string8 code = concat(u8"promise.", keyword);
-    test_parser p(code.c_str());
+    test_parser p(concat(u8"promise.", keyword));
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var promise, " + to_string(keyword) + ")");
   }
@@ -1361,28 +1359,32 @@ TEST_F(test_parse_expression, parse_compound_assignment) {
   for (string8_view op : {u8"*=", u8"/=", u8"%=", u8"+=", u8"-=", u8"<<=",
                           u8">>=", u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
     SCOPED_TRACE(out_string8(op));
-    string8 code = concat(u8"x ", op, u8" y");
-    test_parser p(code.c_str(), capture_diags);
+    test_parser p(concat(u8"x ", op, u8" y"), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::compound_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, code.size()));
+    EXPECT_THAT(
+        ast->span(),
+        p.matches_offsets(
+            0, narrow_cast<cli_source_position::offset_type>(p.code.size())));
   }
 }
 
 TEST_F(test_parse_expression, parse_conditional_assignment) {
   for (string8_view op : {u8"&&=", u8"?\x3f=", u8"||="}) {
     SCOPED_TRACE(out_string8(op));
-    string8 code = concat(u8"x ", op, u8" y");
-    test_parser p(code.c_str(), capture_diags);
+    test_parser p(concat(u8"x ", op, u8" y"), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::conditional_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, code.size()));
+    EXPECT_THAT(
+        ast->span(),
+        p.matches_offsets(
+            0, narrow_cast<cli_source_position::offset_type>(p.code.size())));
   }
 }
 
@@ -2073,43 +2075,37 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
-      string8 code = concat(u8"{", keyword, u8": null}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{", keyword, u8": null}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: literal)");
     }
 
     {
-      string8 code = concat(u8"{", keyword, u8"() { }}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{", keyword, u8"() { }}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{get ", keyword, u8"() {}}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{get ", keyword, u8"() {}}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{set ", keyword, u8"() {}}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{set ", keyword, u8"() {}}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{async ", keyword, u8"() {}}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{async ", keyword, u8"() {}}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{*", keyword, u8"() {}}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{*", keyword, u8"() {}}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -2123,8 +2119,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
-      string8 code = concat(u8"{", keyword, u8"}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{", keyword, u8"}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::object);
       EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2136,8 +2131,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
     }
 
     {
-      string8 code = concat(u8"{", keyword, u8", other}");
-      test_parser p(code.c_str());
+      test_parser p(concat(u8"{", keyword, u8", other}"));
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::object);
       EXPECT_EQ(ast->object_entry_count(), 2);
@@ -2388,9 +2382,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
            u8">>>=", u8"?.",  u8"??",  u8"?\x3f=", u8"^",  u8"^=",  u8"|",
            u8"|=",   u8"||",  u8"||=",
        }) {
-    string8 code = concat(u8"{one ", op, u8" two}");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"{one ", op, u8" two}"), capture_diags);
+    SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
     EXPECT_THAT(
         summarize(ast),
@@ -2410,9 +2403,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
            u8">>", u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
        }) {
     {
-      string8 code = concat(u8"{'one' ", op, u8" two}");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"{'one' ", op, u8" two}"), capture_diags);
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
                   ::testing::AnyOf("object(literal: assign(literal, var two))",
@@ -2426,9 +2418,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     }
 
     {
-      string8 code = concat(u8"{1234 ", op, u8" two}");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code, capture_diags);
+      test_parser p(concat(u8"{1234 ", op, u8" two}"), capture_diags);
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
                   ::testing::AnyOf("object(literal: assign(literal, var two))",
@@ -2443,9 +2434,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   for (string8_view op : {u8"++", u8"--"}) {
-    string8 code = concat(u8"{one ", op, u8" two}");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"{one ", op, u8" two}"), capture_diags);
+    SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "object(literal: rwunarysuffix(var one), literal: var two)");
@@ -2685,9 +2675,8 @@ TEST_F(test_parse_expression, binary_operator_span) {
            u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
            u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
        }) {
-    string8 code = concat(u8"x", op, u8"y");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"x", op, u8"y"), capture_diags);
+    SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::binary_operator);
     auto* binary = static_cast<expression::binary_operator*>(ast);
@@ -3372,9 +3361,8 @@ TEST_F(test_parse_expression,
     string8 property = escape_first_character_in_keyword(keyword);
 
     {
-      string8 code = concat(u8"obj.", property);
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"obj.", property));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::dot);
       EXPECT_EQ(summarize(ast->child_0()), "var obj");
@@ -3382,9 +3370,8 @@ TEST_F(test_parse_expression,
     }
 
     {
-      string8 code = concat(u8"obj?.", property);
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"obj?.", property));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::dot);
       EXPECT_EQ(summarize(ast->child_0()), "var obj");
@@ -3392,57 +3379,50 @@ TEST_F(test_parse_expression,
     }
 
     {
-      string8 code = concat(u8"{ ", property, u8": value }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ ", property, u8": value }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: var value)");
     }
 
     {
-      string8 code = concat(u8"{ ", property, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ ", property, u8"() {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{ get ", property, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ get ", property, u8"() {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{ set ", property, u8"(v) {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ set ", property, u8"(v) {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{ async ", property, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ async ", property, u8"() {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{ *", property, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ *", property, u8"() {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
-      string8 code = concat(u8"{ async *", property, u8"() {} }");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(u8"{ async *", property, u8"() {} }"));
+      SCOPED_TRACE(p.code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }

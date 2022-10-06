@@ -205,9 +205,8 @@ TEST_F(test_parse_expression_statement,
            u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
            u8"^",   u8"in",  u8"instanceof", u8"|",
        }) {
-    string8 code = concat(op, u8" x");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(op, u8" x"), capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code, diag_missing_operand_for_operator,  //
@@ -684,9 +683,8 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   for (string8 op : {u8"void ", u8"!", u8"~", u8"+", u8"-"}) {
-    string8 code = concat(op, u8" x;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code.c_str());
+    test_parser p(concat(op, u8" x;"));
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
@@ -930,10 +928,8 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     for (const char8* unary_operator : {u8"++", u8"--"}) {
-      string8 code = concat(name, unary_operator);
-      SCOPED_TRACE(out_string8(code));
-
-      test_parser p(code.c_str());
+      test_parser p(concat(name, unary_operator));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",  //
@@ -989,10 +985,8 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"|=",
              u8"||=",
          }) {
-      string8 code = concat(name, u8" ", binary_operator, u8" other");
-      SCOPED_TRACE(out_string8(code));
-
-      test_parser p(code.c_str());
+      test_parser p(concat(name, u8" ", binary_operator, u8" other"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"other"));
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
@@ -1004,18 +998,15 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>", u8"??",
              u8"^",  u8"in",  u8"instanceof", u8"|",  u8"||",
          }) {
-      string8 code = concat(name, u8" ", binary_operator, u8" other");
-      SCOPED_TRACE(out_string8(code));
-
-      test_parser p(code.c_str());
+      test_parser p(concat(name, u8" ", binary_operator, u8" other"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"other"));
     }
 
     {
-      string8 code = concat(name, u8": while (go());");
-      SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(concat(name, u8": while (go());"));
+      SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(u8"go"));
     }
@@ -1095,9 +1086,8 @@ TEST_F(test_parse_expression_statement,
            u8"try"_sv,
            u8"var"_sv,
        }) {
-    string8 code = concat(u8"*\n"_sv, statement);
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"*\n"_sv, statement), capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, Not(IsEmpty()));
   }
@@ -1112,9 +1102,8 @@ TEST_F(test_parse_expression_statement,
            u8"throw x;"_sv,
            u8"while(x);"_sv,
        }) {
-    string8 code = concat(u8"!\n"_sv, statement);
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
+    test_parser p(concat(u8"!\n"_sv, statement), capture_diags);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));

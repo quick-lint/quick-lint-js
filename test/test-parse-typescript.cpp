@@ -126,9 +126,8 @@ TEST_F(test_parse_typescript,
                 u8"static",
                 u8"yield",
             })) {
-    string8 code = concat(u8"type ", name, u8" = T;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"type ", name, u8" = T;"), typescript_options);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // (name)

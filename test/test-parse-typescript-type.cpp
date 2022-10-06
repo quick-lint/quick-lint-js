@@ -521,9 +521,8 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
                                                                  u8"typeof",
                                                                  u8"void",
                                                              }) {
-    string8 code = concat(u8"[", name, u8": A]");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"[", name, u8": A]"), typescript_options);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));

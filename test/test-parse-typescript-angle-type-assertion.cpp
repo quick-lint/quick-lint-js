@@ -98,9 +98,8 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
 
   for (const string8& type :
        typescript_builtin_type_keywords | typescript_special_type_keywords) {
-    string8 code = concat(u8"<", type, u8">expr;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    test_parser p(concat(u8"<", type, u8">expr;"), typescript_options);
+    SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // expr
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"expr"));
@@ -135,9 +134,9 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   }
 
   for (const string8& tag : keywords) {
-    string8 code = concat(u8"<", tag, u8">text;\n// </", tag, u8">;");
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_jsx_options);
+    test_parser p(concat(u8"<", tag, u8">text;\n// </", tag, u8">;"),
+                  typescript_jsx_options);
+    SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(" + to_string(tag) + ")");
   }
