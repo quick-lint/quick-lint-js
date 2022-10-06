@@ -25,200 +25,319 @@ string8 escape_first_character_in_keyword(string8_view keyword) {
   return result;
 }
 
-std::string summarize(const expression& expression) {
+void summarize(const expression& expression, std::string& out) {
   auto children = [&] {
-    std::string result;
     bool need_comma = false;
     for (int i = 0; i < expression.child_count(); ++i) {
       if (need_comma) {
-        result += ", ";
+        out += ", ";
       }
-      result += summarize(expression.child(i));
+      summarize(expression.child(i), out);
       need_comma = true;
     }
-    return result;
   };
-  auto function_attributes = [&]() -> std::string {
+  auto function_attributes = [&]() -> std::string_view {
     switch (expression.attributes()) {
     case function_attributes::normal:
-      return "";
+      return ""sv;
     case function_attributes::async:
-      return "async";
+      return "async"sv;
     case function_attributes::async_generator:
-      return "asyncgenerator";
+      return "asyncgenerator"sv;
     case function_attributes::generator:
-      return "generator";
+      return "generator"sv;
     }
     QLJS_UNREACHABLE();
   };
   switch (expression.kind()) {
   case expression_kind::_class:
-    return "class";
+    out += "class";
+    break;
   case expression_kind::_delete:
-    return "delete(" + summarize(expression.child_0()) + ")";
+    out += "delete(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::_invalid:
-    return "invalid";
+    out += "invalid";
+    break;
   case expression_kind::_missing:
-    return "missing";
+    out += "missing";
+    break;
   case expression_kind::_new:
-    return "new(" + children() + ")";
+    out += "new(";
+    children();
+    out += ")";
+    break;
   case expression_kind::_template:
-    return "template(" + children() + ")";
+    out += "template(";
+    children();
+    out += ")";
+    break;
   case expression_kind::_typeof:
-    return "typeof(" + summarize(expression.child_0()) + ")";
+    out += "typeof(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::angle_type_assertion:
-    return "typeassert(" + summarize(expression.child_0()) + ")";
+    out += "typeassert(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::array:
-    return "array(" + children() + ")";
+    out += "array(";
+    children();
+    out += ")";
+    break;
   case expression_kind::arrow_function:
-    return function_attributes() + "arrowfunc(" + children() + ")";
+    out += function_attributes();
+    out += "arrowfunc(";
+    children();
+    out += ")";
+    break;
   case expression_kind::as_type_assertion:
-    return "as(" + summarize(expression.child_0()) + ")";
+    out += "as(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::assignment:
-    return "assign(" + children() + ")";
+    out += "assign(";
+    children();
+    out += ")";
+    break;
   case expression_kind::await:
-    return "await(" + summarize(expression.child_0()) + ")";
+    out += "await(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::call:
-    return "call(" + children() + ")";
+    out += "call(";
+    children();
+    out += ")";
+    break;
   case expression_kind::conditional:
-    return "cond(" + summarize(expression.child_0()) + ", " +
-           summarize(expression.child_1()) + ", " +
-           summarize(expression.child_2()) + ")";
+    out += "cond(";
+    summarize(expression.child_0(), out);
+    out += ", ";
+    summarize(expression.child_1(), out);
+    out += ", ";
+    summarize(expression.child_2(), out);
+    out += ")";
+    break;
   case expression_kind::dot:
-    return "dot(" + summarize(expression.child_0()) + ", " +
-           to_string(expression.variable_identifier().normalized_name()) + ")";
+    out += "dot(";
+    summarize(expression.child_0(), out);
+    out += ", ";
+    out += to_string_view(expression.variable_identifier().normalized_name());
+    out += ")";
+    break;
   case expression_kind::function:
-    return "function";
+    out += "function";
+    break;
   case expression_kind::import:
-    return "import";
+    out += "import";
+    break;
   case expression_kind::index:
-    return "index(" + children() + ")";
+    out += "index(";
+    children();
+    out += ")";
+    break;
   case expression_kind::jsx_element: {
     const auto& jsx =
         static_cast<const quick_lint_js::expression::jsx_element&>(expression);
-    std::string result = "jsxelement(" + to_string(jsx.tag.normalized_name());
+    out += "jsxelement(";
+    out += to_string_view(jsx.tag.normalized_name());
     if (jsx.child_count() != 0) {
-      result += ", ";
-      result += children();
+      out += ", ";
+      children();
     }
-    result += ")";
-    return result;
+    out += ")";
+    break;
   }
   case expression_kind::jsx_element_with_members: {
     const auto& jsx =
         static_cast<const quick_lint_js::expression::jsx_element_with_members&>(
             expression);
-    std::string result = "jsxmemberelement((";
+    out += "jsxmemberelement((";
     bool need_comma = false;
     for (int i = 0; i < jsx.members.size(); ++i) {
       if (need_comma) {
-        result += ", ";
+        out += ", ";
       }
-      result += to_string_view(jsx.members[i].normalized_name());
+      out += to_string_view(jsx.members[i].normalized_name());
       need_comma = true;
     }
-    result += ")";
+    out += ")";
 
     if (jsx.child_count() != 0) {
-      result += ", ";
-      result += children();
+      out += ", ";
+      children();
     }
-    result += ")";
-    return result;
+    out += ")";
+    break;
   }
   case expression_kind::jsx_element_with_namespace: {
     const auto& jsx = static_cast<
         const quick_lint_js::expression::jsx_element_with_namespace&>(
         expression);
-    std::string result = "jsxnselement(" + to_string(jsx.ns.normalized_name()) +
-                         ", " + to_string(jsx.tag.normalized_name());
+    out += "jsxnselement(";
+    out += to_string_view(jsx.ns.normalized_name());
+    out += ", ";
+    out += to_string_view(jsx.tag.normalized_name());
     if (jsx.child_count() != 0) {
-      result += ", ";
-      result += children();
+      out += ", ";
+      children();
     }
-    result += ")";
-    return result;
+    out += ")";
+    break;
   }
   case expression_kind::jsx_fragment:
-    return "jsxfragment(" + children() + ")";
+    out += "jsxfragment(";
+    children();
+    out += ")";
+    break;
   case expression_kind::literal:
-    return "literal";
+    out += "literal";
+    break;
   case expression_kind::named_function:
-    return "function " +
-           to_string(expression.variable_identifier().normalized_name());
+    out += "function ";
+    out += to_string_view(expression.variable_identifier().normalized_name());
+    break;
   case expression_kind::new_target:
-    return "newtarget";
+    out += "newtarget";
+    break;
   case expression_kind::non_null_assertion:
-    return "nonnull(" + summarize(expression.child_0()) + ")";
+    out += "nonnull(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::object: {
-    std::string result = "object(";
+    out += "object(";
     bool need_comma = false;
     for (int i = 0; i < expression.object_entry_count(); ++i) {
       if (need_comma) {
-        result += ", ";
+        out += ", ";
       }
       auto entry = expression.object_entry(i);
       if (entry.property) {
-        result += summarize(entry.property);
-        result += ": ";
+        summarize(entry.property, out);
+        out += ": ";
       }
-      result += summarize(entry.value);
+      summarize(entry.value, out);
       if (entry.init) {
-        result += " = ";
-        result += summarize(entry.init);
+        out += " = ";
+        summarize(entry.init, out);
       }
       need_comma = true;
     }
-    result += ")";
-    return result;
+    out += ")";
+    break;
   }
   case expression_kind::optional:
-    return "optional(" + summarize(expression.child_0()) + ")";
+    out += "optional(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::paren:
-    return "paren(" + summarize(expression.child_0()) + ")";
+    out += "paren(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::paren_empty:
-    return "parenempty";
+    out += "parenempty";
+    break;
   case expression_kind::private_variable:
-    return "var " +
-           to_string(expression.variable_identifier().normalized_name());
+    out += "var ";
+    out += to_string_view(expression.variable_identifier().normalized_name());
+    break;
   case expression_kind::rw_unary_prefix:
-    return "rwunary(" + summarize(expression.child_0()) + ")";
+    out += "rwunary(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::rw_unary_suffix:
-    return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
+    out += "rwunarysuffix(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::spread:
-    return "spread(" + summarize(expression.child_0()) + ")";
+    out += "spread(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::super:
-    return "super";
+    out += "super";
+    break;
   case expression_kind::tagged_template_literal:
-    return "taggedtemplate(" + children() + ")";
+    out += "taggedtemplate(";
+    children();
+    out += ")";
+    break;
   case expression_kind::this_variable:
-    return "this";
+    out += "this";
+    break;
   case expression_kind::trailing_comma:
-    return "trailingcomma(" + children() + ")";
+    out += "trailingcomma(";
+    children();
+    out += ")";
+    break;
   case expression_kind::type_annotated:
-    return "typed(" + children() + ")";
+    out += "typed(";
+    children();
+    out += ")";
+    break;
   case expression_kind::unary_operator:
-    return "unary(" + summarize(expression.child_0()) + ")";
+    out += "unary(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::compound_assignment:
-    return "upassign(" + children() + ")";
+    out += "upassign(";
+    children();
+    out += ")";
+    break;
   case expression_kind::conditional_assignment:
-    return "condassign(" + children() + ")";
+    out += "condassign(";
+    children();
+    out += ")";
+    break;
   case expression_kind::variable:
-    return "var " +
-           to_string(expression.variable_identifier().normalized_name());
+    out += "var ";
+    out += to_string_view(expression.variable_identifier().normalized_name());
+    break;
   case expression_kind::binary_operator:
-    return "binary(" + children() + ")";
+    out += "binary(";
+    children();
+    out += ")";
+    break;
   case expression_kind::yield_many:
-    return "yieldmany(" + summarize(expression.child_0()) + ")";
+    out += "yieldmany(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::yield_none:
-    return "yieldnone";
+    out += "yieldnone";
+    break;
   case expression_kind::yield_one:
-    return "yield(" + summarize(expression.child_0()) + ")";
+    out += "yield(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   }
-  QLJS_UNREACHABLE();
 }
 
-std::string summarize(expression* expression) { return summarize(*expression); }
+void summarize(expression* expression, std::string& out) {
+  return summarize(*expression, out);
+}
+
+std::string summarize(expression* expression) {
+  std::string result;
+  // At the time of writing, the biggest string in practice is 84 bytes. Let's
+  // reserve more than that to avoid string copies.
+  result.reserve(128);
+  summarize(expression, result);
+  return result;
+}
 
 std::string summarize(std::optional<expression*> expression) {
   if (expression.has_value()) {

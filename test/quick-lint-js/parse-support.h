@@ -37,7 +37,8 @@ class expression;
 // byte for the replaced character.
 string8 escape_first_character_in_keyword(string8_view keyword);
 
-std::string summarize(const expression&);
+void summarize(const expression&, std::string& out);
+void summarize(expression*, std::string& out);
 std::string summarize(expression*);
 std::string summarize(std::optional<expression*>);
 
