@@ -11,6 +11,8 @@
 namespace quick_lint_js {
 class debug_parse_visitor final : public parse_visitor_base {
  public:
+  explicit debug_parse_visitor(output_stream *output) : output_(output) {}
+
   void visit_end_of_module() override {
     this->output_->append_copy(u8"end of module\n"_sv);
     this->output_->flush();
@@ -221,7 +223,7 @@ class debug_parse_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
-  file_output_stream *output_ = file_output_stream::get_stderr();
+  output_stream *output_;
 };
 }
 

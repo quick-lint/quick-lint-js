@@ -294,7 +294,7 @@ void process_file(padded_string_view input, configuration &config,
   variable_analyzer l(diag_reporter, &config.globals(), var_options);
 
   if (print_parser_visits) {
-    debug_parse_visitor logger;
+    debug_parse_visitor logger(file_output_stream::get_stderr());
     multi_parse_visitor visitor(&logger, &l);
     p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
   } else {
