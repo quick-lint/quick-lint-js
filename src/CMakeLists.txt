@@ -122,6 +122,8 @@ quick_lint_js_add_library(
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
+  quick-lint-js/fe/linter.cpp
+  quick-lint-js/fe/linter.h
   quick-lint-js/fe/multi-parse-visitor.h
   quick-lint-js/fe/null-visitor.cpp
   quick-lint-js/fe/null-visitor.h

@@ -16,8 +16,7 @@
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
-#include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
@@ -105,17 +104,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
     vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
                                        this->uri());
-    parser_options p_options;
-    p_options.jsx = true;
-    variable_analyzer_options var_options;
+    linter_options lint_options;
+    lint_options.jsx = true;
+    parse_and_lint(this->document_.string(), diag_reporter,
+                   this->config_->globals(), lint_options);
 
-    parser p(this->document_.string(), &diag_reporter, p_options);
-    variable_analyzer l(&diag_reporter, &this->config_->globals(), var_options);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
-    if (!ok) {
-      // TODO(strager): Show a pop-up message explaining that the parser
-      // crashed.
-    }
     return std::move(diag_reporter).diagnostics();
   }
 

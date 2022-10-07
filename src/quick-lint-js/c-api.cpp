@@ -11,8 +11,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/web-demo-location.h>
@@ -25,18 +24,14 @@ namespace {
 template <class Locator, class ErrorReporter>
 class qljs_document_base {
  public:
-  explicit qljs_document_base() { this->parser_options_.jsx = true; }
+  explicit qljs_document_base() = default;
 
   const auto* lint() {
     this->diag_reporter_.reset();
     this->diag_reporter_.set_input(this->document_.string(),
                                    &this->document_.locator());
-    parser p(this->document_.string(), &this->diag_reporter_,
-             this->parser_options_);
-    variable_analyzer l(&this->diag_reporter_, &this->config_.globals(),
-                        this->variable_analyzer_options_);
-    p.parse_and_visit_module_catching_fatal_parse_errors(l);
-
+    parse_and_lint(this->document_.string(), this->diag_reporter_,
+                   this->config_.globals(), this->linter_options_);
     return this->diag_reporter_.get_diagnostics();
   }
 
@@ -52,8 +47,7 @@ class qljs_document_base {
   document<Locator> document_;
   ErrorReporter diag_reporter_;
   configuration config_;
-  parser_options parser_options_;
-  variable_analyzer_options variable_analyzer_options_;
+  linter_options linter_options_;
 };
 }
 }
@@ -98,8 +92,8 @@ void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
 
 void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
                                         qljs_language_options options) {
-  p->parser_options_.jsx = options & qljs_language_options_jsx_bit;
-  p->parser_options_.typescript =
+  p->linter_options_.jsx = options & qljs_language_options_jsx_bit;
+  p->linter_options_.typescript =
       options & qljs_language_options_typescript_bit;
 }
 

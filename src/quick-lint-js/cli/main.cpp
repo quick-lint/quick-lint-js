@@ -20,15 +20,10 @@
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/fe/debug-parse-visitor.h>
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/fe/multi-parse-visitor.h>
-#include <quick-lint-js/fe/parse-visitor.h>
-#include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/fe/reported-diag-statistics.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file.h>
@@ -162,11 +157,8 @@ void init();
 [[noreturn]] void run(options o);
 
 void process_file(padded_string_view input, configuration &,
-                  const parser_options &, variable_analyzer_options,
-                  diag_reporter *, bool print_parser_visits);
-parser_options get_parser_options_from_language(input_file_language);
-variable_analyzer_options get_variable_analyzer_options_from_language(
-    input_file_language);
+                  const linter_options &, diag_reporter *);
+linter_options get_linter_options_from_language(input_file_language);
 
 void run_lsp_server();
 
@@ -268,12 +260,11 @@ void run(options o) {
       if (!source.ok()) {
         source.error().print_and_exit();
       }
+      linter_options lint_options =
+          get_linter_options_from_language(file.get_language());
+      lint_options.print_parser_visits = o.print_parser_visits;
       reporter.set_source(&*source, file);
-      process_file(
-          &*source, *config,
-          get_parser_options_from_language(file.get_language()),
-          get_variable_analyzer_options_from_language(file.get_language()),
-          reporter.get(), o.print_parser_visits);
+      process_file(&*source, *config, lint_options, reporter.get());
     }
   }
   reporter.finish();
@@ -287,57 +278,29 @@ void run(options o) {
 }
 
 void process_file(padded_string_view input, configuration &config,
-                  const parser_options &p_options,
-                  variable_analyzer_options var_options,
-                  diag_reporter *diag_reporter, bool print_parser_visits) {
-  parser p(input, diag_reporter, p_options);
-  variable_analyzer l(diag_reporter, &config.globals(), var_options);
-
-  if (print_parser_visits) {
-    debug_parse_visitor logger(file_output_stream::get_stderr());
-    multi_parse_visitor visitor(&logger, &l);
-    p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
-  } else {
-    p.parse_and_visit_module_catching_fatal_parse_errors(l);
-  }
+                  const linter_options &lint_options,
+                  diag_reporter *diag_reporter) {
+  parse_and_lint(input, *diag_reporter, config.globals(), lint_options);
 }
 
-parser_options get_parser_options_from_language(input_file_language language) {
-  parser_options p;
+linter_options get_linter_options_from_language(input_file_language language) {
+  linter_options o;
   switch (language) {
   case input_file_language::javascript:
-    p.jsx = false;
-    p.typescript = false;
+    o.jsx = false;
+    o.typescript = false;
     break;
   case input_file_language::javascript_jsx:
-    p.jsx = true;
-    p.typescript = false;
+    o.jsx = true;
+    o.typescript = false;
     break;
   case input_file_language::typescript:
-    p.jsx = false;
-    p.typescript = true;
+    o.jsx = false;
+    o.typescript = true;
     break;
   case input_file_language::typescript_jsx:
-    p.jsx = true;
-    p.typescript = true;
-    break;
-  }
-  return p;
-}
-
-variable_analyzer_options get_variable_analyzer_options_from_language(
-    input_file_language language) {
-  variable_analyzer_options o;
-  switch (language) {
-  case input_file_language::javascript:
-  case input_file_language::javascript_jsx:
-    o.allow_deleting_typescript_variable = true;
-    o.eval_can_declare_variables = true;
-    break;
-  case input_file_language::typescript:
-  case input_file_language::typescript_jsx:
-    o.allow_deleting_typescript_variable = false;
-    o.eval_can_declare_variables = false;
+    o.jsx = true;
+    o.typescript = true;
     break;
   }
   return o;

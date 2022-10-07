@@ -14,8 +14,7 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
@@ -686,17 +685,9 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
     byte_buffer& diagnostics_json) {
   lsp_diag_reporter diag_reporter(qljs_messages, diagnostics_json, code);
 
-  parser_options p_options;
-  p_options.jsx = true;
-  variable_analyzer_options var_options;
-
-  parser p(code, &diag_reporter, p_options);
-  variable_analyzer l(&diag_reporter, &config.globals(), var_options);
-  bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
-  if (!ok) {
-    // TODO(strager): Send a window/logMessage to the client reporting that the
-    // parser crashed.
-  }
+  linter_options lint_options;
+  lint_options.jsx = true;
+  parse_and_lint(code, diag_reporter, config.globals(), lint_options);
 
   diag_reporter.finish();
 }
