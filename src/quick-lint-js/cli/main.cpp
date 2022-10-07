@@ -156,8 +156,6 @@ void init();
 [[noreturn]] void run(int argc, char **argv);
 [[noreturn]] void run(options o);
 
-void process_file(padded_string_view input, configuration &,
-                  const linter_options &, diag_reporter *);
 linter_options get_linter_options_from_language(input_file_language);
 
 void run_lsp_server();
@@ -264,7 +262,8 @@ void run(options o) {
           get_linter_options_from_language(file.get_language());
       lint_options.print_parser_visits = o.print_parser_visits;
       reporter.set_source(&*source, file);
-      process_file(&*source, *config, lint_options, reporter.get());
+      parse_and_lint(&*source, *reporter.get(), config->globals(),
+                     lint_options);
     }
   }
   reporter.finish();
@@ -275,12 +274,6 @@ void run(options o) {
   }
 
   std::exit(EXIT_SUCCESS);
-}
-
-void process_file(padded_string_view input, configuration &config,
-                  const linter_options &lint_options,
-                  diag_reporter *diag_reporter) {
-  parse_and_lint(input, *diag_reporter, config.globals(), lint_options);
 }
 
 linter_options get_linter_options_from_language(input_file_language language) {
