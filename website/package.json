@@ -23,7 +23,6 @@
     "vinyl": "^2.2.1"
   },
   "devDependencies": {
-    "axios": "0.27.2",
     "colors": "^1.4.0",
     "prettier": "2.6.2"
   }

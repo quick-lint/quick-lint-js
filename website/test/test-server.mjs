@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import axios from "axios";
 import fs from "fs";
 import http from "http";
 import os from "os";
@@ -23,11 +22,16 @@ describe("server", () => {
       })
     );
     await listenAsync(server, { host: "localhost", port: 0 });
-    request = axios.create({
-      baseURL: urlFromServerAddress(server.address()).toString(),
-      responseType: "text",
-      validateStatus: (_status) => true,
-    });
+
+    let serverAddress = server.address();
+    request = async (method, path) => {
+      return await httpRequestAsync({
+        method: method,
+        path: path,
+        host: serverAddress.address,
+        port: serverAddress.port,
+      });
+    };
   });
 
   afterEach(async () => {
@@ -39,7 +43,7 @@ describe("server", () => {
     it("serves index.html", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.data).toBe("hello world");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -50,7 +54,7 @@ describe("server", () => {
         "hello <%= 2+2 %>"
       );
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.data).toBe("hello 4");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -62,14 +66,14 @@ describe("server", () => {
       );
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.status).toBe(409);
     });
 
     it("fails if neither index.html nor index.ejs.html exist", async () => {
       // Don't create any files in wwwRootPath.
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.status).toBe(404);
     });
   });
@@ -82,7 +86,7 @@ describe("server", () => {
         "hello world"
       );
 
-      let response = await request.get("/testdir/");
+      let response = await request("GET", "/testdir/");
       expect(response.data).toBe("hello world");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -94,7 +98,7 @@ describe("server", () => {
         "hello <%= 2+2 %>"
       );
 
-      let response = await request.get("/testdir/");
+      let response = await request("GET", "/testdir/");
       expect(response.data).toBe("hello 4");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -110,7 +114,7 @@ describe("server", () => {
         "hello world"
       );
 
-      let response = await request.get("/testdir/");
+      let response = await request("GET", "/testdir/");
       expect(response.status).toBe(409);
     });
 
@@ -118,14 +122,14 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "testdir"));
       // Don't create any files in ${wwwRootPath}/testdir.
 
-      let response = await request.get("/testdir/");
+      let response = await request("GET", "/testdir/");
       expect(response.status).toBe(404);
     });
 
     it("fails if directory does not exist", async () => {
       // Don't create ${wwwRootPath}/testdir.
 
-      let response = await request.get("/testdir/");
+      let response = await request("GET", "/testdir/");
       expect(response.status).toBe(404);
     });
   });
@@ -140,7 +144,7 @@ describe("server", () => {
         "hello world"
       );
 
-      let response = await request.get("/outer/inner/nested/");
+      let response = await request("GET", "/outer/inner/nested/");
       expect(response.data).toBe("hello world");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -157,7 +161,7 @@ describe("server", () => {
       "hello world"
     );
 
-    let response = await request.get("/testdir");
+    let response = await request("GET", "/testdir");
     expect(response.status).toBe(404);
   });
 
@@ -167,7 +171,7 @@ describe("server", () => {
       it("fails despite presence of index.html", async () => {
         fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
-        let response = await request.get(testPath);
+        let response = await request("GET", testPath);
         expect(response.status).toBe(404);
       });
 
@@ -177,7 +181,7 @@ describe("server", () => {
           "hello <%= 2+2 %>"
         );
 
-        let response = await request.get(testPath);
+        let response = await request("GET", testPath);
         expect(response.status).toBe(404);
       });
     });
@@ -189,7 +193,7 @@ describe("server", () => {
         path.join(wwwRootPath, "test.ejs.html"),
         "hello <%= 2+2 %>"
       );
-      let response = await request.get("/test.ejs.html");
+      let response = await request("GET", "/test.ejs.html");
       expect(response.status).toBe(404);
     });
   });
@@ -206,7 +210,7 @@ describe("server", () => {
         "hello <%= 2+2 %>"
       );
 
-      let response = await request.get("/generated/");
+      let response = await request("GET", "/generated/");
       expect(response.data).toBe("hello 4");
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -222,7 +226,7 @@ describe("server", () => {
         "hello <%= 2+2 %>"
       );
 
-      let response = await request.get("/generated/index.mjs");
+      let response = await request("GET", "/generated/index.mjs");
       expect(response.status).toBe(404);
     });
 
@@ -237,7 +241,7 @@ describe("server", () => {
         "current URI is <%- currentURI %>"
       );
 
-      let response = await request.get("/generated/subdir/");
+      let response = await request("GET", "/generated/subdir/");
       expect(response.status).toBe(200);
       expect(response.data).toBe("current URI is /generated/subdir/");
       expect(response.headers["content-type"]).toBe("text/html");
@@ -259,7 +263,7 @@ describe("server", () => {
         "routed page should not load"
       );
 
-      let response = await request.get("/generated/subdir/");
+      let response = await request("GET", "/generated/subdir/");
       expect(response.status).toBe(200);
       expect(response.data).toBe("filesystem page should load");
     });
@@ -280,7 +284,7 @@ describe("server", () => {
         "routed page should not load"
       );
 
-      let response = await request.get("/generated/subdir/");
+      let response = await request("GET", "/generated/subdir/");
       expect(response.status).toBe(409);
     });
 
@@ -295,7 +299,7 @@ describe("server", () => {
         "this page should not load"
       );
 
-      let response = await request.get("/generated/subdir/");
+      let response = await request("GET", "/generated/subdir/");
       expect(response.status).toBe(404);
     });
   });
@@ -320,7 +324,7 @@ describe("server", () => {
         };`
       );
 
-      let response = await request.get("/generated/app.bundle.js");
+      let response = await request("GET", "/generated/app.bundle.js");
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("application/javascript");
       expect(response.data).toContain('console.log("hello world")');
@@ -349,7 +353,7 @@ describe("server", () => {
         };`
       );
 
-      let response = await request.get("/generated/app.bundle.js");
+      let response = await request("GET", "/generated/app.bundle.js");
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("application/javascript");
       expect(response.data).toContain('console.log("hello world")');
@@ -376,7 +380,7 @@ describe("server", () => {
         };`
       );
 
-      let response = await request.get("/generated/app.bundle.js");
+      let response = await request("GET", "/generated/app.bundle.js");
       expect(response.status).toBe(500);
       expect(response.data).toContain("Build failed with 1 error");
     });
@@ -386,7 +390,7 @@ describe("server", () => {
     it("/test.png", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.png"), "hello PNG");
 
-      let response = await request.get("/test.png");
+      let response = await request("GET", "/test.png");
       expect(response.status).toBe(200);
       expect(response.data).toBe("hello PNG");
       expect(response.headers["content-type"]).toBe("image/png");
@@ -398,7 +402,7 @@ describe("server", () => {
         "console.log('hello')"
       );
 
-      let response = await request.get("/test.js");
+      let response = await request("GET", "/test.js");
       expect(response.status).toBe(200);
       expect(response.data).toBe("console.log('hello')");
       expect(response.headers["content-type"]).toBe("application/javascript");
@@ -407,7 +411,7 @@ describe("server", () => {
     it("/test.html", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.html"), "<h1>hello</h1>");
 
-      let response = await request.get("/test.html");
+      let response = await request("GET", "/test.html");
       expect(response.status).toBe(200);
       expect(response.data).toBe("<h1>hello</h1>");
       expect(response.headers["content-type"]).toBe("text/html");
@@ -416,7 +420,7 @@ describe("server", () => {
     it("/test.tar.bz2 (multiple file extensions)", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.tar.bz2"), "cmprssd dt");
 
-      let response = await request.get("/test.tar.bz2");
+      let response = await request("GET", "/test.tar.bz2");
       expect(response.status).toBe(200);
       expect(response.data).toBe("cmprssd dt");
       expect(response.headers["content-type"]).toBe("application/x-bzip2");
@@ -425,7 +429,7 @@ describe("server", () => {
     it("/doesnotexist.js gives 404 Not Found", async () => {
       // Do not create /doesnotexist.js.
 
-      let response = await request.get("/doesnotexist.js");
+      let response = await request("GET", "/doesnotexist.js");
       expect(response.status).toBe(404);
     });
   });
@@ -434,7 +438,7 @@ describe("server", () => {
     it("should 404 even if they exist", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "testfile"), "hello world");
 
-      let response = await request.get("/testfile");
+      let response = await request("GET", "/testfile");
       expect(response.status).toBe(404);
     });
   });
@@ -450,7 +454,7 @@ describe("server", () => {
         "console.log('hello')"
       );
 
-      let response = await request.get("/.test.js");
+      let response = await request("GET", "/.test.js");
       expect(response.status).toBe(404);
     });
   });
@@ -462,7 +466,7 @@ describe("server", () => {
         'Header add Link "</main.css>;rel=preload"'
       );
 
-      let response = await request.get("/.htaccess");
+      let response = await request("GET", "/.htaccess");
       expect(response.status).toBe(403);
     });
   });
@@ -471,14 +475,14 @@ describe("server", () => {
     it("/./ should 404 even if / works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
-      let response = await request.get("/./");
+      let response = await request("GET", "/./");
       expect(response.status).toBe(404);
     });
 
     it("/./test.js should 404 even if /test.js works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello()");
 
-      let response = await request.get("/./test.js");
+      let response = await request("GET", "/./test.js");
       expect(response.status).toBe(404);
     });
   });
@@ -487,14 +491,14 @@ describe("server", () => {
     it("/../ should 404 even if / works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
-      let response = await request.get("/../");
+      let response = await request("GET", "/../");
       expect(response.status).toBe(404);
     });
 
     it("/../test.js should 404 even if /test.js works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello()");
 
-      let response = await request.get("/../test.js");
+      let response = await request("GET", "/../test.js");
       expect(response.status).toBe(404);
     });
 
@@ -507,7 +511,7 @@ describe("server", () => {
       );
       fs.writeFileSync(path.join(wwwRootPath, "subdir", "test.js"), "hello()");
 
-      let response = await request.get("/subdir/../test.js");
+      let response = await request("GET", "/subdir/../test.js");
       expect(response.status).toBe(404);
     });
   });
@@ -520,7 +524,7 @@ describe("server", () => {
         "hello world"
       );
 
-      let response = await request.get("/node_modules/");
+      let response = await request("GET", "/node_modules/");
       expect(response.status).toBe(404);
     });
 
@@ -531,7 +535,7 @@ describe("server", () => {
         "hello()"
       );
 
-      let response = await request.get("/node_modules/test.js");
+      let response = await request("GET", "/node_modules/test.js");
       expect(response.status).toBe(404);
     });
   });
@@ -543,7 +547,7 @@ describe("server", () => {
         "<%= variableDoesNotExist %>"
       );
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.status).toBe(500);
       expect(response.data).toContain("variableDoesNotExist");
     });
@@ -559,10 +563,10 @@ describe("server", () => {
         "<%- currentURI %>"
       );
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.data).toBe("/");
 
-      response = await request.get("/subdir/");
+      response = await request("GET", "/subdir/");
       expect(response.data).toBe("/subdir/");
     });
 
@@ -572,7 +576,7 @@ describe("server", () => {
         "<%- currentURI %>"
       );
 
-      let response = await request.get("/?key=value");
+      let response = await request("GET", "/?key=value");
       expect(response.data).toBe("/");
     });
 
@@ -595,7 +599,7 @@ describe("server", () => {
         "export function hello() { return 'hi'; }"
       );
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.data).toBe("hi");
     });
 
@@ -629,7 +633,7 @@ describe("server", () => {
         "export function hello() { return 'hi-b'; }"
       );
 
-      let response = await request.get("/");
+      let response = await request("GET", "/");
       expect(response.data).toBe("hi-a hi-b");
     });
   });
@@ -641,7 +645,7 @@ describe("server", () => {
         "<%= syntax error goes here %>"
       );
 
-      let response = await request.head("/");
+      let response = await request("HEAD", "/");
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -649,7 +653,7 @@ describe("server", () => {
     it("fails for missing index.html and index.ejs.html", async () => {
       // Don't create index.html or index.ejs.html
 
-      let response = await request.head("/");
+      let response = await request("HEAD", "/");
       expect(response.status).toBe(404);
     });
 
@@ -663,7 +667,7 @@ describe("server", () => {
         "<%= syntax error goes here %>"
       );
 
-      let response = await request.head("/generated-page/");
+      let response = await request("HEAD", "/generated-page/");
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("text/html");
     });
@@ -678,7 +682,7 @@ describe("server", () => {
         "this page should not be loaded"
       );
 
-      let response = await request.head("/other-page/");
+      let response = await request("HEAD", "/other-page/");
       expect(response.status).toBe(404);
     });
 
@@ -688,7 +692,7 @@ describe("server", () => {
         "(PNG data goes here)"
       );
 
-      let response = await request.head("/file.png");
+      let response = await request("HEAD", "/file.png");
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("image/png");
     });
@@ -696,11 +700,37 @@ describe("server", () => {
     it("fails for missing PNG file", async () => {
       // Don't create file.png.
 
-      let response = await request.head("/file.png");
+      let response = await request("HEAD", "/file.png");
       expect(response.status).toBe(404);
     });
   });
 });
+
+function httpRequestAsync(options) {
+  return new Promise((resolve, reject) => {
+    let req = http.request(options, (res) => {
+      res.setEncoding("utf8");
+      let responseBody = "";
+      res.on("data", (chunk) => {
+        responseBody += chunk;
+      });
+      res.on("end", () => {
+        resolve({
+          status: res.statusCode,
+          data: responseBody,
+          headers: res.headers,
+        });
+      });
+      res.on("error", (err) => {
+        reject(err);
+      });
+    });
+    req.on("error", (err) => {
+      reject(err);
+    });
+    req.end();
+  });
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
