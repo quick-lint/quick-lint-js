@@ -2350,8 +2350,12 @@ parser::parse_arrow_function_parameters_or_call_arguments(
       this->skip();
       continue;
     }
-    parameters.emplace_back(
-        this->parse_expression(v, precedence{.commas = false}));
+    parameters.emplace_back(this->parse_expression(
+        v, precedence{
+               .commas = false,
+               .colon_question_is_typescript_optional_with_type_annotation =
+                   this->options_.typescript,
+           }));
     if (this->peek().type != token_type::comma) {
       break;
     }

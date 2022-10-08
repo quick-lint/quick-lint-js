@@ -458,6 +458,16 @@ TEST_F(test_parse_typescript_function, optional_parameter) {
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
   }
+
+  {
+    test_parser p(u8"async (param?: ParamType) => {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ParamType
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
 }
 
 TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
