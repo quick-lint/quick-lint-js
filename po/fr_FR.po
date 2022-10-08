@@ -68,6 +68,11 @@ msgid "'with' statement"
 msgstr "corps manquant pour l'instruction 'switch'"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -88,6 +93,11 @@ msgstr ""
 #, fuzzy
 msgid "a 'with' statement"
 msgstr "corps manquant pour l'instruction 'switch'"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a labelled statement"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy

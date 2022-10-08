@@ -654,6 +654,11 @@ void parser::consume_semicolon_after_statement() {
   this->consume_semicolon<diag_missing_semicolon_after_statement>();
 }
 
+void parser::check_body_after_label() {
+  this->error_on_class_statement(statement_kind::labelled_statement);
+  this->error_on_lexical_declaration(statement_kind::labelled_statement);
+}
+
 template <class MissingSemicolonDiagnostic>
 void parser::consume_semicolon() {
   switch (this->peek().type) {

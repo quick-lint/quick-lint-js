@@ -105,6 +105,7 @@ parse_statement:
       // Labelled statement.
       this->lexer_.commit_transaction(std::move(transaction));
       this->skip();
+      this->check_body_after_label();
       goto parse_statement;
     } else if (this->is_let_token_a_variable_reference(
                    this->peek(), /*allow_declarations=*/statement_type !=
@@ -270,6 +271,7 @@ parse_statement:
       // Labelled statement.
     case token_type::colon:
       this->skip();
+      this->check_body_after_label();
       goto parse_statement;
 
     default:
@@ -354,6 +356,7 @@ parse_statement:
                 .await = await_token.span(), .colon = this->peek().span()});
       }
       this->skip();
+      this->check_body_after_label();
       goto parse_statement;
     } else {
       expression *ast =
@@ -418,6 +421,7 @@ parse_statement:
       // Labelled statement.
     case token_type::colon:
       this->skip();
+      this->check_body_after_label();
       goto parse_statement;
 
       // Expression statement.
@@ -455,6 +459,7 @@ parse_statement:
     case token_type::colon:
       this->lexer_.commit_transaction(std::move(transaction));
       this->skip();
+      this->check_body_after_label();
       goto parse_statement;
 
     // type T = number;  // TypeScript only.

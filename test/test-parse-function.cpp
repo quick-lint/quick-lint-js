@@ -1658,6 +1658,15 @@ TEST_F(test_parse_function, function_as_with_statement_body_is_disallowed) {
   }
 }
 
+TEST_F(test_parse_function, function_as_label_body_is_allowed) {
+  test_parser p(u8"l: function f() {}"_sv);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",
+                                    "visit_enter_function_scope",
+                                    "visit_enter_function_scope_body",
+                                    "visit_exit_function_scope"));
+}
+
 TEST_F(test_parse_function, invalid_function_parameter) {
   {
     test_parser p(u8"function f(g(), p) {}"_sv, capture_diags);

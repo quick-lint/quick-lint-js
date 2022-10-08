@@ -33,6 +33,8 @@ translatable_message headlinese_statement_kind(statement_kind sk) noexcept {
     return QLJS_TRANSLATABLE("'while' loop");
   case statement_kind::with_statement:
     return QLJS_TRANSLATABLE("'with' statement");
+  case statement_kind::labelled_statement:
+    return QLJS_TRANSLATABLE("labelled statement");
   }
   QLJS_UNREACHABLE();
 }
@@ -49,6 +51,8 @@ translatable_message singular_statement_kind(statement_kind sk) noexcept {
     return QLJS_TRANSLATABLE("a 'while' loop");
   case statement_kind::with_statement:
     return QLJS_TRANSLATABLE("a 'with' statement");
+  case statement_kind::labelled_statement:
+    return QLJS_TRANSLATABLE("a labelled statement");
   }
   QLJS_UNREACHABLE();
 }

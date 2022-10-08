@@ -871,6 +871,16 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "a labelled statement"_translatable,
+        {
+            u8"a labelled statement",
+            u8"a labelled statement",
+            u8"a labelled statement",
+            u8"a labelled statement",
+            u8"a labelled statement",
+        },
+    },
+    {
         "a lexical declaration is not allowed as the body of {1:singular}"_translatable,
         {
             u8"a lexical declaration is not allowed as the body of {1:singular}",
@@ -2118,6 +2128,16 @@ const translated_string test_translation_table[] = {
             u8"'goto await;' isn't a thing",
             u8"\u00e9tiquette nomm\u00e9e 'await' non autoris\u00e9e dans les fonctions async",
             u8"label named 'await' not allowed in async function",
+        },
+    },
+    {
+        "labelled statement"_translatable,
+        {
+            u8"labelled statement",
+            u8"labelled statement",
+            u8"labelled statement",
+            u8"labelled statement",
+            u8"labelled statement",
         },
     },
     {

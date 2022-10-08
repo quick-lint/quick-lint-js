@@ -97,7 +97,8 @@ const translation_table translation_data = {
         {20, 16, 0, 0, 15},           //
         {20, 40, 63, 66, 19},         //
         {67, 28, 78, 61, 61},         //
-        {66, 50, 74, 65, 64},         //
+        {0, 0, 0, 0, 64},             //
+        {66, 50, 74, 65, 21},         //
         {77, 41, 0, 0, 65},           //
         {0, 0, 0, 0, 14},             //
         {0, 0, 0, 0, 43},             //
@@ -223,6 +224,7 @@ const translation_table translation_data = {
         {39, 51, 50, 38, 39},         //
         {57, 72, 67, 0, 41},          //
         {0, 0, 0, 0, 50},             //
+        {0, 0, 0, 0, 19},             //
         {63, 28, 67, 46, 58},         //
         {54, 5, 62, 52, 39},          //
         {61, 50, 75, 64, 50},         //
@@ -1388,6 +1390,7 @@ const translation_table translation_data = {
         u8"a 'with' statement\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
         u8"a function statement is not allowed as the body of {1:singular}\0"
+        u8"a labelled statement\0"
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
         u8"a {{0} b }} c\0"
         u8"abstract fields cannot have default values\0"
@@ -1513,6 +1516,7 @@ const translation_table translation_data = {
         u8"invalid lone literal in object literal\0"
         u8"keywords cannot contain escape sequences\0"
         u8"label named 'await' not allowed in async function\0"
+        u8"labelled statement\0"
         u8"leading commas are not allowed in generic parameter lists\0"
         u8"legacy octal literal may not be BigInt\0"
         u8"legacy octal literals may not contain underscores\0"
