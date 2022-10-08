@@ -2,17 +2,24 @@
 # yarn lockfile v1
 
 
-parse5@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/parse5/-/parse5-6.0.1.tgz#e1a1c085c569b3dc08321184f19a39cc27f7c30b"
-  integrity sha512-Ofn/CTFzRGTTxwpNEs9PP93gXShHcTq255nzRYSKe8AkVpZY7e1fpmTfOyoIvjP5HG7Z2ZM7VS9PPhQGW2pOpw==
+entities@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/entities/-/entities-4.4.0.tgz#97bdaba170339446495e653cfd2db78962900174"
+  integrity sha512-oYp7156SP8LkeGD0GF85ad1X9Ai79WtRsZ2gxJqtBuzH+98YUV6jkHEKlZkMbcrjJjIVJNIDP/3WL9wQkoPbWA==
 
-prettier@^2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.4.1.tgz#671e11c89c14a4cfc876ce564106c4a6726c9f5c"
-  integrity sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==
+parse5@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/parse5/-/parse5-7.1.1.tgz#4649f940ccfb95d8754f37f73078ea20afe0c746"
+  integrity sha512-kwpuwzB+px5WUg9pyK0IcK/shltJN5/OVhQagxhCQNtT9Y9QRZqNY2e1cmbu/paRh5LMnz/oVTVLBpjFmMZhSg==
+  dependencies:
+    entities "^4.4.0"
 
-webidl2@^24.1.2:
-  version "24.1.2"
-  resolved "https://registry.yarnpkg.com/webidl2/-/webidl2-24.1.2.tgz#1467a01cf9e6d060ef7240d73b95f5f5627d729d"
-  integrity sha512-AyfWN34VRdJCtcQYK4DAnwU0fFA0BHBEnbdly1PBW941QYN8O+oOx8lf4r1JuPRKuI/vimAzlRxtwTM+ACwnzg==
+prettier@^2.7.1:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"
+  integrity sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==
+
+webidl2@^24.2.2:
+  version "24.2.2"
+  resolved "https://registry.yarnpkg.com/webidl2/-/webidl2-24.2.2.tgz#737132152bb1e2c4ae3a5839b663edb51cf0b8eb"
+  integrity sha512-4l1lBuUqfNBZDzQfG0dpM2haInTZ+IRnXwbWn9Oc49boPTlXQS8Hpg4GK4kE7M+504ZUKCwzBxtQR/0wPVokUw==
