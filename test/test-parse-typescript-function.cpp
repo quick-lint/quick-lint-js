@@ -458,7 +458,9 @@ TEST_F(test_parse_typescript_function, optional_parameter) {
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
   }
+}
 
+TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
   {
     test_parser p(u8"(param1?: ParamType, param2?, param3?) => ReturnType"_sv,
                   typescript_options);
