@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <memory>
 #include <quick-lint-js/container/allocator.h>
 #include <quick-lint-js/container/linked-vector.h>

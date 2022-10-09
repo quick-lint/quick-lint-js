@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_FE_BUFFERING_VISITOR_H
 #define QUICK_LINT_JS_FE_BUFFERING_VISITOR_H
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <optional>
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/winkable.h>
