@@ -270,9 +270,6 @@ class variable_analyzer final : public parse_visitor_base {
       const declared_variable &var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
-      const std::optional<global_declared_variable> &var,
-      const identifier &assignment, bool is_assigned_before_declaration) const;
-  void report_error_if_assignment_is_illegal(
       const global_declared_variable &var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(

@@ -46,10 +46,6 @@ void configuration::reset_global_groups() {
   }
 }
 
-void configuration::allow_literally_any_global_variable() {
-  this->literally_anything_global_group_enabled_ = true;
-}
-
 bool configuration::add_global_group(string8_view group_name) {
   if (group_name == u8"literally-anything"sv) {
     this->literally_anything_global_group_enabled_ = true;

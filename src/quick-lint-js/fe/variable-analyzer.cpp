@@ -728,14 +728,6 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
 }
 
 void variable_analyzer::report_error_if_assignment_is_illegal(
-    const std::optional<global_declared_variable> &var,
-    const identifier &assignment, bool is_assigned_before_declaration) const {
-  QLJS_ASSERT(var.has_value());
-  this->report_error_if_assignment_is_illegal(*var, assignment,
-                                              is_assigned_before_declaration);
-}
-
-void variable_analyzer::report_error_if_assignment_is_illegal(
     const global_declared_variable &var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(

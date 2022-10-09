@@ -25,7 +25,6 @@ class configuration {
   const global_declared_variable_set& globals() noexcept;
 
   void reset_global_groups();
-  void allow_literally_any_global_variable();
   bool add_global_group(string8_view group_name);
 
   void add_global_variable(global_declared_variable);

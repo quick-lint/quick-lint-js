@@ -203,10 +203,6 @@ void byte_buffer::add_new_chunk(size_type chunk_size) {
   this->current_chunk_end_ = chunk_end(c);
 }
 
-byte_buffer_chunk byte_buffer::allocate_chunk() {
-  return allocate_chunk(default_chunk_size);
-}
-
 byte_buffer_chunk byte_buffer::allocate_chunk(size_type size) {
   // See corresponding deallocation in delete_chunk.
   return make_chunk(new std::byte[size], size);
