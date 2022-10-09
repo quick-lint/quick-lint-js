@@ -17,10 +17,10 @@ jobs:
           - {runs_on: macos-12, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "Clang 9 libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", ASAN_OPTIONS: "detect_stack_use_after_return=1"}
           - {runs_on: ubuntu-latest, name: "Clang 9 Release libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
-          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
+          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", ASAN_OPTIONS: "detect_stack_use_after_return=1"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 dev", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-DQUICK_LINT_JS_FEATURE_VECTOR_PROFILING=ON"}
           # TODO(strager): Also test MinGW-based builds.
@@ -29,6 +29,7 @@ jobs:
     runs-on: ${{ matrix.toolchain.runs_on }}
     container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.toolchain.runs_on == 'ubuntu-latest'] }}
     env:
+      ASAN_OPTIONS: ${{ matrix.toolchain.ASAN_OPTIONS }}
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
       CMAKE_C_FLAGS: ${{ matrix.toolchain.CFLAGS }}
@@ -53,7 +54,7 @@ jobs:
 
       - name: configure
         run: |
-          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
+          env | grep '^ASAN_OPTIONS\|^CMAKE\|^QUICK_LINT_JS' | sort
           cmake -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES -DBUILD_TESTING=YES ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_CXX_COMPILER_OPTIONS="${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}" ${CMAKE_EXTRA_FLAGS} -S . -B .
         shell: bash
       - name: build
