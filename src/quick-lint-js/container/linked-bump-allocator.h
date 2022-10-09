@@ -175,11 +175,6 @@ class linked_bump_allocator : public memory_resource {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
 
-  template <class T>
-  boost::container::pmr::polymorphic_allocator<T> standard_allocator() {
-    return boost::container::pmr::polymorphic_allocator<T>(this);
-  }
-
   class disable_guard {
    public:
     ~disable_guard() {
