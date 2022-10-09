@@ -3,12 +3,12 @@
 
 #if !defined(__EMSCRIPTEN__)
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
@@ -25,8 +25,7 @@ using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-loaded_config_file::loaded_config_file()
-    : errors(boost::container::pmr::new_delete_resource()) {}
+loaded_config_file::loaded_config_file() : errors(new_delete_resource()) {}
 
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}

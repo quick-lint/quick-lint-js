@@ -2,11 +2,11 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/container/pmr/global_resource.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/container/async-byte-queue.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
@@ -14,7 +14,7 @@
 
 namespace quick_lint_js {
 async_byte_queue::async_byte_queue()
-    : async_byte_queue(::boost::container::pmr::new_delete_resource()) {}
+    : async_byte_queue(new_delete_resource()) {}
 
 async_byte_queue::async_byte_queue(
     ::boost::container::pmr::memory_resource* memory)

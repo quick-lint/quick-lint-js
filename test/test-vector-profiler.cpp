@@ -20,7 +20,6 @@
   (::testing::Field(#_member, &_class::_member, __VA_ARGS__))
 #endif
 
-using boost::container::pmr::new_delete_resource;
 using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Ge;

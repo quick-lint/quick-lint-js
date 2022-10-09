@@ -2,10 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <boost/container/pmr/global_resource.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -17,8 +17,6 @@
 #include <string>
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
-
-using boost::container::pmr::new_delete_resource;
 
 namespace quick_lint_js {
 namespace {

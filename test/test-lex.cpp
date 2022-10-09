@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <array>
-#include <boost/container/pmr/global_resource.hpp>
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -11,6 +10,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/characters.h>
 #include <quick-lint-js/container/linked-vector.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -98,8 +98,7 @@ class test_lex : public ::testing::Test {
   bool lex_jsx_tokens = false;
 
  private:
-  linked_vector<lexer> lexers_ =
-      linked_vector<lexer>(::boost::container::pmr::new_delete_resource());
+  linked_vector<lexer> lexers_ = linked_vector<lexer>(new_delete_resource());
 };
 
 TEST_F(test_lex, lex_block_comments) {

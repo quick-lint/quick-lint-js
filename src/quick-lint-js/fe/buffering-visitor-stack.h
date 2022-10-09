@@ -7,6 +7,7 @@
 #include <boost/container/pmr/memory_resource.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/linked-vector.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 
 namespace quick_lint_js {
@@ -20,8 +21,7 @@ class stacked_buffering_visitor;
 class buffering_visitor_stack {
  public:
   explicit buffering_visitor_stack()
-      : buffering_visitor_stack(
-            ::boost::container::pmr::new_delete_resource()) {}
+      : buffering_visitor_stack(new_delete_resource()) {}
 
   explicit buffering_visitor_stack(
       ::boost::container::pmr::memory_resource *memory)
@@ -73,7 +73,7 @@ class stacked_buffering_visitor {
 };
 
 inline stacked_buffering_visitor buffering_visitor_stack::push() {
-  this->stack_.emplace_back(::boost::container::pmr::new_delete_resource());
+  this->stack_.emplace_back(new_delete_resource());
   return stacked_buffering_visitor(this, &this->stack_.back());
 }
 }

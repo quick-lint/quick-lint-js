@@ -1,15 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/linked-vector.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 #include <vector>
 
-using ::boost::container::pmr::new_delete_resource;
 using ::testing::ContainerEq;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;

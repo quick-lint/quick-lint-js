@@ -4,10 +4,10 @@
 #ifndef QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
 #define QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <boost/container/pmr/memory_resource.hpp>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/new-delete-resource.h>
 
 namespace quick_lint_js {
 class tracking_memory_resource
@@ -48,7 +48,7 @@ class tracking_memory_resource
   }
 
   ::boost::container::pmr::memory_resource* underlying_memory_ =
-      ::boost::container::pmr::new_delete_resource();
+      new_delete_resource();
 
   std::uint64_t allocated_bytes_ = 0;
   std::uint64_t deallocated_bytes_ = 0;

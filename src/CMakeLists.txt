@@ -88,6 +88,8 @@ quick_lint_js_add_library(
   quick-lint-js/container/heap-function.h
   quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/linked-vector.h
+  quick-lint-js/container/new-delete-resource.cpp
+  quick-lint-js/container/new-delete-resource.h
   quick-lint-js/container/optional.h
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h

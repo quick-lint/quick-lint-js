@@ -1229,7 +1229,7 @@ libc.so.6                     /tmp/cchQcqEp.o (puts@@GLIBC_2.2.5)
 Archive member included to satisfy reference by file (symbol)
 
 libboost.a(global_resource.cpp.o)
-                              src/CMakeFiles/quick-lint-js.dir/main.cpp.o (boost::container::pmr::new_delete_resource())
+                              src/CMakeFiles/quick-lint-js.dir/main.cpp.o (new_delete_resource())
 libboost.a(dlmalloc.cpp.o)    libboost.a(global_resource.cpp.o) (boost::container::dlmalloc_global_sync_lock())
 libboost.a(alloc_lib.c.o)     libboost.a(dlmalloc.cpp.o) (boost_cont_all_deallocated)
 """
