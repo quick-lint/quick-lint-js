@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -13,6 +12,7 @@
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/warning.h>
 #include <string>
 

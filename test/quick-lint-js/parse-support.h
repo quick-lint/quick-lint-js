@@ -11,7 +11,6 @@
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -20,6 +19,7 @@
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/spy-visitor.h>
 #include <string>
 #include <string_view>

@@ -7,7 +7,7 @@
 #include <boost/container/pmr/memory_resource.hpp>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/container/new-delete-resource.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
 class tracking_memory_resource

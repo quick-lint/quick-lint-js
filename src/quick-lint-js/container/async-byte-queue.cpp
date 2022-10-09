@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/container/async-byte-queue.h>
-#include <quick-lint-js/container/new-delete-resource.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>

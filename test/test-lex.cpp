@@ -10,7 +10,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/characters.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/source-location.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>

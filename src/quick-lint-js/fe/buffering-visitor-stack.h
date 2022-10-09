@@ -7,8 +7,8 @@
 #include <boost/container/pmr/memory_resource.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
 class stacked_buffering_visitor;
