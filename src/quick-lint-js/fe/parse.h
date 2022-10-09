@@ -854,6 +854,7 @@ class parser {
  private:
   [[nodiscard]] typescript_only_construct_guard
   enter_typescript_only_construct();
+  [[nodiscard]] switch_guard enter_switch();
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

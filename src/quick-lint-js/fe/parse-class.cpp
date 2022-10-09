@@ -209,7 +209,7 @@ void parser::visit_class_name(parse_visitor_base &v,
 void parser::parse_and_visit_class_body(parse_visitor_base &v,
                                         source_code_span class_keyword_span,
                                         bool is_abstract) {
-  class_guard g(this, std::exchange(this->in_class_, true));
+  class_guard g = this->enter_class();
 
   source_code_span left_curly_span = this->peek().span();
   this->skip();

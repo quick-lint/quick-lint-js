@@ -558,7 +558,7 @@ parse_statement:
 
     // switch (x) { default: ; }
   case token_type::kw_switch: {
-    switch_guard s(this, std::exchange(this->in_switch_statement_, true));
+    switch_guard s = this->enter_switch();
     this->parse_and_visit_switch(v);
     break;
   }
