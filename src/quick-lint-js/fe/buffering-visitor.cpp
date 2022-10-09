@@ -5,8 +5,7 @@
 #include <quick-lint-js/fe/parse-visitor.h>
 
 namespace quick_lint_js {
-buffering_visitor::buffering_visitor(
-    boost::container::pmr::memory_resource *memory)
+buffering_visitor::buffering_visitor(memory_resource *memory)
     : visits_(memory) {}
 
 void buffering_visitor::move_into(parse_visitor_base &target) {

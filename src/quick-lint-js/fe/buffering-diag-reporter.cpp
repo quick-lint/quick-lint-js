@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <memory>
 #include <quick-lint-js/container/allocator.h>
@@ -9,13 +8,13 @@
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <type_traits>
 
 namespace quick_lint_js {
 struct buffering_diag_reporter::impl {
-  explicit impl(boost::container::pmr::memory_resource *memory) noexcept
-      : memory_(memory) {}
+  explicit impl(memory_resource *memory) noexcept : memory_(memory) {}
 
   struct any_diag {
     union underlying_diag {
@@ -33,7 +32,7 @@ struct buffering_diag_reporter::impl {
     underlying_diag diag;
   };
 
-  boost::container::pmr::memory_resource *memory_;
+  memory_resource *memory_;
   linked_vector<any_diag> diagnostics_{this->memory_};
 };
 
@@ -43,8 +42,7 @@ void buffering_diag_reporter::impl_deleter::operator()(impl *i) noexcept {
   }
 }
 
-buffering_diag_reporter::buffering_diag_reporter(
-    boost::container::pmr::memory_resource *memory)
+buffering_diag_reporter::buffering_diag_reporter(memory_resource *memory)
     : impl_(new_object<impl>(memory, memory)) {}
 
 buffering_diag_reporter::buffering_diag_reporter(buffering_diag_reporter &&) =

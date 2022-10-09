@@ -4,16 +4,16 @@
 #ifndef QUICK_LINT_JS_FE_BUFFERING_DIAG_REPORTER_H
 #define QUICK_LINT_JS_FE_BUFFERING_DIAG_REPORTER_H
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <memory>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/token.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
 class buffering_diag_reporter final : public diag_reporter {
  public:
-  explicit buffering_diag_reporter(boost::container::pmr::memory_resource *);
+  explicit buffering_diag_reporter(memory_resource *);
 
   buffering_diag_reporter(buffering_diag_reporter &&);
   buffering_diag_reporter &operator=(buffering_diag_reporter &&);

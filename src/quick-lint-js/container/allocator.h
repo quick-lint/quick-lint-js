@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_CONTAINER_ALLOCATOR_H
 #define QUICK_LINT_JS_CONTAINER_ALLOCATOR_H
 
-#include <boost/container/pmr/memory_resource.hpp>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/warning.h>
 #include <utility>
 
@@ -12,7 +12,7 @@ namespace quick_lint_js {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 template <class T, class... Args>
-T* new_object(boost::container::pmr::memory_resource* memory, Args&&... args) {
+T* new_object(memory_resource* memory, Args&&... args) {
   T* result = reinterpret_cast<T*>(memory->allocate(sizeof(T), alignof(T)));
   result = new (result) T(std::forward<Args>(args)...);
   return result;
@@ -20,7 +20,7 @@ T* new_object(boost::container::pmr::memory_resource* memory, Args&&... args) {
 QLJS_WARNING_POP
 
 template <class T>
-void delete_object(boost::container::pmr::memory_resource* memory, T* object) {
+void delete_object(memory_resource* memory, T* object) {
   object->~T();
   memory->deallocate(object, sizeof(T), alignof(T));
 }

@@ -7,9 +7,11 @@
 #include <boost/container/pmr/memory_resource.hpp>
 
 namespace quick_lint_js {
+using memory_resource = ::boost::container::pmr::memory_resource;
+
 // Like boost::container::pmr::new_delete_resource, but without a dependency on
 // dlmalloc.
-::boost::container::pmr::memory_resource *new_delete_resource() noexcept;
+memory_resource *new_delete_resource() noexcept;
 }
 
 #endif
