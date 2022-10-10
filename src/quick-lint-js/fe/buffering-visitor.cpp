@@ -1,5 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
+
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 
