@@ -4,23 +4,12 @@
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 
-int* my_test_function(int x) {
-int *x_ptr = &x;
-return x_ptr;
-}
-
-
-
 namespace quick_lint_js {
 buffering_visitor::buffering_visitor(
     boost::container::pmr::memory_resource *memory)
     : visits_(memory) {}
 
 void buffering_visitor::move_into(parse_visitor_base &target) {
-  int x=10;
-  int *x_ptr = my_test_function(x);
-  std::cout << *x_ptr;
-
   this->copy_into(target);
 }
 
