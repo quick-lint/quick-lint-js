@@ -19,6 +19,8 @@
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 
+int* my_test_function(int);
+
 namespace quick_lint_js {
 class buffering_visitor final : public parse_visitor_base {
  public:
