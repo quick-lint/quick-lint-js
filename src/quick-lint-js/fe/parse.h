@@ -619,6 +619,8 @@ class parser {
 
   void check_assignment_lhs(expression *);
 
+  void check_body_after_label();
+
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
 

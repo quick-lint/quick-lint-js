@@ -13,6 +13,7 @@ enum class statement_kind {
   if_statement,
   while_loop,
   with_statement,
+  labelled_statement,
 };
 
 enum class enum_kind {

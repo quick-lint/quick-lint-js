@@ -1986,6 +1986,31 @@ TEST_F(test_parse_var,
   }
 }
 
+TEST_F(test_parse_var, lexical_declaration_as_label_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    test_parser p(concat(u8"l: ", variable_kind, u8" x = y;"), capture_diags);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",
+                                      "visit_variable_declaration"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_3_FIELDS(
+            diag_lexical_declaration_not_allowed_in_body,                  //
+            kind_of_statement, statement_kind::labelled_statement,         //
+            expected_body, offsets_matcher(p.code, strlen(u8"l:"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(p.code, strlen(u8"l: "), variable_kind))));
+  }
+}
+
+TEST_F(test_parse_var, var_declaration_as_label_body_is_allowed) {
+  test_parser p(u8"l: var x = y;");
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits,
+              ElementsAre("visit_variable_use", "visit_variable_declaration"));
+}
+
 TEST_F(test_parse_var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {

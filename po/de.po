@@ -66,6 +66,11 @@ msgid "'with' statement"
 msgstr "with-Anweisung"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr "eine do-While-Schleife"
 
@@ -84,6 +89,11 @@ msgstr "eine while-Schleife"
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'with' statement"
 msgstr "eine with-Anweisung"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a labelled statement"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy

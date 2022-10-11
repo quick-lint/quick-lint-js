@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 392;
-constexpr std::size_t translation_table_string_table_size = 55648;
+constexpr std::uint16_t translation_table_mapping_table_size = 394;
+constexpr std::size_t translation_table_string_table_size = 55688;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -114,6 +114,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a 'with' statement"sv,
           "a class statement is not allowed as the body of {1:singular}"sv,
           "a function statement is not allowed as the body of {1:singular}"sv,
+          "a labelled statement"sv,
           "a lexical declaration is not allowed as the body of {1:singular}"sv,
           "a {{0} b }} c"sv,
           "abstract fields cannot have default values"sv,
@@ -239,6 +240,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "invalid lone literal in object literal"sv,
           "keywords cannot contain escape sequences"sv,
           "label named 'await' not allowed in async function"sv,
+          "labelled statement"sv,
           "leading commas are not allowed in generic parameter lists"sv,
           "legacy octal literal may not be BigInt"sv,
           "legacy octal literals may not contain underscores"sv,
