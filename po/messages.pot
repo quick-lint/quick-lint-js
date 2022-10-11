@@ -68,6 +68,10 @@ msgid "'with' statement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -85,6 +89,10 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'with' statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a labelled statement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
