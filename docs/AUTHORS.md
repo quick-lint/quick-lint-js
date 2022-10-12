@@ -22,6 +22,7 @@ authored portions of quick-lint-js:
 
 * A-thanasios; https://github.com/A-thanasios; signed CLA-v1.md
 * AidenThing; signed CLA-v1.md
+* Alek Lefebvre; alek.lefebvre@gmail.com; signed CLA-v1.md
 * Alessandro De Bellis; aledeb95@gmail.com; signed CLA-v1.md
 * Alex Via; alexviacoll@gmail.com; signed CLA-v1.md
 * Amir; amir77mafi@gmail.com; signed CLA-v1.md
@@ -37,6 +38,7 @@ authored portions of quick-lint-js:
 * Erlliam Mejia; tommejas@gmail.com; signed CLA-v1.md
 * Francis Laniel; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
+* Guilherme Vasconcelos; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
 * Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
 * Jenny "Jennipuff" Wheat
@@ -50,6 +52,7 @@ authored portions of quick-lint-js:
 * Matheus Phranco; matheusphranco@gmail.com; signed CLA-v1.md
 * Matheus Sousa; msamuel@aluno.puc-rio.br; signed CLA-v1.md
 * Max 👨🏽‍💻 Coplan; mchcopl@gmail.com; signed CLA-v1.md
+* Ming Ng; signed CLA-v1.md
 * Mothi Ghimire; mothi.ghimire@gmail.com; signed CLA-v1.md
 * Nico Sonack; nsonack@outlook.com; signed CLA-v1.md
 * Peter Khalil; https://github.com/m5tfi; signed CLA-v1.md
