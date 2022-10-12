@@ -40,7 +40,6 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 41},             //
         {0, 0, 0, 0, 38},             //
         {0, 0, 0, 0, 66},             //
-        {0, 0, 0, 0, 61},             //
         {0, 0, 0, 0, 55},             //
         {0, 0, 0, 0, 35},             //
         {0, 0, 0, 0, 48},             //
@@ -319,8 +318,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 58},             //
         {0, 0, 0, 0, 40},             //
         {32, 13, 50, 38, 29},         //
-        {0, 0, 0, 0, 54},             //
-        {66, 33, 76, 58, 31},         //
+        {66, 33, 76, 58, 54},         //
         {40, 29, 35, 33, 33},         //
         {0, 0, 0, 0, 31},             //
         {38, 61, 32, 31, 18},         //
@@ -1332,7 +1330,6 @@ const translation_table translation_data = {
         u8"'protected' is not allowed in JavaScript\0"
         u8"'public' is not allowed in JavaScript\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
-        u8"'readonly' must be followed by an array type or a tuple type\0"
         u8"'readonly' only works with array types and tuple types\0"
         u8"'this' must be the first parameter\0"
         u8"'this' parameter not allowed when destructuring\0"
@@ -1612,7 +1609,6 @@ const translation_table translation_data = {
         u8"overloaded function '{0}' declared here\0"
         u8"prior spread element is here\0"
         u8"private properties are not allowed in object literals\0"
-        u8"readonly array is missing '[]'\0"
         u8"redeclaration of global variable\0"
         u8"redeclaration of variable: {0}\0"
         u8"redundant 'await'\0"

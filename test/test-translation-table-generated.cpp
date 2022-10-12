@@ -291,16 +291,6 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "'readonly' must be followed by an array type or a tuple type"_translatable,
-        {
-            u8"'readonly' must be followed by an array type or a tuple type",
-            u8"'readonly' must be followed by an array type or a tuple type",
-            u8"'readonly' must be followed by an array type or a tuple type",
-            u8"'readonly' must be followed by an array type or a tuple type",
-            u8"'readonly' must be followed by an array type or a tuple type",
-        },
-    },
-    {
         "'readonly' only works with array types and tuple types"_translatable,
         {
             u8"'readonly' only works with array types and tuple types",
@@ -3088,16 +3078,6 @@ const translated_string test_translation_table[] = {
             u8"objects can't have privates \U0001f92b",
             u8"les propri\u00e9t\u00e9s priv\u00e9es ne sont pas autoris\u00e9es dans les litt\u00e9raux objet",
             u8"privata egenskaper \u00e4r inte till\u00e5tna i objektlitter\u00e4ler",
-        },
-    },
-    {
-        "readonly array is missing '[]'"_translatable,
-        {
-            u8"readonly array is missing '[]'",
-            u8"readonly array is missing '[]'",
-            u8"readonly array is missing '[]'",
-            u8"readonly array is missing '[]'",
-            u8"readonly array is missing '[]'",
         },
     },
     {

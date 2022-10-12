@@ -2020,24 +2020,9 @@
               readonly_keyword))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_readonly_in_type_needs_array_or_tuple_type, "E0314",      \
+      diag_typescript_readonly_in_type_needs_array_or_tuple_type, "E0313",      \
       diagnostic_severity::error, { source_code_span readonly_keyword; },       \
-      MESSAGE(                                                                  \
-          QLJS_TRANSLATABLE(                                                    \
-              "'readonly' must be followed by an array type or a tuple type"),  \
-          readonly_keyword))                                                    \
-                                                                                \
-  QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_readonly_type_needs_array, "E0313",                       \
-      diagnostic_severity::error,                                               \
-      {                                                                         \
-        source_code_span expected_array_brackets;                               \
-        source_code_span readonly_keyword;                                      \
-      },                                                                        \
-      MESSAGE(QLJS_TRANSLATABLE("readonly array is missing '[]'"),              \
-              expected_array_brackets)                                          \
-          MESSAGE(                                                              \
-              QLJS_TRANSLATABLE(                                                \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "'readonly' only works with array types and tuple types"),    \
               readonly_keyword))                                                \
                                                                                 \

@@ -1690,35 +1690,18 @@ TEST_F(test_parse_typescript_type, readonly_requires_tuple_or_array_type) {
            u8"readonly ('hello' | 'world')"_sv,
            u8"readonly `hello${world}`"_sv,
            u8"readonly {key: Value}"_sv,
-
-           // TODO(strager): We should recommend removing the parentheses
-           // instead.
-           u8"readonly (T[])"_sv,
-       }) {
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
-                              p.code, diag_typescript_readonly_type_needs_array,
-                              expected_array_brackets, code.size(), u8"",  //
-                              readonly_keyword, 0, u8"readonly")));
-  }
-
-  // In these cases, we don't recommend adding '[]' to the end of the type
-  // (either because that wouldn't fix the error or they probably didn't intend
-  // to make an array type).
-  for (string8_view code : {
-           // Array type probably isn't intended (but adding [] would work):
            u8"readonly Type[Key]"_sv,
            u8"readonly typeof ns.varname[Key]"_sv
-
-           // Adding [] doesn't make an array type:
            u8"readonly () => ReturnType[]"_sv,
            u8"readonly new () => ReturnType[]"_sv,
            u8"readonly <T>() => ReturnType[]"_sv,
            u8"readonly unique symbol"_sv,
            u8"readonly keyof T"_sv,
            u8"readonly keyof T[]"_sv,
+
+           // TODO(strager): We should recommend removing the parentheses
+           // instead.
+           u8"readonly (T[])"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options, capture_diags);

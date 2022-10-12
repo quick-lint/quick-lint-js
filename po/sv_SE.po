@@ -68,7 +68,6 @@ msgid "'with' statement"
 msgstr "saknar stycke för 'switch' påstående"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
-#, fuzzy
 msgid "labelled statement"
 msgstr ""
 
@@ -95,7 +94,6 @@ msgid "a 'with' statement"
 msgstr "saknar stycke för 'switch' påstående"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
-#, fuzzy
 msgid "a labelled statement"
 msgstr ""
 
@@ -1328,14 +1326,6 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "methods cannot be readonly"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'readonly' must be followed by an array type or a tuple type"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "readonly array is missing '[]'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

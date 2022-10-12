@@ -47,7 +47,6 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
       this->enter_typescript_only_construct();
 
   bool is_array_type = false;
-  bool trailing_square_makes_array = true;
   bool is_tuple_type = false;
 
   std::optional<source_code_span> leading_binary_operator;  // '|' or '&'
@@ -152,7 +151,6 @@ again:
   // unique.prop
   // unique symbol
   case token_type::kw_unique:
-    trailing_square_makes_array = false;
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_symbol);
     this->skip();
@@ -166,25 +164,18 @@ again:
 
   // (typeexpr)
   // (param, param) => ReturnType
-  case token_type::left_paren: {
-    typescript_type_arrow_or_paren result =
-        this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
-    if (result == typescript_type_arrow_or_paren::arrow) {
-      trailing_square_makes_array = false;
-    }
+  case token_type::left_paren:
+    this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
     break;
-  }
 
   // new (param, param) => ReturnType
   case token_type::kw_new:
-    trailing_square_makes_array = false;
     this->skip();
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
 
   // <T>(param, param) => ReturnType
   case token_type::less:
-    trailing_square_makes_array = false;
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
 
@@ -340,7 +331,6 @@ again:
 
   // keyof Type
   case token_type::kw_keyof:
-    trailing_square_makes_array = false;
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
     break;
@@ -356,11 +346,9 @@ again:
     break;
   }
 
-  bool have_trailing_square_bracket = false;
   while (this->peek().type == token_type::left_square) {
     // typeexpr[]
     // typeexpr[Key]
-    have_trailing_square_bracket = true;
     this->skip();
     if (this->peek().type == token_type::right_square) {
       is_array_type = true;
@@ -372,20 +360,10 @@ again:
     }
   }
   if (readonly_keyword.has_value() && !(is_array_type || is_tuple_type)) {
-    if (have_trailing_square_bracket || !trailing_square_makes_array) {
-      // readonly T[K]  // Invalid.
-      this->diag_reporter_->report(
-          diag_typescript_readonly_in_type_needs_array_or_tuple_type{
-              .readonly_keyword = *readonly_keyword,
-          });
-    } else {
-      // readonly T  // Invalid.
-      this->diag_reporter_->report(diag_typescript_readonly_type_needs_array{
-          .expected_array_brackets =
-              source_code_span::unit(this->lexer_.end_of_previous_token()),
-          .readonly_keyword = *readonly_keyword,
-      });
-    }
+    this->diag_reporter_->report(
+        diag_typescript_readonly_in_type_needs_array_or_tuple_type{
+            .readonly_keyword = *readonly_keyword,
+        });
   }
 
   if (this->peek().type == token_type::ampersand ||
