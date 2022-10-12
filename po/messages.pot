@@ -336,6 +336,14 @@ msgid "missing property name between '.' and '.'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "duplicated case clause in switch statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "this case will run instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'else' has no corresponding 'if'"
 msgstr ""
 

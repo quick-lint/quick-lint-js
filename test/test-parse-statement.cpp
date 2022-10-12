@@ -949,6 +949,33 @@ TEST_F(test_parse_statement, switch_case_without_expression) {
   }
 }
 
+TEST_F(test_parse_statement, switch_case_with_duplicated_cases) {
+  {
+    test_parser p(u8"switch (cond) {case x: case y: case y:}"_sv,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code, diag_duplicated_cases_in_switch_statement,
+                    first_switch_case, strlen(u8"switch (cond) {case x: case "),
+                    u8"y", duplicated_switch_case,
+                    strlen(u8"switch (cond) {case x: case y: case "), u8"y")));
+  }
+  {
+    test_parser p(
+        u8"switch (cond) {case MyEnum.A: break; case MyEnum.A: break;}"_sv,
+        capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code, diag_duplicated_cases_in_switch_statement,
+                    first_switch_case, strlen(u8"switch (cond) {case "),
+                    u8"MyEnum.A", duplicated_switch_case,
+                    strlen(u8"switch (cond) {case MyEnum.A: break; case "),
+                    u8"MyEnum.A")));
+  }
+}
+
 TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   {
     test_parser p(u8"case x:"_sv, capture_diags);

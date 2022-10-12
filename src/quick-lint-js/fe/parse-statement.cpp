@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -1875,6 +1876,7 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 
   bool keep_going = true;
   bool is_before_first_switch_case = true;
+  hash_set<string8_view> cases;
   while (keep_going) {
     switch (this->peek().type) {
     case token_type::right_curly:
@@ -1892,10 +1894,21 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
         });
         this->skip();
       } else {
-        this->parse_and_visit_expression(
+        expression *ast = this->parse_expression(
             v, precedence{
                    .colon_type_annotation = allow_type_annotations::never,
                });
+
+        source_code_span expression_case_span = ast->span();
+        auto [_it, inserted] = cases.insert(expression_case_span.string_view());
+        if (!inserted) {
+          this->diag_reporter_->report(
+              diag_duplicated_cases_in_switch_statement{
+                  .first_switch_case =
+                      source_code_span(_it->data(), _it->data() + _it->size()),
+                  .duplicated_switch_case = expression_case_span});
+        }
+        this->visit_expression(ast, v, variable_context::rhs);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
         this->skip();
       }
