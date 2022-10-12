@@ -22,6 +22,8 @@ Semantic Versioning.
   [`--language=experimental-typescript` option][cli-language]. TypeScript
   support is experimental, so there will be bugs (including crashes) in
   quick-lint-js. This option does not affect the LSP server.
+* [E0149][] and [E0150][] are now reported for labelled statements too
+  (implemented by [Guilherme Vasconcelos][]).
 
 ### Fixed
 
@@ -690,6 +692,7 @@ Beta release.
 [Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
+[Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Himanshu]: https://github.com/singalhimanshu
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
@@ -742,6 +745,7 @@ Beta release.
 [E0119]: https://quick-lint-js.com/errors/E0119/
 [E0144]: https://quick-lint-js.com/errors/E0144/
 [E0145]: https://quick-lint-js.com/errors/E0145/
+[E0149]: https://quick-lint-js.com/errors/E0149/
 [E0150]: https://quick-lint-js.com/errors/E0150/
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0173]: https://quick-lint-js.com/errors/E0173/
