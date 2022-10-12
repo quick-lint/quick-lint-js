@@ -33,7 +33,7 @@ c.quick-lint-js.com is a VPS on strager's [Vultr][] account.
 
 Data updated manually and by GitHub Actions.
 
-* Data: /mnt/blockstorage/c.quick-lint-js.com/ (Vultr block storage)
+* Data: /qljs-pool/var/www/c.quick-lint-js.com/ (Vultr block storage)
 * TLS certificates: Let's Encrypt
 * Cron: `/home/github-ci/prune-old-builds.py` run by `github-ci`
 * Docker: [`quick-lint-js-web`][]
