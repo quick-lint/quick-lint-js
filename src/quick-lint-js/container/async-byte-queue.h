@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/max-align.h>
 #include <quick-lint-js/port/thread.h>
 #include <utility>
 
@@ -62,7 +63,7 @@ class async_byte_queue {
                       FinalizeFunc&& finalize_callback);
 
  private:
-  struct alignas(alignof(std::max_align_t)) chunk {
+  struct alignas(alignof(max_align_t)) chunk {
     // data[begin_index] until data[committed_index] contains committed but
     // untaken bytes.
     //

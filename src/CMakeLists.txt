@@ -205,6 +205,7 @@ quick_lint_js_add_library(
   quick-lint-js/port/integer.cpp
   quick-lint-js/port/integer.h
   quick-lint-js/port/limits.h
+  quick-lint-js/port/max-align.h
   quick-lint-js/port/simd.h
   quick-lint-js/port/source-location.h
   quick-lint-js/port/thread.cpp
