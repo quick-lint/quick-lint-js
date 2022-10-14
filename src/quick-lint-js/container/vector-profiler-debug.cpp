@@ -56,15 +56,20 @@ std::ostream &operator<<(std::ostream &out,
 vector_instrumentation vector_instrumentation::instance;
 #endif
 
-void vector_instrumentation::clear() { this->entries_.clear(); }
+void vector_instrumentation::clear() {
+  std::lock_guard lock(this->mutex_);
+  this->entries_.clear();
+}
 
 std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
     const {
+  std::lock_guard lock(this->mutex_);
   return this->entries_;
 }
 
 std::map<std::string, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
+  std::lock_guard lock(this->mutex_);
   std::map<std::string, std::map<std::size_t, int>> histogram;
   std::map<std::pair<std::string, std::uintptr_t>, std::size_t> object_sizes;
   for (const vector_instrumentation::entry &entry : this->entries_) {
@@ -160,6 +165,7 @@ void vector_instrumentation::dump_max_size_histogram(
 
 std::map<std::string, vector_instrumentation::capacity_change_histogram>
 vector_instrumentation::capacity_change_histogram_by_owner() const {
+  std::lock_guard lock(this->mutex_);
   std::map<std::string, capacity_change_histogram> histogram;
   struct vector_info {
     std::uintptr_t data_pointer;
@@ -250,6 +256,7 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        vector_instrumentation::event event,
                                        std::uintptr_t data_pointer,
                                        std::size_t size, std::size_t capacity) {
+  std::lock_guard lock(this->mutex_);
   this->entries_.emplace_back(entry{
       .object_id = object_id,
       .owner = owner,

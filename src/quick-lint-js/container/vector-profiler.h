@@ -13,6 +13,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
@@ -22,6 +23,7 @@
 #include <vector>
 
 namespace quick_lint_js {
+// vector_instrumentation is thread-safe.
 class vector_instrumentation {
  public:
   enum class event {
@@ -98,6 +100,7 @@ class vector_instrumentation {
 
  private:
   std::vector<entry> entries_;
+  mutable mutex mutex_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
