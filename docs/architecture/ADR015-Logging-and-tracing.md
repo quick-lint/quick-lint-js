@@ -60,6 +60,10 @@ to do string formatting and file I/O).
 
 ### Tracing
 
-To be determined.
+The binary log format has been useful for tracking correctness bugs
+([example](https://github.com/quick-lint/quick-lint-js/issues/683)).
+
+The logging code needs to be refactored. The names are confusing, and it's more
+code than I think should be necessary to log things.
 
 [Common Trace Format]: https://diamon.org/ctf/
