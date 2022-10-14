@@ -1836,7 +1836,6 @@
       {                                                                         \
         identifier first_name;                                                  \
         identifier second_name;                                                 \
-        source_code_span first_semicolon;                                       \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "function overload signature must be named '{1}'"),           \

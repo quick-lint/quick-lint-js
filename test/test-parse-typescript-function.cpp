@@ -849,12 +849,11 @@ TEST_F(test_parse_typescript_function,
                 ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_3_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             p.code,
             diag_typescript_function_overload_signature_must_have_same_name,
-            first_name, strlen(u8"function "), u8"f",                  //
-            second_name, strlen(u8"function f();\nfunction "), u8"g",  //
-            first_semicolon, strlen(u8"function f()"), u8";")));
+            first_name, strlen(u8"function "), u8"f",                     //
+            second_name, strlen(u8"function f();\nfunction "), u8"g")));  //
   }
 
   {

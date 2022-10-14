@@ -1759,7 +1759,6 @@ parser::parse_end_of_typescript_overload_signature(
           diag_typescript_function_overload_signature_must_have_same_name{
               .first_name = function_name,
               .second_name = second_function_name,
-              .first_semicolon = *semicolon_span,
           });
       this->lexer_.roll_back_transaction(std::move(transaction));
       return overload_signature_parse_result{
