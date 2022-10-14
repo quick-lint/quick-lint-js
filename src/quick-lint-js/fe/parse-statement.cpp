@@ -1587,7 +1587,6 @@ parser::parse_and_visit_function_parameters(
             source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return function_parameter_parse_result::missing_parameters;
-    
 
     // { function f }  // Invalid.
   case token_type::comma:
@@ -1599,12 +1598,6 @@ parser::parse_and_visit_function_parameters(
             source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return function_parameter_parse_result::missing_parameters_ignore_body;
-
-    // function async f {}  // Invalid.
-  //case token_type::kw_async:
-  //this->diag_reporter_->report(
-  //      diag_function_async_method{this->peek().span()});
-  //  return function_parameter_parse_result::missing_parameters_ignore_body;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
