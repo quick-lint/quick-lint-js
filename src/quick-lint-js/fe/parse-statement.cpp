@@ -1601,10 +1601,10 @@ parser::parse_and_visit_function_parameters(
     return function_parameter_parse_result::missing_parameters_ignore_body;
 
     // function async f {}  // Invalid.
-  case token_type::kw_async:
-    this->diag_reporter_->report(
-        diag_function_async_method{this->peek().span()});
-    return function_parameter_parse_result::missing_parameters_ignore_body;
+  //case token_type::kw_async:
+  //this->diag_reporter_->report(
+  //      diag_function_async_method{this->peek().span()});
+  //  return function_parameter_parse_result::missing_parameters_ignore_body;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();

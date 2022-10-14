@@ -215,28 +215,28 @@ TEST_F(test_parse_function, async_keyword_order_diagnostic1) {
 
 TEST_F(test_parse_function, async_keyword_order_diagnostic2) {
   {
-    test_parser p(u8"async export function f() {};"_sv);
+    test_parser p(u8"async export function f() {};"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_async_export_method)));
   }
 }
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic3) {
-  {
-    test_parser p(u8"async function f() {}"_sv);
-    p.parse_and_visit_statement();
-    ASSERT_EQ(p.variable_declarations.size(), 1);
-    EXPECT_EQ(p.variable_declarations[0].name, u8"f");
-  }
-}
+//TEST_F(test_parse_function, async_keyword_order_diagnostic3) {
+//  {
+//    test_parser p(u8"async function f() {}"_sv);
+//    p.parse_and_visit_statement();
+//    ASSERT_EQ(p.variable_declarations.size(), 1);
+//    EXPECT_EQ(p.variable_declarations[0].name, u8"f");
+//  }
+//}
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic4) {
-  {
-    test_parser p(u8"function async f() {}"_sv);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_function_async_method)));
-  }
-}
+//TEST_F(test_parse_function, async_keyword_order_diagnostic4) {
+// {
+//    test_parser p(u8"function async f() {}"_sv);
+//    p.parse_and_visit_statement();
+//    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_function_async_method)));
+//  }
+//}
 
 TEST_F(test_parse_function,
        async_function_cannot_have_newline_after_async_keyword) {
