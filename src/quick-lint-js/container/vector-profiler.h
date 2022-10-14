@@ -212,6 +212,12 @@ class instrumented_vector {
     return result;
   }
 
+  QLJS_FORCE_INLINE value_type &push_back(const value_type &value) {
+    value_type &result = this->data_.push_back(value);
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return result;
+  }
+
   QLJS_FORCE_INLINE void pop_back() {
     this->data_.pop_back();
     this->add_instrumentation_entry(vector_instrumentation::event::resize);

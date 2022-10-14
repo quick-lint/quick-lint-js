@@ -190,6 +190,7 @@ class raw_bump_vector {
     }
   }
 
+  T &push_back(const T &value) { return this->emplace_back(value); }
   T &push_back(T &&value) { return this->emplace_back(std::move(value)); }
 
   template <class... Args>

@@ -1834,15 +1834,15 @@
       diag_typescript_function_overload_signature_must_have_same_name,          \
       "E0316", diagnostic_severity::error,                                      \
       {                                                                         \
-        identifier first_name;                                                  \
-        identifier second_name;                                                 \
+        identifier overload_name;                                               \
+        identifier function_name;                                               \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "function overload signature must be named '{1}'"),           \
-              first_name, second_name)                                          \
+              overload_name, function_name)                                     \
           MESSAGE(                                                              \
               QLJS_TRANSLATABLE("overloaded function '{0}' declared here"),     \
-              second_name))                                                     \
+              function_name))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_function_overload_signature_must_not_have_generator_star, \

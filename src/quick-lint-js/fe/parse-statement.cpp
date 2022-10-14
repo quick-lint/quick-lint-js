@@ -1335,6 +1335,10 @@ void parser::parse_and_visit_function_declaration(
                                  variable_init_kind::normal);
     this->skip();
 
+    bump_vector<identifier, monotonic_allocator> overload_names(
+        "parse_and_visit_function_declaration overload_names",
+        &this->temporary_memory_);
+
   next_overload:
     v.visit_enter_function_scope();
     {
@@ -1365,6 +1369,12 @@ void parser::parse_and_visit_function_declaration(
             v.visit_exit_function_scope();
             attributes = r.second_function_attributes;
             generator_star = r.second_function_generator_star;
+            if (overload_names.empty()) {
+              // Lazily initialize overload_names with the first function's
+              // name.
+              overload_names.push_back(function_name);
+            }
+            overload_names.push_back(*r.second_function_name);
             goto next_overload;
           }
           if (!r.has_missing_body_error) {
@@ -1379,6 +1389,46 @@ void parser::parse_and_visit_function_declaration(
       }
     }
     v.visit_exit_function_scope();
+
+    if (!overload_names.empty()) {
+      QLJS_ASSERT(overload_names.size() >= 2);
+      identifier &real_function_name = overload_names.back();
+
+      // Detect mismatched function names.
+      //
+      // We just parsed code like the following:
+      //
+      //     function f();        // #0
+      //     function f(a);       // #1
+      //     function f(a, b);    // #2
+      //     function f(a, b) {}  // #3
+      //
+      // We already declared the first overload (#0 above).
+      // The last overload (#3 above) is the real function.
+      for (std::size_t i = 0; i < overload_names.size() - 1; ++i) {
+        identifier &overload_name = overload_names[i];
+        if (overload_name.normalized_name() !=
+            real_function_name.normalized_name()) {
+          // If this is the first overload:
+          // We already declared the first overload's function name. If it turns
+          // out it had the wrong name, then we don't want to redeclare it.
+          // Instead, declare the real function's name.
+          //
+          // If this is the second, third, or other overload, declare it.
+          const identifier &variable_to_declare =
+              i == 0 ? real_function_name : overload_name;
+          v.visit_variable_declaration(variable_to_declare,
+                                       variable_kind::_function,
+                                       variable_init_kind::normal);
+
+          this->diag_reporter_->report(
+              diag_typescript_function_overload_signature_must_have_same_name{
+                  .overload_name = overload_name,
+                  .function_name = real_function_name,
+              });
+        }
+      }
+    }
 
     break;
   }
@@ -1755,18 +1805,9 @@ parser::parse_end_of_typescript_overload_signature(
       function_name.normalized_name()) {
     if (semicolon_span.has_value()) {
       // function f(); function g() {}
-      this->diag_reporter_->report(
-          diag_typescript_function_overload_signature_must_have_same_name{
-              .first_name = function_name,
-              .second_name = second_function_name,
-          });
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return overload_signature_parse_result{
-          .is_overload_signature = false,
-          .has_missing_body_error = false,
-          .second_function_attributes = second_function_attributes,
-          .second_function_generator_star = second_function_generator_star,
-      };
+      // The caller will report
+      // diag_typescript_function_overload_signature_must_have_same_name. Do
+      // nothing special here.
     } else {
       // function f()  // ASI
       // function g() {}
@@ -1787,6 +1828,7 @@ parser::parse_end_of_typescript_overload_signature(
   return overload_signature_parse_result{
       .is_overload_signature = true,
       .has_missing_body_error = false,
+      .second_function_name = second_function_name,
       .second_function_attributes = second_function_attributes,
       .second_function_generator_star = second_function_generator_star,
   };

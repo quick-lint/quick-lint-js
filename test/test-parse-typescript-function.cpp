@@ -838,12 +838,12 @@ TEST_F(test_parse_typescript_function,
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_variable_declaration",       // g
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
+                            "visit_enter_function_scope",       // f(
+                            "visit_exit_function_scope",        // )
+                            "visit_enter_function_scope",       // g(
+                            "visit_enter_function_scope_body",  // ){
                             "visit_exit_function_scope",        // }
+                            "visit_variable_declaration",       // g
                             "visit_end_of_module"));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
@@ -852,8 +852,120 @@ TEST_F(test_parse_typescript_function,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
             p.code,
             diag_typescript_function_overload_signature_must_have_same_name,
-            first_name, strlen(u8"function "), u8"f",                     //
-            second_name, strlen(u8"function f();\nfunction "), u8"g")));  //
+            overload_name, strlen(u8"function "), u8"f",  //
+            function_name, strlen(u8"function f();\nfunction "), u8"g")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function g();\n"_sv
+        u8"function h() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       // f(
+                            "visit_exit_function_scope",        // )
+                            "visit_enter_function_scope",       // g(
+                            "visit_exit_function_scope",        // )
+                            "visit_enter_function_scope",       // h(
+                            "visit_enter_function_scope_body",  // ){
+                            "visit_exit_function_scope",        // }
+                            "visit_variable_declaration",       // g
+                            "visit_variable_declaration",       // h
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.variable_declarations,
+                UnorderedElementsAre(function_decl(u8"f"), function_decl(u8"g"),
+                                     function_decl(u8"h")));
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name, strlen(u8"function "), u8"f",  //
+                function_name,
+                strlen(u8"function f();\nfunction g();\nfunction "), u8"h"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name, strlen(u8"function f();\nfunction "), u8"g",  //
+                function_name,
+                strlen(u8"function f();\nfunction g();\nfunction "), u8"h")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function g();\n"_sv
+        u8"function f() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_have_same_name,
+            overload_name, strlen(u8"function f();\nfunction "), u8"g",  //
+            function_name, strlen(u8"function f();\nfunction g();\nfunction "),
+            u8"f")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function g();\n"_sv
+        u8"function g() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_have_same_name,
+            overload_name, strlen(u8"function "), u8"f",  //
+            function_name, strlen(u8"function f();\nfunction g();\nfunction "),
+            u8"g")));
+  }
+
+  {
+    test_parser p(
+        u8"function f();\n"_sv
+        u8"function f();\n"_sv
+        u8"function f();\n"_sv
+        u8"function g();\n"_sv
+        u8"function f();\n"_sv
+        u8"function f();\n"_sv
+        u8"function f() {}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_function_overload_signature_must_have_same_name,
+            overload_name,
+            strlen(u8"function f();\n"
+                   u8"function f();\n"
+                   u8"function f();\n"
+                   u8"function "),
+            u8"g",  //
+            function_name,
+            strlen(u8"function f();\n"
+                   u8"function f();\n"
+                   u8"function f();\n"
+                   u8"function g();\n"
+                   u8"function f();\n"
+                   u8"function f();\n"
+                   u8"function "),
+            u8"g")));
   }
 
   {

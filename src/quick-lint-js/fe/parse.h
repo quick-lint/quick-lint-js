@@ -275,6 +275,7 @@ class parser {
   // See parse_end_of_typescript_overload_signature.
   struct overload_signature_parse_result {
     // Invariant: is_overload_signature ? !has_missing_body_error : true
+    // Invariant: is_overload_signature == second_function_name.has_value()
 
     // If true, the first function was an overload signature, and the lexer is
     // at the '(' in the second function.
@@ -286,6 +287,10 @@ class parser {
     // If true, the first function's missing body is an error. If false, the
     // first function's missing body is not an error.
     bool has_missing_body_error;
+
+    // If is_overload_signature is true, then *second_function_name is the name
+    // of the second function.
+    std::optional<identifier> second_function_name;
 
     // If is_overload_signature is true, then second_function_attributes is the
     // attributes of the second function.
