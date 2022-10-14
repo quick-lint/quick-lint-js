@@ -104,6 +104,16 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Re-generate Vim tags",
+		Run: func() {
+			cmd := exec.Command("./tools/generate-vim-tags")
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to generate Vim tags: %v", err)
+			}
+		},
+	},
+
+	Step{
 		Title: "Create commit",
 		Run: func() {
 			fmt.Printf("Create a commit.\n")
