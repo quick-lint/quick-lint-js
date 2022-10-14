@@ -1342,15 +1342,6 @@ msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "tuple type cannot have multiple spreads"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "already spread here"
-msgstr "lista startar här"
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "förväntade ett uttryck efter 'case'"
@@ -1737,6 +1728,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "lista startar här"
 
 #, fuzzy
 #~ msgid "classes cannot be named 'await' in async function"

@@ -820,12 +820,9 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       // [...Type]
       spread = this->peek().span();
       if (first_spread.has_value()) {
-        // [...Type1, ...Type2]  // Invalid.
-        this->diag_reporter_->report(
-            diag_typescript_tuple_cannot_have_multiple_spreads{
-                .spread = *spread,
-                .previous_spread = *first_spread,
-            });
+        // [...Type1, ...Type2]
+        // [...Type1[], ...Type2[]]  // Invalid.
+        // TODO(#867): Report a diagnostic if the spread type is an array type.
       } else {
         first_spread = spread;
       }

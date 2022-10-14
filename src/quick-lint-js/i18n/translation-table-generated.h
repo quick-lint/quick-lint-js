@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 392;
-constexpr std::size_t translation_table_string_table_size = 55596;
+constexpr std::uint16_t translation_table_mapping_table_size = 390;
+constexpr std::size_t translation_table_string_table_size = 55536;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -122,7 +122,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "abstract methods cannot contain a body"sv,
           "abstract properties are not allowed in interfaces"sv,
           "abstract properties are only allowed in abstract classes"sv,
-          "already spread here"sv,
           "an 'if' statement"sv,
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
@@ -354,7 +353,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "this {0} looks fishy"sv,
           "this {1} looks fishy"sv,
           "try statement starts here"sv,
-          "tuple type cannot have multiple spreads"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,
           "unclosed code block; expected '}' by end of file"sv,

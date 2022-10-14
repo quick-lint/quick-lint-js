@@ -420,33 +420,80 @@ TEST_F(test_parse_typescript_type, tuple_type_spread_element) {
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
   }
+}
+
+// NOTE(#867): TypeScript's rules here seem very strange. Is this possibly a
+// TypeScript bug?
+//
+// Given:
+//
+//   type Ss = string[];
+//   type Ns = number[];
+//   type Os = object[];
+//
+// The following are legal:
+//
+//   type A = [...Ss, ...Ns];
+//   type A = [...string[], ...Ns];
+//   type A = [...Ss, ...Os | number[]];
+//   type A = [...Ss, ...number[] | Os];
+//   type A = [...Ss, ...Ns, ...Os];
+//   type A = [...string[], ...Ns, ...Os];
+//
+// The following are illegal:
+//
+//   type A = [...string[], ...number[]];
+//   type A = [...Ss, ...number[]];
+//   type A = [...Ss, ...number[], ...Os];
+//   type A = [...Ss, ...Ns, ...object[]];
+//   type A = [...string[], ...[...string[]]];
+//
+// The rule seems to be this: If the spread is not the first, and if the spread
+// type is syntactically an array type (not e.g. an alias to an array type) *or*
+// if it's a tuple type with a spread, then report TypeScript diagnostic #1265.
+//
+// This rule is too complicated for me to implement right now, so let's just
+// make sure we have no false positives.
+TEST_F(test_parse_typescript_type,
+       tuple_type_can_only_have_one_array_spread_sorta) {
+  {
+    test_parser p(u8"[...A, ...B[]]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    // TODO(#867): Assert a diagnostic.
+  }
+
+  {
+    test_parser p(u8"[...A[], ...B[]]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    // TODO(#867): Assert a diagnostic.
+  }
+
+  {
+    test_parser p(u8"[...A[], ...B]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
+    EXPECT_THAT(p.errors, IsEmpty())
+        << "TypeScript's compiler only reports an error if the non-first "
+           "spread is syntactically an array type";
+  }
 
   {
     test_parser p(u8"[...A, ...B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code, diag_typescript_tuple_cannot_have_multiple_spreads,
-                    spread, strlen(u8"[...A, "), u8"...",  //
-                    previous_spread, strlen(u8"["), u8"...")));
+    EXPECT_THAT(p.errors, IsEmpty())
+        << "TypeScript's compiler only reports an error if the non-first "
+           "spread is syntactically an array type";
   }
 
   {
-    test_parser p(u8"[...A, ...B, ...C]"_sv, typescript_options, capture_diags);
+    test_parser p(u8"[...A[], ...B[], ...C[]]"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(
-            DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_tuple_cannot_have_multiple_spreads,
-                spread, strlen(u8"[...A, "), u8"...",  //
-                previous_spread, strlen(u8"["), u8"..."),
-            DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_tuple_cannot_have_multiple_spreads,
-                spread, strlen(u8"[...A, ...B, "), u8"...",  //
-                previous_spread, strlen(u8"["), u8"...")));
+    // TODO(#867): Assert a diagnostic.
   }
 }
 
