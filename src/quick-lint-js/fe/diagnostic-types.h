@@ -219,6 +219,14 @@
             async_export))                                                      \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+    diag_function_async_method, "E0327", diagnostic_severity::error,            \
+    { source_code_span function_async; },                                         \
+    MESSAGE(                                                                    \
+        QLJS_TRANSLATABLE(                                                      \
+            "'function async' is not allowed; write 'async function' instead"), \
+        function_async))                                                          \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_big_int_literal_contains_decimal_point, "E0005",                     \
       diagnostic_severity::error, { source_code_span where; },                  \
       MESSAGE(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \

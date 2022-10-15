@@ -1599,6 +1599,16 @@ parser::parse_and_visit_function_parameters(
     });
     return function_parameter_parse_result::missing_parameters_ignore_body;
 
+    // function async f() {}  // Invalid. Should be async function f() {}
+  case token_type::identifier:
+    if (name->string_view() == u8"async"_sv) {
+      this->diag_reporter_->report(
+          diag_function_async_method{this->peek().span()});
+      this->skip();
+      return this->parse_and_visit_function_parameters(
+          v, name);
+    }
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     return function_parameter_parse_result::parsed_parameters;
