@@ -272,7 +272,8 @@ parse_statement:
       this->skip();
       goto parse_statement;
     case token_type::kw_export: {
-      this->diag_reporter_->report(diag_async_export_method{async_token.span()});
+      this->diag_reporter_->report(
+          diag_async_export_method{async_token.span()});
       break;
     }
     default:
@@ -1605,8 +1606,7 @@ parser::parse_and_visit_function_parameters(
       this->diag_reporter_->report(
           diag_function_async_method{this->peek().span()});
       this->skip();
-      return this->parse_and_visit_function_parameters(
-          v, name);
+      return this->parse_and_visit_function_parameters(v, name);
     }
 
   default:
