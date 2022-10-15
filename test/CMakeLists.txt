@@ -48,6 +48,7 @@ quick_lint_js_add_executable(
   test-configuration-loader.cpp
   test-configuration.cpp
   test-crash.cpp
+  test-debug-server.cpp
   test-diag-code-list.cpp
   test-diag-code.cpp
   test-diag-matcher.cpp
@@ -158,6 +159,9 @@ target_link_libraries(
   quick-lint-js-lib
   quick-lint-js-lib-debug
 )
+if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
+  target_link_libraries(quick-lint-js-test PRIVATE mongoose)
+endif ()
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test

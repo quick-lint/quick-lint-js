@@ -109,7 +109,9 @@ class WindowsSystemImportLibrary(typing.NamedTuple):
 archive_to_project = {
     "boost.lib": VendorProject("boost"),
     "libboost.a": VendorProject("boost"),
+    "libmongoose.a": VendorProject("simdjson"),
     "libsimdjson.a": VendorProject("simdjson"),
+    "mongoose.lib": VendorProject("simdjson"),
     "simdjson.lib": VendorProject("simdjson"),
     #
     "libnode-hook.a": QLJSSubproject(),

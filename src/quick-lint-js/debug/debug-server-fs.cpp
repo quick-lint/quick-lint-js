@@ -1,16 +1,19 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FEATURE_H
-#define QUICK_LINT_JS_FEATURE_H
+#include <quick-lint-js/feature.h>
 
-#if !defined(QLJS_FEATURE_DEBUG_SERVER)
-#define QLJS_FEATURE_DEBUG_SERVER 0
-#endif
+#if QLJS_FEATURE_DEBUG_SERVER
 
-#if !defined(QLJS_FEATURE_VECTOR_PROFILING)
-#define QLJS_FEATURE_VECTOR_PROFILING 0
-#endif
+#include <quick-lint-js/debug/debug-server-fs.h>
+#include <quick-lint-js/port/char8.h>
+
+namespace quick_lint_js {
+string8_view debug_server_index_html =
+    u8R"html(<!DOCTYPE html>
+<h1>hello world!</h1>
+)html"_sv;
+}
 
 #endif
 

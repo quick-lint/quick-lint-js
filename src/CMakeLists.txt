@@ -7,12 +7,6 @@ include(QuickLintJSCompiler)
 include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
-option(
-  QUICK_LINT_JS_FEATURE_VECTOR_PROFILING
-  "Enable the QLJS_DUMP_VECTORS option at run-time"
-  FALSE
-)
-
 set(NEED_THREADS TRUE)
 
 if (NEED_THREADS)
@@ -93,6 +87,12 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
+  quick-lint-js/debug/debug-server-fs.cpp
+  quick-lint-js/debug/debug-server-fs.h
+  quick-lint-js/debug/debug-server.cpp
+  quick-lint-js/debug/debug-server.h
+  quick-lint-js/debug/mongoose.cpp
+  quick-lint-js/debug/mongoose.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
@@ -225,6 +225,7 @@ quick_lint_js_add_library(
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h
   quick-lint-js/util/try-catch-stack.h
+  quick-lint-js/util/type-traits.h
   quick-lint-js/util/utf-16.cpp
   quick-lint-js/util/utf-16.h
   quick-lint-js/util/utf-8.cpp
@@ -246,6 +247,9 @@ endif ()
 if (NEED_THREADS)
   target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
 endif ()
+if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
+  target_link_libraries(quick-lint-js-lib PUBLIC mongoose)
+endif ()
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-lib
@@ -254,6 +258,20 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     <cstring>
     <simdjson.h>
     <string>
+  )
+endif ()
+
+if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_FEATURE_DEBUG_SERVER=1
+  )
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_FEATURE_DEBUG_SERVER=0
   )
 endif ()
 
