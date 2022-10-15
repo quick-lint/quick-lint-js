@@ -193,7 +193,26 @@ windows_handle_file_ref windows_handle_file_ref::get_stdout() noexcept {
 }
 
 windows_handle_file_ref windows_handle_file_ref::get_stderr() noexcept {
-  return windows_handle_file_ref(::GetStdHandle(STD_ERROR_HANDLE));
+  // HACK(strager): During a death test, Google Test closes the standard error
+  // handle. Make our own copy of the handle to avoid conflicts with Google
+  // Test.
+  // NOTE(strager): We don't need to close this handle on destruction, so a raw
+  // HANDLE is fine.
+  static ::HANDLE stderr_copy = []() -> ::HANDLE {
+    ::HANDLE new_handle;
+    ::HANDLE current_process = ::GetCurrentProcess();
+    ::BOOL ok = ::DuplicateHandle(
+        /*hSourceProcessHandle=*/current_process,
+        /*hSourceHandle=*/::GetStdHandle(STD_ERROR_HANDLE),
+        /*hTargetProcessHandle=*/current_process,
+        /*lpTargetHandle=*/&new_handle,
+        /*dwDesiredAccess=*/0,
+        /*bInheritHandle=*/true,
+        /*dwOptions=*/DUPLICATE_SAME_ACCESS);
+    QLJS_ALWAYS_ASSERT(ok);
+    return new_handle;
+  }();
+  return windows_handle_file_ref(stderr_copy);
 }
 
 windows_handle_file::windows_handle_file() noexcept = default;
