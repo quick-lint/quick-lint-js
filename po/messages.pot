@@ -180,6 +180,14 @@ msgid "'async static' is not allowed; write 'static async' instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'async export' is not allowed; write 'export async' instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'function async' is not allowed; write 'async function' instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
 msgstr ""
 

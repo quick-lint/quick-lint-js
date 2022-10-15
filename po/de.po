@@ -200,6 +200,16 @@ msgid "'async static' is not allowed; write 'static async' instead"
 msgstr "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'async export' is not allowed; write 'export async' instead"
+msgstr "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function async' is not allowed; write 'async function' instead"
+msgstr "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
 msgstr "BigInt-Literal mit Dezimalpunkt"
 

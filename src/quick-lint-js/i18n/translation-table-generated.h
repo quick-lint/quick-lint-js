@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 392;
-constexpr std::size_t translation_table_string_table_size = 55648;
+constexpr std::uint16_t translation_table_mapping_table_size = 394;
+constexpr std::size_t translation_table_string_table_size = 55772;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -42,6 +42,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'?' creates a conditional expression"sv,
           "'as const' is only allowed on literals (array, object, string, boolean) and enum members"sv,
           "'as const' located here"sv,
+          "'async export' is not allowed; write 'export async' instead"sv,
           "'async static' is not allowed; write 'static async' instead"sv,
           "'await' cannot be followed by an arrow function; use 'async' instead"sv,
           "'await' is only allowed in async functions"sv,
@@ -49,6 +50,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'else' has no corresponding 'if'"sv,
           "'extends' must be before 'implements'"sv,
           "'for' loop"sv,
+          "'function async' is not allowed; write 'async function' instead"sv,
           "'function' is here"sv,
           "'if' statement"sv,
           "'in' disallowed in C-style for loop initializer"sv,
