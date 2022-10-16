@@ -172,6 +172,7 @@ const translated_string test_translation_table[] = {
             u8"'async export' is not allowed; write 'export async' instead",
             u8"'async export' is not allowed; write 'export async' instead",
             u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
         },
     },
     {
@@ -254,6 +255,7 @@ const translated_string test_translation_table[] = {
     {
         "'function async' is not allowed; write 'async function' instead"_translatable,
         {
+            u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
