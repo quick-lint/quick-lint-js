@@ -212,19 +212,19 @@
           async_static))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-    diag_async_export_method, "E0326", diagnostic_severity::error,              \
-    { source_code_span async_export; },                                         \
-    MESSAGE(QLJS_TRANSLATABLE(                                                  \
-                "'async export' is not allowed; write 'export async' instead"), \
-            async_export))                                                      \
+      diag_async_export_method, "E0326", diagnostic_severity::error,            \
+      { source_code_span async_export; },                                       \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "'async export' is not allowed; write 'export async' instead"),   \
+          async_export))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-    diag_function_async_method, "E0327", diagnostic_severity::error,            \
-    { source_code_span function_async; },                                         \
-    MESSAGE(                                                                    \
-        QLJS_TRANSLATABLE(                                                      \
-            "'function async' is not allowed; write 'async function' instead"), \
-        function_async))                                                          \
+      diag_function_async_method, "E0327", diagnostic_severity::error,          \
+      { source_code_span function_async; },                                     \
+      MESSAGE(QLJS_TRANSLATABLE("'function async' is not allowed; write "       \
+                                "'async function' instead"),                    \
+              function_async))                                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_big_int_literal_contains_decimal_point, "E0005",                     \

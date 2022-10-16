@@ -173,6 +173,18 @@ msgstr "psst. 'async'."
 msgid "'async static' is not allowed; write 'static async' instead"
 msgstr "are you dyslexic or something?"
 
+# this is actually better than the OG one
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'async export' is not allowed; write 'export async' instead"
+msgstr "are you dyslexic or something?"
+
+# this is actually better than the OG one
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'function async' is not allowed; write 'async function' instead"
+msgstr "are you dyslexic or something?"
+
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
 msgstr "it's Big*Int*, not Big*Decimal*"

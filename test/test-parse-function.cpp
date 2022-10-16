@@ -231,7 +231,7 @@ TEST_F(test_parse_function, async_keyword_order_diagnostic3) {
 }
 
 TEST_F(test_parse_function, async_keyword_order_diagnostic4) {
- {
+  {
     test_parser p(u8"function async f() {};"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_function_async_method)));
