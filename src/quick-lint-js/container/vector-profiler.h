@@ -204,21 +204,21 @@ class instrumented_vector {
 
   template <class... Args>
   QLJS_FORCE_INLINE value_type &emplace_back(Args &&... args) {
-    value_type &result = this->data_.emplace_back(std::forward<Args>(args)...);
+    this->data_.emplace_back(std::forward<Args>(args)...);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE value_type &push_back(value_type &&value) {
-    value_type &result = this->data_.push_back(std::move(value));
+    this->data_.push_back(std::move(value));
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE value_type &push_back(const value_type &value) {
-    value_type &result = this->data_.push_back(value);
+    this->data_.push_back(value);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE void pop_back() {

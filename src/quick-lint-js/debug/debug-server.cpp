@@ -6,14 +6,19 @@
 #if QLJS_FEATURE_DEBUG_SERVER
 
 #include <atomic>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <mongoose.h>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server-fs.h>
 #include <quick-lint-js/debug/debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
+#include <quick-lint-js/json.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
@@ -22,6 +27,10 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+namespace {
+void write_vector_profiler_stats(byte_buffer &out_json);
+}
+
 debug_server::~debug_server() {
   if (this->server_thread_.joinable()) {
     this->stop_server_thread();
@@ -156,6 +165,17 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
       ::mg_http_reply(c, 200, "Content-Type: text/html\r\n", "%.*s",
                       narrow_cast<int>(debug_server_index_html.size()),
                       debug_server_index_html.data());
+    } else if (::mg_http_match_uri(hm, "/vector-profiler-stats")) {
+      byte_buffer json;
+      write_vector_profiler_stats(json);
+
+      // TODO(strager): Optimize.
+      std::string json_copy;
+      json_copy.resize(json.size());
+      json.copy_to(json_copy.data());
+
+      ::mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%.*s",
+                      narrow_cast<int>(json_copy.size()), json_copy.data());
     } else {
       ::mg_http_reply(c, 404, "Content-Type: text/plain\r\n",
                       "404 not found\n");
@@ -181,6 +201,55 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
   default:
     break;
   }
+}
+
+namespace {
+void write_vector_profiler_stats(byte_buffer &out_json) {
+  out_json.append_copy(u8R"--({"maxSizeHistogramByOwner":{)--"_sv);
+
+#if QLJS_FEATURE_VECTOR_PROFILING
+  std::map<std::string, std::map<std::size_t, int>> histograms_by_owner =
+      vector_instrumentation::instance.max_size_histogram_by_owner();
+  bool need_comma = false;
+  for (auto &[owner, histogram] : histograms_by_owner) {
+    if (need_comma) {
+      out_json.append_copy(u8',');
+    }
+    out_json.append_copy(u8'"');
+    write_json_escaped_string(out_json, owner);
+    out_json.append_copy(u8"\":["_sv);
+
+    bool need_array_comma = false;
+    std::size_t last_size = static_cast<std::size_t>(-1);
+    for (auto it = histogram.begin(); it != histogram.end(); ++it) {
+      std::size_t cur_size = it->first;
+      int count = it->second;
+
+      // Fill in zeroes for empty spans in the histogram map.
+      for (std::size_t size = last_size + 1; size < cur_size; ++size) {
+        if (need_array_comma) {
+          out_json.append_copy(u8',');
+        }
+        out_json.append_copy(u8'0');
+        need_array_comma = true;
+      }
+
+      if (need_array_comma) {
+        out_json.append_copy(u8',');
+      }
+      out_json.append_decimal_integer(count);
+      need_array_comma = true;
+
+      last_size = cur_size;
+    }
+
+    out_json.append_copy(u8"]"_sv);
+    need_comma = true;
+  }
+#endif
+
+  out_json.append_copy(u8"}}"_sv);
+}
 }
 }
 
