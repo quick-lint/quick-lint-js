@@ -4,10 +4,11 @@
 #ifndef QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
 #define QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/max-align.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/thread.h>
 #include <utility>
 
@@ -27,7 +28,7 @@ class async_byte_queue {
   explicit async_byte_queue();
   // The given memory resource must be thread-safe. allocate and deallocate are
   // called from multiple threads without synchronization.
-  explicit async_byte_queue(::boost::container::pmr::memory_resource*);
+  explicit async_byte_queue(memory_resource*);
 
   async_byte_queue(const async_byte_queue&) = delete;
   async_byte_queue& operator=(const async_byte_queue&) = delete;
@@ -62,7 +63,7 @@ class async_byte_queue {
                       FinalizeFunc&& finalize_callback);
 
  private:
-  struct alignas(alignof(std::max_align_t)) chunk {
+  struct alignas(alignof(max_align_t)) chunk {
     // data[begin_index] until data[committed_index] contains committed but
     // untaken bytes.
     //
@@ -97,9 +98,8 @@ class async_byte_queue {
       return this->capacity_begin() + this->capacity;
     }
 
-    static chunk* allocate(::boost::container::pmr::memory_resource*,
-                           size_type data_size);
-    static void deallocate(::boost::container::pmr::memory_resource*, chunk*);
+    static chunk* allocate(memory_resource*, size_type data_size);
+    static void deallocate(memory_resource*, chunk*);
 
    private:
     explicit chunk(size_type capacity) noexcept : capacity(capacity) {}
@@ -119,7 +119,7 @@ class async_byte_queue {
   size_type bytes_used_in_current_chunk() const noexcept;
 
   // Usable by either reader or writer (mutex_ does not need to be held):
-  ::boost::container::pmr::memory_resource* memory_;
+  memory_resource* memory_;
 
   // Exclusive to the writer:
   chunk* writer_first_chunk_ =

@@ -1,15 +1,17 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_NEW_DELETE_RESOURCE_H
-#define QUICK_LINT_JS_CONTAINER_NEW_DELETE_RESOURCE_H
+#ifndef QUICK_LINT_JS_PORT_MEMORY_RESOURCE_H
+#define QUICK_LINT_JS_PORT_MEMORY_RESOURCE_H
 
 #include <boost/container/pmr/memory_resource.hpp>
 
 namespace quick_lint_js {
+using memory_resource = ::boost::container::pmr::memory_resource;
+
 // Like boost::container::pmr::new_delete_resource, but without a dependency on
 // dlmalloc.
-::boost::container::pmr::memory_resource *new_delete_resource() noexcept;
+memory_resource *new_delete_resource() noexcept;
 }
 
 #endif

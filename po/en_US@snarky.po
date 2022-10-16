@@ -51,6 +51,11 @@ msgid "'with' statement"
 msgstr "what-the-heck-is-wrong-with statement"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "labelled statement"
+msgstr "labelled statement"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr "a do-whiley do"
 
@@ -69,6 +74,11 @@ msgstr "a whenever loop"
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'with' statement"
 msgstr "a what-the-heck-is-wrong-with statement"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a labelled statement"
+msgstr "a labelled statement"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1332,14 +1342,6 @@ msgid "methods cannot be readonly"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'readonly' must be followed by an array type or a tuple type"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "readonly array is missing '[]'"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'readonly' only works with array types and tuple types"
 msgstr ""
 
@@ -1351,15 +1353,6 @@ msgstr "where's my ')' at?"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "tuple type cannot have multiple spreads"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "already spread here"
-msgstr "you opened Pandora's Box here"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1734,6 +1727,10 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "you opened Pandora's Box here"
 
 #~ msgid "React/JSX is not yet implemented"
 #~ msgstr "if you see this message, I fucked up"

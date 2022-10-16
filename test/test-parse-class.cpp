@@ -1174,6 +1174,25 @@ TEST_F(test_parse_class, class_statement_as_with_statement_body_is_disallowed) {
   }
 }
 
+TEST_F(test_parse_class, class_statement_as_label_body_is_disallowed) {
+  {
+    test_parser p(u8"l: class C {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_3_FIELDS(
+            diag_class_statement_not_allowed_in_body,                      //
+            kind_of_statement, statement_kind::labelled_statement,         //
+            expected_body, offsets_matcher(p.code, strlen(u8"l:"), u8""),  //
+            class_keyword,
+            offsets_matcher(p.code, strlen(u8"l: "), u8"class"))));
+  }
+}
+
 TEST_F(test_parse_class, class_in_async_function_is_allowed) {
   {
     test_parser p(

@@ -17,16 +17,17 @@ inline constexpr const char *test_locale_names[] = {
     "de",
     "en_US@snarky",
     "fr_FR",
+    "pt_BR",
     "sv_SE",
 };
 // clang-format on
 
 struct translated_string {
   translatable_message translatable;
-  const char8 *expected_per_locale[5];
+  const char8 *expected_per_locale[6];
 };
 
-extern const translated_string test_translation_table[393];
+extern const translated_string test_translation_table[389];
 }
 
 #endif

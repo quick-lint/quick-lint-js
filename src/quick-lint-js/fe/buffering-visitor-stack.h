@@ -4,11 +4,10 @@
 #ifndef QUICK_LINT_JS_FE_BUFFERING_VISITOR_STACK_H
 #define QUICK_LINT_JS_FE_BUFFERING_VISITOR_STACK_H
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
 class stacked_buffering_visitor;
@@ -23,9 +22,7 @@ class buffering_visitor_stack {
   explicit buffering_visitor_stack()
       : buffering_visitor_stack(new_delete_resource()) {}
 
-  explicit buffering_visitor_stack(
-      ::boost::container::pmr::memory_resource *memory)
-      : stack_(memory) {}
+  explicit buffering_visitor_stack(memory_resource *memory) : stack_(memory) {}
 
   [[nodiscard]] stacked_buffering_visitor push();
 

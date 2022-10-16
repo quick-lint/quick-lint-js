@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/container/new-delete-resource.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 #include <vector>

@@ -68,6 +68,10 @@ msgid "'with' statement"
 msgstr "corps manquant pour l'instruction 'switch'"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -88,6 +92,10 @@ msgstr ""
 #, fuzzy
 msgid "a 'with' statement"
 msgstr "corps manquant pour l'instruction 'switch'"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a labelled statement"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1420,14 +1428,6 @@ msgid "methods cannot be readonly"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'readonly' must be followed by an array type or a tuple type"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "readonly array is missing '[]'"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'readonly' only works with array types and tuple types"
 msgstr ""
 
@@ -1439,15 +1439,6 @@ msgstr "')' attendu pour clore un appel de fonction"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "tuple type cannot have multiple spreads"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "already spread here"
-msgstr "tableau débuté ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1868,6 +1859,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "tableau débuté ici"
 
 #~ msgid "React/JSX is not yet implemented"
 #~ msgstr "React/JSX n'est pas encore implémenté"

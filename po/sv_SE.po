@@ -68,6 +68,10 @@ msgid "'with' statement"
 msgstr "saknar stycke för 'switch' påstående"
 
 #: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -88,6 +92,10 @@ msgstr ""
 #, fuzzy
 msgid "a 'with' statement"
 msgstr "saknar stycke för 'switch' påstående"
+
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a labelled statement"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1330,14 +1338,6 @@ msgid "methods cannot be readonly"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'readonly' must be followed by an array type or a tuple type"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "readonly array is missing '[]'"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'readonly' only works with array types and tuple types"
 msgstr ""
 
@@ -1349,15 +1349,6 @@ msgstr "förväntade ')' för att slutföra funktionkallelse"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-msgid "tuple type cannot have multiple spreads"
-msgstr ""
-
-#: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
-msgid "already spread here"
-msgstr "lista startar här"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -1746,6 +1737,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "lista startar här"
 
 #, fuzzy
 #~ msgid "classes cannot be named 'await' in async function"

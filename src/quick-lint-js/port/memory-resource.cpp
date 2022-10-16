@@ -1,16 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <new>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
 namespace {
-class new_delete_resource_impl
-    : public ::boost::container::pmr::memory_resource {
+class new_delete_resource_impl : public memory_resource {
  public:
   void* do_allocate(std::size_t bytes, std::size_t alignment) override {
 #if QLJS_HAVE_SIZED_ALIGNED_NEW
@@ -38,7 +36,7 @@ class new_delete_resource_impl
 };
 }
 
-::boost::container::pmr::memory_resource* new_delete_resource() noexcept {
+memory_resource* new_delete_resource() noexcept {
   static new_delete_resource_impl instance;
   return &instance;
 }

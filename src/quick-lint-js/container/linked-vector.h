@@ -4,13 +4,13 @@
 #ifndef QUICK_LINT_JS_CONTAINER_LINKED_VECTOR_H
 #define QUICK_LINT_JS_CONTAINER_LINKED_VECTOR_H
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
 #include <memory>
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/allocator.h>
 #include <quick-lint-js/port/math.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <type_traits>
 #include <utility>
 
@@ -30,9 +30,7 @@ class linked_vector {
   static constexpr std::size_t items_per_chunk =
       maximum(1U, (default_chunk_byte_size - sizeof(void*) * 3) / sizeof(T));
 
-  explicit linked_vector(
-      ::boost::container::pmr::memory_resource* memory) noexcept
-      : memory_(memory) {}
+  explicit linked_vector(memory_resource* memory) noexcept : memory_(memory) {}
 
   linked_vector(linked_vector&& other)
       : head_(other.head_), tail_(other.tail_), memory_(other.memory_) {
@@ -151,7 +149,7 @@ class linked_vector {
 
   chunk* head_ = nullptr;
   chunk* tail_ = nullptr;
-  ::boost::container::pmr::memory_resource* memory_;
+  memory_resource* memory_;
 };
 }
 

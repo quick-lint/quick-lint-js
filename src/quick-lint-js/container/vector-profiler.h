@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_CONTAINER_VECTOR_PROFILER_H
 
 #include <algorithm>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
@@ -14,6 +13,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace quick_lint_js {
+// vector_instrumentation is thread-safe.
 class vector_instrumentation {
  public:
   enum class event {
@@ -99,6 +100,7 @@ class vector_instrumentation {
 
  private:
   std::vector<entry> entries_;
+  mutable mutex mutex_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
@@ -209,6 +211,12 @@ class instrumented_vector {
 
   QLJS_FORCE_INLINE value_type &push_back(value_type &&value) {
     value_type &result = this->data_.push_back(std::move(value));
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return result;
+  }
+
+  QLJS_FORCE_INLINE value_type &push_back(const value_type &value) {
+    value_type &result = this->data_.push_back(value);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
     return result;
   }

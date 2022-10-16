@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/container/async-byte-queue.h>
-#include <quick-lint-js/container/new-delete-resource.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
@@ -16,9 +16,7 @@ namespace quick_lint_js {
 async_byte_queue::async_byte_queue()
     : async_byte_queue(new_delete_resource()) {}
 
-async_byte_queue::async_byte_queue(
-    ::boost::container::pmr::memory_resource* memory)
-    : memory_(memory) {}
+async_byte_queue::async_byte_queue(memory_resource* memory) : memory_(memory) {}
 
 async_byte_queue::~async_byte_queue() {
   chunk* c = this->reader_chunk_;
@@ -112,13 +110,12 @@ async_byte_queue::size_type async_byte_queue::bytes_used_in_current_chunk()
 }
 
 async_byte_queue::chunk* async_byte_queue::chunk::allocate(
-    ::boost::container::pmr::memory_resource* memory, size_type data_size) {
+    memory_resource* memory, size_type data_size) {
   void* c = memory->allocate(chunk::allocation_size(data_size), alignof(chunk));
   return new (c) chunk(data_size);
 }
 
-void async_byte_queue::chunk::deallocate(
-    ::boost::container::pmr::memory_resource* memory, chunk* c) {
+void async_byte_queue::chunk::deallocate(memory_resource* memory, chunk* c) {
   std::size_t byte_size = c->allocation_size();
   c->~chunk();
   memory->deallocate(c, byte_size, alignof(chunk));

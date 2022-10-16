@@ -1849,16 +1849,15 @@
       diag_typescript_function_overload_signature_must_have_same_name,          \
       "E0316", diagnostic_severity::error,                                      \
       {                                                                         \
-        identifier first_name;                                                  \
-        identifier second_name;                                                 \
-        source_code_span first_semicolon;                                       \
+        identifier overload_name;                                               \
+        identifier function_name;                                               \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "function overload signature must be named '{1}'"),           \
-              first_name, second_name)                                          \
+              overload_name, function_name)                                     \
           MESSAGE(                                                              \
               QLJS_TRANSLATABLE("overloaded function '{0}' declared here"),     \
-              second_name))                                                     \
+              function_name))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_function_overload_signature_must_not_have_generator_star, \
@@ -2035,24 +2034,9 @@
               readonly_keyword))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_readonly_in_type_needs_array_or_tuple_type, "E0314",      \
+      diag_typescript_readonly_in_type_needs_array_or_tuple_type, "E0313",      \
       diagnostic_severity::error, { source_code_span readonly_keyword; },       \
-      MESSAGE(                                                                  \
-          QLJS_TRANSLATABLE(                                                    \
-              "'readonly' must be followed by an array type or a tuple type"),  \
-          readonly_keyword))                                                    \
-                                                                                \
-  QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_readonly_type_needs_array, "E0313",                       \
-      diagnostic_severity::error,                                               \
-      {                                                                         \
-        source_code_span expected_array_brackets;                               \
-        source_code_span readonly_keyword;                                      \
-      },                                                                        \
-      MESSAGE(QLJS_TRANSLATABLE("readonly array is missing '[]'"),              \
-              expected_array_brackets)                                          \
-          MESSAGE(                                                              \
-              QLJS_TRANSLATABLE(                                                \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "'readonly' only works with array types and tuple types"),    \
               readonly_keyword))                                                \
                                                                                 \
@@ -2069,17 +2053,6 @@
           MESSAGE(QLJS_TRANSLATABLE("only optional tuple elements can follow "  \
                                     "this optional tuple element"),             \
                   previous_optional_question))                                  \
-                                                                                \
-  QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_tuple_cannot_have_multiple_spreads, "E0322",              \
-      diagnostic_severity::error,                                               \
-      {                                                                         \
-        source_code_span spread;                                                \
-        source_code_span previous_spread;                                       \
-      },                                                                        \
-      MESSAGE(QLJS_TRANSLATABLE("tuple type cannot have multiple spreads"),     \
-              spread)                                                           \
-          MESSAGE(QLJS_TRANSLATABLE("already spread here"), previous_spread))   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_type_annotation_in_expression, "E0254",                   \

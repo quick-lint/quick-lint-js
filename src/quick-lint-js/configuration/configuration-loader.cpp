@@ -8,11 +8,11 @@
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/hash-map.h>
-#include <quick-lint-js/container/new-delete-resource.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>

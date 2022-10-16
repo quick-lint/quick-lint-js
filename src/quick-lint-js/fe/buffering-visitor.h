@@ -4,14 +4,13 @@
 #ifndef QUICK_LINT_JS_FE_BUFFERING_VISITOR_H
 #define QUICK_LINT_JS_FE_BUFFERING_VISITOR_H
 
-#include <boost/container/pmr/memory_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <optional>
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse-visitor.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/warning.h>
 #include <type_traits>
 #include <utility>
@@ -22,7 +21,7 @@ QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 namespace quick_lint_js {
 class buffering_visitor final : public parse_visitor_base {
  public:
-  explicit buffering_visitor(boost::container::pmr::memory_resource *memory);
+  explicit buffering_visitor(memory_resource *memory);
 
   // Copying is usually a bug, so disable copying.
   buffering_visitor(const buffering_visitor &) = delete;

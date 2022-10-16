@@ -98,6 +98,11 @@ void file_output_stream::flush_impl(string8_view data) {
   // (stdout/stderr).
   auto write_result = this->file_.write_full(data.data(), data.size());
   if (!write_result.ok()) {
+    std::fprintf(
+        stderr,
+        "fatal: file_output_stream::flush_impl failed to write data: %s\n",
+        write_result.error_to_string().c_str());
+    std::fflush(stderr);
     QLJS_UNIMPLEMENTED();
   }
 }

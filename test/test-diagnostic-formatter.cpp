@@ -399,6 +399,30 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'with' statement\n");
   }
+
+  {
+    test_diag diag = {
+        .empty_span = empty_span,
+        .statement = statement_kind::labelled_statement,
+    };
+    string_diagnostic_formatter formatter;
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             QLJS_TRANSLATABLE("expected {1:headlinese}"),
+                             message_args, &diag);
+    EXPECT_EQ(formatter.message, u8"expected labelled statement\n");
+  }
+
+  {
+    test_diag diag = {
+        .empty_span = empty_span,
+        .statement = statement_kind::labelled_statement,
+    };
+    string_diagnostic_formatter formatter;
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             QLJS_TRANSLATABLE("expected {1:singular}"),
+                             message_args, &diag);
+    EXPECT_EQ(formatter.message, u8"expected a labelled statement\n");
+  }
 }
 }
 }

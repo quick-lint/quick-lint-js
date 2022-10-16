@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <utility>
@@ -47,7 +47,6 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
       this->enter_typescript_only_construct();
 
   bool is_array_type = false;
-  bool trailing_square_makes_array = true;
   bool is_tuple_type = false;
 
   std::optional<source_code_span> leading_binary_operator;  // '|' or '&'
@@ -152,7 +151,6 @@ again:
   // unique.prop
   // unique symbol
   case token_type::kw_unique:
-    trailing_square_makes_array = false;
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_symbol);
     this->skip();
@@ -166,25 +164,18 @@ again:
 
   // (typeexpr)
   // (param, param) => ReturnType
-  case token_type::left_paren: {
-    typescript_type_arrow_or_paren result =
-        this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
-    if (result == typescript_type_arrow_or_paren::arrow) {
-      trailing_square_makes_array = false;
-    }
+  case token_type::left_paren:
+    this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
     break;
-  }
 
   // new (param, param) => ReturnType
   case token_type::kw_new:
-    trailing_square_makes_array = false;
     this->skip();
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
 
   // <T>(param, param) => ReturnType
   case token_type::less:
-    trailing_square_makes_array = false;
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
 
@@ -340,7 +331,6 @@ again:
 
   // keyof Type
   case token_type::kw_keyof:
-    trailing_square_makes_array = false;
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
     break;
@@ -356,11 +346,9 @@ again:
     break;
   }
 
-  bool have_trailing_square_bracket = false;
   while (this->peek().type == token_type::left_square) {
     // typeexpr[]
     // typeexpr[Key]
-    have_trailing_square_bracket = true;
     this->skip();
     if (this->peek().type == token_type::right_square) {
       is_array_type = true;
@@ -372,20 +360,10 @@ again:
     }
   }
   if (readonly_keyword.has_value() && !(is_array_type || is_tuple_type)) {
-    if (have_trailing_square_bracket || !trailing_square_makes_array) {
-      // readonly T[K]  // Invalid.
-      this->diag_reporter_->report(
-          diag_typescript_readonly_in_type_needs_array_or_tuple_type{
-              .readonly_keyword = *readonly_keyword,
-          });
-    } else {
-      // readonly T  // Invalid.
-      this->diag_reporter_->report(diag_typescript_readonly_type_needs_array{
-          .expected_array_brackets =
-              source_code_span::unit(this->lexer_.end_of_previous_token()),
-          .readonly_keyword = *readonly_keyword,
-      });
-    }
+    this->diag_reporter_->report(
+        diag_typescript_readonly_in_type_needs_array_or_tuple_type{
+            .readonly_keyword = *readonly_keyword,
+        });
   }
 
   if (this->peek().type == token_type::ampersand ||
@@ -842,12 +820,9 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       // [...Type]
       spread = this->peek().span();
       if (first_spread.has_value()) {
-        // [...Type1, ...Type2]  // Invalid.
-        this->diag_reporter_->report(
-            diag_typescript_tuple_cannot_have_multiple_spreads{
-                .spread = *spread,
-                .previous_spread = *first_spread,
-            });
+        // [...Type1, ...Type2]
+        // [...Type1[], ...Type2[]]  // Invalid.
+        // TODO(#867): Report a diagnostic if the spread type is an array type.
       } else {
         first_spread = spread;
       }

@@ -4,13 +4,13 @@
 #ifndef QUICK_LINT_JS_CONTAINER_LINKED_BUMP_ALLOCATOR_H
 #define QUICK_LINT_JS_CONTAINER_LINKED_BUMP_ALLOCATOR_H
 
-#include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/math.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
 
@@ -34,7 +34,7 @@ namespace quick_lint_js {
 //
 // Internally, linked_bump_allocator maintains a linked list of chunks.
 template <std::size_t Alignment>
-class linked_bump_allocator : public boost::container::pmr::memory_resource {
+class linked_bump_allocator : public memory_resource {
  private:
   struct chunk_header;
 
@@ -175,11 +175,6 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
 
-  template <class T>
-  boost::container::pmr::polymorphic_allocator<T> standard_allocator() {
-    return boost::container::pmr::polymorphic_allocator<T>(this);
-  }
-
   class disable_guard {
    public:
     ~disable_guard() {
@@ -218,8 +213,7 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     this->deallocate_bytes(p, bytes);
   }
 
-  bool do_is_equal(const boost::container::pmr::memory_resource& other) const
-      noexcept override {
+  bool do_is_equal(const memory_resource& other) const noexcept override {
     return this == static_cast<const linked_bump_allocator*>(&other);
   }
 
