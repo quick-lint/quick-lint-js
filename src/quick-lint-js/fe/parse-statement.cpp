@@ -1608,6 +1608,7 @@ parser::parse_and_visit_function_parameters(
       return this->parse_and_visit_function_parameters(
           v, name);
     }
+    [[fallthrough]]; // Should still call QLJS_PARSER_UNIMPLEMENTED if the identifier is not "async"
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
