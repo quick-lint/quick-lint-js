@@ -169,6 +169,7 @@ quick_lint_js_add_library(
   quick-lint-js/logging/log.h
   quick-lint-js/logging/logger.cpp
   quick-lint-js/logging/logger.h
+  quick-lint-js/logging/trace-flusher-directory-backend.cpp
   quick-lint-js/logging/trace-flusher.cpp
   quick-lint-js/logging/trace-flusher.h
   quick-lint-js/logging/trace-metadata.cpp

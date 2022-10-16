@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/thread.h>
@@ -19,6 +20,97 @@
 
 namespace quick_lint_js {
 class trace_writer;
+
+union trace_flusher_backend_thread_data {
+  trace_flusher_backend_thread_data() {}
+  trace_flusher_backend_thread_data(const trace_flusher_backend_thread_data&) =
+      delete;
+  trace_flusher_backend_thread_data& operator=(
+      const trace_flusher_backend_thread_data&) = delete;
+  ~trace_flusher_backend_thread_data() {}
+
+  platform_file file;
+};
+
+// These member functions are called with a lock held. Do not interact with
+// trace_flusher in any implementations of these functions.
+class trace_flusher_backend {
+ public:
+  explicit trace_flusher_backend() = default;
+
+  trace_flusher_backend(trace_flusher_backend&&) = default;
+  trace_flusher_backend& operator=(trace_flusher_backend&&) = default;
+
+  virtual ~trace_flusher_backend() = default;
+
+  // Called from any thread with trace_flusher's internal lock held.
+  virtual void trace_enabled() = 0;
+
+  // Called from any thread with trace_flusher's internal lock held.
+  virtual void trace_disabled() = 0;
+
+  // If trace_thread_begin returns true, it must initialize thread_data.
+  // If it returns false, it must not initialize thread_data.
+  //
+  // Called from any thread.
+  virtual bool trace_thread_begin(
+      std::uint64_t stream_index,
+      trace_flusher_backend_thread_data& thread_data) = 0;
+
+  // trace_thread_end must uninitialize thread_data.
+  //
+  // thread_data was previously given to trace_thread_begin.
+  //
+  // Called from any thread.
+  virtual void trace_thread_end(
+      trace_flusher_backend_thread_data& thread_data) = 0;
+
+  // thread_data was previously given to trace_thread_begin (but not
+  // trace_thread_end).
+  //
+  // Called from any thread.
+  virtual void trace_thread_write_data(
+      const std::byte* data, std::size_t size,
+      trace_flusher_backend_thread_data& thread_data) = 0;
+};
+
+class trace_flusher_directory_backend final : public trace_flusher_backend {
+ public:
+  const std::string& trace_directory() const { return this->trace_directory_; }
+
+  void trace_enabled() override;
+  void trace_disabled() override;
+  bool trace_thread_begin(
+      std::uint64_t stream_index,
+      trace_flusher_backend_thread_data& thread_data) override;
+  void trace_thread_end(
+      trace_flusher_backend_thread_data& thread_data) override;
+  void trace_thread_write_data(
+      const std::byte* data, std::size_t size,
+      trace_flusher_backend_thread_data& thread_data) override;
+
+  // Creates a 'metadata' file in the given directory.
+  //
+  // If the directory does not exist, or if creating the 'metadata' file fails,
+  // an error is returned.
+  static result<trace_flusher_directory_backend, write_file_io_error>
+  init_directory(const std::string& trace_directory);
+
+  // Creates the given directory if it doesn't exist, then creates a
+  // subdirectory with a timestamped name, then calls init_directory.
+  //
+  // If there was an error creating the directory, logs a message and returns
+  // nullopt.
+  //
+  // Thread-safe.
+  static std::optional<trace_flusher_directory_backend> create_child_directory(
+      const std::string& directory);
+
+ private:
+  explicit trace_flusher_directory_backend(const std::string& trace_directory);
+
+  std::string trace_directory_;
+};
 
 // A trace_flusher gives trace_writer instances and writes traces to files.
 //
@@ -75,12 +167,14 @@ class trace_flusher {
 
   void flush_sync(std::unique_lock<mutex>&);
 
+  void enable_backend(std::unique_lock<mutex>&, trace_flusher_backend*);
+
   bool is_enabled(std::unique_lock<mutex>&) const;
 
   void flush_one_thread_sync(std::unique_lock<mutex>&, registered_thread&);
 
-  void create_stream_file_and_enable_thread_writer(std::unique_lock<mutex>&,
-                                                   registered_thread&);
+  void enable_thread_writer(std::unique_lock<mutex>&, registered_thread&,
+                            trace_flusher_backend*);
 
   // If tracing is enabled, this points to a registered_thread::stream_writer
   // from this->registered_threads_.
@@ -89,7 +183,7 @@ class trace_flusher {
   static thread_local std::atomic<trace_writer*> thread_stream_writer_;
 
   // Protected by mutex_:
-  std::string trace_directory_;
+  std::optional<trace_flusher_directory_backend> directory_backend_;
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
   std::uint64_t next_stream_index_ = 1;
   bool stop_flushing_thread_ = false;

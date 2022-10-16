@@ -14,12 +14,10 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
-#include <quick-lint-js/logging/trace-metadata.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -32,14 +30,23 @@ namespace quick_lint_js {
 thread_local std::atomic<trace_writer*> trace_flusher::thread_stream_writer_;
 
 struct trace_flusher::registered_thread {
-  explicit registered_thread(std::atomic<trace_writer*>* thread_writer)
-      : thread_writer(thread_writer) {}
+  explicit registered_thread(trace_flusher* flusher,
+                             std::atomic<trace_writer*>* thread_writer)
+      : flusher(flusher), thread_writer(thread_writer) {}
 
-  // Protected by mutex_:
-  platform_file file;
+  ~registered_thread() {
+    if (this->backend) {
+      this->backend->trace_thread_end(this->backend_thread_data);
+    }
+  }
+
+  // Protected by trace_flusher::mutex_:
+  trace_flusher_backend* backend = nullptr;
+  trace_flusher_backend_thread_data backend_thread_data;
 
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
+  trace_flusher* flusher;
 
   // Points to the thread-local thread_stream_writer_ object.
   std::atomic<trace_writer*>* const thread_writer;
@@ -63,21 +70,18 @@ result<void, write_file_io_error> trace_flusher::enable_for_directory(
     const std::string& trace_directory) {
   std::unique_lock<mutex> lock(this->mutex_);
 
-  this->trace_directory_ = trace_directory;
-  auto write_result =
-      write_file(this->trace_directory_ + "/metadata", trace_metadata);
-  if (!write_result.ok()) {
-    return write_result.propagate();
+  if (this->directory_backend_) {
+    this->directory_backend_->trace_disabled();
+    this->directory_backend_.reset();
   }
-
-  this->next_stream_index_ = 1;
-  for (auto& t : this->registered_threads_) {
-    if (t->file.valid()) {
-      t->file.close();
-    }
-    this->create_stream_file_and_enable_thread_writer(lock, *t);
+  auto backend =
+      trace_flusher_directory_backend::init_directory(trace_directory);
+  if (!backend.ok()) {
+    return backend.propagate();
   }
+  this->directory_backend_.emplace(std::move(*backend));
 
+  this->enable_backend(lock, &*this->directory_backend_);
   return {};
 }
 
@@ -86,35 +90,44 @@ void trace_flusher::disable() {
   for (auto& t : this->registered_threads_) {
     t->thread_writer->store(nullptr);
   }
-  this->trace_directory_.clear();
+  if (this->directory_backend_) {
+    this->directory_backend_->trace_disabled();
+    this->directory_backend_.reset();
+  }
 }
 
 void trace_flusher::create_and_enable_in_child_directory(
     const std::string& directory) {
-  auto dir_result = create_directory(directory);
-  if (!dir_result.ok()) {
-    if (!dir_result.error().is_directory_already_exists_error) {
-      QLJS_DEBUG_LOG("failed to create log directory %s: %s\n",
-                     directory.c_str(), dir_result.error_to_string().c_str());
-      return;
-    }
-  }
-  result<std::string, platform_file_io_error> trace_directory =
-      make_timestamped_directory(directory, "trace_%Y-%m-%d-%H-%M-%S");
-  if (!trace_directory.ok()) {
-    QLJS_DEBUG_LOG("failed to create tracing directory in %s: %s\n",
-                   directory.c_str(),
-                   trace_directory.error_to_string().c_str());
-    return;
-  }
-  auto result = this->enable_for_directory(*trace_directory);
-  if (!result.ok()) {
-    QLJS_DEBUG_LOG("failed to enable tracing: %s\n",
-                   result.error_to_string().c_str());
-    return;
-  }
+  std::unique_lock<mutex> lock(this->mutex_);
 
-  QLJS_DEBUG_LOG("enable tracing in directory %s\n", trace_directory->c_str());
+  if (this->directory_backend_) {
+    this->directory_backend_->trace_disabled();
+    this->directory_backend_.reset();
+  }
+  std::optional<trace_flusher_directory_backend> backend =
+      this->directory_backend_->create_child_directory(directory);
+  if (!backend) {
+    return;
+  }
+  this->directory_backend_.emplace(std::move(*backend));
+
+  this->enable_backend(lock, &*this->directory_backend_);
+
+  QLJS_DEBUG_LOG("enable tracing in directory %s\n",
+                 this->directory_backend_->trace_directory().c_str());
+}
+
+void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
+                                   trace_flusher_backend* backend) {
+  backend->trace_enabled();
+
+  this->next_stream_index_ = 1;
+  for (auto& t : this->registered_threads_) {
+    if (t->backend) {
+      t->backend->trace_thread_end(t->backend_thread_data);
+    }
+    this->enable_thread_writer(lock, *t, backend);
+  }
 }
 
 bool trace_flusher::is_enabled() const {
@@ -123,7 +136,7 @@ bool trace_flusher::is_enabled() const {
 }
 
 bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
-  return !this->trace_directory_.empty();
+  return this->directory_backend_.has_value();
 }
 
 void trace_flusher::register_current_thread() {
@@ -131,11 +144,11 @@ void trace_flusher::register_current_thread() {
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
   this->registered_threads_.push_back(
-      std::make_unique<registered_thread>(&this->thread_stream_writer_));
+      std::make_unique<registered_thread>(this, &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  if (this->is_enabled(lock)) {
-    this->create_stream_file_and_enable_thread_writer(lock, *t);
+  if (this->directory_backend_) {
+    this->enable_thread_writer(lock, *t, &*this->directory_backend_);
   }
 }
 
@@ -189,8 +202,8 @@ void trace_flusher::stop_flushing_thread() {
 
 void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
                                           registered_thread& t) {
-  if (!t.file.valid()) {
-    // No file is open. Buffer the data in memory.
+  if (!t.backend) {
+    // flush was called, but tracing was not enabled for this thread.
     // TODO(strager): We shouldn't buffer if logging is enabled but the file
     // failed to open.
     return;
@@ -198,31 +211,20 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        auto write_result = t.file.write_full(data, size);
-        if (!write_result.ok()) {
-          QLJS_DEBUG_LOG("warning: failed to append to trace stream file: %s\n",
-                         write_result.error_to_string().c_str());
-          // TODO(strager): Disable further writes to prevent file corruption
-          // and noisy logs.
-        }
+        t.backend->trace_thread_write_data(data, size, t.backend_thread_data);
       },
       [] {});
 }
 
-void trace_flusher::create_stream_file_and_enable_thread_writer(
-    std::unique_lock<mutex>& lock, registered_thread& t) {
-  QLJS_ASSERT(!t.file.valid());
-
+void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
+                                         registered_thread& t,
+                                         trace_flusher_backend* backend) {
   std::uint64_t stream_index = this->next_stream_index_++;
-  std::string stream_path =
-      this->trace_directory_ + "/thread" + std::to_string(stream_index);
-  auto file = open_file_for_writing(stream_path.c_str());
-  if (!file.ok()) {
-    QLJS_DEBUG_LOG("warning: failed to create trace stream file %s: %s\n",
-                   stream_path.c_str(), file.error_to_string().c_str());
+  bool ok = backend->trace_thread_begin(stream_index, t.backend_thread_data);
+  if (!ok) {
     return;  // Give up. Do not enable the thread's writer.
   }
-  t.file = std::move(*file);
+  t.backend = backend;
 
   t.stream_writer.write_header(trace_context{
       .thread_id = get_current_thread_id(),
