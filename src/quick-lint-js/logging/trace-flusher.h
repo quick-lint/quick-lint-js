@@ -20,6 +20,21 @@
 namespace quick_lint_js {
 class trace_writer;
 
+// A trace_flusher gives trace_writer instances and writes traces to files.
+//
+// See docs/TRACING.md for details on the file format.
+//
+// Typical use:
+//
+// 1. Create a trace_flusher.
+// 2. Enable tracing with enable_for_directory. (This can be done at any time.)
+// 3. On threads which want to write data, call register_current_thread.
+// 4. Periodically, call trace_writer_for_current_thread()->write_[event].
+// 5. After events have been written, call
+//    trace_writer_for_current_thread()->commit.
+//
+// All public trace_flusher member functions are thread-safe. They can be called
+// from any thread without synchronization.
 class trace_flusher {
  public:
   /*implicit*/ trace_flusher();
@@ -29,9 +44,9 @@ class trace_flusher {
 
   ~trace_flusher();
 
+  // At most one directory can be enabled at a time.
   result<void, write_file_io_error> enable_for_directory(
       const std::string& trace_directory);
-  void disable();
 
   // Like enable_for_directory, except:
   // * creates the given directory if it doesn't exist
@@ -39,6 +54,8 @@ class trace_flusher {
   // * on error, logs a message
   // * on success, logs a message
   void create_and_enable_in_child_directory(const std::string& directory);
+
+  void disable();
 
   bool is_enabled() const;
 
