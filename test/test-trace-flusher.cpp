@@ -144,19 +144,6 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
   mutable mutex mutex_;
 };
 
-TEST_F(test_trace_flusher_directory_backend,
-       initing_directory_backend_creates_metadata_file) {
-  auto backend = trace_flusher_directory_backend::init_directory(trace_dir);
-  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
-
-  auto metadata_file = read_file((trace_dir + "/metadata").c_str());
-  ASSERT_TRUE(metadata_file.ok()) << metadata_file.error_to_string();
-
-  EXPECT_THAT(to_string(metadata_file->string_view()),
-              ::testing::StartsWith("/* CTF 1.8"))
-      << "TSDL specification: https://diamon.org/ctf/#spec7.1";
-}
-
 TEST_F(test_trace_flusher, enabling_enables) {
   trace_flusher flusher;
   EXPECT_FALSE(flusher.is_enabled());
@@ -165,13 +152,6 @@ TEST_F(test_trace_flusher, enabling_enables) {
   flusher.enable_backend(&backend);
 
   EXPECT_TRUE(flusher.is_enabled());
-}
-
-TEST_F(test_trace_flusher_directory_backend,
-       initing_directory_backend_fails_if_directory_is_missing) {
-  auto backend = trace_flusher_directory_backend::init_directory(
-      trace_dir + "/does-not-exit");
-  EXPECT_FALSE(backend.ok());
 }
 
 TEST_F(test_trace_flusher,
@@ -194,27 +174,6 @@ TEST_F(test_trace_flusher,
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.thread_indexes(), IsEmpty());
-}
-
-TEST_F(test_trace_flusher_directory_backend,
-       enabling_and_registering_writes_stream_file_header) {
-  trace_flusher flusher;
-
-  flusher.register_current_thread();
-
-  auto backend =
-      trace_flusher_directory_backend::init_directory(this->trace_dir);
-  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
-  flusher.enable_backend(&*backend);
-
-  strict_mock_trace_stream_event_visitor v;
-  EXPECT_CALL(v, visit_packet_header(::testing::Field(
-                     &trace_stream_event_visitor::packet_header::thread_id,
-                     get_current_thread_id())));
-  EXPECT_CALL(v, visit_init_event(::testing::Field(
-                     &trace_stream_event_visitor::init_event::version,
-                     ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
-  read_trace_stream_file(this->trace_dir + "/thread1", v);
 }
 
 TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
@@ -374,48 +333,6 @@ TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
   flusher.enable_backend(&backend_2);
 
   EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(1));
-}
-
-TEST_F(test_trace_flusher_directory_backend,
-       write_events_from_multiple_threads) {
-  trace_flusher flusher;
-
-  auto backend =
-      trace_flusher_directory_backend::init_directory(this->trace_dir);
-  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
-  flusher.enable_backend(&*backend);
-
-  flusher.register_current_thread();
-
-  thread other_thread([&]() {
-    flusher.register_current_thread();
-
-    trace_writer* writer = flusher.trace_writer_for_current_thread();
-    ASSERT_TRUE(writer);
-    writer->write_event_init(trace_event_init{
-        .version = u8"other thread",
-    });
-    writer->commit();
-
-    flusher.unregister_current_thread();
-  });
-
-  trace_writer* writer = flusher.trace_writer_for_current_thread();
-  ASSERT_TRUE(writer);
-  writer->write_event_init(trace_event_init{
-      .version = u8"main thread",
-  });
-  writer->commit();
-
-  other_thread.join();
-  flusher.flush_sync();
-
-  EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
-      ElementsAre(::testing::_, "main thread"));
-  EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread2"),
-      ElementsAre(::testing::_, "other thread"));
 }
 
 TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
@@ -675,6 +592,89 @@ TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
   EXPECT_THAT(
       backend_2.read_thread_init_versions(1),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
+}
+
+TEST_F(test_trace_flusher_directory_backend,
+       initing_directory_backend_creates_metadata_file) {
+  auto backend = trace_flusher_directory_backend::init_directory(trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+
+  auto metadata_file = read_file((trace_dir + "/metadata").c_str());
+  ASSERT_TRUE(metadata_file.ok()) << metadata_file.error_to_string();
+
+  EXPECT_THAT(to_string(metadata_file->string_view()),
+              ::testing::StartsWith("/* CTF 1.8"))
+      << "TSDL specification: https://diamon.org/ctf/#spec7.1";
+}
+
+TEST_F(test_trace_flusher_directory_backend,
+       initing_directory_backend_fails_if_directory_is_missing) {
+  auto backend = trace_flusher_directory_backend::init_directory(
+      trace_dir + "/does-not-exit");
+  EXPECT_FALSE(backend.ok());
+}
+
+TEST_F(test_trace_flusher_directory_backend,
+       enabling_and_registering_writes_stream_file_header) {
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  strict_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(v, visit_packet_header(::testing::Field(
+                     &trace_stream_event_visitor::packet_header::thread_id,
+                     get_current_thread_id())));
+  EXPECT_CALL(v, visit_init_event(::testing::Field(
+                     &trace_stream_event_visitor::init_event::version,
+                     ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
+  read_trace_stream_file(this->trace_dir + "/thread1", v);
+}
+
+TEST_F(test_trace_flusher_directory_backend,
+       write_events_from_multiple_threads) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+
+  thread other_thread([&]() {
+    flusher.register_current_thread();
+
+    trace_writer* writer = flusher.trace_writer_for_current_thread();
+    ASSERT_TRUE(writer);
+    writer->write_event_init(trace_event_init{
+        .version = u8"other thread",
+    });
+    writer->commit();
+
+    flusher.unregister_current_thread();
+  });
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"main thread",
+  });
+  writer->commit();
+
+  other_thread.join();
+  flusher.flush_sync();
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "main thread"));
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread2"),
+      ElementsAre(::testing::_, "other thread"));
 }
 }
 }
