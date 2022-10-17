@@ -6,6 +6,7 @@
 #else
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -39,14 +40,33 @@ struct trace_flusher::registered_thread {
         thread_writer(thread_writer) {}
 
   ~registered_thread() {
-    if (this->backend) {
-      this->backend->trace_thread_end(this->backend_thread_data);
+    for (backend_state& backend : this->backends) {
+      if (backend.backend) {
+        backend.backend->trace_thread_end(backend.thread_data);
+      }
     }
   }
 
+  struct backend_state {
+    trace_flusher_backend* backend = nullptr;
+
+    // This is initialized by backend->trace_thread_begin.
+    trace_flusher_backend_thread_data thread_data;
+  };
+
+  trace_flusher_backend_thread_data& add_backend(
+      std::unique_lock<mutex>&, trace_flusher_backend* backend) {
+    for (backend_state& s : this->backends) {
+      if (!s.backend) {
+        s.backend = backend;
+        return s.thread_data;
+      }
+    }
+    QLJS_ALWAYS_ASSERT(false && "backends array is full");
+  }
+
   // Protected by trace_flusher::mutex_:
-  trace_flusher_backend* backend = nullptr;
-  trace_flusher_backend_thread_data backend_thread_data;
+  std::array<backend_state, 2> backends;
 
   // Initialized once:
   std::uint64_t thread_id;
@@ -78,7 +98,13 @@ void trace_flusher::disable() {
   std::unique_lock<mutex> lock(this->mutex_);
   for (auto& t : this->registered_threads_) {
     t->thread_writer->store(nullptr);
-    t->backend = nullptr;
+
+    for (registered_thread::backend_state& backend : t->backends) {
+      // FIXME(strager): We should call trace_disabled here, but our tests are
+      // sloppy and have already destructed the backend by now.
+      // backend.backend->trace_thread_end(backend.thread_data);
+      backend.backend = nullptr;
+    }
   }
   for (trace_flusher_backend* backend : this->backends_) {
     // FIXME(strager): We should call trace_disabled here, but our tests are
@@ -102,9 +128,6 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   backend->trace_enabled();
 
   for (auto& t : this->registered_threads_) {
-    if (t->backend) {
-      t->backend->trace_thread_end(t->backend_thread_data);
-    }
     this->enable_thread_writer(lock, *t, backend);
   }
 }
@@ -182,16 +205,15 @@ void trace_flusher::stop_flushing_thread() {
 
 void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
                                           registered_thread& t) {
-  if (!t.backend) {
-    // flush was called, but tracing was not enabled for this thread.
-    // TODO(strager): We shouldn't buffer if logging is enabled but the file
-    // failed to open.
-    return;
-  }
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        t.backend->trace_thread_write_data(data, size, t.backend_thread_data);
+        for (registered_thread::backend_state& backend : t.backends) {
+          if (backend.backend) {
+            backend.backend->trace_thread_write_data(data, size,
+                                                     backend.thread_data);
+          }
+        }
       },
       [] {});
 }
@@ -199,17 +221,17 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
 void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
                                          registered_thread& t,
                                          trace_flusher_backend* backend) {
-  backend->trace_thread_begin(t.thread_index, t.backend_thread_data);
-  t.backend = backend;
-
-  this->write_thread_header_to_backend(lock, t, backend);
+  trace_flusher_backend_thread_data& thread_data = t.add_backend(lock, backend);
+  backend->trace_thread_begin(t.thread_index, thread_data);
+  this->write_thread_header_to_backend(lock, t, backend, thread_data);
 
   t.thread_writer->store(&t.stream_writer);
 }
 
 void trace_flusher::write_thread_header_to_backend(
     std::unique_lock<mutex>&, registered_thread& t,
-    trace_flusher_backend* backend) {
+    trace_flusher_backend* backend,
+    trace_flusher_backend_thread_data& thread_data) {
   // NOTE(strager): We use a temporary async_byte_queue instead of reusing
   // t.stream_queue so we can write to *just* this backend and not involve any
   // other backends.
@@ -225,7 +247,7 @@ void trace_flusher::write_thread_header_to_backend(
   temp_queue.commit();
   temp_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        backend->trace_thread_write_data(data, size, t.backend_thread_data);
+        backend->trace_thread_write_data(data, size, thread_data);
       },
       [] {});
 }
