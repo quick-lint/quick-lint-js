@@ -339,6 +339,132 @@ TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
   flusher.disable_all_backends();
 }
 
+TEST_F(test_trace_flusher, disabling_backend_ends_all_registered_threads) {
+  flusher.register_current_thread();
+
+  spy_trace_flusher_backend backend;
+  flusher.enable_backend(&backend);
+
+  mutex test_mutex;
+  condition_variable cond;
+  bool registered_thread_2 = false;
+  bool finished_test = false;
+
+  std::thread thread_2([&]() {
+    flusher.register_current_thread();
+    {
+      std::lock_guard<mutex> lock(test_mutex);
+      registered_thread_2 = true;
+      cond.notify_all();
+    }
+
+    {
+      std::unique_lock<mutex> lock(test_mutex);
+      cond.wait(lock, [&] { return finished_test; });
+    }
+    flusher.unregister_current_thread();
+  });
+
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    cond.wait(lock, [&] { return registered_thread_2; });
+  }
+
+  ASSERT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
+  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+
+  flusher.disable_backend(&backend);
+
+  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].end_calls, 1);
+
+  {
+    std::lock_guard<mutex> lock(test_mutex);
+    finished_test = true;
+    cond.notify_all();
+  }
+  thread_2.join();
+
+  flusher.disable_all_backends();
+}
+
+TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
+  spy_trace_flusher_backend backend;
+  flusher.enable_backend(&backend);
+
+  mutex test_mutex;
+  condition_variable cond;
+  bool registered_thread_2 = false;
+  bool should_unregister_thread_2 = false;
+  bool unregistered_thread_2 = false;
+  bool finished_test = false;
+
+  std::thread thread_2([&]() {
+    flusher.register_current_thread();
+    {
+      std::unique_lock<mutex> lock(test_mutex);
+      registered_thread_2 = true;
+      cond.notify_all();
+      cond.wait(lock, [&] { return should_unregister_thread_2; });
+    }
+    flusher.unregister_current_thread();
+    {
+      std::unique_lock<mutex> lock(test_mutex);
+      unregistered_thread_2 = true;
+      cond.notify_all();
+      cond.wait(lock, [&] { return finished_test; });
+    }
+  });
+
+  flusher.register_current_thread();
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    cond.wait(lock, [&] { return registered_thread_2; });
+  }
+
+  ASSERT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
+  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+
+  flusher.unregister_current_thread();
+
+  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    should_unregister_thread_2 = true;
+    cond.notify_all();
+    cond.wait(lock, [&] { return unregistered_thread_2; });
+  }
+
+  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[2].end_calls, 1);
+
+  {
+    std::lock_guard<mutex> lock(test_mutex);
+    finished_test = true;
+    cond.notify_all();
+  }
+  thread_2.join();
+
+  flusher.disable_all_backends();
+}
+
 TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);

@@ -118,6 +118,7 @@ void trace_flusher::disable_backend(std::unique_lock<mutex>&,
   for (auto& t : this->registered_threads_) {
     for (registered_thread::backend_state& s : t->backends) {
       if (s.backend == backend) {
+        s.backend->trace_thread_end(s.thread_data);
         s.backend = nullptr;
       }
     }
