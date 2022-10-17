@@ -8,10 +8,10 @@
 
 #if QLJS_FEATURE_DEBUG_SERVER
 
-#include <quick-lint-js/port/char8.h>
+#include <string>
 
 namespace quick_lint_js {
-extern string8_view debug_server_index_html;
+std::string get_debug_server_public_directory();
 }
 
 #endif

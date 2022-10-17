@@ -161,11 +161,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
   switch (ev) {
   case ::MG_EV_HTTP_MSG: {
     ::mg_http_message *hm = static_cast<::mg_http_message *>(ev_data);
-    if (::mg_http_match_uri(hm, "/")) {
-      ::mg_http_reply(c, 200, "Content-Type: text/html\r\n", "%.*s",
-                      narrow_cast<int>(debug_server_index_html.size()),
-                      debug_server_index_html.data());
-    } else if (::mg_http_match_uri(hm, "/vector-profiler-stats")) {
+    if (::mg_http_match_uri(hm, "/vector-profiler-stats")) {
       byte_buffer json;
       write_vector_profiler_stats(json);
 
@@ -177,8 +173,16 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
       ::mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%.*s",
                       narrow_cast<int>(json_copy.size()), json_copy.data());
     } else {
-      ::mg_http_reply(c, 404, "Content-Type: text/plain\r\n",
-                      "404 not found\n");
+      std::string public_directory = get_debug_server_public_directory();
+      ::mg_http_serve_opts options = {
+          .root_dir = public_directory.c_str(),
+          .ssi_pattern = nullptr,
+          .extra_headers = nullptr,
+          .mime_types = nullptr,
+          .page404 = nullptr,
+          .fs = nullptr,
+      };
+      ::mg_http_serve_dir(c, hm, &options);
     }
     break;
   }
