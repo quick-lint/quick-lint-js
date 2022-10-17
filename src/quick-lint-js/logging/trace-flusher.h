@@ -119,7 +119,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
 // Typical use:
 //
 // 1. Create a trace_flusher.
-// 2. Enable tracing with enable_for_directory. (This can be done at any time.)
+// 2. Enable tracing with enable_backend. (This can be done at any time.)
 // 3. On threads which want to write data, call register_current_thread.
 // 4. Periodically, call trace_writer_for_current_thread()->write_[event].
 // 5. After events have been written, call
@@ -136,12 +136,7 @@ class trace_flusher {
 
   ~trace_flusher();
 
-  // At most one directory can be enabled at a time.
-  //
-  // TODO(strager): Delete this function.
-  result<void, write_file_io_error> enable_for_directory(
-      const std::string& trace_directory);
-
+  // At most one backend can be enabled at a time.
   void enable_backend(trace_flusher_backend*);
 
   void disable();

@@ -66,26 +66,6 @@ trace_flusher::~trace_flusher() {
   }
 }
 
-result<void, write_file_io_error> trace_flusher::enable_for_directory(
-    const std::string& trace_directory) {
-  std::unique_lock<mutex> lock(this->mutex_);
-
-  if (this->backend_) {
-    this->backend_->trace_disabled();
-    this->directory_backend_.reset();
-    this->backend_ = nullptr;
-  }
-  auto backend =
-      trace_flusher_directory_backend::init_directory(trace_directory);
-  if (!backend.ok()) {
-    return backend.propagate();
-  }
-  this->directory_backend_.emplace(std::move(*backend));
-
-  this->enable_backend(lock, &*this->directory_backend_);
-  return {};
-}
-
 void trace_flusher::disable() {
   std::unique_lock<mutex> lock(this->mutex_);
   for (auto& t : this->registered_threads_) {
