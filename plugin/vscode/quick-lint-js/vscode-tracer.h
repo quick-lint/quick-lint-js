@@ -8,6 +8,7 @@
 #include <napi.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/temporary-directory.h>
+#include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/napi-support.h>
@@ -60,6 +61,12 @@ class vscode_tracer {
                          const std::string& log_directory)
       : tracer_(tracer), log_directory_(log_directory) {}
 
+  ~vscode_tracer() {
+    // We are going to deallocate this->tracer_backend_, so unregister it with
+    // the trace_flusher.
+    this->tracer_->disable();
+  }
+
   void register_current_thread() {
     this->tracer_->register_current_thread();
     this->tracer_->flush_sync();
@@ -75,10 +82,26 @@ class vscode_tracer {
       // tracing.
       return;
     }
-    this->tracer_->create_and_enable_in_child_directory(this->log_directory_);
+
+    this->disable();
+
+    auto new_backend = trace_flusher_directory_backend::create_child_directory(
+        this->log_directory_);
+    if (!new_backend) {
+      return;
+    }
+
+    this->tracer_backend_ = std::make_unique<trace_flusher_directory_backend>(
+        std::move(*new_backend));
+    this->tracer_->enable_backend(this->tracer_backend_.get());
+    QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
+                   this->tracer_backend_->trace_directory().c_str());
   }
 
-  void disable() { this->tracer_->disable(); }
+  void disable() {
+    this->tracer_->disable();
+    this->tracer_backend_.reset();
+  }
 
   void trace_vscode_document_opened(::Napi::Env env, vscode_document vscode_doc,
                                     void* doc) {
@@ -191,6 +214,7 @@ class vscode_tracer {
 
   trace_flusher* tracer_;
   std::string log_directory_;
+  std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
 };
 }
 
