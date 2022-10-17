@@ -19,7 +19,7 @@ files_to_parse=($(find_non_vendor_files | matching '\.(c|cpp|h)$'))
 chunk_size=$(((${#files_to_parse[@]} + ${parallelism} - 1) / ${parallelism}))
 
 printf '%s\n' "${files_to_parse[@]}" \
-  | xargs "-P${parallelism}" "-n${chunk_size}" clang-format-9 -i
+  | xargs "-P${parallelism}" "-n${chunk_size}" clang-format -i
 
 if [ "$(go version 2>/dev/null)" = '' ]; then
   printf 'warning: go not installed; not fixing include guards\n' >&2

@@ -273,6 +273,7 @@ parse_statement:
       this->skip();
       this->check_body_after_label();
       goto parse_statement;
+      // "async export f()" is not valid. It should be "export async f()"
     case token_type::kw_export: {
       this->diag_reporter_->report(
           diag_async_export_method{async_token.span()});
@@ -1657,7 +1658,9 @@ parser::parse_and_visit_function_parameters(
 
     // function async f() {}  // Invalid. Should be async function f() {}
   case token_type::identifier:
-    if (name->string_view() == u8"async"_sv) {
+    if (name->string_view() ==
+        u8"async"_sv) {  // In this context async is of type identifier and not
+                         // kw_async so we need to look at the name.
       this->diag_reporter_->report(
           diag_function_async_method{this->peek().span()});
       this->skip();
