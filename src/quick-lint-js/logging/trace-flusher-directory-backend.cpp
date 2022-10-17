@@ -22,12 +22,6 @@ trace_flusher_directory_backend::trace_flusher_directory_backend(
     const std::string &trace_directory)
     : trace_directory_(trace_directory) {}
 
-void trace_flusher_directory_backend::trace_enabled() {}
-
-void trace_flusher_directory_backend::trace_disabled() {
-  // TODO(strager): Close all opened files.
-}
-
 void trace_flusher_directory_backend::trace_thread_begin(
     std::uint64_t thread_index,
     trace_flusher_backend_thread_data &thread_data) {

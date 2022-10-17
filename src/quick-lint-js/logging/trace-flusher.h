@@ -43,12 +43,6 @@ class trace_flusher_backend {
 
   virtual ~trace_flusher_backend() = default;
 
-  // Called from any thread with trace_flusher's internal lock held.
-  virtual void trace_enabled() = 0;
-
-  // Called from any thread with trace_flusher's internal lock held.
-  virtual void trace_disabled() = 0;
-
   // Must initialize thread_data.
   //
   // Called from any thread.
@@ -77,8 +71,6 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
  public:
   const std::string& trace_directory() const { return this->trace_directory_; }
 
-  void trace_enabled() override;
-  void trace_disabled() override;
   void trace_thread_begin(
       std::uint64_t thread_index,
       trace_flusher_backend_thread_data& thread_data) override;

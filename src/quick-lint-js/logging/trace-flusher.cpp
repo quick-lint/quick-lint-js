@@ -112,7 +112,6 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                         backend) == this->backends_.end());
 
   this->backends_.push_back(backend);
-  backend->trace_enabled();
 
   for (auto& t : this->registered_threads_) {
     this->enable_thread_writer(lock, *t, backend);
@@ -129,19 +128,12 @@ void trace_flusher::disable_backend(std::unique_lock<mutex>&,
   for (auto& t : this->registered_threads_) {
     for (registered_thread::backend_state& s : t->backends) {
       if (s.backend == backend) {
-        // FIXME(strager): We should call trace_disabled here, but our tests are
-        // sloppy and have already destructed the backend by now.
-        // s.backend->trace_thread_end(s.thread_data);
         s.backend = nullptr;
       }
     }
   }
 
   erase(this->backends_, backend);
-
-  // FIXME(strager): We should call trace_disabled here, but our tests are
-  // sloppy and have already destructed the backend by now.
-  // this->backend_->trace_disabled();
 
   if (this->backends_.empty()) {
     for (auto& t : this->registered_threads_) {
