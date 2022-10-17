@@ -216,7 +216,7 @@ void write_vector_profiler_stats(byte_buffer &out_json) {
       out_json.append_copy(u8',');
     }
     out_json.append_copy(u8'"');
-    write_json_escaped_string(out_json, owner);
+    write_json_escaped_string(out_json, to_string8_view(owner));
     out_json.append_copy(u8"\":["_sv);
 
     bool need_array_comma = false;

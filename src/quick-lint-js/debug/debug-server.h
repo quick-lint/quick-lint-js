@@ -57,6 +57,12 @@ class debug_server {
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
 
   struct init_data {
+    // HACK(strager): Clang 11 with libstdc++ 12 requires a user-declared (not
+    // default) constructor. Otherwise, std::is_constructible_v<init_data>
+    // returns false, causing std::optional<init_data>::emplace() to not
+    // compile.
+    explicit init_data() {}
+
     std::string actual_listen_address;
     int wakeup_pipe = -1;
   };
