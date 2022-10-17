@@ -592,14 +592,21 @@ TEST_F(test_trace_flusher, write_to_multiple_directories_at_once) {
   writer->commit();
   flusher.flush_sync();
 
-  // TODO(strager): Disable just backend and test.
+  // Leave only backend_2 enabled.
+  flusher.disable_backend(&*backend);
+
+  writer->write_event_init(trace_event_init{
+      .version = u8"C: dir 2",
+  });
+  writer->commit();
+  flusher.flush_sync();
 
   EXPECT_THAT(
       trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
       ElementsAre(::testing::_, "A: dir 1", "B: dir 1 and dir 2"));
   EXPECT_THAT(
       trace_init_event_spy::read_init_versions(trace_dir_2 + "/thread1"),
-      ElementsAre(::testing::_, "B: dir 1 and dir 2"));
+      ElementsAre(::testing::_, "B: dir 1 and dir 2", "C: dir 2"));
 }
 }
 }

@@ -136,7 +136,9 @@ class trace_flusher {
   ~trace_flusher();
 
   void enable_backend(trace_flusher_backend*);
+  void disable_backend(trace_flusher_backend*);
 
+  // TODO(strager): Deprecate.
   void disable();
 
   bool is_enabled() const;
@@ -158,6 +160,7 @@ class trace_flusher {
   void flush_sync(std::unique_lock<mutex>&);
 
   void enable_backend(std::unique_lock<mutex>&, trace_flusher_backend*);
+  void disable_backend(std::unique_lock<mutex>&, trace_flusher_backend*);
 
   bool is_enabled(std::unique_lock<mutex>&) const;
 

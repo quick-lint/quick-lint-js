@@ -21,6 +21,7 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
@@ -96,23 +97,9 @@ trace_flusher::~trace_flusher() {
 
 void trace_flusher::disable() {
   std::unique_lock<mutex> lock(this->mutex_);
-  for (auto& t : this->registered_threads_) {
-    t->thread_writer->store(nullptr);
-
-    for (registered_thread::backend_state& backend : t->backends) {
-      // FIXME(strager): We should call trace_disabled here, but our tests are
-      // sloppy and have already destructed the backend by now.
-      // backend.backend->trace_thread_end(backend.thread_data);
-      backend.backend = nullptr;
-    }
+  while (!this->backends_.empty()) {
+    this->disable_backend(lock, this->backends_.front());
   }
-  for (trace_flusher_backend* backend : this->backends_) {
-    // FIXME(strager): We should call trace_disabled here, but our tests are
-    // sloppy and have already destructed the backend by now.
-    // this->backend_->trace_disabled();
-    static_cast<void>(backend);
-  }
-  this->backends_.clear();
 }
 
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
@@ -122,11 +109,46 @@ void trace_flusher::enable_backend(trace_flusher_backend* backend) {
 
 void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                                    trace_flusher_backend* backend) {
+  // A single backend cannot be enabled twice.
+  QLJS_ASSERT(std::find(this->backends_.begin(), this->backends_.end(),
+                        backend) == this->backends_.end());
+
   this->backends_.push_back(backend);
   backend->trace_enabled();
 
   for (auto& t : this->registered_threads_) {
     this->enable_thread_writer(lock, *t, backend);
+  }
+}
+
+void trace_flusher::disable_backend(trace_flusher_backend* backend) {
+  std::unique_lock<mutex> lock(this->mutex_);
+  this->disable_backend(lock, backend);
+}
+
+void trace_flusher::disable_backend(std::unique_lock<mutex>&,
+                                    trace_flusher_backend* backend) {
+  for (auto& t : this->registered_threads_) {
+    for (registered_thread::backend_state& s : t->backends) {
+      if (s.backend == backend) {
+        // FIXME(strager): We should call trace_disabled here, but our tests are
+        // sloppy and have already destructed the backend by now.
+        // s.backend->trace_thread_end(s.thread_data);
+        s.backend = nullptr;
+      }
+    }
+  }
+
+  erase(this->backends_, backend);
+
+  // FIXME(strager): We should call trace_disabled here, but our tests are
+  // sloppy and have already destructed the backend by now.
+  // this->backend_->trace_disabled();
+
+  if (this->backends_.empty()) {
+    for (auto& t : this->registered_threads_) {
+      t->thread_writer->store(nullptr);
+    }
   }
 }
 
