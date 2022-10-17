@@ -82,12 +82,7 @@ struct trace_flusher::registered_thread {
 trace_flusher::trace_flusher() = default;
 
 trace_flusher::~trace_flusher() {
-  // HACK(strager): Each thread should have unregistered itself already.
-  // However, in tests, we're lazy about unregistering. Forcefully unregister
-  // all threads so our tests don't interfere with each other.
-  // FIXME(strager): This code doesn't match the comment. I think this code used
-  // to unregister threads, but now it disables backends. Hmm...
-  this->disable_all_backends();
+  QLJS_ASSERT(this->backends_.empty());
 
   if (this->flushing_thread_.joinable()) {
     this->stop_flushing_thread();
