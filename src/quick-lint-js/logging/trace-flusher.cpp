@@ -35,9 +35,9 @@ struct trace_flusher::registered_thread {
   explicit registered_thread(trace_flusher* flusher, std::uint64_t thread_id,
                              std::uint64_t thread_index,
                              std::atomic<trace_writer*>* thread_writer)
-      : thread_id(thread_id),
+      : flusher(flusher),
+        thread_id(thread_id),
         thread_index(thread_index),
-        flusher(flusher),
         thread_writer(thread_writer) {}
 
   ~registered_thread() {
@@ -69,14 +69,12 @@ struct trace_flusher::registered_thread {
   // Protected by trace_flusher::mutex_:
   std::array<backend_state, 2> backends;
 
-  // Initialized once:
-  std::uint64_t thread_id;
-  std::uint64_t thread_index;
-
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
-  trace_flusher* flusher;
 
+  trace_flusher* const flusher;
+  std::uint64_t const thread_id;
+  std::uint64_t const thread_index;
   // Points to the thread-local thread_stream_writer_ object.
   std::atomic<trace_writer*>* const thread_writer;
 };
