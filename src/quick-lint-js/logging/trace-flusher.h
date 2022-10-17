@@ -167,6 +167,10 @@ class trace_flusher {
   void enable_thread_writer(std::unique_lock<mutex>&, registered_thread&,
                             trace_flusher_backend*);
 
+  void write_thread_header_to_backend(std::unique_lock<mutex>&,
+                                      registered_thread&,
+                                      trace_flusher_backend*);
+
   // If tracing is enabled, this points to a registered_thread::stream_writer
   // from this->registered_threads_.
   //

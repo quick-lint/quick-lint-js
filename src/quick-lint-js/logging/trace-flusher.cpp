@@ -196,17 +196,32 @@ void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
   backend->trace_thread_begin(stream_index, t.backend_thread_data);
   t.backend = backend;
 
-  t.stream_writer.write_header(trace_context{
+  this->write_thread_header_to_backend(lock, t, backend);
+
+  t.thread_writer->store(&t.stream_writer);
+}
+
+void trace_flusher::write_thread_header_to_backend(
+    std::unique_lock<mutex>&, registered_thread& t,
+    trace_flusher_backend* backend) {
+  // NOTE(strager): We use a temporary async_byte_queue instead of reusing
+  // t.stream_queue so we can write to *just* this backend and not involve any
+  // other backends.
+  async_byte_queue temp_queue;
+  trace_writer writer(&temp_queue);
+  writer.write_header(trace_context{
       .thread_id = t.thread_id,
   });
-  t.stream_writer.write_event_init(trace_event_init{
+  writer.write_event_init(trace_event_init{
       .timestamp = 0,  // TODO(strager)
       .version = QUICK_LINT_JS_VERSION_STRING_U8,
   });
-  t.stream_queue.commit();
-  this->flush_one_thread_sync(lock, t);
-
-  t.thread_writer->store(&t.stream_writer);
+  temp_queue.commit();
+  temp_queue.take_committed(
+      [&](const std::byte* data, std::size_t size) {
+        backend->trace_thread_write_data(data, size, t.backend_thread_data);
+      },
+      [] {});
 }
 }
 
