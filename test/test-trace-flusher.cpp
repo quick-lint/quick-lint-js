@@ -258,7 +258,7 @@ TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
-  flusher.disable();
+  flusher.disable_backend(&*backend);
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   EXPECT_FALSE(writer);
@@ -273,7 +273,7 @@ TEST_F(test_trace_flusher, disabling_disables) {
   flusher.enable_backend(&*backend);
   ASSERT_TRUE(flusher.is_enabled());
 
-  flusher.disable();
+  flusher.disable_backend(&*backend);
   EXPECT_FALSE(flusher.is_enabled());
 }
 
@@ -289,7 +289,7 @@ TEST_F(test_trace_flusher,
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
-  flusher.disable();
+  flusher.disable_backend(&*backend);
 
   auto backend_2 = trace_flusher_directory_backend::init_directory(trace_dir_2);
   ASSERT_TRUE(backend_2.ok()) << backend_2.error_to_string();
@@ -314,7 +314,7 @@ TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1) {
       trace_flusher_directory_backend::init_directory(this->trace_dir);
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
-  flusher.disable();
+  flusher.disable_backend(&*backend);
 
   std::string trace_dir_2 = this->make_temporary_directory();
   auto backend_2 = trace_flusher_directory_backend::init_directory(trace_dir_2);

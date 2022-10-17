@@ -76,7 +76,9 @@ linting_lsp_server_handler::~linting_lsp_server_handler() {
   if (this->tracer_) {
     // We are going to deallocate this->tracer_backend_, so unregister it with
     // the trace_flusher.
-    this->tracer_->disable();
+    if (this->tracer_backend_) {
+      this->tracer_->disable_backend(this->tracer_backend_.get());
+    }
   }
 }
 
@@ -123,8 +125,10 @@ linting_lsp_server_handler::linting_lsp_server_handler(
         if (changed) {
           this->server_config_.tracing_directory = new_value;
           if (this->tracer_) {
-            this->tracer_->disable();
-            this->tracer_backend_.reset();
+            if (this->tracer_backend_) {
+              this->tracer_->disable_backend(this->tracer_backend_.get());
+              this->tracer_backend_.reset();
+            }
             if (!this->server_config_.tracing_directory.empty()) {
               auto new_backend =
                   trace_flusher_directory_backend::create_child_directory(

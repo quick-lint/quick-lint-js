@@ -61,11 +61,7 @@ class vscode_tracer {
                          const std::string& log_directory)
       : tracer_(tracer), log_directory_(log_directory) {}
 
-  ~vscode_tracer() {
-    // We are going to deallocate this->tracer_backend_, so unregister it with
-    // the trace_flusher.
-    this->tracer_->disable();
-  }
+  ~vscode_tracer() { this->disable(); }
 
   void register_current_thread() {
     this->tracer_->register_current_thread();
@@ -99,7 +95,9 @@ class vscode_tracer {
   }
 
   void disable() {
-    this->tracer_->disable();
+    if (this->tracer_backend_) {
+      this->tracer_->disable_backend(this->tracer_backend_.get());
+    }
     this->tracer_backend_.reset();
   }
 

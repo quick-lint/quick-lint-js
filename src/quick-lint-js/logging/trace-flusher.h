@@ -138,9 +138,6 @@ class trace_flusher {
   void enable_backend(trace_flusher_backend*);
   void disable_backend(trace_flusher_backend*);
 
-  // TODO(strager): Deprecate.
-  void disable();
-
   bool is_enabled() const;
 
   void register_current_thread();

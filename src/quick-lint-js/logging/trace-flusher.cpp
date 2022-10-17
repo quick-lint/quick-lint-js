@@ -87,18 +87,16 @@ trace_flusher::~trace_flusher() {
   // HACK(strager): Each thread should have unregistered itself already.
   // However, in tests, we're lazy about unregistering. Forcefully unregister
   // all threads so our tests don't interfere with each other.
-  this->disable();
+  {
+    std::unique_lock<mutex> lock(this->mutex_);
+    while (!this->backends_.empty()) {
+      this->disable_backend(lock, this->backends_.front());
+    }
+  }
 
   if (this->flushing_thread_.joinable()) {
     this->stop_flushing_thread();
     this->flushing_thread_.join();
-  }
-}
-
-void trace_flusher::disable() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  while (!this->backends_.empty()) {
-    this->disable_backend(lock, this->backends_.front());
   }
 }
 
