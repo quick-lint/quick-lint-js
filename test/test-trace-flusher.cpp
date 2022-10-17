@@ -77,7 +77,7 @@ struct trace_init_event_spy : trace_stream_event_visitor {
   std::vector<std::string> init_versions;
 };
 
-TEST_F(test_trace_flusher, enabling_creates_metadata_file) {
+TEST_F(test_trace_flusher, enabling_creates_metadata_file_v1) {
   trace_flusher flusher;
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
@@ -90,7 +90,19 @@ TEST_F(test_trace_flusher, enabling_creates_metadata_file) {
       << "TSDL specification: https://diamon.org/ctf/#spec7.1";
 }
 
-TEST_F(test_trace_flusher, enabling_enables) {
+TEST_F(test_trace_flusher, initing_directory_backend_creates_metadata_file_v2) {
+  auto backend = trace_flusher_directory_backend::init_directory(trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+
+  auto metadata_file = read_file((trace_dir + "/metadata").c_str());
+  ASSERT_TRUE(metadata_file.ok()) << metadata_file.error_to_string();
+
+  EXPECT_THAT(to_string(metadata_file->string_view()),
+              ::testing::StartsWith("/* CTF 1.8"))
+      << "TSDL specification: https://diamon.org/ctf/#spec7.1";
+}
+
+TEST_F(test_trace_flusher, enabling_enables_v1) {
   trace_flusher flusher;
   EXPECT_FALSE(flusher.is_enabled());
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -98,7 +110,19 @@ TEST_F(test_trace_flusher, enabling_enables) {
   EXPECT_TRUE(flusher.is_enabled());
 }
 
-TEST_F(test_trace_flusher, enabling_fails_if_directory_is_missing) {
+TEST_F(test_trace_flusher, enabling_enables_v2) {
+  trace_flusher flusher;
+  EXPECT_FALSE(flusher.is_enabled());
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  EXPECT_TRUE(flusher.is_enabled());
+}
+
+TEST_F(test_trace_flusher, enabling_fails_if_directory_is_missing_v1) {
   trace_flusher flusher;
   auto result =
       flusher.enable_for_directory(this->trace_dir + "/does-not-exist");
@@ -106,7 +130,14 @@ TEST_F(test_trace_flusher, enabling_fails_if_directory_is_missing) {
 }
 
 TEST_F(test_trace_flusher,
-       enabling_with_no_threads_registered_creates_no_stream_files) {
+       initing_directory_backend_fails_if_directory_is_missing_v2) {
+  auto backend = trace_flusher_directory_backend::init_directory(
+      trace_dir + "/does-not-exit");
+  EXPECT_FALSE(backend.ok());
+}
+
+TEST_F(test_trace_flusher,
+       enabling_with_no_threads_registered_creates_no_stream_files_v1) {
   trace_flusher flusher;
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
@@ -116,7 +147,21 @@ TEST_F(test_trace_flusher,
 }
 
 TEST_F(test_trace_flusher,
-       registering_then_unregistering_then_enabling_creates_no_stream_files) {
+       enabling_with_no_threads_registered_creates_no_stream_files_v2) {
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+
+  trace_flusher flusher;
+  flusher.enable_backend(&*backend);
+
+  std::vector<std::string> files = list_files_in_directory(trace_dir);
+  EXPECT_THAT(files, ElementsAre("metadata"));
+}
+
+TEST_F(
+    test_trace_flusher,
+    registering_then_unregistering_then_enabling_creates_no_stream_files_v1) {
   trace_flusher flusher;
   flusher.register_current_thread();
   flusher.unregister_current_thread();
@@ -128,7 +173,23 @@ TEST_F(test_trace_flusher,
   EXPECT_THAT(files, ElementsAre("metadata"));
 }
 
-TEST_F(test_trace_flusher, enabling_after_register_writes_stream_file) {
+TEST_F(
+    test_trace_flusher,
+    registering_then_unregistering_then_enabling_creates_no_stream_files_v2) {
+  trace_flusher flusher;
+  flusher.register_current_thread();
+  flusher.unregister_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  std::vector<std::string> files = list_files_in_directory(trace_dir);
+  EXPECT_THAT(files, ElementsAre("metadata"));
+}
+
+TEST_F(test_trace_flusher, enabling_after_register_writes_stream_file_v1) {
   trace_flusher flusher;
 
   flusher.register_current_thread();
@@ -140,7 +201,22 @@ TEST_F(test_trace_flusher, enabling_after_register_writes_stream_file) {
       ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 }
 
-TEST_F(test_trace_flusher, registering_after_enabling_writes_stream_file) {
+TEST_F(test_trace_flusher, enabling_after_register_writes_stream_file_v2) {
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+}
+
+TEST_F(test_trace_flusher, registering_after_enabling_writes_stream_file_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -152,7 +228,22 @@ TEST_F(test_trace_flusher, registering_after_enabling_writes_stream_file) {
       ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 }
 
-TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
+TEST_F(test_trace_flusher, registering_after_enabling_writes_stream_file_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+}
+
+TEST_F(test_trace_flusher, write_event_after_enabling_and_registering_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -173,7 +264,30 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
       ElementsAre(::testing::_, "testing"));
 }
 
-TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
+TEST_F(test_trace_flusher, write_event_after_enabling_and_registering_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"testing",
+  });
+  writer->commit();
+  flusher.flush_sync();
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "testing"));
+}
+
+TEST_F(test_trace_flusher, write_event_after_registering_and_enabling_v1) {
   trace_flusher flusher;
 
   flusher.register_current_thread();
@@ -194,7 +308,30 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
       ElementsAre(::testing::_, "testing"));
 }
 
-TEST_F(test_trace_flusher, cannot_write_events_before_enabling) {
+TEST_F(test_trace_flusher, write_event_after_registering_and_enabling_v2) {
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"testing",
+  });
+  writer->commit();
+  flusher.flush_sync();
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "testing"));
+}
+
+TEST_F(test_trace_flusher, cannot_write_events_before_enabling_v1) {
   trace_flusher flusher;
 
   flusher.register_current_thread();
@@ -203,8 +340,18 @@ TEST_F(test_trace_flusher, cannot_write_events_before_enabling) {
   EXPECT_FALSE(writer);
 }
 
-TEST_F(test_trace_flusher, cannot_write_events_before_registering) {
+TEST_F(test_trace_flusher, cannot_write_events_before_enabling_v2) {
   trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  EXPECT_FALSE(writer);
+}
+
+TEST_F(test_trace_flusher, cannot_write_events_before_registering_v1) {
+  trace_flusher flusher;
+
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
 
@@ -212,7 +359,19 @@ TEST_F(test_trace_flusher, cannot_write_events_before_registering) {
   EXPECT_FALSE(writer);
 }
 
-TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
+TEST_F(test_trace_flusher, cannot_write_events_before_registering_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  EXPECT_FALSE(writer);
+}
+
+TEST_F(test_trace_flusher, cannot_write_events_after_unregistering_v1) {
   trace_flusher flusher;
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
@@ -224,7 +383,23 @@ TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
   EXPECT_FALSE(writer);
 }
 
-TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
+TEST_F(test_trace_flusher, cannot_write_events_after_unregistering_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+  flusher.unregister_current_thread();
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  EXPECT_FALSE(writer);
+}
+
+TEST_F(test_trace_flusher,
+       cannot_write_events_after_enabling_then_disabling_v1) {
   trace_flusher flusher;
 
   flusher.register_current_thread();
@@ -237,7 +412,24 @@ TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
   EXPECT_FALSE(writer);
 }
 
-TEST_F(test_trace_flusher, disabling_disables) {
+TEST_F(test_trace_flusher,
+       cannot_write_events_after_enabling_then_disabling_v2) {
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.disable();
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  EXPECT_FALSE(writer);
+}
+
+TEST_F(test_trace_flusher, disabling_disables_v1) {
   trace_flusher flusher;
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
@@ -247,8 +439,21 @@ TEST_F(test_trace_flusher, disabling_disables) {
   EXPECT_FALSE(flusher.is_enabled());
 }
 
+TEST_F(test_trace_flusher, disabling_disables_v2) {
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+
+  trace_flusher flusher;
+  flusher.enable_backend(&*backend);
+  ASSERT_TRUE(flusher.is_enabled());
+
+  flusher.disable();
+  EXPECT_FALSE(flusher.is_enabled());
+}
+
 TEST_F(test_trace_flusher,
-       can_write_events_after_enabling_then_enabling_again) {
+       can_write_events_after_enabling_then_enabling_again_v1) {
   std::string trace_dir_2 = this->make_temporary_directory();
   trace_flusher flusher;
 
@@ -266,7 +471,32 @@ TEST_F(test_trace_flusher,
               UnorderedElementsAre("metadata", "thread1"));
 }
 
-TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1) {
+TEST_F(test_trace_flusher,
+       can_write_events_after_enabling_then_disabling_then_enabling_again_v2) {
+  std::string trace_dir_2 = this->make_temporary_directory();
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.disable();
+
+  auto backend_2 = trace_flusher_directory_backend::init_directory(trace_dir_2);
+  ASSERT_TRUE(backend_2.ok()) << backend_2.error_to_string();
+  flusher.enable_backend(&*backend_2);
+
+  EXPECT_TRUE(flusher.trace_writer_for_current_thread());
+  EXPECT_THAT(list_files_in_directory(this->trace_dir),
+              UnorderedElementsAre("metadata", "thread1"));
+  EXPECT_THAT(list_files_in_directory(trace_dir_2),
+              UnorderedElementsAre("metadata", "thread1"));
+}
+
+TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1_v1) {
   trace_flusher flusher;
 
   flusher.register_current_thread();
@@ -281,7 +511,27 @@ TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1) {
               UnorderedElementsAre("metadata", "thread1"));
 }
 
-TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
+TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1_v2) {
+  trace_flusher flusher;
+
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+  flusher.disable();
+
+  std::string trace_dir_2 = this->make_temporary_directory();
+  auto backend_2 = trace_flusher_directory_backend::init_directory(trace_dir_2);
+  ASSERT_TRUE(backend_2.ok()) << backend_2.error_to_string();
+  flusher.enable_backend(&*backend_2);
+
+  EXPECT_THAT(list_files_in_directory(trace_dir_2),
+              UnorderedElementsAre("metadata", "thread1"));
+}
+
+TEST_F(test_trace_flusher, write_events_from_multiple_threads_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -320,7 +570,48 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
       ElementsAre(::testing::_, "other thread"));
 }
 
-TEST_F(test_trace_flusher, stream_file_contains_thread_id) {
+TEST_F(test_trace_flusher, write_events_from_multiple_threads_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+
+  thread other_thread([&]() {
+    flusher.register_current_thread();
+
+    trace_writer* writer = flusher.trace_writer_for_current_thread();
+    ASSERT_TRUE(writer);
+    writer->write_event_init(trace_event_init{
+        .version = u8"other thread",
+    });
+    writer->commit();
+
+    flusher.unregister_current_thread();
+  });
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"main thread",
+  });
+  writer->commit();
+
+  other_thread.join();
+  flusher.flush_sync();
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "main thread"));
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread2"),
+      ElementsAre(::testing::_, "other thread"));
+}
+
+TEST_F(test_trace_flusher, stream_file_contains_thread_id_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -354,7 +645,43 @@ TEST_F(test_trace_flusher, stream_file_contains_thread_id) {
   read_trace_stream_file(this->trace_dir + "/thread2", other_v);
 }
 
-TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
+TEST_F(test_trace_flusher, stream_file_contains_thread_id_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  std::uint64_t main_thread_id = get_current_thread_id();
+  std::optional<std::uint64_t> other_thread_id;
+  flusher.register_current_thread();
+  thread other_thread([&] {
+    flusher.register_current_thread();
+    flusher.flush_sync();
+    flusher.unregister_current_thread();
+    other_thread_id = get_current_thread_id();
+  });
+  other_thread.join();
+  flusher.flush_sync();
+
+  nice_mock_trace_stream_event_visitor main_v;
+  EXPECT_CALL(main_v, visit_packet_header(::testing::Field(
+                          &trace_stream_event_visitor::packet_header::thread_id,
+                          main_thread_id)));
+  read_trace_stream_file(this->trace_dir + "/thread1", main_v);
+
+  ASSERT_TRUE(other_thread_id.has_value());
+  EXPECT_NE(*other_thread_id, main_thread_id);
+  nice_mock_trace_stream_event_visitor other_v;
+  EXPECT_CALL(other_v,
+              visit_packet_header(::testing::Field(
+                  &trace_stream_event_visitor::packet_header::thread_id,
+                  *other_thread_id)));
+  read_trace_stream_file(this->trace_dir + "/thread2", other_v);
+}
+
+TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -377,7 +704,32 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
       ElementsAre(::testing::_, "testing"));
 }
 
-TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
+TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"testing",
+  });
+  writer->commit();
+
+  flusher.unregister_current_thread();
+  // NOTE(strager): We do not call flusher.flush_sync.
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "testing"));
+}
+
+TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread_v1) {
   trace_flusher flusher;
 
   auto result = flusher.enable_for_directory(this->trace_dir);
@@ -401,7 +753,33 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
          "not the testing init event)";
 }
 
-TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
+TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread_v2) {
+  trace_flusher flusher;
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+  flusher.flush_sync();  // Write the normal init event.
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"testing",
+  });
+  writer->commit();
+  flusher.flush_async();  // Flush the testing init event, but not now.
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::Not("testing")))
+      << "creating the stream file should add an init event automatically (but "
+         "not the testing init event)";
+}
+
+TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread_v1) {
   trace_flusher flusher;
   flusher.start_flushing_thread();
 
@@ -435,7 +813,43 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
       ElementsAre(::testing::_, "testing"));
 }
 
-TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
+TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread_v2) {
+  trace_flusher flusher;
+  flusher.start_flushing_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  flusher.register_current_thread();
+  flusher.flush_sync();  // Write the normal init event.
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+  writer->write_event_init(trace_event_init{
+      .version = u8"testing",
+  });
+  writer->commit();
+  flusher
+      .flush_async();  // Flush the testing init event, but not on this thread.
+
+  std::chrono::time_point deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(3);
+  while (trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1")
+             .size() <= 1) {
+    if (std::chrono::steady_clock::now() >= deadline) {
+      ADD_FAILURE() << "timed out waiting for flusher thread to write to file";
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "testing"));
+}
+
+TEST_F(test_trace_flusher, flushing_disabled_does_nothing_v1) {
   trace_flusher flusher;
   flusher.register_current_thread();
 
@@ -445,6 +859,24 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
 
   auto result = flusher.enable_for_directory(this->trace_dir);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+}
+
+TEST_F(test_trace_flusher, flushing_disabled_does_nothing_v2) {
+  trace_flusher flusher;
+  flusher.register_current_thread();
+
+  // This should do nothing. In particular, it should not prevent the
+  // stream header or init event from being written.
+  flusher.flush_sync();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
   EXPECT_THAT(
       trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
       ElementsAre(QUICK_LINT_JS_VERSION_STRING));

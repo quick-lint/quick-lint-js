@@ -70,9 +70,10 @@ result<void, write_file_io_error> trace_flusher::enable_for_directory(
     const std::string& trace_directory) {
   std::unique_lock<mutex> lock(this->mutex_);
 
-  if (this->directory_backend_) {
-    this->directory_backend_->trace_disabled();
+  if (this->backend_) {
+    this->backend_->trace_disabled();
     this->directory_backend_.reset();
+    this->backend_ = nullptr;
   }
   auto backend =
       trace_flusher_directory_backend::init_directory(trace_directory);
@@ -89,10 +90,14 @@ void trace_flusher::disable() {
   std::unique_lock<mutex> lock(this->mutex_);
   for (auto& t : this->registered_threads_) {
     t->thread_writer->store(nullptr);
+    t->backend = nullptr;
   }
-  if (this->directory_backend_) {
-    this->directory_backend_->trace_disabled();
+  if (this->backend_) {
+    // FIXME(strager): We should call trace_disabled here, but our tests are
+    // sloppy and have already destructed the backend by now.
+    // this->backend_->trace_disabled();
     this->directory_backend_.reset();
+    this->backend_ = nullptr;
   }
 }
 
@@ -100,9 +105,10 @@ void trace_flusher::create_and_enable_in_child_directory(
     const std::string& directory) {
   std::unique_lock<mutex> lock(this->mutex_);
 
-  if (this->directory_backend_) {
-    this->directory_backend_->trace_disabled();
+  if (this->backend_) {
+    this->backend_->trace_disabled();
     this->directory_backend_.reset();
+    this->backend_ = nullptr;
   }
   std::optional<trace_flusher_directory_backend> backend =
       this->directory_backend_->create_child_directory(directory);
@@ -117,8 +123,16 @@ void trace_flusher::create_and_enable_in_child_directory(
                  this->directory_backend_->trace_directory().c_str());
 }
 
+void trace_flusher::enable_backend(trace_flusher_backend* backend) {
+  std::unique_lock<mutex> lock(this->mutex_);
+  this->enable_backend(lock, backend);
+}
+
 void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                                    trace_flusher_backend* backend) {
+  QLJS_ASSERT(!this->backend_);
+
+  this->backend_ = backend;
   backend->trace_enabled();
 
   this->next_stream_index_ = 1;
@@ -136,7 +150,7 @@ bool trace_flusher::is_enabled() const {
 }
 
 bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
-  return this->directory_backend_.has_value();
+  return this->backend_ != nullptr;
 }
 
 void trace_flusher::register_current_thread() {
@@ -147,8 +161,8 @@ void trace_flusher::register_current_thread() {
       std::make_unique<registered_thread>(this, &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  if (this->directory_backend_) {
-    this->enable_thread_writer(lock, *t, &*this->directory_backend_);
+  if (this->backend_) {
+    this->enable_thread_writer(lock, *t, this->backend_);
   }
 }
 
