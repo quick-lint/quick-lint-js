@@ -175,7 +175,7 @@ class trace_flusher {
   static thread_local std::atomic<trace_writer*> thread_stream_writer_;
 
   // Protected by mutex_:
-  trace_flusher_backend* backend_ = nullptr;
+  std::vector<trace_flusher_backend*> backends_;
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
   std::uint64_t next_stream_index_ = 1;
   bool stop_flushing_thread_ = false;

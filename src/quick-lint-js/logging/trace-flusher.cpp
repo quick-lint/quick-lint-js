@@ -72,12 +72,13 @@ void trace_flusher::disable() {
     t->thread_writer->store(nullptr);
     t->backend = nullptr;
   }
-  if (this->backend_) {
+  for (trace_flusher_backend* backend : this->backends_) {
     // FIXME(strager): We should call trace_disabled here, but our tests are
     // sloppy and have already destructed the backend by now.
     // this->backend_->trace_disabled();
-    this->backend_ = nullptr;
+    static_cast<void>(backend);
   }
+  this->backends_.clear();
 }
 
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
@@ -87,9 +88,9 @@ void trace_flusher::enable_backend(trace_flusher_backend* backend) {
 
 void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                                    trace_flusher_backend* backend) {
-  QLJS_ASSERT(!this->backend_);
+  QLJS_ASSERT(this->backends_.empty());
 
-  this->backend_ = backend;
+  this->backends_.push_back(backend);
   backend->trace_enabled();
 
   this->next_stream_index_ = 1;
@@ -107,7 +108,7 @@ bool trace_flusher::is_enabled() const {
 }
 
 bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
-  return this->backend_ != nullptr;
+  return !this->backends_.empty();
 }
 
 void trace_flusher::register_current_thread() {
@@ -118,8 +119,8 @@ void trace_flusher::register_current_thread() {
       std::make_unique<registered_thread>(this, &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  if (this->backend_) {
-    this->enable_thread_writer(lock, *t, this->backend_);
+  if (!this->backends_.empty()) {
+    this->enable_thread_writer(lock, *t, this->backends_[0]);
   }
 }
 
