@@ -176,7 +176,6 @@ class trace_flusher {
 
   // Protected by mutex_:
   trace_flusher_backend* backend_ = nullptr;
-  std::optional<trace_flusher_directory_backend> directory_backend_;
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
   std::uint64_t next_stream_index_ = 1;
   bool stop_flushing_thread_ = false;

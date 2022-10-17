@@ -76,7 +76,6 @@ void trace_flusher::disable() {
     // FIXME(strager): We should call trace_disabled here, but our tests are
     // sloppy and have already destructed the backend by now.
     // this->backend_->trace_disabled();
-    this->directory_backend_.reset();
     this->backend_ = nullptr;
   }
 }
