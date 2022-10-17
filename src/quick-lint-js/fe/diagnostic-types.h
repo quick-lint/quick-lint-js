@@ -2582,6 +2582,14 @@
       MESSAGE(QLJS_TRANSLATABLE("using '{0}' against a regular "                \
                                 "expression literal always returns '{1}'"),     \
               equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_this_parameter_not_allowed_in_typescript_constructor, "E0348",       \
+      diagnostic_severity::error, { source_code_span this_keyword; },           \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("in TypeScript, 'this' keyword is not allowed "     \
+                            "in constructors"),                                 \
+          this_keyword))                                                        \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

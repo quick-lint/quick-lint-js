@@ -391,7 +391,10 @@ parse_statement:
   case token_type::kw_asserts:
   case token_type::kw_bigint:
   case token_type::kw_boolean:
-  case token_type::kw_constructor:
+  case token_type::kw_constructor: {
+    constructor_guard g = this->enter_constructor();
+    [[fallthrough]];
+  }
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_global:
@@ -1190,7 +1193,10 @@ next_parameter:
   case token_type::kw_asserts:
   case token_type::kw_async:
   case token_type::kw_await:
-  case token_type::kw_constructor:
+  case token_type::kw_constructor: {
+    constructor_guard g = this->enter_constructor();
+    [[fallthrough]];
+  }
   case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
@@ -2022,7 +2028,10 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
   case token_type::kw_assert:
   case token_type::kw_asserts:
   case token_type::kw_async:
-  case token_type::kw_constructor:
+  case token_type::kw_constructor: {
+    constructor_guard g = this->enter_constructor();
+    [[fallthrough]];
+  }
   case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
@@ -4310,8 +4319,12 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   // function f(this) {}
   case expression_kind::this_variable: {
     source_code_span this_span = ast->span();
-    if (info.declaration_kind == variable_kind::_arrow_parameter &&
-        this->options_.typescript) {
+    if (this->in_constructor_ && this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_this_parameter_not_allowed_in_typescript_constructor{
+              .this_keyword = this_span});
+    } else if (info.declaration_kind == variable_kind::_arrow_parameter &&
+               this->options_.typescript) {
       this->diag_reporter_->report(
           diag_this_parameter_not_allowed_in_arrow_functions{
               .this_keyword = this_span,

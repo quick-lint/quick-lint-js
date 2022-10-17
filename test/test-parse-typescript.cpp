@@ -71,6 +71,22 @@ TEST_F(test_parse_typescript, type_alias) {
   }
 }
 
+TEST_F(test_parse_typescript, typescript_constructor_with_this_is_disallowed) {
+  test_parser p(u8"type T = new (this: string) => string;"_sv,
+                typescript_options, capture_diags);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
+                                    "visit_enter_type_alias_scope",  // T
+                                    "visit_enter_function_scope",  // () => ...
+                                    "visit_exit_function_scope",   // () => ...
+                                    "visit_exit_type_alias_scope"));  // T
+  EXPECT_THAT(
+      p.errors,
+      ElementsAre(DIAG_TYPE_OFFSETS(
+          p.code, diag_this_parameter_not_allowed_in_typescript_constructor,  //
+          this_keyword, strlen(u8"type T = new ("), u8"this")));
+}
+
 TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
     test_parser p(u8"type T = U"_sv, typescript_options);

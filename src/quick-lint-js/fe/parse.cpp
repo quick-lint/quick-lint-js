@@ -91,6 +91,10 @@ parser::class_guard parser::enter_class() {
   return class_guard(this, std::exchange(this->in_class_, true));
 }
 
+parser::constructor_guard parser::enter_constructor() {
+  return constructor_guard(this, std::exchange(this->in_constructor_, true));
+}
+
 parser::typescript_only_construct_guard
 parser::enter_typescript_only_construct() {
   return typescript_only_construct_guard(

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 392;
-constexpr std::size_t translation_table_string_table_size = 74039;
+constexpr std::uint16_t translation_table_mapping_table_size = 393;
+constexpr std::size_t translation_table_string_table_size = 74100;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -223,6 +223,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "if statement is missing '{1}' around condition"sv,
           "if statement needs parentheses around condition"sv,
           "imported variable declared here"sv,
+          "in TypeScript, 'this' keyword is not allowed in constructors"sv,
           "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"sv,
           "index signature must be a field, not a method"sv,
           "index signatures require a value type"sv,

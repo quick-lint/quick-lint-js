@@ -811,6 +811,7 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
+  bool in_constructor_ = false;
 
   bool in_typescript_only_construct_ = false;
 
@@ -844,6 +845,7 @@ class parser {
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
+  using constructor_guard = bool_guard<&parser::in_constructor_>;
 
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
@@ -857,6 +859,7 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
+  [[nodiscard]] constructor_guard enter_constructor();
 
  private:
   [[nodiscard]] typescript_only_construct_guard

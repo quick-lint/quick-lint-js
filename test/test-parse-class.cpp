@@ -803,6 +803,27 @@ TEST_F(test_parse_class, typescript_class_with_keyword_generic_method) {
   }
 }
 
+TEST_F(test_parse_class, typescript_constructor_with_this_is_disallowed) {
+  test_parser p(u8"class C { constructor(this: C) {} }"_sv, typescript_options,
+                capture_diags);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits,
+              ElementsAre("visit_enter_class_scope",          // C
+                          "visit_enter_class_scope_body",     //
+                          "visit_property_declaration",       // constructor
+                          "visit_enter_function_scope",       // constructor
+                          "visit_variable_type_use",          // C
+                          "visit_enter_function_scope_body",  // {}
+                          "visit_exit_function_scope",        // constructor
+                          "visit_exit_class_scope",           // C
+                          "visit_variable_declaration"));     // C
+  EXPECT_THAT(
+      p.errors,
+      ElementsAre(DIAG_TYPE_OFFSETS(
+          p.code, diag_this_parameter_not_allowed_in_typescript_constructor,  //
+          this_keyword, strlen(u8"class C { constructor("), u8"this")));
+}
+
 TEST_F(test_parse_class, class_statement_with_number_methods) {
   {
     test_parser p(u8"class Wat { 42.0() { } }"_sv);

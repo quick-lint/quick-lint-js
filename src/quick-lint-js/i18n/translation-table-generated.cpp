@@ -206,7 +206,8 @@ const translation_table translation_data = {
         {41, 33, 48, 38, 36, 33},            //
         {42, 24, 59, 53, 33, 47},            //
         {46, 52, 0, 57, 0, 48},              //
-        {43, 18, 70, 35, 40, 32},            //
+        {0, 0, 0, 0, 0, 32},                 //
+        {43, 18, 70, 35, 40, 61},            //
         {0, 0, 0, 147, 0, 147},              //
         {0, 0, 0, 54, 0, 46},                //
         {175, 14, 144, 48, 175, 38},         //
@@ -1879,6 +1880,7 @@ const translation_table translation_data = {
         u8"if statement is missing '{1}' around condition\0"
         u8"if statement needs parentheses around condition\0"
         u8"imported variable declared here\0"
+        u8"in TypeScript, 'this' keyword is not allowed in constructors\0"
         u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
         u8"index signature must be a field, not a method\0"
         u8"index signatures require a value type\0"

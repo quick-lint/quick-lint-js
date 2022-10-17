@@ -101,7 +101,10 @@ again:
   case token_type::kw_assert:
   case token_type::kw_asserts:
   case token_type::kw_async:
-  case token_type::kw_constructor:
+  case token_type::kw_constructor: {
+    constructor_guard g = this->enter_constructor();
+    [[fallthrough]];
+  }
   case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
@@ -169,10 +172,12 @@ again:
     break;
 
   // new (param, param) => ReturnType
-  case token_type::kw_new:
+  case token_type::kw_new: {
     this->skip();
+    constructor_guard g = this->enter_constructor();
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
+  }
 
   // <T>(param, param) => ReturnType
   case token_type::less:
@@ -216,7 +221,10 @@ again:
     case token_type::kw_catch:
     case token_type::kw_class:
     case token_type::kw_const:
-    case token_type::kw_constructor:
+    case token_type::kw_constructor: {
+      constructor_guard g = this->enter_constructor();
+      [[fallthrough]];
+    }
     case token_type::kw_continue:
     case token_type::kw_debugger:
     case token_type::kw_declare:

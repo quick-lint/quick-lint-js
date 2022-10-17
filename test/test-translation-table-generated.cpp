@@ -2156,6 +2156,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "in TypeScript, 'this' keyword is not allowed in constructors"_translatable,
+        {
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+            u8"in TypeScript, 'this' keyword is not allowed in constructors",
+        },
+    },
+    {
         "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"_translatable,
         {
             u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'",

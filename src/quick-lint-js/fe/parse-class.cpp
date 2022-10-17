@@ -403,9 +403,17 @@ void parser::parse_and_visit_class_or_interface_member(
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
-        identifier property_name = p->peek().identifier_name();
-        p->skip();
-        parse_and_visit_field_or_method(property_name);
+        auto parse_and_visit = [this](auto p) {
+          identifier property_name = p->peek().identifier_name();
+          p->skip();
+          parse_and_visit_field_or_method(property_name);
+        };
+        if (p->peek().type == token_type::kw_constructor) {
+          constructor_guard g = p->enter_constructor();
+          parse_and_visit(p);
+        } else {
+          parse_and_visit(p);
+        }
         break;
       }
 
@@ -1183,7 +1191,10 @@ void parser::parse_and_visit_typescript_interface(
   case token_type::kw_assert:
   case token_type::kw_asserts:
   case token_type::kw_async:
-  case token_type::kw_constructor:
+  case token_type::kw_constructor: {
+    constructor_guard g = this->enter_constructor();
+    [[fallthrough]];
+  }
   case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:

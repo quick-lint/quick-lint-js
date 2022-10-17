@@ -341,6 +341,37 @@ TEST_F(test_parse_typescript_this_parameters,
         ElementsAre(DIAG_TYPE(diag_this_parameter_not_allowed_in_javascript)))
         << "should not also report diag_this_parameter_must_be_first";
   }
+
+  {
+    test_parser p(u8"class C { constructor(this) {} }"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE(diag_this_parameter_not_allowed_in_javascript)))
+        << "should not also report "
+           "diag_this_parameter_not_allowed_in_typescript_constructor";
+  }
+
+  {
+    test_parser p(u8"class C { constructor(f: string, this: C) {} }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_in_typescript_constructor)))
+        << "should not also report diag_this_parameter_must_be_first";
+  }
+
+  {
+    test_parser p(u8"type T = new (f: string, this: string) => string;"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_this_parameter_not_allowed_in_typescript_constructor)))
+        << "should not also report diag_this_parameter_must_be_first";
+  }
 }
 }
 }
