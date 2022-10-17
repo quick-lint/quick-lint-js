@@ -158,8 +158,8 @@ void trace_flusher::register_current_thread() {
       &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  if (!this->backends_.empty()) {
-    this->enable_thread_writer(lock, *t, this->backends_[0]);
+  for (trace_flusher_backend* backend : this->backends_) {
+    this->enable_thread_writer(lock, *t, backend);
   }
 }
 

@@ -246,6 +246,23 @@ TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
   flusher.disable_all_backends();
 }
 
+TEST_F(test_trace_flusher,
+       registering_after_enabling_begins_thread_on_all_backends) {
+  spy_trace_flusher_backend backend_1;
+  flusher.enable_backend(&backend_1);
+  spy_trace_flusher_backend backend_2;
+  flusher.enable_backend(&backend_2);
+
+  flusher.register_current_thread();
+
+  EXPECT_THAT(backend_1.read_thread_init_versions(1),
+              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+  EXPECT_THAT(backend_2.read_thread_init_versions(1),
+              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+
+  flusher.disable_all_backends();
+}
+
 TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
