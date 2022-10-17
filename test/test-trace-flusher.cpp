@@ -363,7 +363,8 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
       ElementsAre(::testing::_, "other thread"));
 }
 
-TEST_F(test_trace_flusher, stream_file_contains_thread_id) {
+TEST_F(test_trace_flusher,
+       stream_file_contains_thread_id_if_registered_after_enabling) {
   trace_flusher flusher;
 
   auto backend =
@@ -397,6 +398,61 @@ TEST_F(test_trace_flusher, stream_file_contains_thread_id) {
                   &trace_stream_event_visitor::packet_header::thread_id,
                   *other_thread_id)));
   read_trace_stream_file(this->trace_dir + "/thread2", other_v);
+}
+
+TEST_F(test_trace_flusher,
+       stream_file_contains_thread_id_if_enabled_after_threads_register) {
+  trace_flusher flusher;
+
+  mutex test_mutex;
+  condition_variable cond;
+  bool other_thread_registered = false;
+  bool flusher_enabled = false;
+
+  std::optional<std::uint64_t> other_thread_id;
+  thread other_thread([&] {
+    other_thread_id = get_current_thread_id();
+
+    flusher.register_current_thread();
+
+    // After the main thread enables the directory backend, flush.
+    {
+      std::unique_lock<mutex> lock(test_mutex);
+      other_thread_registered = true;
+      cond.notify_all();
+      cond.wait(lock, [&] { return flusher_enabled; });
+    }
+    flusher.flush_sync();
+
+    flusher.unregister_current_thread();
+  });
+
+  // After the other thread registers itself, enable the directory backend.
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    cond.wait(lock, [&] { return other_thread_registered; });
+  }
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    flusher_enabled = true;
+    cond.notify_all();
+  }
+
+  // Wait for the other thread to flush.
+  other_thread.join();
+
+  ASSERT_TRUE(other_thread_id.has_value());
+  EXPECT_NE(*other_thread_id, get_current_thread_id());
+  nice_mock_trace_stream_event_visitor other_v;
+  EXPECT_CALL(other_v,
+              visit_packet_header(::testing::Field(
+                  &trace_stream_event_visitor::packet_header::thread_id,
+                  *other_thread_id)));
+  read_trace_stream_file(this->trace_dir + "/thread1", other_v);
 }
 
 TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {

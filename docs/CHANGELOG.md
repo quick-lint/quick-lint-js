@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* In tracing files, the thread IDs in the file headers are now correct if
+  tracing was enabled after startup.
+
 ## 2.10.0 (2022-10-14)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.10.0/)

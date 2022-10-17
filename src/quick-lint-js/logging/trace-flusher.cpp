@@ -30,9 +30,9 @@ namespace quick_lint_js {
 thread_local std::atomic<trace_writer*> trace_flusher::thread_stream_writer_;
 
 struct trace_flusher::registered_thread {
-  explicit registered_thread(trace_flusher* flusher,
+  explicit registered_thread(trace_flusher* flusher, std::uint64_t thread_id,
                              std::atomic<trace_writer*>* thread_writer)
-      : flusher(flusher), thread_writer(thread_writer) {}
+      : thread_id(thread_id), flusher(flusher), thread_writer(thread_writer) {}
 
   ~registered_thread() {
     if (this->backend) {
@@ -44,6 +44,7 @@ struct trace_flusher::registered_thread {
   trace_flusher_backend* backend = nullptr;
   trace_flusher_backend_thread_data backend_thread_data;
 
+  std::uint64_t thread_id;
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
   trace_flusher* flusher;
@@ -115,8 +116,8 @@ void trace_flusher::register_current_thread() {
   std::unique_lock<mutex> lock(this->mutex_);
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
-  this->registered_threads_.push_back(
-      std::make_unique<registered_thread>(this, &this->thread_stream_writer_));
+  this->registered_threads_.push_back(std::make_unique<registered_thread>(
+      this, get_current_thread_id(), &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
   if (!this->backends_.empty()) {
@@ -196,7 +197,7 @@ void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
   t.backend = backend;
 
   t.stream_writer.write_header(trace_context{
-      .thread_id = get_current_thread_id(),
+      .thread_id = t.thread_id,
   });
   t.stream_writer.write_event_init(trace_event_init{
       .timestamp = 0,  // TODO(strager)
