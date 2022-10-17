@@ -154,6 +154,8 @@ TEST_F(test_trace_flusher, enabling_enables) {
   flusher.enable_backend(&backend);
 
   EXPECT_TRUE(flusher.is_enabled());
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher,
@@ -162,6 +164,8 @@ TEST_F(test_trace_flusher,
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.thread_states, IsEmpty());
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher,
@@ -173,6 +177,8 @@ TEST_F(test_trace_flusher,
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.thread_indexes(), IsEmpty());
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
@@ -184,6 +190,8 @@ TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
   EXPECT_THAT(backend.thread_indexes(), ElementsAre(1));
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
@@ -195,6 +203,8 @@ TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
   EXPECT_THAT(backend.thread_indexes(), ElementsAre(1));
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
@@ -213,6 +223,8 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
 
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(::testing::_, "testing"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
@@ -231,6 +243,8 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
 
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(::testing::_, "testing"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_before_enabling) {
@@ -246,6 +260,8 @@ TEST_F(test_trace_flusher, cannot_write_events_before_registering) {
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   EXPECT_FALSE(writer);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
@@ -257,6 +273,8 @@ TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   EXPECT_FALSE(writer);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
@@ -269,6 +287,8 @@ TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   EXPECT_FALSE(writer);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, disabling_disables) {
@@ -279,6 +299,8 @@ TEST_F(test_trace_flusher, disabling_disables) {
 
   flusher.disable_backend(&backend);
   EXPECT_FALSE(flusher.is_enabled());
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher,
@@ -295,6 +317,8 @@ TEST_F(test_trace_flusher,
   EXPECT_TRUE(flusher.trace_writer_for_current_thread());
   EXPECT_THAT(backend_1.thread_indexes(), ElementsAre(1));
   EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(1));
+
+  flusher.disable_all_backends();
 }
 
 // FIXME(strager): This test is misleading. It used to be that disabling reset
@@ -311,6 +335,8 @@ TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
   flusher.enable_backend(&backend_2);
 
   EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(1));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
@@ -346,6 +372,8 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
               ElementsAre(::testing::_, "main thread"));
   EXPECT_THAT(backend.read_thread_init_versions(2),
               ElementsAre(::testing::_, "other thread"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher,
@@ -379,6 +407,8 @@ TEST_F(test_trace_flusher,
                   &trace_stream_event_visitor::packet_header::thread_id,
                   *other_thread_id)));
   backend.read_thread_trace_stream(2, other_v);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher,
@@ -430,6 +460,8 @@ TEST_F(test_trace_flusher,
                   &trace_stream_event_visitor::packet_header::thread_id,
                   *other_thread_id)));
   backend.read_thread_trace_stream(1, other_v);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
@@ -450,6 +482,8 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
 
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(::testing::_, "testing"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
@@ -471,6 +505,8 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
               ElementsAre(::testing::Not("testing")))
       << "creating the stream file should add an init event automatically (but "
          "not the testing init event)";
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
@@ -502,6 +538,8 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
   }
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(::testing::_, "testing"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
@@ -516,6 +554,8 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
 
   EXPECT_THAT(backend.read_thread_init_versions(1),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
@@ -557,6 +597,8 @@ TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
   EXPECT_THAT(
       backend_2.read_thread_init_versions(1),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher_directory_backend,
@@ -598,6 +640,8 @@ TEST_F(test_trace_flusher_directory_backend,
                      &trace_stream_event_visitor::init_event::version,
                      ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
   read_trace_stream_file(this->trace_dir + "/thread1", v);
+
+  flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher_directory_backend,
@@ -640,6 +684,8 @@ TEST_F(test_trace_flusher_directory_backend,
   EXPECT_THAT(
       trace_init_event_spy::read_init_versions(this->trace_dir + "/thread2"),
       ElementsAre(::testing::_, "other thread"));
+
+  flusher.disable_all_backends();
 }
 }
 }

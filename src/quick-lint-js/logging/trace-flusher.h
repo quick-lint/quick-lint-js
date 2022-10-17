@@ -131,6 +131,9 @@ class trace_flusher {
   void enable_backend(trace_flusher_backend*);
   void disable_backend(trace_flusher_backend*);
 
+  // For testing only:
+  void disable_all_backends();
+
   bool is_enabled() const;
 
   void register_current_thread();
