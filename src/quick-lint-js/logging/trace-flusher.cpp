@@ -181,9 +181,7 @@ trace_writer* trace_flusher::trace_writer_for_current_thread() {
 
 void trace_flusher::flush_sync() {
   std::unique_lock<mutex> lock(this->mutex_);
-  for (auto& t : this->registered_threads_) {
-    this->flush_one_thread_sync(lock, *t);
-  }
+  this->flush_sync(lock);
 }
 
 void trace_flusher::flush_sync(std::unique_lock<mutex>& lock) {
