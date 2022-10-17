@@ -302,6 +302,9 @@ TEST_F(test_trace_flusher,
               UnorderedElementsAre("metadata", "thread1"));
 }
 
+// FIXME(strager): This test is misleading. It used to be that disabling reset
+// thread indexes, but now, thread indexes are preserved across
+// disables/enables.
 TEST_F(test_trace_flusher, second_directory_stream_count_starts_at_1) {
   trace_flusher flusher;
 
