@@ -35,7 +35,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class test_trace_flusher : public ::testing::Test {};
+class test_trace_flusher : public ::testing::Test {
+ protected:
+  trace_flusher flusher;
+};
 
 class test_trace_flusher_directory_backend : public ::testing::Test,
                                              public filesystem_test {
@@ -145,7 +148,6 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
 };
 
 TEST_F(test_trace_flusher, enabling_enables) {
-  trace_flusher flusher;
   EXPECT_FALSE(flusher.is_enabled());
 
   spy_trace_flusher_backend backend;
@@ -156,8 +158,6 @@ TEST_F(test_trace_flusher, enabling_enables) {
 
 TEST_F(test_trace_flusher,
        enabling_with_no_threads_registered_begins_no_threads) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -166,7 +166,6 @@ TEST_F(test_trace_flusher,
 
 TEST_F(test_trace_flusher,
        registering_then_unregistering_then_enabling_begins_no_threads) {
-  trace_flusher flusher;
   flusher.register_current_thread();
   flusher.unregister_current_thread();
 
@@ -177,8 +176,6 @@ TEST_F(test_trace_flusher,
 }
 
 TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
@@ -190,8 +187,6 @@ TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
 }
 
 TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -203,8 +198,6 @@ TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
 }
 
 TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -223,8 +216,6 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
 }
 
 TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
@@ -243,8 +234,6 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_before_enabling) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
@@ -252,8 +241,6 @@ TEST_F(test_trace_flusher, cannot_write_events_before_enabling) {
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_before_registering) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -262,8 +249,6 @@ TEST_F(test_trace_flusher, cannot_write_events_before_registering) {
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -275,8 +260,6 @@ TEST_F(test_trace_flusher, cannot_write_events_after_unregistering) {
 }
 
 TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
@@ -291,7 +274,6 @@ TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
 TEST_F(test_trace_flusher, disabling_disables) {
   spy_trace_flusher_backend backend;
 
-  trace_flusher flusher;
   flusher.enable_backend(&backend);
   ASSERT_TRUE(flusher.is_enabled());
 
@@ -303,8 +285,6 @@ TEST_F(test_trace_flusher,
        can_write_events_after_enabling_then_disabling_then_enabling_again) {
   spy_trace_flusher_backend backend_1;
   spy_trace_flusher_backend backend_2;
-
-  trace_flusher flusher;
 
   flusher.register_current_thread();
 
@@ -321,8 +301,6 @@ TEST_F(test_trace_flusher,
 // thread indexes, but now, thread indexes are preserved across
 // disables/enables.
 TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend_1;
@@ -336,8 +314,6 @@ TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
 }
 
 TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -374,8 +350,6 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
 
 TEST_F(test_trace_flusher,
        stream_contains_thread_id_if_registered_after_enabling) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -409,8 +383,6 @@ TEST_F(test_trace_flusher,
 
 TEST_F(test_trace_flusher,
        stream_file_contains_thread_id_if_enabled_after_threads_register) {
-  trace_flusher flusher;
-
   mutex test_mutex;
   condition_variable cond;
   bool other_thread_registered = false;
@@ -461,8 +433,6 @@ TEST_F(test_trace_flusher,
 }
 
 TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -483,8 +453,6 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
 }
 
 TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
-  trace_flusher flusher;
-
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -506,7 +474,6 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
 }
 
 TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
-  trace_flusher flusher;
   flusher.start_flushing_thread();
 
   spy_trace_flusher_backend backend;
@@ -538,7 +505,6 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
 }
 
 TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
-  trace_flusher flusher;
   flusher.register_current_thread();
 
   // This should do nothing. In particular, it should not prevent the
@@ -553,7 +519,6 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
 }
 
 TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
-  trace_flusher flusher;
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend_1;
