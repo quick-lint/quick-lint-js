@@ -122,8 +122,6 @@ void trace_flusher::enable_backend(trace_flusher_backend* backend) {
 
 void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                                    trace_flusher_backend* backend) {
-  QLJS_ASSERT(this->backends_.empty());
-
   this->backends_.push_back(backend);
   backend->trace_enabled();
 

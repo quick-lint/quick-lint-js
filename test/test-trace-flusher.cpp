@@ -562,6 +562,45 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
       trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
       ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 }
+
+TEST_F(test_trace_flusher, write_to_multiple_directories_at_once) {
+  trace_flusher flusher;
+  flusher.register_current_thread();
+
+  auto backend =
+      trace_flusher_directory_backend::init_directory(this->trace_dir);
+  ASSERT_TRUE(backend.ok()) << backend.error_to_string();
+  flusher.enable_backend(&*backend);
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+
+  writer->write_event_init(trace_event_init{
+      .version = u8"A: dir 1",
+  });
+  writer->commit();
+  flusher.flush_sync();
+
+  std::string trace_dir_2 = this->make_temporary_directory();
+  auto backend_2 = trace_flusher_directory_backend::init_directory(trace_dir_2);
+  ASSERT_TRUE(backend_2.ok()) << backend_2.error_to_string();
+  flusher.enable_backend(&*backend_2);
+
+  writer->write_event_init(trace_event_init{
+      .version = u8"B: dir 1 and dir 2",
+  });
+  writer->commit();
+  flusher.flush_sync();
+
+  // TODO(strager): Disable just backend and test.
+
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      ElementsAre(::testing::_, "A: dir 1", "B: dir 1 and dir 2"));
+  EXPECT_THAT(
+      trace_init_event_spy::read_init_versions(trace_dir_2 + "/thread1"),
+      ElementsAre(::testing::_, "B: dir 1 and dir 2"));
+}
 }
 }
 

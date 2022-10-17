@@ -135,7 +135,6 @@ class trace_flusher {
 
   ~trace_flusher();
 
-  // At most one backend can be enabled at a time.
   void enable_backend(trace_flusher_backend*);
 
   void disable();
