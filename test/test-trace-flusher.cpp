@@ -461,6 +461,8 @@ TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
   bool unregistered_thread_2 = false;
   bool finished_test = false;
 
+  flusher.register_current_thread();
+
   std::thread thread_2([&]() {
     flusher.register_current_thread();
     {
@@ -478,7 +480,6 @@ TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
     }
   });
 
-  flusher.register_current_thread();
   {
     std::unique_lock<mutex> lock(test_mutex);
     cond.wait(lock, [&] { return registered_thread_2; });
