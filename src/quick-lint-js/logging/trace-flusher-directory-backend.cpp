@@ -29,10 +29,10 @@ void trace_flusher_directory_backend::trace_disabled() {
 }
 
 void trace_flusher_directory_backend::trace_thread_begin(
-    std::uint64_t stream_index,
+    std::uint64_t thread_index,
     trace_flusher_backend_thread_data &thread_data) {
   std::string stream_path =
-      this->trace_directory_ + "/thread" + std::to_string(stream_index);
+      this->trace_directory_ + "/thread" + std::to_string(thread_index);
   auto file = open_file_for_writing(stream_path.c_str());
   if (!file.ok()) {
     QLJS_DEBUG_LOG("warning: failed to create trace stream file %s: %s\n",

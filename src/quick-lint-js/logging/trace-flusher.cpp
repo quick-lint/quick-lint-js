@@ -31,8 +31,12 @@ thread_local std::atomic<trace_writer*> trace_flusher::thread_stream_writer_;
 
 struct trace_flusher::registered_thread {
   explicit registered_thread(trace_flusher* flusher, std::uint64_t thread_id,
+                             std::uint64_t thread_index,
                              std::atomic<trace_writer*>* thread_writer)
-      : thread_id(thread_id), flusher(flusher), thread_writer(thread_writer) {}
+      : thread_id(thread_id),
+        thread_index(thread_index),
+        flusher(flusher),
+        thread_writer(thread_writer) {}
 
   ~registered_thread() {
     if (this->backend) {
@@ -44,7 +48,10 @@ struct trace_flusher::registered_thread {
   trace_flusher_backend* backend = nullptr;
   trace_flusher_backend_thread_data backend_thread_data;
 
+  // Initialized once:
   std::uint64_t thread_id;
+  std::uint64_t thread_index;
+
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
   trace_flusher* flusher;
@@ -94,7 +101,6 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   this->backends_.push_back(backend);
   backend->trace_enabled();
 
-  this->next_stream_index_ = 1;
   for (auto& t : this->registered_threads_) {
     if (t->backend) {
       t->backend->trace_thread_end(t->backend_thread_data);
@@ -117,7 +123,8 @@ void trace_flusher::register_current_thread() {
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
   this->registered_threads_.push_back(std::make_unique<registered_thread>(
-      this, get_current_thread_id(), &this->thread_stream_writer_));
+      this, get_current_thread_id(), this->next_thread_index_++,
+      &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
   if (!this->backends_.empty()) {
@@ -192,8 +199,7 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
 void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
                                          registered_thread& t,
                                          trace_flusher_backend* backend) {
-  std::uint64_t stream_index = this->next_stream_index_++;
-  backend->trace_thread_begin(stream_index, t.backend_thread_data);
+  backend->trace_thread_begin(t.thread_index, t.backend_thread_data);
   t.backend = backend;
 
   this->write_thread_header_to_backend(lock, t, backend);

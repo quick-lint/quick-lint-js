@@ -53,7 +53,7 @@ class trace_flusher_backend {
   //
   // Called from any thread.
   virtual void trace_thread_begin(
-      std::uint64_t stream_index,
+      std::uint64_t thread_index,
       trace_flusher_backend_thread_data& thread_data) = 0;
 
   // trace_thread_end must uninitialize thread_data.
@@ -80,7 +80,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
   void trace_enabled() override;
   void trace_disabled() override;
   void trace_thread_begin(
-      std::uint64_t stream_index,
+      std::uint64_t thread_index,
       trace_flusher_backend_thread_data& thread_data) override;
   void trace_thread_end(
       trace_flusher_backend_thread_data& thread_data) override;
@@ -180,7 +180,7 @@ class trace_flusher {
   // Protected by mutex_:
   std::vector<trace_flusher_backend*> backends_;
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
-  std::uint64_t next_stream_index_ = 1;
+  std::uint64_t next_thread_index_ = 1;
   bool stop_flushing_thread_ = false;
 
   mutable mutex mutex_;
