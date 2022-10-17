@@ -142,15 +142,6 @@ class trace_flusher {
   result<void, write_file_io_error> enable_for_directory(
       const std::string& trace_directory);
 
-  // Like enable_for_directory, except:
-  // * creates the given directory if it doesn't exist
-  // * creates a subdirectory with a timestamped name
-  // * on error, logs a message
-  // * on success, logs a message
-  //
-  // TODO(strager): Delete this function.
-  void create_and_enable_in_child_directory(const std::string& directory);
-
   void enable_backend(trace_flusher_backend*);
 
   void disable();

@@ -101,28 +101,6 @@ void trace_flusher::disable() {
   }
 }
 
-void trace_flusher::create_and_enable_in_child_directory(
-    const std::string& directory) {
-  std::unique_lock<mutex> lock(this->mutex_);
-
-  if (this->backend_) {
-    this->backend_->trace_disabled();
-    this->directory_backend_.reset();
-    this->backend_ = nullptr;
-  }
-  std::optional<trace_flusher_directory_backend> backend =
-      this->directory_backend_->create_child_directory(directory);
-  if (!backend) {
-    return;
-  }
-  this->directory_backend_.emplace(std::move(*backend));
-
-  this->enable_backend(lock, &*this->directory_backend_);
-
-  QLJS_DEBUG_LOG("enable tracing in directory %s\n",
-                 this->directory_backend_->trace_directory().c_str());
-}
-
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
   std::unique_lock<mutex> lock(this->mutex_);
   this->enable_backend(lock, backend);
