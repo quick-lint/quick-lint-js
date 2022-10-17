@@ -44,6 +44,9 @@ class trace_flusher_backend {
 
   virtual ~trace_flusher_backend() = default;
 
+  // For a single trace_flusher, each call to trace_thread_begin is made with a
+  // unique value for thread_index.
+  //
   // Must initialize thread_data.
   //
   // Called from any thread.
@@ -51,6 +54,10 @@ class trace_flusher_backend {
       std::uint64_t thread_index,
       trace_flusher_backend_thread_data& thread_data) = 0;
 
+  // For a single trace_flusher, trace_thread_end is called exactly 0 or 1
+  // times. It is called 0 times if trace_thread_begin was never called, and it
+  // is called 1 times if trace_thread_end was ever called.
+  //
   // trace_thread_end must uninitialize thread_data.
   //
   // thread_data was previously given to trace_thread_begin.
@@ -59,6 +66,8 @@ class trace_flusher_backend {
   virtual void trace_thread_end(
       trace_flusher_backend_thread_data& thread_data) = 0;
 
+  // trace_thread_write_data can be called zero or more times.
+  //
   // thread_data was previously given to trace_thread_begin (but not
   // trace_thread_end).
   //

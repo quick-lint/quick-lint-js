@@ -92,20 +92,35 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
     thread_data.u64 = thread_index;
-    this->thread_states[thread_index].begin_calls += 1;
+
+    thread_state& t = this->thread_states[thread_data.u64];
+    EXPECT_EQ(t.begin_calls, 0);
+    EXPECT_EQ(t.write_calls, 0);
+    EXPECT_EQ(t.end_calls, 0);
+
+    t.begin_calls += 1;
   }
 
   void trace_thread_end(
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
-    this->thread_states[thread_data.u64].end_calls += 1;
+
+    thread_state& t = this->thread_states[thread_data.u64];
+    EXPECT_EQ(t.begin_calls, 1);
+    EXPECT_EQ(t.end_calls, 0);
+
+    t.end_calls += 1;
   }
 
   void trace_thread_write_data(
       const std::byte* data, std::size_t size,
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
+
     thread_state& t = this->thread_states[thread_data.u64];
+    EXPECT_GE(t.begin_calls, 1);
+    EXPECT_EQ(t.end_calls, 0);
+
     t.written_data.append(reinterpret_cast<const char*>(data), size);
     t.write_calls += 1;
   }
@@ -177,6 +192,30 @@ TEST_F(test_trace_flusher,
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.thread_indexes(), IsEmpty());
+
+  flusher.disable_all_backends();
+}
+
+TEST_F(
+    test_trace_flusher,
+    enabling_then_registering_then_unregistering_then_registering_does_not_begin_thread_again) {
+  // TODO(strager): Does it make sense for the thread to not begin again? It was
+  // ended, after all, and we might call write again.
+
+  spy_trace_flusher_backend backend;
+  flusher.enable_backend(&backend);
+
+  flusher.register_current_thread();
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
+
+  flusher.unregister_current_thread();
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+
+  flusher.register_current_thread();
+  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
 
   flusher.disable_all_backends();
 }
