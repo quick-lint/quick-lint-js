@@ -30,6 +30,7 @@ union trace_flusher_backend_thread_data {
   ~trace_flusher_backend_thread_data() {}
 
   platform_file file;
+  std::uint64_t u64;
 };
 
 // These member functions are called with a lock held. Do not interact with
