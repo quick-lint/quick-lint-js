@@ -192,10 +192,7 @@ void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
                                          registered_thread& t,
                                          trace_flusher_backend* backend) {
   std::uint64_t stream_index = this->next_stream_index_++;
-  bool ok = backend->trace_thread_begin(stream_index, t.backend_thread_data);
-  if (!ok) {
-    return;  // Give up. Do not enable the thread's writer.
-  }
+  backend->trace_thread_begin(stream_index, t.backend_thread_data);
   t.backend = backend;
 
   t.stream_writer.write_header(trace_context{

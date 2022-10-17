@@ -28,7 +28,7 @@ void trace_flusher_directory_backend::trace_disabled() {
   // TODO(strager): Close all opened files.
 }
 
-bool trace_flusher_directory_backend::trace_thread_begin(
+void trace_flusher_directory_backend::trace_thread_begin(
     std::uint64_t stream_index,
     trace_flusher_backend_thread_data &thread_data) {
   std::string stream_path =
@@ -37,20 +37,24 @@ bool trace_flusher_directory_backend::trace_thread_begin(
   if (!file.ok()) {
     QLJS_DEBUG_LOG("warning: failed to create trace stream file %s: %s\n",
                    stream_path.c_str(), file.error_to_string().c_str());
-    return false;
+    new (&thread_data.file) platform_file();  // Invalid file.
+    return;
   }
   new (&thread_data.file) platform_file(std::move(*file));
-  return true;
 }
 
 void trace_flusher_directory_backend::trace_thread_end(
     trace_flusher_backend_thread_data &thread_data) {
-  thread_data.file.~platform_file();  // Close the file.
+  thread_data.file.~platform_file();  // Close the file if needed.
 }
 
 void trace_flusher_directory_backend::trace_thread_write_data(
     const std::byte *data, std::size_t size,
     trace_flusher_backend_thread_data &thread_data) {
+  if (!thread_data.file.valid()) {
+    return;
+  }
+
   auto write_result = thread_data.file.write_full(data, size);
   if (!write_result.ok()) {
     QLJS_DEBUG_LOG("warning: failed to append to trace stream file: %s\n",
