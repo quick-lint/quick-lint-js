@@ -213,15 +213,6 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling_v2) {
       ElementsAre(::testing::_, "testing"));
 }
 
-TEST_F(test_trace_flusher, cannot_write_events_before_enabling_v1) {
-  trace_flusher flusher;
-
-  flusher.register_current_thread();
-
-  trace_writer* writer = flusher.trace_writer_for_current_thread();
-  EXPECT_FALSE(writer);
-}
-
 TEST_F(test_trace_flusher, cannot_write_events_before_enabling_v2) {
   trace_flusher flusher;
 
