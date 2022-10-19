@@ -1573,6 +1573,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "duplicated case clause in switch statement"_translatable,
+        {
+            u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
+        },
+    },
+    {
         "enum member name cannot be numeric"_translatable,
         {
             u8"enum member name cannot be numeric",
@@ -3539,6 +3550,17 @@ const translated_string test_translation_table[] = {
             u8"une instruction switch n\u00e9cessite des parenth\u00e8ses autour de la condition",
             u8"instru\u00e7\u00e3o switch requer par\u00eanteses ao redor da condi\u00e7\u00e3o",
             u8"switch sats beh\u00f6ver paranteser runt vilkor",
+        },
+    },
+    {
+        "this case will run instead"_translatable,
+        {
+            u8"this case will run instead",
+            u8"this case will run instead",
+            u8"this case will run instead",
+            u8"this case will run instead",
+            u8"this case will run instead",
+            u8"this case will run instead",
         },
     },
     {

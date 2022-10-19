@@ -153,7 +153,8 @@ const translation_table translation_data = {
         {46, 20, 32, 32, 31, 21},            //
         {47, 58, 59, 52, 39, 48},            //
         {51, 26, 71, 60, 46, 49},            //
-        {0, 0, 0, 33, 0, 31},                //
+        {0, 0, 0, 0, 0, 31},                 //
+        {0, 0, 0, 33, 0, 43},                //
         {0, 0, 0, 47, 0, 35},                //
         {31, 20, 35, 43, 34, 30},            //
         {64, 53, 0, 54, 0, 48},              //
@@ -332,7 +333,8 @@ const translation_table translation_data = {
         {41, 63, 47, 41, 57, 34},            //
         {36, 33, 41, 34, 31, 29},            //
         {46, 25, 63, 57, 39, 51},            //
-        {0, 0, 0, 61, 0, 52},                //
+        {0, 0, 0, 0, 0, 52},                 //
+        {0, 0, 0, 61, 0, 27},                //
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 0, 25, 0, 21},              //
         {33, 21, 74, 25, 44, 21},            //
@@ -1824,6 +1826,7 @@ const translation_table translation_data = {
         u8"do-while loop is missing '{1}' around condition\0"
         u8"do-while loop needs parentheses around condition\0"
         u8"do-while statement starts here\0"
+        u8"duplicated case clause in switch statement\0"
         u8"enum member name cannot be numeric\0"
         u8"enum member needs initializer\0"
         u8"escaped character is not allowed in identifiers\0"
@@ -2003,6 +2006,7 @@ const translation_table translation_data = {
         u8"stray comma in let statement\0"
         u8"switch statement is missing '{1}' around condition\0"
         u8"switch statement needs parentheses around condition\0"
+        u8"this case will run instead\0"
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"this {1} looks fishy\0"
