@@ -213,11 +213,12 @@ TEST_F(test_parse_function, async_keyword_order_diagnostic) {
   }
 
   {
-    test_parser p(u8"async export function f() { await myPromise; };"_sv, capture_diags);
+    test_parser p(u8"async export function f() { await myPromise; };"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_async_export_function,  //
-                    async_export, 0, u8"async export")));
+                              p.code, diag_async_export_function,  //
+                              async_export, 0, u8"async export")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
   }
 
