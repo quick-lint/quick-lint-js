@@ -212,7 +212,7 @@
           async_static))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_async_export_method, "E0326", diagnostic_severity::error,            \
+      diag_async_export_function, "E0326", diagnostic_severity::error,            \
       { source_code_span async_export; },                                       \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE(                                                    \
@@ -220,7 +220,7 @@
           async_export))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_function_async_method, "E0327", diagnostic_severity::error,          \
+      diag_function_async_function, "E0327", diagnostic_severity::error,          \
       { source_code_span function_async; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("'function async' is not allowed; write "       \
                                 "'async function' instead"),                    \

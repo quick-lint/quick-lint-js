@@ -273,10 +273,10 @@ parse_statement:
       this->skip();
       this->check_body_after_label();
       goto parse_statement;
-      // "async export f()" is not valid. It should be "export async f()"
+      // "async export function f()" is not valid. It should be "export async function f()"
     case token_type::kw_export: {
       this->diag_reporter_->report(
-          diag_async_export_method{async_token.span()});
+          diag_async_export_function{async_token.span()});
       break;
     }
     default:
@@ -1658,16 +1658,18 @@ parser::parse_and_visit_function_parameters(
 
     // function async f() {}  // Invalid. Should be async function f() {}
   case token_type::identifier:
+    //TODO: Make parse_and_visit_function_parameters accept a token instead of a source_code_span so we can compare the token type instead of strings.
     if (name->string_view() ==
-        u8"async"_sv) {  // In this context async is of type identifier and not
-                         // kw_async so we need to look at the name.
+        u8"async"_sv) {
       this->diag_reporter_->report(
-          diag_function_async_method{this->peek().span()});
+          diag_function_async_function{
+            .function_async = source_code_span(name->begin(), this->peek().end),
+          });
       this->skip();
       return this->parse_and_visit_function_parameters(v, name);
     }
-    [[fallthrough]];  // Should still call QLJS_PARSER_UNIMPLEMENTED if the
-                      // identifier is not "async"
+    QLJS_PARSER_UNIMPLEMENTED();
+    return function_parameter_parse_result::parsed_parameters;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
