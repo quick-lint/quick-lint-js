@@ -276,7 +276,17 @@ parse_statement:
       // "async export function f()" is not valid. It should be "export async function f()"
     case token_type::kw_export: {
       this->diag_reporter_->report(
-          diag_async_export_function{async_token.span()});
+          diag_async_export_function{
+              .async_export =
+                  source_code_span(async_token.begin, this->peek().end)
+        }
+      );
+      this->skip();
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::async,
+          /*begin=*/async_token.begin,
+          /*require_name=*/
+          name_requirement::required_for_statement);
       break;
     }
     default:
@@ -1663,7 +1673,7 @@ parser::parse_and_visit_function_parameters(
         u8"async"_sv) {
       this->diag_reporter_->report(
           diag_function_async_function{
-            .function_async = source_code_span(name->begin(), this->peek().end),
+          .function_async = source_code_span(this->peek().span()),
           });
       this->skip();
       return this->parse_and_visit_function_parameters(v, name);

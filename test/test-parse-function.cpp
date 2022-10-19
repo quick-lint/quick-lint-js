@@ -204,42 +204,34 @@ TEST_F(test_parse_function, async_function_statement) {
   }
 }
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic1) {
+TEST_F(test_parse_function, async_keyword_order_diagnostic) {
   {
     test_parser p(u8"export async function f() { await myPromise; };"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
   }
-}
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic2) {
   {
     test_parser p(u8"async export function f() { await myPromise; };"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code, diag_async_export_function,  //
-                    async_export, strlen(u8"async"), u8"export")));
+                    async_export, 0, u8"async export")));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
   }
-}
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic3) {
   {
     test_parser p(u8"async function f() {};"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"f");
   }
-}
 
-TEST_F(test_parse_function, async_keyword_order_diagnostic4) {
   {
     test_parser p(u8"function async f() {};"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                p.code, diag_function_async_function,  //
-                function_async, strlen(u8"function"), u8"async")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_function_async_function)));
   }
 }
 
