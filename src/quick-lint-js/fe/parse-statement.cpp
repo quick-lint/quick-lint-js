@@ -1900,12 +1900,12 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
                });
 
         source_code_span expression_case_span = ast->span();
-        auto [_it, inserted] = cases.insert(expression_case_span.string_view());
+        auto [it, inserted] = cases.insert(expression_case_span.string_view());
         if (!inserted) {
           this->diag_reporter_->report(
               diag_duplicated_cases_in_switch_statement{
                   .first_switch_case =
-                      source_code_span(_it->data(), _it->data() + _it->size()),
+                      source_code_span(it->data(), it->data() + it->size()),
                   .duplicated_switch_case = expression_case_span});
         }
         this->visit_expression(ast, v, variable_context::rhs);
