@@ -12,6 +12,7 @@
 #include <map>
 #include <ostream>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/warning.h>
@@ -73,7 +74,7 @@ std::map<std::string_view, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
   std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  std::map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
+  hash_map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
   for (const vector_instrumentation::entry &entry : this->entries_) {
     std::pair key(entry.owner, entry.object_id);
     std::size_t &object_size = object_sizes[key];
