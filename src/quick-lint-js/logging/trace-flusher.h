@@ -168,8 +168,10 @@ class trace_flusher {
 
   void flush_one_thread_sync(std::unique_lock<mutex>&, registered_thread&);
 
+  // The given trace_flusher_backend_thread_data has not been constructed yet.
   void enable_thread_writer(std::unique_lock<mutex>&, registered_thread&,
-                            std::size_t backend_index);
+                            trace_flusher_backend*,
+                            trace_flusher_backend_thread_data&);
 
   void write_thread_header_to_backend(std::unique_lock<mutex>&,
                                       registered_thread&,
@@ -179,7 +181,7 @@ class trace_flusher {
   void compact_backends(std::unique_lock<mutex>&);
 
   template <class Func>
-  void for_each_backend(std::unique_lock<mutex>&, Func&&);
+  void for_each_backend(std::unique_lock<mutex>&, registered_thread&, Func&&);
 
   // If tracing is enabled, this points to a registered_thread::stream_writer
   // from this->registered_threads_.
