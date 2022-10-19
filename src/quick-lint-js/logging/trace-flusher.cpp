@@ -262,8 +262,7 @@ void trace_flusher::compact_backends(std::unique_lock<mutex>&) {
 template <class Func>
 void trace_flusher::for_each_backend(std::unique_lock<mutex>&,
                                      registered_thread&, Func&& callback) {
-  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
-    trace_flusher_backend* backend = this->backends_[i];
+  for (trace_flusher_backend* backend : this->backends_) {
     if (backend) {
       callback(backend);
     }
