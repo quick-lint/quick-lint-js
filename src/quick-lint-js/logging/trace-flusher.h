@@ -22,18 +22,6 @@
 namespace quick_lint_js {
 class trace_writer;
 
-union trace_flusher_backend_thread_data {
-  trace_flusher_backend_thread_data() {}
-  trace_flusher_backend_thread_data(const trace_flusher_backend_thread_data&) =
-      delete;
-  trace_flusher_backend_thread_data& operator=(
-      const trace_flusher_backend_thread_data&) = delete;
-  ~trace_flusher_backend_thread_data() {}
-
-  platform_file file;
-  std::uint64_t u64;
-};
-
 using trace_flusher_thread_index = std::uint64_t;
 
 // These member functions are called with a lock held. Do not interact with

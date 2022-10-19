@@ -6,7 +6,6 @@
 #else
 
 #include <algorithm>
-#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -39,14 +38,6 @@ struct trace_flusher::registered_thread {
         thread_id(thread_id),
         thread_index(thread_index),
         thread_writer(thread_writer) {}
-
-  struct backend_state {
-    // This is initialized by backend->trace_thread_begin.
-    trace_flusher_backend_thread_data thread_data;
-  };
-
-  // Protected by trace_flusher::mutex_:
-  std::array<backend_state, 2> backends;
 
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
