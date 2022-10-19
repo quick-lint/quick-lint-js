@@ -50,51 +50,38 @@ class trace_flusher_backend {
   // For a single trace_flusher, each call to trace_thread_begin is made with a
   // unique value for thread_index.
   //
-  // Must initialize thread_data.
-  //
   // Called from any thread.
-  virtual void trace_thread_begin(
-      trace_flusher_thread_index thread_index,
-      trace_flusher_backend_thread_data& thread_data) = 0;
+  virtual void trace_thread_begin(trace_flusher_thread_index thread_index) = 0;
 
   // For a single trace_flusher, trace_thread_end is called exactly 0 or 1
   // times. It is called 0 times if trace_thread_begin was never called, and it
   // is called 1 times if trace_thread_end was ever called.
   //
-  // trace_thread_end must uninitialize thread_data.
-  //
-  // thread_data was previously given to trace_thread_begin.
+  // thread_index was previously given to trace_thread_begin.
   //
   // Called from any thread.
-  virtual void trace_thread_end(
-      trace_flusher_thread_index thread_index,
-      trace_flusher_backend_thread_data& thread_data) = 0;
+  virtual void trace_thread_end(trace_flusher_thread_index thread_index) = 0;
 
   // trace_thread_write_data can be called zero or more times.
   //
-  // thread_data was previously given to trace_thread_begin (but not
+  // thread_index was previously given to trace_thread_begin (but not
   // trace_thread_end).
   //
   // Called from any thread.
-  virtual void trace_thread_write_data(
-      trace_flusher_thread_index thread_index, const std::byte* data,
-      std::size_t size, trace_flusher_backend_thread_data& thread_data) = 0;
+  virtual void trace_thread_write_data(trace_flusher_thread_index thread_index,
+                                       const std::byte* data,
+                                       std::size_t size) = 0;
 };
 
 class trace_flusher_directory_backend final : public trace_flusher_backend {
  public:
   const std::string& trace_directory() const { return this->trace_directory_; }
 
-  void trace_thread_begin(
-      trace_flusher_thread_index thread_index,
-      trace_flusher_backend_thread_data& thread_data) override;
-  void trace_thread_end(
-      trace_flusher_thread_index thread_index,
-      trace_flusher_backend_thread_data& thread_data) override;
-  void trace_thread_write_data(
-      trace_flusher_thread_index thread_index, const std::byte* data,
-      std::size_t size,
-      trace_flusher_backend_thread_data& thread_data) override;
+  void trace_thread_begin(trace_flusher_thread_index thread_index) override;
+  void trace_thread_end(trace_flusher_thread_index thread_index) override;
+  void trace_thread_write_data(trace_flusher_thread_index thread_index,
+                               const std::byte* data,
+                               std::size_t size) override;
 
   // Creates a 'metadata' file in the given directory.
   //

@@ -23,8 +23,7 @@ trace_flusher_directory_backend::trace_flusher_directory_backend(
     : trace_directory_(trace_directory) {}
 
 void trace_flusher_directory_backend::trace_thread_begin(
-    trace_flusher_thread_index thread_index,
-    trace_flusher_backend_thread_data &) {
+    trace_flusher_thread_index thread_index) {
   std::string stream_path =
       this->trace_directory_ + "/thread" + std::to_string(thread_index);
   auto file = open_file_for_writing(stream_path.c_str());
@@ -40,8 +39,7 @@ void trace_flusher_directory_backend::trace_thread_begin(
 }
 
 void trace_flusher_directory_backend::trace_thread_end(
-    trace_flusher_thread_index thread_index,
-    trace_flusher_backend_thread_data &) {
+    trace_flusher_thread_index thread_index) {
   auto it = this->thread_files_.find(thread_index);
   if (it == this->thread_files_.end()) {
     // Opening the file failed, so there's nothing to close.
@@ -53,7 +51,7 @@ void trace_flusher_directory_backend::trace_thread_end(
 
 void trace_flusher_directory_backend::trace_thread_write_data(
     trace_flusher_thread_index thread_index, const std::byte *data,
-    std::size_t size, trace_flusher_backend_thread_data &) {
+    std::size_t size) {
   auto it = this->thread_files_.find(thread_index);
   if (it == this->thread_files_.end()) {
     // Opening the file failed. Don't write anything.
