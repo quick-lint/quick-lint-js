@@ -1580,6 +1580,7 @@ const translated_string test_translation_table[] = {
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
+            u8"duplicated case clause in switch statement",
         },
     },
     {
@@ -3554,6 +3555,7 @@ const translated_string test_translation_table[] = {
     {
         "this case will run instead"_translatable,
         {
+            u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
