@@ -41,10 +41,9 @@ struct trace_flusher::registered_thread {
         thread_writer(thread_writer) {}
 
   ~registered_thread() {
+    // All backends should have been disabled by now.
     for (backend_state& backend : this->backends) {
-      if (backend.backend) {
-        backend.backend->trace_thread_end(backend.thread_data);
-      }
+      QLJS_ASSERT(!backend.backend);
     }
   }
 
@@ -170,6 +169,13 @@ void trace_flusher::unregister_current_thread() {
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
   if (this->is_enabled(lock)) {
     this->flush_one_thread_sync(lock, **registered_thread_it);
+  }
+  for (registered_thread::backend_state& backend :
+       (*registered_thread_it)->backends) {
+    if (backend.backend) {
+      backend.backend->trace_thread_end(backend.thread_data);
+      backend.backend = nullptr;
+    }
   }
   this->registered_threads_.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
