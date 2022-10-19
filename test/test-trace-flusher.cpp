@@ -87,13 +87,11 @@ struct trace_init_event_spy : trace_stream_event_visitor {
 
 class spy_trace_flusher_backend final : public trace_flusher_backend {
  public:
-  void trace_thread_begin(
-      trace_flusher_thread_index thread_index,
-      trace_flusher_backend_thread_data& thread_data) override {
+  void trace_thread_begin(trace_flusher_thread_index thread_index,
+                          trace_flusher_backend_thread_data&) override {
     std::lock_guard<mutex> lock(this->mutex_);
-    thread_data.u64 = thread_index;
 
-    thread_state& t = this->thread_states[thread_data.u64];
+    thread_state& t = this->thread_states[thread_index];
     EXPECT_EQ(t.begin_calls, 0);
     EXPECT_EQ(t.write_calls, 0);
     EXPECT_EQ(t.end_calls, 0);
@@ -101,24 +99,23 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     t.begin_calls += 1;
   }
 
-  void trace_thread_end(
-      trace_flusher_thread_index,
-      trace_flusher_backend_thread_data& thread_data) override {
+  void trace_thread_end(trace_flusher_thread_index thread_index,
+                        trace_flusher_backend_thread_data&) override {
     std::lock_guard<mutex> lock(this->mutex_);
 
-    thread_state& t = this->thread_states[thread_data.u64];
+    thread_state& t = this->thread_states[thread_index];
     EXPECT_EQ(t.begin_calls, 1);
     EXPECT_EQ(t.end_calls, 0);
 
     t.end_calls += 1;
   }
 
-  void trace_thread_write_data(
-      trace_flusher_thread_index, const std::byte* data, std::size_t size,
-      trace_flusher_backend_thread_data& thread_data) override {
+  void trace_thread_write_data(trace_flusher_thread_index thread_index,
+                               const std::byte* data, std::size_t size,
+                               trace_flusher_backend_thread_data&) override {
     std::lock_guard<mutex> lock(this->mutex_);
 
-    thread_state& t = this->thread_states[thread_data.u64];
+    thread_state& t = this->thread_states[thread_index];
     EXPECT_GE(t.begin_calls, 1);
     EXPECT_EQ(t.end_calls, 0);
 
