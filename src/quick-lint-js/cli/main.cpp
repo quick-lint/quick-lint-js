@@ -309,11 +309,18 @@ void run_lsp_server() {
   debug_server debugger;
   debugger.set_listen_address("http://localhost:8098");
   debugger.start_server_thread();
-  debugger.wait_for_server_start();
+  result<void, debug_server_io_error> start_result =
+      debugger.wait_for_server_start();
   // TODO(strager): Print this over the LSP connection instead.
   // TODO(strager): Allow the LSP client to customize the debug server port.
-  std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
-               debugger.url().c_str());
+  if (start_result.ok()) {
+    std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
+                 debugger.url().c_str());
+  } else {
+    std::fprintf(stderr,
+                 "error: quick-lint-js debug server failed to start: %s\n",
+                 start_result.error_to_string().c_str());
+  }
 #endif
 
 #if defined(_WIN32)
