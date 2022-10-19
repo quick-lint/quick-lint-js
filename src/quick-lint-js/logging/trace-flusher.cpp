@@ -153,7 +153,7 @@ void trace_flusher::register_current_thread() {
       &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  this->for_each_backend(lock, *t, [&](trace_flusher_backend* backend) {
+  this->for_each_backend(lock, [&](trace_flusher_backend* backend) {
     this->enable_thread_writer(lock, *t, backend);
   });
 }
@@ -167,7 +167,7 @@ void trace_flusher::unregister_current_thread() {
   if (this->is_enabled(lock)) {
     this->flush_one_thread_sync(lock, t);
   }
-  this->for_each_backend(lock, t, [&](trace_flusher_backend* backend) {
+  this->for_each_backend(lock, [&](trace_flusher_backend* backend) {
     backend->trace_thread_end(t.thread_index);
   });
   this->registered_threads_.erase(registered_thread_it);
@@ -213,7 +213,7 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>& lock,
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        this->for_each_backend(lock, t, [&](trace_flusher_backend* backend) {
+        this->for_each_backend(lock, [&](trace_flusher_backend* backend) {
           backend->trace_thread_write_data(t.thread_index, data, size);
         });
       },
@@ -261,7 +261,7 @@ void trace_flusher::compact_backends(std::unique_lock<mutex>&) {
 
 template <class Func>
 void trace_flusher::for_each_backend(std::unique_lock<mutex>&,
-                                     registered_thread&, Func&& callback) {
+                                     Func&& callback) {
   for (trace_flusher_backend* backend : this->backends_) {
     if (backend) {
       callback(backend);
