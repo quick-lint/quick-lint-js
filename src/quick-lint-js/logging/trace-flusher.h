@@ -157,8 +157,6 @@ class trace_flusher {
                                       registered_thread&,
                                       trace_flusher_backend*);
 
-  void compact_backends(std::unique_lock<mutex>&);
-
   template <class Func>
   void for_each_backend(std::unique_lock<mutex>&, Func&&);
 

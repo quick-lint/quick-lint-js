@@ -75,18 +75,7 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   // TODO(strager): Allow more than two backends.
   QLJS_ASSERT(this->backends_.size() <= 2);
 
-  std::size_t backend_index = this->backends_.size();
-  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
-    if (!this->backends_[i]) {
-      // Reuse an existing slot.
-      this->backends_[i] = backend;
-      backend_index = i;
-    }
-  }
-  if (backend_index == this->backends_.size()) {
-    // All slots are in use. Make a new slot.
-    this->backends_.push_back(backend);
-  }
+  this->backends_.push_back(backend);
 
   for (auto& t : this->registered_threads_) {
     this->enable_thread_writer(lock, *t, backend);
@@ -98,7 +87,7 @@ void trace_flusher::disable_backend(trace_flusher_backend* backend) {
   this->disable_backend(lock, backend);
 }
 
-void trace_flusher::disable_backend(std::unique_lock<mutex>& lock,
+void trace_flusher::disable_backend(std::unique_lock<mutex>&,
                                     trace_flusher_backend* backend) {
   QLJS_ASSERT(backend);
   auto backend_it =
@@ -109,8 +98,7 @@ void trace_flusher::disable_backend(std::unique_lock<mutex>& lock,
     backend->trace_thread_end(t->thread_index);
   }
 
-  *backend_it = nullptr;
-  this->compact_backends(lock);
+  this->backends_.erase(backend_it);
 
   if (this->backends_.empty()) {
     for (auto& t : this->registered_threads_) {
@@ -243,20 +231,11 @@ void trace_flusher::write_thread_header_to_backend(
       [] {});
 }
 
-void trace_flusher::compact_backends(std::unique_lock<mutex>&) {
-  // Remove null backends, but don't move any non-null backends.
-  while (!this->backends_.empty() && this->backends_.back() == nullptr) {
-    this->backends_.pop_back();
-  }
-}
-
 template <class Func>
 void trace_flusher::for_each_backend(std::unique_lock<mutex>&,
                                      Func&& callback) {
   for (trace_flusher_backend* backend : this->backends_) {
-    if (backend) {
-      callback(backend);
-    }
+    callback(backend);
   }
 }
 }
