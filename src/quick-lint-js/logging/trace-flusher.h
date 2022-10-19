@@ -33,6 +33,8 @@ union trace_flusher_backend_thread_data {
   std::uint64_t u64;
 };
 
+using trace_flusher_thread_index = std::uint64_t;
+
 // These member functions are called with a lock held. Do not interact with
 // trace_flusher in any implementations of these functions.
 class trace_flusher_backend {
@@ -51,7 +53,7 @@ class trace_flusher_backend {
   //
   // Called from any thread.
   virtual void trace_thread_begin(
-      std::uint64_t thread_index,
+      trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) = 0;
 
   // For a single trace_flusher, trace_thread_end is called exactly 0 or 1
@@ -82,7 +84,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
   const std::string& trace_directory() const { return this->trace_directory_; }
 
   void trace_thread_begin(
-      std::uint64_t thread_index,
+      trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) override;
   void trace_thread_end(
       trace_flusher_backend_thread_data& thread_data) override;
@@ -191,7 +193,7 @@ class trace_flusher {
 
   // Protected by mutex_:
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
-  std::uint64_t next_thread_index_ = 1;
+  trace_flusher_thread_index next_thread_index_ = 1;
   bool stop_flushing_thread_ = false;
 
   // backends_[i] corresponds to registered_threads_[n]->backends[i]. Therefore,

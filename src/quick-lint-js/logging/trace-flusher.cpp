@@ -33,7 +33,7 @@ thread_local std::atomic<trace_writer*> trace_flusher::thread_stream_writer_;
 
 struct trace_flusher::registered_thread {
   explicit registered_thread(trace_flusher* flusher, std::uint64_t thread_id,
-                             std::uint64_t thread_index,
+                             trace_flusher_thread_index thread_index,
                              std::atomic<trace_writer*>* thread_writer)
       : flusher(flusher),
         thread_id(thread_id),
@@ -53,7 +53,7 @@ struct trace_flusher::registered_thread {
 
   trace_flusher* const flusher;
   std::uint64_t const thread_id;
-  std::uint64_t const thread_index;
+  trace_flusher_thread_index const thread_index;
   // Points to the thread-local thread_stream_writer_ object.
   std::atomic<trace_writer*>* const thread_writer;
 };

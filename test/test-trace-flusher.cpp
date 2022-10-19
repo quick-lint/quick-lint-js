@@ -88,7 +88,7 @@ struct trace_init_event_spy : trace_stream_event_visitor {
 class spy_trace_flusher_backend final : public trace_flusher_backend {
  public:
   void trace_thread_begin(
-      std::uint64_t thread_index,
+      trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
     thread_data.u64 = thread_index;
@@ -125,16 +125,16 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     t.write_calls += 1;
   }
 
-  std::vector<std::uint64_t> thread_indexes() const {
+  std::vector<trace_flusher_thread_index> thread_indexes() const {
     std::lock_guard<mutex> lock(this->mutex_);
-    std::vector<std::uint64_t> result;
+    std::vector<trace_flusher_thread_index> result;
     for (auto& [thread_index, _t] : this->thread_states) {
       result.push_back(thread_index);
     }
     return result;
   }
 
-  void read_thread_trace_stream(std::uint64_t thread_index,
+  void read_thread_trace_stream(trace_flusher_thread_index thread_index,
                                 trace_stream_event_visitor& v) const {
     std::lock_guard<mutex> lock(this->mutex_);
     auto it = this->thread_states.find(thread_index);
@@ -145,7 +145,7 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
   }
 
   std::vector<std::string> read_thread_init_versions(
-      std::uint64_t thread_index) const {
+      trace_flusher_thread_index thread_index) const {
     trace_init_event_spy v;
     this->read_thread_trace_stream(thread_index, v);
     return v.init_versions;
@@ -163,7 +163,7 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     this->thread_states.clear();
   }
 
-  std::map<std::uint64_t, thread_state> thread_states;
+  std::map<trace_flusher_thread_index, thread_state> thread_states;
   mutable mutex mutex_;
 };
 

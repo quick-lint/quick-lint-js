@@ -23,7 +23,7 @@ trace_flusher_directory_backend::trace_flusher_directory_backend(
     : trace_directory_(trace_directory) {}
 
 void trace_flusher_directory_backend::trace_thread_begin(
-    std::uint64_t thread_index,
+    trace_flusher_thread_index thread_index,
     trace_flusher_backend_thread_data &thread_data) {
   std::string stream_path =
       this->trace_directory_ + "/thread" + std::to_string(thread_index);
