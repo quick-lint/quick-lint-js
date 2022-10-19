@@ -98,9 +98,7 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   }
 
   for (auto& t : this->registered_threads_) {
-    trace_flusher_backend_thread_data& backend_thread_data =
-        t->backends[backend_index].thread_data;
-    this->enable_thread_writer(lock, *t, backend, backend_thread_data);
+    this->enable_thread_writer(lock, *t, backend);
   }
 }
 
@@ -155,12 +153,11 @@ void trace_flusher::register_current_thread() {
       &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  this->for_each_backend(lock, *t,
-                         [&](trace_flusher_backend* backend,
-                             trace_flusher_backend_thread_data& thread_data) {
-                           this->enable_thread_writer(lock, *t, backend,
-                                                      thread_data);
-                         });
+  this->for_each_backend(
+      lock, *t,
+      [&](trace_flusher_backend* backend, trace_flusher_backend_thread_data&) {
+        this->enable_thread_writer(lock, *t, backend);
+      });
 }
 
 void trace_flusher::unregister_current_thread() {
@@ -230,19 +227,18 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>& lock,
       [] {});
 }
 
-void trace_flusher::enable_thread_writer(
-    std::unique_lock<mutex>& lock, registered_thread& t,
-    trace_flusher_backend* backend,
-    trace_flusher_backend_thread_data& thread_data) {
+void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
+                                         registered_thread& t,
+                                         trace_flusher_backend* backend) {
   backend->trace_thread_begin(t.thread_index);
-  this->write_thread_header_to_backend(lock, t, backend, thread_data);
+  this->write_thread_header_to_backend(lock, t, backend);
 
   t.thread_writer->store(&t.stream_writer);
 }
 
 void trace_flusher::write_thread_header_to_backend(
     std::unique_lock<mutex>&, registered_thread& t,
-    trace_flusher_backend* backend, trace_flusher_backend_thread_data&) {
+    trace_flusher_backend* backend) {
   // NOTE(strager): We use a temporary async_byte_queue instead of reusing
   // t.stream_queue so we can write to *just* this backend and not involve any
   // other backends.
