@@ -178,6 +178,9 @@ class trace_flusher {
 
   void compact_backends(std::unique_lock<mutex>&);
 
+  template <class Func>
+  void for_each_backend(std::unique_lock<mutex>&, Func&&);
+
   // If tracing is enabled, this points to a registered_thread::stream_writer
   // from this->registered_threads_.
   //

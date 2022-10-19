@@ -145,11 +145,10 @@ void trace_flusher::register_current_thread() {
       &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
-    if (this->backends_[i]) {
-      this->enable_thread_writer(lock, *t, i);
-    }
-  }
+  this->for_each_backend(
+      lock, [&](std::size_t backend_index, trace_flusher_backend*) {
+        this->enable_thread_writer(lock, *t, backend_index);
+      });
 }
 
 void trace_flusher::unregister_current_thread() {
@@ -160,13 +159,11 @@ void trace_flusher::unregister_current_thread() {
   if (this->is_enabled(lock)) {
     this->flush_one_thread_sync(lock, **registered_thread_it);
   }
-  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
-    trace_flusher_backend* backend = this->backends_[i];
-    if (backend) {
-      backend->trace_thread_end(
-          (*registered_thread_it)->backends[i].thread_data);
-    }
-  }
+  this->for_each_backend(
+      lock, [&](std::size_t backend_index, trace_flusher_backend* backend) {
+        backend->trace_thread_end(
+            (*registered_thread_it)->backends[backend_index].thread_data);
+      });
   this->registered_threads_.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
 }
@@ -205,18 +202,16 @@ void trace_flusher::stop_flushing_thread() {
   this->flush_requested_cond_.notify_all();
 }
 
-void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
+void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>& lock,
                                           registered_thread& t) {
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        for (std::size_t i = 0; i < this->backends_.size(); ++i) {
-          trace_flusher_backend* backend = this->backends_[i];
-          if (backend) {
-            backend->trace_thread_write_data(data, size,
-                                             t.backends[i].thread_data);
-          }
-        }
+        this->for_each_backend(lock, [&](std::size_t backend_index,
+                                         trace_flusher_backend* backend) {
+          backend->trace_thread_write_data(
+              data, size, t.backends[backend_index].thread_data);
+        });
       },
       [] {});
 }
@@ -262,6 +257,17 @@ void trace_flusher::compact_backends(std::unique_lock<mutex>&) {
   // Remove null backends, but don't move any non-null backends.
   while (!this->backends_.empty() && this->backends_.back() == nullptr) {
     this->backends_.pop_back();
+  }
+}
+
+template <class Func>
+void trace_flusher::for_each_backend(std::unique_lock<mutex>&,
+                                     Func&& callback) {
+  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
+    trace_flusher_backend* backend = this->backends_[i];
+    if (backend) {
+      callback(i, backend);
+    }
   }
 }
 }
