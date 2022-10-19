@@ -24,33 +24,44 @@ trace_flusher_directory_backend::trace_flusher_directory_backend(
 
 void trace_flusher_directory_backend::trace_thread_begin(
     trace_flusher_thread_index thread_index,
-    trace_flusher_backend_thread_data &thread_data) {
+    trace_flusher_backend_thread_data &) {
   std::string stream_path =
       this->trace_directory_ + "/thread" + std::to_string(thread_index);
   auto file = open_file_for_writing(stream_path.c_str());
   if (!file.ok()) {
     QLJS_DEBUG_LOG("warning: failed to create trace stream file %s: %s\n",
                    stream_path.c_str(), file.error_to_string().c_str());
-    new (&thread_data.file) platform_file();  // Invalid file.
     return;
   }
-  new (&thread_data.file) platform_file(std::move(*file));
+
+  auto [_it, inserted] =
+      this->thread_files_.emplace(thread_index, std::move(*file));
+  QLJS_ASSERT(inserted);
 }
 
 void trace_flusher_directory_backend::trace_thread_end(
-    trace_flusher_thread_index,
-    trace_flusher_backend_thread_data &thread_data) {
-  thread_data.file.~platform_file();  // Close the file if needed.
+    trace_flusher_thread_index thread_index,
+    trace_flusher_backend_thread_data &) {
+  auto it = this->thread_files_.find(thread_index);
+  if (it == this->thread_files_.end()) {
+    // Opening the file failed, so there's nothing to close.
+  } else {
+    // Close the file we opened in trace_thread_begin.
+    this->thread_files_.erase(it);
+  }
 }
 
 void trace_flusher_directory_backend::trace_thread_write_data(
-    trace_flusher_thread_index, const std::byte *data, std::size_t size,
-    trace_flusher_backend_thread_data &thread_data) {
-  if (!thread_data.file.valid()) {
+    trace_flusher_thread_index thread_index, const std::byte *data,
+    std::size_t size, trace_flusher_backend_thread_data &) {
+  auto it = this->thread_files_.find(thread_index);
+  if (it == this->thread_files_.end()) {
+    // Opening the file failed. Don't write anything.
     return;
   }
+  platform_file_ref file = it->second.ref();
 
-  auto write_result = thread_data.file.write_full(data, size);
+  auto write_result = file.write_full(data, size);
   if (!write_result.ok()) {
     QLJS_DEBUG_LOG("warning: failed to append to trace stream file: %s\n",
                    write_result.error_to_string().c_str());

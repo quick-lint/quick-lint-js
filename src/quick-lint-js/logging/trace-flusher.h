@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/thread.h>
@@ -116,6 +117,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
   explicit trace_flusher_directory_backend(const std::string& trace_directory);
 
   std::string trace_directory_;
+  hash_map<trace_flusher_thread_index, platform_file> thread_files_;
 };
 
 // A trace_flusher gives trace_writer instances and writes traces to files.
