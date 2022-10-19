@@ -85,7 +85,17 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   QLJS_ASSERT(this->backends_.size() <= 2);
 
   std::size_t backend_index = this->backends_.size();
-  this->backends_.push_back(backend);
+  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
+    if (!this->backends_[i]) {
+      // Reuse an existing slot.
+      this->backends_[i] = backend;
+      backend_index = i;
+    }
+  }
+  if (backend_index == this->backends_.size()) {
+    // All slots are in use. Make a new slot.
+    this->backends_.push_back(backend);
+  }
 
   for (auto& t : this->registered_threads_) {
     trace_flusher_backend_thread_data& backend_thread_data =

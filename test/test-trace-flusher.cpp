@@ -158,6 +158,11 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     std::string written_data;
   };
 
+  void reset() {
+    std::lock_guard<mutex> lock(this->mutex_);
+    this->thread_states.clear();
+  }
+
   std::map<std::uint64_t, thread_state> thread_states;
   mutable mutex mutex_;
 };
@@ -780,6 +785,29 @@ TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
   EXPECT_THAT(
       backend_2.read_thread_init_versions(1),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
+
+  flusher.disable_all_backends();
+}
+
+TEST_F(test_trace_flusher, enable_and_disable_and_reenable_multiple_backends) {
+  flusher.register_current_thread();
+
+  spy_trace_flusher_backend backend_1;
+  spy_trace_flusher_backend backend_2;
+  spy_trace_flusher_backend backend_3;
+  flusher.enable_backend(&backend_1);
+  EXPECT_TRUE(flusher.is_enabled()) << "1";
+  flusher.enable_backend(&backend_2);
+  EXPECT_TRUE(flusher.is_enabled()) << "1 and 2";
+  flusher.disable_backend(&backend_1);
+  EXPECT_TRUE(flusher.is_enabled()) << "2";
+  flusher.enable_backend(&backend_3);
+  EXPECT_TRUE(flusher.is_enabled()) << "2 and 3";
+  flusher.disable_backend(&backend_2);
+  EXPECT_TRUE(flusher.is_enabled()) << "3";
+  backend_1.reset();
+  flusher.enable_backend(&backend_1);
+  EXPECT_TRUE(flusher.is_enabled()) << "1 and 3";
 
   flusher.disable_all_backends();
 }
