@@ -40,30 +40,10 @@ struct trace_flusher::registered_thread {
         thread_index(thread_index),
         thread_writer(thread_writer) {}
 
-  ~registered_thread() {
-    // All backends should have been disabled by now.
-    for (backend_state& backend : this->backends) {
-      QLJS_ASSERT(!backend.backend);
-    }
-  }
-
   struct backend_state {
-    trace_flusher_backend* backend = nullptr;
-
     // This is initialized by backend->trace_thread_begin.
     trace_flusher_backend_thread_data thread_data;
   };
-
-  trace_flusher_backend_thread_data& add_backend(
-      std::unique_lock<mutex>&, trace_flusher_backend* backend) {
-    for (backend_state& s : this->backends) {
-      if (!s.backend) {
-        s.backend = backend;
-        return s.thread_data;
-      }
-    }
-    QLJS_ALWAYS_ASSERT(false && "backends array is full");
-  }
 
   // Protected by trace_flusher::mutex_:
   std::array<backend_state, 2> backends;
@@ -96,14 +76,19 @@ void trace_flusher::enable_backend(trace_flusher_backend* backend) {
 
 void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
                                    trace_flusher_backend* backend) {
+  QLJS_ASSERT(backend);
   // A single backend cannot be enabled twice.
   QLJS_ASSERT(std::find(this->backends_.begin(), this->backends_.end(),
                         backend) == this->backends_.end());
 
+  // TODO(strager): Allow more than two backends.
+  QLJS_ASSERT(this->backends_.size() <= 2);
+
+  std::size_t backend_index = this->backends_.size();
   this->backends_.push_back(backend);
 
   for (auto& t : this->registered_threads_) {
-    this->enable_thread_writer(lock, *t, backend);
+    this->enable_thread_writer(lock, *t, backend_index);
   }
 }
 
@@ -112,18 +97,21 @@ void trace_flusher::disable_backend(trace_flusher_backend* backend) {
   this->disable_backend(lock, backend);
 }
 
-void trace_flusher::disable_backend(std::unique_lock<mutex>&,
+void trace_flusher::disable_backend(std::unique_lock<mutex>& lock,
                                     trace_flusher_backend* backend) {
+  QLJS_ASSERT(backend);
+  auto backend_it =
+      std::find(this->backends_.begin(), this->backends_.end(), backend);
+  QLJS_ASSERT(backend_it != this->backends_.end());
+  std::size_t backend_index =
+      narrow_cast<std::size_t>(backend_it - this->backends_.begin());
+
   for (auto& t : this->registered_threads_) {
-    for (registered_thread::backend_state& s : t->backends) {
-      if (s.backend == backend) {
-        s.backend->trace_thread_end(s.thread_data);
-        s.backend = nullptr;
-      }
-    }
+    backend->trace_thread_end(t->backends[backend_index].thread_data);
   }
 
-  erase(this->backends_, backend);
+  *backend_it = nullptr;
+  this->compact_backends(lock);
 
   if (this->backends_.empty()) {
     for (auto& t : this->registered_threads_) {
@@ -135,7 +123,7 @@ void trace_flusher::disable_backend(std::unique_lock<mutex>&,
 void trace_flusher::disable_all_backends() {
   std::unique_lock<mutex> lock(this->mutex_);
   while (!this->backends_.empty()) {
-    this->disable_backend(lock, this->backends_.front());
+    this->disable_backend(lock, this->backends_.back());
   }
 }
 
@@ -157,8 +145,10 @@ void trace_flusher::register_current_thread() {
       &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  for (trace_flusher_backend* backend : this->backends_) {
-    this->enable_thread_writer(lock, *t, backend);
+  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
+    if (this->backends_[i]) {
+      this->enable_thread_writer(lock, *t, i);
+    }
   }
 }
 
@@ -170,11 +160,11 @@ void trace_flusher::unregister_current_thread() {
   if (this->is_enabled(lock)) {
     this->flush_one_thread_sync(lock, **registered_thread_it);
   }
-  for (registered_thread::backend_state& backend :
-       (*registered_thread_it)->backends) {
-    if (backend.backend) {
-      backend.backend->trace_thread_end(backend.thread_data);
-      backend.backend = nullptr;
+  for (std::size_t i = 0; i < this->backends_.size(); ++i) {
+    trace_flusher_backend* backend = this->backends_[i];
+    if (backend) {
+      backend->trace_thread_end(
+          (*registered_thread_it)->backends[i].thread_data);
     }
   }
   this->registered_threads_.erase(registered_thread_it);
@@ -220,10 +210,11 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        for (registered_thread::backend_state& backend : t.backends) {
-          if (backend.backend) {
-            backend.backend->trace_thread_write_data(data, size,
-                                                     backend.thread_data);
+        for (std::size_t i = 0; i < this->backends_.size(); ++i) {
+          trace_flusher_backend* backend = this->backends_[i];
+          if (backend) {
+            backend->trace_thread_write_data(data, size,
+                                             t.backends[i].thread_data);
           }
         }
       },
@@ -232,8 +223,11 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
 
 void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
                                          registered_thread& t,
-                                         trace_flusher_backend* backend) {
-  trace_flusher_backend_thread_data& thread_data = t.add_backend(lock, backend);
+                                         std::size_t backend_index) {
+  trace_flusher_backend* backend = this->backends_[backend_index];
+  QLJS_ASSERT(backend);
+  trace_flusher_backend_thread_data& thread_data =
+      t.backends[backend_index].thread_data;
   backend->trace_thread_begin(t.thread_index, thread_data);
   this->write_thread_header_to_backend(lock, t, backend, thread_data);
 
@@ -262,6 +256,13 @@ void trace_flusher::write_thread_header_to_backend(
         backend->trace_thread_write_data(data, size, thread_data);
       },
       [] {});
+}
+
+void trace_flusher::compact_backends(std::unique_lock<mutex>&) {
+  // Remove null backends, but don't move any non-null backends.
+  while (!this->backends_.empty() && this->backends_.back() == nullptr) {
+    this->backends_.pop_back();
+  }
 }
 }
 

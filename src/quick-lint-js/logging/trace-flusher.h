@@ -169,12 +169,14 @@ class trace_flusher {
   void flush_one_thread_sync(std::unique_lock<mutex>&, registered_thread&);
 
   void enable_thread_writer(std::unique_lock<mutex>&, registered_thread&,
-                            trace_flusher_backend*);
+                            std::size_t backend_index);
 
   void write_thread_header_to_backend(std::unique_lock<mutex>&,
                                       registered_thread&,
                                       trace_flusher_backend*,
                                       trace_flusher_backend_thread_data&);
+
+  void compact_backends(std::unique_lock<mutex>&);
 
   // If tracing is enabled, this points to a registered_thread::stream_writer
   // from this->registered_threads_.
@@ -183,10 +185,16 @@ class trace_flusher {
   static thread_local std::atomic<trace_writer*> thread_stream_writer_;
 
   // Protected by mutex_:
-  std::vector<trace_flusher_backend*> backends_;
   std::vector<std::unique_ptr<registered_thread> > registered_threads_;
   std::uint64_t next_thread_index_ = 1;
   bool stop_flushing_thread_ = false;
+
+  // backends_[i] corresponds to registered_threads_[n]->backends[i]. Therefore,
+  // if a backend is deleted, we store a null pointer (tombstone) in
+  // backends_[i] to avoid moving registered_threads_[n]->backends items around.
+  //
+  // Protected by mutex_.
+  std::vector<trace_flusher_backend*> backends_;
 
   mutable mutex mutex_;
   condition_variable flush_requested_cond_;
