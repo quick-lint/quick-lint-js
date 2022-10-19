@@ -212,7 +212,7 @@ void write_vector_profiler_stats(byte_buffer &out_json) {
   out_json.append_copy(u8R"--({"maxSizeHistogramByOwner":{)--"_sv);
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-  std::map<std::string, std::map<std::size_t, int>> histograms_by_owner =
+  std::map<std::string_view, std::map<std::size_t, int>> histograms_by_owner =
       vector_instrumentation::instance.max_size_histogram_by_owner();
   bool need_comma = false;
   for (auto &[owner, histogram] : histograms_by_owner) {

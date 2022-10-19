@@ -460,7 +460,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_empty_histogram) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   std::ostringstream stream;
   vector_instrumentation::dump_max_size_histogram(histogram, stream);
   EXPECT_EQ(stream.str(), "");
@@ -468,7 +468,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_histogram_with_one_group) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][0] = 3;
   histogram["test group"][1] = 2;
   histogram["test group"][2] = 1;
@@ -483,7 +483,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_histogram_with_one_data_point_per_group) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][0] = 2;
   std::ostringstream stream;
   vector_instrumentation::dump_max_size_histogram(histogram, stream);
@@ -494,7 +494,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_histogram_with_multiple_groups) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["group A"][0] = 3;
   histogram["group A"][1] = 3;
   histogram["group B"][0] = 2;
@@ -513,7 +513,7 @@ Max sizes for group B:
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_sparse_histogram) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][1] = 1;
   histogram["test group"][4] = 1;
   histogram["test group"][5] = 1;
@@ -536,7 +536,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      histogram_legend_is_padded_with_spaces) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][3] = 1;
   histogram["test group"][100] = 1;
   std::ostringstream stream;
@@ -547,7 +547,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      histogram_is_limited_to_max_screen_width) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][0] = 100;
   histogram["test group"][1] = 50;
   histogram["test group"][2] = 25;
@@ -568,7 +568,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      histogram_skips_many_empty_rows) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   auto &test_group = histogram["test group"];
   test_group[0] = 1;
   test_group[1] = 2;
@@ -591,7 +591,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
      histogram_including_legend_is_limited_to_max_screen_width) {
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][100] = 99999;
   std::ostringstream stream;
   vector_instrumentation::dump_max_size_histogram(
@@ -887,7 +887,7 @@ std::string dump_capacity_change_header = R"(vector capacity changes:
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_empty_histogram) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   std::ostringstream stream;
   vector_instrumentation::dump_capacity_change_histogram(
@@ -898,7 +898,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_reusing_capacity) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_reusing_capacity = 10;
   std::ostringstream stream;
@@ -914,7 +914,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_growing_capacity) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 10;
   std::ostringstream stream;
@@ -930,7 +930,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_initial_capacity) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_initial_capacity = 10;
   std::ostringstream stream;
@@ -946,7 +946,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_mixed_growing_and_initial_and_reusing) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 5;
   histogram["myvector"].appends_initial_capacity = 5;
@@ -964,7 +964,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      different_widths) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 9001;
 
@@ -995,7 +995,7 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      multiple_owners_align_counts) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["first"].appends_growing_capacity = 1;
   histogram["first"].appends_reusing_capacity = 1;
@@ -1016,7 +1016,7 @@ second:
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      hides_vectors_with_no_appends) {
-  std::map<std::string, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
       histogram;
   histogram["first"];   // Zeroes.
   histogram["second"];  // Zeroes.

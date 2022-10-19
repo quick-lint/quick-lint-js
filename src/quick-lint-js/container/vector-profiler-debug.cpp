@@ -69,10 +69,10 @@ std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
   return this->entries_;
 }
 
-std::map<std::string, std::map<std::size_t, int>>
+std::map<std::string_view, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
-  std::map<std::string, std::map<std::size_t, int>> histogram;
+  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   std::map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
   for (const vector_instrumentation::entry &entry : this->entries_) {
     std::pair key(entry.owner, entry.object_id);
@@ -91,13 +91,13 @@ vector_instrumentation::max_size_histogram_by_owner() const {
 }
 
 void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string, std::map<std::size_t, int>> &histogram,
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
     std::ostream &out) {
   return dump_max_size_histogram(histogram, out, dump_options());
 }
 
 void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string, std::map<std::size_t, int>> &histogram,
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
     std::ostream &out, const dump_options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
@@ -165,10 +165,10 @@ void vector_instrumentation::dump_max_size_histogram(
   }
 }
 
-std::map<std::string, vector_instrumentation::capacity_change_histogram>
+std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
 vector_instrumentation::capacity_change_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
-  std::map<std::string, capacity_change_histogram> histogram;
+  std::map<std::string_view, capacity_change_histogram> histogram;
   struct vector_info {
     std::uintptr_t data_pointer;
     std::size_t size;
@@ -197,7 +197,7 @@ vector_instrumentation::capacity_change_histogram_by_owner() const {
 }
 
 void vector_instrumentation::dump_capacity_change_histogram(
-    const std::map<std::string, capacity_change_histogram> &histogram,
+    const std::map<std::string_view, capacity_change_histogram> &histogram,
     std::ostream &out, const dump_capacity_change_options &options) {
   out << R"(vector capacity changes:
 (C=copied; z=initial alloc; -=used internal capacity)
