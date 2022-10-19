@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* `switch (c) { case A: break; case A: break; }` now reports [E0347][]
+  ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
+* Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).
+
 ### Fixed
 
 * In tracing files, the thread IDs in the file headers are now correct if
