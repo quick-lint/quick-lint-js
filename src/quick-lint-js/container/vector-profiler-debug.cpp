@@ -27,7 +27,8 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out,
                          const vector_instrumentation::entry &e) {
-  out << "entry{.owner = \"" << e.owner << "\", .event = ";
+  out << "entry{.object_id = 0x" << std::hex << e.object_id << std::dec
+      << ", .owner = \"" << e.owner << "\", .event = ";
   switch (e.event) {
   case vector_instrumentation::event::append:
     out << "append";
@@ -48,7 +49,8 @@ std::ostream &operator<<(std::ostream &out,
     out << "resize";
     break;
   }
-  out << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
+  out << ", .data_pointer = 0x" << std::hex << e.data_pointer << std::dec
+      << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
   return out;
 }
 
