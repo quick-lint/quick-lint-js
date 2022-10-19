@@ -66,6 +66,7 @@ class trace_flusher_backend {
   //
   // Called from any thread.
   virtual void trace_thread_end(
+      trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) = 0;
 
   // trace_thread_write_data can be called zero or more times.
@@ -75,8 +76,8 @@ class trace_flusher_backend {
   //
   // Called from any thread.
   virtual void trace_thread_write_data(
-      const std::byte* data, std::size_t size,
-      trace_flusher_backend_thread_data& thread_data) = 0;
+      trace_flusher_thread_index thread_index, const std::byte* data,
+      std::size_t size, trace_flusher_backend_thread_data& thread_data) = 0;
 };
 
 class trace_flusher_directory_backend final : public trace_flusher_backend {
@@ -87,9 +88,11 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
       trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) override;
   void trace_thread_end(
+      trace_flusher_thread_index thread_index,
       trace_flusher_backend_thread_data& thread_data) override;
   void trace_thread_write_data(
-      const std::byte* data, std::size_t size,
+      trace_flusher_thread_index thread_index, const std::byte* data,
+      std::size_t size,
       trace_flusher_backend_thread_data& thread_data) override;
 
   // Creates a 'metadata' file in the given directory.

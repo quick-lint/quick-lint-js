@@ -102,6 +102,7 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
   }
 
   void trace_thread_end(
+      trace_flusher_thread_index,
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
 
@@ -113,7 +114,7 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
   }
 
   void trace_thread_write_data(
-      const std::byte* data, std::size_t size,
+      trace_flusher_thread_index, const std::byte* data, std::size_t size,
       trace_flusher_backend_thread_data& thread_data) override {
     std::lock_guard<mutex> lock(this->mutex_);
 

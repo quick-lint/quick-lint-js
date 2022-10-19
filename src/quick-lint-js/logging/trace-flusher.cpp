@@ -119,7 +119,8 @@ void trace_flusher::disable_backend(std::unique_lock<mutex>& lock,
       narrow_cast<std::size_t>(backend_it - this->backends_.begin());
 
   for (auto& t : this->registered_threads_) {
-    backend->trace_thread_end(t->backends[backend_index].thread_data);
+    backend->trace_thread_end(t->thread_index,
+                              t->backends[backend_index].thread_data);
   }
 
   *backend_it = nullptr;
@@ -170,13 +171,15 @@ void trace_flusher::unregister_current_thread() {
   auto registered_thread_it = find_unique_existing_if(
       this->registered_threads_,
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
+  registered_thread& t = **registered_thread_it;
   if (this->is_enabled(lock)) {
-    this->flush_one_thread_sync(lock, **registered_thread_it);
+    this->flush_one_thread_sync(lock, t);
   }
-  this->for_each_backend(lock, **registered_thread_it,
+  this->for_each_backend(lock, t,
                          [&](trace_flusher_backend* backend,
                              trace_flusher_backend_thread_data& thread_data) {
-                           backend->trace_thread_end(thread_data);
+                           backend->trace_thread_end(t.thread_index,
+                                                     thread_data);
                          });
   this->registered_threads_.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
@@ -225,7 +228,8 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>& lock,
             lock, t,
             [&](trace_flusher_backend* backend,
                 trace_flusher_backend_thread_data& thread_data) {
-              backend->trace_thread_write_data(data, size, thread_data);
+              backend->trace_thread_write_data(t.thread_index, data, size,
+                                               thread_data);
             });
       },
       [] {});
@@ -260,7 +264,8 @@ void trace_flusher::write_thread_header_to_backend(
   temp_queue.commit();
   temp_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        backend->trace_thread_write_data(data, size, thread_data);
+        backend->trace_thread_write_data(t.thread_index, data, size,
+                                         thread_data);
       },
       [] {});
 }

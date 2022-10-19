@@ -38,12 +38,13 @@ void trace_flusher_directory_backend::trace_thread_begin(
 }
 
 void trace_flusher_directory_backend::trace_thread_end(
+    trace_flusher_thread_index,
     trace_flusher_backend_thread_data &thread_data) {
   thread_data.file.~platform_file();  // Close the file if needed.
 }
 
 void trace_flusher_directory_backend::trace_thread_write_data(
-    const std::byte *data, std::size_t size,
+    trace_flusher_thread_index, const std::byte *data, std::size_t size,
     trace_flusher_backend_thread_data &thread_data) {
   if (!thread_data.file.valid()) {
     return;
