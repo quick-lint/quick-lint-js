@@ -73,7 +73,7 @@ std::map<std::string, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
   std::map<std::string, std::map<std::size_t, int>> histogram;
-  std::map<std::pair<std::string, std::uintptr_t>, std::size_t> object_sizes;
+  std::map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
   for (const vector_instrumentation::entry &entry : this->entries_) {
     std::pair key(entry.owner, entry.object_id);
     std::size_t &object_size = object_sizes[key];
