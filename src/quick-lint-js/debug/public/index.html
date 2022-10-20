@@ -2,37 +2,38 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <style>
-#vector-profile-data {
-  display: flex;
-  flex-wrap: wrap;
-}
+  #vector-profile-data {
+    display: flex;
+    flex-wrap: wrap;
+  }
 
-.max-size-histogram {
-  margin: 0.5rem;
-  max-size: 33%;
-}
+  .max-size-histogram {
+    margin: 0.5rem;
+    max-size: 33%;
+  }
 
-.histogram table {
-  width: 100%;
-}
+  .histogram table {
+    width: 100%;
+  }
 
-.histogram td {
-  --bar-color: #eecccc;
-  --histogram-percentage: 0%;
-  background: linear-gradient(
-    90deg,
-    var(--bar-color) 0%,
-    var(--bar-color) var(--histogram-percentage),
-    transparent var(--histogram-percentage),
-    transparent 100%);
-}
+  .histogram td {
+    --bar-color: #eecccc;
+    --histogram-percentage: 0%;
+    background: linear-gradient(
+      90deg,
+      var(--bar-color) 0%,
+      var(--bar-color) var(--histogram-percentage),
+      transparent var(--histogram-percentage),
+      transparent 100%
+    );
+  }
 </style>
 
 <h1>quick-lint-js debug server</h1>
 
 <section id="vector-profile">
-<h2>vector profile</h2>
-<div id="vector-profile-data"></div>
+  <h2>vector profile</h2>
+  <div id="vector-profile-data"></div>
 </section>
 
 <script type="module" src="index.mjs"></script>

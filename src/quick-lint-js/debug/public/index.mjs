@@ -7,7 +7,7 @@ class VectorProfileView {
     this.maxSizeHistogramElementByOwner = new Map();
   }
 
-  updateMaxSizeHistogram({owner, countBySize}) {
+  updateMaxSizeHistogram({ owner, countBySize }) {
     let el = this.maxSizeHistogramElementByOwner.get(owner);
     if (el === undefined) {
       el = document.createElement("div");
@@ -43,34 +43,44 @@ class VectorProfileView {
         tableBodyEl.appendChild(rowEl);
       }
       let rowDataEl = rowEl.querySelector("td");
-      rowDataEl.textContent = `${(count / totalCount * 100).toFixed(1)}%`;
-      rowDataEl.style.setProperty("--histogram-percentage", `${count / maxCount * 100}%`);
+      rowDataEl.textContent = `${((count / totalCount) * 100).toFixed(1)}%`;
+      rowDataEl.style.setProperty(
+        "--histogram-percentage",
+        `${(count / maxCount) * 100}%`
+      );
     }
   }
 }
 
-let vectorProfileView = new VectorProfileView(document.getElementById("vector-profile-data"));
+let vectorProfileView = new VectorProfileView(
+  document.getElementById("vector-profile-data")
+);
 
-pollVectorProfileDataContinuouslyAsync()
-  .catch((e) => { console.error(e); });
+pollVectorProfileDataContinuouslyAsync().catch((e) => {
+  console.error(e);
+});
 
 class DebugServerSocket {
   constructor(webSocket) {
     this.webSocket = webSocket;
 
     this.webSocket.addEventListener("message", (event) => {
-      this._onMessageAsync(event)
-        .catch((e) => { console.error(e); });
+      this._onMessageAsync(event).catch((e) => {
+        console.error(e);
+      });
     });
   }
 
   async _onMessageAsync(event) {
     let messageData = await event.data.arrayBuffer();
-    let threadIndex = new DataView(messageData).getBigUint64(0, /*littleEndian=*/true);
+    let threadIndex = new DataView(messageData).getBigUint64(
+      0,
+      /*littleEndian=*/ true
+    );
     let dataView = new DataView(messageData, 8);
     console.log(
       `DebugServerSocket message from thread ${threadIndex}:`,
-      new TextDecoder("utf-8", {fatal: false}).decode(dataView),
+      new TextDecoder("utf-8", { fatal: false }).decode(dataView)
     );
   }
 
@@ -91,9 +101,10 @@ class DebugServerSocket {
 }
 
 DebugServerSocket.connectAsync()
-  .then((socket) => {
-  })
-  .catch((e) => { console.error(e); });
+  .then((socket) => {})
+  .catch((e) => {
+    console.error(e);
+  });
 
 async function pollVectorProfileDataContinuouslyAsync() {
   for (;;) {
@@ -110,13 +121,15 @@ async function pollVectorProfileDataAsync() {
       continue;
     }
     let countBySize = maxSizeHistogramByOwner[owner];
-    vectorProfileView.updateMaxSizeHistogram({owner, countBySize});
+    vectorProfileView.updateMaxSizeHistogram({ owner, countBySize });
   }
 }
 
 function sleepAsync(durationMilliseconds) {
   return new Promise((resolve, _reject) => {
-    setTimeout(() => { resolve(); }, durationMilliseconds);
+    setTimeout(() => {
+      resolve();
+    }, durationMilliseconds);
   });
 }
 
