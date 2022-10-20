@@ -19,6 +19,7 @@ Semantic Versioning.
 * Variables can be named according to Unicode 15 (previously Unicode 14).
 * In tracing files, the thread IDs in the file headers are now correct if
   tracing was enabled after startup.
+* [E0325][] is now an error rather than a warning.
 
 ## 2.10.0 (2022-10-14)
 
@@ -809,5 +810,6 @@ Beta release.
 [E0287]: https://quick-lint-js.com/errors/E0287/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
+[E0345]: https://quick-lint-js.com/errors/E0345/
 [E0347]: https://quick-lint-js.com/errors/E0347/
 [E0707]: https://quick-lint-js.com/errors/E0707/
