@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import { TraceReader } from "./trace.mjs";
+
 class VectorProfileView {
   constructor(element) {
     this.element = element;
@@ -63,6 +65,7 @@ pollVectorProfileDataContinuouslyAsync().catch((e) => {
 class DebugServerSocket {
   constructor(webSocket) {
     this.webSocket = webSocket;
+    this.traceReaders = new Map(); // Key is the thread index.
 
     this.webSocket.addEventListener("message", (event) => {
       this._onMessageAsync(event).catch((e) => {
@@ -77,11 +80,23 @@ class DebugServerSocket {
       0,
       /*littleEndian=*/ true
     );
-    let dataView = new DataView(messageData, 8);
-    console.log(
-      `DebugServerSocket message from thread ${threadIndex}:`,
-      new TextDecoder("utf-8", { fatal: false }).decode(dataView)
-    );
+
+    let reader = this.traceReaders.get(threadIndex);
+    if (reader === undefined) {
+      reader = new TraceReader();
+      this.traceReaders.set(threadIndex, reader);
+    }
+
+    let eventsBefore = reader.events.length;
+    reader.appendBytes(messageData, 8);
+    let eventsAfter = reader.events.length;
+
+    for (let i = eventsBefore; i < eventsAfter; ++i) {
+      console.log(
+        `DebugServerSocket event from thread ${threadIndex}:`,
+        reader.events[i]
+      );
+    }
   }
 
   static connectAsync() {
