@@ -275,7 +275,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
           .root_dir = public_directory.c_str(),
           .ssi_pattern = nullptr,
           .extra_headers = nullptr,
-          .mime_types = nullptr,
+          .mime_types = "mjs=text/javascript",
           .page404 = nullptr,
           .fs = nullptr,
       };

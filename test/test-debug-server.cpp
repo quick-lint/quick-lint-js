@@ -106,6 +106,21 @@ TEST_F(test_debug_server, serves_html_at_index) {
                                ::testing::StartsWith("text/html;")));
 }
 
+TEST_F(test_debug_server, serves_javascript) {
+  debug_server server(/*tracer=*/nullptr);
+  server.start_server_thread();
+  auto wait_result = server.wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  http_response response = http_fetch(server.url("/index.mjs"));
+  ASSERT_TRUE(response);
+  EXPECT_EQ(response.status, 200);  // OK
+  EXPECT_THAT(response.data, ::testing::StartsWith("//"));
+  EXPECT_THAT(response.get_last_header_value_or_empty("content-type"),
+              ::testing::AnyOf(::testing::StrEq("text/javascript"),
+                               ::testing::StartsWith("text/javascript;")));
+}
+
 TEST_F(test_debug_server, serves_not_found_page) {
   debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
