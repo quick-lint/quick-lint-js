@@ -15,8 +15,9 @@ trace_stream_event_visitor::~trace_stream_event_visitor() = default;
 
 void read_trace_stream(const void* data, std::size_t data_size,
                        trace_stream_event_visitor& v) {
-  checked_binary_reader r(reinterpret_cast<const std::uint8_t*>(data),
-                          data_size);
+  checked_binary_reader r(
+      reinterpret_cast<const std::uint8_t*>(data), data_size,
+      []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
   auto read_utf16le_string = [&r]() -> std::u16string_view {
     std::uint64_t length = r.u64_le();
     const std::uint8_t* bytes = r.advance(length * 2);

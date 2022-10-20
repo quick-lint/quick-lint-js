@@ -8,17 +8,24 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/port/function-ref.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 
 namespace quick_lint_js {
-// checked_binary_reader crashes on out-of-bounds access.
+// checked_binary_reader calls unexpected_end_of_file on error.
+//
+// Invariant: When unexpected_end_of_file is called, it does not return.
 class checked_binary_reader {
  public:
   explicit checked_binary_reader(const std::uint8_t* data,
-                                 std::size_t data_size)
-      : data_(data), data_end_(data + data_size) {}
+                                 std::size_t data_size,
+                                 function_ref<void()> unexpected_end_of_file)
+      : data_(data),
+        data_end_(data + data_size),
+        unexpected_end_of_file_(unexpected_end_of_file) {}
 
   bool eof() const noexcept { return this->data_ == this->data_end_; }
 
@@ -47,7 +54,10 @@ class checked_binary_reader {
   }
 
   const std::uint8_t* advance(std::size_t size) {
-    QLJS_ALWAYS_ASSERT(size <= this->remaining());
+    if (size > this->remaining()) {
+      this->unexpected_end_of_file_();
+      QLJS_UNREACHABLE();
+    }
     return std::exchange(this->data_, this->data_ + size);
   }
 
@@ -75,6 +85,7 @@ class checked_binary_reader {
  private:
   const std::uint8_t* data_;
   const std::uint8_t* data_end_;
+  function_ref<void()> unexpected_end_of_file_;
 };
 }
 

@@ -182,7 +182,8 @@ TEST_F(test_debug_server,
       }
 
       checked_binary_reader reader(
-          reinterpret_cast<const std::uint8_t *>(message), message_size);
+          reinterpret_cast<const std::uint8_t *>(message), message_size,
+          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
       std::vector<std::uint8_t> &stream_data = this->streams[thread_index];
@@ -290,7 +291,8 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
       }
 
       checked_binary_reader reader(
-          reinterpret_cast<const std::uint8_t *>(message), message_size);
+          reinterpret_cast<const std::uint8_t *>(message), message_size,
+          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
       std::vector<std::uint8_t> &stream_data = this->streams[thread_index];
@@ -452,7 +454,8 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
       }
 
       checked_binary_reader reader(
-          reinterpret_cast<const std::uint8_t *>(message), message_size);
+          reinterpret_cast<const std::uint8_t *>(message), message_size,
+          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
       this->received_thread_indexes.push_back(thread_index);
 
