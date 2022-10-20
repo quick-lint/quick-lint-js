@@ -70,16 +70,15 @@ class checked_binary_reader {
   // If end_byte exists, this function advances to *after* the found byte and
   // returns true.
   //
-  // If end_byte does not exist, this function does not advance and returns
-  // false.
-  bool find_and_skip_byte(std::uint8_t end_byte) {
+  // If end_byte does not exist, this function does not advance and calls
+  // unexpected_end_of_file.
+  void find_and_skip_byte(std::uint8_t end_byte) {
     const std::uint8_t* found =
         find_first(this->data_, this->data_end_, end_byte);
     if (found == this->data_end_) {
-      return false;
+      this->unexpected_end_of_file_();
     }
     this->data_ = found + 1;
-    return true;
   }
 
  private:
