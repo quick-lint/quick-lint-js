@@ -1670,7 +1670,7 @@ parser::parse_and_visit_function_parameters(
     // a source_code_span so we can compare the token type instead of strings.
     if (name->string_view() == u8"async"_sv) {
       this->diag_reporter_->report(diag_function_async_function{
-          .function_async = source_code_span(this->peek().span()),
+          .function_async = this->peek().span(),
       });
       this->skip();
       return this->parse_and_visit_function_parameters(v, name);
