@@ -102,7 +102,7 @@ TEST_F(test_debug_server, serves_html_at_index) {
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("<!DOCTYPE html>"));
   EXPECT_THAT(response.get_last_header_value_or_empty("content-type"),
-              ::testing::AnyOf(::testing::StrEq("test/html"),
+              ::testing::AnyOf(::testing::StrEq("text/html"),
                                ::testing::StartsWith("text/html;")));
 }
 
