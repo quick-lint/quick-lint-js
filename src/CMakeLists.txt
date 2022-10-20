@@ -201,6 +201,7 @@ quick_lint_js_add_library(
   quick-lint-js/port/char8.h
   quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
+  quick-lint-js/port/function-ref.h
   quick-lint-js/port/have.h
   quick-lint-js/port/in-range.h
   quick-lint-js/port/integer.cpp
