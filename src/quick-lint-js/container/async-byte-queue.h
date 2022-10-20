@@ -17,6 +17,12 @@ namespace quick_lint_js {
 // another thread to read data. async_byte_queue is a Single-Producer
 // Single-Consumer (SPSC) queue of bytes.
 //
+// async_byte_queue allows multiple reader threads if they are synchronized
+// (e.g. using a mutex).
+//
+// async_byte_queue allows multiple writer threads if they are synchronized
+// (e.g. using a mutex).
+//
 // async_byte_queue is implemented as a linked list of byte arrays called
 // chunks.
 class async_byte_queue {

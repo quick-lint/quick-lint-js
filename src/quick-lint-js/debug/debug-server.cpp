@@ -13,13 +13,16 @@
 #include <mongoose.h>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server-fs.h>
 #include <quick-lint-js/debug/debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
@@ -31,10 +34,83 @@ namespace {
 void write_vector_profiler_stats(byte_buffer &out_json);
 }
 
+class trace_flusher_websocket_backend final : public trace_flusher_backend {
+ public:
+  explicit trace_flusher_websocket_backend(::mg_connection *connection,
+                                           debug_server *server)
+      : connection_(connection), server_(server) {}
+
+  void trace_thread_begin(trace_flusher_thread_index) override {}
+
+  void trace_thread_end(trace_flusher_thread_index) override {}
+
+  void trace_thread_write_data(trace_flusher_thread_index thread_index,
+                               const std::byte *data,
+                               std::size_t size) override {
+    std::lock_guard<mutex> lock(this->mutex_);
+
+    async_byte_queue &queue = this->thread_queues_[thread_index];
+    queue.append_copy(data, size);
+    queue.commit();
+    server_->wake_up_server_thread();
+  }
+
+  // Called on the server thread.
+  void flush_if_needed() {
+    std::lock_guard<mutex> lock(this->mutex_);
+
+    for (auto &[thread_index, queue] : this->thread_queues_) {
+      std::size_t total_message_size = 0;
+
+      {
+        std::uint8_t header[sizeof(std::uint64_t)];
+        binary_writer writer(header);
+        writer.u64_le(thread_index);
+        int ok = ::mg_send(this->connection_, header, sizeof(header));
+        QLJS_ASSERT(ok);
+        total_message_size += sizeof(header);
+      }
+
+      queue.take_committed(
+          [&](const std::byte *data, std::size_t size) {
+            // FIXME(strager): ::mg_send fails if size is 0. We shouldn't need
+            // this size check, but async_byte_queue gives us empty chunks for
+            // some reason. We should make async_byte_queue not give us empty
+            // chunks.
+            if (size > 0) {
+              int ok = ::mg_send(this->connection_, data, size);
+              QLJS_ASSERT(ok);
+              total_message_size += size;
+            }
+          },
+          [] {});
+
+      ::mg_ws_wrap(this->connection_, total_message_size, WEBSOCKET_OP_BINARY);
+    }
+  }
+
+ private:
+  ::mg_connection *const connection_;
+  debug_server *const server_;
+
+  // Protected by mutex_:
+  hash_map<trace_flusher_thread_index, async_byte_queue> thread_queues_;
+
+  mutex mutex_;
+
+  friend class debug_server;
+};
+
+debug_server::debug_server(trace_flusher *tracer) : tracer_(tracer) {}
+
 debug_server::~debug_server() {
   if (this->server_thread_.joinable()) {
     this->stop_server_thread();
     this->server_thread_.join();
+  }
+
+  for (auto &backend : this->tracer_backends_) {
+    this->tracer_->disable_backend(backend.get());
   }
 }
 
@@ -91,6 +167,25 @@ std::string debug_server::url(std::string_view path) const {
   }
   result += path;
   return result;
+}
+
+std::string debug_server::websocket_url(std::string_view path) const {
+  QLJS_ASSERT(this->did_wait_for_server_start_);
+
+  std::string result;
+  result.reserve(path.size() + 100);
+  result += "ws://"sv;
+  {
+    std::lock_guard<mutex> lock(this->mutex_);
+    result += this->init_data_->actual_listen_address;
+  }
+  result += path;
+  return result;
+}
+
+void debug_server::wake_up_server_thread() {
+  std::unique_lock<mutex> lock(this->mutex_);
+  this->wake_up_server_thread(lock);
 }
 
 void debug_server::wake_up_server_thread(std::unique_lock<mutex> &) {
@@ -172,6 +267,8 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
 
       ::mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%.*s",
                       narrow_cast<int>(json_copy.size()), json_copy.data());
+    } else if (this->tracer_ && ::mg_http_match_uri(hm, "/api/trace")) {
+      ::mg_ws_upgrade(c, hm, nullptr);
     } else {
       std::string public_directory = get_debug_server_public_directory();
       ::mg_http_serve_opts options = {
@@ -183,6 +280,26 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
           .fs = nullptr,
       };
       ::mg_http_serve_dir(c, hm, &options);
+    }
+    break;
+  }
+
+  case ::MG_EV_WS_OPEN: {
+    this->tracer_backends_.emplace_back(
+        std::make_unique<trace_flusher_websocket_backend>(c, this));
+    trace_flusher_websocket_backend *backend =
+        this->tracer_backends_.back().get();
+    this->tracer_->enable_backend(backend);
+    break;
+  }
+
+  case ::MG_EV_CLOSE: {
+    auto backend_it = std::find_if(
+        this->tracer_backends_.begin(), this->tracer_backends_.end(),
+        [&](auto &backend) { return backend->connection_ == c; });
+    if (backend_it != this->tracer_backends_.end()) {
+      this->tracer_->disable_backend(backend_it->get());
+      this->tracer_backends_.erase(backend_it);
     }
     break;
   }
@@ -199,6 +316,10 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
     // wake_up_server_thread was called.
     if (this->stop_server_thread_.load()) {
       this->begin_closing_all_connections(c->mgr);
+    }
+
+    for (auto &backend : this->tracer_backends_) {
+      backend->flush_if_needed();
     }
     break;
 

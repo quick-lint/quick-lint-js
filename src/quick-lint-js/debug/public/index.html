@@ -89,6 +89,47 @@ let vectorProfileView = new VectorProfileView(document.getElementById("vector-pr
 pollVectorProfileDataContinuouslyAsync()
   .catch((e) => { console.error(e); });
 
+class DebugServerSocket {
+  constructor(webSocket) {
+    this.webSocket = webSocket;
+
+    this.webSocket.addEventListener("message", (event) => {
+      this._onMessageAsync(event)
+        .catch((e) => { console.error(e); });
+    });
+  }
+
+  async _onMessageAsync(event) {
+    let messageData = await event.data.arrayBuffer();
+    let threadIndex = new DataView(messageData).getBigUint64(0, /*littleEndian=*/true);
+    let dataView = new DataView(messageData, 8);
+    console.log(
+      `DebugServerSocket message from thread ${threadIndex}:`,
+      new TextDecoder("utf-8", {fatal: false}).decode(dataView),
+    );
+  }
+
+  static connectAsync() {
+    return new Promise((resolve, reject) => {
+      let url = new URL(window.location);
+      url.pathname = "/api/trace";
+      url.protocol = "ws:";
+      let webSocket = new WebSocket(url.toString());
+      webSocket.addEventListener("open", (_event) => {
+        resolve(new DebugServerSocket(webSocket));
+      });
+      webSocket.addEventListener("error", (error) => {
+        reject(new Error(`failed to connect to WebSocket at ${url}`));
+      });
+    });
+  }
+}
+
+DebugServerSocket.connectAsync()
+  .then((socket) => {
+  })
+  .catch((e) => { console.error(e); });
+
 async function pollVectorProfileDataContinuouslyAsync() {
   for (;;) {
     await pollVectorProfileDataAsync();

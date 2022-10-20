@@ -305,24 +305,6 @@ linter_options get_linter_options_from_language(input_file_language language) {
 }
 
 void run_lsp_server() {
-#if QLJS_FEATURE_DEBUG_SERVER
-  debug_server debugger;
-  debugger.set_listen_address("http://localhost:8098");
-  debugger.start_server_thread();
-  result<void, debug_server_io_error> start_result =
-      debugger.wait_for_server_start();
-  // TODO(strager): Print this over the LSP connection instead.
-  // TODO(strager): Allow the LSP client to customize the debug server port.
-  if (start_result.ok()) {
-    std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
-                 debugger.url().c_str());
-  } else {
-    std::fprintf(stderr,
-                 "error: quick-lint-js debug server failed to start: %s\n",
-                 start_result.error_to_string().c_str());
-  }
-#endif
-
 #if defined(_WIN32)
   windows_handle_file_ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
   windows_handle_file_ref output_pipe(::GetStdHandle(STD_OUTPUT_HANDLE));
@@ -347,6 +329,9 @@ void run_lsp_server() {
 #else
 #error "Unsupported platform"
 #endif
+#if QLJS_FEATURE_DEBUG_SERVER
+          debugger_(&this->tracer_),
+#endif
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_, &this->tracer_),
           writer_(output_pipe),
@@ -356,6 +341,23 @@ void run_lsp_server() {
       this->tracer_.register_current_thread();
       this->tracer_.flush_sync();
       this->tracer_.start_flushing_thread();
+
+#if QLJS_FEATURE_DEBUG_SERVER
+      this->debugger_.set_listen_address("http://localhost:8098");
+      this->debugger_.start_server_thread();
+      result<void, debug_server_io_error> start_result =
+          this->debugger_.wait_for_server_start();
+      // TODO(strager): Print this over the LSP connection instead.
+      // TODO(strager): Allow the LSP client to customize the debug server port.
+      if (start_result.ok()) {
+        std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
+                     this->debugger_.url().c_str());
+      } else {
+        std::fprintf(stderr,
+                     "error: quick-lint-js debug server failed to start: %s\n",
+                     start_result.error_to_string().c_str());
+      }
+#endif
     }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
@@ -441,6 +443,11 @@ void run_lsp_server() {
 #endif
 
     trace_flusher tracer_;
+
+#if QLJS_FEATURE_DEBUG_SERVER
+    debug_server debugger_;
+#endif
+
     platform_file_ref input_pipe_;
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;
