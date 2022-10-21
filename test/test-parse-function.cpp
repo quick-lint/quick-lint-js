@@ -223,6 +223,18 @@ TEST_F(test_parse_function,
   }
 }
 
+TEST_F(test_parse_function,
+       let_async_async_newline_export_is_valid) {
+  {
+    test_parser p(u8"let async;\nasync\nexport function f() { }"_sv,
+                  capture_diags);
+    p.parse_and_visit_module();
+    p.parse_and_visit_statement();
+    ASSERT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"f");
+  }
+}
+
 TEST_F(test_parse_function, generator_function_statement) {
   {
     test_parser p(u8"function* f() {}"_sv);
