@@ -222,13 +222,6 @@ parse_statement:
       // async function f() {}
     case token_type::kw_export:
     case token_type::kw_function:
-      if (this->peek().has_leading_newline) {
-        // async  // ASI
-        // function f() {}
-        v.visit_variable_use(async_token.identifier_name());
-        break;
-      }
-
       this->parse_and_visit_function_declaration(
           v, function_attributes::async,
           /*begin=*/async_token.begin,
@@ -277,6 +270,12 @@ parse_statement:
       // "async export function f()" is not valid. It should be "export async
       // function f()"
     case token_type::kw_export: {
+      if (this->peek().has_leading_newline) {
+        // async  // ASI
+        // function f() {}
+        v.visit_variable_use(async_token.identifier_name());
+        break;
+      }
       this->diag_reporter_->report(
           diag_async_export_function{.async_export = source_code_span(
                                          async_token.begin, this->peek().end)});
