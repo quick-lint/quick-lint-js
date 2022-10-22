@@ -220,6 +220,7 @@ parse_statement:
     this->skip();
     switch (this->peek().type) {
       // async function f() {}
+    case token_type::kw_export:
     case token_type::kw_function:
       if (this->peek().has_leading_newline) {
         // async  // ASI
