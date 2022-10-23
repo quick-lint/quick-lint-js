@@ -1241,6 +1241,17 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 }
 
+TEST_F(test_parse_typescript_type, question_in_type) {
+  {
+    test_parser p(u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Error"));
+  }
+}
+
 TEST_F(test_parse_typescript_type, generic_arrow_function) {
   {
     test_parser p(u8"<T>() => ReturnType"_sv, typescript_options);
