@@ -55,18 +55,18 @@ inherits@2:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-jasmine-core@~3.99.0:
-  version "3.99.1"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-3.99.1.tgz#5bfa4b2d76618868bfac4c8ff08bb26fffa4120d"
-  integrity sha512-Hu1dmuoGcZ7AfyynN3LsfruwMbxMALMka+YtZeGoLuDEySVmVAPaonkNoBRIw/ectu8b9tVQCJNgp4a4knp+tg==
+jasmine-core@4.4.0, jasmine-core@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-4.4.0.tgz#848fe45c1839cacaf1f2429d400d1d4f85d2856a"
+  integrity sha512-+l482uImx5BVd6brJYlaHe2UwfKoZBqQfNp20ZmdNfsjGFTemGfqHLsXjKEW23w9R/m8WYeFc9JmIgjj6dUtAA==
 
-jasmine@^3.7.0:
-  version "3.99.0"
-  resolved "https://registry.yarnpkg.com/jasmine/-/jasmine-3.99.0.tgz#7cc7aeda7ade2d57694fc818a374f778cbb4ea62"
-  integrity sha512-YIThBuHzaIIcjxeuLmPD40SjxkEcc8i//sGMDKCgkRMVgIwRJf5qyExtlJpQeh7pkeoBSOe6lQEdg+/9uKg9mw==
+jasmine@4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/jasmine/-/jasmine-4.4.0.tgz#e3e359723d9679993b70de3e0441517c154b9647"
+  integrity sha512-xrbOyYkkCvgduNw7CKktDtNb+BwwBv/zvQeHpTkbxqQ37AJL5V4sY3jHoMIJPP/hTc3QxLVwOyxc87AqA+kw5g==
   dependencies:
     glob "^7.1.6"
-    jasmine-core "~3.99.0"
+    jasmine-core "^4.4.0"
 
 minimatch@^3.1.1:
   version "3.1.2"
@@ -96,7 +96,8 @@ quick-lint-js-node-test-runner@../../../tools/quick-lint-js-node-test-runner/:
   version "0.1.0"
   dependencies:
     colors "^1.4.0"
-    jasmine "^3.7.0"
+    jasmine "4.4.0"
+    jasmine-core "4.4.0"
 
 wrappy@1:
   version "1.0.2"

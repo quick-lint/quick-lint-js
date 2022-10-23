@@ -4,6 +4,7 @@
     "main": "index.js",
     "dependencies": {
         "colors": "^1.4.0",
-        "jasmine": "^3.7.0"
+        "jasmine": "4.4.0",
+        "jasmine-core": "4.4.0"
     }
 }
