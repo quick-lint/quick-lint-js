@@ -480,6 +480,18 @@
               dots))                                                            \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_duplicated_cases_in_switch_statement, "E0347",                       \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span first_switch_case;                                     \
+        source_code_span duplicated_switch_case;                                \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("duplicated case clause in switch statement"),  \
+              duplicated_switch_case)                                           \
+          MESSAGE(QLJS_TRANSLATABLE("this case will run instead"),              \
+                  first_switch_case))                                           \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_else_has_no_if, "E0065", diagnostic_severity::error,                 \
       { source_code_span else_token; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),            \

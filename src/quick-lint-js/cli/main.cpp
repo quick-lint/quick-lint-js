@@ -24,6 +24,7 @@
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/fe/reported-diag-statistics.h>
+#include <quick-lint-js/feature.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file.h>
@@ -38,6 +39,10 @@
 #include <quick-lint-js/version.h>
 #include <string>
 #include <tuple>
+
+#if QLJS_FEATURE_DEBUG_SERVER
+#include <quick-lint-js/debug/debug-server.h>
+#endif
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -300,6 +305,17 @@ linter_options get_linter_options_from_language(input_file_language language) {
 }
 
 void run_lsp_server() {
+#if QLJS_FEATURE_DEBUG_SERVER
+  debug_server debugger;
+  debugger.set_listen_address("http://localhost:8098");
+  debugger.start_server_thread();
+  debugger.wait_for_server_start();
+  // TODO(strager): Print this over the LSP connection instead.
+  // TODO(strager): Allow the LSP client to customize the debug server port.
+  std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
+               debugger.url().c_str());
+#endif
+
 #if defined(_WIN32)
   windows_handle_file_ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
   windows_handle_file_ref output_pipe(::GetStdHandle(STD_OUTPUT_HANDLE));

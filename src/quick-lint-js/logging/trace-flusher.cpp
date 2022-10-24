@@ -14,14 +14,13 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
-#include <quick-lint-js/logging/trace-metadata.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
@@ -32,15 +31,20 @@ namespace quick_lint_js {
 thread_local std::atomic<trace_writer*> trace_flusher::thread_stream_writer_;
 
 struct trace_flusher::registered_thread {
-  explicit registered_thread(std::atomic<trace_writer*>* thread_writer)
-      : thread_writer(thread_writer) {}
-
-  // Protected by mutex_:
-  platform_file file;
+  explicit registered_thread(trace_flusher* flusher, std::uint64_t thread_id,
+                             trace_flusher_thread_index thread_index,
+                             std::atomic<trace_writer*>* thread_writer)
+      : flusher(flusher),
+        thread_id(thread_id),
+        thread_index(thread_index),
+        thread_writer(thread_writer) {}
 
   async_byte_queue stream_queue;
   trace_writer stream_writer = trace_writer(&this->stream_queue);
 
+  trace_flusher* const flusher;
+  std::uint64_t const thread_id;
+  trace_flusher_thread_index const thread_index;
   // Points to the thread-local thread_stream_writer_ object.
   std::atomic<trace_writer*>* const thread_writer;
 };
@@ -48,10 +52,7 @@ struct trace_flusher::registered_thread {
 trace_flusher::trace_flusher() = default;
 
 trace_flusher::~trace_flusher() {
-  // HACK(strager): Each thread should have unregistered itself already.
-  // However, in tests, we're lazy about unregistering. Forcefully unregister
-  // all threads so our tests don't interfere with each other.
-  this->disable();
+  QLJS_ASSERT(this->backends_.empty());
 
   if (this->flushing_thread_.joinable()) {
     this->stop_flushing_thread();
@@ -59,62 +60,58 @@ trace_flusher::~trace_flusher() {
   }
 }
 
-result<void, write_file_io_error> trace_flusher::enable_for_directory(
-    const std::string& trace_directory) {
+void trace_flusher::enable_backend(trace_flusher_backend* backend) {
   std::unique_lock<mutex> lock(this->mutex_);
-
-  this->trace_directory_ = trace_directory;
-  auto write_result =
-      write_file(this->trace_directory_ + "/metadata", trace_metadata);
-  if (!write_result.ok()) {
-    return write_result.propagate();
-  }
-
-  this->next_stream_index_ = 1;
-  for (auto& t : this->registered_threads_) {
-    if (t->file.valid()) {
-      t->file.close();
-    }
-    this->create_stream_file_and_enable_thread_writer(lock, *t);
-  }
-
-  return {};
+  this->enable_backend(lock, backend);
 }
 
-void trace_flusher::disable() {
-  std::unique_lock<mutex> lock(this->mutex_);
+void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
+                                   trace_flusher_backend* backend) {
+  QLJS_ASSERT(backend);
+  // A single backend cannot be enabled twice.
+  QLJS_ASSERT(std::find(this->backends_.begin(), this->backends_.end(),
+                        backend) == this->backends_.end());
+
+  // TODO(strager): Allow more than two backends.
+  QLJS_ASSERT(this->backends_.size() <= 2);
+
+  this->backends_.push_back(backend);
+
   for (auto& t : this->registered_threads_) {
-    t->thread_writer->store(nullptr);
+    this->enable_thread_writer(lock, *t, backend);
   }
-  this->trace_directory_.clear();
 }
 
-void trace_flusher::create_and_enable_in_child_directory(
-    const std::string& directory) {
-  auto dir_result = create_directory(directory);
-  if (!dir_result.ok()) {
-    if (!dir_result.error().is_directory_already_exists_error) {
-      QLJS_DEBUG_LOG("failed to create log directory %s: %s\n",
-                     directory.c_str(), dir_result.error_to_string().c_str());
-      return;
-    }
-  }
-  result<std::string, platform_file_io_error> trace_directory =
-      make_timestamped_directory(directory, "trace_%Y-%m-%d-%H-%M-%S");
-  if (!trace_directory.ok()) {
-    QLJS_DEBUG_LOG("failed to create tracing directory in %s: %s\n",
-                   directory.c_str(),
-                   trace_directory.error_to_string().c_str());
-    return;
-  }
-  auto result = this->enable_for_directory(*trace_directory);
-  if (!result.ok()) {
-    QLJS_DEBUG_LOG("failed to enable tracing: %s\n",
-                   result.error_to_string().c_str());
-    return;
+void trace_flusher::disable_backend(trace_flusher_backend* backend) {
+  std::unique_lock<mutex> lock(this->mutex_);
+  this->disable_backend(lock, backend);
+}
+
+void trace_flusher::disable_backend(std::unique_lock<mutex>&,
+                                    trace_flusher_backend* backend) {
+  QLJS_ASSERT(backend);
+  auto backend_it =
+      std::find(this->backends_.begin(), this->backends_.end(), backend);
+  QLJS_ASSERT(backend_it != this->backends_.end());
+
+  for (auto& t : this->registered_threads_) {
+    backend->trace_thread_end(t->thread_index);
   }
 
-  QLJS_DEBUG_LOG("enable tracing in directory %s\n", trace_directory->c_str());
+  this->backends_.erase(backend_it);
+
+  if (this->backends_.empty()) {
+    for (auto& t : this->registered_threads_) {
+      t->thread_writer->store(nullptr);
+    }
+  }
+}
+
+void trace_flusher::disable_all_backends() {
+  std::unique_lock<mutex> lock(this->mutex_);
+  while (!this->backends_.empty()) {
+    this->disable_backend(lock, this->backends_.back());
+  }
 }
 
 bool trace_flusher::is_enabled() const {
@@ -123,19 +120,20 @@ bool trace_flusher::is_enabled() const {
 }
 
 bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
-  return !this->trace_directory_.empty();
+  return !this->backends_.empty();
 }
 
 void trace_flusher::register_current_thread() {
   std::unique_lock<mutex> lock(this->mutex_);
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
-  this->registered_threads_.push_back(
-      std::make_unique<registered_thread>(&this->thread_stream_writer_));
+  this->registered_threads_.push_back(std::make_unique<registered_thread>(
+      this, get_current_thread_id(), this->next_thread_index_++,
+      &this->thread_stream_writer_));
   registered_thread* t = this->registered_threads_.back().get();
 
-  if (this->is_enabled(lock)) {
-    this->create_stream_file_and_enable_thread_writer(lock, *t);
+  for (trace_flusher_backend* backend : this->backends_) {
+    this->enable_thread_writer(lock, *t, backend);
   }
 }
 
@@ -144,8 +142,12 @@ void trace_flusher::unregister_current_thread() {
   auto registered_thread_it = find_unique_existing_if(
       this->registered_threads_,
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
+  registered_thread& t = **registered_thread_it;
   if (this->is_enabled(lock)) {
-    this->flush_one_thread_sync(lock, **registered_thread_it);
+    this->flush_one_thread_sync(lock, t);
+  }
+  for (trace_flusher_backend* backend : this->backends_) {
+    backend->trace_thread_end(t.thread_index);
   }
   this->registered_threads_.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
@@ -157,9 +159,7 @@ trace_writer* trace_flusher::trace_writer_for_current_thread() {
 
 void trace_flusher::flush_sync() {
   std::unique_lock<mutex> lock(this->mutex_);
-  for (auto& t : this->registered_threads_) {
-    this->flush_one_thread_sync(lock, *t);
-  }
+  this->flush_sync(lock);
 }
 
 void trace_flusher::flush_sync(std::unique_lock<mutex>& lock) {
@@ -189,52 +189,46 @@ void trace_flusher::stop_flushing_thread() {
 
 void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
                                           registered_thread& t) {
-  if (!t.file.valid()) {
-    // No file is open. Buffer the data in memory.
-    // TODO(strager): We shouldn't buffer if logging is enabled but the file
-    // failed to open.
-    return;
-  }
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        auto write_result = t.file.write_full(data, size);
-        if (!write_result.ok()) {
-          QLJS_DEBUG_LOG("warning: failed to append to trace stream file: %s\n",
-                         write_result.error_to_string().c_str());
-          // TODO(strager): Disable further writes to prevent file corruption
-          // and noisy logs.
+        for (trace_flusher_backend* backend : this->backends_) {
+          backend->trace_thread_write_data(t.thread_index, data, size);
         }
       },
       [] {});
 }
 
-void trace_flusher::create_stream_file_and_enable_thread_writer(
-    std::unique_lock<mutex>& lock, registered_thread& t) {
-  QLJS_ASSERT(!t.file.valid());
+void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
+                                         registered_thread& t,
+                                         trace_flusher_backend* backend) {
+  backend->trace_thread_begin(t.thread_index);
+  this->write_thread_header_to_backend(lock, t, backend);
 
-  std::uint64_t stream_index = this->next_stream_index_++;
-  std::string stream_path =
-      this->trace_directory_ + "/thread" + std::to_string(stream_index);
-  auto file = open_file_for_writing(stream_path.c_str());
-  if (!file.ok()) {
-    QLJS_DEBUG_LOG("warning: failed to create trace stream file %s: %s\n",
-                   stream_path.c_str(), file.error_to_string().c_str());
-    return;  // Give up. Do not enable the thread's writer.
-  }
-  t.file = std::move(*file);
+  t.thread_writer->store(&t.stream_writer);
+}
 
-  t.stream_writer.write_header(trace_context{
-      .thread_id = get_current_thread_id(),
+void trace_flusher::write_thread_header_to_backend(
+    std::unique_lock<mutex>&, registered_thread& t,
+    trace_flusher_backend* backend) {
+  // NOTE(strager): We use a temporary async_byte_queue instead of reusing
+  // t.stream_queue so we can write to *just* this backend and not involve any
+  // other backends.
+  async_byte_queue temp_queue;
+  trace_writer writer(&temp_queue);
+  writer.write_header(trace_context{
+      .thread_id = t.thread_id,
   });
-  t.stream_writer.write_event_init(trace_event_init{
+  writer.write_event_init(trace_event_init{
       .timestamp = 0,  // TODO(strager)
       .version = QUICK_LINT_JS_VERSION_STRING_U8,
   });
-  t.stream_queue.commit();
-  this->flush_one_thread_sync(lock, t);
-
-  t.thread_writer->store(&t.stream_writer);
+  temp_queue.commit();
+  temp_queue.take_committed(
+      [&](const std::byte* data, std::size_t size) {
+        backend->trace_thread_write_data(t.thread_index, data, size);
+      },
+      [] {});
 }
 }
 

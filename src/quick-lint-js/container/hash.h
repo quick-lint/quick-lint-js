@@ -12,6 +12,11 @@
 #include <type_traits>
 
 namespace quick_lint_js {
+inline std::size_t mix_hashes(std::size_t a, std::size_t b) {
+  // FIXME(strager): This algorithm is probably bad.
+  return ((a << 1) | (a >> (sizeof(a) - 1))) ^ b;
+}
+
 // A hash functor for containers like hash_map.
 //
 // Implements the C++ standard Hash requirement.
@@ -54,6 +59,14 @@ struct hasher<string8_view> {
 template <>
 struct hasher<string8> : hasher<string8_view> {};
 #endif
+
+template <class T1, class T2>
+struct hasher<std::pair<T1, T2>> {
+  template <class U1, class U2>
+  std::size_t operator()(const std::pair<U1, U2>& x) const noexcept {
+    return mix_hashes(hasher<U1>()(x.first), hasher<U2>()(x.second));
+  }
+};
 }
 
 #endif

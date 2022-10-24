@@ -10,6 +10,12 @@ set -u
 cd "$(dirname "${0}")/.."
 source tools/files.sh
 
+clang_format_version="$(clang-format --version 2>/dev/null)"
+
+if [[ ${clang_format_version} != *"version 9"* ]]; then
+  printf 'warning: quick-lint-js is formatted using the clang-format tool version 9.0.x and you are using %s\n' "$clang_format_version" >&2 
+fi
+
 parallelism=$(nproc 2>/dev/null || :)
 if [[ -z "${parallelism}" ]]; then
   parallelism=3

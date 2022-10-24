@@ -53,7 +53,7 @@ class vector_instrumentation {
   void clear();
   std::vector<entry> entries() const;
 
-  std::map<std::string, std::map<std::size_t, int>>
+  std::map<std::string_view, std::map<std::size_t, int>>
   max_size_histogram_by_owner() const;
 
   struct dump_options {
@@ -62,11 +62,11 @@ class vector_instrumentation {
   };
 
   static void dump_max_size_histogram(
-      const std::map<std::string, std::map<std::size_t, int>> &,
+      const std::map<std::string_view, std::map<std::size_t, int>> &,
       std::ostream &);
   static void dump_max_size_histogram(
-      const std::map<std::string, std::map<std::size_t, int>> &, std::ostream &,
-      const dump_options &options);
+      const std::map<std::string_view, std::map<std::size_t, int>> &,
+      std::ostream &, const dump_options &options);
 
   struct capacity_change_histogram {
     // Number of times an append caused the vector to create its initial
@@ -78,7 +78,7 @@ class vector_instrumentation {
     std::size_t appends_growing_capacity = 0;
   };
 
-  std::map<std::string, capacity_change_histogram>
+  std::map<std::string_view, capacity_change_histogram>
   capacity_change_histogram_by_owner() const;
 
   struct dump_capacity_change_options {
@@ -86,8 +86,8 @@ class vector_instrumentation {
   };
 
   static void dump_capacity_change_histogram(
-      const std::map<std::string, capacity_change_histogram> &, std::ostream &,
-      const dump_capacity_change_options &);
+      const std::map<std::string_view, capacity_change_histogram> &,
+      std::ostream &, const dump_capacity_change_options &);
 
   void add_entry(std::uintptr_t object_id, const char *owner,
                  vector_instrumentation::event event,
@@ -204,21 +204,21 @@ class instrumented_vector {
 
   template <class... Args>
   QLJS_FORCE_INLINE value_type &emplace_back(Args &&... args) {
-    value_type &result = this->data_.emplace_back(std::forward<Args>(args)...);
+    this->data_.emplace_back(std::forward<Args>(args)...);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE value_type &push_back(value_type &&value) {
-    value_type &result = this->data_.push_back(std::move(value));
+    this->data_.push_back(std::move(value));
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE value_type &push_back(const value_type &value) {
-    value_type &result = this->data_.push_back(value);
+    this->data_.push_back(value);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
-    return result;
+    return this->data_.back();
   }
 
   QLJS_FORCE_INLINE void pop_back() {

@@ -29,6 +29,7 @@
 namespace quick_lint_js {
 class byte_buffer;
 class trace_flusher;
+class trace_flusher_directory_backend;
 struct watch_io_error;
 
 class lsp_linter {
@@ -184,6 +185,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
   trace_flusher* tracer_;
+  std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 };

@@ -87,6 +87,17 @@ option(
   ON
 )
 
+option(
+  QUICK_LINT_JS_FEATURE_DEBUG_SERVER
+  "Enable the HTTP monitoring server at run-time"
+  FALSE
+)
+option(
+  QUICK_LINT_JS_FEATURE_VECTOR_PROFILING
+  "Enable the QLJS_DUMP_VECTORS option at run-time"
+  FALSE
+)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
@@ -113,6 +124,9 @@ if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
 endif ()
 include(vendor/boost.cmake)
 include(vendor/googletest.cmake)
+if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
+  include(vendor/mongoose.cmake)
+endif ()
 include(vendor/node-addon-api.cmake)
 include(vendor/node.cmake)
 include(vendor/simdjson.cmake)

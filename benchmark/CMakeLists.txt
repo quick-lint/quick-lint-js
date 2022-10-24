@@ -68,6 +68,15 @@ quick_lint_js_add_benchmark_executable(
   benchmark-utf-8.cpp
 )
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-vector-profiler
+  benchmark-vector-profiler.cpp
+)
+target_link_libraries(
+  quick-lint-js-benchmark-vector-profiler
+  PRIVATE
+  quick-lint-js-lib-debug
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-vim-location
   benchmark-vim-location.cpp
 )

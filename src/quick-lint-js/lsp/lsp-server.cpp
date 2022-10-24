@@ -72,7 +72,15 @@ lsp_overlay_configuration_filesystem::canonicalize_path(
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-linting_lsp_server_handler::~linting_lsp_server_handler() = default;
+linting_lsp_server_handler::~linting_lsp_server_handler() {
+  if (this->tracer_) {
+    // We are going to deallocate this->tracer_backend_, so unregister it with
+    // the trace_flusher.
+    if (this->tracer_backend_) {
+      this->tracer_->disable_backend(this->tracer_backend_.get());
+    }
+  }
+}
 
 result<padded_string, read_file_io_error>
 lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
@@ -117,11 +125,23 @@ linting_lsp_server_handler::linting_lsp_server_handler(
         if (changed) {
           this->server_config_.tracing_directory = new_value;
           if (this->tracer_) {
-            if (this->server_config_.tracing_directory.empty()) {
-              this->tracer_->disable();
-            } else {
-              this->tracer_->create_and_enable_in_child_directory(
-                  this->server_config_.tracing_directory);
+            if (this->tracer_backend_) {
+              this->tracer_->disable_backend(this->tracer_backend_.get());
+              this->tracer_backend_.reset();
+            }
+            if (!this->server_config_.tracing_directory.empty()) {
+              auto new_backend =
+                  trace_flusher_directory_backend::create_child_directory(
+                      this->server_config_.tracing_directory);
+              if (new_backend) {
+                this->tracer_backend_ =
+                    std::make_unique<trace_flusher_directory_backend>(
+                        std::move(*new_backend));
+                this->tracer_->enable_backend(this->tracer_backend_.get());
+                QLJS_DEBUG_LOG(
+                    "enabled tracing in directory %s\n",
+                    this->tracer_backend_->trace_directory().c_str());
+              }
             }
           }
         }

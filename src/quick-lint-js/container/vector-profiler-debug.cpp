@@ -12,6 +12,7 @@
 #include <map>
 #include <ostream>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/warning.h>
@@ -27,7 +28,8 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out,
                          const vector_instrumentation::entry &e) {
-  out << "entry{.owner = \"" << e.owner << "\", .event = ";
+  out << "entry{.object_id = 0x" << std::hex << e.object_id << std::dec
+      << ", .owner = \"" << e.owner << "\", .event = ";
   switch (e.event) {
   case vector_instrumentation::event::append:
     out << "append";
@@ -48,7 +50,8 @@ std::ostream &operator<<(std::ostream &out,
     out << "resize";
     break;
   }
-  out << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
+  out << ", .data_pointer = 0x" << std::hex << e.data_pointer << std::dec
+      << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
   return out;
 }
 
@@ -67,11 +70,12 @@ std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
   return this->entries_;
 }
 
-std::map<std::string, std::map<std::size_t, int>>
+std::map<std::string_view, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
-  std::map<std::string, std::map<std::size_t, int>> histogram;
-  std::map<std::pair<std::string, std::uintptr_t>, std::size_t> object_sizes;
+
+  hash_map<const char *, hash_map<std::size_t, int>> histogram;
+  hash_map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
   for (const vector_instrumentation::entry &entry : this->entries_) {
     std::pair key(entry.owner, entry.object_id);
     std::size_t &object_size = object_sizes[key];
@@ -85,17 +89,29 @@ vector_instrumentation::max_size_histogram_by_owner() const {
   for (auto &[owner_and_object_id, size] : object_sizes) {
     histogram[owner_and_object_id.first][size] += 1;
   }
-  return histogram;
+
+  // Convert hash_map into std::map.
+  // NOTE(strager): We might need to merge some inner maps because we built the
+  // hash_map with pointer comparison but we're building the std::map with
+  // string comparison.
+  std::map<std::string_view, std::map<std::size_t, int>> stable_histogram;
+  for (auto &[owner, counts] : histogram) {
+    auto &stable_counts = stable_histogram[owner];
+    for (auto &[size, count] : counts) {
+      stable_counts[size] += count;
+    }
+  }
+  return stable_histogram;
 }
 
 void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string, std::map<std::size_t, int>> &histogram,
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
     std::ostream &out) {
   return dump_max_size_histogram(histogram, out, dump_options());
 }
 
 void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string, std::map<std::size_t, int>> &histogram,
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
     std::ostream &out, const dump_options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
@@ -163,10 +179,10 @@ void vector_instrumentation::dump_max_size_histogram(
   }
 }
 
-std::map<std::string, vector_instrumentation::capacity_change_histogram>
+std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
 vector_instrumentation::capacity_change_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
-  std::map<std::string, capacity_change_histogram> histogram;
+  std::map<std::string_view, capacity_change_histogram> histogram;
   struct vector_info {
     std::uintptr_t data_pointer;
     std::size_t size;
@@ -195,7 +211,7 @@ vector_instrumentation::capacity_change_histogram_by_owner() const {
 }
 
 void vector_instrumentation::dump_capacity_change_histogram(
-    const std::map<std::string, capacity_change_histogram> &histogram,
+    const std::map<std::string_view, capacity_change_histogram> &histogram,
     std::ostream &out, const dump_capacity_change_options &options) {
   out << R"(vector capacity changes:
 (C=copied; z=initial alloc; -=used internal capacity)
