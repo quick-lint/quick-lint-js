@@ -10,7 +10,7 @@
     asciidoctor-opal-runtime "0.3.3"
     unxhr "1.0.1"
 
-"@colors/colors@1.5.0":
+"@colors/colors@1.5.0", "@colors/colors@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
@@ -322,11 +322,6 @@ color@^3.1.3:
   dependencies:
     color-convert "^1.9.3"
     color-string "^1.6.0"
-
-colors@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
-  integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
 
 colorspace@1.1.x:
   version "1.1.4"
@@ -1035,7 +1030,7 @@ queue-tick@^1.0.0:
 quick-lint-js-node-test-runner@../tools/quick-lint-js-node-test-runner/:
   version "0.1.0"
   dependencies:
-    colors "^1.4.0"
+    "@colors/colors" "^1.5.0"
     jasmine "4.4.0"
     jasmine-core "4.4.0"
 

@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 import assert from "assert";
-import colors from "colors/safe.js";
+import colors from "@colors/colors/safe.js";
 import {
   IndexConflictVFSError,
   MalformedDirectoryURIError,

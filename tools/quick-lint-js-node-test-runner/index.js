@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 let Jasmine = require("jasmine");
-let colors = require("colors");
+let colors = require("@colors/colors");
 let fs = require("fs");
 let path = require("path");
 let url = require("url");
