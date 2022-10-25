@@ -269,6 +269,7 @@ TEST_F(test_parse_function, let_async_async_newline_export_is_valid) {
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",        //
                             "visit_end_of_module"));
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
