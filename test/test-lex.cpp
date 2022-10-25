@@ -1681,6 +1681,9 @@ TEST_F(test_lex, non_ascii_identifier) {
   this->check_single_token(u8"\u05d0"_sv, u8"\u05d0");          // 3 UTF-8 bytes
   this->check_single_token(u8"a\u0816"_sv, u8"a\u0816");        // 3 UTF-8 bytes
   this->check_single_token(u8"\U0001e93f"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
+
+  // KHOJKI LETTER QA, introduced in Unicode 15.
+  this->check_single_token(u8"\U0001123f"_sv, u8"\U0001123f");
 }
 
 TEST_F(test_lex, non_ascii_identifier_with_escape_sequence) {
