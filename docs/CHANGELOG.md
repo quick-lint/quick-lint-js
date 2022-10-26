@@ -16,6 +16,7 @@ Semantic Versioning.
 
 ### Fixed
 
+* Variables can be named according to Unicode 15 (previously Unicode 14).
 * In tracing files, the thread IDs in the file headers are now correct if
   tracing was enabled after startup.
 
