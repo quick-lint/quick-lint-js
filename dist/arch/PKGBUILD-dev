@@ -37,8 +37,8 @@ build() {
 }
 
 check() {
-  cd quick-lint-js
-  ninja -C build test
+  cd quick-lint-js/build
+  ctest --output-on-failure
 }
 
 package() {
