@@ -13,7 +13,6 @@
     "chokidar": "^3.5.3",
     "ejs": "3.1.8",
     "esbuild-wasm": "0.15.10",
-    "jsdom": "20.0.1",
     "markdown-it": "13.0.1",
     "mime": "3.0.0",
     "parse5-sax-parser": "^7.0.0",
