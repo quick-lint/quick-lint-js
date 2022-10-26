@@ -1245,18 +1245,31 @@ const char8* lexer::check_garbage_in_number_literal(const char8* input) {
   const char8* garbage_begin = input;
   for (;;) {
     switch (*input) {
-    // if we see a DECIMAL_DIGIT at this point it either means we're in
-    // strict mode or following another number character (such as a `.`),
-    // both of which are invalid
+    // 0xffffq  // Invalid.
+    // 0b0123   // Invalid.
     QLJS_CASE_DECIMAL_DIGIT:
     QLJS_CASE_IDENTIFIER_START:
-    case u8'.':
       input += 1;
       break;
+
+    // 0b0000.toString()
+    // 0b0000.2  // Invalid.
+    case u8'.':
+      if (this->is_digit(input[1])) {
+        // 0b0000.2  // Invalid.
+        input += 2;
+        break;
+      }
+
+      // 0b0000.toString()
+      // 0b0000. 2          // Invalid.
+      goto done_parsing_garbage;
+
     default:
       goto done_parsing_garbage;
     }
   }
+
 done_parsing_garbage:
   const char8* garbage_end = input;
   if (garbage_end != garbage_begin) {
@@ -1313,7 +1326,7 @@ parse_digits_again:
   }
 
   const char8* garbage_begin = input;
-  bool has_decimal_point = *input == '.';
+  bool has_decimal_point = *input == '.' && this->is_digit(input[1]);
   if (has_decimal_point) {
     input += 1;
     this->diag_reporter_->report(diag_octal_literal_may_not_have_decimal{

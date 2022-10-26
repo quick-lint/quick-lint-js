@@ -345,6 +345,12 @@ TEST_F(test_lex, lex_binary_numbers) {
   this->check_tokens(u8"0B010101010101010"_sv, {token_type::number});
   this->check_tokens(u8"0b01_11_00_10"_sv, {token_type::number});
   this->check_tokens(u8"0b01n"_sv, {token_type::number});
+
+  this->check_tokens(u8"0b0.toString"_sv, {token_type::number, token_type::dot,
+                                           token_type::identifier});
+  this->check_tokens(
+      u8"0b0101010101.toString"_sv,
+      {token_type::number, token_type::dot, token_type::identifier});
 }
 
 TEST_F(test_lex, fail_lex_integer_loses_precision) {
@@ -443,12 +449,12 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
 
 TEST_F(test_lex, fail_lex_binary_number) {
   this->check_tokens_with_errors(
-      u8"0b1.1"_sv, {token_type::number},
+      u8"0b1ee"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(DIAG_TYPE_OFFSETS(
                         input, diag_unexpected_characters_in_binary_number,  //
-                        characters, strlen(u8"0b1"), u8".1")));
+                        characters, strlen(u8"0b1"), u8"ee")));
       });
 }
 
@@ -513,6 +519,13 @@ TEST_F(test_lex, lex_legacy_octal_numbers_strict) {
   this->check_tokens(u8"001"_sv, {token_type::number});
   this->check_tokens(u8"00010101010101010"_sv, {token_type::number});
   this->check_tokens(u8"051"_sv, {token_type::number});
+
+  // Legacy octal number literals which ended up actually being octal support
+  // method calls with '.'.
+  this->check_tokens(u8"0123.toString"_sv, {token_type::number, token_type::dot,
+                                            token_type::identifier});
+  this->check_tokens(u8"00.toString"_sv, {token_type::number, token_type::dot,
+                                          token_type::identifier});
 }
 
 TEST_F(test_lex, lex_legacy_octal_numbers_lax) {
@@ -575,6 +588,11 @@ TEST_F(test_lex, lex_hex_numbers) {
   this->check_tokens(u8"0X123_4567_89AB_CDEF"_sv, {token_type::number});
   this->check_tokens(u8"0x1n"_sv, {token_type::number});
   this->check_tokens(u8"0xfn"_sv, {token_type::number});
+
+  this->check_tokens(u8"0x0.toString"_sv, {token_type::number, token_type::dot,
+                                           token_type::identifier});
+  this->check_tokens(u8"0xe.toString"_sv, {token_type::number, token_type::dot,
+                                           token_type::identifier});
 }
 
 TEST_F(test_lex, fail_lex_hex_number_no_digits) {
@@ -611,12 +629,12 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
 
 TEST_F(test_lex, fail_lex_hex_number) {
   this->check_tokens_with_errors(
-      u8"0xf.f"_sv, {token_type::number},
+      u8"0xfqqn"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(DIAG_TYPE_OFFSETS(
                         input, diag_unexpected_characters_in_hex_number,  //
-                        characters, strlen(u8"0xf"), u8".f")));
+                        characters, strlen(u8"0xf"), u8"qqn")));
       });
 }
 
@@ -675,6 +693,29 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                         input, diag_unexpected_characters_in_octal_number,  //
                         characters, strlen(u8"0o6"), u8"9")));
       });
+}
+
+TEST_F(test_lex, lex_decimal_number_with_dot_method_call_is_invalid) {
+  // TODO(strager): Perhaps a better diagnostic would suggest adding parentheses
+  // or another '.' to make a valid method call.
+  this->check_tokens_with_errors(
+      u8"0.toString()"_sv,
+      {token_type::number, token_type::left_paren, token_type::right_paren},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                input, diag_unexpected_characters_in_number,  //
+                                characters, strlen(u8"0."), u8"toString")));
+      });
+  this->check_tokens_with_errors(
+      u8"09.toString"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                input, diag_unexpected_characters_in_number,  //
+                                characters, strlen(u8"09."), u8"toString")));
+      });
+
+  // NOTE(strager): Other numbers with leading zeroes, like '00' and '012345',
+  // are legacy octal literals and *can* have a dot method call.
 }
 
 TEST_F(test_lex, lex_invalid_big_int_number) {
