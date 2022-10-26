@@ -809,4 +809,5 @@ Beta release.
 [E0287]: https://quick-lint-js.com/errors/E0287/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
+[E0347]: https://quick-lint-js.com/errors/E0347/
 [E0707]: https://quick-lint-js.com/errors/E0707/
