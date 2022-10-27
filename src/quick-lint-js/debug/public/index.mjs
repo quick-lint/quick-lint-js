@@ -87,15 +87,9 @@ class DebugServerSocket {
       this.traceReaders.set(threadIndex, reader);
     }
 
-    let eventsBefore = reader.events.length;
     reader.appendBytes(messageData, 8);
-    let eventsAfter = reader.events.length;
-
-    for (let i = eventsBefore; i < eventsAfter; ++i) {
-      console.log(
-        `DebugServerSocket event from thread ${threadIndex}:`,
-        reader.events[i]
-      );
+    for (let event of reader.pullNewEvents()) {
+      console.log(`DebugServerSocket event from thread ${threadIndex}:`, event);
     }
   }
 

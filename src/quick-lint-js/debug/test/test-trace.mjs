@@ -32,7 +32,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeTrue();
     expect(reader.error).toBeNull();
     expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("read header in two parts", () => {
@@ -50,7 +50,7 @@ describe("trace", () => {
       expect(reader.hasHeader).toBeTrue();
       expect(reader.error).toBeNull();
       expect(reader.threadID).toEqual(0x1234n);
-      expect(reader.events).toEqual([]);
+      expect(reader.pullNewEvents()).toEqual([]);
     }
   });
 
@@ -61,7 +61,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeFalse();
     expect(reader.error).toBeNull();
     expect(reader.threadID).toBeNull();
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("read full header from bigger buffer with offset", () => {
@@ -77,7 +77,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeTrue();
     expect(reader.error).toBeNull();
     expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("invalid magic reports error", () => {
@@ -90,7 +90,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeTrue();
     expect(reader.error).toBeInstanceOf(TraceReaderInvalidMagic);
     expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("invalid UUID reports error", () => {
@@ -102,7 +102,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeTrue();
     expect(reader.error).toBeInstanceOf(TraceReaderInvalidUUID);
     expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("invalid compression mode reports error", () => {
@@ -114,7 +114,7 @@ describe("trace", () => {
     expect(reader.hasHeader).toBeTrue();
     expect(reader.error).toBeInstanceOf(TraceReaderInvalidCompressionMode);
     expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("init event", () => {
@@ -130,7 +130,7 @@ describe("trace", () => {
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       { timestamp: 0x5678n, eventType: TraceEventType.INIT, version: "1.0.0" },
     ]);
   });
@@ -157,7 +157,7 @@ describe("trace", () => {
       ord('h'), 0, ord('i'), 0,
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_OPENED,
@@ -188,7 +188,7 @@ describe("trace", () => {
       ord('j'), 0, ord('s'), 0,
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_CLOSED,
@@ -240,7 +240,7 @@ describe("trace", () => {
       ord('b'), 0, ord('y'), 0, ord('e'), 0,
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_CHANGED,
@@ -291,7 +291,7 @@ describe("trace", () => {
       ord('h'), 0, ord('i'), 0,
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_SYNC,
@@ -317,7 +317,7 @@ describe("trace", () => {
       ord('{'), ord('}'),
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE,
@@ -354,7 +354,7 @@ describe("trace", () => {
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]).buffer);
     expect(reader.error).toBeNull();
-    expect(reader.events).toEqual([
+    expect(reader.pullNewEvents()).toEqual([
       { timestamp: 0x1111n, eventType: TraceEventType.INIT, version: "1.0.0" },
       {
         timestamp: 0x2222n,
@@ -383,7 +383,7 @@ describe("trace", () => {
     ]).buffer);
 
     expect(reader.error).toBeInstanceOf(TraceReaderInvalidMagic);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("huge string size stops all message parsing", () => {
@@ -400,7 +400,7 @@ describe("trace", () => {
     ]).buffer);
 
     expect(reader.error).toBeInstanceOf(TraceReaderSizeTooLarge);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
 
     let data = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer;
     for (let i = 0; i < 100; ++i) {
@@ -408,7 +408,7 @@ describe("trace", () => {
     }
 
     expect(reader.error).toBeInstanceOf(TraceReaderSizeTooLarge);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("invalid event stops all message parsing", () => {
@@ -430,7 +430,44 @@ describe("trace", () => {
     ]).buffer);
 
     expect(reader.error).toBeInstanceOf(TraceReaderUnknownEventType);
-    expect(reader.events).toEqual([]);
+    expect(reader.pullNewEvents()).toEqual([]);
+  });
+
+  it("pulling events removes from queue", () => {
+    let reader = new TraceReader();
+    reader.appendBytes(examplePacketHeader);
+
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      // Event ID
+      0x01,
+      // Version
+      ord('1'), ord('\0'),
+    ]).buffer);
+
+    let events0 = reader.pullNewEvents();
+    expect(events0.length).toEqual(1);
+
+    let events1 = reader.pullNewEvents();
+    expect(events1).toEqual([]);
+
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      // Event ID
+      0x01,
+      // Version
+      ord('2'), ord('\0'),
+    ]).buffer);
+
+    let events2 = reader.pullNewEvents();
+    expect(events2.length).toEqual(1);
+
+    let events3 = reader.pullNewEvents();
+    expect(events3).toEqual([]);
   });
 });
 

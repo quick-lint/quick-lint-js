@@ -15,7 +15,7 @@ export class TraceReader {
   hasHeader = false;
   error = null;
   threadID = null;
-  events = [];
+  _events = [];
 
   _queue = new Uint8Array();
 
@@ -44,6 +44,12 @@ export class TraceReader {
     }
 
     this._queue = this._queue.slice(committedOffset);
+  }
+
+  pullNewEvents() {
+    let events = this._events;
+    this._events = [];
+    return events;
   }
 
   _queueBytes(buffer, offset) {
@@ -196,7 +202,7 @@ export class TraceReader {
 
   // This is a separate function for easy breakpointing.
   _event(event) {
-    this.events.push(event);
+    this._events.push(event);
   }
 }
 
