@@ -207,10 +207,6 @@ TEST_F(test_instrumented_vector, move_assigning_vector_adds_entries) {
                        vector_instrumentation::event::clear),
               FIELD_EQ(vector_instrumentation::entry, size, 0))));
 }
-#else
-// Indicate that the real tests have been disabled because
-// QLJS_FEATURE_VECTOR_PROFILING is disabled.
-TEST(test_instrumented_vector, DISABLED_) {}
 #endif
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner, no_events) {
