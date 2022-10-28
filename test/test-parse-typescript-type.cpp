@@ -1263,7 +1263,7 @@ TEST_F(test_parse_typescript_type, question_in_type) {
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code, diag_typescript_question_in_parameters_should_be_void,
-            question, strlen(u8"(err: Error"), u8"?")));
+            question, strlen(u8"(err: "), u8"?")));
   }
 }
 

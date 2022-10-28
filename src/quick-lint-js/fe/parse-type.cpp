@@ -34,19 +34,22 @@ void parser::parse_typescript_colon_for_type() {
   }
   this->skip();
   if (this->options_.typescript || this->in_typescript_only_construct_) {
-    auto peek = this->peek();
     if (this->peek().type == token_type::question) {
+      auto peek_span = this->peek().span();
       this->diag_reporter_->report(
           diag_typescript_question_in_parameters_should_be_void{
               .question = source_code_span(this->peek().span())});
+      this->skip();
     } else {
       parser_transaction transaction = this->begin_transaction();
       this->skip();
       if (this->peek().type == token_type::question) {
+        source_code_span question_span = this->peek().span();
+        this->roll_back_transaction(std::move(transaction));
         this->diag_reporter_->report(
             diag_typescript_question_in_parameters_should_be_void{
-                .question = source_code_span(this->peek().span())});
-        this->commit_transaction(std::move(transaction));
+                .question = question_span});
+        
       } else {
         this->roll_back_transaction(std::move(transaction));
       } 
@@ -159,7 +162,6 @@ again:
     } else {
       v.visit_variable_type_use(name);
     }
-
     if (this->peek().type == token_type::less ||
         this->peek().type == token_type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
