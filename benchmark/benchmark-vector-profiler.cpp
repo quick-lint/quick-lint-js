@@ -102,10 +102,13 @@ void benchmark_max_size_histogram_by_owner(::benchmark::State& state,
     profiler.add_entry(entry.object_id, entry.owner, entry.event,
                        entry.data_pointer, entry.size, entry.capacity);
   }
+  std::vector<vector_instrumentation::entry> entries = profiler.entries();
 
   for (auto _ : state) {
-    auto histogram = profiler.max_size_histogram_by_owner();
-    ::benchmark::DoNotOptimize(histogram);
+    vector_max_size_histogram_by_owner histogram;
+    histogram.add_entries(entries);
+    auto hist = histogram.histogram();
+    ::benchmark::DoNotOptimize(hist);
   }
 
   state.counters["entries"] = ::benchmark::Counter(

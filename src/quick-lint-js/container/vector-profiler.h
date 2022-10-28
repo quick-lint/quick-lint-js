@@ -58,9 +58,6 @@ class vector_instrumentation {
 
   std::vector<entry> take_entries();
 
-  std::map<std::string_view, std::map<std::size_t, int>>
-  max_size_histogram_by_owner() const;
-
   void add_entry(std::uintptr_t object_id, const char *owner,
                  vector_instrumentation::event event,
                  std::uintptr_t data_pointer, std::size_t size,

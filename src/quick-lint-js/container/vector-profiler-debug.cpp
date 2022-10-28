@@ -80,16 +80,6 @@ vector_instrumentation::take_entries() {
   return result;
 }
 
-std::map<std::string_view, std::map<std::size_t, int>>
-vector_instrumentation::max_size_histogram_by_owner() const {
-  vector_max_size_histogram_by_owner histogram;
-  {
-    std::lock_guard lock(this->mutex_);
-    histogram.add_entries(this->entries_);
-  }
-  return histogram.histogram();
-}
-
 void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        const char *owner,
                                        vector_instrumentation::event event,
@@ -112,21 +102,29 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
   bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
     std::atexit([]() -> void {
-      vector_max_size_histogram_by_owner::dump(
-          instance.max_size_histogram_by_owner(), std::cerr,
-          vector_max_size_histogram_by_owner::dump_options{
-              .maximum_line_length = 80,
-              .max_adjacent_empty_rows = 5,
-          });
+      auto entries = instance.entries();
+
+      {
+        vector_max_size_histogram_by_owner hist;
+        hist.add_entries(entries);
+        vector_max_size_histogram_by_owner::dump(
+            hist.histogram(), std::cerr,
+            vector_max_size_histogram_by_owner::dump_options{
+                .maximum_line_length = 80,
+                .max_adjacent_empty_rows = 5,
+            });
+      }
       std::cerr << '\n';
 
-      vector_capacity_change_histogram_by_owner hist;
-      hist.add_entries(instance.entries());
-      vector_capacity_change_histogram_by_owner::dump(
-          hist.histogram(), std::cerr,
-          vector_capacity_change_histogram_by_owner::dump_options{
-              .maximum_line_length = 80,
-          });
+      {
+        vector_capacity_change_histogram_by_owner hist;
+        hist.add_entries(entries);
+        vector_capacity_change_histogram_by_owner::dump(
+            hist.histogram(), std::cerr,
+            vector_capacity_change_histogram_by_owner::dump_options{
+                .maximum_line_length = 80,
+            });
+      }
     });
   }
 }
