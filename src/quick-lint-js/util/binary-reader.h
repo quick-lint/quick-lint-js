@@ -53,6 +53,10 @@ class checked_binary_reader {
 
   const std::uint8_t* cursor() { return this->data_; }
 
+  std::size_t remaining() {
+    return narrow_cast<std::size_t>(this->data_end_ - this->data_);
+  }
+
   // If end_byte exists, this function advances to *after* the found byte and
   // returns true.
   //
@@ -69,10 +73,6 @@ class checked_binary_reader {
   }
 
  private:
-  std::size_t remaining() {
-    return narrow_cast<std::size_t>(this->data_end_ - this->data_);
-  }
-
   const std::uint8_t* data_;
   const std::uint8_t* data_end_;
 };

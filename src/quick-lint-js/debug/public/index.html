@@ -2,119 +2,74 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <style>
-#vector-profile-data {
-  display: flex;
-  flex-wrap: wrap;
-}
+  #vector-profile-data {
+    display: flex;
+    flex-wrap: wrap;
+  }
 
-.max-size-histogram {
-  margin: 0.5rem;
-  max-size: 33%;
-}
+  .max-size-histogram {
+    margin: 0.5rem;
+    max-size: 33%;
+  }
 
-.histogram table {
-  width: 100%;
-}
+  .histogram table {
+    width: 100%;
+  }
 
-.histogram td {
-  --bar-color: #eecccc;
-  --histogram-percentage: 0%;
-  background: linear-gradient(
-    90deg,
-    var(--bar-color) 0%,
-    var(--bar-color) var(--histogram-percentage),
-    transparent var(--histogram-percentage),
-    transparent 100%);
-}
+  .histogram td {
+    --bar-color: #eecccc;
+    --histogram-percentage: 0%;
+    background: linear-gradient(
+      90deg,
+      var(--bar-color) 0%,
+      var(--bar-color) var(--histogram-percentage),
+      transparent var(--histogram-percentage),
+      transparent 100%
+    );
+  }
+
+  #lsp-log ol {
+    margin: 0;
+    padding: 0;
+  }
+  #lsp-log li {
+    list-style-type: none;
+  }
+
+  #lsp-log .lsp-message {
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin: 0.25rem;
+  }
+  #lsp-log .lsp-message.lsp-notification {
+    background-color: #eeeeff;
+  }
+  #lsp-log .lsp-message summary {
+    font-weight: bold;
+    margin-top: 0;
+  }
+
+  #lsp-log .lsp-params {
+    margin: 0.5rem;
+  }
+  #lsp-log .lsp-params dd {
+    white-space: pre;
+  }
 </style>
 
 <h1>quick-lint-js debug server</h1>
 
-<section id="vector-profile">
-<h2>vector profile</h2>
-<div id="vector-profile-data"></div>
+<section id="lsp-log">
+  <h2>LSP log</h2>
+  <ol id="lsp-log-data"></ol>
 </section>
 
-<script type="module">
-class VectorProfileView {
-  constructor(element) {
-    this.element = element;
-    this.maxSizeHistogramElementByOwner = new Map();
-  }
+<section id="vector-profile">
+  <h2>vector profile</h2>
+  <div id="vector-profile-data"></div>
+</section>
 
-  updateMaxSizeHistogram({owner, countBySize}) {
-    let el = this.maxSizeHistogramElementByOwner.get(owner);
-    if (el === undefined) {
-      el = document.createElement("div");
-      el.classList.add("histogram");
-      el.classList.add("max-size-histogram");
-
-      let titleEl = document.createElement("h3");
-      titleEl.textContent = owner;
-      el.appendChild(titleEl);
-
-      let tableEl = document.createElement("table");
-      tableEl.appendChild(document.createElement("tbody"));
-      el.appendChild(tableEl);
-
-      this.element.appendChild(el);
-      this.maxSizeHistogramElementByOwner.set(owner, el);
-    }
-
-    let totalCount = countBySize.reduce((x, acc) => x + acc, 0);
-    let maxCount = Math.max(...countBySize);
-
-    let tableBodyEl = el.querySelector("table tbody");
-    for (let size = 0; size < countBySize.length; ++size) {
-      let count = countBySize[size];
-
-      let rowEl = tableBodyEl.children[size];
-      if (rowEl === undefined) {
-        rowEl = document.createElement("tr");
-        let rowHeaderEl = document.createElement("th");
-        rowHeaderEl.textContent = `${size}`;
-        rowEl.appendChild(rowHeaderEl);
-        rowEl.appendChild(document.createElement("td"));
-        tableBodyEl.appendChild(rowEl);
-      }
-      let rowDataEl = rowEl.querySelector("td");
-      rowDataEl.textContent = `${(count / totalCount * 100).toFixed(1)}%`;
-      rowDataEl.style.setProperty("--histogram-percentage", `${count / maxCount * 100}%`);
-    }
-  }
-}
-
-let vectorProfileView = new VectorProfileView(document.getElementById("vector-profile-data"));
-
-pollVectorProfileDataContinuouslyAsync()
-  .catch((e) => { console.error(e); });
-
-async function pollVectorProfileDataContinuouslyAsync() {
-  for (;;) {
-    await pollVectorProfileDataAsync();
-    await sleepAsync(1000);
-  }
-}
-
-async function pollVectorProfileDataAsync() {
-  let data = await (await fetch("/vector-profiler-stats")).json();
-  let maxSizeHistogramByOwner = data.maxSizeHistogramByOwner;
-  for (let owner in maxSizeHistogramByOwner) {
-    if (!Object.prototype.hasOwnProperty.call(maxSizeHistogramByOwner, owner)) {
-      continue;
-    }
-    let countBySize = maxSizeHistogramByOwner[owner];
-    vectorProfileView.updateMaxSizeHistogram({owner, countBySize});
-  }
-}
-
-function sleepAsync(durationMilliseconds) {
-  return new Promise((resolve, _reject) => {
-    setTimeout(() => { resolve(); }, durationMilliseconds);
-  });
-}
-
-</script>
+<script type="module" src="index.mjs"></script>
 
 <!--
 quick-lint-js finds bugs in JavaScript programs.

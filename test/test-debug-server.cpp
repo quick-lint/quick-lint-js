@@ -6,6 +6,7 @@
 #if QLJS_FEATURE_DEBUG_SERVER
 
 #include <cctype>
+#include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <mongoose.h>
@@ -13,9 +14,14 @@
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
+#include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/parse-json.h>
+#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/trace-stream-reader-mock.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/binary-reader.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/version.h>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -48,16 +54,45 @@ struct http_response {
 http_response http_fetch(const char *url);
 http_response http_fetch(const std::string &url);
 
+class http_websocket_client;
+
+class http_websocket_client_delegate {
+ public:
+  virtual ~http_websocket_client_delegate() = default;
+
+  virtual void on_message_binary(http_websocket_client *, const void *message,
+                                 std::size_t message_size) = 0;
+};
+
+class http_websocket_client {
+ public:
+  static void connect_and_run(const char *url,
+                              http_websocket_client_delegate *);
+
+  void stop();
+
+ private:
+  void callback(::mg_connection *c, int ev, void *ev_data);
+
+  explicit http_websocket_client(http_websocket_client_delegate *);
+
+  bool done_ = false;
+  http_websocket_client_delegate *delegate_;
+  mongoose_mgr mgr_;
+
+  ::mg_connection *current_connection_;
+};
+
 class test_debug_server : public ::testing::Test {};
 
 TEST_F(test_debug_server, start_thread_then_immediately_stop) {
-  debug_server server;
+  debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
   server.stop_server_thread();
 }
 
 TEST_F(test_debug_server, serves_html_at_index) {
-  debug_server server;
+  debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
   auto wait_result = server.wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -67,12 +102,27 @@ TEST_F(test_debug_server, serves_html_at_index) {
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("<!DOCTYPE html>"));
   EXPECT_THAT(response.get_last_header_value_or_empty("content-type"),
-              ::testing::AnyOf(::testing::StrEq("test/html"),
+              ::testing::AnyOf(::testing::StrEq("text/html"),
                                ::testing::StartsWith("text/html;")));
 }
 
+TEST_F(test_debug_server, serves_javascript) {
+  debug_server server(/*tracer=*/nullptr);
+  server.start_server_thread();
+  auto wait_result = server.wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  http_response response = http_fetch(server.url("/index.mjs"));
+  ASSERT_TRUE(response);
+  EXPECT_EQ(response.status, 200);  // OK
+  EXPECT_THAT(response.data, ::testing::StartsWith("//"));
+  EXPECT_THAT(response.get_last_header_value_or_empty("content-type"),
+              ::testing::AnyOf(::testing::StrEq("text/javascript"),
+                               ::testing::StartsWith("text/javascript;")));
+}
+
 TEST_F(test_debug_server, serves_not_found_page) {
-  debug_server server;
+  debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
   auto wait_result = server.wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -83,7 +133,7 @@ TEST_F(test_debug_server, serves_not_found_page) {
 }
 
 TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
-  debug_server server_a;
+  debug_server server_a(/*tracer=*/nullptr);
   server_a.start_server_thread();
   auto a_wait_result = server_a.wait_for_server_start();
   ASSERT_TRUE(a_wait_result.ok()) << a_wait_result.error_to_string();
@@ -91,7 +141,7 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
   std::string server_a_address = server_a.url("");
   SCOPED_TRACE("server_a address: " + server_a_address);
 
-  debug_server server_b;
+  debug_server server_b(/*tracer=*/nullptr);
   server_b.set_listen_address(server_a_address);
   server_b.start_server_thread();
   auto b_wait_result = server_b.wait_for_server_start();
@@ -100,7 +150,7 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(test_debug_server, vector_profiler_stats) {
-  debug_server server;
+  debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
   auto wait_result = server.wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -140,7 +190,7 @@ TEST_F(test_debug_server, vector_profiler_stats) {
 }
 #else
 TEST_F(test_debug_server, vector_profiler_stats_yields_no_data_if_disabled) {
-  debug_server server;
+  debug_server server(/*tracer=*/nullptr);
   server.start_server_thread();
   auto wait_result = server.wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -157,6 +207,88 @@ TEST_F(test_debug_server, vector_profiler_stats_yields_no_data_if_disabled) {
               ::testing::IsEmpty());
 }
 #endif
+
+TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
+  trace_flusher tracer;
+
+  mutex test_mutex;
+  condition_variable cond;
+  bool registered_other_thread = false;
+  bool finished_test = false;
+
+  // Register two threads. The WebSocket server should send data for each thread
+  // in separate messages.
+  tracer.register_current_thread();
+  thread other_thread([&]() {
+    tracer.register_current_thread();
+
+    {
+      std::unique_lock<mutex> lock(test_mutex);
+      registered_other_thread = true;
+      cond.notify_all();
+      cond.wait(lock, [&] { return finished_test; });
+    }
+
+    tracer.unregister_current_thread();
+  });
+
+  {
+    std::unique_lock<mutex> lock(test_mutex);
+    cond.wait(lock, [&] { return registered_other_thread; });
+  }
+
+  debug_server server(&tracer);
+  server.start_server_thread();
+  auto wait_result = server.wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  class test_delegate : public http_websocket_client_delegate {
+   public:
+    void on_message_binary(http_websocket_client *client, const void *message,
+                           std::size_t message_size) override {
+      if (message_size < 8) {
+        ADD_FAILURE() << "unexpected tiny message (size=" << message_size
+                      << ")";
+        client->stop();
+        return;
+      }
+
+      checked_binary_reader reader(
+          reinterpret_cast<const std::uint8_t *>(message), message_size);
+      std::uint64_t thread_index = reader.u64_le();
+      this->received_thread_indexes.push_back(thread_index);
+
+      // FIXME(strager): This test assumes that we receive both the header and
+      // the init event in the same message, which is not guaranteed.
+      strict_mock_trace_stream_event_visitor v;
+      EXPECT_CALL(v, visit_packet_header(::testing::_));
+      EXPECT_CALL(v, visit_init_event(::testing::Field(
+                         &trace_stream_event_visitor::init_event::version,
+                         ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
+      read_trace_stream(reader.cursor(), reader.remaining(), v);
+
+      // We expect messages for only two threads (main and other).
+      if (this->received_thread_indexes.size() >= 2) {
+        client->stop();
+      }
+    }
+
+    std::vector<trace_flusher_thread_index> received_thread_indexes;
+  };
+  test_delegate delegate;
+  http_websocket_client::connect_and_run(
+      server.websocket_url("/api/trace").c_str(), &delegate);
+
+  EXPECT_THAT(delegate.received_thread_indexes,
+              ::testing::UnorderedElementsAre(1, 2));
+
+  {
+    std::lock_guard<mutex> lock(test_mutex);
+    finished_test = true;
+    cond.notify_all();
+  }
+  other_thread.join();
+}
 
 bool strings_equal_case_insensitive(std::string_view a, std::string_view b) {
   return ranges_equal(
@@ -252,6 +384,69 @@ http_response http_fetch(const char *url) {
 http_response http_fetch(const std::string &url) {
   return http_fetch(url.c_str());
 }
+
+void http_websocket_client::connect_and_run(
+    const char *url, http_websocket_client_delegate *delegate) {
+  http_websocket_client client(delegate);
+  ::mg_connection *connection = ::mg_ws_connect(
+      client.mgr_.get(), url,
+      mongoose_callback<&http_websocket_client::callback>(), &client, nullptr);
+  if (!connection) {
+    ADD_FAILURE() << "mg_ws_connect failed";
+    return;
+  }
+
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+  while (!client.done_) {
+    if (std::chrono::steady_clock::now() >= deadline) {
+      ADD_FAILURE() << "timed out";
+      return;
+    }
+    int timeout_ms = 100;
+    ::mg_mgr_poll(client.mgr_.get(), timeout_ms);
+  }
+}
+
+void http_websocket_client::stop() {
+  this->done_ = true;
+  this->current_connection_->is_closing = true;
+}
+
+void http_websocket_client::callback(::mg_connection *c, int ev,
+                                     void *ev_data) {
+  this->current_connection_ = c;
+
+  switch (ev) {
+  case ::MG_EV_WS_MSG: {
+    ::mg_ws_message *wm = static_cast<::mg_ws_message *>(ev_data);
+    int websocket_operation = wm->flags & 0xf;
+    switch (websocket_operation) {
+    case WEBSOCKET_OP_BINARY:
+      this->delegate_->on_message_binary(this, wm->data.ptr, wm->data.len);
+      break;
+
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+    break;
+  }
+
+  case ::MG_EV_ERROR:
+    ADD_FAILURE() << "protocol error: " << static_cast<const char *>(ev_data);
+    this->stop();
+    break;
+
+  default:
+    break;
+  }
+
+  this->current_connection_ = nullptr;
+}
+
+http_websocket_client::http_websocket_client(
+    http_websocket_client_delegate *delegate)
+    : delegate_(delegate) {}
 }
 }
 

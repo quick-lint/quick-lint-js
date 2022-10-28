@@ -37,8 +37,8 @@ build() {
 }
 
 check() {
-  cd "${pkgname}-${pkgver}"
-  ninja -C build test
+  cd "${pkgname}-${pkgver}/build"
+  ctest --output-on-failure
 }
 
 package() {

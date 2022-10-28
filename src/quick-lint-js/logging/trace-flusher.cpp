@@ -72,9 +72,6 @@ void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
   QLJS_ASSERT(std::find(this->backends_.begin(), this->backends_.end(),
                         backend) == this->backends_.end());
 
-  // TODO(strager): Allow more than two backends.
-  QLJS_ASSERT(this->backends_.size() <= 2);
-
   this->backends_.push_back(backend);
 
   for (auto& t : this->registered_threads_) {

@@ -674,7 +674,7 @@ describe("ESBuildVFSFile", () => {
     let f = new ESBuildVFSFile({
       entryPoints: [path.join(temporaryDirectory, "app.js")],
     });
-    let data = await f.getContentsAsync();
+    let data = (await f.getContentsAsync()).toString("utf-8");
     expect(data).toContain('console.log("hello world")');
     expect(data).toContain("greet");
     expect(data).not.toContain("import");

@@ -11,7 +11,6 @@ import {
   LanguageOptions,
   createProcessFactoryAsync,
 } from "../wasm/quick-lint-js.js";
-import { sanitizeMarks } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
