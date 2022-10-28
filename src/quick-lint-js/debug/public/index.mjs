@@ -60,9 +60,7 @@ let vectorProfileView = new VectorProfileView(
   document.getElementById("vector-profile-data")
 );
 
-pollVectorProfileDataContinuouslyAsync().catch((e) => {
-  console.error(e);
-});
+pollVectorProfileDataContinuouslyAsync();
 
 class EventEmitter {
   _eventListeners = new Map();
@@ -94,9 +92,7 @@ class DebugServerSocket extends EventEmitter {
     this.traceReaders = new Map(); // Key is the thread index.
 
     this.webSocket.addEventListener("message", (event) => {
-      this._onMessageAsync(event).catch((e) => {
-        console.error(e);
-      });
+      this._onMessageAsync(event);
     });
   }
 
@@ -257,15 +253,11 @@ function createElementWithText(tagName, textContent) {
 
 let lspLog = new LSPLogView(document.getElementById("lsp-log"));
 
-DebugServerSocket.connectAsync()
-  .then((socket) => {
-    socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
-      lspLog.addClientToServerMessage(timestamp, body);
-    });
-  })
-  .catch((e) => {
-    console.error(e);
+DebugServerSocket.connectAsync().then((socket) => {
+  socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
+    lspLog.addClientToServerMessage(timestamp, body);
   });
+});
 
 async function pollVectorProfileDataContinuouslyAsync() {
   for (;;) {
