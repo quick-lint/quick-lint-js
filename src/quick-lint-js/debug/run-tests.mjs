@@ -1,12 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-extern "C" {
-#include "mongoose/src/http.h"
-#include "mongoose/src/log.h"
-#include "mongoose/src/url.h"
-#include "mongoose/src/ws.h"
-}
+import { main } from "quick-lint-js-node-test-runner";
+import path from "path";
+import url from "url";
+
+let __filename = url.fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
+
+main(__dirname);
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

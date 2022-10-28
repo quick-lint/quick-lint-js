@@ -1765,7 +1765,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_delete_cannot_delete_variables, "E0325",                  \
-      diagnostic_severity::warning, { source_code_span delete_expression; },    \
+      diagnostic_severity::error, { source_code_span delete_expression; },      \
       MESSAGE(QLJS_TRANSLATABLE("cannot delete variables in TypeScript"),       \
               delete_expression))                                               \
                                                                                 \

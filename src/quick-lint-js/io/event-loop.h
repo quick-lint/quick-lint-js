@@ -52,7 +52,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
   {cd.get_readable_pipe()};
   {d.append(data)};
 
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_POLL && !QLJS_HAVE_KQUEUE
   {d.get_pipe_write_fd()};
   {d.on_pipe_write_event(poll_event)};
 #endif

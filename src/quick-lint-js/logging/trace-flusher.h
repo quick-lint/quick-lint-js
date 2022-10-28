@@ -120,6 +120,10 @@ class trace_flusher {
   ~trace_flusher();
 
   void enable_backend(trace_flusher_backend*);
+
+  // disable_backend is synchronizing. After disable_backend returns, it is
+  // guaranteed that no methods on the backend are being called on other
+  // threads.
   void disable_backend(trace_flusher_backend*);
 
   // For testing only:

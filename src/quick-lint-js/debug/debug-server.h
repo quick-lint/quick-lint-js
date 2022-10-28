@@ -9,6 +9,7 @@
 #if QLJS_FEATURE_DEBUG_SERVER
 
 #include <atomic>
+#include <memory>
 #include <mongoose.h>
 #include <optional>
 #include <quick-lint-js/container/result.h>
@@ -16,6 +17,9 @@
 #include <string>
 
 namespace quick_lint_js {
+class trace_flusher;
+class trace_flusher_websocket_backend;
+
 struct debug_server_io_error {
   std::string error_message;
 
@@ -26,6 +30,8 @@ struct debug_server_io_error {
 // thread'. All other threads are called 'other threads'.
 class debug_server {
  public:
+  explicit debug_server(trace_flusher *);
+
   ~debug_server();
 
   // Example address: "http://localhost:1234"
@@ -45,9 +51,11 @@ class debug_server {
   // Precondition: wait_for_server_start was called and it succeeded.
   std::string url() const;
   std::string url(std::string_view path) const;
+  std::string websocket_url(std::string_view path) const;
 
  private:
   // Run on any thread:
+  void wake_up_server_thread();
   void wake_up_server_thread(std::unique_lock<mutex> &);
 
   // Run on the server thread:
@@ -86,6 +94,14 @@ class debug_server {
   // Used by other threads only:
   thread server_thread_;
   bool did_wait_for_server_start_ = false;
+
+  // Used by server thread only:
+  trace_flusher *tracer_;
+  // Each backend is associated with one WebSocket connection.
+  std::vector<std::unique_ptr<trace_flusher_websocket_backend>>
+      tracer_backends_;
+
+  friend class trace_flusher_websocket_backend;
 };
 }
 

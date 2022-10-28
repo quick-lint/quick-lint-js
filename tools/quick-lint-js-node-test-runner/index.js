@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 let Jasmine = require("jasmine");
-let colors = require("colors");
+let colors = require("@colors/colors");
 let fs = require("fs");
 let path = require("path");
 let url = require("url");
@@ -88,6 +88,10 @@ class BasicReporter {
   }
 
   specDone(spec) {
+    if (spec.debugLogs !== null) {
+      console.log(spec.debugLogs);
+    }
+
     switch (spec.status) {
       case "passed":
         console.error(`${colors.green("OK")}      ${spec.fullName}`);
@@ -101,7 +105,7 @@ class BasicReporter {
       default:
       case "failed":
         for (let failure of spec.failedExpectations) {
-          console.error(failure.stack);
+          console.error(`${failure.message}\n${failure.stack}`);
         }
         console.error(`${colors.red("FAIL")}    ${spec.fullName}`);
         process.exit(1);

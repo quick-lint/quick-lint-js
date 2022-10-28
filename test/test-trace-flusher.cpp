@@ -5,6 +5,7 @@
 // No filesystem on web.
 #else
 
+#include <array>
 #include <chrono>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -742,7 +743,8 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
   flusher.disable_all_backends();
 }
 
-TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
+TEST_F(test_trace_flusher,
+       write_to_multiple_backends_at_once_enabling_and_disabling) {
   flusher.register_current_thread();
 
   spy_trace_flusher_backend backend_1;
@@ -781,6 +783,31 @@ TEST_F(test_trace_flusher, write_to_multiple_backends_at_once) {
   EXPECT_THAT(
       backend_2.read_thread_init_versions(1),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
+
+  flusher.disable_all_backends();
+}
+
+TEST_F(test_trace_flusher, broadcast_to_many_backends_at_once) {
+  flusher.register_current_thread();
+
+  std::array<spy_trace_flusher_backend, 5> backends;
+  for (spy_trace_flusher_backend& backend : backends) {
+    flusher.enable_backend(&backend);
+  }
+
+  trace_writer* writer = flusher.trace_writer_for_current_thread();
+  ASSERT_TRUE(writer);
+
+  writer->write_event_init(trace_event_init{
+      .version = u8"broadcast",
+  });
+  writer->commit();
+  flusher.flush_sync();
+
+  for (spy_trace_flusher_backend& backend : backends) {
+    EXPECT_THAT(backend.read_thread_init_versions(1),
+                ElementsAre(::testing::_, "broadcast"));
+  }
 
   flusher.disable_all_backends();
 }

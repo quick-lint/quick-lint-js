@@ -16,7 +16,7 @@ typealias integer { size = 16; align = 8; signed = false; byte_order = le; } := 
 typealias integer { size = 32; align = 8; signed = false; byte_order = le; } := u32;
 typealias integer { size = 64; align = 8; signed = false; byte_order = le; } := u64;
 
-typealias string { encoding = utf8; } := utf8_string;
+typealias string { encoding = utf8; } := utf8_zstring;
 
 // Allows null code points.
 typealias struct {
@@ -71,7 +71,7 @@ event {
   id = 1;
   name = "init";
   fields := struct {
-    utf8_string quick_lint_js_version;
+    utf8_zstring quick_lint_js_version;
   };
 };
 

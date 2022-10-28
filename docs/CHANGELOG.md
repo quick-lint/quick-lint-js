@@ -16,8 +16,13 @@ Semantic Versioning.
 
 ### Fixed
 
+* Variables can be named according to Unicode 15 (previously Unicode 14).
 * In tracing files, the thread IDs in the file headers are now correct if
   tracing was enabled after startup.
+* [E0325][] is now an error rather than a warning.
+* `0o123.toString()`, `0x123.toString()`, `0b101.toString()`, and
+  `0123.toString()` no longer incorrectly report [E0046][], [E0047][], or
+  [E0048][].
 
 ## 2.10.0 (2022-10-14)
 
@@ -743,6 +748,9 @@ Beta release.
 [E0036]: https://quick-lint-js.com/errors/E0036/
 [E0038]: https://quick-lint-js.com/errors/E0038/
 [E0040]: https://quick-lint-js.com/errors/E0040/
+[E0046]: https://quick-lint-js.com/errors/E0046/
+[E0047]: https://quick-lint-js.com/errors/E0047/
+[E0048]: https://quick-lint-js.com/errors/E0048/
 [E0053]: https://quick-lint-js.com/errors/E0053/
 [E0054]: https://quick-lint-js.com/errors/E0054/
 [E0057]: https://quick-lint-js.com/errors/E0057/
@@ -808,4 +816,6 @@ Beta release.
 [E0287]: https://quick-lint-js.com/errors/E0287/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
+[E0345]: https://quick-lint-js.com/errors/E0345/
+[E0347]: https://quick-lint-js.com/errors/E0347/
 [E0707]: https://quick-lint-js.com/errors/E0707/

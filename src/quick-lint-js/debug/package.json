@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "fmt": "prettier --write \"**/*.html\" \"**/*.mjs\"",
+    "test": "node --experimental-modules run-tests.mjs"
+  },
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "devDependencies": {
+    "prettier": "2.7.1",
+    "quick-lint-js-node-test-runner": "../../../tools/quick-lint-js-node-test-runner/"
+  }
+}
