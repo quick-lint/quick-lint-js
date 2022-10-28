@@ -13,10 +13,12 @@
 #include <mongoose.h>
 #include <optional>
 #include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/port/thread.h>
 #include <string>
 
 namespace quick_lint_js {
+class byte_buffer;
 class trace_flusher;
 class trace_flusher_websocket_backend;
 
@@ -63,6 +65,7 @@ class debug_server {
   void begin_closing_all_connections(::mg_mgr *);
   void http_server_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
+  void write_vector_profiler_stats(byte_buffer &out_json);
 
   struct init_data {
     // HACK(strager): Clang 11 with libstdc++ 12 requires a user-declared (not
@@ -100,6 +103,9 @@ class debug_server {
   // Each backend is associated with one WebSocket connection.
   std::vector<std::unique_ptr<trace_flusher_websocket_backend>>
       tracer_backends_;
+#if QLJS_FEATURE_VECTOR_PROFILING
+  vector_max_size_histogram_by_owner max_size_histogram_;
+#endif
 
   friend class trace_flusher_websocket_backend;
 };

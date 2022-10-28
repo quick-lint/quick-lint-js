@@ -30,10 +30,6 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-namespace {
-void write_vector_profiler_stats(byte_buffer &out_json);
-}
-
 class trace_flusher_websocket_backend final : public trace_flusher_backend {
  public:
   explicit trace_flusher_websocket_backend(::mg_connection *connection,
@@ -258,7 +254,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
     ::mg_http_message *hm = static_cast<::mg_http_message *>(ev_data);
     if (::mg_http_match_uri(hm, "/vector-profiler-stats")) {
       byte_buffer json;
-      write_vector_profiler_stats(json);
+      this->write_vector_profiler_stats(json);
 
       // TODO(strager): Optimize.
       std::string json_copy;
@@ -328,15 +324,14 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
   }
 }
 
-namespace {
-void write_vector_profiler_stats(byte_buffer &out_json) {
+void debug_server::write_vector_profiler_stats(byte_buffer &out_json) {
   out_json.append_copy(u8R"--({"maxSizeHistogramByOwner":{)--"_sv);
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-  vector_max_size_histogram_by_owner max_size_histogram;
-  max_size_histogram.add_entries(vector_instrumentation::instance.entries());
+  this->max_size_histogram_.add_entries(
+      vector_instrumentation::instance.take_entries());
   bool need_comma = false;
-  for (auto &[owner, histogram] : max_size_histogram.histogram()) {
+  for (auto &[owner, histogram] : this->max_size_histogram_.histogram()) {
     if (need_comma) {
       out_json.append_copy(u8',');
     }
@@ -374,7 +369,6 @@ void write_vector_profiler_stats(byte_buffer &out_json) {
 #endif
 
   out_json.append_copy(u8"}}"_sv);
-}
 }
 }
 
