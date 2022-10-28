@@ -115,7 +115,6 @@ class DebugServerSocket extends EventEmitter {
 
     reader.appendBytes(messageData, 8);
     for (let event of reader.pullNewEvents()) {
-      console.log(`DebugServerSocket event from thread ${threadIndex}:`, event);
       switch (event.eventType) {
         case TraceEventType.INIT:
           this.emit("initEvent", event);
