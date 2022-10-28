@@ -528,6 +528,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "Invalid usage of ? in the parameter, use '|void' instead."_translatable,
+        {
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+            u8"Invalid usage of ? in the parameter, use '|void' instead.",
+        },
+    },
+    {
         "JSON syntax error"_translatable,
         {
             u8"JSON syntax error",

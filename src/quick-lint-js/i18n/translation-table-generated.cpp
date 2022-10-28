@@ -58,7 +58,8 @@ const translation_table translation_data = {
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
         {48, 16, 55, 35, 45, 48},            //
-        {79, 39, 98, 87, 0, 65},             //
+        {0, 0, 0, 0, 0, 65},                 //
+        {79, 39, 98, 87, 0, 58},             //
         {0, 0, 0, 24, 0, 18},                //
         {0, 0, 0, 50, 0, 44},                //
         {21, 38, 23, 58, 0, 52},             //
@@ -1731,6 +1732,7 @@ const translation_table translation_data = {
         u8"BigInt literal contains exponent\0"
         u8"C-style for loop is missing its third component\0"
         u8"C-style for loops have only three semicolon-separated components\0"
+        u8"Invalid usage of ? in the parameter, use '|void' instead.\0"
         u8"JSON syntax error\0"
         u8"React/JSX is not allowed in TypeScript code\0"
         u8"React/JSX is not allowed in vanilla JavaScript code\0"

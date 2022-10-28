@@ -123,14 +123,11 @@
                   type_colon))                                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-    diag_typescript_question_in_parameters_should_be_void, "E0348",             \
-    diagnostic_severity::error,                                                 \
-    {                                                                           \
-      source_code_span question;                                                \
-    },                                                                          \
-    MESSAGE(QLJS_TRANSLATABLE("Invalid usage of ? in the parameter"             \
-      ", use '|void' instead."),                                                \
-            question))                                                          \
+      diag_typescript_question_in_parameters_should_be_void, "E0348",           \
+      diagnostic_severity::error, { source_code_span question; },               \
+      MESSAGE(QLJS_TRANSLATABLE("Invalid usage of ? in the parameter"           \
+                                ", use '|void' instead."),                      \
+              question))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_assignment_before_variable_declaration, "E0001",                     \

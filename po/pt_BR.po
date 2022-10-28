@@ -142,6 +142,10 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr "anotações de tipagem de TypeScript requerem parênteses"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "Invalid usage of ? in the parameter, use '|void' instead."
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr "'=' altera variáveis; para comparar, use '==='"
 
@@ -336,7 +340,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "falta o nome da propriedade entre '.' e '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

@@ -49,10 +49,10 @@ void parser::parse_typescript_colon_for_type() {
         this->diag_reporter_->report(
             diag_typescript_question_in_parameters_should_be_void{
                 .question = question_span});
-        
+
       } else {
         this->roll_back_transaction(std::move(transaction));
-      } 
+      }
     }
   }
 }

@@ -144,6 +144,10 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "Invalid usage of ? in the parameter, use '|void' instead."
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 

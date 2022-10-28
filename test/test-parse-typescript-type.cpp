@@ -1243,15 +1243,13 @@ TEST_F(test_parse_typescript_type, arrow_function) {
 
 TEST_F(test_parse_typescript_type, question_in_type) {
   {
-    test_parser p(
-        u8"(err: Error?) => {if (err) throw err;};"_sv,
-        typescript_options, capture_diags);
+    test_parser p(u8"(err: Error?) => {if (err) throw err;};"_sv,
+                  typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_question_in_parameters_should_be_void,
+            p.code, diag_typescript_question_in_parameters_should_be_void,
             question, strlen(u8"(err: Error"), u8"?")));
   }
 

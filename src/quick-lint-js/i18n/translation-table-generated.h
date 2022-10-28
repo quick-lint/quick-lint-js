@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 392;
-constexpr std::size_t translation_table_string_table_size = 74039;
+constexpr std::uint16_t translation_table_mapping_table_size = 393;
+constexpr std::size_t translation_table_string_table_size = 74097;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -75,6 +75,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "BigInt literal contains exponent"sv,
           "C-style for loop is missing its third component"sv,
           "C-style for loops have only three semicolon-separated components"sv,
+          "Invalid usage of ? in the parameter, use '|void' instead."sv,
           "JSON syntax error"sv,
           "React/JSX is not allowed in TypeScript code"sv,
           "React/JSX is not allowed in vanilla JavaScript code"sv,

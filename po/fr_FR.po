@@ -166,6 +166,10 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "Invalid usage of ? in the parameter, use '|void' instead."
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 
@@ -375,7 +379,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "nom de propriété manquante entre '.' et '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
