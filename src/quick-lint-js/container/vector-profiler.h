@@ -61,27 +61,6 @@ class vector_instrumentation {
   std::map<std::string_view, std::map<std::size_t, int>>
   max_size_histogram_by_owner() const;
 
-  struct capacity_change_histogram {
-    // Number of times an append caused the vector to create its initial
-    // capacity.
-    std::size_t appends_initial_capacity = 0;
-    // Number of times an append used existing capacity.
-    std::size_t appends_reusing_capacity = 0;
-    // Number of times an append caused capacity to increase, copying old items.
-    std::size_t appends_growing_capacity = 0;
-  };
-
-  std::map<std::string_view, capacity_change_histogram>
-  capacity_change_histogram_by_owner() const;
-
-  struct dump_capacity_change_options {
-    int maximum_line_length = 80;
-  };
-
-  static void dump_capacity_change_histogram(
-      const std::map<std::string_view, capacity_change_histogram> &,
-      std::ostream &, const dump_capacity_change_options &);
-
   void add_entry(std::uintptr_t object_id, const char *owner,
                  vector_instrumentation::event event,
                  std::uintptr_t data_pointer, std::size_t size,
@@ -127,6 +106,50 @@ class vector_max_size_histogram_by_owner {
  private:
   hash_map<const char *, hash_map<std::size_t, int>> histogram_;
   hash_map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes_;
+};
+
+// vector_capacity_change_histogram_by_owner is *not* thread-safe.
+class vector_capacity_change_histogram_by_owner {
+ public:
+  struct capacity_change_histogram {
+    // Number of times an append caused the vector to create its initial
+    // capacity.
+    std::size_t appends_initial_capacity = 0;
+    // Number of times an append used existing capacity.
+    std::size_t appends_reusing_capacity = 0;
+    // Number of times an append caused capacity to increase, copying old items.
+    std::size_t appends_growing_capacity = 0;
+  };
+
+  explicit vector_capacity_change_histogram_by_owner();
+
+  vector_capacity_change_histogram_by_owner(
+      const vector_capacity_change_histogram_by_owner &) = delete;
+  vector_capacity_change_histogram_by_owner &operator=(
+      const vector_capacity_change_histogram_by_owner &) = delete;
+
+  ~vector_capacity_change_histogram_by_owner();
+
+  void add_entries(const std::vector<vector_instrumentation::entry> &);
+
+  std::map<std::string_view, capacity_change_histogram> histogram() const;
+
+  struct dump_options {
+    int maximum_line_length = 80;
+  };
+
+  static void dump(
+      const std::map<std::string_view, capacity_change_histogram> &,
+      std::ostream &, const dump_options &);
+
+ private:
+  struct vector_info {
+    std::uintptr_t data_pointer;
+    std::size_t size;
+  };
+
+  std::map<std::string_view, capacity_change_histogram> histogram_;
+  std::map<std::uintptr_t, vector_info> objects_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING

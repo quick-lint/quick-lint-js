@@ -646,9 +646,8 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
      no_events) {
-  vector_instrumentation data;
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_THAT(histogram, IsEmpty());
+  vector_capacity_change_histogram_by_owner histogram;
+  EXPECT_THAT(histogram.histogram(), IsEmpty());
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -676,18 +675,20 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/0,
       /*capacity=*/0);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_THAT(histogram,
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist,
               UnorderedElementsAre(Key("first"), Key("second"), Key("third")));
-  EXPECT_EQ(histogram["first"].appends_initial_capacity, 0);
-  EXPECT_EQ(histogram["first"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["first"].appends_growing_capacity, 0);
-  EXPECT_EQ(histogram["second"].appends_initial_capacity, 0);
-  EXPECT_EQ(histogram["second"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["second"].appends_growing_capacity, 0);
-  EXPECT_EQ(histogram["third"].appends_initial_capacity, 0);
-  EXPECT_EQ(histogram["third"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["third"].appends_growing_capacity, 0);
+  EXPECT_EQ(hist["first"].appends_initial_capacity, 0);
+  EXPECT_EQ(hist["first"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["first"].appends_growing_capacity, 0);
+  EXPECT_EQ(hist["second"].appends_initial_capacity, 0);
+  EXPECT_EQ(hist["second"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["second"].appends_growing_capacity, 0);
+  EXPECT_EQ(hist["third"].appends_initial_capacity, 0);
+  EXPECT_EQ(hist["third"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["third"].appends_growing_capacity, 0);
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -722,10 +723,12 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/3,
       /*capacity=*/3);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_initial_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 3);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 0);
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_initial_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 3);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 0);
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -760,10 +763,12 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/4,
       /*capacity=*/4);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_initial_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 3);
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_initial_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 3);
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -819,9 +824,11 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/4,
       /*capacity=*/8);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 2);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 1);
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 2);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 1);
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -842,10 +849,12 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/1,
       /*capacity=*/4);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_initial_capacity, 1);
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 0);
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_initial_capacity, 1);
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 0);
 }
 
 // For some reason, boost::small_vector<T, 0>'s initial capacity after default
@@ -870,10 +879,12 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/1,
       /*capacity=*/4);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_initial_capacity, 1);
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 0);
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_initial_capacity, 1);
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 0);
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
@@ -915,12 +926,12 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*size=*/1,
       /*capacity=*/4);
 
-  auto histogram = data.capacity_change_histogram_by_owner();
-  EXPECT_EQ(histogram["myvector"].appends_initial_capacity, 1)
-      << "second vector";
-  EXPECT_EQ(histogram["myvector"].appends_reusing_capacity, 0);
-  EXPECT_EQ(histogram["myvector"].appends_growing_capacity, 1)
-      << "first vector";
+  vector_capacity_change_histogram_by_owner histogram;
+  histogram.add_entries(data.take_entries());
+  auto hist = histogram.histogram();
+  EXPECT_EQ(hist["myvector"].appends_initial_capacity, 1) << "second vector";
+  EXPECT_EQ(hist["myvector"].appends_reusing_capacity, 0);
+  EXPECT_EQ(hist["myvector"].appends_growing_capacity, 1) << "first vector";
 }
 
 std::string dump_capacity_change_header = R"(vector capacity changes:
@@ -929,24 +940,26 @@ std::string dump_capacity_change_header = R"(vector capacity changes:
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_empty_histogram) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{});
+      vector_capacity_change_histogram_by_owner::dump_options{});
   EXPECT_EQ(stream.str(), dump_capacity_change_header);
 }
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_reusing_capacity) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_reusing_capacity = 10;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{
+      vector_capacity_change_histogram_by_owner::dump_options{
           .maximum_line_length = 34,
       });
   EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -956,13 +969,14 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_growing_capacity) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 10;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{
+      vector_capacity_change_histogram_by_owner::dump_options{
           .maximum_line_length = 34,
       });
   EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -972,13 +986,14 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_only_initial_capacity) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_initial_capacity = 10;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{
+      vector_capacity_change_histogram_by_owner::dump_options{
           .maximum_line_length = 34,
       });
   EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -988,15 +1003,16 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      dump_histogram_with_mixed_growing_and_initial_and_reusing) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 5;
   histogram["myvector"].appends_initial_capacity = 5;
   histogram["myvector"].appends_reusing_capacity = 10;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{
+      vector_capacity_change_histogram_by_owner::dump_options{
           .maximum_line_length = 34,
       });
   EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -1006,15 +1022,16 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      different_widths) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 9001;
 
   {
     std::ostringstream stream;
-    vector_instrumentation::dump_capacity_change_histogram(
+    vector_capacity_change_histogram_by_owner::dump(
         histogram, stream,
-        vector_instrumentation::dump_capacity_change_options{
+        vector_capacity_change_histogram_by_owner::dump_options{
             .maximum_line_length = 30,
         });
     EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -1024,9 +1041,9 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
   {
     std::ostringstream stream;
-    vector_instrumentation::dump_capacity_change_histogram(
+    vector_capacity_change_histogram_by_owner::dump(
         histogram, stream,
-        vector_instrumentation::dump_capacity_change_options{
+        vector_capacity_change_histogram_by_owner::dump_options{
             .maximum_line_length = 50,
         });
     EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
@@ -1037,16 +1054,17 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      multiple_owners_align_counts) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["first"].appends_growing_capacity = 1;
   histogram["first"].appends_reusing_capacity = 1;
   histogram["second"].appends_growing_capacity = 30;
   histogram["second"].appends_reusing_capacity = 30;
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{
+      vector_capacity_change_histogram_by_owner::dump_options{
           .maximum_line_length = 30,
       });
   EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(first:
@@ -1058,14 +1076,15 @@ second:
 
 TEST(test_vector_instrumentation_dump_capacity_change_histogram,
      hides_vectors_with_no_appends) {
-  std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
+  std::map<std::string_view,
+           vector_capacity_change_histogram_by_owner::capacity_change_histogram>
       histogram;
   histogram["first"];   // Zeroes.
   histogram["second"];  // Zeroes.
   std::ostringstream stream;
-  vector_instrumentation::dump_capacity_change_histogram(
+  vector_capacity_change_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_capacity_change_options{});
+      vector_capacity_change_histogram_by_owner::dump_options{});
   EXPECT_EQ(stream.str(), dump_capacity_change_header);
 }
 }
