@@ -3,6 +3,8 @@
 
 import { TraceReader, TraceEventType } from "./trace.mjs";
 
+let DEBUG_LSP_LOG = false;
+
 class VectorProfileView {
   constructor(element) {
     this.element = element;
@@ -156,15 +158,52 @@ class DebugServerSocket extends EventEmitter {
   }
 }
 
+class LSPLogDetailsView {
+  constructor(rootElement) {
+    this._rootElement = rootElement;
+    this._paramsElement = rootElement.querySelector("#lsp-log-params");
+  }
+
+  setMessage(message) {
+    this._paramsElement.replaceChildren();
+
+    let hasParams = "params" in message;
+    if (hasParams) {
+      this._paramsElement.classList.add("lsp-params");
+      let paramNames = Object.keys(message.params).sort();
+      for (let paramName of paramNames) {
+        this._paramsElement.appendChild(createElementWithText("dt", paramName));
+        let paramValue = message.params[paramName];
+        let paramValueText = JSON.stringify(paramValue, null, 2);
+        this._paramsElement.appendChild(
+          createElementWithText("dd", paramValueText)
+        );
+      }
+    }
+  }
+}
+
 class LSPLogView {
   constructor(rootElement) {
     this._rootElement = rootElement;
+    this._dataElement = rootElement.querySelector("#lsp-log-data");
+    this._detailsView = new LSPLogDetailsView(
+      rootElement.querySelector("#lsp-log-details")
+    );
+
+    this._dataElement.addEventListener("click", (event) => {
+      this._onClick(event);
+    });
+
+    this._elementToMessage = new Map();
+
+    this._selectedMessageElement = null;
   }
 
   addClientToServerMessage(_timestamp, json) {
     let message = JSON.parse(json);
 
-    let element = document.createElement("details");
+    let element = document.createElement("li");
     element.classList.add("lsp-message");
     element.classList.add("lsp-client-to-server");
 
@@ -183,22 +222,31 @@ class LSPLogView {
     }
     element.appendChild(summaryElement);
 
-    if (hasParams) {
-      let paramsElement = document.createElement("dl");
-      paramsElement.classList.add("lsp-params");
-      let paramNames = Object.keys(message.params).sort();
-      for (let paramName of paramNames) {
-        paramsElement.appendChild(createElementWithText("dt", paramName));
-        let paramValue = message.params[paramName];
-        let paramValueText = JSON.stringify(paramValue, null, 2);
-        paramsElement.appendChild(createElementWithText("dd", paramValueText));
-      }
-      element.appendChild(paramsElement);
-    }
+    this._dataElement.appendChild(element);
 
-    let listElement = document.createElement("li");
-    listElement.appendChild(element);
-    this._rootElement.appendChild(listElement);
+    this._elementToMessage.set(element, message);
+  }
+
+  _onClick(event) {
+    let element = event.target;
+    while (element !== document && element !== event.currentTarget) {
+      let message = this._elementToMessage.get(element);
+      if (message !== undefined) {
+        this._onMessageClicked(element, message);
+        break;
+      }
+      element = element.parentNode;
+    }
+  }
+
+  _onMessageClicked(element, message) {
+    if (this._selectedMessageElement !== null) {
+      this._selectedMessageElement.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    this._selectedMessageElement = element;
+
+    this._detailsView.setMessage(message);
   }
 }
 
@@ -208,7 +256,7 @@ function createElementWithText(tagName, textContent) {
   return element;
 }
 
-let lspLog = new LSPLogView(document.getElementById("lsp-log-data"));
+let lspLog = new LSPLogView(document.getElementById("lsp-log"));
 
 DebugServerSocket.connectAsync()
   .then((socket) => {
@@ -245,6 +293,21 @@ function sleepAsync(durationMilliseconds) {
       resolve();
     }, durationMilliseconds);
   });
+}
+
+if (DEBUG_LSP_LOG) {
+  lspLog.addClientToServerMessage(
+    0,
+    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4264}}}`
+  );
+  lspLog.addClientToServerMessage(
+    0,
+    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4265}}}`
+  );
+  lspLog.addClientToServerMessage(
+    0,
+    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4266}}}`
+  );
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

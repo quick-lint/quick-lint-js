@@ -28,6 +28,23 @@
     );
   }
 
+  #lsp-log {
+    display: grid;
+    grid-template-areas:
+      "title details"
+      "log details";
+    grid-template-columns: 30% auto;
+  }
+  #lsp-log h2 {
+    grid-area: title;
+  }
+  #lsp-log #lsp-log-data {
+    grid-area: log;
+  }
+  #lsp-log #lsp-log-details {
+    grid-area: details;
+  }
+
   #lsp-log ol {
     margin: 0;
     padding: 0;
@@ -49,6 +66,13 @@
     margin-top: 0;
   }
 
+  #lsp-log .lsp-message {
+    border: 2px solid transparent;
+  }
+  #lsp-log .lsp-message.selected {
+    border-color: #999999;
+  }
+
   #lsp-log .lsp-params {
     margin: 0.5rem;
   }
@@ -62,6 +86,9 @@
 <section id="lsp-log">
   <h2>LSP log</h2>
   <ol id="lsp-log-data"></ol>
+  <div id="lsp-log-details">
+    <dl id="lsp-log-params"></dl>
+  </div>
 </section>
 
 <section id="vector-profile">
