@@ -72,36 +72,12 @@ std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
 
 std::map<std::string_view, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
-  std::lock_guard lock(this->mutex_);
-
-  hash_map<const char *, hash_map<std::size_t, int>> histogram;
-  hash_map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes;
-  for (const vector_instrumentation::entry &entry : this->entries_) {
-    std::pair key(entry.owner, entry.object_id);
-    std::size_t &object_size = object_sizes[key];
-    object_size = std::max(entry.size, object_size);
-
-    if (entry.event == event::destroy) {
-      histogram[entry.owner][object_size] += 1;
-      object_sizes.erase(key);
-    }
+  vector_max_size_histogram_by_owner histogram;
+  {
+    std::lock_guard lock(this->mutex_);
+    histogram.add_entries(this->entries_);
   }
-  for (auto &[owner_and_object_id, size] : object_sizes) {
-    histogram[owner_and_object_id.first][size] += 1;
-  }
-
-  // Convert hash_map into std::map.
-  // NOTE(strager): We might need to merge some inner maps because we built the
-  // hash_map with pointer comparison but we're building the std::map with
-  // string comparison.
-  std::map<std::string_view, std::map<std::size_t, int>> stable_histogram;
-  for (auto &[owner, counts] : histogram) {
-    auto &stable_counts = stable_histogram[owner];
-    for (auto &[size, count] : counts) {
-      stable_counts[size] += count;
-    }
-  }
-  return stable_histogram;
+  return histogram.histogram();
 }
 
 void vector_instrumentation::dump_max_size_histogram(
@@ -305,6 +281,50 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
   }
 }
 #endif
+
+vector_max_size_histogram_by_owner::vector_max_size_histogram_by_owner() =
+    default;
+
+vector_max_size_histogram_by_owner::~vector_max_size_histogram_by_owner() =
+    default;
+
+void vector_max_size_histogram_by_owner::add_entries(
+    const std::vector<vector_instrumentation::entry> &entries) {
+  for (const vector_instrumentation::entry &entry : entries) {
+    std::pair key(entry.owner, entry.object_id);
+    std::size_t &object_size = this->object_sizes_[key];
+    object_size = std::max(entry.size, object_size);
+
+    if (entry.event == vector_instrumentation::event::destroy) {
+      this->histogram_[entry.owner][object_size] += 1;
+      this->object_sizes_.erase(key);
+    }
+  }
+}
+
+std::map<std::string_view, std::map<std::size_t, int>>
+vector_max_size_histogram_by_owner::histogram() const {
+  // TODO(strager): Avoid this copy.
+  hash_map<const char *, hash_map<std::size_t, int>> histogram =
+      this->histogram_;
+
+  for (auto &[owner_and_object_id, size] : this->object_sizes_) {
+    histogram[owner_and_object_id.first][size] += 1;
+  }
+
+  // Convert hash_map into std::map.
+  // NOTE(strager): We might need to merge some inner maps because we built the
+  // hash_map with pointer comparison but we're building the std::map with
+  // string comparison.
+  std::map<std::string_view, std::map<std::size_t, int>> stable_histogram;
+  for (auto &[owner, counts] : histogram) {
+    auto &stable_counts = stable_histogram[owner];
+    for (auto &[size, count] : counts) {
+      stable_counts[size] += count;
+    }
+  }
+  return stable_histogram;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

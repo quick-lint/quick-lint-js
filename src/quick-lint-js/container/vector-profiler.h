@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/thread.h>
@@ -101,6 +102,27 @@ class vector_instrumentation {
  private:
   std::vector<entry> entries_;
   mutable mutex mutex_;
+};
+
+// vector_max_size_histogram_by_owner is *not* thread-safe.
+class vector_max_size_histogram_by_owner {
+ public:
+  explicit vector_max_size_histogram_by_owner();
+
+  vector_max_size_histogram_by_owner(
+      const vector_max_size_histogram_by_owner &) = delete;
+  vector_max_size_histogram_by_owner &operator=(
+      const vector_max_size_histogram_by_owner &) = delete;
+
+  ~vector_max_size_histogram_by_owner();
+
+  void add_entries(const std::vector<vector_instrumentation::entry> &);
+
+  std::map<std::string_view, std::map<std::size_t, int>> histogram() const;
+
+ private:
+  hash_map<const char *, hash_map<std::size_t, int>> histogram_;
+  hash_map<std::pair<const char *, std::uintptr_t>, std::size_t> object_sizes_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING

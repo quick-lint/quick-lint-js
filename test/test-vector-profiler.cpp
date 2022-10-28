@@ -215,8 +215,8 @@ TEST(test_instrumented_vector, DISABLED_) {}
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner, no_events) {
   vector_instrumentation data;
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram, IsEmpty());
+  vector_max_size_histogram_by_owner histogram;
+  EXPECT_THAT(histogram.histogram(), IsEmpty());
 }
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner,
@@ -244,12 +244,14 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*size=*/0,
       /*capacity=*/0);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram,
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist,
               UnorderedElementsAre(Key("first"), Key("second"), Key("third")));
-  EXPECT_THAT(histogram["first"], UnorderedElementsAre(std::pair(3, 1)));
-  EXPECT_THAT(histogram["second"], UnorderedElementsAre(std::pair(5, 1)));
-  EXPECT_THAT(histogram["third"], UnorderedElementsAre(std::pair(0, 1)));
+  EXPECT_THAT(hist["first"], UnorderedElementsAre(std::pair(3, 1)));
+  EXPECT_THAT(hist["second"], UnorderedElementsAre(std::pair(5, 1)));
+  EXPECT_THAT(hist["third"], UnorderedElementsAre(std::pair(0, 1)));
 }
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner,
@@ -287,8 +289,10 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*size=*/0,
       /*capacity=*/10);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram[owner], UnorderedElementsAre(std::pair(5, 1)));
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(5, 1)));
 }
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner,
@@ -319,8 +323,10 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*size=*/3,
       /*capacity=*/10);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram[owner], UnorderedElementsAre(std::pair(10, 1)));
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(10, 1)));
 }
 
 TEST(
@@ -361,8 +367,10 @@ TEST(
       /*size=*/11,
       /*capacity=*/11);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram[owner],
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist[owner],
               UnorderedElementsAre(std::pair(4, 1), std::pair(11, 1)));
 }
 
@@ -403,8 +411,10 @@ TEST(
       /*size=*/2,
       /*capacity=*/2);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram[owner],
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist[owner],
               UnorderedElementsAre(std::pair(3, 1), std::pair(2, 1)));
 }
 
@@ -454,8 +464,10 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*size=*/size,
       /*capacity=*/size);
 
-  auto histogram = data.max_size_histogram_by_owner();
-  EXPECT_THAT(histogram[owner], UnorderedElementsAre(std::pair(size, 3)));
+  vector_max_size_histogram_by_owner histogram;
+  histogram.add_entries(data.entries());
+  auto hist = histogram.histogram();
+  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(size, 3)));
 }
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
