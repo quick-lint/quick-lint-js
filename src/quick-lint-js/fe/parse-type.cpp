@@ -35,7 +35,6 @@ void parser::parse_typescript_colon_for_type() {
   this->skip();
   if (this->options_.typescript || this->in_typescript_only_construct_) {
     if (this->peek().type == token_type::question) {
-      auto peek_span = this->peek().span();
       this->diag_reporter_->report(
           diag_typescript_question_in_parameters_should_be_void{
               .question = source_code_span(this->peek().span())});
