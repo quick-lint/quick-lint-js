@@ -57,18 +57,6 @@ class vector_instrumentation {
   std::map<std::string_view, std::map<std::size_t, int>>
   max_size_histogram_by_owner() const;
 
-  struct dump_options {
-    int maximum_line_length = (std::numeric_limits<int>::max)();
-    int max_adjacent_empty_rows = (std::numeric_limits<int>::max)();
-  };
-
-  static void dump_max_size_histogram(
-      const std::map<std::string_view, std::map<std::size_t, int>> &,
-      std::ostream &);
-  static void dump_max_size_histogram(
-      const std::map<std::string_view, std::map<std::size_t, int>> &,
-      std::ostream &, const dump_options &options);
-
   struct capacity_change_histogram {
     // Number of times an append caused the vector to create its initial
     // capacity.
@@ -119,6 +107,18 @@ class vector_max_size_histogram_by_owner {
   void add_entries(const std::vector<vector_instrumentation::entry> &);
 
   std::map<std::string_view, std::map<std::size_t, int>> histogram() const;
+
+  struct dump_options {
+    int maximum_line_length = (std::numeric_limits<int>::max)();
+    int max_adjacent_empty_rows = (std::numeric_limits<int>::max)();
+  };
+
+  static void dump(
+      const std::map<std::string_view, std::map<std::size_t, int>> &,
+      std::ostream &);
+  static void dump(
+      const std::map<std::string_view, std::map<std::size_t, int>> &,
+      std::ostream &, const dump_options &options);
 
  private:
   hash_map<const char *, hash_map<std::size_t, int>> histogram_;

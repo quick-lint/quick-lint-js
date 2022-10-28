@@ -80,81 +80,6 @@ vector_instrumentation::max_size_histogram_by_owner() const {
   return histogram.histogram();
 }
 
-void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
-    std::ostream &out) {
-  return dump_max_size_histogram(histogram, out, dump_options());
-}
-
-void vector_instrumentation::dump_max_size_histogram(
-    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
-    std::ostream &out, const dump_options &options) {
-  bool need_blank_line = false;
-  for (const auto &[group_name, object_size_histogram] : histogram) {
-    QLJS_ASSERT(!object_size_histogram.empty());
-
-    if (need_blank_line) {
-      out << '\n';
-    }
-    need_blank_line = true;
-
-    out << "Max sizes for " << group_name << ":\n";
-
-    int max_count = 0;
-    int total_count = 0;
-    for (const auto &[_object_size, count] : object_size_histogram) {
-      total_count += count;
-      max_count = std::max(max_count, count);
-    }
-    std::size_t max_object_size = object_size_histogram.rbegin()->first;
-
-    int max_digits_in_legend = static_cast<int>(
-        std::ceil(std::log10(static_cast<double>(max_object_size + 1))));
-    int legend_length = max_digits_in_legend + 9;
-    int maximum_bar_length = options.maximum_line_length - legend_length;
-    double bar_scale_factor = max_count > maximum_bar_length
-                                  ? static_cast<double>(maximum_bar_length) /
-                                        static_cast<double>(max_count)
-                                  : 1.0;
-
-    std::size_t next_object_size = 0;
-    for (auto &[object_size, count] : object_size_histogram) {
-      QLJS_ASSERT(count != 0);
-
-      QLJS_ASSERT(options.max_adjacent_empty_rows > 0);
-      if (object_size - next_object_size >
-          narrow_cast<std::size_t>(options.max_adjacent_empty_rows)) {
-        out << "...\n";
-      } else {
-        for (std::size_t i = next_object_size; i < object_size; ++i) {
-          out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
-        }
-      }
-
-      out << std::setw(max_digits_in_legend) << object_size << "  (";
-      if (count == total_count) {
-        out << "ALL";
-      } else {
-        double count_fraction =
-            static_cast<double>(count) / static_cast<double>(total_count);
-        out << std::setw(2) << std::round(count_fraction * 100) << "%";
-      }
-      out << ')';
-
-      int bar_width =
-          std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
-                                                  bar_scale_factor)));
-      out << "  ";
-      for (int i = 0; i < bar_width; ++i) {
-        out << '*';
-      }
-      out << '\n';
-
-      next_object_size = object_size + 1;
-    }
-  }
-}
-
 std::map<std::string_view, vector_instrumentation::capacity_change_histogram>
 vector_instrumentation::capacity_change_histogram_by_owner() const {
   std::lock_guard lock(this->mutex_);
@@ -265,12 +190,12 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
   bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
     std::atexit([]() -> void {
-      instance.dump_max_size_histogram(instance.max_size_histogram_by_owner(),
-                                       std::cerr,
-                                       dump_options{
-                                           .maximum_line_length = 80,
-                                           .max_adjacent_empty_rows = 5,
-                                       });
+      vector_max_size_histogram_by_owner::dump(
+          instance.max_size_histogram_by_owner(), std::cerr,
+          vector_max_size_histogram_by_owner::dump_options{
+              .maximum_line_length = 80,
+              .max_adjacent_empty_rows = 5,
+          });
       std::cerr << '\n';
       instance.dump_capacity_change_histogram(
           instance.capacity_change_histogram_by_owner(), std::cerr,
@@ -325,6 +250,82 @@ vector_max_size_histogram_by_owner::histogram() const {
   }
   return stable_histogram;
 }
+
+void vector_max_size_histogram_by_owner::dump(
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
+    std::ostream &out) {
+  return dump(histogram, out, dump_options());
+}
+
+void vector_max_size_histogram_by_owner::dump(
+    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
+    std::ostream &out, const dump_options &options) {
+  bool need_blank_line = false;
+  for (const auto &[group_name, object_size_histogram] : histogram) {
+    QLJS_ASSERT(!object_size_histogram.empty());
+
+    if (need_blank_line) {
+      out << '\n';
+    }
+    need_blank_line = true;
+
+    out << "Max sizes for " << group_name << ":\n";
+
+    int max_count = 0;
+    int total_count = 0;
+    for (const auto &[_object_size, count] : object_size_histogram) {
+      total_count += count;
+      max_count = std::max(max_count, count);
+    }
+    std::size_t max_object_size = object_size_histogram.rbegin()->first;
+
+    int max_digits_in_legend = static_cast<int>(
+        std::ceil(std::log10(static_cast<double>(max_object_size + 1))));
+    int legend_length = max_digits_in_legend + 9;
+    int maximum_bar_length = options.maximum_line_length - legend_length;
+    double bar_scale_factor = max_count > maximum_bar_length
+                                  ? static_cast<double>(maximum_bar_length) /
+                                        static_cast<double>(max_count)
+                                  : 1.0;
+
+    std::size_t next_object_size = 0;
+    for (auto &[object_size, count] : object_size_histogram) {
+      QLJS_ASSERT(count != 0);
+
+      QLJS_ASSERT(options.max_adjacent_empty_rows > 0);
+      if (object_size - next_object_size >
+          narrow_cast<std::size_t>(options.max_adjacent_empty_rows)) {
+        out << "...\n";
+      } else {
+        for (std::size_t i = next_object_size; i < object_size; ++i) {
+          out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+        }
+      }
+
+      out << std::setw(max_digits_in_legend) << object_size << "  (";
+      if (count == total_count) {
+        out << "ALL";
+      } else {
+        double count_fraction =
+            static_cast<double>(count) / static_cast<double>(total_count);
+        out << std::setw(2) << std::round(count_fraction * 100) << "%";
+      }
+      out << ')';
+
+      int bar_width =
+          std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
+                                                  bar_scale_factor)));
+      out << "  ";
+      for (int i = 0; i < bar_width; ++i) {
+        out << '*';
+      }
+      out << '\n';
+
+      next_object_size = object_size + 1;
+    }
+  }
+}
+
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

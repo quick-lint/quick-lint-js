@@ -474,7 +474,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
      dump_empty_histogram) {
   std::map<std::string_view, std::map<std::size_t, int>> histogram;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_EQ(stream.str(), "");
 }
 
@@ -485,7 +485,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["test group"][1] = 2;
   histogram["test group"][2] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  (50%)  ***
 1  (33%)  **
@@ -498,7 +498,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][0] = 2;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  (ALL)  **
 )");
@@ -512,7 +512,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["group B"][0] = 2;
   histogram["group B"][1] = 2;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for group A:
 0  (50%)  ***
 1  (50%)  ***
@@ -531,7 +531,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["test group"][5] = 1;
   histogram["test group"][9] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  ( 0%)
 1  (25%)  *
@@ -552,7 +552,7 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["test group"][3] = 1;
   histogram["test group"][100] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream);
+  vector_max_size_histogram_by_owner::dump(histogram, stream);
   EXPECT_THAT(stream.str(), HasSubstr("\n  3  ("));
   EXPECT_THAT(stream.str(), HasSubstr("\n100  ("));
 }
@@ -565,9 +565,9 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["test group"][2] = 25;
   histogram["test group"][3] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(
+  vector_max_size_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_options{
+      vector_max_size_histogram_by_owner::dump_options{
           .maximum_line_length = 20,
       });
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
@@ -587,9 +587,9 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   test_group[2] = 1;
   test_group[8] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(
+  vector_max_size_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_options{
+      vector_max_size_histogram_by_owner::dump_options{
           .max_adjacent_empty_rows = 3,
       });
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
@@ -606,9 +606,9 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   std::map<std::string_view, std::map<std::size_t, int>> histogram;
   histogram["test group"][100] = 99999;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(
+  vector_max_size_histogram_by_owner::dump(
       histogram, stream,
-      vector_instrumentation::dump_options{
+      vector_max_size_histogram_by_owner::dump_options{
           .maximum_line_length = 20,
       });
   EXPECT_THAT(stream.str(), HasSubstr("\n100  (ALL)  ********\n"));
