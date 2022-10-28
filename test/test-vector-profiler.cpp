@@ -49,7 +49,7 @@ TEST_F(test_instrumented_vector,
   }
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(
           AllOf(FIELD_EQ(vector_instrumentation::entry, object_id, v_object_id),
                 FIELD_EQ(vector_instrumentation::entry, owner, owner),
@@ -70,7 +70,7 @@ TEST_F(test_instrumented_vector, creating_vector_from_range_adds_entry) {
 
   std::uintptr_t v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(
           AllOf(FIELD_EQ(vector_instrumentation::entry, object_id, v_object_id),
                 FIELD_EQ(vector_instrumentation::entry, owner, owner),
@@ -90,7 +90,7 @@ TEST_F(test_instrumented_vector, append_to_vector_adds_entries) {
   v.emplace_back(400);
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(AllOf(FIELD_EQ(vector_instrumentation::entry, event,
                                  vector_instrumentation::event::append),
                         FIELD_EQ(vector_instrumentation::entry, size, 1)),
@@ -114,7 +114,7 @@ TEST_F(test_instrumented_vector, clearing_vector_adds_entry) {
   v.clear();
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(AllOf(FIELD_EQ(vector_instrumentation::entry, event,
                                  vector_instrumentation::event::clear),
                         FIELD_EQ(vector_instrumentation::entry, size, 0))));
@@ -133,7 +133,7 @@ TEST_F(test_instrumented_vector, moving_vector_with_new_owner_adds_entries) {
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(vector_instrumentation::entry, owner, v_2_owner),
@@ -161,7 +161,7 @@ TEST_F(test_instrumented_vector, moving_vector_with_no_owner_adds_entries) {
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(vector_instrumentation::entry, owner, v_1_owner),
@@ -192,7 +192,7 @@ TEST_F(test_instrumented_vector, move_assigning_vector_adds_entries) {
   v_1 = std::move(v_2);
 
   EXPECT_THAT(
-      vector_instrumentation::instance.entries(),
+      vector_instrumentation::instance.take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(vector_instrumentation::entry, owner, v_1_owner),
@@ -208,6 +208,40 @@ TEST_F(test_instrumented_vector, move_assigning_vector_adds_entries) {
               FIELD_EQ(vector_instrumentation::entry, size, 0))));
 }
 #endif
+
+TEST(test_vector_instrumentation, take_no_entries) {
+  vector_instrumentation data;
+  EXPECT_THAT(data.take_entries(), IsEmpty());
+  EXPECT_THAT(data.take_entries(), IsEmpty());
+}
+
+TEST(test_vector_instrumentation, take_one_entry) {
+  vector_instrumentation data;
+
+  data.add_entry(
+      /*object_id=*/1,
+      /*owner=*/"first",
+      /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
+      /*size=*/1,
+      /*capacity=*/1);
+  auto entries_1 = data.take_entries();
+  ASSERT_THAT(entries_1, ElementsAre(::testing::_));
+  EXPECT_STREQ(entries_1[0].owner, "first");
+
+  data.add_entry(
+      /*object_id=*/2,
+      /*owner=*/"second",
+      /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
+      /*size=*/1,
+      /*capacity=*/1);
+  auto entries_2 = data.take_entries();
+  ASSERT_THAT(entries_2, ElementsAre(::testing::_));
+  EXPECT_STREQ(entries_2[0].owner, "second");
+
+  EXPECT_THAT(data.take_entries(), IsEmpty());
+}
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner, no_events) {
   vector_instrumentation data;
@@ -241,7 +275,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*capacity=*/0);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist,
               UnorderedElementsAre(Key("first"), Key("second"), Key("third")));
@@ -286,7 +320,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*capacity=*/10);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(5, 1)));
 }
@@ -320,7 +354,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*capacity=*/10);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(10, 1)));
 }
@@ -364,7 +398,7 @@ TEST(
       /*capacity=*/11);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist[owner],
               UnorderedElementsAre(std::pair(4, 1), std::pair(11, 1)));
@@ -408,7 +442,7 @@ TEST(
       /*capacity=*/2);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist[owner],
               UnorderedElementsAre(std::pair(3, 1), std::pair(2, 1)));
@@ -461,7 +495,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*capacity=*/size);
 
   vector_max_size_histogram_by_owner histogram;
-  histogram.add_entries(data.entries());
+  histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
   EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(size, 3)));
 }

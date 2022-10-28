@@ -70,6 +70,16 @@ std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
   return this->entries_;
 }
 
+std::vector<vector_instrumentation::entry>
+vector_instrumentation::take_entries() {
+  std::vector<vector_instrumentation::entry> result;
+  {
+    std::lock_guard lock(this->mutex_);
+    swap(result, this->entries_);
+  }
+  return result;
+}
+
 std::map<std::string_view, std::map<std::size_t, int>>
 vector_instrumentation::max_size_histogram_by_owner() const {
   vector_max_size_histogram_by_owner histogram;

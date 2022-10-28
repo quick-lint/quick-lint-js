@@ -52,7 +52,11 @@ class vector_instrumentation {
 #endif
 
   void clear();
+
+  // TODO(strager): Delete.
   std::vector<entry> entries() const;
+
+  std::vector<entry> take_entries();
 
   std::map<std::string_view, std::map<std::size_t, int>>
   max_size_histogram_by_owner() const;
