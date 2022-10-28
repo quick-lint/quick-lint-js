@@ -37,7 +37,7 @@ void parser::parse_typescript_colon_for_type() {
     if (this->peek().type == token_type::question) {
       this->diag_reporter_->report(
           diag_typescript_question_in_parameters_should_be_void{
-              .question = source_code_span(this->peek().span())});
+              .question = this->peek().span())};
       this->skip();
     } else {
       parser_transaction transaction = this->begin_transaction();
