@@ -49,7 +49,7 @@ class configuration {
   bool did_add_globals_from_groups_ = false;
   std::array<bool, global_group_count> enabled_global_groups_;
   bool literally_anything_global_group_enabled_ = false;
-  monotonic_allocator string_allocator_;
+  monotonic_allocator string_allocator_{"configuration::string_allocator_"};
 
   string8_view save_string(std::string_view s);
 };
