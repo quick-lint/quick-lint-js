@@ -279,7 +279,7 @@ parse_statement:
     case token_type::kw_export: {
       if (this->peek().has_leading_newline) {
         // async  // ASI
-        // function f() {}
+        // export function f() {}
         v.visit_variable_use(async_token.identifier_name());
         break;
       }
