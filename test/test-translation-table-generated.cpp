@@ -165,6 +165,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'async export' is not allowed; write 'export async' instead"_translatable,
+        {
+            u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
+            u8"'async export' is not allowed; write 'export async' instead",
+        },
+    },
+    {
         "'async static' is not allowed; write 'static async' instead"_translatable,
         {
             u8"'async static' is not allowed; write 'static async' instead",
@@ -239,6 +250,17 @@ const translated_string test_translation_table[] = {
             u8"'for' loop",
             u8"loop 'for'",
             u8"'for' loop",
+        },
+    },
+    {
+        "'function async' is not allowed; write 'async function' instead"_translatable,
+        {
+            u8"'function async' is not allowed; write 'async function' instead",
+            u8"'function async' is not allowed; write 'async function' instead",
+            u8"'function async' is not allowed; write 'async function' instead",
+            u8"'function async' is not allowed; write 'async function' instead",
+            u8"'function async' is not allowed; write 'async function' instead",
+            u8"'function async' is not allowed; write 'async function' instead",
         },
     },
     {

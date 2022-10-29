@@ -274,7 +274,26 @@ parse_statement:
       this->skip();
       this->check_body_after_label();
       goto parse_statement;
-
+      // "async export function f()" is not valid. It should be "export async
+      // function f()"
+    case token_type::kw_export: {
+      if (this->peek().has_leading_newline) {
+        // async  // ASI
+        // function f() {}
+        v.visit_variable_use(async_token.identifier_name());
+        break;
+      }
+      this->diag_reporter_->report(
+          diag_async_export_function{.async_export = source_code_span(
+                                         async_token.begin, this->peek().end)});
+      this->skip();
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::async,
+          /*begin=*/async_token.begin,
+          /*require_name=*/
+          name_requirement::required_for_statement);
+      break;
+    }
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
@@ -1651,6 +1670,20 @@ parser::parse_and_visit_function_parameters(
             source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return function_parameter_parse_result::missing_parameters_ignore_body;
+
+    // function async f() {}  // Invalid. Should be async function f() {}
+  case token_type::identifier:
+    // TODO: Make parse_and_visit_function_parameters accept a token instead of
+    // a source_code_span so we can compare the token type instead of strings.
+    if (name->string_view() == u8"async"_sv) {
+      this->diag_reporter_->report(diag_function_async_function{
+          .function_async = this->peek().span(),
+      });
+      this->skip();
+      return this->parse_and_visit_function_parameters(v, name);
+    }
+    QLJS_PARSER_UNIMPLEMENTED();
+    return function_parameter_parse_result::parsed_parameters;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
