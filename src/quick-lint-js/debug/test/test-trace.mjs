@@ -326,6 +326,41 @@ describe("trace", () => {
     ]);
   });
 
+  it("read LSP client to server message in two parts", () => {
+    // prettier-ignore
+    let message = new Uint8Array([
+      // Timestamp
+      0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      // Event ID
+      0x06,
+      // Body
+      2, 0, 0, 0, 0, 0, 0, 0,  // Size
+      ord('{'), ord('}'),
+    ]).buffer;
+
+    for (
+      let firstChunkSize = 1;
+      firstChunkSize < message.byteLength - 1;
+      ++firstChunkSize
+    ) {
+      let secondChunkSize = message.byteLength - firstChunkSize;
+
+      let reader = new TraceReader();
+      reader.appendBytes(examplePacketHeader);
+      reader.appendBytes(message.slice(0, firstChunkSize));
+      reader.appendBytes(message.slice(firstChunkSize));
+
+      expect(reader.error).toBeNull();
+      expect(reader.pullNewEvents()).toEqual([
+        {
+          timestamp: 0x5678n,
+          eventType: TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE,
+          body: "{}",
+        },
+      ]);
+    }
+  });
+
   it("many messages", () => {
     let reader = new TraceReader();
     reader.appendBytes(examplePacketHeader);
