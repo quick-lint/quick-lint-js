@@ -25,14 +25,16 @@ const translation_table translation_data = {
         {93, 63, 151, 70, 130, 70},          //
         {0, 0, 0, 36, 0, 37},                //
         {0, 0, 0, 100, 0, 89},               //
-        {50, 77, 41, 27, 0, 24},             //
+        {0, 0, 0, 0, 0, 24},                 //
+        {50, 77, 41, 27, 0, 60},             //
         {70, 31, 69, 53, 0, 60},             //
         {93, 15, 80, 68, 26, 69},            //
         {71, 48, 0, 44, 0, 43},              //
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 39, 0, 33},                //
         {30, 39, 0, 46, 0, 38},              //
-        {0, 0, 0, 11, 0, 11},                //
+        {0, 0, 0, 0, 0, 11},                 //
+        {0, 0, 0, 11, 0, 64},                //
         {13, 16, 0, 22, 0, 19},              //
         {13, 24, 37, 17, 31, 15},            //
         {0, 0, 0, 53, 0, 48},                //
@@ -1699,6 +1701,7 @@ const translation_table translation_data = {
         u8"'?' creates a conditional expression\0"
         u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"
         u8"'as const' located here\0"
+        u8"'async export' is not allowed; write 'export async' instead\0"
         u8"'async static' is not allowed; write 'static async' instead\0"
         u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
         u8"'await' is only allowed in async functions\0"
@@ -1706,6 +1709,7 @@ const translation_table translation_data = {
         u8"'else' has no corresponding 'if'\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
+        u8"'function async' is not allowed; write 'async function' instead\0"
         u8"'function' is here\0"
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"

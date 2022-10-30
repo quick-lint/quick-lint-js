@@ -195,7 +195,7 @@ class expression_arena {
     return result;
   }
 
-  monotonic_allocator allocator_;
+  monotonic_allocator allocator_{"expression_arena"};
 };
 
 class expression {

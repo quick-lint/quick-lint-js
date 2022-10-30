@@ -13,6 +13,8 @@ Semantic Versioning.
 * `switch (c) { case A: break; case A: break; }` now reports [E0347][]
   ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
 * Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).
+* Mixing up the order of the `export`, `async`, and `function` keywords now
+  reports [E0326][] or [E0327][] (implemented by [Alek Lefebvre][]).
 
 ### Fixed
 
@@ -23,6 +25,8 @@ Semantic Versioning.
 * `0o123.toString()`, `0x123.toString()`, `0b101.toString()`, and
   `0123.toString()` no longer incorrectly report [E0046][], [E0047][], or
   [E0048][].
+* Using a variable called `async`, then exporting something, no longer reports
+  an unexpected token error (implemented by [Alek Lefebvre][]).
 
 ## 2.10.0 (2022-10-14)
 
@@ -706,6 +710,7 @@ Beta release.
 [cli-language]: ../cli/#language
 
 [AidenThing]: https://github.com/AidenThing
+[Alek Lefebvre]: https://github.com/AlekLefebvre
 [Amir]: https://github.com/ahmafi
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
@@ -814,6 +819,8 @@ Beta release.
 [E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
+[E0326]: https://quick-lint-js.com/errors/E0326/
+[E0327]: https://quick-lint-js.com/errors/E0327/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
 [E0345]: https://quick-lint-js.com/errors/E0345/

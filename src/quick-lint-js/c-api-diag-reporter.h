@@ -47,7 +47,8 @@ class c_api_diag_reporter final : public diag_reporter {
   std::vector<Diagnostic> diagnostics_;
   const Locator *locator_;
   const char8 *input_;
-  monotonic_allocator string_allocator_;
+  monotonic_allocator string_allocator_{
+      "c_api_diag_reporter::string_allocator_"};
 
   friend c_api_diag_formatter<Diagnostic, Locator>;
 };

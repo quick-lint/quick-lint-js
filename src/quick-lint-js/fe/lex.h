@@ -334,8 +334,9 @@ class lexer {
   diag_reporter* diag_reporter_;
   padded_string_view original_input_;
 
-  monotonic_allocator allocator_;
-  linked_bump_allocator<alignof(void*)> transaction_allocator_;
+  monotonic_allocator allocator_{"lexer::allocator_"};
+  linked_bump_allocator<alignof(void*)> transaction_allocator_{
+      "lexer::transaction_allocator_"};
 };
 
 struct lexer_transaction {

@@ -41,7 +41,9 @@ class linked_bump_allocator : public memory_resource {
  public:
   static inline constexpr std::size_t alignment = Alignment;
 
-  explicit linked_bump_allocator() = default;
+  explicit linked_bump_allocator(const char* debug_owner) {
+    static_cast<void>(debug_owner);
+  }
 
   linked_bump_allocator(const linked_bump_allocator&) = delete;
   linked_bump_allocator& operator=(const linked_bump_allocator&) = delete;

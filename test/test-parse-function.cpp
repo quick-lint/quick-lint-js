@@ -204,6 +204,38 @@ TEST_F(test_parse_function, async_function_statement) {
   }
 }
 
+TEST_F(test_parse_function, async_keyword_order_diagnostic) {
+  {
+    test_parser p(u8"export async function f() { await myPromise; };"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+  }
+
+  {
+    test_parser p(u8"async export function f() { await myPromise; };"_sv,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_async_export_function,  //
+                              async_export, 0, u8"async export")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+  }
+
+  {
+    test_parser p(u8"async function f() {};"_sv);
+    p.parse_and_visit_statement();
+    ASSERT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"f");
+  }
+
+  {
+    test_parser p(u8"function async f() {};"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_function_async_function)));
+  }
+}
+
 TEST_F(test_parse_function,
        async_function_cannot_have_newline_after_async_keyword) {
   {
@@ -220,6 +252,24 @@ TEST_F(test_parse_function,
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"async", u8"myPromise"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(diag_await_operator_outside_async)));
+  }
+}
+
+TEST_F(test_parse_function, let_async_async_newline_export_is_valid) {
+  {
+    test_parser p(u8"let async;\nasync\nexport function f() { }"_sv,
+                  capture_diags);
+    p.parse_and_visit_module();
+    ASSERT_EQ(p.variable_declarations.size(), 2);
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_variable_declaration",  // let async
+                            "visit_variable_use",          // async
+                            "visit_variable_declaration",  // export function f
+                            "visit_enter_function_scope",  //
+                            "visit_enter_function_scope_body",  //
+                            "visit_exit_function_scope",        //
+                            "visit_end_of_module"));
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

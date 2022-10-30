@@ -792,14 +792,15 @@ class parser {
   expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
-  monotonic_allocator temporary_memory_;
+  monotonic_allocator temporary_memory_{"parser::temporary_memory_"};
 
   // Memory used for strings in diagnostic messages.
-  monotonic_allocator diagnostic_memory_;
+  monotonic_allocator diagnostic_memory_{"parser::diagnostic_memory_"};
 
   // Memory used for TypeScript type expressions.
   // TODO(strager): Rewind periodically (e.g. after parsing a function body).
-  monotonic_allocator type_expression_memory_;
+  monotonic_allocator type_expression_memory_{
+      "parser::type_expression_memory_"};
 
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.

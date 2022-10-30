@@ -24,7 +24,7 @@ TEST(test_buffering_diag_reporter, buffers_all_visits) {
   padded_string let_code(u8"let"_sv);
   padded_string expression_code(u8"2+2==5"_sv);
 
-  linked_bump_allocator<alignof(void*)> memory;
+  linked_bump_allocator<alignof(void*)> memory("test");
   buffering_diag_reporter diag_reporter(&memory);
   diag_reporter.report(diag_let_with_no_bindings{.where = span_of(let_code)});
   diag_reporter.report(diag_expected_parenthesis_around_if_condition{
@@ -48,7 +48,7 @@ TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
   // This test relies on a leak checker such as Valgrind's memtest or
   // Clang's LeakSanitizer.
 
-  linked_bump_allocator<alignof(void*)> memory;
+  linked_bump_allocator<alignof(void*)> memory("test");
   alignas(buffering_diag_reporter)
       std::byte diag_reporter_storage[sizeof(buffering_diag_reporter)];
   buffering_diag_reporter* diag_reporter =
