@@ -139,7 +139,7 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "Invalid usage of ? in the parameter, use '|void' instead."
+msgid "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
@@ -361,6 +361,7 @@ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "._."
 

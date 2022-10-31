@@ -162,7 +162,7 @@ msgstr ""
 "implementiert"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "Invalid usage of ? in the parameter, use '|void' instead."
+msgid "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
@@ -377,6 +377,7 @@ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
