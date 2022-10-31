@@ -346,11 +346,11 @@ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "'.' não é permitido após argumentos genéricos; use [\"{1}\"]"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "falta o nome da propriedade entre '.' e '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

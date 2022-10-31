@@ -385,11 +385,11 @@ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "'async static' n'est pas autorisé ; utiliser plutôt 'static async'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "nom de propriété manquante entre '.' et '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

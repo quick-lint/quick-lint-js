@@ -377,11 +377,11 @@ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
