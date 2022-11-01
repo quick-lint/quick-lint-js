@@ -4,11 +4,14 @@
 #ifndef QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
 #define QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
 
+#include <cstddef>
 #include <cstdint>
+#include <map>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-writer.h>
+#include <string_view>
 
 namespace quick_lint_js {
 struct trace_context {
@@ -84,6 +87,13 @@ struct trace_event_lsp_client_to_server_message {
   string8_view body;
 };
 
+struct trace_event_vector_max_size_histogram_by_owner {
+  static constexpr std::uint8_t id = 0x07;
+
+  std::uint64_t timestamp;
+  std::map<std::string_view, std::map<std::size_t, int>>* histogram;
+};
+
 class trace_writer {
  public:
   explicit trace_writer(async_byte_queue*);
@@ -113,6 +123,9 @@ class trace_writer {
 
   void write_event_lsp_client_to_server_message(
       const trace_event_lsp_client_to_server_message&);
+
+  void write_event_vector_max_size_histogram_by_owner(
+      const trace_event_vector_max_size_histogram_by_owner&);
 
  private:
   template <class Func>

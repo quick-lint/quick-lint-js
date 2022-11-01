@@ -85,6 +85,11 @@ class counting_trace_stream_event_visitor : public trace_stream_event_visitor {
       const lsp_client_to_server_message_event&) override {
     ++this->event_index;
   }
+
+  void visit_vector_max_size_histogram_by_owner_event(
+      const vector_max_size_histogram_by_owner_event&) override {
+    ++this->event_index;
+  }
 };
 
 class document_content_dumper : public counting_trace_stream_event_visitor {
@@ -143,6 +148,11 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
       this->doc_.replace_text(to_lsp_range(change.range),
                               utf_16_to_utf_8(change.text));
     }
+  }
+
+  void visit_vector_max_size_histogram_by_owner_event(
+      const vector_max_size_histogram_by_owner_event& event) override {
+    base::visit_vector_max_size_histogram_by_owner_event(event);
   }
 
   void print_document_content() {
@@ -260,6 +270,11 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     doc.last_sync = this->event_index;
   }
 
+  void visit_vector_max_size_histogram_by_owner_event(
+      const vector_max_size_histogram_by_owner_event& event) override {
+    base::visit_vector_max_size_histogram_by_owner_event(event);
+  }
+
  private:
   struct document_info {
     std::uint64_t last_sync = 0;
@@ -371,6 +386,15 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("client->server LSP message: ");
     this->print_utf8(event.body);
     std::printf("\n");
+  }
+
+  void visit_vector_max_size_histogram_by_owner_event(
+      const vector_max_size_histogram_by_owner_event& event) override {
+    base::visit_vector_max_size_histogram_by_owner_event(event);
+    if (!this->should_dump()) return;
+
+    this->print_event_header(event);
+    std::printf("vector max size histogram by owner\n");
   }
 
  private:

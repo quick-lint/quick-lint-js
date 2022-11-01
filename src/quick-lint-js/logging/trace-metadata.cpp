@@ -149,6 +149,26 @@ event {
   };
 };
 
+typealias struct {
+  u64 max_size;
+  u64 count;
+} := vector_max_size_histogram_entry;
+
+typealias struct {
+  utf8_zstring owner;
+  u64 max_size_entry_count;
+  vector_max_size_histogram_entry max_size_entries[max_size_entry_count];
+} := vector_max_size_histogram_by_owner_entry;
+
+event {
+  id = 7;
+  name = "vector_max_size_histogram_by_owner";
+  fields := struct {
+    u64 entry_count;
+    vector_max_size_histogram_by_owner_entry entries[entry_count];
+  };
+};
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

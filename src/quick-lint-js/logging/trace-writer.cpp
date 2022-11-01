@@ -52,6 +52,28 @@ void trace_writer::write_event_lsp_client_to_server_message(
   });
   this->out_->append_copy(event.body.data(), event.body.size());
 }
+
+void trace_writer::write_event_vector_max_size_histogram_by_owner(
+    const trace_event_vector_max_size_histogram_by_owner& event) {
+  this->append_binary(8 + 1 + 8, [&](binary_writer& w) {
+    w.u64_le(event.timestamp);
+    w.u8(event.id);
+    w.u64_le(event.histogram->size());
+  });
+  for (auto& [owner, max_size_histogram] : *event.histogram) {
+    this->out_->append_copy(owner.data(), owner.size());
+    this->out_->append_copy(u8'\0');
+    this->append_binary(
+        8 + (8 + 8) * max_size_histogram.size(),
+        [&, &max_size_histogram = max_size_histogram](binary_writer& w) {
+          w.u64_le(max_size_histogram.size());
+          for (auto& [max_size, count] : max_size_histogram) {
+            w.u64_le(max_size);
+            w.u64_le(narrow_cast<std::uint64_t>(count));
+          }
+        });
+  }
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

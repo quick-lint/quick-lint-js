@@ -309,6 +309,56 @@ TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
                   3, 0, 0, 0, 0, 0, 0, 0,  // Size
                   '{', ' ', '}'));
 }
+
+TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
+  async_byte_queue data;
+  trace_writer w(&data);
+
+  std::map<std::string_view, std::map<std::size_t, int>> histogram = {
+      {"o1"sv,
+       {
+           {0, 4},
+           {1, 3},
+       }},
+      {"o2"sv,
+       {
+           {3, 7},
+       }},
+  };
+  w.write_event_vector_max_size_histogram_by_owner(
+      trace_event_vector_max_size_histogram_by_owner{
+          .timestamp = 0x5678,
+          .histogram = &histogram,
+      });
+
+  data.commit();
+  EXPECT_THAT(data.take_committed_string8(),
+              ElementsAre(
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // Event ID
+                  0x07,
+
+                  // Entry count
+                  2, 0, 0, 0, 0, 0, 0, 0,
+
+                  // Entry 0 owner
+                  'o', '1', 0,
+                  // Entry 0 max size entries
+                  2, 0, 0, 0, 0, 0, 0, 0,  // Count
+                  0, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+                  4, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
+                  1, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 max size
+                  3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 count
+
+                  // Entry 1 owner
+                  'o', '2', 0,
+                  // Entry 1 max size entries
+                  1, 0, 0, 0, 0, 0, 0, 0,    // Count
+                  3, 0, 0, 0, 0, 0, 0, 0,    // Max size entry 0 max size
+                  7, 0, 0, 0, 0, 0, 0, 0));  // Max size entry 0 count
+}
 }
 }
 

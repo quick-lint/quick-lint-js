@@ -347,6 +347,79 @@ TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
                               u8"{}"sv))));
   read_trace_stream(stream.data(), stream.size(), v);
 }
+
+TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
+  auto stream = concat(example_packet_header,
+                       make_array_explicit<std::uint8_t>(
+                           // Timestamp
+                           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Event ID
+                           0x07,
+
+                           // Entry count
+                           2, 0, 0, 0, 0, 0, 0, 0,
+
+                           // Entry 0 owner
+                           'o', '1', 0,
+                           // Entry 0 max size entries
+                           2, 0, 0, 0, 0, 0, 0, 0,  // Count
+                           0, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+                           4, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
+                           1, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 max size
+                           3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 count
+
+                           // Entry 1 owner
+                           'o', '2', 0,
+                           // Entry 1 max size entries
+                           1, 0, 0, 0, 0, 0, 0, 0,  // Count
+                           3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+                           7, 0, 0, 0, 0, 0, 0, 0));  // Max size entry 0 count
+
+  nice_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(
+      v,
+      visit_vector_max_size_histogram_by_owner_event(::testing::AllOf(
+          ::testing::Field(
+              &trace_stream_event_visitor::
+                  vector_max_size_histogram_by_owner_event::timestamp,
+              0x5678),
+          ::testing::Field(
+              &trace_stream_event_visitor::
+                  vector_max_size_histogram_by_owner_event::entries,
+              ElementsAre(  //
+                  ::testing::AllOf(
+                      ::testing::Field(
+                          &trace_stream_event_visitor::
+                              vector_max_size_histogram_by_owner_entry::owner,
+                          u8"o1"sv),
+                      ::testing::Field(
+                          &trace_stream_event_visitor::
+                              vector_max_size_histogram_by_owner_entry::
+                                  max_size_entries,
+                          ElementsAre(
+                              trace_stream_event_visitor::
+                                  vector_max_size_histogram_entry{.max_size = 0,
+                                                                  .count = 4},
+                              trace_stream_event_visitor::
+                                  vector_max_size_histogram_entry{
+                                      .max_size = 1, .count = 3}))),
+
+                  ::testing::AllOf(
+                      ::testing::Field(
+                          &trace_stream_event_visitor::
+                              vector_max_size_histogram_by_owner_entry::owner,
+                          u8"o2"sv),
+                      ::testing::Field(
+                          &trace_stream_event_visitor::
+                              vector_max_size_histogram_by_owner_entry::
+                                  max_size_entries,
+                          ElementsAre(
+                              trace_stream_event_visitor::
+                                  vector_max_size_histogram_entry{
+                                      .max_size = 3, .count = 7}))))))));
+  read_trace_stream(stream.data(), stream.size(), v);
+}
 }
 }
 

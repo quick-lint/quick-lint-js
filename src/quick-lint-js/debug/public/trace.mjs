@@ -8,6 +8,7 @@ export const TraceEventType = {
   VSCODE_DOCUMENT_CHANGED: 4,
   VSCODE_DOCUMENT_SYNC: 5,
   LSP_CLIENT_TO_SERVER_MESSAGE: 6,
+  VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER: 7,
 };
 
 // Reads quick-lint-js trace streams as documented in docs/TRACING.md.
@@ -156,6 +157,25 @@ export class TraceReader {
         case TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE: {
           let body = r.utf8String();
           this._event({ timestamp, eventType, body });
+          return;
+        }
+
+        case TraceEventType.VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER: {
+          let entryCount = r.u64BigInt();
+          let entries = [];
+          for (let i = 0n; i < entryCount; ++i) {
+            let owner = r.utf8ZString();
+            let maxSizeEntryCount = r.u64BigInt();
+            let maxSizeEntries = [];
+            for (let j = 0n; j < maxSizeEntryCount; ++j) {
+              maxSizeEntries.push({
+                maxSize: r.u64BigInt(),
+                count: r.u64BigInt(),
+              });
+            }
+            entries.push({ owner, maxSizeEntries });
+          }
+          this._event({ timestamp, eventType, entries });
           return;
         }
 

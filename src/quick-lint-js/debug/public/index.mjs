@@ -130,6 +130,9 @@ class DebugServerSocket extends EventEmitter {
         case TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE:
           this.emit("lspClientToServerMessageEvent", event);
           break;
+        case TraceEventType.VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER:
+          this.emit("vectorMaxSizeHistogramByOwner", event);
+          break;
         default:
           this.emit("unknownTraceEvent", event);
           break;

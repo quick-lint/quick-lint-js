@@ -31,6 +31,13 @@ void read_trace_stream(const void* data, std::size_t data_size,
     static_assert(sizeof(char8) == sizeof(std::uint8_t));
     return string8_view(reinterpret_cast<const char8*>(bytes), length);
   };
+  auto read_utf8_zstring = [&r]() -> string8_view {
+    const std::uint8_t* bytes = r.cursor();
+    r.find_and_skip_byte(0x00);
+    const std::uint8_t* end = r.cursor() - 1;
+    return string8_view(reinterpret_cast<const char8*>(bytes),
+                        narrow_cast<std::size_t>(end - bytes));
+  };
 
   std::uint32_t magic = r.u32_le();
   if (magic != 0xc1fc1fc1) {
@@ -143,6 +150,33 @@ void read_trace_stream(const void* data, std::size_t data_size,
               .body = read_utf8_string(),
           });
       break;
+
+    case 0x07: {
+      std::uint64_t entry_count = r.u64_le();
+      std::vector<
+          trace_stream_event_visitor::vector_max_size_histogram_by_owner_entry>
+          entries;
+      for (std::uint64_t i = 0; i < entry_count; ++i) {
+        entries.emplace_back();
+        trace_stream_event_visitor::vector_max_size_histogram_by_owner_entry&
+            entry = entries.back();
+        entry.owner = read_utf8_zstring();
+        std::uint64_t max_size_entry_count = r.u64_le();
+        for (std::uint64_t j = 0; j < max_size_entry_count; ++j) {
+          entry.max_size_entries.push_back(
+              trace_stream_event_visitor::vector_max_size_histogram_entry{
+                  .max_size = r.u64_le(),
+                  .count = r.u64_le(),
+              });
+        }
+      }
+      v.visit_vector_max_size_histogram_by_owner_event(
+          trace_stream_event_visitor::vector_max_size_histogram_by_owner_event{
+              .timestamp = timestamp,
+              .entries = std::move(entries),
+          });
+      break;
+    }
 
     default:
       // TODO(strager): Report an error.

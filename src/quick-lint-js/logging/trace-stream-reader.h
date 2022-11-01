@@ -82,6 +82,33 @@ class trace_stream_event_visitor {
     string8_view body;
   };
 
+  struct vector_max_size_histogram_entry {
+    std::uint64_t max_size;
+    std::uint64_t count;
+
+    friend bool operator==(
+        const vector_max_size_histogram_entry& lhs,
+        const vector_max_size_histogram_entry& rhs) noexcept {
+      return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
+    }
+
+    friend bool operator!=(
+        const vector_max_size_histogram_entry& lhs,
+        const vector_max_size_histogram_entry& rhs) noexcept {
+      return !(lhs == rhs);
+    }
+  };
+
+  struct vector_max_size_histogram_by_owner_entry {
+    string8_view owner;
+    std::vector<vector_max_size_histogram_entry> max_size_entries;
+  };
+
+  struct vector_max_size_histogram_by_owner_event {
+    std::uint64_t timestamp;
+    std::vector<vector_max_size_histogram_by_owner_entry> entries;
+  };
+
   virtual ~trace_stream_event_visitor() = 0;
 
   virtual void visit_error_invalid_magic() = 0;
@@ -101,6 +128,8 @@ class trace_stream_event_visitor {
       const vscode_document_sync_event&) = 0;
   virtual void visit_lsp_client_to_server_message_event(
       const lsp_client_to_server_message_event&) = 0;
+  virtual void visit_vector_max_size_histogram_by_owner_event(
+      const vector_max_size_histogram_by_owner_event&) = 0;
 };
 }
 

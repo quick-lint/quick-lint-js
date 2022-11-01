@@ -361,6 +361,58 @@ describe("trace", () => {
     }
   });
 
+  it("vector max size histogram by owner", () => {
+    let reader = new TraceReader();
+    reader.appendBytes(examplePacketHeader);
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Event ID
+      0x07,
+
+      // Entry count
+      2, 0, 0, 0, 0, 0, 0, 0,
+
+      // Entry 0 owner
+      ord('o'), ord('1'), 0,
+      // Entry 0 max size entries
+      2, 0, 0, 0, 0, 0, 0, 0,  // Count
+      0, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+      4, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
+      1, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 max size
+      3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 count
+
+      // Entry 1 owner
+      ord('o'), ord('2'), 0,
+      // Entry 1 max size entries
+      1, 0, 0, 0, 0, 0, 0, 0,  // Count
+      3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+      7, 0, 0, 0, 0, 0, 0, 0,
+    ]).buffer);
+    expect(reader.error).toBeNull();
+    expect(reader.pullNewEvents()).toEqual([
+      {
+        timestamp: 0x5678n,
+        eventType: TraceEventType.VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER,
+        entries: [
+          {
+            owner: "o1",
+            maxSizeEntries: [
+              { maxSize: 0n, count: 4n },
+              { maxSize: 1n, count: 3n },
+            ],
+          },
+          {
+            owner: "o2",
+            maxSizeEntries: [{ maxSize: 3n, count: 7n }],
+          },
+        ],
+      },
+    ]);
+  });
+
   it("many messages", () => {
     let reader = new TraceReader();
     reader.appendBytes(examplePacketHeader);
