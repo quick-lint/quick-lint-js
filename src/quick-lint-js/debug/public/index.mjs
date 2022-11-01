@@ -92,12 +92,12 @@ class DebugServerSocket extends EventEmitter {
     this.traceReaders = new Map(); // Key is the thread index.
 
     this.webSocket.addEventListener("message", (event) => {
-      this._onMessageAsync(event);
+      this._onMessage(event);
     });
   }
 
-  async _onMessageAsync(event) {
-    let messageData = await event.data.arrayBuffer();
+  _onMessage(event) {
+    let messageData = event.data;
     let threadIndex = new DataView(messageData).getBigUint64(
       0,
       /*littleEndian=*/ true
@@ -143,6 +143,7 @@ class DebugServerSocket extends EventEmitter {
       url.pathname = "/api/trace";
       url.protocol = "ws:";
       let webSocket = new WebSocket(url.toString());
+      webSocket.binaryType = "arraybuffer";
       webSocket.addEventListener("open", (_event) => {
         resolve(new DebugServerSocket(webSocket));
       });
