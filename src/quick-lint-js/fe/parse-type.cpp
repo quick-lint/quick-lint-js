@@ -574,6 +574,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
     case token_type::colon:
       this->parse_and_visit_typescript_colon_type_expression(v);
       break;
+
     // { method() }
     // { method<T>() }
     case token_type::left_paren:
