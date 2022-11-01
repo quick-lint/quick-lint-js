@@ -93,7 +93,7 @@ again:
   case token_type::incomplete_template:
     this->parse_and_visit_typescript_template_type_expression(v);
     break;
-  
+
   // Type
   // ns.Type<T>
   case token_type::kw_abstract:
