@@ -94,16 +94,6 @@ again:
     this->parse_and_visit_typescript_template_type_expression(v);
     break;
   
-  //(param: ?Type) invalid
-  case token_type::question:
-    if (!is_tuple_type) {
-      this->diag_reporter_->report(
-          diag_typescript_question_in_parameters_should_be_void{
-              .question = this->peek().span()});
-      this->skip();
-    }  
-    break;
-
   // Type
   // ns.Type<T>
   case token_type::kw_abstract:
@@ -149,14 +139,6 @@ again:
       v.visit_variable_namespace_use(name);
     } else {
       v.visit_variable_type_use(name);
-    }
-
-    //(param: Type?) invalid
-    if (this->peek().type == token_type::question && !is_tuple_type) {
-        source_code_span question_span = this->peek().span();
-        this->diag_reporter_->report(
-            diag_typescript_question_in_parameters_should_be_void{
-                .question = question_span});
     }
 
     if (this->peek().type == token_type::less ||
@@ -409,7 +391,21 @@ again:
 void parser::parse_and_visit_typescript_colon_type_expression_or_type_predicate(
     parse_visitor_base &v) {
   this->parse_typescript_colon_for_type();
+  //: ?Type, invalid
+  if (this->peek().type == token_type::question) {
+    this->diag_reporter_->report(
+        diag_typescript_question_in_parameters_should_be_void{
+            .question = this->peek().span()});
+    this->skip();
+  }
   this->parse_and_visit_typescript_type_expression_or_type_predicate(v);
+  //: Type?, invalid
+  if (this->peek().type == token_type::question) {
+    this->diag_reporter_->report(
+        diag_typescript_question_in_parameters_should_be_void{
+            .question = this->peek().span()});
+    this->skip();
+  }
 }
 
 void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
@@ -578,7 +574,6 @@ void parser::parse_and_visit_typescript_object_type_expression(
     case token_type::colon:
       this->parse_and_visit_typescript_colon_type_expression(v);
       break;
-
     // { method() }
     // { method<T>() }
     case token_type::left_paren:
