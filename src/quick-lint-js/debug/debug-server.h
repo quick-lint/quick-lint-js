@@ -73,7 +73,6 @@ class debug_server {
   void begin_closing_all_connections(::mg_mgr *);
   void http_server_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
-  void write_vector_profiler_stats(byte_buffer &out_json);
 
   struct init_data {
     // HACK(strager): Clang 11 with libstdc++ 12 requires a user-declared (not

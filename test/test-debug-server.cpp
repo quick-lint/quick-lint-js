@@ -39,8 +39,6 @@ struct http_response {
   std::string_view get_last_header_value_or_empty(
       std::string_view header_name) const;
 
-  ::boost::json::value json() { return parse_boost_json(this->data); }
-
   static http_response failed([[maybe_unused]] std::string_view error_message) {
     return http_response();
   }
@@ -153,68 +151,6 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
   auto b_wait_result = server_b->wait_for_server_start();
   EXPECT_FALSE(b_wait_result.ok());
 }
-
-#if QLJS_FEATURE_VECTOR_PROFILING
-TEST_F(test_debug_server, vector_profiler_stats) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
-  server->start_server_thread();
-  auto wait_result = server->wait_for_server_start();
-  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
-
-  vector_instrumentation::instance.clear();
-  {
-    instrumented_vector<std::vector<int>> v1("debug server test vector", {});
-    v1.push_back(100);
-    v1.push_back(200);
-    ASSERT_EQ(v1.size(), 2);
-
-    instrumented_vector<std::vector<int>> v2("debug server test vector", {});
-    v2.push_back(100);
-    v2.push_back(200);
-    v2.push_back(300);
-    v2.push_back(400);
-    ASSERT_EQ(v2.size(), 4);
-  }
-
-  http_response response = http_fetch(server->url("/vector-profiler-stats"));
-  ASSERT_TRUE(response);
-  SCOPED_TRACE(response.data);
-  EXPECT_EQ(response.status, 200);  // OK
-  EXPECT_EQ(response.get_last_header_value_or_empty("content-type"),
-            "application/json");
-
-  ::boost::json::value data = response.json();
-  ::boost::json::array histogram =
-      look_up(data, "maxSizeHistogramByOwner", "debug server test vector")
-          .as_array();
-  EXPECT_THAT(histogram, ::testing::ElementsAre(
-                             /*[0]=*/0,
-                             /*[1]=*/0,
-                             /*[2]=*/1,
-                             /*[3]=*/0,
-                             /*[4]=*/1));
-}
-#else
-TEST_F(test_debug_server, vector_profiler_stats_yields_no_data_if_disabled) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
-  server->start_server_thread();
-  auto wait_result = server->wait_for_server_start();
-  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
-
-  http_response response = http_fetch(server->url("/vector-profiler-stats"));
-  ASSERT_TRUE(response);
-  SCOPED_TRACE(response.data);
-  EXPECT_EQ(response.status, 200);  // OK
-  EXPECT_EQ(response.get_last_header_value_or_empty("content-type"),
-            "application/json");
-
-  ::boost::json::value data = response.json();
-  EXPECT_THAT(look_up(data, "maxSizeHistogramByOwner").as_object(),
-              ::testing::IsEmpty());
-}
-#endif
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {

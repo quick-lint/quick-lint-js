@@ -275,18 +275,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
   switch (ev) {
   case ::MG_EV_HTTP_MSG: {
     ::mg_http_message *hm = static_cast<::mg_http_message *>(ev_data);
-    if (::mg_http_match_uri(hm, "/vector-profiler-stats")) {
-      byte_buffer json;
-      this->write_vector_profiler_stats(json);
-
-      // TODO(strager): Optimize.
-      std::string json_copy;
-      json_copy.resize(json.size());
-      json.copy_to(json_copy.data());
-
-      ::mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%.*s",
-                      narrow_cast<int>(json_copy.size()), json_copy.data());
-    } else if (this->tracer_ && ::mg_http_match_uri(hm, "/api/trace")) {
+    if (this->tracer_ && ::mg_http_match_uri(hm, "/api/trace")) {
       ::mg_ws_upgrade(c, hm, nullptr);
     } else {
       std::string public_directory = get_debug_server_public_directory();
@@ -365,53 +354,6 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
   default:
     break;
   }
-}
-
-void debug_server::write_vector_profiler_stats(byte_buffer &out_json) {
-  out_json.append_copy(u8R"--({"maxSizeHistogramByOwner":{)--"_sv);
-
-#if QLJS_FEATURE_VECTOR_PROFILING
-  this->max_size_histogram_.add_entries(
-      vector_instrumentation::instance.take_entries());
-  bool need_comma = false;
-  for (auto &[owner, histogram] : this->max_size_histogram_.histogram()) {
-    if (need_comma) {
-      out_json.append_copy(u8',');
-    }
-    out_json.append_copy(u8'"');
-    write_json_escaped_string(out_json, to_string8_view(owner));
-    out_json.append_copy(u8"\":["_sv);
-
-    bool need_array_comma = false;
-    std::size_t last_size = static_cast<std::size_t>(-1);
-    for (auto it = histogram.begin(); it != histogram.end(); ++it) {
-      std::size_t cur_size = it->first;
-      int count = it->second;
-
-      // Fill in zeroes for empty spans in the histogram map.
-      for (std::size_t size = last_size + 1; size < cur_size; ++size) {
-        if (need_array_comma) {
-          out_json.append_copy(u8',');
-        }
-        out_json.append_copy(u8'0');
-        need_array_comma = true;
-      }
-
-      if (need_array_comma) {
-        out_json.append_copy(u8',');
-      }
-      out_json.append_decimal_integer(count);
-      need_array_comma = true;
-
-      last_size = cur_size;
-    }
-
-    out_json.append_copy(u8"]"_sv);
-    need_comma = true;
-  }
-#endif
-
-  out_json.append_copy(u8"}}"_sv);
 }
 }
 
