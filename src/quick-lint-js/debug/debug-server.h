@@ -61,6 +61,8 @@ class debug_server {
   std::string url(std::string_view path) const;
   std::string websocket_url(std::string_view path) const;
 
+  void debug_probe_publish_vector_profile();
+
  private:
   // Run on any thread:
   void wake_up_server_thread();
@@ -99,6 +101,7 @@ class debug_server {
 
   // Written to by other threads. Read by the server thread.
   std::atomic<bool> stop_server_thread_{false};
+  std::atomic<bool> need_publish_vector_profile_{false};
 
   // Used by other threads only:
   thread server_thread_;

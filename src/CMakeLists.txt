@@ -87,6 +87,8 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
+  quick-lint-js/debug/debug-probe.cpp
+  quick-lint-js/debug/debug-probe.h
   quick-lint-js/debug/debug-server-fs.cpp
   quick-lint-js/debug/debug-server-fs.h
   quick-lint-js/debug/debug-server.cpp

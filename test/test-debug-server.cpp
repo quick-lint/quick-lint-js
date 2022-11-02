@@ -216,6 +216,142 @@ TEST_F(test_debug_server, vector_profiler_stats_yields_no_data_if_disabled) {
 }
 #endif
 
+#if QLJS_FEATURE_VECTOR_PROFILING
+TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
+  trace_flusher tracer;
+  vector_instrumentation::instance.clear();
+
+  std::shared_ptr<debug_server> server = debug_server::create(&tracer);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  class test_delegate : public http_websocket_client_delegate,
+                        trace_stream_event_visitor {
+   public:
+    explicit test_delegate(debug_server *server) : server(server) {}
+
+    void on_message_binary(http_websocket_client *client, const void *message,
+                           std::size_t message_size) override {
+      this->current_client = client;
+      if (message_size < 8) {
+        ADD_FAILURE() << "unexpected tiny message (size=" << message_size
+                      << ")";
+        client->stop();
+        return;
+      }
+
+      checked_binary_reader reader(
+          reinterpret_cast<const std::uint8_t *>(message), message_size);
+      std::uint64_t thread_index = reader.u64_le();
+
+      std::vector<std::uint8_t> &stream_data = this->streams[thread_index];
+      stream_data.insert(stream_data.end(), reader.cursor(),
+                         reader.cursor() + reader.remaining());
+
+      // HACK(strager): We sometimes receive empty packets, which causes
+      // read_trace_stream to crash.
+      if (!stream_data.empty()) {
+        // FIXME(strager): This test assumes that we receive complete packets,
+        // which is not guaranteed.
+        // This should call visit_packet_header then eventually
+        // visit_vector_max_size_histogram_by_owner_event.
+        read_trace_stream(stream_data.data(), stream_data.size(), *this);
+      }
+
+      this->current_client = nullptr;
+    }
+
+    void visit_error_invalid_magic() override {
+      ADD_FAILURE() << "invalid magic";
+    }
+
+    void visit_error_invalid_uuid() override {
+      ADD_FAILURE() << "invalid UUID";
+    }
+
+    void visit_error_unsupported_compression_mode(std::uint8_t) override {
+      ADD_FAILURE() << "unsupported compression mode";
+    }
+
+    void visit_packet_header(const packet_header &) override {
+      if (this->received_packet_header) {
+        return;
+      }
+      this->received_packet_header = true;
+
+      {
+        instrumented_vector<std::vector<int>> v1("debug server test vector",
+                                                 {});
+        v1.push_back(100);
+        v1.push_back(200);
+        ASSERT_EQ(v1.size(), 2);
+
+        instrumented_vector<std::vector<int>> v2("debug server test vector",
+                                                 {});
+        v2.push_back(100);
+        v2.push_back(200);
+        v2.push_back(300);
+        v2.push_back(400);
+        ASSERT_EQ(v2.size(), 4);
+      }
+
+      server->debug_probe_publish_vector_profile();
+    }
+
+    void visit_init_event(const init_event &) override {}
+
+    void visit_vscode_document_opened_event(
+        const vscode_document_opened_event &) override {}
+
+    void visit_vscode_document_closed_event(
+        const vscode_document_closed_event &) override {}
+
+    void visit_vscode_document_changed_event(
+        const vscode_document_changed_event &) override {}
+
+    void visit_vscode_document_sync_event(
+        const vscode_document_sync_event &) override {}
+
+    void visit_lsp_client_to_server_message_event(
+        const lsp_client_to_server_message_event &) override {}
+
+    void visit_vector_max_size_histogram_by_owner_event(
+        const vector_max_size_histogram_by_owner_event &event) override {
+      this->current_client->stop();
+      using entry = trace_stream_event_visitor::vector_max_size_histogram_entry;
+      EXPECT_THAT(
+          event.entries,
+          ::testing::ElementsAre(::testing::AllOf(
+              ::testing::Field(
+                  "owner",
+                  &trace_stream_event_visitor::
+                      vector_max_size_histogram_by_owner_entry::owner,
+                  u8"debug server test vector"sv),
+              ::testing::Field(
+                  "max_size_entries",
+                  &trace_stream_event_visitor::
+                      vector_max_size_histogram_by_owner_entry::
+                          max_size_entries,
+                  ::testing::ElementsAre(entry{.max_size = 2, .count = 1},
+                                         entry{.max_size = 4, .count = 1})))));
+      this->received_vector_max_size_histogram_by_owner_event = true;
+    }
+
+    debug_server *server;
+    http_websocket_client *current_client = nullptr;
+    std::map<trace_flusher_thread_index, std::vector<std::uint8_t>> streams;
+    bool received_packet_header = false;
+    bool received_vector_max_size_histogram_by_owner_event = false;
+  };
+  test_delegate delegate(server.get());
+  http_websocket_client::connect_and_run(
+      server->websocket_url("/api/trace").c_str(), &delegate);
+
+  EXPECT_TRUE(delegate.received_vector_max_size_histogram_by_owner_event);
+}
+#endif
+
 TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   trace_flusher tracer;
 
@@ -275,7 +411,8 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
                          ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
       read_trace_stream(reader.cursor(), reader.remaining(), v);
 
-      // We expect messages for only two threads (main and other).
+      // We expect messages for only three threads: main, other, and debug
+      // server.
       if (this->received_thread_indexes.size() >= 2) {
         client->stop();
       }
@@ -288,7 +425,9 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
       server->websocket_url("/api/trace").c_str(), &delegate);
 
   EXPECT_THAT(delegate.received_thread_indexes,
-              ::testing::UnorderedElementsAre(1, 2));
+              ::testing::UnorderedElementsAre(1, 2, 3))
+      << "expected three streams: main thread, other thread, debug server "
+         "thread";
 
   {
     std::lock_guard<mutex> lock(test_mutex);

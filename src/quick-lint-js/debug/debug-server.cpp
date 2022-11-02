@@ -21,6 +21,7 @@
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/instance-tracker.h>
@@ -192,6 +193,11 @@ std::string debug_server::websocket_url(std::string_view path) const {
   return result;
 }
 
+void debug_server::debug_probe_publish_vector_profile() {
+  this->need_publish_vector_profile_ = true;
+  this->wake_up_server_thread();
+}
+
 void debug_server::wake_up_server_thread() {
   std::unique_lock<mutex> lock(this->mutex_);
   this->wake_up_server_thread(lock);
@@ -207,6 +213,10 @@ void debug_server::wake_up_server_thread(std::unique_lock<mutex> &) {
 }
 
 void debug_server::run_on_current_thread() {
+  if (this->tracer_) {
+    this->tracer_->register_current_thread();
+  }
+
   mongoose_mgr mgr;
 
   std::string connect_logs;
@@ -326,6 +336,26 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
     if (this->stop_server_thread_.load()) {
       this->begin_closing_all_connections(c->mgr);
     }
+
+#if QLJS_FEATURE_VECTOR_PROFILING
+    if (this->tracer_ && this->need_publish_vector_profile_.load()) {
+      this->need_publish_vector_profile_.store(false);
+
+      this->max_size_histogram_.add_entries(
+          vector_instrumentation::instance.take_entries());
+      auto histogram = this->max_size_histogram_.histogram();
+
+      trace_writer *tw = this->tracer_->trace_writer_for_current_thread();
+      QLJS_ASSERT(tw);  // We registered this thread in run_on_current_thread.
+      tw->write_event_vector_max_size_histogram_by_owner(
+          trace_event_vector_max_size_histogram_by_owner{
+              .timestamp = 0,  // TODO(strager)
+              .histogram = &histogram,
+          });
+      tw->commit();
+      this->tracer_->flush_sync();
+    }
+#endif
 
     for (auto &backend : this->tracer_backends_) {
       backend->flush_if_needed();

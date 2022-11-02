@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/debug/debug-probe.h>
 #include <quick-lint-js/fe/debug-parse-visitor.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/linter.h>
@@ -46,6 +47,8 @@ void parse_and_lint(padded_string_view code, diag_reporter& reporter,
     // TODO(strager): Should we do anything on failure? Should we show a
     // pop-up message for example? Or is the existing diagnostic enough?
   }
+
+  debug_probe_publish_vector_profile();
 }
 }
 
