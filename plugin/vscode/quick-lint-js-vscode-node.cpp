@@ -1044,6 +1044,7 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
       .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
+      .tracer = trace_flusher{},
   });
   state->tracer.register_current_thread();
   state->tracer.start_flushing_thread();
@@ -1089,7 +1090,10 @@ namespace {
 }
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 NODE_API_MODULE(quick_lint_js_vscode_node, initialize_addon)
+QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
