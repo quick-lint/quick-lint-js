@@ -109,6 +109,11 @@ class DebugServerSocket extends EventEmitter {
       this.traceReaders.set(threadIndex, reader);
     }
 
+    if (reader.error !== null) {
+      // We already reported this error. Skip processing.
+      return;
+    }
+
     reader.appendBytes(messageData, 8);
     for (let event of reader.pullNewEvents()) {
       switch (event.eventType) {
@@ -137,6 +142,9 @@ class DebugServerSocket extends EventEmitter {
           this.emit("unknownTraceEvent", event);
           break;
       }
+    }
+    if (reader.error !== null) {
+      this.emit("error", reader.error);
     }
   }
 
@@ -258,6 +266,9 @@ function createElementWithText(tagName, textContent) {
 let lspLog = new LSPLogView(document.getElementById("lsp-log"));
 
 DebugServerSocket.connectAsync().then((socket) => {
+  socket.on("error", (error) => {
+    console.error(error);
+  });
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
   });
