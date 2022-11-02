@@ -298,6 +298,10 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
     trace_flusher_websocket_backend *backend =
         this->tracer_backends_.back().get();
     this->tracer_->enable_backend(backend);
+
+    // Publish vector stats to the new client. (As a side effect, this also
+    // publishes vector stats to other connected clients, but that's okay.)
+    this->debug_probe_publish_vector_profile();
     break;
   }
 
