@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
+#include <memory>
 #include <optional>
 #include <quick-lint-js/cli/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/cli/emacs-location.h>
@@ -330,7 +331,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
 #if QLJS_FEATURE_DEBUG_SERVER
-          debugger_(&this->tracer_),
+          debugger_(debug_server::create(&this->tracer_)),
 #endif
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_, &this->tracer_),
@@ -343,15 +344,15 @@ void run_lsp_server() {
       this->tracer_.start_flushing_thread();
 
 #if QLJS_FEATURE_DEBUG_SERVER
-      this->debugger_.set_listen_address("http://localhost:8098");
-      this->debugger_.start_server_thread();
+      this->debugger_->set_listen_address("http://localhost:8098");
+      this->debugger_->start_server_thread();
       result<void, debug_server_io_error> start_result =
-          this->debugger_.wait_for_server_start();
+          this->debugger_->wait_for_server_start();
       // TODO(strager): Print this over the LSP connection instead.
       // TODO(strager): Allow the LSP client to customize the debug server port.
       if (start_result.ok()) {
         std::fprintf(stderr, "note: quick-lint-js debug server started at %s\n",
-                     this->debugger_.url().c_str());
+                     this->debugger_->url().c_str());
       } else {
         std::fprintf(stderr,
                      "error: quick-lint-js debug server failed to start: %s\n",
@@ -445,7 +446,7 @@ void run_lsp_server() {
     trace_flusher tracer_;
 
 #if QLJS_FEATURE_DEBUG_SERVER
-    debug_server debugger_;
+    std::shared_ptr<debug_server> debugger_;
 #endif
 
     platform_file_ref input_pipe_;

@@ -86,18 +86,20 @@ class http_websocket_client {
 class test_debug_server : public ::testing::Test {};
 
 TEST_F(test_debug_server, start_thread_then_immediately_stop) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  server.stop_server_thread();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  server->stop_server_thread();
 }
 
 TEST_F(test_debug_server, serves_html_at_index) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server.url("/"));
+  http_response response = http_fetch(server->url("/"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("<!DOCTYPE html>"));
@@ -107,12 +109,13 @@ TEST_F(test_debug_server, serves_html_at_index) {
 }
 
 TEST_F(test_debug_server, serves_javascript) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server.url("/index.mjs"));
+  http_response response = http_fetch(server->url("/index.mjs"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("//"));
@@ -122,37 +125,41 @@ TEST_F(test_debug_server, serves_javascript) {
 }
 
 TEST_F(test_debug_server, serves_not_found_page) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server.url("/route-does-not-exist"));
+  http_response response = http_fetch(server->url("/route-does-not-exist"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 404);  // Not Found
 }
 
 TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
-  debug_server server_a(/*tracer=*/nullptr);
-  server_a.start_server_thread();
-  auto a_wait_result = server_a.wait_for_server_start();
+  std::shared_ptr<debug_server> server_a =
+      debug_server::create(/*tracer=*/nullptr);
+  server_a->start_server_thread();
+  auto a_wait_result = server_a->wait_for_server_start();
   ASSERT_TRUE(a_wait_result.ok()) << a_wait_result.error_to_string();
 
-  std::string server_a_address = server_a.url("");
+  std::string server_a_address = server_a->url("");
   SCOPED_TRACE("server_a address: " + server_a_address);
 
-  debug_server server_b(/*tracer=*/nullptr);
-  server_b.set_listen_address(server_a_address);
-  server_b.start_server_thread();
-  auto b_wait_result = server_b.wait_for_server_start();
+  std::shared_ptr<debug_server> server_b =
+      debug_server::create(/*tracer=*/nullptr);
+  server_b->set_listen_address(server_a_address);
+  server_b->start_server_thread();
+  auto b_wait_result = server_b->wait_for_server_start();
   EXPECT_FALSE(b_wait_result.ok());
 }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(test_debug_server, vector_profiler_stats) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
   vector_instrumentation::instance.clear();
@@ -170,7 +177,7 @@ TEST_F(test_debug_server, vector_profiler_stats) {
     ASSERT_EQ(v2.size(), 4);
   }
 
-  http_response response = http_fetch(server.url("/vector-profiler-stats"));
+  http_response response = http_fetch(server->url("/vector-profiler-stats"));
   ASSERT_TRUE(response);
   SCOPED_TRACE(response.data);
   EXPECT_EQ(response.status, 200);  // OK
@@ -190,12 +197,13 @@ TEST_F(test_debug_server, vector_profiler_stats) {
 }
 #else
 TEST_F(test_debug_server, vector_profiler_stats_yields_no_data_if_disabled) {
-  debug_server server(/*tracer=*/nullptr);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server =
+      debug_server::create(/*tracer=*/nullptr);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server.url("/vector-profiler-stats"));
+  http_response response = http_fetch(server->url("/vector-profiler-stats"));
   ASSERT_TRUE(response);
   SCOPED_TRACE(response.data);
   EXPECT_EQ(response.status, 200);  // OK
@@ -237,9 +245,9 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
     cond.wait(lock, [&] { return registered_other_thread; });
   }
 
-  debug_server server(&tracer);
-  server.start_server_thread();
-  auto wait_result = server.wait_for_server_start();
+  std::shared_ptr<debug_server> server = debug_server::create(&tracer);
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
   class test_delegate : public http_websocket_client_delegate {
@@ -277,7 +285,7 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   };
   test_delegate delegate;
   http_websocket_client::connect_and_run(
-      server.websocket_url("/api/trace").c_str(), &delegate);
+      server->websocket_url("/api/trace").c_str(), &delegate);
 
   EXPECT_THAT(delegate.received_thread_indexes,
               ::testing::UnorderedElementsAre(1, 2));
@@ -288,6 +296,21 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
     cond.notify_all();
   }
   other_thread.join();
+}
+
+TEST_F(test_debug_server, instances_shows_new_instance) {
+  std::shared_ptr<debug_server> s = debug_server::create(/*tracer=*/nullptr);
+  EXPECT_THAT(debug_server::instances(), ::testing::Contains(s));
+}
+
+TEST_F(test_debug_server, destroying_debug_server_removes_from_instances) {
+  std::shared_ptr<debug_server> s = debug_server::create(/*tracer=*/nullptr);
+  debug_server *s_raw = s.get();
+  s.reset();
+
+  for (std::shared_ptr<debug_server> &instance : debug_server::instances()) {
+    EXPECT_NE(instance.get(), s_raw);
+  }
 }
 
 bool strings_equal_case_insensitive(std::string_view a, std::string_view b) {

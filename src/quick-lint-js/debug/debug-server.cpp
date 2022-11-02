@@ -23,6 +23,7 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
+#include <quick-lint-js/util/instance-tracker.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
@@ -97,7 +98,19 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
   friend class debug_server;
 };
 
-debug_server::debug_server(trace_flusher *tracer) : tracer_(tracer) {}
+std::shared_ptr<debug_server> debug_server::create(trace_flusher *tracer) {
+  std::shared_ptr<debug_server> instance =
+      std::make_shared<debug_server>(create_tag(), tracer);
+  instance_tracker<debug_server>::track(instance);
+  return instance;
+}
+
+std::vector<std::shared_ptr<debug_server>> debug_server::instances() {
+  return instance_tracker<debug_server>::instances();
+}
+
+debug_server::debug_server(create_tag, trace_flusher *tracer)
+    : tracer_(tracer) {}
 
 debug_server::~debug_server() {
   if (this->server_thread_.joinable()) {

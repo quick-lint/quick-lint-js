@@ -63,6 +63,7 @@ quick_lint_js_add_executable(
   test-file-path.cpp
   test-file.cpp
   test-heap-function.cpp
+  test-instance-tracker.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp

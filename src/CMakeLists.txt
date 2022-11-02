@@ -222,6 +222,7 @@ quick_lint_js_add_library(
   quick-lint-js/util/binary-reader.h
   quick-lint-js/util/binary-writer.h
   quick-lint-js/util/cpp.h
+  quick-lint-js/util/instance-tracker.h
   quick-lint-js/util/math-overflow.h
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h

@@ -31,8 +31,14 @@ struct debug_server_io_error {
 // Internally, debug_server manages a thread. The thread is called the 'server
 // thread'. All other threads are called 'other threads'.
 class debug_server {
+ private:
+  struct create_tag {};
+
  public:
-  explicit debug_server(trace_flusher *);
+  static std::shared_ptr<debug_server> create(trace_flusher *);
+  static std::vector<std::shared_ptr<debug_server>> instances();
+
+  explicit debug_server(create_tag, trace_flusher *);
 
   ~debug_server();
 
