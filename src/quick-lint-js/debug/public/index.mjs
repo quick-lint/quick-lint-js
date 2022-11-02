@@ -11,7 +11,7 @@ class VectorProfileView {
     this.maxSizeHistogramElementByOwner = new Map();
   }
 
-  updateMaxSizeHistogram({ owner, countBySize }) {
+  updateMaxSizeHistogram({ owner, maxSizeEntries }) {
     let el = this.maxSizeHistogramElementByOwner.get(owner);
     if (el === undefined) {
       el = document.createElement("div");
@@ -30,18 +30,31 @@ class VectorProfileView {
       this.maxSizeHistogramElementByOwner.set(owner, el);
     }
 
-    let totalCount = countBySize.reduce((x, acc) => x + acc, 0);
-    let maxCount = Math.max(...countBySize);
-
     let tableBodyEl = el.querySelector("table tbody");
-    for (let size = 0; size < countBySize.length; ++size) {
-      let count = countBySize[size];
+    let totalCount = maxSizeEntries.reduce(
+      (acc, entry) => entry.count + acc,
+      0
+    );
+    let maxCount = maxSizeEntries.reduce(
+      (acc, entry) => Math.max(entry.count, acc),
+      0
+    );
 
-      let rowEl = tableBodyEl.children[size];
+    let lastMaxSize = -1;
+    for (let { maxSize, count } of maxSizeEntries) {
+      for (let i = lastMaxSize + 1; i < maxSize; ++i) {
+        addRow(i, 0);
+      }
+      addRow(maxSize, count);
+      lastMaxSize = maxSize;
+    }
+
+    function addRow(maxSize, count) {
+      let rowEl = tableBodyEl.children[maxSize];
       if (rowEl === undefined) {
         rowEl = document.createElement("tr");
         let rowHeaderEl = document.createElement("th");
-        rowHeaderEl.textContent = `${size}`;
+        rowHeaderEl.textContent = `${maxSize}`;
         rowEl.appendChild(rowHeaderEl);
         rowEl.appendChild(document.createElement("td"));
         tableBodyEl.appendChild(rowEl);
@@ -59,8 +72,6 @@ class VectorProfileView {
 let vectorProfileView = new VectorProfileView(
   document.getElementById("vector-profile-data")
 );
-
-pollVectorProfileDataContinuouslyAsync();
 
 class EventEmitter {
   _eventListeners = new Map();
@@ -272,34 +283,18 @@ DebugServerSocket.connectAsync().then((socket) => {
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
   });
-});
-
-async function pollVectorProfileDataContinuouslyAsync() {
-  for (;;) {
-    await pollVectorProfileDataAsync();
-    await sleepAsync(1000);
-  }
-}
-
-async function pollVectorProfileDataAsync() {
-  let data = await (await fetch("/vector-profiler-stats")).json();
-  let maxSizeHistogramByOwner = data.maxSizeHistogramByOwner;
-  for (let owner in maxSizeHistogramByOwner) {
-    if (!Object.prototype.hasOwnProperty.call(maxSizeHistogramByOwner, owner)) {
-      continue;
+  socket.on("vectorMaxSizeHistogramByOwner", ({ timestamp, entries }) => {
+    for (let { owner, maxSizeEntries } of entries) {
+      vectorProfileView.updateMaxSizeHistogram({
+        owner,
+        maxSizeEntries: maxSizeEntries.map((entry) => ({
+          maxSize: Number(entry.maxSize),
+          count: Number(entry.count),
+        })),
+      });
     }
-    let countBySize = maxSizeHistogramByOwner[owner];
-    vectorProfileView.updateMaxSizeHistogram({ owner, countBySize });
-  }
-}
-
-function sleepAsync(durationMilliseconds) {
-  return new Promise((resolve, _reject) => {
-    setTimeout(() => {
-      resolve();
-    }, durationMilliseconds);
   });
-}
+});
 
 if (DEBUG_LSP_LOG) {
   lspLog.addClientToServerMessage(
