@@ -11,10 +11,25 @@
 #include <vector>
 
 namespace quick_lint_js {
+class checked_binary_reader;
 class trace_stream_event_visitor;
 
-void read_trace_stream(const void* data, std::size_t data_size,
-                       trace_stream_event_visitor&);
+// Designed for convenience, not efficiency.
+class trace_stream_reader {
+ public:
+  explicit trace_stream_reader(trace_stream_event_visitor*);
+
+  void append_bytes(const void* data, std::size_t data_size);
+
+ private:
+  void parse_one(checked_binary_reader&);
+  void parse_stream_header(checked_binary_reader&);
+  void parse_event(checked_binary_reader&);
+
+  trace_stream_event_visitor* visitor_;
+  std::vector<std::uint8_t> queue_;
+  bool parsed_header_ = false;
+};
 
 class trace_stream_event_visitor {
  public:

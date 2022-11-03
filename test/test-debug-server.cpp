@@ -192,12 +192,14 @@ TEST_F(test_debug_server,
 
       // HACK(strager): We sometimes receive empty packets, which causes
       // read_trace_stream to crash.
+      // TODO(strager): Rewrite this.
       if (!stream_data.empty()) {
         // FIXME(strager): This test assumes that we receive complete packets,
         // which is not guaranteed.
         // This should eventually call
         // visit_vector_max_size_histogram_by_owner_event.
-        read_trace_stream(stream_data.data(), stream_data.size(), *this);
+        trace_stream_reader trace_reader(this);
+        trace_reader.append_bytes(stream_data.data(), stream_data.size());
       }
 
       this->current_client = nullptr;
@@ -301,12 +303,14 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
 
       // HACK(strager): We sometimes receive empty packets, which causes
       // read_trace_stream to crash.
+      // TODO(strager): Rewrite this.
       if (!stream_data.empty()) {
         // FIXME(strager): This test assumes that we receive complete packets,
         // which is not guaranteed.
         // This should call visit_packet_header then eventually
         // visit_vector_max_size_histogram_by_owner_event.
-        read_trace_stream(stream_data.data(), stream_data.size(), *this);
+        trace_stream_reader trace_reader(this);
+        trace_reader.append_bytes(stream_data.data(), stream_data.size());
       }
 
       this->current_client = nullptr;
@@ -466,7 +470,8 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
       EXPECT_CALL(v, visit_init_event(::testing::Field(
                          &trace_stream_event_visitor::init_event::version,
                          ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
-      read_trace_stream(reader.cursor(), reader.remaining(), v);
+      trace_stream_reader trace_reader(&v);
+      trace_reader.append_bytes(reader.cursor(), reader.remaining());
 
       // We expect messages for only three threads: main, other, and debug
       // server.

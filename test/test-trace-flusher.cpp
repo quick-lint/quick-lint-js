@@ -51,8 +51,9 @@ void read_trace_stream_file(const std::string& path,
                             trace_stream_event_visitor& v) {
   auto stream_file = read_file(path);
   ASSERT_TRUE(stream_file.ok()) << stream_file.error_to_string();
-  read_trace_stream(stream_file->data(),
-                    narrow_cast<std::size_t>(stream_file->size()), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream_file->data(),
+                      narrow_cast<std::size_t>(stream_file->size()));
 }
 
 struct trace_init_event_spy : trace_stream_event_visitor {
@@ -139,8 +140,9 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     auto it = this->thread_states.find(thread_index);
     ASSERT_NE(it, this->thread_states.end());
     const thread_state& t = it->second;
-    read_trace_stream(t.written_data.data(),
-                      narrow_cast<std::size_t>(t.written_data.size()), v);
+    trace_stream_reader reader(&v);
+    reader.append_bytes(t.written_data.data(),
+                        narrow_cast<std::size_t>(t.written_data.size()));
   }
 
   std::vector<std::string> read_thread_init_versions(

@@ -43,8 +43,30 @@ TEST(test_trace_stream_reader, empty_trace_has_no_events) {
   EXPECT_CALL(
       v, visit_packet_header(::testing::Field(
              &trace_stream_event_visitor::packet_header::thread_id, 0x1234)));
-  read_trace_stream(example_packet_header.data(), example_packet_header.size(),
-                    v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(example_packet_header.data(),
+                      example_packet_header.size());
+}
+
+TEST(test_trace_stream_reader, header_in_two_parts) {
+  for (std::size_t first_chunk_size = 1;
+       first_chunk_size < example_packet_header.size() - 1;
+       ++first_chunk_size) {
+    std::size_t second_chunk_size =
+        example_packet_header.size() - first_chunk_size;
+    SCOPED_TRACE("first_chunk_size=" + std::to_string(first_chunk_size) +
+                 " second_chunk_size=" + std::to_string(second_chunk_size));
+
+    strict_mock_trace_stream_event_visitor v;
+    EXPECT_CALL(
+        v, visit_packet_header(::testing::Field(
+               &trace_stream_event_visitor::packet_header::thread_id, 0x1234)));
+
+    trace_stream_reader reader(&v);
+    reader.append_bytes(example_packet_header.data(), first_chunk_size);
+    reader.append_bytes(example_packet_header.data() + first_chunk_size,
+                        second_chunk_size);
+  }
 }
 
 TEST(test_trace_stream_reader, invalid_magic_reports_error) {
@@ -54,7 +76,8 @@ TEST(test_trace_stream_reader, invalid_magic_reports_error) {
 
   nice_mock_trace_stream_event_visitor v;
   EXPECT_CALL(v, visit_error_invalid_magic());
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, invalid_uuid_reports_error) {
@@ -63,7 +86,8 @@ TEST(test_trace_stream_reader, invalid_uuid_reports_error) {
 
   nice_mock_trace_stream_event_visitor v;
   EXPECT_CALL(v, visit_error_invalid_uuid());
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, invalid_compression_mode_reports_error) {
@@ -72,7 +96,8 @@ TEST(test_trace_stream_reader, invalid_compression_mode_reports_error) {
 
   nice_mock_trace_stream_event_visitor v;
   EXPECT_CALL(v, visit_error_unsupported_compression_mode(0xfe));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, init_event) {
@@ -94,7 +119,8 @@ TEST(test_trace_stream_reader, init_event) {
                  &trace_stream_event_visitor::init_event::timestamp, 0x5678),
              ::testing::Field(&trace_stream_event_visitor::init_event::version,
                               ::testing::StrEq("1.0.0")))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, vscode_document_opened_event) {
@@ -140,7 +166,8 @@ TEST(test_trace_stream_reader, vscode_document_opened_event) {
              ::testing::Field(&trace_stream_event_visitor::
                                   vscode_document_opened_event::content,
                               u"hi"))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, vscode_document_closed_event) {
@@ -179,7 +206,8 @@ TEST(test_trace_stream_reader, vscode_document_closed_event) {
              ::testing::Field(&trace_stream_event_visitor::
                                   vscode_document_closed_event::language_id,
                               u"js"))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, vscode_document_changed_event) {
@@ -273,7 +301,8 @@ TEST(test_trace_stream_reader, vscode_document_changed_event) {
              ::testing::Field(&trace_stream_event_visitor::
                                   vscode_document_changed_event::changes,
                               changes_matcher))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, vscode_document_sync_event) {
@@ -320,7 +349,8 @@ TEST(test_trace_stream_reader, vscode_document_sync_event) {
           ::testing::Field(
               &trace_stream_event_visitor::vscode_document_sync_event::content,
               u"hi"))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 
 TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
@@ -345,7 +375,36 @@ TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
              ::testing::Field(&trace_stream_event_visitor::
                                   lsp_client_to_server_message_event::body,
                               u8"{}"sv))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
+}
+
+TEST(test_trace_stream_reader,
+     read_lsp_client_to_server_message_event_in_two_parts) {
+  auto event = make_array_explicit<std::uint8_t>(
+      // Timestamp
+      0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Event ID
+      0x06,
+
+      // Body
+      2, 0, 0, 0, 0, 0, 0, 0,  // Size
+      '{', '}');
+
+  nice_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(
+      v, visit_lsp_client_to_server_message_event(::testing::AllOf(
+             ::testing::Field(&trace_stream_event_visitor::
+                                  lsp_client_to_server_message_event::timestamp,
+                              0x5678),
+             ::testing::Field(&trace_stream_event_visitor::
+                                  lsp_client_to_server_message_event::body,
+                              u8"{}"sv))));
+  trace_stream_reader reader(&v);
+  reader.append_bytes(example_packet_header.data(),
+                      example_packet_header.size());
+  reader.append_bytes(event.data(), event.size());
 }
 
 TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
@@ -418,7 +477,8 @@ TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
                               trace_stream_event_visitor::
                                   vector_max_size_histogram_entry{
                                       .max_size = 3, .count = 7}))))))));
-  read_trace_stream(stream.data(), stream.size(), v);
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
 }
 }
 }

@@ -499,20 +499,20 @@ int main(int argc, char** argv) {
 
   if (o.check_document_consistency) {
     document_content_checker checker;
-    read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
-                      checker);
+    trace_stream_reader reader(&checker);
+    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
   }
 
   if (o.dump_document_content_document_id.has_value()) {
     document_content_dumper dumper(*o.dump_document_content_document_id,
                                    o.end_event_index);
-    read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
-                      dumper);
+    trace_stream_reader reader(&dumper);
+    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
     dumper.print_document_content();
   } else if (!o.check_document_consistency) {
     event_dumper dumper(o.begin_event_index, o.end_event_index);
-    read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
-                      dumper);
+    trace_stream_reader reader(&dumper);
+    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
   }
 
   return 0;
