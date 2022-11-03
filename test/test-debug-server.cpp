@@ -169,7 +169,7 @@ TEST_F(test_debug_server,
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
   class test_delegate : public http_websocket_client_delegate,
-                        trace_stream_event_visitor {
+                        public trace_stream_event_visitor {
    public:
     void on_message_binary(http_websocket_client *client, const void *message,
                            std::size_t message_size) override {
@@ -186,21 +186,11 @@ TEST_F(test_debug_server,
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
-      std::vector<std::uint8_t> &stream_data = this->streams[thread_index];
-      stream_data.insert(stream_data.end(), reader.cursor(),
-                         reader.cursor() + reader.remaining());
-
-      // HACK(strager): We sometimes receive empty packets, which causes
-      // read_trace_stream to crash.
-      // TODO(strager): Rewrite this.
-      if (!stream_data.empty()) {
-        // FIXME(strager): This test assumes that we receive complete packets,
-        // which is not guaranteed.
-        // This should eventually call
-        // visit_vector_max_size_histogram_by_owner_event.
-        trace_stream_reader trace_reader(this);
-        trace_reader.append_bytes(stream_data.data(), stream_data.size());
-      }
+      trace_stream_reader &stream_reader =
+          this->get_stream_reader(thread_index);
+      // This should eventually call
+      // visit_vector_max_size_histogram_by_owner_event.
+      stream_reader.append_bytes(reader.cursor(), reader.remaining());
 
       this->current_client = nullptr;
     }
@@ -257,8 +247,15 @@ TEST_F(test_debug_server,
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
 
+    trace_stream_reader &get_stream_reader(
+        trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] =
+          this->stream_readers.try_emplace(thread_index, this);
+      return it->second;
+    }
+
     http_websocket_client *current_client = nullptr;
-    std::map<trace_flusher_thread_index, std::vector<std::uint8_t>> streams;
+    std::map<trace_flusher_thread_index, trace_stream_reader> stream_readers;
     bool received_vector_max_size_histogram_by_owner_event = false;
   };
   test_delegate delegate;
@@ -278,7 +275,7 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
   class test_delegate : public http_websocket_client_delegate,
-                        trace_stream_event_visitor {
+                        public trace_stream_event_visitor {
    public:
     explicit test_delegate(debug_server *server) : server(server) {}
 
@@ -297,21 +294,11 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
-      std::vector<std::uint8_t> &stream_data = this->streams[thread_index];
-      stream_data.insert(stream_data.end(), reader.cursor(),
-                         reader.cursor() + reader.remaining());
-
-      // HACK(strager): We sometimes receive empty packets, which causes
-      // read_trace_stream to crash.
-      // TODO(strager): Rewrite this.
-      if (!stream_data.empty()) {
-        // FIXME(strager): This test assumes that we receive complete packets,
-        // which is not guaranteed.
-        // This should call visit_packet_header then eventually
-        // visit_vector_max_size_histogram_by_owner_event.
-        trace_stream_reader trace_reader(this);
-        trace_reader.append_bytes(stream_data.data(), stream_data.size());
-      }
+      trace_stream_reader &stream_reader =
+          this->get_stream_reader(thread_index);
+      // This should call visit_packet_header then eventually
+      // visit_vector_max_size_histogram_by_owner_event.
+      stream_reader.append_bytes(reader.cursor(), reader.remaining());
 
       this->current_client = nullptr;
     }
@@ -329,11 +316,6 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
     }
 
     void visit_packet_header(const packet_header &) override {
-      if (this->received_packet_header) {
-        return;
-      }
-      this->received_packet_header = true;
-
       {
         instrumented_vector<std::vector<int>> v1("debug server test vector",
                                                  {});
@@ -398,10 +380,16 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
 
+    trace_stream_reader &get_stream_reader(
+        trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] =
+          this->stream_readers.try_emplace(thread_index, this);
+      return it->second;
+    }
+
     debug_server *server;
     http_websocket_client *current_client = nullptr;
-    std::map<trace_flusher_thread_index, std::vector<std::uint8_t>> streams;
-    bool received_packet_header = false;
+    std::map<trace_flusher_thread_index, trace_stream_reader> stream_readers;
     bool received_vector_max_size_histogram_by_owner_event = false;
   };
   test_delegate delegate(server.get());
