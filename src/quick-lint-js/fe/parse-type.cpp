@@ -402,7 +402,9 @@ void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
   QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
   case token_type::identifier:
   case token_type::kw_await:
+  case token_type::kw_this:
   case token_type::kw_yield: {
+    token_type parameter_type = this->peek().type;
     identifier parameter_name = this->peek().identifier_name();
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
@@ -410,7 +412,9 @@ void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
       // param is Type
       this->lexer_.commit_transaction(std::move(transaction));
       this->skip();
-      v.visit_variable_type_predicate_use(parameter_name);
+      if (parameter_type != token_type::kw_this) {
+        v.visit_variable_type_predicate_use(parameter_name);
+      }
       this->parse_and_visit_typescript_type_expression(v);
     } else {
       // Type

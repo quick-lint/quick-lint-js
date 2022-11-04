@@ -668,6 +668,24 @@ TEST_F(test_parse_typescript_function, type_predicate) {
                             "visit_enter_function_scope_body",    // {
                             "visit_exit_function_scope"));        // }
   }
+
+  // TODO(#881): Only allow 'this' within class and interface method signatures.
+  {
+    test_parser p(u8"class C { f(): this is Derived { return true; } }"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     // {
+                            "visit_property_declaration",       // f
+                            "visit_enter_function_scope",       // f
+                            "visit_variable_type_use",          // Derived
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_exit_class_scope",           // }
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Derived"));
+  }
 }
 
 TEST_F(test_parse_typescript_function, type_predicate_on_async_function) {

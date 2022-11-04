@@ -209,11 +209,20 @@ TEST_F(test_parse_typescript_type, unique_symbol_type) {
 }
 
 TEST_F(test_parse_typescript_type, this_type) {
+  // TODO(#881): Only allow within class and interface method signatures.
+
   {
     test_parser p(u8"this"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"this | OtherType"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"OtherType"));
   }
 }
 
