@@ -1697,6 +1697,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                                                  variable_kind parameter_kind) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
   bool first_parameter = true;
+  bool previous_optional = false;
   const char8 *first_parameter_begin = this->peek().begin;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
@@ -1742,6 +1743,15 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
               .init_kind = variable_init_kind::normal,
               .first_parameter_begin = first_parameter_begin,
           });
+      if (parameter->kind() == expression_kind::optional) {
+        previous_optional = true;
+      } else if (previous_optional) {
+        this->diag_reporter_->report(
+            diag_missing_colon_in_conditional_expression{
+                .expected_colon = this->peek().span(),
+                .question = this->peek().span(),
+            });
+      }
       if (parameter->kind() == expression_kind::spread) {
         last_parameter_spread_span = parameter->span();
       } else {

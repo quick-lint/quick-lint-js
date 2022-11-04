@@ -485,6 +485,20 @@ TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
   }
 }
 
+TEST_F(test_parse_typescript_function, optional_parameter_followed_by_required) {
+  {
+    test_parser p(u8"(param1?, param2) => ReturnType"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code,
+            diag_missing_colon_in_conditional_expression,  //
+            question, strlen(u8"(param1?, "), u8"param2")));
+  }
+}
+
 TEST_F(test_parse_typescript_function,
        optional_parameters_are_not_allowed_in_javascript) {
   {
