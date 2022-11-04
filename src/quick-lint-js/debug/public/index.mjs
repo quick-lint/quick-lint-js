@@ -288,6 +288,14 @@ class ServerInfoView {
     this._dlElement.appendChild(createElementWithText("dt", "Version"));
     this._versionElement = createElementWithText("dd", "???");
     this._dlElement.appendChild(this._versionElement);
+
+    this._dlElement.appendChild(createElementWithText("dt", "Process ID"));
+    this._processIDElement = createElementWithText("dd", "???");
+    this._dlElement.appendChild(this._processIDElement);
+  }
+
+  setProcessID(value) {
+    this._processIDElement.textContent = value;
   }
 
   setVersion(value) {
@@ -303,6 +311,9 @@ DebugServerSocket.connectAsync().then((socket) => {
   });
   socket.on("initEvent", ({ version }) => {
     serverInfo.setVersion(version);
+  });
+  socket.on("processIDEvent", ({ processID }) => {
+    serverInfo.setProcessID(processID);
   });
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);

@@ -21,6 +21,7 @@
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/trace-stream-reader-mock.h>
@@ -871,13 +872,16 @@ TEST_F(test_trace_flusher_directory_backend,
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
-  strict_mock_trace_stream_event_visitor v;
+  nice_mock_trace_stream_event_visitor v;
   EXPECT_CALL(v, visit_packet_header(::testing::Field(
                      &trace_stream_event_visitor::packet_header::thread_id,
                      get_current_thread_id())));
   EXPECT_CALL(v, visit_init_event(::testing::Field(
                      &trace_stream_event_visitor::init_event::version,
                      ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
+  EXPECT_CALL(v, visit_process_id_event(::testing::Field(
+                     &trace_stream_event_visitor::process_id_event::process_id,
+                     get_current_process_id())));
   read_trace_stream_file(this->trace_dir + "/thread1", v);
 
   flusher.disable_all_backends();

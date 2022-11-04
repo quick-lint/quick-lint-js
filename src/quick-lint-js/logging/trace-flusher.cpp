@@ -19,6 +19,7 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -219,6 +220,10 @@ void trace_flusher::write_thread_header_to_backend(
   writer.write_event_init(trace_event_init{
       .timestamp = 0,  // TODO(strager)
       .version = QUICK_LINT_JS_VERSION_STRING_U8,
+  });
+  writer.write_event_process_id(trace_event_process_id{
+      .timestamp = 0,  // TODO(strager)
+      .process_id = get_current_process_id(),
   });
   temp_queue.commit();
   temp_queue.take_committed(
