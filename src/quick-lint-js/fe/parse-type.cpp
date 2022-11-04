@@ -920,11 +920,20 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
         if (this->peek().type == token_type::dot_dot_dot) {
           // [name: ...Type]  // Invalid.
-          this->diag_reporter_->report(
-              diag_typescript_named_tuple_element_spread_before_type{
-                  .spread = this->peek().span(),
-                  .expected_spread = source_code_span::unit(element_begin),
-              });
+          // [...name: ...Type]  // Invalid.
+          if (spread.has_value()) {
+            this->diag_reporter_->report(
+                diag_typescript_named_tuple_element_spread_before_name_and_type{
+                    .type_spread = this->peek().span(),
+                    .name_spread = *spread,
+                });
+          } else {
+            this->diag_reporter_->report(
+                diag_typescript_named_tuple_element_spread_before_type{
+                    .spread = this->peek().span(),
+                    .expected_spread = source_code_span::unit(element_begin),
+                });
+          }
           this->skip();
         }
 

@@ -833,6 +833,20 @@ TEST_F(test_parse_typescript_type,
             spread, strlen(u8"[ a: "), u8"...",  //
             expected_spread, strlen(u8"[ "), u8"")));
   }
+
+  {
+    test_parser p(u8"[...a: ...A]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code,
+            diag_typescript_named_tuple_element_spread_before_name_and_type,
+            type_spread, strlen(u8"[...a: "), u8"...",  //
+            name_spread, strlen(u8"["), u8"...")));
+  }
 }
 
 TEST_F(test_parse_typescript_type, empty_object_type) {

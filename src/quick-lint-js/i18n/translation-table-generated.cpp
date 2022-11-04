@@ -22,6 +22,7 @@ const translation_table translation_data = {
         {79, 25, 30, 63, 49857, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
+        {0, 0, 0, 0, 0, 75},                 //
         {143, 15, 0, 112, 0, 16},            //
         {70, 23, 0, 48, 0, 53},              //
         {0, 0, 0, 0, 0, 70},                 //
@@ -1701,6 +1702,7 @@ const translation_table translation_data = {
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
         u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
         u8"'...' belongs before the tuple element name, not before the type\0"
+        u8"'...' belongs only before the tuple element name, not also before the type\0"
         u8"'...' goes here\0"
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"

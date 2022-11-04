@@ -1995,6 +1995,17 @@
           MESSAGE(QLJS_TRANSLATABLE("'?' goes here"), expected_question))       \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_named_tuple_element_spread_before_name_and_type,          \
+      "E0329", diagnostic_severity::error,                                      \
+      {                                                                         \
+        source_code_span type_spread;                                           \
+        source_code_span name_spread;                                           \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'...' belongs only before the tuple element "  \
+                                "name, not also before the type"),              \
+              type_spread))                                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_named_tuple_element_spread_before_type, "E0328",          \
       diagnostic_severity::error,                                               \
       {                                                                         \

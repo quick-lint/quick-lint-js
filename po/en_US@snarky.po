@@ -1310,6 +1310,11 @@ msgid "'?' goes here"
 msgstr "here's the '{0}'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"'...' belongs only before the tuple element name, not also before the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'...' belongs before the tuple element name, not before the type"
 msgstr ""
 

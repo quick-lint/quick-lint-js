@@ -121,6 +121,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'...' belongs only before the tuple element name, not also before the type"_translatable,
+        {
+            u8"'...' belongs only before the tuple element name, not also before the type",
+            u8"'...' belongs only before the tuple element name, not also before the type",
+            u8"'...' belongs only before the tuple element name, not also before the type",
+            u8"'...' belongs only before the tuple element name, not also before the type",
+            u8"'...' belongs only before the tuple element name, not also before the type",
+            u8"'...' belongs only before the tuple element name, not also before the type",
+        },
+    },
+    {
         "'...' goes here"_translatable,
         {
             u8"'...' goes here",
