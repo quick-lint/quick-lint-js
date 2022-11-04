@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/port/function-ref.h>
+#include <string>
 
 namespace quick_lint_js {
 namespace {
