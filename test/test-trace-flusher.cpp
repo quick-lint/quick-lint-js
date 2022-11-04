@@ -85,6 +85,7 @@ struct trace_init_event_spy : trace_stream_event_visitor {
       const lsp_client_to_server_message_event&) override {}
   void visit_vector_max_size_histogram_by_owner_event(
       const vector_max_size_histogram_by_owner_event&) override {}
+  void visit_process_id_event(const process_id_event&) override {}
 
   std::vector<std::string> init_versions;
 };

@@ -124,6 +124,11 @@ class trace_stream_event_visitor {
     std::vector<vector_max_size_histogram_by_owner_entry> entries;
   };
 
+  struct process_id_event {
+    std::uint64_t timestamp;
+    std::uint64_t process_id;
+  };
+
   virtual ~trace_stream_event_visitor() = 0;
 
   virtual void visit_error_invalid_magic() = 0;
@@ -145,6 +150,7 @@ class trace_stream_event_visitor {
       const lsp_client_to_server_message_event&) = 0;
   virtual void visit_vector_max_size_histogram_by_owner_event(
       const vector_max_size_histogram_by_owner_event&) = 0;
+  virtual void visit_process_id_event(const process_id_event&) = 0;
 };
 }
 

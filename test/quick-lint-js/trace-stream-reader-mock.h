@@ -30,6 +30,8 @@ class mock_trace_stream_event_visitor : public trace_stream_event_visitor {
               (const lsp_client_to_server_message_event&), (override));
   MOCK_METHOD(void, visit_vector_max_size_histogram_by_owner_event,
               (const vector_max_size_histogram_by_owner_event&), (override));
+  MOCK_METHOD(void, visit_process_id_event, (const process_id_event&),
+              (override));
 };
 
 using nice_mock_trace_stream_event_visitor =

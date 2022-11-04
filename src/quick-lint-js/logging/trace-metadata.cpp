@@ -169,6 +169,14 @@ event {
   };
 };
 
+event {
+  id = 8;
+  name = "process_id";
+  fields := struct {
+    uint64_t process_id;
+  };
+};
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

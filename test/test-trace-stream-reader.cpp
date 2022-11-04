@@ -480,6 +480,31 @@ TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
   trace_stream_reader reader(&v);
   reader.append_bytes(stream.data(), stream.size());
 }
+
+TEST(test_trace_stream_reader, process_id_event) {
+  auto stream = concat(example_packet_header,
+                       make_array_explicit<std::uint8_t>(
+                           // Timestamp
+                           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Event ID
+                           0x08,
+
+                           // Process ID
+                           0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
+
+  nice_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(
+      v,
+      visit_process_id_event(::testing::AllOf(
+          ::testing::Field(
+              &trace_stream_event_visitor::process_id_event::timestamp, 0x5678),
+          ::testing::Field(
+              &trace_stream_event_visitor::process_id_event::process_id,
+              0x0123))));
+  trace_stream_reader reader(&v);
+  reader.append_bytes(stream.data(), stream.size());
+}
 }
 }
 

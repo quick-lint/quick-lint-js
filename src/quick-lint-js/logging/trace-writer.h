@@ -94,6 +94,13 @@ struct trace_event_vector_max_size_histogram_by_owner {
   std::map<std::string_view, std::map<std::size_t, int>>* histogram;
 };
 
+struct trace_event_process_id {
+  static constexpr std::uint8_t id = 0x08;
+
+  std::uint64_t timestamp;
+  std::uint64_t process_id;
+};
+
 class trace_writer {
  public:
   explicit trace_writer(async_byte_queue*);
@@ -126,6 +133,8 @@ class trace_writer {
 
   void write_event_vector_max_size_histogram_by_owner(
       const trace_event_vector_max_size_histogram_by_owner&);
+
+  void write_event_process_id(const trace_event_process_id&);
 
  private:
   template <class Func>

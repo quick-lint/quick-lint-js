@@ -74,6 +74,14 @@ void trace_writer::write_event_vector_max_size_histogram_by_owner(
         });
   }
 }
+
+void trace_writer::write_event_process_id(const trace_event_process_id& event) {
+  this->append_binary(8 + 1 + 8, [&](binary_writer& w) {
+    w.u64_le(event.timestamp);
+    w.u8(event.id);
+    w.u64_le(event.process_id);
+  });
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

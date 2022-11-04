@@ -220,6 +220,16 @@ void trace_stream_reader::parse_event(checked_binary_reader& r) {
     break;
   }
 
+  case 0x08: {
+    std::uint64_t process_id = r.u64_le();
+    this->visitor_->visit_process_id_event(
+        trace_stream_event_visitor::process_id_event{
+            .timestamp = timestamp,
+            .process_id = process_id,
+        });
+    break;
+  }
+
   default:
     // TODO(strager): Report an error.
     return;

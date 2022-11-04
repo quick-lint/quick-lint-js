@@ -247,6 +247,8 @@ TEST_F(test_debug_server,
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
 
+    void visit_process_id_event(const process_id_event &) override {}
+
     trace_stream_reader &get_stream_reader(
         trace_flusher_thread_index thread_index) {
       auto [it, _inserted] =
@@ -379,6 +381,8 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
                                          entry{.max_size = 4, .count = 1})))));
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
+
+    void visit_process_id_event(const process_id_event &) override {}
 
     trace_stream_reader &get_stream_reader(
         trace_flusher_thread_index thread_index) {

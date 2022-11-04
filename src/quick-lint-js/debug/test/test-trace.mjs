@@ -413,6 +413,30 @@ describe("trace", () => {
     ]);
   });
 
+  it("process ID", () => {
+    let reader = new TraceReader();
+    reader.appendBytes(examplePacketHeader);
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Event ID
+      0x08,
+
+      // Process ID
+      0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ]).buffer);
+    expect(reader.error).toBeNull();
+    expect(reader.pullNewEvents()).toEqual([
+      {
+        timestamp: 0x5678n,
+        eventType: TraceEventType.PROCESS_ID,
+        processID: 0x0123n,
+      },
+    ]);
+  });
+
   it("many messages", () => {
     let reader = new TraceReader();
     reader.appendBytes(examplePacketHeader);

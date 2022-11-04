@@ -147,7 +147,11 @@ class DebugServerSocket extends EventEmitter {
           this.emit("lspClientToServerMessageEvent", event);
           break;
         case TraceEventType.VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER:
+          // TODO(strager): Add 'Event' suffix to this name.
           this.emit("vectorMaxSizeHistogramByOwner", event);
+          break;
+        case TraceEventType.PROCESS_ID:
+          this.emit("processIDEvent", event);
           break;
         default:
           this.emit("unknownTraceEvent", event);

@@ -359,6 +359,28 @@ TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
                   3, 0, 0, 0, 0, 0, 0, 0,    // Max size entry 0 max size
                   7, 0, 0, 0, 0, 0, 0, 0));  // Max size entry 0 count
 }
+
+TEST(test_trace_writer, write_event_process_id) {
+  async_byte_queue data;
+  trace_writer w(&data);
+
+  w.write_event_process_id(trace_event_process_id{
+      .timestamp = 0x5678,
+      .process_id = 0x0123,
+  });
+
+  data.commit();
+  EXPECT_THAT(data.take_committed_string8(),
+              ElementsAre(
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // Event ID
+                  0x08,
+
+                  // Process ID
+                  0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
+}
 }
 }
 

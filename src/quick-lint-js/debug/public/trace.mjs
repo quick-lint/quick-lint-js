@@ -9,6 +9,7 @@ export const TraceEventType = {
   VSCODE_DOCUMENT_SYNC: 5,
   LSP_CLIENT_TO_SERVER_MESSAGE: 6,
   VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER: 7,
+  PROCESS_ID: 8,
 };
 
 // Reads quick-lint-js trace streams as documented in docs/TRACING.md.
@@ -176,6 +177,12 @@ export class TraceReader {
             entries.push({ owner, maxSizeEntries });
           }
           this._event({ timestamp, eventType, entries });
+          return;
+        }
+
+        case TraceEventType.PROCESS_ID: {
+          let processID = r.u64BigInt();
+          this._event({ timestamp, eventType, processID });
           return;
         }
 
