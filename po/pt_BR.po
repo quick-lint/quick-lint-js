@@ -346,7 +346,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "falta o nome da propriedade entre '.' e '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -974,6 +973,11 @@ msgstr "parâmetro opcional não pode ter '?' e inicializador; remova o '?'"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "initializer starts here"
 msgstr "inicializador inicia aqui"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "vírgulas não são permitidas após parâmetro com spread"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

@@ -215,7 +215,8 @@ msgstr "'async export' ist ungültig. 'export async' anstattdessen verwenden."
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
-msgstr "'function async' ist ungültig. 'async function' anstattdessen verwenden."
+msgstr ""
+"'function async' ist ungültig. 'async function' anstattdessen verwenden."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
@@ -377,7 +378,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -1048,6 +1048,11 @@ msgstr ""
 #, fuzzy
 msgid "initializer starts here"
 msgstr "Funktionsaufruf beginnt hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "Ungültiges Komma nach Spread-Parameter"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
