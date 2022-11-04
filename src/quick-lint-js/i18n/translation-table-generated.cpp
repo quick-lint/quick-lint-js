@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11628, 20711, 31447, 0, 57411},  //
+        {1, 11672, 20759, 31424, 0, 57432},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 80, 60, 58, 0, 52},             //
         {31, 56, 0, 32, 0, 28},              //
         {0, 0, 0, 70, 0, 67},                //
-        {79, 25, 30, 63, 49836, 66},         //
+        {79, 25, 30, 63, 49857, 66},         //
         {143, 15, 0, 112, 0, 97},            //
         {70, 23, 0, 48, 0, 53},              //
         {93, 63, 151, 70, 130, 70},          //
@@ -60,8 +60,7 @@ const translation_table translation_data = {
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
         {48, 16, 55, 35, 45, 48},            //
-        {0, 0, 98, 0, 0, 65},                //
-        {79, 39, 117, 87, 0, 86},            //
+        {79, 39, 98, 87, 0, 65},             //
         {0, 0, 0, 24, 0, 18},                //
         {0, 0, 0, 50, 0, 44},                //
         {21, 38, 23, 58, 0, 52},             //
@@ -223,7 +222,8 @@ const translation_table translation_data = {
         {47, 43, 47, 54, 35, 38},            //
         {31, 39, 32, 33, 28, 27},            //
         {34, 15, 43, 40, 37, 33},            //
-        {39, 51, 50, 40, 38, 39},            //
+        {0, 0, 0, 0, 0, 39},                 //
+        {39, 51, 50, 40, 38, 88},            //
         {57, 72, 67, 55, 0, 41},             //
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 22, 0, 19},                //
@@ -285,13 +285,13 @@ const translation_table translation_data = {
         {0, 0, 0, 52, 0, 44},                //
         {43, 46, 0, 45, 0, 37},              //
         {46, 29, 49, 52, 36, 49},            //
-        {0, 0, 0, 0, 0, 41},                 //
-        {0, 0, 0, 49, 0, 42},                //
+        {45, 11, 52, 49, 0, 41},             //
+        {0, 0, 0, 44, 0, 42},                //
         {0, 0, 0, 47, 0, 40},                //
         {0, 0, 0, 50, 0, 40},                //
         {0, 0, 0, 39, 0, 30},                //
         {0, 0, 0, 44, 0, 40},                //
-        {45, 11, 52, 54, 42, 41},            //
+        {44, 4, 46, 54, 42, 41},             //
         {31, 50, 44, 45, 35, 34},            //
         {73, 55, 78, 81, 66, 65},            //
         {0, 0, 0, 83, 0, 63},                //
@@ -585,6 +585,7 @@ const translation_table translation_data = {
         u8"Klammern fehlen um den Operanden von '{0}'\0"
         u8"Klammern um selbstaufgerufene Funktion fehlen\0"
         u8"Eigenschaftsname fehlt nach dem '.'-Operator\0"
+        u8"Eigenschaftsname fehlt zwischen '.' und '.'\0"
         u8"Semikolon fehlt nach Anweisung\0"
         u8"Semikolon fehlt zwischen Bedingung und Update-Anweisung der for-Schleife\0"
         u8"Semikolon fehlt zwischen Initialisierung und Bedingung der for-Schleife\0"
@@ -845,6 +846,7 @@ const translation_table translation_data = {
         u8"JavaScript is stupid, so you need parentheses\0"
         u8"IIFEs are uglier. try again.\0"
         u8"dot WHAT?!\0"
+        u8"._.\0"
         u8"I know you hate semicolons, but you need one here\0"
         u8"automatic semicolon insertion doesn't work here, buddy\0"
         u8"automatic semicolon insertion doesn't work here, buddy\0"
@@ -941,7 +943,6 @@ const translation_table translation_data = {
         u8"le lit\u00e9ral BigInt contient un exposant\0"
         u8"troisi\u00e8me argument manquant pour la boucle de style C\0"
         u8"les boucles for de style C ne poss\u00e8dent que trois composantes s\u00e9par\u00e9es par des points-virgules\0"
-        u8"L'utilisation de '?' comme pr\u00e9fixe ou suffixe dans le type d'un param\u00e8tre est invalide ; utiliser plut\u00f4t '| void'\0"
         u8"erreur de syntaxe JSON\0"
         u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode\0"
         u8"une d\u00e9claration de classe n'est pas autoris\u00e9e dans le corps de {1:singular}\0"
@@ -1062,6 +1063,7 @@ const translation_table translation_data = {
         u8"op\u00e9rateur manquant entre l'expression et la fonction fl\u00e9ch\u00e9e\0"
         u8"param\u00e8tres manquants pour la fonction fl\u00e9ch\u00e9e\0"
         u8"nom de propri\u00e9t\u00e9 manquant apr\u00e8s l'op\u00e9rateur '.'\0"
+        u8"nom de propri\u00e9t\u00e9 manquante entre '.' et '.'\0"
         u8"point-virgule manquant apr\u00e8s l'instruction\0"
         u8"point-virgule manquant entre la condition et l'actualisation de la boucle for\0"
         u8"point-virgule manquant entre l'initialisation et la condition de la boucle for\0"
@@ -1395,6 +1397,7 @@ const translation_table translation_data = {
         u8"faltam os par\u00eanteses ao redor do par\u00e2metro\0"
         u8"faltam os par\u00eanteses em volta da fun\u00e7\u00e3o invocada\0"
         u8"falta o nome da propriedade ap\u00f3s o operador '.'\0"
+        u8"falta o nome da propriedade entre '.' e '.'\0"
         u8"faltam aspas em volta do nome do m\u00f3dulo '{0}'\0"
         u8"falta o ponto e v\u00edrgula ap\u00f3s o m\u00e9todo abstrato\0"
         u8"falta o ponto e v\u00edrgula ap\u00f3s o campo\0"
@@ -1733,7 +1736,6 @@ const translation_table translation_data = {
         u8"BigInt literal contains exponent\0"
         u8"C-style for loop is missing its third component\0"
         u8"C-style for loops have only three semicolon-separated components\0"
-        u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.\0"
         u8"JSON syntax error\0"
         u8"React/JSX is not allowed in TypeScript code\0"
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
@@ -1896,6 +1898,7 @@ const translation_table translation_data = {
         u8"invalid function parameter\0"
         u8"invalid hex escape sequence: {0}\0"
         u8"invalid lone literal in object literal\0"
+        u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead\0"
         u8"keywords cannot contain escape sequences\0"
         u8"label named 'await' not allowed in async function\0"
         u8"labelled statement\0"

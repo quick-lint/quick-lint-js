@@ -156,7 +156,9 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."
+msgid ""
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
@@ -367,7 +369,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

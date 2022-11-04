@@ -166,8 +166,13 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."
-msgstr "L'utilisation de '?' comme préfixe ou suffixe dans le type d'un paramètre est invalide ; utiliser plutôt '| void'"
+#, fuzzy
+msgid ""
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
+msgstr ""
+"L'utilisation de '?' comme préfixe ou suffixe dans le type d'un paramètre "
+"est invalide ; utiliser plutôt '| void'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
@@ -224,7 +229,8 @@ msgstr "'async export' n'est pas autorisé ; utiliser plutôt 'export async'"
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
-msgstr "'function static' n'est pas autorisé ; utiliser plutôt 'async function'"
+msgstr ""
+"'function static' n'est pas autorisé ; utiliser plutôt 'async function'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
@@ -389,7 +395,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "nom de propriété manquante entre '.' et '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

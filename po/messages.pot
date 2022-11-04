@@ -145,8 +145,8 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
-"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' "
-"instead."
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

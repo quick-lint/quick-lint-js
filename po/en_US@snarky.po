@@ -139,7 +139,9 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."
+msgid ""
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
@@ -365,7 +367,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "._."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 

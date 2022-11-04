@@ -550,17 +550,6 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead."_translatable,
-        {
-            u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.",
-            u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.",
-            u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.",
-            u8"L'utilisation de '?' comme pr\u00e9fixe ou suffixe dans le type d'un param\u00e8tre est invalide ; utiliser plut\u00f4t '| void'",
-            u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.",
-            u8"Invalid usage of ? as a prefix or suffix in the parameter type, use '| void' instead.",
-        },
-    },
-    {
         "JSON syntax error"_translatable,
         {
             u8"JSON syntax error",
@@ -2343,6 +2332,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"_translatable,
+        {
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+        },
+    },
+    {
         "keywords cannot contain escape sequences"_translatable,
         {
             u8"keywords cannot contain escape sequences",
@@ -3028,10 +3028,10 @@ const translated_string test_translation_table[] = {
         "missing property name between '.' and '.'"_translatable,
         {
             u8"missing property name between '.' and '.'",
-            u8"missing property name between '.' and '.'",
-            u8"missing property name between '.' and '.'",
-            u8"missing property name between '.' and '.'",
-            u8"missing property name between '.' and '.'",
+            u8"Eigenschaftsname fehlt zwischen '.' und '.'",
+            u8"._.",
+            u8"nom de propri\u00e9t\u00e9 manquante entre '.' et '.'",
+            u8"falta o nome da propriedade entre '.' e '.'",
             u8"missing property name between '.' and '.'",
         },
     },
