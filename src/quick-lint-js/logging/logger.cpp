@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -10,17 +11,13 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>
-#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string.h>
 #include <vector>
-
-#if QLJS_HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
 QLJS_WARNING_IGNORE_GCC("-Wformat-security")
@@ -62,9 +59,9 @@ void file_logger::log(std::string_view message) {
     return;
   }
 
-#if QLJS_HAVE_GETPID
-  std::fprintf(file, "[%d.%llu] ", ::getpid(),
-               narrow_cast<unsigned long long>(get_current_thread_id()));
+#if !defined(__EMSCRIPTEN__)
+  std::fprintf(file, "[%" PRIu64 ".%" PRIu64 "] ", get_current_process_id(),
+               get_current_thread_id());
 #endif
   std::fprintf(file, "%.*s", narrow_cast<int>(message.size()), message.data());
   std::fflush(file);

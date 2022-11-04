@@ -210,6 +210,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/max-align.h
   quick-lint-js/port/memory-resource.cpp
   quick-lint-js/port/memory-resource.h
+  quick-lint-js/port/process.cpp
+  quick-lint-js/port/process.h
   quick-lint-js/port/simd.h
   quick-lint-js/port/source-location.h
   quick-lint-js/port/thread.cpp
