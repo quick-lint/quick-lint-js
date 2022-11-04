@@ -110,6 +110,28 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'...' belongs before the tuple element name, not before the type"_translatable,
+        {
+            u8"'...' belongs before the tuple element name, not before the type",
+            u8"'...' belongs before the tuple element name, not before the type",
+            u8"'...' belongs before the tuple element name, not before the type",
+            u8"'...' belongs before the tuple element name, not before the type",
+            u8"'...' belongs before the tuple element name, not before the type",
+            u8"'...' belongs before the tuple element name, not before the type",
+        },
+    },
+    {
+        "'...' goes here"_translatable,
+        {
+            u8"'...' goes here",
+            u8"'...' goes here",
+            u8"'...' goes here",
+            u8"'...' goes here",
+            u8"'...' goes here",
+            u8"'...' goes here",
+        },
+    },
+    {
         "'=' changes variables; to compare, use '===' instead"_translatable,
         {
             u8"'=' changes variables; to compare, use '===' instead",

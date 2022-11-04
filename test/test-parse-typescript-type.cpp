@@ -819,6 +819,22 @@ TEST_F(test_parse_typescript_type,
   }
 }
 
+TEST_F(test_parse_typescript_type,
+       tuple_type_spread_named_element_cannot_have_dot_dot_dot_before_type) {
+  {
+    test_parser p(u8"[ a: ...A ]"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // A
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code, diag_typescript_named_tuple_element_spread_before_type,
+            spread, strlen(u8"[ a: "), u8"...",  //
+            expected_spread, strlen(u8"[ "), u8"")));
+  }
+}
+
 TEST_F(test_parse_typescript_type, empty_object_type) {
   test_parser p(u8"{}"_sv, typescript_options);
   p.parse_and_visit_typescript_type_expression();

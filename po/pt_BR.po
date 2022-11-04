@@ -1241,6 +1241,15 @@ msgid "'?' goes here"
 msgstr "'{0}' encontrado aqui"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'...' belongs before the tuple element name, not before the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'...' goes here"
+msgstr "'{0}' encontrado aqui"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript namespaces are not allowed in JavaScript"
 msgstr "namespaces do TypeScript não são permitidos em JavaScript"
 

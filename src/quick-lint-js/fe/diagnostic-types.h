@@ -1995,6 +1995,18 @@
           MESSAGE(QLJS_TRANSLATABLE("'?' goes here"), expected_question))       \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_named_tuple_element_spread_before_type, "E0328",          \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span spread;                                                \
+        source_code_span expected_spread;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'...' belongs before the tuple element "       \
+                                "name, not before the type"),                   \
+              spread)                                                           \
+          MESSAGE(QLJS_TRANSLATABLE("'...' goes here"), expected_spread))       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_namespaces_not_allowed_in_javascript, "E0273",            \
       diagnostic_severity::error, { source_code_span namespace_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

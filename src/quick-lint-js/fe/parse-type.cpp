@@ -917,6 +917,17 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
         this->skip();
         this->lexer_.commit_transaction(std::move(transaction));
+
+        if (this->peek().type == token_type::dot_dot_dot) {
+          // [name: ...Type]  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_named_tuple_element_spread_before_type{
+                  .spread = this->peek().span(),
+                  .expected_spread = source_code_span::unit(element_begin),
+              });
+          this->skip();
+        }
+
         this->parse_and_visit_typescript_type_expression(v);
       } else {
         // [Type]
