@@ -1971,6 +1971,19 @@
           colon))                                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_named_tuple_element_question_after_type, "E0314",         \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span question;                                              \
+        source_code_span expected_question;                                     \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "'?' belongs after the tuple element name, not after the type"),  \
+          question)                                                             \
+          MESSAGE(QLJS_TRANSLATABLE("'?' goes here"), expected_question))       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_namespaces_not_allowed_in_javascript, "E0273",            \
       diagnostic_severity::error, { source_code_span namespace_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

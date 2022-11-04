@@ -346,7 +346,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "falta o nome da propriedade entre '.' e '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -1227,6 +1226,15 @@ msgstr "falta o nome para o elemento na named tuple"
 msgid ""
 "this tuple type is a named tuple type because at least one element has a name"
 msgstr "essa tupla é uma named tuple porque ao menos um elemento tem um nome"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'?' belongs after the tuple element name, not after the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'?' goes here"
+msgstr "'{0}' encontrado aqui"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript namespaces are not allowed in JavaScript"

@@ -132,6 +132,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'?' belongs after the tuple element name, not after the type"_translatable,
+        {
+            u8"'?' belongs after the tuple element name, not after the type",
+            u8"'?' belongs after the tuple element name, not after the type",
+            u8"'?' belongs after the tuple element name, not after the type",
+            u8"'?' belongs after the tuple element name, not after the type",
+            u8"'?' belongs after the tuple element name, not after the type",
+            u8"'?' belongs after the tuple element name, not after the type",
+        },
+    },
+    {
         "'?' creates a conditional expression"_translatable,
         {
             u8"'?' creates a conditional expression",
@@ -140,6 +151,17 @@ const translated_string test_translation_table[] = {
             u8"'?' cr\u00e9\u00e9 une expression conditionnelle",
             u8"'?' cria uma express\u00e3o condicional",
             u8"'?' skapar vilkorsuttryck",
+        },
+    },
+    {
+        "'?' goes here"_translatable,
+        {
+            u8"'?' goes here",
+            u8"'?' goes here",
+            u8"'?' goes here",
+            u8"'?' goes here",
+            u8"'?' goes here",
+            u8"'?' goes here",
         },
     },
     {

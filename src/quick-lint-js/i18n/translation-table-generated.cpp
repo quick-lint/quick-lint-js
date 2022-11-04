@@ -22,8 +22,10 @@ const translation_table translation_data = {
         {79, 25, 30, 63, 49857, 66},         //
         {143, 15, 0, 112, 0, 97},            //
         {70, 23, 0, 48, 0, 53},              //
-        {93, 63, 151, 70, 130, 70},          //
-        {0, 0, 0, 36, 0, 37},                //
+        {0, 0, 0, 0, 0, 70},                 //
+        {93, 63, 151, 70, 130, 61},          //
+        {0, 0, 0, 0, 0, 37},                 //
+        {0, 0, 0, 36, 0, 14},                //
         {0, 0, 0, 100, 0, 89},               //
         {0, 0, 0, 0, 0, 24},                 //
         {50, 77, 41, 27, 0, 60},             //
@@ -1697,7 +1699,9 @@ const translation_table translation_data = {
         u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
+        u8"'?' belongs after the tuple element name, not after the type\0"
         u8"'?' creates a conditional expression\0"
+        u8"'?' goes here\0"
         u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"
         u8"'as const' located here\0"
         u8"'async export' is not allowed; write 'export async' instead\0"

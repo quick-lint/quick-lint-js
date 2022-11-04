@@ -953,8 +953,17 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
     if (!optional_question.has_value() &&
         this->peek().type == token_type::question) {
       // [(Type)?]
+      // [name: Type?]  // Invalid.
       optional_question = this->peek().span();
       this->skip();
+
+      if (expected_optional_question) {
+        // [name: Type?]  // Invalid.
+        this->diag_reporter_->report(diag_typescript_named_tuple_element_question_after_type{
+            .question = *optional_question,
+            .expected_question = source_code_span::unit(expected_optional_question),
+            });
+      }
     }
 
     if (optional_question.has_value()) {

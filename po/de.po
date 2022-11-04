@@ -215,7 +215,8 @@ msgstr "'async export' ist ungültig. 'export async' anstattdessen verwenden."
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
-msgstr "'function async' ist ungültig. 'async function' anstattdessen verwenden."
+msgstr ""
+"'function async' ist ungültig. 'async function' anstattdessen verwenden."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
@@ -377,7 +378,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -1352,6 +1352,15 @@ msgstr "Klassenname fehlt"
 msgid ""
 "this tuple type is a named tuple type because at least one element has a name"
 msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'?' belongs after the tuple element name, not after the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'?' goes here"
+msgstr "'{0}' ist hier"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy

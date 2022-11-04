@@ -363,7 +363,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -1291,6 +1290,14 @@ msgstr "saknar namn för klass"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "this tuple type is a named tuple type because at least one element has a name"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'?' belongs after the tuple element name, not after the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'?' goes here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
