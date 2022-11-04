@@ -1747,9 +1747,8 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
         previous_optional = true;
       } else if (previous_optional) {
         this->diag_reporter_->report(
-            diag_missing_colon_in_conditional_expression{
-                .expected_colon = this->peek().span(),
-                .question = this->peek().span(),
+            diag_optional_parameter_cannot_be_followed_by_required_parameter {
+              .required_parameter = parameter->span()
             });
       }
       if (parameter->kind() == expression_kind::spread) {

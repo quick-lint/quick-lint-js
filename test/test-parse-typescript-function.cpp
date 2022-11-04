@@ -494,8 +494,8 @@ TEST_F(test_parse_typescript_function, optional_parameter_followed_by_required) 
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code,
-            diag_missing_colon_in_conditional_expression,  //
-            question, strlen(u8"(param1?, "), u8"param2")));
+            diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
+            required_parameter, strlen(u8"(param1?, "), u8"param2")));
   }
 }
 
