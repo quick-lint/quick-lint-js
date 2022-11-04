@@ -144,7 +144,6 @@ again:
         break;
       }
     }
-
     if (had_dot) {
       v.visit_variable_namespace_use(name);
     } else {

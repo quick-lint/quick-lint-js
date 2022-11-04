@@ -367,6 +367,7 @@ msgid "missing property name between '.' and '.'"
 msgstr "._."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
