@@ -1971,6 +1971,17 @@
           colon))                                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_named_tuple_element_question_after_name_and_type,         \
+      "E0322", diagnostic_severity::error,                                      \
+      {                                                                         \
+        source_code_span type_question;                                         \
+        source_code_span name_question;                                         \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'?' belongs only after the tuple element "     \
+                                "name, not also after the type"),               \
+              type_question))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_named_tuple_element_question_after_type, "E0314",         \
       diagnostic_severity::error,                                               \
       {                                                                         \

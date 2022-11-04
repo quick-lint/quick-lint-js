@@ -23,7 +23,8 @@ const translation_table translation_data = {
         {143, 15, 0, 112, 0, 97},            //
         {70, 23, 0, 48, 0, 53},              //
         {0, 0, 0, 0, 0, 70},                 //
-        {93, 63, 151, 70, 130, 61},          //
+        {0, 0, 0, 0, 0, 61},                 //
+        {93, 63, 151, 70, 130, 71},          //
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 36, 0, 14},                //
         {0, 0, 0, 100, 0, 89},               //
@@ -1700,6 +1701,7 @@ const translation_table translation_data = {
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
         u8"'?' belongs after the tuple element name, not after the type\0"
+        u8"'?' belongs only after the tuple element name, not also after the type\0"
         u8"'?' creates a conditional expression\0"
         u8"'?' goes here\0"
         u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"

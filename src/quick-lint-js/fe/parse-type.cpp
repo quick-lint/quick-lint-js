@@ -950,20 +950,29 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       break;
     }
 
-    if (!optional_question.has_value() &&
-        this->peek().type == token_type::question) {
+    if (this->peek().type == token_type::question) {
       // [(Type)?]
       // [name: Type?]  // Invalid.
-      optional_question = this->peek().span();
-      this->skip();
-
-      if (expected_optional_question) {
+      // [name?: Type?]  // Invalid.
+      if (optional_question.has_value()) {
+        // [name?: Type?]  // Invalid.
+        this->diag_reporter_->report(
+            diag_typescript_named_tuple_element_question_after_name_and_type{
+                .type_question = this->peek().span(),
+                .name_question = *optional_question,
+            });
+      } else if (expected_optional_question) {
         // [name: Type?]  // Invalid.
-        this->diag_reporter_->report(diag_typescript_named_tuple_element_question_after_type{
-            .question = *optional_question,
-            .expected_question = source_code_span::unit(expected_optional_question),
+        this->diag_reporter_->report(
+            diag_typescript_named_tuple_element_question_after_type{
+                .question = this->peek().span(),
+                .expected_question =
+                    source_code_span::unit(expected_optional_question),
             });
       }
+
+      optional_question = this->peek().span();
+      this->skip();
     }
 
     if (optional_question.has_value()) {

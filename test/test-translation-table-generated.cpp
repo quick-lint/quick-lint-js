@@ -143,6 +143,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'?' belongs only after the tuple element name, not also after the type"_translatable,
+        {
+            u8"'?' belongs only after the tuple element name, not also after the type",
+            u8"'?' belongs only after the tuple element name, not also after the type",
+            u8"'?' belongs only after the tuple element name, not also after the type",
+            u8"'?' belongs only after the tuple element name, not also after the type",
+            u8"'?' belongs only after the tuple element name, not also after the type",
+            u8"'?' belongs only after the tuple element name, not also after the type",
+        },
+    },
+    {
         "'?' creates a conditional expression"_translatable,
         {
             u8"'?' creates a conditional expression",

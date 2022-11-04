@@ -1228,6 +1228,10 @@ msgid ""
 msgstr "essa tupla é uma named tuple porque ao menos um elemento tem um nome"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'?' belongs only after the tuple element name, not also after the type"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'?' belongs after the tuple element name, not after the type"
 msgstr ""
 
