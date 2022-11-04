@@ -829,6 +829,14 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       this->skip();
     }
 
+    std::optional<source_code_span> optional_question;
+
+    // expected_optional_question is where a '?' could syntactically be placed
+    // to make the tuple element optional. If nullptr, '?' can be placed after
+    // the type. expected_optional_question is only valid if optional_question
+    // is nullopt.
+    const char8 *expected_optional_question = nullptr;
+
     switch (this->peek().type) {
     case token_type::right_square:
       this->skip();
@@ -865,8 +873,33 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       lexer_transaction transaction = this->lexer_.begin_transaction();
       const char8 *element_begin = this->peek().begin;
       this->skip();
-      if (this->peek().type == token_type::colon) {
+
+      bool is_named_element;
+      if (this->peek().type == token_type::question) {
+        // [Type?]
+        // [name?: Type]
+        optional_question = this->peek().span();
+        this->skip();
+        if (this->peek().type == token_type::colon) {
+          // [name?: Type]
+          is_named_element = true;
+        } else {
+          // [Type?]
+          is_named_element = false;
+        }
+      } else if (this->peek().type == token_type::colon) {
         // [name: Type]
+        expected_optional_question = this->lexer_.end_of_previous_token();
+        is_named_element = true;
+      } else {
+        // [Type]
+        is_named_element = false;
+      }
+
+      if (is_named_element) {
+        // [name: Type]
+        // [name?: Type]
+        QLJS_ASSERT(this->peek().type == token_type::colon);
         const char8 *colon_end = this->peek().end;
         if (!first_named_tuple_name_and_colon.has_value()) {
           source_code_span name_and_colon(element_begin, colon_end);
@@ -887,7 +920,13 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
         this->parse_and_visit_typescript_type_expression(v);
       } else {
         // [Type]
+        // [Type?]
         this->lexer_.roll_back_transaction(std::move(transaction));
+
+        // We unparsed the '?' (if any). Reset optional_question so we parse it
+        // again later.
+        optional_question = std::nullopt;
+
         if (first_named_tuple_name_and_colon.has_value()) {
           // [name: Type1, Type2]  // Invalid.
           this->diag_reporter_->report(
@@ -911,13 +950,19 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       break;
     }
 
-    if (this->peek().type == token_type::question) {
-      source_code_span optional_question = this->peek().span();
+    if (!optional_question.has_value() &&
+        this->peek().type == token_type::question) {
+      // [(Type)?]
+      optional_question = this->peek().span();
+      this->skip();
+    }
+
+    if (optional_question.has_value()) {
       if (spread.has_value()) {
         // [...Type?]  // Invalid.
         this->diag_reporter_->report(
             diag_typescript_spread_element_cannot_be_optional{
-                .optional_question = optional_question,
+                .optional_question = *optional_question,
                 .spread = *spread,
             });
         // Don't set last_optional_question; pretend the '?' wasn't there.
@@ -925,24 +970,27 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
         // [...Type1, Type2?]  // Invalid.
         this->diag_reporter_->report(
             diag_typescript_optional_tuple_element_cannot_follow_spread_element{
-                .optional_question = optional_question,
+                .optional_question = *optional_question,
                 .previous_spread = *first_spread,
             });
-        last_optional_question = optional_question;
+        last_optional_question = *optional_question;
       } else {
         // [Type?]
-        last_optional_question = optional_question;
+        // [name?: Type]
+        last_optional_question = *optional_question;
       }
-      this->skip();
     } else if (last_optional_question.has_value()) {
       if (spread.has_value()) {
         // [Type1?, ...Type2]
       } else {
         // [Type1?, Type2]  // Invalid.
+        if (!expected_optional_question) {
+          expected_optional_question = this->lexer_.end_of_previous_token();
+        }
         this->diag_reporter_->report(
             diag_typescript_required_tuple_element_after_optional_element{
-                .expected_question = source_code_span::unit(
-                    this->lexer_.end_of_previous_token()),
+                .expected_question =
+                    source_code_span::unit(expected_optional_question),
                 .previous_optional_question = *last_optional_question,
             });
       }
