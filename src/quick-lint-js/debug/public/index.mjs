@@ -277,9 +277,28 @@ function createElementWithText(tagName, textContent) {
 
 let lspLog = new LSPLogView(document.getElementById("lsp-log"));
 
+class ServerInfoView {
+  constructor(rootElement) {
+    this._dlElement = rootElement.querySelector("dl");
+
+    this._dlElement.appendChild(createElementWithText("dt", "Version"));
+    this._versionElement = createElementWithText("dd", "???");
+    this._dlElement.appendChild(this._versionElement);
+  }
+
+  setVersion(value) {
+    this._versionElement.textContent = value;
+  }
+}
+
+let serverInfo = new ServerInfoView(document.getElementById("server-info"));
+
 DebugServerSocket.connectAsync().then((socket) => {
   socket.on("error", (error) => {
     console.error(error);
+  });
+  socket.on("initEvent", ({ version }) => {
+    serverInfo.setVersion(version);
   });
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
