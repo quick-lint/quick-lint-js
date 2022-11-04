@@ -1241,7 +1241,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 }
 
-TEST_F(test_parse_typescript_type, no_question_in_param_type) {
+TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
   {
     test_parser p(
         u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv,
@@ -1250,7 +1250,7 @@ TEST_F(test_parse_typescript_type, no_question_in_param_type) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_question_in_parameters_should_be_void,
+            p.code, diag_typescript_question_in_type_expression_should_be_void,
             question,
             strlen(
                 u8"fs.promises.writeFile(outputPath, result).then((err: Error"),
@@ -1265,11 +1265,38 @@ TEST_F(test_parse_typescript_type, no_question_in_param_type) {
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_question_in_parameters_should_be_void,
+            p.code, diag_typescript_question_in_type_expression_should_be_void,
             question,
             strlen(u8"fs.promises.writeFile(outputPath, result).then((err: "),
             u8"?")));
   }
+
+   {
+    test_parser p(
+        u8"Type?"_sv,
+        typescript_options, capture_diags);
+     p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code, diag_typescript_question_in_type_expression_should_be_void,
+            question,
+            strlen(u8"Type"), u8"?")));
+  }
+
+  {
+    test_parser p(u8"?Type"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_question_in_type_expression_should_be_void,
+                question, 0, u8"?")));
+  }
+
 }
 
 TEST_F(test_parse_typescript_type, generic_arrow_function) {
