@@ -357,7 +357,8 @@ again:
   }
 
   //: Type? // invalid
-  if (!is_tuple_type && parse_question_as_invalid && this->peek().type == token_type::question) {
+  if (!is_tuple_type && parse_question_as_invalid &&
+      this->peek().type == token_type::question) {
     this->diag_reporter_->report(
         diag_typescript_question_in_type_expression_should_be_void{
             .question = this->peek().span()});
@@ -395,7 +396,8 @@ again:
   if (this->peek().type == token_type::kw_extends) {
     // T extends T ? T : T
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v, parse_question_as_invalid=false);
+    this->parse_and_visit_typescript_type_expression(
+        v, parse_question_as_invalid = false);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
@@ -860,8 +862,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
               .colon = colon_span,
           });
       this->skip();
-      this->parse_and_visit_typescript_type_expression(
-          v, false);
+      this->parse_and_visit_typescript_type_expression(v, false);
       break;
     }
 
@@ -903,8 +904,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
         this->skip();
         this->lexer_.commit_transaction(std::move(transaction));
-        this->parse_and_visit_typescript_type_expression(
-            v, false);
+        this->parse_and_visit_typescript_type_expression(v, false);
       } else {
         // [Type]
         this->lexer_.roll_back_transaction(std::move(transaction));
@@ -919,8 +919,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
         }
         first_unnamed_element_begin = this->peek().begin;
 
-        this->parse_and_visit_typescript_type_expression(
-            v, false);
+        this->parse_and_visit_typescript_type_expression(v, false);
       }
       break;
     }
