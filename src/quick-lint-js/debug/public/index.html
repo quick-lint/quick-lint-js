@@ -2,6 +2,12 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   #vector-profile-data {
     display: flex;
     flex-wrap: wrap;
@@ -26,6 +32,43 @@
       transparent var(--histogram-percentage),
       transparent 100%
     );
+  }
+
+  .tab-bar {
+    --bottom-border-width: 1px;
+    --active-background-color: #ffffff;
+
+    display: flex;
+    margin: 0;
+    padding: 0 1rem;
+    border-bottom: var(--bottom-border-width) solid black;
+  }
+  .tab-bar > li {
+    list-style-type: none;
+    padding: 0;
+  }
+  .tab-bar > li > a {
+    background-color: #e5e5e5;
+    border: 1px solid black;
+    border-bottom: 0;
+    color: black;
+    display: inline-block;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+  }
+  .tab-bar > li:not(:first-child) > a {
+    border-left: 0;
+  }
+  .tab-bar > li > a.active {
+    background-color: var(--active-background-color);
+    border-bottom: var(--bottom-border-width) solid
+      var(--active-background-color);
+    margin-bottom: calc(-1 * var(--bottom-border-width));
+  }
+
+  .tabbed-container > .tab:not(.active) {
+    display: none !important;
   }
 
   #lsp-log {
@@ -83,18 +126,25 @@
 
 <h1>quick-lint-js debug server</h1>
 
-<section id="lsp-log">
-  <h2>LSP log</h2>
-  <ol id="lsp-log-data"></ol>
-  <div id="lsp-log-details">
-    <dl id="lsp-log-params"></dl>
-  </div>
-</section>
+<nav id="tool-bar">
+  <ul class="tab-bar">
+    <li><a href="#/lsp-log">LSP log</a></li>
+    <li><a href="#/vector-profile">vector profile</a></li>
+  </ul>
+</nav>
 
-<section id="vector-profile">
-  <h2>vector profile</h2>
-  <div id="vector-profile-data"></div>
-</section>
+<main class="tabbed-container">
+  <section id="lsp-log" class="tab">
+    <ol id="lsp-log-data"></ol>
+    <div id="lsp-log-details">
+      <dl id="lsp-log-params"></dl>
+    </div>
+  </section>
+
+  <section id="vector-profile" class="tab">
+    <div id="vector-profile-data"></div>
+  </section>
+</main>
 
 <script type="module" src="index.mjs"></script>
 

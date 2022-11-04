@@ -164,6 +164,7 @@ class DebugServerSocket extends EventEmitter {
       let url = new URL(window.location);
       url.pathname = "/api/trace";
       url.protocol = "ws:";
+      url.hash = "";
       let webSocket = new WebSocket(url.toString());
       webSocket.binaryType = "arraybuffer";
       webSocket.addEventListener("open", (_event) => {
@@ -295,6 +296,39 @@ DebugServerSocket.connectAsync().then((socket) => {
     }
   });
 });
+
+class TabBarView {
+  constructor(tabBarElement, tabbedContainerElement) {
+    this._tabBarElement = tabBarElement;
+    this._tabbedContainerElement = tabbedContainerElement;
+
+    window.addEventListener("hashchange", (_event) => {
+      this._checkCurrentHash();
+    });
+    this._checkCurrentHash();
+  }
+
+  _checkCurrentHash() {
+    let currentHash = window.location.hash;
+    let currentID = currentHash.replace("#/", "");
+    for (let aElement of this._tabBarElement.querySelectorAll("li > a")) {
+      aElement.classList.toggle(
+        "active",
+        new URL(aElement.href).hash === currentHash
+      );
+    }
+    for (let tabbedElement of this._tabbedContainerElement.querySelectorAll(
+      ".tab"
+    )) {
+      tabbedElement.classList.toggle("active", tabbedElement.id === currentID);
+    }
+  }
+}
+
+new TabBarView(
+  document.querySelector("#tool-bar .tab-bar"),
+  document.querySelector("main.tabbed-container")
+);
 
 if (DEBUG_LSP_LOG) {
   lspLog.addClientToServerMessage(
