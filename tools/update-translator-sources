@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
@@ -8,10 +8,27 @@ set -u
 
 cd "$(dirname "${0}")/.."
 
+
 main() {
+  check_dependencies
   update_template_file
   update_translation_files
   go run ./tools/compile-translations.go
+}
+
+check_dependencies() {
+  go_version=`go version | { read _ _ v _; echo ${v#go}; }`
+  min_go_version="1.16"
+
+  if [ "$(printf '%s\n' "$min_go_version" "$go_version" | sort -V | head -n1)" = "$go_version" ]; then 
+    printf 'warning: Go version %s or above required. You are using version %s\n' "$min_go_version" "$go_version" >&2 
+  fi
+
+  xgettext_version="$(xgettext -V 2>/dev/null)"
+
+  if [[ ${xgettext_version} != "xgettext "* ]]; then
+    printf 'warning: xgettext is required\n'>&2 
+  fi
 }
 
 update_template_file() {
