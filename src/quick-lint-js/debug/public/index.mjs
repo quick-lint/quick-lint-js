@@ -365,18 +365,20 @@ new TabBarView(
 );
 
 if (DEBUG_LSP_LOG) {
-  lspLog.addClientToServerMessage(
-    0,
-    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4264}}}`
-  );
-  lspLog.addClientToServerMessage(
-    0,
-    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4265}}}`
-  );
-  lspLog.addClientToServerMessage(
-    0,
-    `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4266}}}`
-  );
+  for (let i = 0; i < 10; ++i) {
+    lspLog.addClientToServerMessage(
+      0,
+      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4264}}}`
+    );
+    lspLog.addClientToServerMessage(
+      0,
+      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4265}}}`
+    );
+    lspLog.addClientToServerMessage(
+      0,
+      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4266}}}`
+    );
+  }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

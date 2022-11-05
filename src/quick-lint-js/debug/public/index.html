@@ -13,6 +13,26 @@
     background-color: #000000;
   }
 
+  body {
+    display: grid;
+    grid-template-areas:
+      "header"
+      "main";
+    grid-template-rows: max-content auto;
+    height: 100vh;
+  }
+  header {
+    grid-area: header;
+  }
+  main {
+    grid-area: main;
+    overflow-y: hidden;
+  }
+  main > section {
+    height: 100%;
+    overflow-y: auto;
+  }
+
   #vector-profile-data {
     display: flex;
     flex-wrap: wrap;
@@ -94,6 +114,14 @@
     grid-area: details;
   }
 
+  #lsp-log {
+    overflow-y: initial;
+  }
+  #lsp-log #lsp-log-data,
+  #lsp-log #lsp-log-details {
+    overflow-y: scroll;
+  }
+
   #lsp-log ol {
     margin: 0;
     padding: 0;
@@ -130,34 +158,36 @@
   }
 </style>
 
-<h1>quick-lint-js debug server</h1>
+<body>
+  <header>
+    <nav id="tool-bar">
+      <ul class="tab-bar">
+        <li><a href="#/server-info">info</a></li>
+        <li><a href="#/lsp-log">LSP log</a></li>
+        <li><a href="#/vector-profile">vector profile</a></li>
+      </ul>
+    </nav>
+  </header>
 
-<nav id="tool-bar">
-  <ul class="tab-bar">
-    <li><a href="#/server-info">info</a></li>
-    <li><a href="#/lsp-log">LSP log</a></li>
-    <li><a href="#/vector-profile">vector profile</a></li>
-  </ul>
-</nav>
+  <main class="tabbed-container">
+    <section id="server-info" class="tab">
+      <dl></dl>
+    </section>
 
-<main class="tabbed-container">
-  <section id="server-info" class="tab">
-    <dl></dl>
-  </section>
+    <section id="lsp-log" class="tab">
+      <ol id="lsp-log-data"></ol>
+      <div id="lsp-log-details">
+        <dl id="lsp-log-params"></dl>
+      </div>
+    </section>
 
-  <section id="lsp-log" class="tab">
-    <ol id="lsp-log-data"></ol>
-    <div id="lsp-log-details">
-      <dl id="lsp-log-params"></dl>
-    </div>
-  </section>
+    <section id="vector-profile" class="tab">
+      <div id="vector-profile-data"></div>
+    </section>
+  </main>
 
-  <section id="vector-profile" class="tab">
-    <div id="vector-profile-data"></div>
-  </section>
-</main>
-
-<script type="module" src="index.mjs"></script>
+  <script type="module" src="index.mjs"></script>
+</body>
 
 <!--
 quick-lint-js finds bugs in JavaScript programs.
