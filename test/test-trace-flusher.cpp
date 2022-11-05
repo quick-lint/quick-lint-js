@@ -207,10 +207,7 @@ TEST_F(test_trace_flusher,
 
 TEST_F(
     test_trace_flusher,
-    enabling_then_registering_then_unregistering_then_registering_does_not_begin_thread_again) {
-  // TODO(strager): Does it make sense for the thread to not begin again? It was
-  // ended, after all, and we might call write again.
-
+    enabling_then_registering_then_unregistering_then_registering_begins_thread_again_with_different_index) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
@@ -222,9 +219,15 @@ TEST_F(
   EXPECT_EQ(backend.thread_states[thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[thread_index].end_calls, 1);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index new_thread_index =
+      flusher.register_current_thread();
   EXPECT_EQ(backend.thread_states[thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[thread_index].end_calls, 1);
+  EXPECT_NE(new_thread_index, thread_index)
+      << "re-registering the thread should have created a second, different "
+         "thread index";
+  EXPECT_EQ(backend.thread_states[new_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[new_thread_index].end_calls, 0);
 
   flusher.disable_all_backends();
 }
