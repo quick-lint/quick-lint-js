@@ -45,6 +45,7 @@ class test_trace_flusher : public ::testing::Test {
 class test_trace_flusher_directory_backend : public ::testing::Test,
                                              public filesystem_test {
  protected:
+  trace_flusher flusher;
   std::string trace_dir = this->make_temporary_directory();
 };
 
@@ -863,8 +864,6 @@ TEST_F(test_trace_flusher_directory_backend,
 
 TEST_F(test_trace_flusher_directory_backend,
        enabling_and_registering_writes_stream_file_header) {
-  trace_flusher flusher;
-
   flusher.register_current_thread();
 
   auto backend =
@@ -889,8 +888,6 @@ TEST_F(test_trace_flusher_directory_backend,
 
 TEST_F(test_trace_flusher_directory_backend,
        write_events_from_multiple_threads) {
-  trace_flusher flusher;
-
   auto backend =
       trace_flusher_directory_backend::init_directory(this->trace_dir);
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
