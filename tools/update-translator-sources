@@ -8,7 +8,6 @@ set -u
 
 cd "$(dirname "${0}")/.."
 
-
 main() {
   check_dependencies
   update_template_file
