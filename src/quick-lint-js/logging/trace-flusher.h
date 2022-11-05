@@ -131,7 +131,7 @@ class trace_flusher {
 
   bool is_enabled() const;
 
-  void register_current_thread();
+  trace_flusher_thread_index register_current_thread();
   void unregister_current_thread();
   trace_writer* trace_writer_for_current_thread();
 

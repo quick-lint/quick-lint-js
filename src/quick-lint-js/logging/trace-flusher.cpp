@@ -121,7 +121,7 @@ bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
   return !this->backends_.empty();
 }
 
-void trace_flusher::register_current_thread() {
+trace_flusher_thread_index trace_flusher::register_current_thread() {
   std::unique_lock<mutex> lock(this->mutex_);
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
@@ -133,6 +133,8 @@ void trace_flusher::register_current_thread() {
   for (trace_flusher_backend* backend : this->backends_) {
     this->enable_thread_writer(lock, *t, backend);
   }
+
+  return t->thread_index;
 }
 
 void trace_flusher::unregister_current_thread() {

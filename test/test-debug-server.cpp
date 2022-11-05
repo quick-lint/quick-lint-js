@@ -478,8 +478,7 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   http_websocket_client::connect_and_run(
       server->websocket_url("/api/trace").c_str(), &delegate);
 
-  EXPECT_THAT(delegate.received_thread_indexes,
-              ::testing::UnorderedElementsAre(1, 2, 3))
+  EXPECT_EQ(delegate.received_thread_indexes.size(), 3)
       << "expected three streams: main thread, other thread, debug server "
          "thread";
 

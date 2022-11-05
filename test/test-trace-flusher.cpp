@@ -214,29 +214,29 @@ TEST_F(
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
+  EXPECT_EQ(backend.thread_states[thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[thread_index].end_calls, 0);
 
   flusher.unregister_current_thread();
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[thread_index].end_calls, 1);
 
   flusher.register_current_thread();
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[thread_index].end_calls, 1);
 
   flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1));
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -246,10 +246,10 @@ TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1));
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -262,11 +262,11 @@ TEST_F(test_trace_flusher,
   spy_trace_flusher_backend backend_2;
   flusher.enable_backend(&backend_2);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
-  EXPECT_THAT(backend_1.read_thread_init_versions(1),
+  EXPECT_THAT(backend_1.read_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
-  EXPECT_THAT(backend_2.read_thread_init_versions(1),
+  EXPECT_THAT(backend_2.read_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -276,7 +276,7 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
@@ -286,14 +286,14 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
   writer->commit();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
@@ -306,7 +306,7 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
   writer->commit();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -373,53 +373,35 @@ TEST_F(test_trace_flusher,
   spy_trace_flusher_backend backend_1;
   spy_trace_flusher_backend backend_2;
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   flusher.enable_backend(&backend_1);
   flusher.disable_backend(&backend_1);
   flusher.enable_backend(&backend_2);
 
   EXPECT_TRUE(flusher.trace_writer_for_current_thread());
-  EXPECT_THAT(backend_1.thread_indexes(), ElementsAre(1));
-  EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(1));
-
-  flusher.disable_all_backends();
-}
-
-// FIXME(strager): This test is misleading. It used to be that disabling reset
-// thread indexes, but now, thread indexes are preserved across
-// disables/enables.
-TEST_F(test_trace_flusher, second_backend_thread_index_starts_at_1) {
-  flusher.register_current_thread();
-
-  spy_trace_flusher_backend backend_1;
-  flusher.enable_backend(&backend_1);
-  flusher.disable_backend(&backend_1);
-
-  spy_trace_flusher_backend backend_2;
-  flusher.enable_backend(&backend_2);
-
-  EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(1));
+  EXPECT_THAT(backend_1.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(thread_index));
 
   flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, disabling_backend_ends_all_registered_threads) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index main_thread_index =
+      flusher.register_current_thread();
 
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
   mutex test_mutex;
   condition_variable cond;
-  bool registered_thread_2 = false;
+  std::optional<trace_flusher_thread_index> thread_2_index;
   bool finished_test = false;
 
   std::thread thread_2([&]() {
-    flusher.register_current_thread();
     {
       std::lock_guard<mutex> lock(test_mutex);
-      registered_thread_2 = true;
+      thread_2_index = flusher.register_current_thread();
       cond.notify_all();
     }
 
@@ -432,22 +414,24 @@ TEST_F(test_trace_flusher, disabling_backend_ends_all_registered_threads) {
 
   {
     std::unique_lock<mutex> lock(test_mutex);
-    cond.wait(lock, [&] { return registered_thread_2; });
+    cond.wait(lock, [&] { return thread_2_index.has_value(); });
   }
 
-  ASSERT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
-  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+  ASSERT_THAT(backend.thread_indexes(),
+              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 0);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].end_calls, 0);
 
   flusher.disable_backend(&backend);
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].end_calls, 1);
+  EXPECT_THAT(backend.thread_indexes(),
+              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].end_calls, 1);
 
   {
     std::lock_guard<mutex> lock(test_mutex);
@@ -465,18 +449,18 @@ TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
 
   mutex test_mutex;
   condition_variable cond;
-  bool registered_thread_2 = false;
+  std::optional<trace_flusher_thread_index> thread_2_index;
   bool should_unregister_thread_2 = false;
   bool unregistered_thread_2 = false;
   bool finished_test = false;
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index main_thread_index =
+      flusher.register_current_thread();
 
   std::thread thread_2([&]() {
-    flusher.register_current_thread();
     {
       std::unique_lock<mutex> lock(test_mutex);
-      registered_thread_2 = true;
+      thread_2_index = flusher.register_current_thread();
       cond.notify_all();
       cond.wait(lock, [&] { return should_unregister_thread_2; });
     }
@@ -491,22 +475,24 @@ TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
 
   {
     std::unique_lock<mutex> lock(test_mutex);
-    cond.wait(lock, [&] { return registered_thread_2; });
+    cond.wait(lock, [&] { return thread_2_index.has_value(); });
   }
 
-  ASSERT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 0);
-  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+  ASSERT_THAT(backend.thread_indexes(),
+              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 0);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].end_calls, 0);
 
   flusher.unregister_current_thread();
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].end_calls, 0);
+  EXPECT_THAT(backend.thread_indexes(),
+              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].end_calls, 0);
 
   {
     std::unique_lock<mutex> lock(test_mutex);
@@ -515,11 +501,12 @@ TEST_F(test_trace_flusher, unregistering_thread_calls_thread_end) {
     cond.wait(lock, [&] { return unregistered_thread_2; });
   }
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(1, 2));
-  EXPECT_EQ(backend.thread_states[1].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[1].end_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].begin_calls, 1);
-  EXPECT_EQ(backend.thread_states[2].end_calls, 1);
+  EXPECT_THAT(backend.thread_indexes(),
+              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
+  EXPECT_EQ(backend.thread_states[*thread_2_index].end_calls, 1);
 
   {
     std::lock_guard<mutex> lock(test_mutex);
@@ -535,10 +522,12 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index main_thread_index =
+      flusher.register_current_thread();
 
+  trace_flusher_thread_index other_thread_index;
   thread other_thread([&]() {
-    flusher.register_current_thread();
+    other_thread_index = flusher.register_current_thread();
 
     trace_writer* writer = flusher.trace_writer_for_current_thread();
     ASSERT_TRUE(writer);
@@ -560,9 +549,9 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
   other_thread.join();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(main_thread_index),
               ElementsAre(::testing::_, "main thread"));
-  EXPECT_THAT(backend.read_thread_init_versions(2),
+  EXPECT_THAT(backend.read_thread_init_versions(other_thread_index),
               ElementsAre(::testing::_, "other thread"));
 
   flusher.disable_all_backends();
@@ -575,9 +564,11 @@ TEST_F(test_trace_flusher,
 
   std::uint64_t main_thread_id = get_current_thread_id();
   std::optional<std::uint64_t> other_thread_id;
-  flusher.register_current_thread();
+  trace_flusher_thread_index main_thread_index =
+      flusher.register_current_thread();
+  trace_flusher_thread_index other_thread_index;
   thread other_thread([&] {
-    flusher.register_current_thread();
+    other_thread_index = flusher.register_current_thread();
     flusher.flush_sync();
     flusher.unregister_current_thread();
     other_thread_id = get_current_thread_id();
@@ -589,7 +580,7 @@ TEST_F(test_trace_flusher,
   EXPECT_CALL(main_v, visit_packet_header(::testing::Field(
                           &trace_stream_event_visitor::packet_header::thread_id,
                           main_thread_id)));
-  backend.read_thread_trace_stream(1, main_v);
+  backend.read_thread_trace_stream(main_thread_index, main_v);
 
   ASSERT_TRUE(other_thread_id.has_value());
   EXPECT_NE(*other_thread_id, main_thread_id);
@@ -598,7 +589,7 @@ TEST_F(test_trace_flusher,
               visit_packet_header(::testing::Field(
                   &trace_stream_event_visitor::packet_header::thread_id,
                   *other_thread_id)));
-  backend.read_thread_trace_stream(2, other_v);
+  backend.read_thread_trace_stream(other_thread_index, other_v);
 
   flusher.disable_all_backends();
 }
@@ -607,20 +598,18 @@ TEST_F(test_trace_flusher,
        stream_file_contains_thread_id_if_enabled_after_threads_register) {
   mutex test_mutex;
   condition_variable cond;
-  bool other_thread_registered = false;
+  std::optional<trace_flusher_thread_index> other_thread_index;
   bool flusher_enabled = false;
 
   std::optional<std::uint64_t> other_thread_id;
   thread other_thread([&] {
     other_thread_id = get_current_thread_id();
 
-    flusher.register_current_thread();
-
-    // After the main thread enables the directory backend, flush.
     {
       std::unique_lock<mutex> lock(test_mutex);
-      other_thread_registered = true;
+      other_thread_index = flusher.register_current_thread();
       cond.notify_all();
+      // After the main thread enables the directory backend, flush.
       cond.wait(lock, [&] { return flusher_enabled; });
     }
     flusher.flush_sync();
@@ -631,7 +620,7 @@ TEST_F(test_trace_flusher,
   // After the other thread registers itself, enable the directory backend.
   {
     std::unique_lock<mutex> lock(test_mutex);
-    cond.wait(lock, [&] { return other_thread_registered; });
+    cond.wait(lock, [&] { return other_thread_index.has_value(); });
   }
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
@@ -651,7 +640,7 @@ TEST_F(test_trace_flusher,
               visit_packet_header(::testing::Field(
                   &trace_stream_event_visitor::packet_header::thread_id,
                   *other_thread_id)));
-  backend.read_thread_trace_stream(1, other_v);
+  backend.read_thread_trace_stream(*other_thread_index, other_v);
 
   flusher.disable_all_backends();
 }
@@ -660,7 +649,7 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
@@ -672,7 +661,7 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
   flusher.unregister_current_thread();
   // NOTE(strager): We do not call flusher.flush_sync.
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -682,7 +671,7 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
   flusher.flush_sync();  // Write the normal init event.
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
@@ -693,7 +682,7 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
   writer->commit();
   flusher.flush_async();  // Flush the testing init event, but not now.
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(::testing::Not("testing")))
       << "creating the stream file should add an init event automatically (but "
          "not the testing init event)";
@@ -707,7 +696,7 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
   flusher.flush_sync();  // Write the normal init event.
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
@@ -721,21 +710,21 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
 
   std::chrono::time_point deadline =
       std::chrono::steady_clock::now() + std::chrono::seconds(3);
-  while (backend.read_thread_init_versions(1).size() <= 1) {
+  while (backend.read_thread_init_versions(thread_index).size() <= 1) {
     if (std::chrono::steady_clock::now() >= deadline) {
       ADD_FAILURE() << "timed out waiting for flusher thread to write to file";
       break;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   // This should do nothing. In particular, it should not prevent the
   // stream header or init event from being written.
@@ -744,7 +733,7 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  EXPECT_THAT(backend.read_thread_init_versions(1),
+  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -752,7 +741,7 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
 
 TEST_F(test_trace_flusher,
        write_to_multiple_backends_at_once_enabling_and_disabling) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   spy_trace_flusher_backend backend_1;
   flusher.enable_backend(&backend_1);
@@ -785,17 +774,17 @@ TEST_F(test_trace_flusher,
   flusher.flush_sync();
 
   EXPECT_THAT(
-      backend_1.read_thread_init_versions(1),
+      backend_1.read_thread_init_versions(thread_index),
       ElementsAre(::testing::_, "A: backend 1", "B: backend 1 and backend 2"));
   EXPECT_THAT(
-      backend_2.read_thread_init_versions(1),
+      backend_2.read_thread_init_versions(thread_index),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
 
   flusher.disable_all_backends();
 }
 
 TEST_F(test_trace_flusher, broadcast_to_many_backends_at_once) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   std::array<spy_trace_flusher_backend, 5> backends;
   for (spy_trace_flusher_backend& backend : backends) {
@@ -812,7 +801,7 @@ TEST_F(test_trace_flusher, broadcast_to_many_backends_at_once) {
   flusher.flush_sync();
 
   for (spy_trace_flusher_backend& backend : backends) {
-    EXPECT_THAT(backend.read_thread_init_versions(1),
+    EXPECT_THAT(backend.read_thread_init_versions(thread_index),
                 ElementsAre(::testing::_, "broadcast"));
   }
 
@@ -864,7 +853,7 @@ TEST_F(test_trace_flusher_directory_backend,
 
 TEST_F(test_trace_flusher_directory_backend,
        enabling_and_registering_writes_stream_file_header) {
-  flusher.register_current_thread();
+  trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   auto backend =
       trace_flusher_directory_backend::init_directory(this->trace_dir);
@@ -881,7 +870,8 @@ TEST_F(test_trace_flusher_directory_backend,
   EXPECT_CALL(v, visit_process_id_event(::testing::Field(
                      &trace_stream_event_visitor::process_id_event::process_id,
                      get_current_process_id())));
-  read_trace_stream_file(this->trace_dir + "/thread1", v);
+  read_trace_stream_file(
+      this->trace_dir + "/thread" + std::to_string(thread_index), v);
 
   flusher.disable_all_backends();
 }
@@ -893,10 +883,12 @@ TEST_F(test_trace_flusher_directory_backend,
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
-  flusher.register_current_thread();
+  trace_flusher_thread_index main_thread_index =
+      flusher.register_current_thread();
 
+  trace_flusher_thread_index other_thread_index;
   thread other_thread([&]() {
-    flusher.register_current_thread();
+    other_thread_index = flusher.register_current_thread();
 
     trace_writer* writer = flusher.trace_writer_for_current_thread();
     ASSERT_TRUE(writer);
@@ -919,10 +911,12 @@ TEST_F(test_trace_flusher_directory_backend,
   flusher.flush_sync();
 
   EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread1"),
+      trace_init_event_spy::read_init_versions(
+          this->trace_dir + "/thread" + std::to_string(main_thread_index)),
       ElementsAre(::testing::_, "main thread"));
   EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(this->trace_dir + "/thread2"),
+      trace_init_event_spy::read_init_versions(
+          this->trace_dir + "/thread" + std::to_string(other_thread_index)),
       ElementsAre(::testing::_, "other thread"));
 
   flusher.disable_all_backends();
