@@ -8,6 +8,11 @@
     padding: 0;
   }
 
+  body {
+    color: #ffffff;
+    background-color: #000000;
+  }
+
   #vector-profile-data {
     display: flex;
     flex-wrap: wrap;
@@ -23,7 +28,7 @@
   }
 
   .histogram td {
-    --bar-color: #eecccc;
+    --bar-color: #882222;
     --histogram-percentage: 0%;
     background: linear-gradient(
       90deg,
@@ -36,22 +41,23 @@
 
   .tab-bar {
     --bottom-border-width: 1px;
-    --active-background-color: #ffffff;
+    --active-background-color: #000000;
+    --border-color: #ffffff;
 
     display: flex;
     margin: 0;
     padding: 0 1rem;
-    border-bottom: var(--bottom-border-width) solid black;
+    border-bottom: var(--bottom-border-width) solid var(--border-color);
   }
   .tab-bar > li {
     list-style-type: none;
     padding: 0;
   }
   .tab-bar > li > a {
-    background-color: #e5e5e5;
-    border: 1px solid black;
+    background-color: #222222;
+    border: 1px solid var(--border-color);
     border-bottom: 0;
-    color: black;
+    color: #ffffff;
     display: inline-block;
     font-weight: bold;
     padding: 0.5rem 1rem;
@@ -102,7 +108,7 @@
     margin: 0.25rem;
   }
   #lsp-log .lsp-message.lsp-notification {
-    background-color: #eeeeff;
+    background-color: #333366;
   }
   #lsp-log .lsp-message summary {
     font-weight: bold;
