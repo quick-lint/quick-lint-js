@@ -58,6 +58,11 @@ trace_flusher::~trace_flusher() {
   this->stop_flushing_thread();
 }
 
+trace_flusher* trace_flusher::instance() {
+  static trace_flusher tracer;
+  return &tracer;
+}
+
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
   std::unique_lock<mutex> lock(this->mutex_);
   this->enable_backend(lock, backend);
@@ -148,6 +153,20 @@ void trace_flusher::unregister_current_thread() {
   }
   this->registered_threads_.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
+}
+
+void trace_flusher::unregister_all_threads() {
+  std::unique_lock<mutex> lock(this->mutex_);
+  for (auto& t : this->registered_threads_) {
+    t->thread_writer->store(nullptr);
+    if (this->is_enabled(lock)) {
+      this->flush_one_thread_sync(lock, *t);
+    }
+    for (trace_flusher_backend* backend : this->backends_) {
+      backend->trace_thread_end(t->thread_index);
+    }
+  }
+  this->registered_threads_.clear();
 }
 
 trace_writer* trace_flusher::trace_writer_for_current_thread() {

@@ -101,7 +101,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
 //
 // Typical use:
 //
-// 1. Create a trace_flusher.
+// 1. Get a trace_flusher using trace_flusher::instance.
 // 2. Enable tracing with enable_backend. (This can be done at any time.)
 // 3. On threads which want to write data, call register_current_thread.
 // 4. Periodically, call trace_writer_for_current_thread()->write_[event].
@@ -111,13 +111,17 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
 // Unless otherwise written, all public trace_flusher member functions are
 // thread-safe. They can be called from any thread without synchronization.
 class trace_flusher {
- public:
+ private:
+  // trace_flusher is a Singleton.
   /*implicit*/ trace_flusher();
 
+ public:
   trace_flusher(const trace_flusher&) = delete;
   trace_flusher& operator=(const trace_flusher&) = delete;
 
   ~trace_flusher();
+
+  static trace_flusher* instance();
 
   void enable_backend(trace_flusher_backend*);
 
@@ -128,6 +132,7 @@ class trace_flusher {
 
   // For testing only:
   void disable_all_backends();
+  void unregister_all_threads();
 
   bool is_enabled() const;
 

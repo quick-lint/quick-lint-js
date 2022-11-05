@@ -233,6 +233,10 @@ void debug_server::run_on_current_thread() {
       this->init_error_ = std::move(connect_logs);
     }
     this->initialized_.notify_all();
+
+    if (this->tracer_) {
+      this->tracer_->unregister_current_thread();
+    }
     return;
   }
 
@@ -259,6 +263,10 @@ void debug_server::run_on_current_thread() {
 
   while (!this->stop_server_thread_.load()) {
     ::mg_mgr_poll(mgr.get(), /*timeout_ms=*/-1);
+  }
+
+  if (this->tracer_) {
+    this->tracer_->unregister_current_thread();
   }
 }
 

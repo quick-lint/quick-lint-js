@@ -155,15 +155,14 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(test_debug_server,
        web_socket_publishes_vector_profile_stats_on_connect) {
-  trace_flusher tracer;
-
   vector_instrumentation::instance.clear();
   {
     instrumented_vector<std::vector<int>> v("debug server test vector", {});
     ASSERT_EQ(v.size(), 0);
   }
 
-  std::shared_ptr<debug_server> server = debug_server::create(&tracer);
+  std::shared_ptr<debug_server> server =
+      debug_server::create(trace_flusher::instance());
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -268,10 +267,10 @@ TEST_F(test_debug_server,
 }
 
 TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
-  trace_flusher tracer;
   vector_instrumentation::instance.clear();
 
-  std::shared_ptr<debug_server> server = debug_server::create(&tracer);
+  std::shared_ptr<debug_server> server =
+      debug_server::create(trace_flusher::instance());
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -405,7 +404,7 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
 #endif
 
 TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
-  trace_flusher tracer;
+  trace_flusher &tracer = *trace_flusher::instance();
 
   mutex test_mutex;
   condition_variable cond;
@@ -494,6 +493,8 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
     cond.notify_all();
   }
   other_thread.join();
+
+  tracer.unregister_current_thread();
 }
 
 TEST_F(test_debug_server, instances_shows_new_instance) {

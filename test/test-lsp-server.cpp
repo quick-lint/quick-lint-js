@@ -312,10 +312,9 @@ TEST_F(test_linting_lsp_server, did_change_configuration_notification) {
 TEST_F(test_linting_lsp_server,
        changing_config_to_same_tracing_dir_does_not_reset_tracing) {
   std::string temp_dir = this->make_temporary_directory();
-  trace_flusher tracer;
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
-  linting_lsp_server_handler handler(&fs, &linter, &tracer);
+  linting_lsp_server_handler handler(&fs, &linter, trace_flusher::instance());
   spy_lsp_endpoint_remote client;
   lsp_endpoint server(&handler, &client);
 
@@ -357,10 +356,9 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        changing_config_to_different_tracing_dir_resets_tracing) {
-  trace_flusher tracer;
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
-  linting_lsp_server_handler handler(&fs, &linter, &tracer);
+  linting_lsp_server_handler handler(&fs, &linter, trace_flusher::instance());
   spy_lsp_endpoint_remote client;
   lsp_endpoint server(&handler, &client);
 
@@ -401,8 +399,10 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        changing_tracing_dir_config_to_empty_disables_tracing) {
+  trace_flusher& tracer = *trace_flusher::instance();
+  ASSERT_FALSE(tracer.is_enabled());
+
   std::string temp_dir = this->make_temporary_directory();
-  trace_flusher tracer;
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter, &tracer);

@@ -53,7 +53,7 @@ class addon_state {
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
 
-  trace_flusher tracer;
+  static inline trace_flusher& tracer = *trace_flusher::instance();
 };
 
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
@@ -1044,7 +1044,6 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
       .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
-      .tracer = trace_flusher{},
   });
   state->tracer.register_current_thread();
   state->tracer.start_flushing_thread();

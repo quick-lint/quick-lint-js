@@ -39,13 +39,17 @@ namespace quick_lint_js {
 namespace {
 class test_trace_flusher : public ::testing::Test {
  protected:
-  trace_flusher flusher;
+  void TearDown() override {
+    flusher.unregister_all_threads();
+    flusher.stop_flushing_thread();
+  }
+
+  trace_flusher& flusher = *trace_flusher::instance();
 };
 
-class test_trace_flusher_directory_backend : public ::testing::Test,
+class test_trace_flusher_directory_backend : public test_trace_flusher,
                                              public filesystem_test {
  protected:
-  trace_flusher flusher;
   std::string trace_dir = this->make_temporary_directory();
 };
 

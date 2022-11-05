@@ -443,7 +443,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
 
-    trace_flusher tracer_;
+    trace_flusher &tracer_ = *trace_flusher::instance();
 
 #if QLJS_FEATURE_DEBUG_SERVER
     std::shared_ptr<debug_server> debugger_;
