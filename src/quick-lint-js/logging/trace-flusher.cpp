@@ -55,10 +55,7 @@ trace_flusher::trace_flusher() = default;
 trace_flusher::~trace_flusher() {
   QLJS_ASSERT(this->backends_.empty());
 
-  if (this->flushing_thread_.joinable()) {
-    this->stop_flushing_thread();
-    this->flushing_thread_.join();
-  }
+  this->stop_flushing_thread();
 }
 
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
@@ -182,9 +179,18 @@ void trace_flusher::start_flushing_thread() {
 }
 
 void trace_flusher::stop_flushing_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->stop_flushing_thread_ = true;
-  this->flush_requested_cond_.notify_all();
+  if (this->flushing_thread_.joinable()) {
+    {
+      std::unique_lock<mutex> lock(this->mutex_);
+      this->stop_flushing_thread_ = true;
+      this->flush_requested_cond_.notify_all();
+    }
+    this->flushing_thread_.join();
+    {
+      std::unique_lock<mutex> lock(this->mutex_);
+      this->stop_flushing_thread_ = false;
+    }
+  }
 }
 
 void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,

@@ -726,6 +726,13 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
   flusher.disable_all_backends();
 }
 
+TEST_F(test_trace_flusher, can_stop_and_restart_flusher_thread) {
+  flusher.start_flushing_thread();
+  flusher.stop_flushing_thread();
+  flusher.start_flushing_thread();
+  // TODO(strager): Assert that the flushing thread actually works.
+}
+
 TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
   trace_flusher_thread_index thread_index = flusher.register_current_thread();
 

@@ -138,8 +138,18 @@ class trace_flusher {
   void flush_sync();
   void flush_async();
 
-  // start_flushing_thread can be called at most once.
+  // start_flushing_thread can only be called once until a call to
+  // stop_flushing_thread.
+  //
+  // start_flushing_thread is not thread-safe. Calls must be synchronized with
+  // stop_flushing_thread.
   void start_flushing_thread();
+
+  // stop_flushing_thread is idempotent; it can be called whether or not
+  // start_flushing_thread has been called, and it can be called multiple times.
+  //
+  // stop_flushing_thread is not thread-safe. Calls must be synchronized with
+  // start_flushing_thread and concurrent calls to stop_flushing_thread.
   void stop_flushing_thread();
 
  private:
