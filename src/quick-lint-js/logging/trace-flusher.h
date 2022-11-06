@@ -108,8 +108,8 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
 // 5. After events have been written, call
 //    trace_writer_for_current_thread()->commit.
 //
-// All public trace_flusher member functions are thread-safe. They can be called
-// from any thread without synchronization.
+// Unless otherwise written, all public trace_flusher member functions are
+// thread-safe. They can be called from any thread without synchronization.
 class trace_flusher {
  public:
   /*implicit*/ trace_flusher();
