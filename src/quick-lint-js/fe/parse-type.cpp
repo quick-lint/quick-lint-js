@@ -395,8 +395,7 @@ again:
   if (this->peek().type == token_type::kw_extends) {
     // T extends T ? T : T
     this->skip();
-    this->parse_and_visit_typescript_type_expression(
-        v, parse_question_as_invalid = false);
+    this->parse_and_visit_typescript_type_expression(v, false);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
