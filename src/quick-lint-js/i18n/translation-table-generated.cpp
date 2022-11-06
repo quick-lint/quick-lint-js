@@ -228,7 +228,8 @@ const translation_table translation_data = {
         {47, 43, 47, 54, 35, 38},            //
         {31, 39, 32, 33, 28, 27},            //
         {34, 15, 43, 40, 37, 33},            //
-        {39, 51, 50, 40, 38, 39},            //
+        {0, 0, 0, 0, 0, 39},                 //
+        {39, 51, 50, 40, 38, 88},            //
         {57, 72, 67, 55, 0, 41},             //
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 22, 0, 19},                //
@@ -1909,6 +1910,7 @@ const translation_table translation_data = {
         u8"invalid function parameter\0"
         u8"invalid hex escape sequence: {0}\0"
         u8"invalid lone literal in object literal\0"
+        u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead\0"
         u8"keywords cannot contain escape sequences\0"
         u8"label named 'await' not allowed in async function\0"
         u8"labelled statement\0"

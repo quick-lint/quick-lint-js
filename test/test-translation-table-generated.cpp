@@ -2398,6 +2398,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"_translatable,
+        {
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
+        },
+    },
+    {
         "keywords cannot contain escape sequences"_translatable,
         {
             u8"keywords cannot contain escape sequences",

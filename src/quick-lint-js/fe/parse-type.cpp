@@ -41,7 +41,8 @@ void parser::parse_and_visit_typescript_colon_type_expression(
   this->parse_and_visit_typescript_type_expression(v);
 }
 
-void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
+void parser::parse_and_visit_typescript_type_expression(
+    parse_visitor_base &v, bool parse_question_as_invalid) {
   depth_guard guard(this);
   typescript_only_construct_guard ts_guard =
       this->enter_typescript_only_construct();
@@ -94,6 +95,14 @@ again:
     this->parse_and_visit_typescript_template_type_expression(v);
     break;
 
+  //: ?Type // invalid
+  case token_type::question:
+    this->diag_reporter_->report(
+        diag_typescript_question_in_type_expression_should_be_void{
+            .question = this->peek().span()});
+    this->skip();
+    goto again;
+    break;
   // Type
   // ns.Type<T>
   case token_type::kw_abstract:
@@ -346,6 +355,15 @@ again:
     break;
   }
 
+  //: Type? // invalid
+  if (!is_tuple_type && parse_question_as_invalid &&
+      this->peek().type == token_type::question) {
+    this->diag_reporter_->report(
+        diag_typescript_question_in_type_expression_should_be_void{
+            .question = this->peek().span()});
+    this->skip();
+  }
+
   while (this->peek().type == token_type::left_square) {
     // typeexpr[]
     // typeexpr[Key]
@@ -377,7 +395,7 @@ again:
   if (this->peek().type == token_type::kw_extends) {
     // T extends T ? T : T
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(v, false);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
@@ -854,7 +872,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
               .colon = colon_span,
           });
       this->skip();
-      this->parse_and_visit_typescript_type_expression(v);
+      this->parse_and_visit_typescript_type_expression(v, false);
       break;
     }
 
@@ -941,7 +959,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
           this->skip();
         }
 
-        this->parse_and_visit_typescript_type_expression(v);
+        this->parse_and_visit_typescript_type_expression(v, false);
       } else {
         // [Type]
         // [Type?]
@@ -962,7 +980,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
         }
         first_unnamed_element_begin = this->peek().begin;
 
-        this->parse_and_visit_typescript_type_expression(v);
+        this->parse_and_visit_typescript_type_expression(v, false);
       }
       break;
     }
@@ -970,7 +988,7 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
     // [(Type)]
     default:
       first_unnamed_element_begin = this->peek().begin;
-      this->parse_and_visit_typescript_type_expression(v);
+      this->parse_and_visit_typescript_type_expression(v, false);
       break;
     }
 

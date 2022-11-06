@@ -123,6 +123,14 @@
                   type_colon))                                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_question_in_type_expression_should_be_void, "E0348",      \
+      diagnostic_severity::error, { source_code_span question; },               \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("invalid usage of ? as a prefix or suffix in "      \
+                            "the a type expression, use '| void' instead"),     \
+          question))                                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_assignment_before_variable_declaration, "E0001",                     \
       diagnostic_severity::error,                                               \
       {                                                                         \

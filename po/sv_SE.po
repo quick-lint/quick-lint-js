@@ -156,6 +156,12 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 

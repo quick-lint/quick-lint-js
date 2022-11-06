@@ -166,6 +166,15 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid ""
+"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
+"void' instead"
+msgstr ""
+"L'utilisation de '?' comme préfixe ou suffixe dans le type d'un paramètre "
+"est invalide ; utiliser plutôt '| void'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 
