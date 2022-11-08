@@ -24,8 +24,6 @@
 #include <vector>
 
 namespace quick_lint_js {
-class trace_flusher;
-
 class lsp_endpoint_remote {
  public:
   virtual ~lsp_endpoint_remote();
@@ -64,8 +62,6 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
  public:
   explicit lsp_endpoint(lsp_endpoint_handler* handler,
                         lsp_endpoint_remote* remote);
-  explicit lsp_endpoint(lsp_endpoint_handler* handler,
-                        lsp_endpoint_remote* remote, trace_flusher* tracer);
 
   using message_parser::append;
 
@@ -82,7 +78,6 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
-  trace_flusher* tracer_ = nullptr;
   // TODO(strager): Make this a pointer so we can avoid #include-ing
   // <simdjson.h>.
   ::simdjson::ondemand::parser json_parser_;
