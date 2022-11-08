@@ -52,8 +52,6 @@ class addon_state {
   ::Napi::FunctionReference qljs_document_class;
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
-
-  static inline trace_flusher& tracer = *trace_flusher::instance();
 };
 
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
@@ -471,8 +469,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
-        tracer_(&info.Env().GetInstanceData<addon_state>()->tracer,
-                info[0].As<::Napi::String>().Utf8Value()),
+        tracer_(info[0].As<::Napi::String>().Utf8Value()),
         vscode_(info[1].As<::Napi::Object>()),
         check_for_config_file_changes_on_js_thread_(
             /*env=*/info.Env(),
@@ -1045,8 +1042,9 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
       .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
   });
-  state->tracer.register_current_thread();
-  state->tracer.start_flushing_thread();
+  trace_flusher* tracer = trace_flusher::instance();
+  tracer->register_current_thread();
+  tracer->start_flushing_thread();
   return state;
 }
 

@@ -57,19 +57,19 @@ class napi_string_writer {
 // Manages traces in the VS Code extension directory.
 class vscode_tracer {
  public:
-  explicit vscode_tracer(trace_flusher* tracer,
-                         const std::string& log_directory)
-      : tracer_(tracer), log_directory_(log_directory) {}
+  explicit vscode_tracer(const std::string& log_directory)
+      : log_directory_(log_directory) {}
 
   ~vscode_tracer() { this->disable(); }
 
   void register_current_thread() {
-    this->tracer_->register_current_thread();
-    this->tracer_->flush_sync();
+    trace_flusher* tracer = trace_flusher::instance();
+    tracer->register_current_thread();
+    tracer->flush_sync();
   }
 
   void unregister_current_thread() {
-    this->tracer_->unregister_current_thread();
+    trace_flusher::instance()->unregister_current_thread();
   }
 
   void enable() {
@@ -89,21 +89,22 @@ class vscode_tracer {
 
     this->tracer_backend_ = std::make_unique<trace_flusher_directory_backend>(
         std::move(*new_backend));
-    this->tracer_->enable_backend(this->tracer_backend_.get());
+    trace_flusher::instance()->enable_backend(this->tracer_backend_.get());
     QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
                    this->tracer_backend_->trace_directory().c_str());
   }
 
   void disable() {
     if (this->tracer_backend_) {
-      this->tracer_->disable_backend(this->tracer_backend_.get());
+      trace_flusher::instance()->disable_backend(this->tracer_backend_.get());
     }
     this->tracer_backend_.reset();
   }
 
   void trace_vscode_document_opened(::Napi::Env env, vscode_document vscode_doc,
                                     void* doc) {
-    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    trace_writer* tw =
+        trace_flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_opened(
@@ -117,13 +118,14 @@ class vscode_tracer {
           },
           napi_string_writer(env));
       tw->commit();
-      this->tracer_->flush_async();
+      trace_flusher::instance()->flush_async();
     }
   }
 
   void trace_vscode_document_changed(::Napi::Env env, void* doc,
                                      ::Napi::Array changes) {
-    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    trace_writer* tw =
+        trace_flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       std::vector<trace_vscode_document_change> traced_changes(
           changes.Length());
@@ -161,13 +163,14 @@ class vscode_tracer {
           },
           napi_string_writer(env));
       tw->commit();
-      this->tracer_->flush_async();
+      trace_flusher::instance()->flush_async();
     }
   }
 
   void trace_vscode_document_closed(::Napi::Env env, vscode_document vscode_doc,
                                     void* doc) {
-    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    trace_writer* tw =
+        trace_flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_closed(
@@ -180,13 +183,14 @@ class vscode_tracer {
           },
           napi_string_writer(env));
       tw->commit();
-      this->tracer_->flush_async();
+      trace_flusher::instance()->flush_async();
     }
   }
 
   void trace_vscode_document_sync(::Napi::Env env, vscode_document vscode_doc,
                                   void* doc) {
-    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    trace_writer* tw =
+        trace_flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_sync(
@@ -200,7 +204,7 @@ class vscode_tracer {
           },
           napi_string_writer(env));
       tw->commit();
-      this->tracer_->flush_async();
+      trace_flusher::instance()->flush_async();
     }
   }
 
@@ -210,7 +214,6 @@ class vscode_tracer {
     return 0;
   }
 
-  trace_flusher* tracer_;
   std::string log_directory_;
   std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
 };
