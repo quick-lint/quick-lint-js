@@ -339,9 +339,10 @@ void run_lsp_server() {
           endpoint_(&this->handler_, &this->writer_) {
       this->report_pending_watch_io_errors();
 
-      this->tracer_.register_current_thread();
-      this->tracer_.flush_sync();
-      this->tracer_.start_flushing_thread();
+      trace_flusher *tracer = trace_flusher::instance();
+      tracer->register_current_thread();
+      tracer->flush_sync();
+      tracer->start_flushing_thread();
 
 #if QLJS_FEATURE_DEBUG_SERVER
       this->debugger_->set_listen_address("http://localhost:8098");
@@ -370,7 +371,7 @@ void run_lsp_server() {
       // processing a full message.
       this->report_pending_watch_io_errors();
 
-      this->tracer_.flush_async();
+      trace_flusher::instance()->flush_async();
     }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
@@ -424,7 +425,7 @@ void run_lsp_server() {
       this->handler_.filesystem_changed();
       this->handler_.flush_pending_notifications(this->writer_);
 
-      this->tracer_.flush_async();
+      trace_flusher::instance()->flush_async();
     }
 
     void report_pending_watch_io_errors() {
@@ -442,8 +443,6 @@ void run_lsp_server() {
 #else
 #error "Unsupported platform"
 #endif
-
-    trace_flusher &tracer_ = *trace_flusher::instance();
 
 #if QLJS_FEATURE_DEBUG_SERVER
     std::shared_ptr<debug_server> debugger_;
