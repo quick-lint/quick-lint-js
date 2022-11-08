@@ -449,6 +449,12 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
         return;
       }
 
+      // FIXME(strager): Sometimes, we receive empty messages. Ignore these for
+      // now. We expect another message later.
+      if (message_size == 8) {
+        return;
+      }
+
       checked_binary_reader reader(
           reinterpret_cast<const std::uint8_t *>(message), message_size,
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
