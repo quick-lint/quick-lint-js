@@ -84,15 +84,13 @@ class http_websocket_client {
 class test_debug_server : public ::testing::Test {};
 
 TEST_F(test_debug_server, start_thread_then_immediately_stop) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   server->stop_server_thread();
 }
 
 TEST_F(test_debug_server, serves_html_at_index) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -107,8 +105,7 @@ TEST_F(test_debug_server, serves_html_at_index) {
 }
 
 TEST_F(test_debug_server, serves_javascript) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -123,8 +120,7 @@ TEST_F(test_debug_server, serves_javascript) {
 }
 
 TEST_F(test_debug_server, serves_not_found_page) {
-  std::shared_ptr<debug_server> server =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -135,8 +131,7 @@ TEST_F(test_debug_server, serves_not_found_page) {
 }
 
 TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
-  std::shared_ptr<debug_server> server_a =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server_a = debug_server::create();
   server_a->start_server_thread();
   auto a_wait_result = server_a->wait_for_server_start();
   ASSERT_TRUE(a_wait_result.ok()) << a_wait_result.error_to_string();
@@ -144,8 +139,7 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
   std::string server_a_address = server_a->url("");
   SCOPED_TRACE("server_a address: " + server_a_address);
 
-  std::shared_ptr<debug_server> server_b =
-      debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> server_b = debug_server::create();
   server_b->set_listen_address(server_a_address);
   server_b->start_server_thread();
   auto b_wait_result = server_b->wait_for_server_start();
@@ -161,8 +155,7 @@ TEST_F(test_debug_server,
     ASSERT_EQ(v.size(), 0);
   }
 
-  std::shared_ptr<debug_server> server =
-      debug_server::create(trace_flusher::instance());
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -269,8 +262,7 @@ TEST_F(test_debug_server,
 TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
   vector_instrumentation::instance.clear();
 
-  std::shared_ptr<debug_server> server =
-      debug_server::create(trace_flusher::instance());
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -432,7 +424,7 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
     cond.wait(lock, [&] { return registered_other_thread; });
   }
 
-  std::shared_ptr<debug_server> server = debug_server::create(&tracer);
+  std::shared_ptr<debug_server> server = debug_server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
@@ -498,12 +490,12 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
 }
 
 TEST_F(test_debug_server, instances_shows_new_instance) {
-  std::shared_ptr<debug_server> s = debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> s = debug_server::create();
   EXPECT_THAT(debug_server::instances(), ::testing::Contains(s));
 }
 
 TEST_F(test_debug_server, destroying_debug_server_removes_from_instances) {
-  std::shared_ptr<debug_server> s = debug_server::create(/*tracer=*/nullptr);
+  std::shared_ptr<debug_server> s = debug_server::create();
   debug_server *s_raw = s.get();
   s.reset();
 

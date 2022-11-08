@@ -331,7 +331,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
 #if QLJS_FEATURE_DEBUG_SERVER
-          debugger_(debug_server::create(&this->tracer_)),
+          debugger_(debug_server::create()),
 #endif
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_, &this->tracer_),

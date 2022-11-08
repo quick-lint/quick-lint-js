@@ -99,9 +99,9 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
   friend class debug_server;
 };
 
-std::shared_ptr<debug_server> debug_server::create(trace_flusher *tracer) {
+std::shared_ptr<debug_server> debug_server::create() {
   std::shared_ptr<debug_server> instance =
-      std::make_shared<debug_server>(create_tag(), tracer);
+      std::make_shared<debug_server>(create_tag());
   instance_tracker<debug_server>::track(instance);
   return instance;
 }
@@ -110,8 +110,7 @@ std::vector<std::shared_ptr<debug_server>> debug_server::instances() {
   return instance_tracker<debug_server>::instances();
 }
 
-debug_server::debug_server(create_tag, trace_flusher *tracer)
-    : tracer_(tracer) {}
+debug_server::debug_server(create_tag) {}
 
 debug_server::~debug_server() {
   if (this->server_thread_.joinable()) {
@@ -120,7 +119,7 @@ debug_server::~debug_server() {
   }
 
   for (auto &backend : this->tracer_backends_) {
-    this->tracer_->disable_backend(backend.get());
+    trace_flusher::instance()->disable_backend(backend.get());
   }
 }
 
@@ -213,9 +212,7 @@ void debug_server::wake_up_server_thread(std::unique_lock<mutex> &) {
 }
 
 void debug_server::run_on_current_thread() {
-  if (this->tracer_) {
-    this->tracer_->register_current_thread();
-  }
+  trace_flusher::instance()->register_current_thread();
 
   mongoose_mgr mgr;
 
@@ -234,9 +231,7 @@ void debug_server::run_on_current_thread() {
     }
     this->initialized_.notify_all();
 
-    if (this->tracer_) {
-      this->tracer_->unregister_current_thread();
-    }
+    trace_flusher::instance()->unregister_current_thread();
     return;
   }
 
@@ -265,9 +260,7 @@ void debug_server::run_on_current_thread() {
     ::mg_mgr_poll(mgr.get(), /*timeout_ms=*/-1);
   }
 
-  if (this->tracer_) {
-    this->tracer_->unregister_current_thread();
-  }
+  trace_flusher::instance()->unregister_current_thread();
 }
 
 void debug_server::begin_closing_all_connections(::mg_mgr *mgr) {
@@ -283,7 +276,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
   switch (ev) {
   case ::MG_EV_HTTP_MSG: {
     ::mg_http_message *hm = static_cast<::mg_http_message *>(ev_data);
-    if (this->tracer_ && ::mg_http_match_uri(hm, "/api/trace")) {
+    if (::mg_http_match_uri(hm, "/api/trace")) {
       ::mg_ws_upgrade(c, hm, nullptr);
     } else {
       std::string public_directory = get_debug_server_public_directory();
@@ -305,7 +298,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
         std::make_unique<trace_flusher_websocket_backend>(c, this));
     trace_flusher_websocket_backend *backend =
         this->tracer_backends_.back().get();
-    this->tracer_->enable_backend(backend);
+    trace_flusher::instance()->enable_backend(backend);
 
     // Publish vector stats to the new client. (As a side effect, this also
     // publishes vector stats to other connected clients, but that's okay.)
@@ -318,7 +311,7 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
         this->tracer_backends_.begin(), this->tracer_backends_.end(),
         [&](auto &backend) { return backend->connection_ == c; });
     if (backend_it != this->tracer_backends_.end()) {
-      this->tracer_->disable_backend(backend_it->get());
+      trace_flusher::instance()->disable_backend(backend_it->get());
       this->tracer_backends_.erase(backend_it);
     }
     break;
@@ -339,14 +332,15 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
     }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-    if (this->tracer_ && this->need_publish_vector_profile_.load()) {
+    if (this->need_publish_vector_profile_.load()) {
       this->need_publish_vector_profile_.store(false);
 
       this->max_size_histogram_.add_entries(
           vector_instrumentation::instance.take_entries());
       auto histogram = this->max_size_histogram_.histogram();
 
-      trace_writer *tw = this->tracer_->trace_writer_for_current_thread();
+      trace_writer *tw =
+          trace_flusher::instance()->trace_writer_for_current_thread();
       QLJS_ASSERT(tw);  // We registered this thread in run_on_current_thread.
       tw->write_event_vector_max_size_histogram_by_owner(
           trace_event_vector_max_size_histogram_by_owner{
@@ -354,7 +348,7 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
               .histogram = &histogram,
           });
       tw->commit();
-      this->tracer_->flush_sync();
+      trace_flusher::instance()->flush_sync();
     }
 #endif
 

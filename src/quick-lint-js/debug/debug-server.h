@@ -19,7 +19,6 @@
 
 namespace quick_lint_js {
 class byte_buffer;
-class trace_flusher;
 class trace_flusher_websocket_backend;
 
 struct debug_server_io_error {
@@ -35,10 +34,10 @@ class debug_server {
   struct create_tag {};
 
  public:
-  static std::shared_ptr<debug_server> create(trace_flusher *);
+  static std::shared_ptr<debug_server> create();
   static std::vector<std::shared_ptr<debug_server>> instances();
 
-  explicit debug_server(create_tag, trace_flusher *);
+  explicit debug_server(create_tag);
 
   ~debug_server();
 
@@ -107,7 +106,6 @@ class debug_server {
   bool did_wait_for_server_start_ = false;
 
   // Used by server thread only:
-  trace_flusher *tracer_;
   // Each backend is associated with one WebSocket connection.
   std::vector<std::unique_ptr<trace_flusher_websocket_backend>>
       tracer_backends_;
