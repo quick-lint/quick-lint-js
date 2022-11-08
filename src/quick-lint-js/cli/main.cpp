@@ -334,7 +334,7 @@ void run_lsp_server() {
           debugger_(debug_server::create()),
 #endif
           input_pipe_(input_pipe),
-          handler_(&this->fs_, &this->linter_, &this->tracer_),
+          handler_(&this->fs_, &this->linter_),
           writer_(output_pipe),
           endpoint_(&this->handler_, &this->writer_) {
       this->report_pending_watch_io_errors();
