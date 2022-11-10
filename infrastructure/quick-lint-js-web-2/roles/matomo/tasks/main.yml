@@ -1,0 +1,57 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Create database for Matomo
+  community.mysql.mysql_db:
+    check_implicit_admin: true
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    name: matomo_analytics
+    state: present
+  become: true
+
+- name: Create database user for Matomo
+  community.mysql.mysql_user:
+    check_implicit_admin: true
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    name: matomo_analytics
+    password: "{{ matomo_db_password }}"
+    priv: 'matomo_analytics.*:SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES'
+  become: true
+
+- name: Check if Matomo is installed
+  ansible.builtin.stat:
+    path: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}/index.php
+  register: matomo_installed_check
+
+- name: Install Matomo
+  ansible.builtin.include_tasks:
+    file: install_matomo.yml
+  when: not matomo_installed_check.stat.exists
+
+- name: Create symlink point to the desired version of Matomo
+  ansible.builtin.file:
+    src: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}
+    dest: /var/www/admin.quick-lint-js.com/matomo
+    owner: www-data
+    group: www-data
+    state: link
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

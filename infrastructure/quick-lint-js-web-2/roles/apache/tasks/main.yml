@@ -1,0 +1,146 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Install Apache HTTP Server and modules
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - libapache2-mod-fcgid
+    state: present
+  become: true
+
+- name: Create Apache document roots
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /var/www
+    - /var/www/admin.quick-lint-js.com
+    - /var/www/c.quick-lint-js.com
+    - /var/www/quick-lint-js.com
+  become: true
+
+- name: Copy global Apache configuration files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/apache2/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - apache2.conf
+    - ports.conf
+  become: true
+
+- name: Create Let's Encrypt directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Copy Let's Encrypt configuration files
+  ansible.builtin.copy:
+    src: options-ssl-apache.conf
+    dest: /etc/letsencrypt/options-ssl-apache.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Copy global Apache envvars file
+  ansible.builtin.template:
+    src: envvars.j2
+    dest: /etc/apache2/envvars
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Disable Apache modules
+  community.general.apache2_module:
+    name: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - mpm_prefork
+    - mpm_worker
+
+- name: Enable Apache configurations
+  ansible.builtin.command:
+    cmd: a2enconf --quiet {{ item }}
+  become: true
+  loop:
+    - php8.1-fpm
+
+- name: Copy Apache module configuration
+  ansible.builtin.copy:
+    src: mods-available/
+    dest: /etc/apache2/mods-available
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Enable Apache modules
+  community.general.apache2_module:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - expires
+    - headers
+    - http2
+    - mpm_event
+    - proxy
+    - proxy_fcgi
+    - rewrite
+    - setenvif
+    - ssl
+
+- name: Copy Apache site configuration
+  ansible.builtin.copy:
+    src: sites-available/
+    dest: /etc/apache2/sites-available
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Enable Apache sites
+  ansible.builtin.command:
+    cmd: a2ensite --quiet {{ item }}
+  become: true
+  loop:
+    - 001-quicklintjs
+    - 002-admin.quick-lint-js.com
+    - 003-c.quick-lint-js
+    - 003-quick-lint-js.com
+
+- name: Start Apache service
+  ansible.builtin.service:
+    name: apache2.service
+    state: reloaded
+    enabled: yes
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
