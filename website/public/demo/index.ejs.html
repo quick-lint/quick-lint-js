@@ -30,6 +30,11 @@
         white-space: pre;
       }
 
+      #code-input-marks {
+          margin: 0;
+          padding: 0;
+      }
+
       /* Show #code-input-marks-scroller visually behind #code-input. */
       #code-input {
         background: transparent;
@@ -43,12 +48,15 @@
         /* !important is required because codegrepper extension adds position:relative
         the html tag and breaks the demo */
         position: absolute !important;
+        padding: 0;
       }
 
       /* Hide #shadow-code-input, but ensure its layout is accessible from
          JavaScript. */
       #shadow-code-input {
-        position: absolute;
+        /* !important is required because codegrepper extension adds position:relative
+        the html tag and breaks the demo */
+        position: absolute !important;
         visibility: hidden;
       }
 
