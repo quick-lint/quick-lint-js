@@ -1722,6 +1722,11 @@ msgstr ""
 msgid "using '{0}' against a regular expression literal always returns '{1}'"
 msgstr ""
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "',' should be ';' instead"
+msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

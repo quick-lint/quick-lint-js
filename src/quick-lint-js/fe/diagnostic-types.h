@@ -2644,6 +2644,11 @@
       MESSAGE(QLJS_TRANSLATABLE("using '{0}' against a regular "                \
                                 "expression literal always returns '{1}'"),     \
               equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_unexpected_comma_after_field_initialization, "E0330",                \
+      diagnostic_severity::error, { source_code_span comma; },                  \
+      MESSAGE(QLJS_TRANSLATABLE("',' should be ';' instead"), comma))           \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

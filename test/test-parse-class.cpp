@@ -599,6 +599,24 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   // TODO(strager): 'set field=init' is an error.
 }
 
+TEST_F(test_parse_class, class_fields_with_comma) {
+  {
+    test_parser p(u8"class C { a = 1, b = 2 }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
+                                      "visit_property_declaration",    // a
+                                      "visit_property_declaration",    // b
+                                      "visit_exit_class_scope",
+                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code, diag_unexpected_comma_after_field_initialization,  //
+            comma, strlen(u8"class C { a = 1"), u8",")));
+  }
+}
+
 TEST_F(test_parse_class,
        class_fields_without_initializer_allow_asi_after_name) {
   {

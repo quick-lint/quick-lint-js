@@ -1658,6 +1658,11 @@ msgstr "usar '{0}' com um objeto sempre retorna '{1}'"
 msgid "using '{0}' against a regular expression literal always returns '{1}'"
 msgstr "usar '{0}' com uma expressão regular sempre retorna '{1}'"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "',' should be ';' instead"
+msgstr "'{0}' não é permitido para strings; use {1}"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
