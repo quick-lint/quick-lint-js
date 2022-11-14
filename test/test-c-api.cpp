@@ -93,6 +93,20 @@ TEST(test_c_api_web_demo, linting_uses_config) {
   qljs_web_demo_destroy_document(p);
 }
 
+TEST(test_c_api_web_demo, lint_config) {
+  qljs_web_demo_document* p = qljs_web_demo_create_document();
+
+  const char8* config_text = u8R"({"globals": {"testGlobalVariable": null}})";
+  qljs_web_demo_set_text(p, config_text, strlen(config_text));
+
+  const qljs_web_demo_diagnostic* diagnostics =
+      qljs_web_demo_lint_as_config_file(p);
+  EXPECT_STREQ(diagnostics[0].code, "E0171");
+  EXPECT_STREQ(diagnostics[1].code, "");
+
+  qljs_web_demo_destroy_document(p);
+}
+
 TEST(test_c_api_web_demo, changing_language_options_affects_lint) {
   qljs_web_demo_document* p = qljs_web_demo_create_document();
 
