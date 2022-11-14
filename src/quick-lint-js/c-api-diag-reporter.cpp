@@ -22,9 +22,9 @@ c_api_diag_reporter<Diagnostic, Locator>::c_api_diag_reporter() = default;
 
 template <class Diagnostic, class Locator>
 void c_api_diag_reporter<Diagnostic, Locator>::set_input(
-    padded_string_view input, const Locator *locator) {
-  this->locator_ = locator;
+    padded_string_view input) {
   this->input_ = input.data();
+  this->locator_.emplace(input);
 }
 
 template <class Diagnostic, class Locator>

@@ -31,7 +31,7 @@ struct qljs_web_demo_document final {
 
     web_demo_locator locator(&this->text_);
     this->diag_reporter_.reset();
-    this->diag_reporter_.set_input(&this->text_, &locator);
+    this->diag_reporter_.set_input(&this->text_);
     if (this->is_config_json_) {
       configuration().load_from_json(&this->text_, &this->diag_reporter_);
     } else {

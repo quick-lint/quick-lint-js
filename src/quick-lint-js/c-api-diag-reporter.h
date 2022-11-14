@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_C_API_DIAG_REPORTER_H
 
 #include <cstdint>
+#include <optional>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -14,14 +15,12 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/web-demo-location.h>
 #include <vector>
 
 struct qljs_web_demo_diagnostic;
 
 namespace quick_lint_js {
-class lsp_locator;
-class web_demo_locator;
-
 template <class Diagnostic, class Locator>
 class c_api_diag_formatter;
 
@@ -30,7 +29,7 @@ class c_api_diag_reporter final : public diag_reporter {
  public:
   explicit c_api_diag_reporter();
 
-  void set_input(padded_string_view input, const Locator *);
+  void set_input(padded_string_view input);
   // Does not reset translator.
   void reset();
 
@@ -45,8 +44,8 @@ class c_api_diag_reporter final : public diag_reporter {
 
   translator translator_;
   std::vector<Diagnostic> diagnostics_;
-  const Locator *locator_;
   const char8 *input_;
+  std::optional<Locator> locator_;
   monotonic_allocator string_allocator_{
       "c_api_diag_reporter::string_allocator_"};
 
