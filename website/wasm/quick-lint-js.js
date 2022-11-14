@@ -215,7 +215,6 @@ class Process {
     this._webDemoCreateDocument = wrap("qljs_web_demo_create_document");
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
-    this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
     this._webDemoSetLanguageOptions = wrap(
       "qljs_web_demo_set_language_options"
     );
@@ -312,13 +311,6 @@ class DocumentForWebDemo {
     this._process._webDemoSetConfig(this._wasmDoc, configDocument._wasmDoc);
   }
 
-  lintAsConfigFile() {
-    let diagnosticsPointer = this._process._webDemoLintAsConfigFile(
-      this._wasmDoc
-    );
-    return this._parseDiagnostics(diagnosticsPointer);
-  }
-
   _parseDiagnostics(diagnosticsPointer) {
     let rawDiagnostics = new Uint8Array(
       this._process._heap,
@@ -388,6 +380,7 @@ let LanguageOptions = {
 
   JSX: 1 << 0,
   TYPESCRIPT: 1 << 1,
+  CONFIG_JSON: 1 << 2,
 };
 exports.LanguageOptions = LanguageOptions;
 

@@ -160,8 +160,9 @@ TEST(test_c_api_web_demo, lint_config) {
   const char8* config_text = u8R"({"globals": {"testGlobalVariable": null}})";
   qljs_web_demo_set_text(p, config_text, strlen(config_text));
 
-  const qljs_web_demo_diagnostic* diagnostics =
-      qljs_web_demo_lint_as_config_file(p);
+  qljs_web_demo_set_language_options(p, qljs_language_options_config_json_bit);
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
   EXPECT_STREQ(diagnostics[0].code, "E0171");
   EXPECT_STREQ(diagnostics[1].code, "");
 

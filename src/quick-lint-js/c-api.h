@@ -13,6 +13,7 @@ extern "C" {
 typedef enum qljs_language_options {
   qljs_language_options_jsx_bit = 1 << 0,
   qljs_language_options_typescript_bit = 1 << 1,
+  qljs_language_options_config_json_bit = 1 << 2,
 } qljs_language_options;
 typedef enum qljs_severity {
   qljs_severity_error = 1,
@@ -39,8 +40,6 @@ void qljs_web_demo_set_language_options(qljs_web_demo_document*,
                                         qljs_language_options);
 void qljs_web_demo_set_locale(qljs_web_demo_document*, const char* locale);
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document*);
-const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
-    qljs_web_demo_document*);
 
 // Returns a null-terminated array of null-terminated strings.
 const char* const* qljs_list_locales();

@@ -193,15 +193,13 @@ export class ErrorDocumentation {
             );
             break;
           case "quick-lint-js.config":
+            doc.setLanguageOptions(LanguageOptions.CONFIG_JSON);
             break;
           default:
             // TODO(strager): Warn.
             break;
         }
-        let diagnostics =
-          language === "quick-lint-js.config"
-            ? doc.lintAsConfigFile()
-            : doc.lint();
+        let diagnostics = doc.lint();
         this.diagnostics.push(diagnostics);
       } finally {
         if (configDoc !== null) {

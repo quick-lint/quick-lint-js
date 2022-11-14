@@ -38,17 +38,13 @@ class qljs_document_base {
     this->diag_reporter_.reset();
     this->diag_reporter_.set_input(this->document_.string(),
                                    &this->document_.locator());
-    parse_and_lint(this->document_.string(), this->diag_reporter_,
-                   this->config_.globals(), this->linter_options_);
-    return this->diag_reporter_.get_diagnostics();
-  }
-
-  const auto* lint_as_config_file() {
-    this->diag_reporter_.reset();
-    this->diag_reporter_.set_input(this->document_.string(),
-                                   &this->document_.locator());
-    configuration().load_from_json(this->document_.string(),
-                                   &this->diag_reporter_);
+    if (this->is_config_json_) {
+      configuration().load_from_json(this->document_.string(),
+                                     &this->diag_reporter_);
+    } else {
+      parse_and_lint(this->document_.string(), this->diag_reporter_,
+                     this->config_.globals(), this->linter_options_);
+    }
     return this->diag_reporter_.get_diagnostics();
   }
 
@@ -56,6 +52,7 @@ class qljs_document_base {
   ErrorReporter diag_reporter_;
   configuration config_;
   linter_options linter_options_;
+  bool is_config_json_ = false;
   qljs_document_base* config_document_ = nullptr;
   bool need_update_config_ = true;
 };
@@ -98,6 +95,7 @@ void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
   p->linter_options_.jsx = options & qljs_language_options_jsx_bit;
   p->linter_options_.typescript =
       options & qljs_language_options_typescript_bit;
+  p->is_config_json_ = options & qljs_language_options_config_json_bit;
 }
 
 void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
@@ -108,11 +106,6 @@ void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
 
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
   return p->lint();
-}
-
-const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
-    qljs_web_demo_document* p) {
-  return p->lint_as_config_file();
 }
 
 const char* const* qljs_list_locales() {
