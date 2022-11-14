@@ -19,13 +19,7 @@
 
 using namespace quick_lint_js;
 
-namespace quick_lint_js {
-namespace {
-template <class Locator, class ErrorReporter>
-class qljs_document_base {
- public:
-  explicit qljs_document_base() = default;
-
+struct qljs_web_demo_document final {
   const auto* lint() {
     if (this->need_update_config_) {
       this->config_.reset();
@@ -35,7 +29,7 @@ class qljs_document_base {
       }
     }
 
-    Locator locator(&this->text_);
+    web_demo_locator locator(&this->text_);
     this->diag_reporter_.reset();
     this->diag_reporter_.set_input(&this->text_, &locator);
     if (this->is_config_json_) {
@@ -48,20 +42,14 @@ class qljs_document_base {
   }
 
   padded_string text_;
-  ErrorReporter diag_reporter_;
+  c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>
+      diag_reporter_;
   configuration config_;
   linter_options linter_options_;
   bool is_config_json_ = false;
-  qljs_document_base* config_document_ = nullptr;
+  qljs_web_demo_document* config_document_ = nullptr;
   bool need_update_config_ = true;
 };
-}
-}
-
-struct qljs_web_demo_document final
-    : public qljs_document_base<
-          web_demo_locator,
-          c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>> {};
 
 qljs_web_demo_document* qljs_web_demo_create_document(void) {
   qljs_web_demo_document* p = new qljs_web_demo_document();
