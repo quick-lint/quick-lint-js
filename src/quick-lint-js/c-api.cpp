@@ -72,7 +72,6 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
     }
   }
 
-  web_demo_locator locator(&p->text_);
   p->diag_reporter_.reset();
   p->diag_reporter_.set_input(&p->text_);
   if (p->is_config_json_) {
