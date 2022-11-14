@@ -20,27 +20,6 @@
 using namespace quick_lint_js;
 
 struct qljs_web_demo_document final {
-  const auto* lint() {
-    if (this->need_update_config_) {
-      this->config_.reset();
-      if (this->config_document_) {
-        this->config_.load_from_json(&this->config_document_->text_,
-                                     &null_diag_reporter::instance);
-      }
-    }
-
-    web_demo_locator locator(&this->text_);
-    this->diag_reporter_.reset();
-    this->diag_reporter_.set_input(&this->text_);
-    if (this->is_config_json_) {
-      configuration().load_from_json(&this->text_, &this->diag_reporter_);
-    } else {
-      parse_and_lint(&this->text_, this->diag_reporter_,
-                     this->config_.globals(), this->linter_options_);
-    }
-    return this->diag_reporter_.get_diagnostics();
-  }
-
   padded_string text_;
   c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>
       diag_reporter_;
@@ -85,7 +64,24 @@ void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
 }
 
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
-  return p->lint();
+  if (p->need_update_config_) {
+    p->config_.reset();
+    if (p->config_document_) {
+      p->config_.load_from_json(&p->config_document_->text_,
+                                &null_diag_reporter::instance);
+    }
+  }
+
+  web_demo_locator locator(&p->text_);
+  p->diag_reporter_.reset();
+  p->diag_reporter_.set_input(&p->text_);
+  if (p->is_config_json_) {
+    configuration().load_from_json(&p->text_, &p->diag_reporter_);
+  } else {
+    parse_and_lint(&p->text_, p->diag_reporter_, p->config_.globals(),
+                   p->linter_options_);
+  }
+  return p->diag_reporter_.get_diagnostics();
 }
 
 const char* const* qljs_list_locales() {
