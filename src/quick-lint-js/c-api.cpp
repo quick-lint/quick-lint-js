@@ -61,10 +61,7 @@ class qljs_document_base {
 struct qljs_web_demo_document final
     : public qljs_document_base<
           web_demo_locator,
-          c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>> {
- public:
-  void set_translator(translator t) { this->diag_reporter_.set_translator(t); }
-};
+          c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>> {};
 
 qljs_web_demo_document* qljs_web_demo_create_document(void) {
   qljs_web_demo_document* p = new qljs_web_demo_document();
@@ -96,7 +93,7 @@ void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
 void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
   translator t;
   t.use_messages_from_locale(locale);
-  p->set_translator(t);
+  p->diag_reporter_.set_translator(t);
 }
 
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
