@@ -221,7 +221,7 @@ class Process {
     );
     this._webDemoSetLocale = wrap("qljs_web_demo_set_locale");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
-    this._webDemoSetConfigText = wrap("qljs_web_demo_set_config_text");
+    this._webDemoSetConfig = wrap("qljs_web_demo_set_config");
   }
 
   isTainted() {
@@ -308,17 +308,8 @@ class DocumentForWebDemo {
     return this._parseDiagnostics(diagnosticsPointer);
   }
 
-  setConfigText(text) {
-    let utf8Text = encodeUTF8String(text, this._process);
-    try {
-      this._process._webDemoSetConfigText(
-        this._wasmDoc,
-        utf8Text.pointer,
-        utf8Text.byteSize
-      );
-    } finally {
-      utf8Text.dispose();
-    }
+  setConfig(configDocument) {
+    this._process._webDemoSetConfig(this._wasmDoc, configDocument._wasmDoc);
   }
 
   lintAsConfigFile() {

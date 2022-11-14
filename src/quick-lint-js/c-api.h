@@ -32,9 +32,9 @@ qljs_web_demo_document* qljs_web_demo_create_document(void);
 void qljs_web_demo_destroy_document(qljs_web_demo_document*);
 void qljs_web_demo_set_text(qljs_web_demo_document*, const void* text_utf_8,
                             size_t text_byte_count);
-void qljs_web_demo_set_config_text(qljs_web_demo_document*,
-                                   const void* text_utf_8,
-                                   size_t text_byte_count);
+// config_document is optional. If null, reverts to the default config.
+void qljs_web_demo_set_config(qljs_web_demo_document* js_document,
+                              qljs_web_demo_document* config_document);
 void qljs_web_demo_set_language_options(qljs_web_demo_document*,
                                         qljs_language_options);
 void qljs_web_demo_set_locale(qljs_web_demo_document*, const char* locale);

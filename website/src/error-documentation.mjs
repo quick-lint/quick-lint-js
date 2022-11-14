@@ -167,11 +167,14 @@ export class ErrorDocumentation {
     let process = await qljsProcessPromise;
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
+      let configDoc = null;
       try {
         doc.setLocale(locale);
         let { text, language } = this.codeBlocks[i];
         if (this.configForExamples !== null) {
-          doc.setConfigText(this.configForExamples);
+          configDoc = await process.createDocumentForWebDemoAsync();
+          configDoc.setText(this.configForExamples);
+          doc.setConfig(configDoc);
         }
         doc.setText(text);
         switch (language) {
@@ -201,6 +204,9 @@ export class ErrorDocumentation {
             : doc.lint();
         this.diagnostics.push(diagnostics);
       } finally {
+        if (configDoc !== null) {
+          configDoc.dispose();
+        }
         doc.dispose();
       }
     }

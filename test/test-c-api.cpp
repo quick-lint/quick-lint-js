@@ -78,19 +78,80 @@ TEST(test_c_api_web_demo, setting_locale_changes_messages_forever) {
 }
 
 TEST(test_c_api_web_demo, linting_uses_config) {
-  qljs_web_demo_document* p = qljs_web_demo_create_document();
+  qljs_web_demo_document* js_doc = qljs_web_demo_create_document();
+  qljs_web_demo_document* config_doc = qljs_web_demo_create_document();
 
   const char8* config_text = u8R"({"globals": {"testGlobalVariable": true}})";
-  qljs_web_demo_set_config_text(p, config_text, strlen(config_text));
+  qljs_web_demo_set_text(config_doc, config_text, strlen(config_text));
 
   const char8* document_text = u8"testGlobalVariable;";
-  qljs_web_demo_set_text(p, document_text, strlen(document_text));
+  qljs_web_demo_set_text(js_doc, document_text, strlen(document_text));
 
-  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  qljs_web_demo_set_config(js_doc, config_doc);
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(js_doc);
   EXPECT_EQ(diagnostics[0].message, nullptr);
   EXPECT_STREQ(diagnostics[0].code, "");
 
-  qljs_web_demo_destroy_document(p);
+  qljs_web_demo_destroy_document(js_doc);
+  qljs_web_demo_destroy_document(config_doc);
+}
+
+TEST(test_c_api_web_demo, unsetting_config_uses_default_config) {
+  qljs_web_demo_document* js_doc = qljs_web_demo_create_document();
+  qljs_web_demo_document* config_doc = qljs_web_demo_create_document();
+
+  const char8* config_text = u8R"({"globals": {"testGlobalVariable": true}})";
+  qljs_web_demo_set_text(config_doc, config_text, strlen(config_text));
+
+  const char8* document_text = u8"testGlobalVariable;";
+  qljs_web_demo_set_text(js_doc, document_text, strlen(document_text));
+
+  qljs_web_demo_set_config(js_doc, config_doc);
+  qljs_web_demo_lint(js_doc);
+
+  qljs_web_demo_set_config(js_doc, nullptr);
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(js_doc);
+  EXPECT_STREQ(diagnostics[0].code, "E0057")
+      << "testGlobalVariable should be undeclared (message: "
+      << diagnostics[0].message << ")";
+  EXPECT_STREQ(diagnostics[1].code, "");
+
+  qljs_web_demo_destroy_document(js_doc);
+  qljs_web_demo_destroy_document(config_doc);
+}
+
+TEST(test_c_api_web_demo, changing_config_document_text_then_relinting_js) {
+  qljs_web_demo_document* js_doc = qljs_web_demo_create_document();
+  qljs_web_demo_document* config_doc = qljs_web_demo_create_document();
+
+  const char8* config_text =
+      u8R"({"globals": {"testGlobalVariable1": true, "testGlobalVariable2": true}})";
+  qljs_web_demo_set_text(config_doc, config_text, strlen(config_text));
+
+  const char8* document_text = u8"testGlobalVariable1; testGlobalVariable2;";
+  qljs_web_demo_set_text(js_doc, document_text, strlen(document_text));
+
+  qljs_web_demo_set_config(js_doc, config_doc);
+  qljs_web_demo_lint(js_doc);
+
+  const char8* updated_config_text =
+      u8R"({"globals": {"testGlobalVariable1": true, "testGlobalVariable2": false}})";
+  qljs_web_demo_set_text(config_doc, updated_config_text,
+                         strlen(updated_config_text));
+  SCOPED_TRACE(
+      "testGlobalVariable1 should be declared, but testGlobalVariable2 should "
+      "be undeclared");
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(js_doc);
+  EXPECT_STREQ(diagnostics[0].code, "E0057")
+      << "message: " << diagnostics[0].message;
+  EXPECT_STREQ(diagnostics[1].code, "")
+      << "message: " << diagnostics[1].message;
+
+  qljs_web_demo_destroy_document(js_doc);
+  qljs_web_demo_destroy_document(config_doc);
 }
 
 TEST(test_c_api_web_demo, lint_config) {

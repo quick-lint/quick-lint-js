@@ -27,6 +27,14 @@ class qljs_document_base {
   explicit qljs_document_base() = default;
 
   const auto* lint() {
+    if (this->need_update_config_) {
+      this->config_.reset();
+      if (this->config_document_) {
+        this->config_.load_from_json(this->config_document_->document_.string(),
+                                     &null_diag_reporter::instance);
+      }
+    }
+
     this->diag_reporter_.reset();
     this->diag_reporter_.set_input(this->document_.string(),
                                    &this->document_.locator());
@@ -48,6 +56,8 @@ class qljs_document_base {
   ErrorReporter diag_reporter_;
   configuration config_;
   linter_options linter_options_;
+  qljs_document_base* config_document_ = nullptr;
+  bool need_update_config_ = true;
 };
 }
 }
@@ -59,12 +69,6 @@ struct qljs_web_demo_document final
  public:
   void set_text(string8_view replacement) {
     this->document_.set_text(replacement);
-  }
-
-  void set_config_text(string8_view text) {
-    padded_string padded_text(text);
-    this->config_.reset();
-    this->config_.load_from_json(&padded_text, &null_diag_reporter::instance);
   }
 
   void set_translator(translator t) { this->diag_reporter_.set_translator(t); }
@@ -83,11 +87,10 @@ void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                            text_byte_count));
 }
 
-void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
-                                   const void* text_utf_8,
-                                   size_t text_byte_count) {
-  p->set_config_text(string8_view(reinterpret_cast<const char8*>(text_utf_8),
-                                  text_byte_count));
+void qljs_web_demo_set_config(qljs_web_demo_document* js_document,
+                              qljs_web_demo_document* config_document) {
+  js_document->need_update_config_ = true;
+  js_document->config_document_ = config_document;
 }
 
 void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
