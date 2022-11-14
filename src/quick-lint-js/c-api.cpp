@@ -30,25 +30,24 @@ class qljs_document_base {
     if (this->need_update_config_) {
       this->config_.reset();
       if (this->config_document_) {
-        this->config_.load_from_json(this->config_document_->document_.string(),
+        this->config_.load_from_json(&this->config_document_->text_,
                                      &null_diag_reporter::instance);
       }
     }
 
+    Locator locator(&this->text_);
     this->diag_reporter_.reset();
-    this->diag_reporter_.set_input(this->document_.string(),
-                                   &this->document_.locator());
+    this->diag_reporter_.set_input(&this->text_, &locator);
     if (this->is_config_json_) {
-      configuration().load_from_json(this->document_.string(),
-                                     &this->diag_reporter_);
+      configuration().load_from_json(&this->text_, &this->diag_reporter_);
     } else {
-      parse_and_lint(this->document_.string(), this->diag_reporter_,
+      parse_and_lint(&this->text_, this->diag_reporter_,
                      this->config_.globals(), this->linter_options_);
     }
     return this->diag_reporter_.get_diagnostics();
   }
 
-  document<Locator> document_;
+  padded_string text_;
   ErrorReporter diag_reporter_;
   configuration config_;
   linter_options linter_options_;
@@ -64,10 +63,6 @@ struct qljs_web_demo_document final
           web_demo_locator,
           c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>> {
  public:
-  void set_text(string8_view replacement) {
-    this->document_.set_text(replacement);
-  }
-
   void set_translator(translator t) { this->diag_reporter_.set_translator(t); }
 };
 
@@ -80,8 +75,8 @@ void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 
 void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
-  p->set_text(string8_view(reinterpret_cast<const char8*>(text_utf_8),
-                           text_byte_count));
+  p->text_ = padded_string(string8_view(
+      reinterpret_cast<const char8*>(text_utf_8), text_byte_count));
 }
 
 void qljs_web_demo_set_config(qljs_web_demo_document* js_document,
