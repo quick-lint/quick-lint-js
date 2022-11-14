@@ -7,6 +7,7 @@ xyz;
 /* ¡ */ xyz; // two byte UTF-8
 /* ☃ */ xyz; // three byte UTF-8
 /* ☃️ */ xyz; // variation selector
+/* 👩 */ xyz; // four byte UTF-8; two UTF-16 code units
 /* Ａ */ xyz; // doublewidth
 /* ﾝ */ xyz; // halfwidth
 /* à */ xyz; // combining
