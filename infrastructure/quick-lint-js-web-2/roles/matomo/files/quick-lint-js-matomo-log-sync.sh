@@ -1,12 +1,20 @@
----
+#!/bin/sh
+
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-matomo_version: 4.9.1
-matomo_checksum: sha256:2ff734151ce43d050fc2ecf0dcbb845859430c5106b9755c5be3244b8d9d5a54
+# This script is used by the quick-lint-js-matomo-log-sync.service systemd
+# service.
 
-matomo_log_analytics_version: 1e85636b72d76ad31f87c42693a14cc8cf51f6b0
-matomo_log_analytics_checksum: sha256:106bf146e0b8531efd1b9927a28c714e1ebf874bbffba49b54c83cd55372da11
+set -e
+set -u
+
+exec python3 /root/matomo-log-analytics/import_logs.py \
+  --config=/var/www/admin.quick-lint-js.com/matomo/config/config.ini.php \
+  --url=https://admin.quick-lint-js.com/matomo/ \
+  --timestamp-file=/var/log/apache2/matomo_analytics.timestamp \
+  /var/log/apache2/matomo_analytics.log* \
+  --enable-static
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

@@ -1,12 +1,21 @@
----
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-matomo_version: 4.9.1
-matomo_checksum: sha256:2ff734151ce43d050fc2ecf0dcbb845859430c5106b9755c5be3244b8d9d5a54
+[Unit]
+Description = Sync Apache logs to Matomo
 
-matomo_log_analytics_version: 1e85636b72d76ad31f87c42693a14cc8cf51f6b0
-matomo_log_analytics_checksum: sha256:106bf146e0b8531efd1b9927a28c714e1ebf874bbffba49b54c83cd55372da11
+[Service]
+Type = oneshot
+
+ExecStart = /usr/local/bin/quick-lint-js-matomo-log-sync.sh
+
+Restart = no
+TimeoutStartSec = 180min
+
+# Don't hinder user HTTP requests.
+Nice = 15
+CPUSchedulingPolicy = batch
+IOSchedulingClass = idle
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

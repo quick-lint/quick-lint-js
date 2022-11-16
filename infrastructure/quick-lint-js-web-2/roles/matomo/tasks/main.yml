@@ -38,6 +38,54 @@
     state: link
   become: true
 
+- name: Check if Matomo log analytics is installed
+  ansible.builtin.stat:
+    path: /root/matomo-log-analytics-{{ matomo_log_analytics_version }}/index.php
+  register: matomo_log_analytics_installed_check
+  become: true
+
+- name: Install Matomo log analytics
+  ansible.builtin.include_tasks:
+    file: install_matomo_log_analytics.yml
+  when: not matomo_log_analytics_installed_check.stat.exists
+
+- name: Create symlink point to the desired version of Matomo log analytics
+  ansible.builtin.file:
+    src: /root/matomo-log-analytics-{{ matomo_log_analytics_version }}
+    dest: /root/matomo-log-analytics
+    owner: root
+    group: root
+    state: link
+  become: true
+
+- name: Install Matomo service scripts
+  ansible.builtin.copy:
+    src: quick-lint-js-matomo-log-sync.sh
+    dest: /usr/local/bin/quick-lint-js-matomo-log-sync.sh
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Install Matomo services
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - quick-lint-js-matomo-log-sync.service
+    - quick-lint-js-matomo-log-sync.timer
+
+- name: Start Matomo services
+  ansible.builtin.service:
+    name: quick-lint-js-matomo-log-sync.timer
+    state: started
+    enabled: yes
+  become: true
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
