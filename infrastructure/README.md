@@ -5,7 +5,4 @@ website and related stuff.
 
 ## Files and folders
 
-* `quick-lint-js-web-docker.service`: systemd service for running the
-  quick-lint-js-web Docker container. Installed into
-  `/lib/systemd/system/quick-lint-js-web-docker.service` on `quick-lint-js.com`.
-* `quick-lint-js-web`: Configuration and Dockerfile for the HTTP server.
+* `quick-lint-js-web-2`: Configuration and Ansible scripts for the HTTP server.
