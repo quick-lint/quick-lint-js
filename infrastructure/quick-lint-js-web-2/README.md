@@ -16,7 +16,7 @@ If you want to run Ansible for the production server, run these commands:
     $ ansible-vault edit --vault-password-file vault.password vault.yml
     # Change the passwords.
 
-    $ LC_ALL=C ansible-playbook -i inventory.yml prod.yml --ask-become-pass --vault-password-file vault.password
+    $ LC_ALL=C ansible-playbook -i inventory.yml prod.yml --vault-password-file vault.password
 
 Then, open <https://admin.quick-lint-js.com/matomo/> to configure
 Matomo:
