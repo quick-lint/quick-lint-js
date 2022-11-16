@@ -19,7 +19,7 @@
     state: directory
   become: true
 
-- name: Extract Matomo 
+- name: Extract Matomo
   ansible.builtin.unarchive:
     remote_src: yes
     src: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}.tar.gz
