@@ -1,18 +1,26 @@
----
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-- name: Development web server
-  hosts: web
-  vars_files: [vault-dev.yml, vars.yml]
-  vars:
-    apache_dev_tld: .developer.app
-  roles:
-    - mariadb
-    - php
-    - apache
-    - matomo
-    - builds
+[Unit]
+Description = Prune old quick-lint-js build artifacts
+
+[Service]
+Type = oneshot
+
+ExecStart = python3 /home/github-ci/prune-old-builds.py -f /home/github-ci/qljs /var/www/c.quick-lint-js.com/builds/ https://github.com/quick-lint/quick-lint-js
+
+StandardOutput = append:/home/github-ci/prune-log.txt
+StandardError = inherit
+
+User = github-ci
+
+Restart = no
+TimeoutStartSec = 180min
+
+# Don't hinder user HTTP requests.
+Nice = 15
+CPUSchedulingPolicy = batch
+IOSchedulingClass = idle
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

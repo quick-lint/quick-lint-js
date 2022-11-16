@@ -1,18 +1,15 @@
----
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-- name: Development web server
-  hosts: web
-  vars_files: [vault-dev.yml, vars.yml]
-  vars:
-    apache_dev_tld: .developer.app
-  roles:
-    - mariadb
-    - php
-    - apache
-    - matomo
-    - builds
+[Unit]
+Description = Prune old quick-lint-js build artifacts
+
+[Timer]
+AccuracySec = 1us
+OnCalendar = daily
+RandomizedDelaySec = 30min
+
+Unit = quick-lint-js-prune-old-builds.service
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

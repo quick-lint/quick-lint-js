@@ -1,0 +1,74 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Create github-ci user
+  ansible.builtin.user:
+    name: github-ci
+    home: /home/github-ci
+    create_home: true
+  become: true
+
+- name: Create builds directory
+  ansible.builtin.file:
+    path: /var/www/c.quick-lint-js.com/builds
+    state: directory
+    owner: github-ci
+    group: github-ci
+    mode: "0755"
+  become: true
+
+- name: Create build-pruning script log file
+  ansible.builtin.file:
+    path: /home/github-ci/prune-log.txt
+    state: touch
+    owner: github-ci
+    group: github-ci
+    mode: "0644"
+  become: true
+
+- name: Install build-pruning script
+  ansible.builtin.copy:
+    src: prune-old-builds.py
+    dest: /home/github-ci/prune-old-builds.py
+    owner: github-ci
+    group: github-ci
+    mode: "0644"
+  become: true
+
+- name: Install build-pruning services
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - quick-lint-js-prune-old-builds.service
+    - quick-lint-js-prune-old-builds.timer
+
+- name: Start build-pruning services
+  ansible.builtin.service:
+    name: quick-lint-js-prune-old-builds.timer
+    state: started
+    enabled: yes
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
