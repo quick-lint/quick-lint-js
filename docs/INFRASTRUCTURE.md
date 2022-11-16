@@ -36,7 +36,7 @@ Data updated manually and by GitHub Actions.
 * Data: /qljs-pool/var/www/c.quick-lint-js.com/ (Vultr block storage)
 * TLS certificates: Let's Encrypt
 * Cron: `/home/github-ci/prune-old-builds.py` run by `github-ci`
-* Docker: [`quick-lint-js-web`][]
+* Ansible: [`quick-lint-js-web-2`][]
 
 ### vhost: http://c.quick-lint-js.com/
 
@@ -141,4 +141,4 @@ package](https://www.npmjs.com/package/quick-lint-js) on the npm registry.
 [DNS Made Easy]: https://dnsmadeeasy.com/
 [Namecheap]: https://www.namecheap.com/
 [Vultr]: https://www.vultr.com/
-[`quick-lint-js-web`]: ../infrastructure/quick-lint-js-web/README.md
+[`quick-lint-js-web-2`]: ../infrastructure/quick-lint-js-web-2/README.md
