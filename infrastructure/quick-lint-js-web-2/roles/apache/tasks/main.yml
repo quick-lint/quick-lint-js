@@ -102,13 +102,19 @@
     - ssl
 
 - name: Copy Apache site configuration
-  ansible.builtin.copy:
-    src: sites-available/
-    dest: /etc/apache2/sites-available
+  ansible.builtin.template:
+    src: "sites-available/{{ item }}.j2"
+    dest: "/etc/apache2/sites-available/{{ item }}"
     owner: root
     group: root
     mode: '0644'
   become: true
+  loop:
+    - 001-quicklintjs.conf
+    - 002-admin.quick-lint-js.com.conf
+    - 003-c.quick-lint-js.conf
+    - 003-quick-lint-js.com.conf
+    - default-ssl.conf
 
 - name: Enable Apache sites
   ansible.builtin.command:

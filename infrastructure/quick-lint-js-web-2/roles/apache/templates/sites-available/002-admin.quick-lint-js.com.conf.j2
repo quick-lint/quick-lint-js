@@ -1,12 +1,12 @@
 <IfModule mod_ssl.c>
 <VirtualHost *:80>
-	ServerName admin.quick-lint-js.com${DEV_TLD}
+	ServerName admin.quick-lint-js.com{{ apache_dev_tld }}
 	RewriteEngine on
-	RewriteRule ^ https://admin.quick-lint-js.com${DEV_TLD}%{REQUEST_URI} [END,NE,R=permanent]
+	RewriteRule ^ https://admin.quick-lint-js.com{{ apache_dev_tld }}%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>
 
 <VirtualHost *:443>
-	ServerName admin.quick-lint-js.com${DEV_TLD}
+	ServerName admin.quick-lint-js.com{{ apache_dev_tld }}
 
 	ServerAdmin strager.nds@gmail.com
 	DocumentRoot /var/www/admin.quick-lint-js.com

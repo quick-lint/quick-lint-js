@@ -1,14 +1,14 @@
 # This is the default VirtualHost.
 <VirtualHost *:80>
-	ServerName quicklintjs.com${DEV_TLD}
+	ServerName quicklintjs.com{{ apache_dev_tld }}
 	RewriteEngine on
-	RewriteRule ^ https://quick-lint-js.com${DEV_TLD}%{REQUEST_URI} [END,NE,R=permanent]
+	RewriteRule ^ https://quick-lint-js.com{{ apache_dev_tld }}%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>
 
 <VirtualHost *:443>
-	ServerName quicklintjs.com${DEV_TLD}
+	ServerName quicklintjs.com{{ apache_dev_tld }}
 	RewriteEngine on
-	RewriteRule ^ https://quick-lint-js.com${DEV_TLD}%{REQUEST_URI} [END,NE,R=permanent]
+	RewriteRule ^ https://quick-lint-js.com{{ apache_dev_tld }}%{REQUEST_URI} [END,NE,R=permanent]
 
 	SSLCertificateFile /etc/letsencrypt/live/quicklintjs.com/fullchain.pem
 	SSLCertificateKeyFile /etc/letsencrypt/live/quicklintjs.com/privkey.pem
