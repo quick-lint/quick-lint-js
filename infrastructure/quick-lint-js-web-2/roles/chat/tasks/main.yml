@@ -58,6 +58,29 @@
     enabled: yes
   become: true
 
+- name: Install WeeChat
+  ansible.builtin.apt:
+    name:
+      - weechat-headless
+    state: present
+  become: true
+
+- name: Install chat log services
+  ansible.builtin.copy:
+    src: quick-lint-js-irc-log.service
+    dest: /etc/systemd/system/quick-lint-js-irc-log.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Start chat log services
+  ansible.builtin.service:
+    name: quick-lint-js-irc-log.service
+    state: started
+    enabled: yes
+  become: true
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
