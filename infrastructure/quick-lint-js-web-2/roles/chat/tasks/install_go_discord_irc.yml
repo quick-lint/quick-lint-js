@@ -1,0 +1,67 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Install build tools
+  ansible.builtin.apt:
+    name:
+      - golang-go
+      - make
+    state: present
+  become: true
+
+- name: Download go-discord-irc
+  ansible.builtin.get_url:
+    url: https://github.com/qaisjp/go-discord-irc/archive/{{ go_discord_irc_version }}.tar.gz
+    dest: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}.tar.gz
+    owner: qljs-chat-sync
+    group: qljs-chat-sync
+    checksum: "{{ go_discord_irc_checksum }}"
+  become: true
+  become_user: qljs-chat-sync
+
+- name: Create directory for go-discord-irc
+  ansible.builtin.file:
+    path: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}
+    owner: qljs-chat-sync
+    group: qljs-chat-sync
+    state: directory
+  become: true
+  become_user: qljs-chat-sync
+
+- name: Extract go-discord-irc
+  ansible.builtin.unarchive:
+    remote_src: yes
+    src: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}.tar.gz
+    dest: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}
+    extra_opts:
+      - '--strip-components=1'
+    owner: qljs-chat-sync
+    group: qljs-chat-sync
+  become: true
+  become_user: qljs-chat-sync
+
+- name: Build go-discord-irc
+  ansible.builtin.command:
+    cmd: make build
+    chdir: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}/
+  become: true
+  become_user: qljs-chat-sync
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

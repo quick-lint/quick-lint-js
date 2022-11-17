@@ -2,11 +2,7 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-# Password for the 'matomo_analytics' MariaDB user.
-matomo_db_password: hunter12
-
-# Access token for Discord. Used to sync messages between Discord and IRC.
-discord_token: ""
+dependencies: []
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
