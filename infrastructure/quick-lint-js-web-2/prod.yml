@@ -7,6 +7,7 @@
   vars_files: [vault.yml, vars.yml]
   vars:
     apache_dev_tld: ""
+  gather_facts: false
   roles:
     - mariadb
     - php
