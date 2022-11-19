@@ -109,7 +109,7 @@ TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive_SLOW) {
     int first_false = 16;
     for (int bit = 0; bit < 16; ++bit) {
       bool bit_on = (i >> bit) & 1;
-      bools_data[bit] = bit_on ? static_cast<char8>(0xff) : 0x00;
+      bools_data[bit] = bit_on;
       if (!bit_on) {
         first_false = std::min(first_false, bit);
       }
