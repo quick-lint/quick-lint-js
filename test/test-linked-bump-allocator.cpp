@@ -131,7 +131,7 @@ TEST(test_linked_bump_allocator, filling_first_chunk_allocates_second_chunk) {
   }
 
   [[maybe_unused]] char* new_chunk_object = alloc.new_object<char>();
-  // TODO(strager): How do we verify that new_object is in its own chunk?
+  // TODO(strager): How do we verify that new_chunk_object is in its own chunk?
   assert_valid_memory(new_chunk_object);
 }
 
