@@ -189,7 +189,7 @@ class linked_bump_allocator : public memory_resource {
 #if QLJS_DEBUG_BUMP_ALLOCATOR
     explicit disable_guard(linked_bump_allocator* alloc) noexcept
         : alloc_(alloc) {
-      this->alloc_->disabled_count_ -= 1;
+      this->alloc_->disabled_count_ += 1;
     }
 #else
     explicit disable_guard(linked_bump_allocator*) noexcept {}

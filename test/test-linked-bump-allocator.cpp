@@ -271,6 +271,32 @@ TEST(test_linked_bump_allocator, non_last_allocation_cannot_grow) {
       << "future allocations should not overlap resized array";
 }
 
+#if QLJS_DEBUG_BUMP_ALLOCATOR && \
+    (defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST)
+TEST(test_linked_bump_allocator, cannot_allocate_when_disabled) {
+  auto check = [] {
+    linked_bump_allocator<1> alloc("test");
+    auto disable_guard = alloc.disable();
+    // The following line should crash:
+    [[maybe_unused]] char* c = alloc.new_object<char>();
+  };
+  EXPECT_DEATH(check(), "disabled")
+      << "allocating should crash if allocation is disabled";
+}
+#endif
+
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+TEST(test_linked_bump_allocator, can_allocate_after_disabling_then_reenabling) {
+  linked_bump_allocator<1> alloc("test");
+  {
+    auto disable_guard = alloc.disable();
+    // Destruct disable_guard, re-enabling allocation.
+  }
+  char* c = alloc.new_object<char>();
+  assert_valid_memory(c);
+}
+#endif
+
 void assert_is_aligned(void* p, unsigned alignment) {
   unsigned alignment_mask = alignment - 1;
   EXPECT_EQ(reinterpret_cast<std::uintptr_t>(p) & alignment_mask, 0)
