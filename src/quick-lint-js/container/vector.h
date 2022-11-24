@@ -128,7 +128,8 @@ class raw_bump_vector {
     return narrow_cast<std::size_t>(this->capacity_end_ - this->data_);
   }
 
-  QLJS_FORCE_INLINE T *data() const noexcept { return this->data_; }
+  QLJS_FORCE_INLINE T *data() noexcept { return this->data_; }
+  QLJS_FORCE_INLINE const T *data() const noexcept { return this->data_; }
 
   QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data_; }
   QLJS_FORCE_INLINE const T *end() const noexcept { return this->data_end_; }
