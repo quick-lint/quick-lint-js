@@ -248,10 +248,8 @@ class raw_bump_vector {
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
-      this->allocator_->deallocate(
-          this->data_,
-          narrow_cast<std::size_t>(this->data_end_ - this->data_) * sizeof(T),
-          alignof(T));
+      this->allocator_->deallocate(this->data_, this->size() * sizeof(T),
+                                   alignof(T));
       this->release();
     }
   }
