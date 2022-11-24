@@ -2194,9 +2194,13 @@ expression* parser::parse_arrow_function_expression_remainder(
   }
 
   // ((x)) => {}  // Invalid.
-  case expression_kind::paren:
-    // TODO(strager): Report an error.
+  case expression_kind::paren: {
+    auto paren = static_cast<expression::paren*>(parameters_expression);
+    this->diag_reporter_->report(
+        diag_unexpected_function_parameter_is_parenthesized{
+            .left_paren_to_right_paren = paren->span()});
     break;
+  }
 
   // () => {}
   // (()) => {}  // Invalid.

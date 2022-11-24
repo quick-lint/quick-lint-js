@@ -1035,9 +1035,16 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
     test_parser p(u8"([(x,)] => {});"_sv, capture_diags);
     auto guard = p.enter_function(function_attributes::generator);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_stray_comma_in_parameter,  //
-                              comma, strlen(u8"([(x"), u8",")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(                                                //
+                p.code, diag_unexpected_function_parameter_is_parenthesized,  //
+                left_paren_to_right_paren, strlen(u8"(["), u8"(x,)"),         //
+                DIAG_TYPE_OFFSETS(                                            //
+                              p.code, diag_stray_comma_in_parameter,          //
+                              comma, strlen(u8"([(x"), u8",")                 //
+            ));
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
                                       "visit_enter_function_scope_body",  //
@@ -1766,6 +1773,38 @@ TEST_F(test_parse_function, invalid_function_parameter) {
             DIAG_TYPE_OFFSETS(p.code,
                               diag_unexpected_literal_in_parameter_list,  //
                               literal, strlen(u8"g("), u8"42")));
+  }
+
+  {
+    test_parser p(u8"let g = ((x)) => { }"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(                                                //
+                p.code, diag_unexpected_function_parameter_is_parenthesized,  //
+            left_paren_to_right_paren, strlen(u8"let g = ("), u8"(x)")));
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       //
+                                      "visit_end_of_module"));
+  }
+
+  {
+    test_parser p(u8"let f = function ((x)) { }"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(                                    //
+            p.code, diag_unexpected_function_parameter_is_parenthesized,  //
+            left_paren_to_right_paren, strlen(u8"let f = function ("), u8"(x)")));
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       //
+                                      "visit_end_of_module"));
   }
 }
 

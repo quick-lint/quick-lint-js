@@ -2123,6 +2123,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "function parameter cannot be parenthesized"_translatable,
+        {
+            u8"function parameter cannot be parenthesized",
+            u8"function parameter cannot be parenthesized",
+            u8"function parameter cannot be parenthesized",
+            u8"function parameter cannot be parenthesized",
+            u8"function parameter cannot be parenthesized",
+            u8"function parameter cannot be parenthesized",
+        },
+    },
+    {
         "function starts here"_translatable,
         {
             u8"function starts here",

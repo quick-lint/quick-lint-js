@@ -1736,6 +1736,11 @@ msgstr ""
 msgid "using '{0}' against a regular expression literal always returns '{1}'"
 msgstr ""
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "function parameter cannot be parenthesized"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
