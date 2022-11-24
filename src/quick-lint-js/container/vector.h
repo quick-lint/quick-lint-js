@@ -157,37 +157,37 @@ class raw_bump_vector {
     return this->data_[index];
   }
 
-  void reserve(std::size_t size) {
-    if (this->capacity() < size) {
-      this->reserve_grow(size);
+  void reserve(std::size_t new_capacity) {
+    if (this->capacity() < new_capacity) {
+      this->reserve_grow(new_capacity);
     }
   }
 
-  void reserve_grow(std::size_t new_size) {
-    QLJS_ASSERT(new_size > this->capacity());
+  void reserve_grow(std::size_t new_capacity) {
+    QLJS_ASSERT(new_capacity > this->capacity());
     if (this->data_) {
       bool grew = this->allocator_->try_grow_array_in_place(
           this->data_,
           /*old_size=*/this->capacity(),
-          /*new_size=*/new_size);
+          /*new_size=*/new_capacity);
       if (grew) {
-        this->capacity_end_ = this->data_ + new_size;
+        this->capacity_end_ = this->data_ + new_capacity;
       } else {
         T *new_data =
             this->allocator_->template allocate_uninitialized_array<T>(
-                new_size);
+                new_capacity);
         T *new_data_end =
             std::uninitialized_move(this->data_, this->data_end_, new_data);
         this->clear();
         this->data_ = new_data;
         this->data_end_ = new_data_end;
-        this->capacity_end_ = new_data + new_size;
+        this->capacity_end_ = new_data + new_capacity;
       }
     } else {
-      this->data_ =
-          this->allocator_->template allocate_uninitialized_array<T>(new_size);
+      this->data_ = this->allocator_->template allocate_uninitialized_array<T>(
+          new_capacity);
       this->data_end_ = this->data_;
-      this->capacity_end_ = this->data_ + new_size;
+      this->capacity_end_ = this->data_ + new_capacity;
     }
   }
 
