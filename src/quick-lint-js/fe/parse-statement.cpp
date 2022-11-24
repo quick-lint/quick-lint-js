@@ -4321,10 +4321,14 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   }
 
     // function f([(arg)]) {}  // Invalid.
-  case expression_kind::paren:
-    // TODO(strager): Report an error.
+  case expression_kind::paren: {
+    auto paren = static_cast<expression::paren *>(ast);
+    this->diag_reporter_->report(
+        diag_unexpected_function_parameter_is_parenthesized{
+            .left_paren_to_right_paren = paren->span()});
     this->visit_binding_element(ast->child_0(), v, info);
     break;
+  }
 
   // function f(()) {}  // Invalid.
   case expression_kind::paren_empty: {

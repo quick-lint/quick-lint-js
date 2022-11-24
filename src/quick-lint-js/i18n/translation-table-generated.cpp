@@ -203,7 +203,8 @@ const translation_table translation_data = {
         {68, 28, 70, 45, 30, 55},            //
         {0, 0, 0, 24, 0, 23},                //
         {0, 0, 0, 53, 0, 54},                //
-        {30, 18, 0, 59, 0, 48},              //
+        {0, 0, 0, 0, 0, 48},                 //
+        {30, 18, 0, 59, 0, 43},              //
         {29, 18, 24, 21, 0, 21},             //
         {44, 18, 49, 39, 0, 39},             //
         {84, 28, 66, 75, 25, 54},            //
@@ -1885,6 +1886,7 @@ const translation_table translation_data = {
         u8"function declared here\0"
         u8"function overload signature cannot have generator '*'\0"
         u8"function overload signature must be named '{1}'\0"
+        u8"function parameter cannot be parenthesized\0"
         u8"function starts here\0"
         u8"functions/methods should not have '=>'\0"
         u8"generator function '*' belongs after keyword function\0"

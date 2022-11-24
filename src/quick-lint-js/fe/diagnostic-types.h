@@ -2652,6 +2652,13 @@
       MESSAGE(QLJS_TRANSLATABLE("using '{0}' against a regular "                \
                                 "expression literal always returns '{1}'"),     \
               equals_operator, comparison_result))                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_unexpected_function_parameter_is_parenthesized, "E0349",             \
+      diagnostic_severity::error,                                               \
+      { source_code_span left_paren_to_right_paren; },                          \
+      MESSAGE(QLJS_TRANSLATABLE("function parameter cannot be parenthesized"),  \
+              left_paren_to_right_paren))                                       \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
