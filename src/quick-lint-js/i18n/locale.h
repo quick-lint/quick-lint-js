@@ -10,26 +10,6 @@
 #include <vector>
 
 namespace quick_lint_js {
-template <class T>
-struct locale_entry {
-  char locale[10];
-  T data = T();
-
-  bool valid() const noexcept { return this->locale[0] != '\0'; }
-
-  bool has_locale_name(std::string_view name) const noexcept {
-    return std::string_view(this->locale) == name;
-  }
-};
-
-template <class T>
-const locale_entry<T>* find_locale_entry(const locale_entry<T>* files,
-                                         const char* locale_name);
-extern template const locale_entry<const std::uint8_t*>* find_locale_entry(
-    const locale_entry<const std::uint8_t*>* files, const char* locale_name);
-extern template const locale_entry<int>* find_locale_entry(
-    const locale_entry<int>* files, const char* locale_name);
-
 // Returns the index of the matching locale.
 //
 // If locales is "en_US\0fr_FR\0de_DE\0", and locale_name is "fr_FR", then the

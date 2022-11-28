@@ -4,8 +4,10 @@
 #include <gmock/gmock.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 using ::testing::ElementsAre;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -48,53 +50,65 @@ TEST(test_locale, modifier_can_contain_underscores_and_at_signs) {
               ElementsAre("fr@a_b@c", "fr"));
 }
 
-template <class T, class Func>
-void for_each_permutation(const locale_entry<T>* original_files,
-                          Func&& callback) {
-  auto order = [](const locale_entry<T>& a, const locale_entry<T>& b) {
-    return std::strcmp(a.locale, b.locale) < 0;
-  };
-
-  std::vector<locale_entry<T>> files;
-  for (const locale_entry<T>* file = original_files; file->valid(); ++file) {
-    files.emplace_back(*file);
-  }
-  sort(files, order);
-
+template <class Func>
+void for_each_locale_permutation(std::vector<std::string_view> locales,
+                                 Func&& callback) {
+  sort(locales);
   do {
-    const locale_entry<T>* current_files = files.data();
-    callback(current_files);
-  } while (std::next_permutation(files.begin(), files.end(), order));
+    callback(locales);
+  } while (std::next_permutation(locales.begin(), locales.end()));
+}
+
+std::string make_locales_string(const std::vector<std::string_view>& locales) {
+  std::string locales_string;
+  for (std::string_view locale : locales) {
+    locales_string += locale;
+    locales_string += '\0';
+  }
+  return locales_string;
 }
 
 TEST(test_locale, exact_match_locale) {
-  const locale_entry<int> all_entries[] = {
-      {"fr_FR", 100},
-      {"en@slang", 200},
-      {},
-  };
-  for_each_permutation(all_entries, [](const locale_entry<int>* entries) {
-    EXPECT_EQ(find_locale_entry(entries, "fr_FR")->data, 100);
-    EXPECT_EQ(find_locale_entry(entries, "en@slang")->data, 200);
-  });
+  for_each_locale_permutation(
+      {
+          "fr_FR"sv,
+          "en@slang"sv,
+      },
+      [](const std::vector<std::string_view>& locales) {
+        std::string locales_string = make_locales_string(locales);
+        std::optional<int> fr_index =
+            find_locale(locales_string.c_str(), "fr_FR");
+        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(fr_index.value())), "fr_FR");
+        std::optional<int> en_index =
+            find_locale(locales_string.c_str(), "en@slang");
+        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(en_index.value())), "en@slang");
+      });
 }
 
 TEST(test_locale, no_match) {
-  const locale_entry<int> entries[] = {
-      {"fr_FR", 100},
-      {"en@slang", 200},
-      {},
-  };
-  EXPECT_EQ(find_locale_entry(entries, "de_DE@a"), nullptr);
+  for_each_locale_permutation(
+      {
+          "fr_FR"sv,
+          "en@slang"sv,
+      },
+      [](const std::vector<std::string_view>& locales) {
+        std::string locales_string = make_locales_string(locales);
+        EXPECT_EQ(find_locale(locales_string.c_str(), "de_DE@a"), std::nullopt);
+      });
 }
 
 TEST(test_locale, match_subset_of_locale_name) {
-  const locale_entry<int> entries[] = {
-      {"fr", 100},
-      {"en", 200},
-      {},
-  };
-  EXPECT_EQ(find_locale_entry(entries, "fr_FR.utf8@bon")->data, 100);
+  for_each_locale_permutation(
+      {
+          "fr"sv,
+          "en"sv,
+      },
+      [](const std::vector<std::string_view>& locales) {
+        std::string locales_string = make_locales_string(locales);
+        std::optional<int> fr_index =
+            find_locale(locales_string.c_str(), "fr_FR.utf8@bon");
+        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(fr_index.value())), "fr");
+      });
 }
 }
 }

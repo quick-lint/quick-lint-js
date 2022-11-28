@@ -72,28 +72,6 @@ template <class Func>
 void locale_name_combinations(const char* locale_name, Func&& callback);
 }
 
-template <class T>
-const locale_entry<T>* find_locale_entry(const locale_entry<T>* entries,
-                                         const char* locale_name) {
-  const locale_entry<T>* found_entry = nullptr;
-  locale_name_combinations(
-      locale_name, [&](std::string_view current_locale_name) -> bool {
-        for (const locale_entry<T>* entry = entries; entry->valid(); ++entry) {
-          if (entry->has_locale_name(current_locale_name)) {
-            found_entry = entry;
-            return false;
-          }
-        }
-        return true;
-      });
-  return found_entry;
-}
-
-template const locale_entry<const std::uint8_t*>* find_locale_entry(
-    const locale_entry<const std::uint8_t*>*, const char*);
-template const locale_entry<int>* find_locale_entry(const locale_entry<int>*,
-                                                    const char*);
-
 std::optional<int> find_locale(const char* locales, const char* locale_name) {
   std::optional<int> found_entry = std::nullopt;
   locale_name_combinations(locale_name,
