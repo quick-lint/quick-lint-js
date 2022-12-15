@@ -218,9 +218,9 @@ class lexer {
   //
   // Input: log(w\u{61}t)
   //                    ^
-  //                    .end
+  //                    .after
   //
-  // In this case, .end points to the ')' character which follows the
+  // In this case, .after points to the ')' character which follows the
   // identifier, and .normalized points to a heap-allocated string u8"wat".
   //
   // If any escape sequences were parsed, .escape_sequences points to a list of
