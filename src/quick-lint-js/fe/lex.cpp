@@ -171,6 +171,7 @@ void lexer::parse_bom_before_shebang() {
       this->diag_reporter_->report(diag_unexpected_bom_before_shebang{
           source_code_span(&this->input_[0], &this->input_[3])});
       input += 2;
+      this->input_ = input;
       this->skip_line_comment_body();
     } else {
       this->input_ = input;
