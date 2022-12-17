@@ -2064,7 +2064,7 @@ found_comment_end:
 found_end_of_file:
   this->diag_reporter_->report(diag_unclosed_block_comment{
       .comment_open = source_code_span(&this->input_[0], &this->input_[2])});
-  this->input_ += strlen(this->input_);
+  this->input_ = this->original_input_.null_terminator();
 }
 
 void lexer::skip_line_comment_body() {
