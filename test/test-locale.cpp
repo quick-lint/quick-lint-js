@@ -78,10 +78,12 @@ TEST(test_locale, exact_match_locale) {
         std::string locales_string = make_locales_string(locales);
         std::optional<int> fr_index =
             find_locale(locales_string.c_str(), "fr_FR");
-        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(fr_index.value())), "fr_FR");
+        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(fr_index.value())),
+                  "fr_FR");
         std::optional<int> en_index =
             find_locale(locales_string.c_str(), "en@slang");
-        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(en_index.value())), "en@slang");
+        EXPECT_EQ(locales.at(narrow_cast<std::size_t>(en_index.value())),
+                  "en@slang");
       });
 }
 
