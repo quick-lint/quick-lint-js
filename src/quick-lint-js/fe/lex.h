@@ -31,9 +31,6 @@ struct lexer_transaction;
 // string, boolean, etc.).
 //
 // Whitespace and comments are not interpreted as tokens.
-//
-// lexer can modify the input string in some cases. For example, the identifier
-// w\u0061t is rewritten to wat (followed by padding spaces).
 class lexer {
  public:
   enum class identifier_kind {
