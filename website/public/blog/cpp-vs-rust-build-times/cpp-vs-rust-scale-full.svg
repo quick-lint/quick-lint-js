@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="148"
+    viewBox="0 0 362 148"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20"><tspan class='color-2-of-2'>C++</tspan> full builds scale better than <tspan class='color-1-of-2'>Rust</tspan></text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">tested on Linux. lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="95.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="60.89576933958567"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.28002912565523186"
+                    height="0.75"
+                    x="120.6794880877227"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="119.9294880877227"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="120.95951721337794"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="56">1x Rust</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="56">1847ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="104.05681969479514"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="1.5463196479268788"
+                    height="0.75"
+                    x="162.97957335659248"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="162.22957335659248"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="164.5258930045194"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="68">8x Rust</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="68">3156ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="68">&#x00a0;(+71%)</text>
+                
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="161.60481015109872"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="5.464659556935497"
+                    height="0.75"
+                    x="219.84921227627595"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="219.09921227627595"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="225.31387183321144"
+                    y="75.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="80">16x Rust</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="80">4901ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="80">&#x00a0;(+165%)</text>
+                
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="222.59834993716814"
+                    height="10"
+                    x="60"
+                    y="84" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="4.766649104008413"
+                    height="0.75"
+                    x="279.8583508959916"
+                    y="88.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="279.1083508959916"
+                    y="87.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="284.625"
+                    y="87.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="92">24x Rust</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="92">6750ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="92">&#x00a0;(+266%)</text>
+                
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="61.796096469613715"
+                    height="10"
+                    x="60"
+                    y="96" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="3.456107866990842"
+                    height="0.75"
+                    x="119.92933405932041"
+                    y="100.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="119.17933405932041"
+                    y="99.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="123.38544192631124"
+                    y="99.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="104">1x C++</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="104">1874ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="74.58357269034795"
+                    height="10"
+                    x="60"
+                    y="108" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="2.0689083006005022"
+                    height="0.75"
+                    x="133.64062988758934"
+                    y="112.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="132.89062988758934"
+                    y="111.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="135.70953818818987"
+                    y="111.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="116">8x C++</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="116">2262ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-2-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="116">&#x00a0;(+21%)</text>
+                
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="89.93397342490054"
+                    height="10"
+                    x="60"
+                    y="120" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="1.8891403861711002"
+                    height="0.75"
+                    x="149.2024895630908"
+                    y="124.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="148.4524895630908"
+                    y="123.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="151.09162994926191"
+                    y="123.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="128">16x C++</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="128">2728ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-2-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="128">&#x00a0;(+46%)</text>
+                
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="110.2338585888056"
+                    height="10"
+                    x="60"
+                    y="132" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="2.485000567741518"
+                    height="0.75"
+                    x="169.6668629530791"
+                    y="136.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="168.9168629530791"
+                    y="135.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="172.15186352082063"
+                    y="135.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="140">24x C++</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="140">3343ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-2-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="140">&#x00a0;(+78%)</text>
+                </svg>

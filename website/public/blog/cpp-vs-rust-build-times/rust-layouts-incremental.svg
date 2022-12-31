@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="203"
+    viewBox="0 0 362 203"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">Rust incremental builds: best layout is unclear</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">tested on Linux. lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="83.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-outside-bar"
+                    width="96.56045906820785"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="4.337800572177725"
+                    height="0.75"
+                    x="155.71433495179616"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="154.96433495179616"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="160.0521355239739"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-outside-bar"
+                    x="365.0"
+                    y="56">workspace; many test exes</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="56">888ms</text>
+            
+                <rect
+                    class="bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="91.46935679604219"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.47448942253323456"
+                    height="0.75"
+                    x="151.16349566293982"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="150.41349566293982"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="151.63798508547308"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="365.0"
+                    y="68">workspace; 1 test exe</text>
+                <text
+                    class="bar-value color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="68">841ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-outside-bar"
+                    width="112.58061247547039"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="6.7648432410335975"
+                    height="0.75"
+                    x="170.57514127574473"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="169.82514127574473"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="177.33998451677832"
+                    y="75.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-outside-bar"
+                    x="365.0"
+                    y="80">single crate; many test exes</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="80">1036ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="87.01112850543649"
+                    height="10"
+                    x="60"
+                    y="84" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="1.9790989306118734"
+                    height="0.75"
+                    x="146.1081851212204"
+                    y="88.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="145.3581851212204"
+                    y="87.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="148.08728405183228"
+                    y="87.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="365.0"
+                    y="92">single crate; tests in lib</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="92">800ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 bar-label-outside-bar"
+                    width="249.9284542310438"
+                    height="10"
+                    x="60"
+                    y="96" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    width="17.575054679527604"
+                    height="0.75"
+                    x="304.0499453204724"
+                    y="100.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="303.2999453204724"
+                    y="99.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="321.625"
+                    y="99.0" />
+
+                <text
+                    class="bar-label color-3-of-3 bar-label-outside-bar"
+                    x="365.0"
+                    y="104">2 crates; many test exes</text>
+                <text
+                    class="bar-value color-3-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="104">2298ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="103.1076366711087"
+                    height="10"
+                    x="60"
+                    y="108" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="1.0652821821222576"
+                    height="0.75"
+                    x="162.56110909287003"
+                    y="112.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="161.81110909287003"
+                    y="111.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="163.6263912749923"
+                    y="111.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="365.0"
+                    y="116">2 crates; 1 test exe</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="116">948ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="162.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-very-small"
+                    width="36.18721647207964"
+                    height="10"
+                    x="60"
+                    y="127" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-very-small"
+                    width="-0.010606323072618773"
+                    height="0.75"
+                    x="96.21395517256174"
+                    y="131.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="95.46395517256174"
+                    y="130.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="96.20334884948912"
+                    y="130.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-very-small"
+                    x="63"
+                    y="135">workspace; many test exes</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="135">333ms</text>
+            
+                <rect
+                    class="bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="37.105138296044196"
+                    height="10"
+                    x="60"
+                    y="139" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.3178234258267987"
+                    height="0.75"
+                    x="97.05543049431753"
+                    y="143.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="96.30543049431753"
+                    y="142.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="97.37325392014432"
+                    y="142.0" />
+
+                <text
+                    class="bar-label color-1-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
+                    y="147">workspace; 1 test exe</text>
+                <text
+                    class="bar-value color-1-of-3 color-alternate-shade bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="147">342ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-very-small"
+                    width="38.45863074647525"
+                    height="10"
+                    x="60"
+                    y="151" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-very-small"
+                    width="8.101293489512182"
+                    height="0.75"
+                    x="97.49086527252669"
+                    y="155.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="96.74086527252669"
+                    y="154.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="105.59215876203886"
+                    y="154.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-very-small"
+                    x="63"
+                    y="159">single crate; many test exes</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="159">354ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="71.65061484095654"
+                    height="10"
+                    x="60"
+                    y="163" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="1.550102533182387"
+                    height="0.75"
+                    x="131.09309063451434"
+                    y="167.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="130.34309063451434"
+                    y="166.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="132.64319316769672"
+                    y="166.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
+                    y="171">single crate; tests in lib</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="171">659ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 bar-label-very-small"
+                    width="171.27854064462184"
+                    height="10"
+                    x="60"
+                    y="175" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-very-small"
+                    width="17.284709211901973"
+                    height="0.75"
+                    x="227.49991303514216"
+                    y="179.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="226.74991303514216"
+                    y="178.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="244.78462224704413"
+                    y="178.0" />
+
+                <text
+                    class="bar-label color-3-of-3 bar-label-very-small"
+                    x="63"
+                    y="183">2 crates; many test exes</text>
+                <text
+                    class="bar-value color-3-of-3 bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="183">1575ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="57.135558102977335"
+                    height="10"
+                    x="60"
+                    y="187" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="4.192611632287771"
+                    height="0.75"
+                    x="116.68887465414247"
+                    y="191.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="115.93887465414247"
+                    y="190.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.75"
+                    height="4.0"
+                    x="120.88148628643023"
+                    y="190.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
+                    y="195">2 crates; 1 test exe</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade bar-label-very-small"
+                    text-anchor="end"
+                    x="283.1596222470441"
+                    y="195">526ms</text>
+            </svg>

@@ -126,6 +126,27 @@ export class InlineSpriteSheet {
             return symbolID;
           },
         },
+        transform: [
+          {
+            svgo: {
+              plugins: [
+                {
+                  name: "preset-default",
+                  params: {
+                    overrides: {
+                      // Disabled because it buggily deletes some CSS classes in
+                      // /blog/cpp-vs-rust-build-times/.
+                      inlineStyles: false,
+                      // Disabled because it breaks our rect CSS selectors in
+                      // /blog/cpp-vs-rust-build-times/.
+                      convertShapeToPath: false,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
       },
       mode: {
         symbol: {

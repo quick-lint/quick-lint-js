@@ -1,0 +1,1169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="361"
+    viewBox="0 0 362 361"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">macOS: <tspan class='color-1-of-2'>Xcode</tspan> is fastest toolchain</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="83.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="196.4344615684914"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="7.598257862352858"
+                    height="0.75"
+                    x="253.31976712615463"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="252.56976712615463"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="260.91802498850745"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="56">Xcode ld64</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="56">1942ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="199.04137655412407"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="6.185949316733923"
+                    height="0.75"
+                    x="255.19076664058286"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="254.44076664058286"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="261.37671595731683"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    x="63"
+                    y="68">Xcode lld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="68">1968ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="196.41802374833983"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="9.864840039919212"
+                    height="0.75"
+                    x="249.14825603957632"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="248.39825603957632"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="259.01309607949554"
+                    y="75.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    x="63"
+                    y="80">Xcode zld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="80">1942ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="248.9174094556943"
+                    height="10"
+                    x="60"
+                    y="84" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="8.189690730753645"
+                    height="0.75"
+                    x="305.96264232262774"
+                    y="88.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="305.21264232262774"
+                    y="87.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="314.1523330533814"
+                    y="87.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="92">Clang 15 ld64</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="92">2461ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="236.9074677656227"
+                    height="10"
+                    x="60"
+                    y="96" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="10.469576710395154"
+                    height="0.75"
+                    x="290.04398437887653"
+                    y="100.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="289.29398437887653"
+                    y="99.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="300.51356108927166"
+                    y="99.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    x="63"
+                    y="104">Clang 15 lld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="104">2342ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="249.42865688209645"
+                    height="10"
+                    x="60"
+                    y="108" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="17.15493083971479"
+                    height="0.75"
+                    x="304.4700691602852"
+                    y="112.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="303.7200691602852"
+                    y="111.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="321.625"
+                    y="111.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    x="63"
+                    y="116">Clang 15 zld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="116">2466ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="162.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="121.1631807341343"
+                    height="10"
+                    x="60"
+                    y="127" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="2.1114676345666084"
+                    height="0.75"
+                    x="180.60451171791814"
+                    y="131.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="179.85451171791814"
+                    y="130.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="182.71597935248474"
+                    y="130.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="135">Xcode ld64</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="135">1198ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="121.36543071759783"
+                    height="10"
+                    x="60"
+                    y="139" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="2.1332230805483428"
+                    height="0.75"
+                    x="180.2470612048242"
+                    y="143.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="179.4970612048242"
+                    y="142.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="182.38028428537257"
+                    y="142.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    x="63"
+                    y="147">Xcode lld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="147">1200ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="122.52768435781253"
+                    height="10"
+                    x="60"
+                    y="151" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="3.696783172225836"
+                    height="0.75"
+                    x="180.93266545823977"
+                    y="155.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="180.18266545823977"
+                    y="154.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="184.62944863046562"
+                    y="154.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    x="63"
+                    y="159">Xcode zld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="159">1212ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="146.8185560521452"
+                    height="10"
+                    x="60"
+                    y="163" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="6.417099046020426"
+                    height="0.75"
+                    x="203.57859106864595"
+                    y="167.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="202.82859106864595"
+                    y="166.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="209.99569011466636"
+                    y="166.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="171">Clang 15 ld64</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="171">1452ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="141.08759402795002"
+                    height="10"
+                    x="60"
+                    y="175" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="1.7805485454953711"
+                    height="0.75"
+                    x="200.32923374980524"
+                    y="179.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="199.57923374980524"
+                    y="178.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="202.10978229530062"
+                    y="178.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    x="63"
+                    y="183">Clang 15 lld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="183">1395ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="146.42731302589206"
+                    height="10"
+                    x="60"
+                    y="187" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="3.3935631977922025"
+                    height="0.75"
+                    x="204.50862770913807"
+                    y="191.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="203.75862770913807"
+                    y="190.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="207.9021909069303"
+                    y="190.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    x="63"
+                    y="195">Clang 15 zld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="248.37069011466636"
+                    y="195">1448ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="241.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar bar-label-small"
+                    width="51.87768766804113"
+                    height="10"
+                    x="60"
+                    y="206" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar bar-label-small"
+                    width="2.6575515757334593"
+                    height="0.75"
+                    x="110.90630045771172"
+                    y="210.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="110.15630045771172"
+                    y="209.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="113.56385203344519"
+                    y="209.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="214">Xcode ld64</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="214">513ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="50.53504200471825"
+                    height="10"
+                    x="60"
+                    y="218" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="2.3272522469036834"
+                    height="0.75"
+                    x="109.82986412582312"
+                    y="222.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="109.07986412582312"
+                    y="221.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="112.15711637272682"
+                    y="221.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="226">Xcode lld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="226">500ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="53.5054165473975"
+                    height="10"
+                    x="60"
+                    y="230" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.09592740595980931"
+                    height="0.75"
+                    x="113.6133633161829"
+                    y="234.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="112.8633633161829"
+                    y="233.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="113.70929072214271"
+                    y="233.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="238">Xcode zld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="238">529ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar bar-label-small"
+                    width="57.34113445333405"
+                    height="10"
+                    x="60"
+                    y="242" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar bar-label-small"
+                    width="0.6214066965655307"
+                    height="0.75"
+                    x="117.00193733961893"
+                    y="246.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="116.25193733961893"
+                    y="245.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="117.62334403618446"
+                    y="245.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="250">Clang 15 ld64</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="250">567ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="52.33850873641099"
+                    height="10"
+                    x="60"
+                    y="254" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.4947096344581028"
+                    height="0.75"
+                    x="112.42253872883684"
+                    y="258.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="111.67253872883684"
+                    y="257.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="112.91724836329495"
+                    y="257.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="262">Clang 15 lld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="262">518ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="57.486842868244395"
+                    height="10"
+                    x="60"
+                    y="266" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.6101136249505499"
+                    height="0.75"
+                    x="117.39257132952638"
+                    y="270.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="116.64257132952638"
+                    y="269.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="118.00268495447693"
+                    y="269.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="274">Clang 15 zld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade-2 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="156.37768495447693"
+                    y="274">569ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="320.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-1-of-2 bar-label-outside-bar"
+                    width="45.56154911648143"
+                    height="10"
+                    x="60"
+                    y="285" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.770727637875833"
+                    height="0.75"
+                    x="105.29307033897928"
+                    y="289.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="104.54307033897928"
+                    y="288.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="106.06379797685511"
+                    y="288.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="293">Xcode ld64</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="293">451ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="43.788195296614845"
+                    height="10"
+                    x="60"
+                    y="297" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="0.73185351564574"
+                    height="0.75"
+                    x="103.591950182268"
+                    y="301.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="102.841950182268"
+                    y="300.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="104.32380369791375"
+                    y="300.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="305">Xcode lld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="305">433ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="48.46005710733221"
+                    height="10"
+                    x="60"
+                    y="309" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="8.153695772204868"
+                    height="0.75"
+                    x="107.31442342494711"
+                    y="313.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="106.56442342494711"
+                    y="312.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="115.46811919715198"
+                    y="312.0" />
+
+                <text
+                    class="bar-label color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="317">Xcode zld</text>
+                <text
+                    class="bar-value color-1-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="317">480ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-outside-bar"
+                    width="49.8696959492117"
+                    height="10"
+                    x="60"
+                    y="321" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="1.0512436073946692"
+                    height="0.75"
+                    x="109.37243766619731"
+                    y="325.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="108.62243766619731"
+                    y="324.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="110.42368127359198"
+                    y="324.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="329">Clang 15 ld64</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="329">493ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="47.551002477130346"
+                    height="10"
+                    x="60"
+                    y="333" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="4.414470489110739"
+                    height="0.75"
+                    x="106.71281459113217"
+                    y="337.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="105.96281459113217"
+                    y="336.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="111.1272850802429"
+                    y="336.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="341">Clang 15 lld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="341">471ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="51.950028458868594"
+                    height="10"
+                    x="60"
+                    y="345" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="0.7055537682395909"
+                    height="0.75"
+                    x="111.71348445156745"
+                    y="349.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="110.96348445156745"
+                    y="348.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="112.41903821980705"
+                    y="348.0" />
+
+                <text
+                    class="bar-label color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    x="158.84311919715196"
+                    y="353">Clang 15 zld</text>
+                <text
+                    class="bar-value color-2-of-2 color-alternate-shade-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="153.84311919715196"
+                    y="353">514ms</text>
+            </svg>
