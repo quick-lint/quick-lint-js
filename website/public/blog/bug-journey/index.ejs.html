@@ -54,15 +54,6 @@
         text-decoration: none;
       }
 
-      pre ins {
-        text-decoration: none;
-      }
-
-      pre del {
-        text-decoration: none;
-        opacity: 0.5;
-      }
-
       pre kbd {
         font-weight: bold;
       }
@@ -103,30 +94,9 @@
         }
       }
 
-      .side-by-side-comparison pre ins::before {
-        content: "+";
+      .side-by-side-comparison ins::before,
+      .side-by-side-comparison del::before {
         position: absolute;
-      }
-      .side-by-side-comparison pre ins {
-        color: rgb(68, 141, 20);
-      }
-      @media (prefers-color-scheme: dark) {
-        .side-by-side-comparison pre ins {
-          color: rgb(98, 181, 60);
-        }
-      }
-      .side-by-side-comparison pre del::before {
-        content: "-";
-        position: absolute;
-      }
-      .side-by-side-comparison pre del {
-        color: rgb(220, 50, 47);
-        opacity: 1;
-      }
-      @media (prefers-color-scheme: dark) {
-        .side-by-side-comparison pre del {
-          color: rgb(240, 90, 87);
-        }
       }
 
       .side-by-side-comparison .before {
@@ -761,7 +731,7 @@ installing fr.gmo as <mark>/ucrt64/share/locale/fr/LC_MESSAGES/bfd.mo</mark></co
           again. The original bug was gone. Hurray!
         </p>
 
-        <div class="side-by-side-comparison">
+        <div class="side-by-side-comparison diff">
           <figure class="before">
             <pre
               class="emphasized"

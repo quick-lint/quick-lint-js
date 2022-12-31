@@ -368,6 +368,39 @@ pre mark:empty::before {
   }
 }
 
+/* Make diffs look pretty. */
+pre ins {
+  text-decoration: none;
+}
+pre del {
+  text-decoration: none;
+  opacity: 0.5;
+}
+
+.diff ins::before {
+  content: "+";
+}
+.diff ins {
+  color: rgb(68, 141, 20);
+}
+@media (prefers-color-scheme: dark) {
+  .diff ins {
+    color: rgb(98, 181, 60);
+  }
+}
+.diff del::before {
+  content: "-";
+}
+.diff del {
+  color: rgb(220, 50, 47);
+  opacity: 1;
+}
+@media (prefers-color-scheme: dark) {
+  .diff del {
+    color: rgb(240, 90, 87);
+  }
+}
+
 /* text-decoration-style: wavy; is buggy in several browsers:
 
    * Wavy underline causes rendering artifacts
