@@ -214,237 +214,237 @@
                     y="83.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
 
                 <rect
-                    class="bar color-1-of-3 bar-label-outside-bar"
-                    width="96.56045906820785"
+                    class="bar color-1-of-3 bar-label-very-small"
+                    width="75.03213184458065"
                     height="10"
                     x="60"
                     y="48" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-outside-bar"
-                    width="4.337800572177725"
+                    class="error-bar color-1-of-3 bar-label-very-small"
+                    width="3.2034663258064517"
                     height="0.75"
-                    x="155.71433495179616"
+                    x="134.45825953612905"
                     y="52.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    class="error-bar color-1-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="154.96433495179616"
+                    x="133.70825953612905"
                     y="51.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    class="error-bar color-1-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="160.0521355239739"
+                    x="137.66172586193548"
                     y="51.0" />
 
                 <text
-                    class="bar-label color-1-of-3 bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-1-of-3 bar-label-very-small"
+                    x="63"
                     y="56">workspace; many test exes</text>
                 <text
-                    class="bar-value color-1-of-3 bar-label-outside-bar"
+                    class="bar-value color-1-of-3 bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="56">888ms</text>
             
                 <rect
-                    class="bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="91.46935679604219"
+                    class="bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="71.07609993870967"
                     height="10"
                     x="60"
                     y="60" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="0.47448942253323456"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.20148731354838711"
                     height="0.75"
-                    x="151.16349566293982"
+                    x="130.92203801419356"
                     y="64.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="150.41349566293982"
+                    x="130.17203801419356"
                     y="63.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="151.63798508547308"
+                    x="131.12352532774193"
                     y="63.0" />
 
                 <text
-                    class="bar-label color-1-of-3 color-alternate-shade bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-1-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
                     y="68">workspace; 1 test exe</text>
                 <text
-                    class="bar-value color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="bar-value color-1-of-3 color-alternate-shade bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="68">841ms</text>
             
                 <rect
-                    class="bar color-2-of-3 bar-label-outside-bar"
-                    width="112.58061247547039"
+                    class="bar color-2-of-3 bar-label-very-small"
+                    width="87.48056336845161"
                     height="10"
                     x="60"
                     y="72" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-outside-bar"
-                    width="6.7648432410335975"
+                    class="error-bar color-2-of-3 bar-label-very-small"
+                    width="5.089395486451613"
                     height="0.75"
-                    x="170.57514127574473"
+                    x="146.00582248451613"
                     y="76.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    class="error-bar color-2-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="169.82514127574473"
+                    x="145.25582248451613"
                     y="75.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    class="error-bar color-2-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="177.33998451677832"
+                    x="151.09521797096772"
                     y="75.0" />
 
                 <text
-                    class="bar-label color-2-of-3 bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-2-of-3 bar-label-very-small"
+                    x="63"
                     y="80">single crate; many test exes</text>
                 <text
-                    class="bar-value color-2-of-3 bar-label-outside-bar"
+                    class="bar-value color-2-of-3 bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="80">1036ms</text>
             
                 <rect
-                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="87.01112850543649"
+                    class="bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="67.6118416271613"
                     height="10"
                     x="60"
                     y="84" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="1.9790989306118734"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    width="1.3706414380645162"
                     height="0.75"
-                    x="146.1081851212204"
+                    x="126.9938180083871"
                     y="88.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="145.3581851212204"
+                    x="126.2438180083871"
                     y="87.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="148.08728405183228"
+                    x="128.36445944645163"
                     y="87.0" />
 
                 <text
-                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
                     y="92">single crate; tests in lib</text>
                 <text
-                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="92">800ms</text>
             
                 <rect
-                    class="bar color-3-of-3 bar-label-outside-bar"
-                    width="249.9284542310438"
+                    class="bar color-3-of-3 bar-label-very-small"
+                    width="194.20645790767742"
                     height="10"
                     x="60"
                     y="96" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-outside-bar"
-                    width="17.575054679527604"
+                    class="error-bar color-3-of-3 bar-label-very-small"
+                    width="13.489450930967742"
                     height="0.75"
-                    x="304.0499453204724"
+                    x="249.72218000451613"
                     y="100.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    class="error-bar color-3-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="303.2999453204724"
+                    x="248.97218000451613"
                     y="99.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    class="error-bar color-3-of-3 bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="321.625"
+                    x="263.21163093548387"
                     y="99.0" />
 
                 <text
-                    class="bar-label color-3-of-3 bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-3-of-3 bar-label-very-small"
+                    x="63"
                     y="104">2 crates; many test exes</text>
                 <text
-                    class="bar-value color-3-of-3 bar-label-outside-bar"
+                    class="bar-value color-3-of-3 bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="104">2298ms</text>
             
                 <rect
-                    class="bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="103.1076366711087"
+                    class="bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="80.11960447935483"
                     height="10"
                     x="60"
                     y="108" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
-                    width="1.0652821821222576"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    width="0.6605617696774193"
                     height="0.75"
-                    x="162.56110909287003"
+                    x="139.77853312451612"
                     y="112.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="161.81110909287003"
+                    x="139.02853312451612"
                     y="111.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
                     width="0.75"
                     height="4.0"
-                    x="163.6263912749923"
+                    x="140.43909489419354"
                     y="111.0" />
 
                 <text
-                    class="bar-label color-3-of-3 color-alternate-shade bar-label-outside-bar"
-                    x="365.0"
+                    class="bar-label color-3-of-3 color-alternate-shade bar-label-very-small"
+                    x="63"
                     y="116">2 crates; 1 test exe</text>
                 <text
-                    class="bar-value color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    class="bar-value color-3-of-3 color-alternate-shade bar-label-very-small"
                     text-anchor="end"
-                    x="360.0"
+                    x="301.58663093548387"
                     y="116">948ms</text>
             
                 <text
@@ -454,236 +454,236 @@
                     y="162.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
 
                 <rect
-                    class="bar color-1-of-3 bar-label-very-small"
-                    width="36.18721647207964"
+                    class="bar color-1-of-3 bar-label-outside-bar"
+                    width="28.119211772838707"
                     height="10"
                     x="60"
                     y="127" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-very-small"
-                    width="-0.010606323072618773"
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="-0.17545546709677418"
                     height="0.75"
-                    x="96.21395517256174"
+                    x="88.22359595354838"
                     y="131.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-very-small"
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="95.46395517256174"
+                    x="87.47359595354838"
                     y="130.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-1-of-3 bar-label-very-small"
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="96.20334884948912"
+                    x="88.04814048645162"
                     y="130.0" />
 
                 <text
-                    class="bar-label color-1-of-3 bar-label-very-small"
-                    x="63"
+                    class="bar-label color-1-of-3 bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="135">workspace; many test exes</text>
                 <text
-                    class="bar-value color-1-of-3 bar-label-very-small"
+                    class="bar-value color-1-of-3 bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="135">333ms</text>
             
                 <rect
-                    class="bar color-1-of-3 color-alternate-shade bar-label-very-small"
-                    width="37.105138296044196"
+                    class="bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="28.832481282774193"
                     height="10"
                     x="60"
                     y="139" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
-                    width="0.3178234258267987"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.07975028129032258"
                     height="0.75"
-                    x="97.05543049431753"
+                    x="88.87746284580645"
                     y="143.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="96.30543049431753"
+                    x="88.12746284580645"
                     y="142.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-1-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-1-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="97.37325392014432"
+                    x="88.95721312709678"
                     y="142.0" />
 
                 <text
-                    class="bar-label color-1-of-3 color-alternate-shade bar-label-very-small"
-                    x="63"
+                    class="bar-label color-1-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="147">workspace; 1 test exe</text>
                 <text
-                    class="bar-value color-1-of-3 color-alternate-shade bar-label-very-small"
+                    class="bar-value color-1-of-3 color-alternate-shade bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="147">342ms</text>
             
                 <rect
-                    class="bar color-2-of-3 bar-label-very-small"
-                    width="38.45863074647525"
+                    class="bar color-2-of-3 bar-label-outside-bar"
+                    width="29.884210168193547"
                     height="10"
                     x="60"
                     y="151" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-very-small"
-                    width="8.101293489512182"
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="6.127881759354839"
                     height="0.75"
-                    x="97.49086527252669"
+                    x="89.21581666064516"
                     y="155.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-very-small"
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="96.74086527252669"
+                    x="88.46581666064516"
                     y="154.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-2-of-3 bar-label-very-small"
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="105.59215876203886"
+                    x="95.34369842000001"
                     y="154.0" />
 
                 <text
-                    class="bar-label color-2-of-3 bar-label-very-small"
-                    x="63"
+                    class="bar-label color-2-of-3 bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="159">single crate; many test exes</text>
                 <text
-                    class="bar-value color-2-of-3 bar-label-very-small"
+                    class="bar-value color-2-of-3 bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="159">354ms</text>
             
                 <rect
-                    class="bar color-2-of-3 color-alternate-shade bar-label-very-small"
-                    width="71.65061484095654"
+                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="55.67598198445161"
                     height="10"
                     x="60"
                     y="163" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
-                    width="1.550102533182387"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="1.037290555483871"
                     height="0.75"
-                    x="131.09309063451434"
+                    x="115.32636571935484"
                     y="167.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="130.34309063451434"
+                    x="114.57636571935484"
                     y="166.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-2-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="132.64319316769672"
+                    x="116.36365627483872"
                     y="166.0" />
 
                 <text
-                    class="bar-label color-2-of-3 color-alternate-shade bar-label-very-small"
-                    x="63"
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="171">single crate; tests in lib</text>
                 <text
-                    class="bar-value color-2-of-3 color-alternate-shade bar-label-very-small"
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="171">659ms</text>
             
                 <rect
-                    class="bar color-3-of-3 bar-label-very-small"
-                    width="171.27854064462184"
+                    class="bar color-3-of-3 bar-label-outside-bar"
+                    width="133.09168336406452"
                     height="10"
                     x="60"
                     y="175" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-very-small"
-                    width="17.284709211901973"
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
+                    width="13.26383850516129"
                     height="0.75"
-                    x="227.49991303514216"
+                    x="190.2391144664516"
                     y="179.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-very-small"
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="226.74991303514216"
+                    x="189.4891144664516"
                     y="178.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-3-of-3 bar-label-very-small"
+                    class="error-bar color-3-of-3 bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="244.78462224704413"
+                    x="203.5029529716129"
                     y="178.0" />
 
                 <text
-                    class="bar-label color-3-of-3 bar-label-very-small"
-                    x="63"
+                    class="bar-label color-3-of-3 bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="183">2 crates; many test exes</text>
                 <text
-                    class="bar-value color-3-of-3 bar-label-very-small"
+                    class="bar-value color-3-of-3 bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="183">1575ms</text>
             
                 <rect
-                    class="bar color-3-of-3 color-alternate-shade bar-label-very-small"
-                    width="57.135558102977335"
+                    class="bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="44.39708313283871"
                     height="10"
                     x="60"
                     y="187" />
 
                 <!-- horizontal error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
-                    width="4.192611632287771"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="3.09064752"
                     height="0.75"
-                    x="116.68887465414247"
+                    x="104.13359548"
                     y="191.625" />
                 <!-- left error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="115.93887465414247"
+                    x="103.38359548"
                     y="190.0" />
                 <!-- right error bar -->
                 <rect
-                    class="error-bar color-3-of-3 color-alternate-shade bar-label-very-small"
+                    class="error-bar color-3-of-3 color-alternate-shade bar-label-outside-bar"
                     width="0.75"
                     height="4.0"
-                    x="120.88148628643023"
+                    x="107.224243"
                     y="190.0" />
 
                 <text
-                    class="bar-label color-3-of-3 color-alternate-shade bar-label-very-small"
-                    x="63"
+                    class="bar-label color-3-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="246.8779529716129"
                     y="195">2 crates; 1 test exe</text>
                 <text
-                    class="bar-value color-3-of-3 color-alternate-shade bar-label-very-small"
+                    class="bar-value color-3-of-3 color-alternate-shade bar-label-outside-bar"
                     text-anchor="end"
-                    x="283.1596222470441"
+                    x="241.8779529716129"
                     y="195">526ms</text>
             </svg>
