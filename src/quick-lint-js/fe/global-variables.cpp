@@ -232,6 +232,11 @@ constexpr const char8 global_variables_node_js_es[] =
     u8"setTimeout\0"
     u8"unescape\0";
 
+constexpr const char8 global_variables_quickjs[] =
+    u8"scriptArgs\0"
+    u8"console\0"
+    u8"print\0";
+
 const global_group global_groups[] = {
     {
         .name = u8"browser",
@@ -302,6 +307,15 @@ const global_group global_groups[] = {
         .non_writable_globals = nullptr,
         .non_shadowable_globals = nullptr,
         .globals_count = 21,
+        .non_writable_globals_count = 0,
+        .non_shadowable_globals_count = 0,
+    },
+    {
+        .name = u8"quickjs",
+        .globals = global_variables_quickjs,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+        .globals_count = 3,
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
     },
