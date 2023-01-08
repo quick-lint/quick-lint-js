@@ -1041,9 +1041,9 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
             DIAG_TYPE_OFFSETS(                                                //
                 p.code, diag_unexpected_function_parameter_is_parenthesized,  //
                 left_paren_to_right_paren, strlen(u8"(["), u8"(x,)"),         //
-                DIAG_TYPE_OFFSETS(                                            //
-                              p.code, diag_stray_comma_in_parameter,          //
-                              comma, strlen(u8"([(x"), u8",")                 //
+            DIAG_TYPE_OFFSETS(                                                //
+                p.code, diag_stray_comma_in_parameter,                        //
+                comma, strlen(u8"([(x"), u8",")                               //
             ));
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
@@ -1780,9 +1780,8 @@ TEST_F(test_parse_function, invalid_function_parameter) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
-            DIAG_TYPE_OFFSETS(                                                //
-                p.code, diag_unexpected_function_parameter_is_parenthesized,  //
+        ElementsAre(DIAG_TYPE_OFFSETS(                                    //
+            p.code, diag_unexpected_function_parameter_is_parenthesized,  //
             left_paren_to_right_paren, strlen(u8"let g = ("), u8"(x)")));
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -1798,7 +1797,8 @@ TEST_F(test_parse_function, invalid_function_parameter) {
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(                                    //
             p.code, diag_unexpected_function_parameter_is_parenthesized,  //
-            left_paren_to_right_paren, strlen(u8"let f = function ("), u8"(x)")));
+            left_paren_to_right_paren, strlen(u8"let f = function ("),
+            u8"(x)")));
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       //
                                       "visit_enter_function_scope_body",  //
