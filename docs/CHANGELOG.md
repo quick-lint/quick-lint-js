@@ -15,6 +15,12 @@ Semantic Versioning.
 * Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).
 * Mixing up the order of the `export`, `async`, and `function` keywords now
   reports [E0326][] or [E0327][] (implemented by [Alek Lefebvre][]).
+* TypeScript types like `string?` now report [E0348][] (implemented by
+  [Alek Lefebvre][]).
+* Extra parentheses in function parameters now report [E0349][] (function
+  parameter cannot be parenthesized) (implemented by [Harshit Aghera][]).
+* QuickJS's global variables are now recognized by default via the new `quickjs`
+  global group (implemented by [wagner riffel]).
 
 ### Fixed
 
@@ -718,6 +724,7 @@ Beta release.
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
+[Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
@@ -819,10 +826,12 @@ Beta release.
 [E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
+[E0325]: https://quick-lint-js.com/errors/E0325/
 [E0326]: https://quick-lint-js.com/errors/E0326/
 [E0327]: https://quick-lint-js.com/errors/E0327/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
 [E0345]: https://quick-lint-js.com/errors/E0345/
 [E0347]: https://quick-lint-js.com/errors/E0347/
+[E0348]: https://quick-lint-js.com/errors/E0348/
 [E0707]: https://quick-lint-js.com/errors/E0707/

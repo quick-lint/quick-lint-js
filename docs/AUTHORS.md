@@ -40,6 +40,7 @@ authored portions of quick-lint-js:
 * Francis Laniel; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
 * Guilherme Vasconcelos; signed CLA-v1.md
+* Harshit Aghera; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
 * Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
 * Jenny "Jennipuff" Wheat
