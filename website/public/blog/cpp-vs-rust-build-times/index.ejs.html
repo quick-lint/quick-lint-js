@@ -574,8 +574,7 @@
         the Rust port, I use code generation, proc macros, normal macros, and a
         dash of <code>const</code>. I have heard claims that proc macros are
         slow, and other claims that proc macros are only slow because they're
-        usually poorly written. I hope I did a good job with my proc macros.
-        🤞
+        usually poorly written. I hope I did a good job with my proc macros. 🤞
       </p>
 
       <p>
@@ -718,21 +717,17 @@
           <tr>
             <th>run_linker</th>
             <td>129.20ms</td>
-            <td>
-              60.326
-              <tr>
-                <th>LLVM_module_&shy;codegen_emit_obj</th>
-                <td>23.58ms</td>
-                <td>
-                  11.009
-                  <tr>
-                    <th>LLVM_passes</th>
-                    <td>13.63ms</td>
-                    <td>6.365</td>
-                  </tr>
-                </td>
-              </tr>
-            </td>
+            <td>60.326</td>
+          </tr>
+          <tr>
+            <th>LLVM_module_&shy;codegen_emit_obj</th>
+            <td>23.58ms</td>
+            <td>11.009</td>
+          </tr>
+          <tr>
+            <th>LLVM_passes</th>
+            <td>13.63ms</td>
+            <td>6.365</td>
           </tr>
         </tbody>
       </table>
@@ -804,42 +799,32 @@
           <tr>
             <th>LLVM_module_&shy;codegen_emit_obj</th>
             <td>171.83ms</td>
-            <td>
-              24.274
-              <tr>
-                <th>typeck</th>
-                <td>57.50ms</td>
-                <td>
-                  8.123
-                  <tr>
-                    <th>eval_to_allocation_raw</th>
-                    <td>54.56ms</td>
-                    <td>
-                      7.708
-                      <tr>
-                        <th>LLVM_passes</th>
-                        <td>50.03ms</td>
-                        <td>
-                          7.068
-                          <tr>
-                            <th>codegen_module</th>
-                            <td>40.58ms</td>
-                            <td>
-                              5.733
-                              <tr>
-                                <th>mir_borrowck</th>
-                                <td>36.94ms</td>
-                                <td>5.218</td>
-                              </tr>
-                            </td>
-                          </tr>
-                        </td>
-                      </tr>
-                    </td>
-                  </tr>
-                </td>
-              </tr>
-            </td>
+            <td>24.274</td>
+          </tr>
+          <tr>
+            <th>typeck</th>
+            <td>57.50ms</td>
+            <td>8.123</td>
+          </tr>
+          <tr>
+            <th>eval_to_allocation_raw</th>
+            <td>54.56ms</td>
+            <td>7.708</td>
+          </tr>
+          <tr>
+            <th>LLVM_passes</th>
+            <td>50.03ms</td>
+            <td>7.068</td>
+          </tr>
+          <tr>
+            <th>codegen_module</th>
+            <td>40.58ms</td>
+            <td>5.733</td>
+          </tr>
+          <tr>
+            <th>mir_borrowck</th>
+            <td>36.94ms</td>
+            <td>5.218</td>
           </tr>
         </tbody>
       </table>
