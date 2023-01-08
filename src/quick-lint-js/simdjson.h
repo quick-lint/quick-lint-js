@@ -32,6 +32,17 @@ bool get_value(::simdjson::ondemand::object& root, const char* key,
 
 bool get_string(::simdjson::ondemand::object& root, const char* key,
                 std::string_view* out);
+bool get_string(::simdjson::ondemand::object& root, const char* key1,
+                const char* key2, const char* key3, std::string_view* out);
+bool get_string(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                const char* key, std::string_view* out);
+
+bool get_string8(::simdjson::ondemand::object& root, const char* key,
+                 string8_view* out);
+bool get_string8(::simdjson::ondemand::object& root, const char* key1,
+                 const char* key2, const char* key3, string8_view* out);
+bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                 const char* key, string8_view* out);
 }
 
 #endif

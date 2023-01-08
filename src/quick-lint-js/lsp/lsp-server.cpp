@@ -40,12 +40,6 @@ namespace {
 constexpr lsp_endpoint_handler::request_id_type
     initial_configuration_request_id = 1;
 
-// Returns std::nullopt on failure (e.g. missing key or not a string).
-std::optional<string8_view> maybe_make_string_view(
-    ::simdjson::ondemand::value& string);
-std::optional<string8_view> maybe_make_string_view(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
-
 struct string_json_token {
   string8_view data;
   string8_view json;
@@ -336,13 +330,12 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
     ::simdjson::ondemand::object& request) {
-  std::optional<string8_view> uri =
-      maybe_make_string_view(request["params"]["textDocument"]["uri"]);
-  if (!uri.has_value()) {
+  string8_view uri;
+  if (!get_string8(request, "params", "textDocument", "uri", &uri)) {
     // Ignore invalid notification.
     return;
   }
-  std::string path = parse_file_from_lsp_uri(*uri);
+  std::string path = parse_file_from_lsp_uri(uri);
   if (path.empty()) {
     // TODO(strager): Report a warning.
     QLJS_UNIMPLEMENTED();
@@ -350,7 +343,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.erase(string8(*uri));
+  this->documents_.erase(string8(uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -391,13 +384,12 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   }
   this->config_fs_.open_document(document_path, &doc.doc);
 
-  std::optional<string8_view> text =
-      maybe_make_string_view(text_document["text"]);
-  if (!text.has_value()) {
+  string8_view text;
+  if (!get_string8(text_document, "text", &text)) {
     // Ignore invalid notification.
     return;
   }
-  doc.doc.set_text(*text);
+  doc.doc.set_text(text);
   doc.version_json = get_raw_json(version);
 
   if (language_id == "javascript" || language_id == "javascriptreact" ||
@@ -591,9 +583,8 @@ void linting_lsp_server_handler::apply_document_changes(
     ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
-    std::optional<string8_view> change_text =
-        maybe_make_string_view(change["text"]);
-    if (!change_text.has_value()) {
+    string8_view change_text;
+    if (!get_string8(change, "text", &change_text)) {
       // Ignore invalid change.
       continue;
     }
@@ -623,9 +614,9 @@ void linting_lsp_server_handler::apply_document_changes(
                   .character = *end_character,
               },
       };
-      doc.replace_text(range, *change_text);
+      doc.replace_text(range, change_text);
     } else {
-      doc.set_text(*change_text);
+      doc.set_text(change_text);
     }
   }
 }
@@ -696,27 +687,6 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
 }
 
 namespace {
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-std::optional<string8_view> maybe_make_string_view(
-    ::simdjson::ondemand::value& string) {
-  std::string_view s;
-  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return string8_view(reinterpret_cast<const char8*>(s.data()), s.size());
-}
-QLJS_WARNING_POP
-
-std::optional<string8_view> maybe_make_string_view(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
-  ::simdjson::ondemand::value s;
-  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
-    return std::nullopt;
-  }
-  return maybe_make_string_view(s);
-}
-
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 std::optional<string_json_token> maybe_get_string_token(
