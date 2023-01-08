@@ -6,6 +6,7 @@
 
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/simdjson-fwd.h>
+#include <string_view>
 
 namespace quick_lint_js {
 string8_view get_raw_json(::simdjson::ondemand::value&);
