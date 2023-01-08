@@ -272,6 +272,11 @@
       </p>
 
       <p>
+        Update (<time>2022-01-07</time>): bjorn3 found an issue with my
+        <a href="#optimizing-rust-with-cranelift">Cranelift benchmarks</a>.
+      </p>
+
+      <p>
         C++ is notorious for its slow build times. &ldquo;My code's
         compiling&rdquo; is a meme in the programming world, and C++ keeps this
         joke alive.
@@ -883,6 +888,19 @@
           height: chartWidth / (362/200) }) %>
         </figure>
       </p>
+
+      <aside>
+        <p>
+          Update (<time>2022-01-07</time>): bjorn3&#x2014;maintainer of rustc's
+          Cranelift backend&#x2014;looked into why Cranelift was slow with my
+          project. It turns out that
+          <a
+            href="https://github.com/quick-lint/cpp-vs-rust/issues/1#issuecomment-1373674764"
+            >rustup overhead might be the cause</a
+          >. It's likely that Cranelift would be faster with a workaround
+          applied. The results above do not include any workarounds.
+        </p>
+      </aside>
 
       <h4 id="optimizing-rust-with-flags">Compiler and linker flags</h4>
 
