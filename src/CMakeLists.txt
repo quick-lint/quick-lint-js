@@ -139,6 +139,8 @@ quick_lint_js_add_library(
   quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
+  quick-lint-js/fe/token.cpp
+  quick-lint-js/fe/token.h
   quick-lint-js/fe/variable-analyzer.cpp
   quick-lint-js/fe/variable-analyzer.h
   quick-lint-js/feature.h
