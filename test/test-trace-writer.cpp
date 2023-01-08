@@ -10,7 +10,7 @@
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/util/binary-writer.h>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -43,7 +43,8 @@ TEST(test_trace_writer, write_header) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // CTF magic
                   0xc1, 0x1f, 0xfc, 0xc1,
 
@@ -55,7 +56,9 @@ TEST(test_trace_writer, write_header) {
                   0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
                   // Compression mode
-                  0x00));
+                  0x00,
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_init) {
@@ -68,7 +71,8 @@ TEST(test_trace_writer, write_event_init) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -76,7 +80,9 @@ TEST(test_trace_writer, write_event_init) {
                   0x01,
 
                   // Version
-                  u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0'));
+                  u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0',
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_vscode_document_opened) {
@@ -95,7 +101,8 @@ TEST(test_trace_writer, write_event_vscode_document_opened) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -115,7 +122,9 @@ TEST(test_trace_writer, write_event_vscode_document_opened) {
 
                   // Content
                   0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'h', 0, 'i', 0));
+                  'h', 0, 'i', 0,
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_vscode_document_closed) {
@@ -133,7 +142,8 @@ TEST(test_trace_writer, write_event_vscode_document_closed) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -149,7 +159,9 @@ TEST(test_trace_writer, write_event_vscode_document_closed) {
 
                   // Language ID
                   0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'j', 0, 's', 0));
+                  'j', 0, 's', 0,
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_vscode_document_changed) {
@@ -207,7 +219,8 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
   data.commit();
   EXPECT_THAT(
       data.take_committed_string8(),
-      ElementsAre(
+      ElementsAreArray<std::uint8_t>({
+          // clang-format off
           // Timestamp
           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -244,7 +257,9 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
           0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
           // Change 1 text
           0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-          'b', 0, 'y', 0, 'e', 0));
+          'b', 0, 'y', 0, 'e', 0,
+          // clang-format on
+      }));
 }
 
 TEST(test_trace_writer, write_event_vscode_document_sync) {
@@ -263,7 +278,8 @@ TEST(test_trace_writer, write_event_vscode_document_sync) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -283,7 +299,9 @@ TEST(test_trace_writer, write_event_vscode_document_sync) {
 
                   // Content
                   0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'h', 0, 'i', 0));
+                  'h', 0, 'i', 0,
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
@@ -298,7 +316,8 @@ TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -307,7 +326,9 @@ TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
 
                   // Body
                   3, 0, 0, 0, 0, 0, 0, 0,  // Size
-                  '{', ' ', '}'));
+                  '{', ' ', '}',
+                  // clang-format on
+              }));
 }
 
 TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
@@ -333,7 +354,8 @@ TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -357,7 +379,9 @@ TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
                   // Entry 1 max size entries
                   1, 0, 0, 0, 0, 0, 0, 0,    // Count
                   3, 0, 0, 0, 0, 0, 0, 0,    // Max size entry 0 max size
-                  7, 0, 0, 0, 0, 0, 0, 0));  // Max size entry 0 count
+                  7, 0, 0, 0, 0, 0, 0, 0,
+                  // clang-format on
+              }));  // Max size entry 0 count
 }
 
 TEST(test_trace_writer, write_event_process_id) {
@@ -371,7 +395,8 @@ TEST(test_trace_writer, write_event_process_id) {
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
-              ElementsAre(
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
                   // Timestamp
                   0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
@@ -379,7 +404,9 @@ TEST(test_trace_writer, write_event_process_id) {
                   0x08,
 
                   // Process ID
-                  0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
+                  0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // clang-format on
+              }));
 }
 }
 }

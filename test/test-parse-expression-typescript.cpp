@@ -19,6 +19,7 @@
 #include <string_view>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using namespace std::literals::string_literals;
 
@@ -38,8 +39,10 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
 
     spy_visitor v;
     static_cast<expression::type_annotated*>(ast)->visit_type_annotation(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(v.variable_uses, ElementsAreArray({u8"Type"}));
   }
 
   {
@@ -94,15 +97,19 @@ TEST_F(test_parse_expression_typescript, non_null_assertion) {
   {
     test_parser p(u8"f(x!);"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // f
-                                      "visit_variable_use"));  // x
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"f", u8"x"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // f
+                              "visit_variable_use",  // x
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"f", u8"x"}));
   }
 
   {
     test_parser p(u8"x! = null;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_assignment"));  // x
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_assignment",  // x
+                          }));
   }
 }
 
@@ -124,10 +131,12 @@ TEST_F(test_parse_expression_typescript,
   EXPECT_EQ(summarize(ast), "nonnull(var x)");
   EXPECT_THAT(
       p.errors,
-      ElementsAre(DIAG_TYPE_OFFSETS(
-          p.code,
-          diag_typescript_non_null_assertion_not_allowed_in_javascript,  //
-          bang, strlen(u8"x"), u8"!")));
+      ElementsAreArray({
+          DIAG_TYPE_OFFSETS(
+              p.code,
+              diag_typescript_non_null_assertion_not_allowed_in_javascript,  //
+              bang, strlen(u8"x"), u8"!"),
+      }));
 }
 
 TEST_F(test_parse_expression_typescript,
@@ -137,10 +146,12 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
-            as_keyword, strlen(u8"x "), u8"as")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
+                as_keyword, strlen(u8"x "), u8"as"),
+        }));
   }
 
   {
@@ -148,10 +159,12 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_EQ(summarize(p.parse_expression()), "as(object())");
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
-            as_keyword, strlen(u8"{} "), u8"as")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
+                as_keyword, strlen(u8"{} "), u8"as"),
+        }));
   }
 }
 
@@ -159,20 +172,24 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
     test_parser p(u8"f(x as T);"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
-                                      "visit_variable_use",       // f
-                                      "visit_variable_use"));     // x
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"f", u8"x"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_use",       // f
+                              "visit_variable_use",       // x
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f", u8"x"}));
   }
 
   {
     test_parser p(u8"(lhs as T) = rhs;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",      // T
-                                      "visit_variable_use",           // rhs
-                                      "visit_variable_assignment"));  // lhs
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"rhs"));
-    EXPECT_THAT(p.variable_assignments, ElementsAre(u8"lhs"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",    // T
+                              "visit_variable_use",         // rhs
+                              "visit_variable_assignment",  // lhs
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"rhs"}));
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"lhs"}));
   }
 
   {
@@ -181,8 +198,10 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
     ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"y"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
   }
 }
 
@@ -193,11 +212,14 @@ TEST_F(test_parse_expression_typescript,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
-            as_keyword, strlen(u8"(x "), u8"as")));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
+                as_keyword, strlen(u8"(x "), u8"as"),
+        }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"x")}));
   }
 
   {
@@ -206,11 +228,14 @@ TEST_F(test_parse_expression_typescript,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE(
-            diag_typescript_as_keyword_used_for_parameter_type_annotation)));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(arrow_param_decl(u8"x"), arrow_param_decl(u8"y"),
-                            arrow_param_decl(u8"z")));
+        ElementsAreArray({
+            DIAG_TYPE(
+                diag_typescript_as_keyword_used_for_parameter_type_annotation),
+        }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({arrow_param_decl(u8"x"), arrow_param_decl(u8"y"),
+                          arrow_param_decl(u8"z")}));
   }
 
   {
@@ -219,12 +244,15 @@ TEST_F(test_parse_expression_typescript,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
-            as_keyword, strlen(u8"function f(x "), u8"as")));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), func_param_decl(u8"x")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
+                as_keyword, strlen(u8"function f(x "), u8"as"),
+        }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({function_decl(u8"f"), func_param_decl(u8"x")}));
   }
 
   {
@@ -278,21 +306,25 @@ TEST_F(test_parse_expression_typescript,
     test_parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_typescript_as_const_with_non_literal_typeable,  //
-                    expression, 0, expression,                           //
-                    as_const, strlen(expression) + 1, u8"as const")));
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_typescript_as_const_with_non_literal_typeable,  //
+                        expression, 0, expression,                           //
+                        as_const, strlen(expression) + 1, u8"as const"),
+                }));
   }
 
   {
     test_parser p(u8"(f()) as const", typescript_options, capture_diags);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_typescript_as_const_with_non_literal_typeable,  //
-                    expression, strlen(u8"("), u8"f()")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_typescript_as_const_with_non_literal_typeable,  //
+                        expression, strlen(u8"("), u8"f()"),
+                }));
   }
 }
 }

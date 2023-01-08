@@ -20,6 +20,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -29,23 +30,30 @@ class test_parse_typescript_namespace : public test_parse_expression {};
 TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
   test_parser p(u8"namespace ns {}"_sv, javascript_options, capture_diags);
   p.parse_and_visit_statement();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
-                                    "visit_enter_namespace_scope",   // {
-                                    "visit_exit_namespace_scope"));  // }
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // ns
+                            "visit_enter_namespace_scope",  // {
+                            "visit_exit_namespace_scope",   // }
+                        }));
   EXPECT_THAT(p.errors,
-              ElementsAre(DIAG_TYPE_OFFSETS(
-                  p.code,
-                  diag_typescript_namespaces_not_allowed_in_javascript,  //
-                  namespace_keyword, 0, u8"namespace")));
+              ElementsAreArray({
+                  DIAG_TYPE_OFFSETS(
+                      p.code,
+                      diag_typescript_namespaces_not_allowed_in_javascript,  //
+                      namespace_keyword, 0, u8"namespace"),
+              }));
 }
 
 TEST_F(test_parse_typescript_namespace, empty_namespace) {
   test_parser p(u8"namespace ns {}"_sv, typescript_options);
   p.parse_and_visit_statement();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
-                                    "visit_enter_namespace_scope",   // {
-                                    "visit_exit_namespace_scope"));  // }
-  EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // ns
+                            "visit_enter_namespace_scope",  // {
+                            "visit_exit_namespace_scope",   // }
+                        }));
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({namespace_decl(u8"ns")}));
 }
 
 TEST_F(test_parse_typescript_namespace,
@@ -53,15 +61,20 @@ TEST_F(test_parse_typescript_namespace,
   {
     test_parser p(u8"namespace\nns {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
-                                      "visit_enter_namespace_scope",   // {
-                                      "visit_exit_namespace_scope"));  // }
-    EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns")}));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_newline_not_allowed_after_namespace_keyword,  //
-                    namespace_keyword, 0, u8"namespace")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_newline_not_allowed_after_namespace_keyword,  //
+                        namespace_keyword, 0, u8"namespace"),
+                }));
   }
 }
 
@@ -70,12 +83,14 @@ TEST_F(test_parse_typescript_namespace,
   {
     test_parser p(u8"namespace\nns\n{}"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // namespace
-                                      "visit_variable_use",       // ns
-                                      "visit_enter_block_scope",  // {
-                                      "visit_exit_block_scope",   // }
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"namespace", u8"ns"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",       // namespace
+                              "visit_variable_use",       // ns
+                              "visit_enter_block_scope",  // {
+                              "visit_exit_block_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"namespace", u8"ns"}));
   }
 }
 
@@ -87,7 +102,8 @@ TEST_F(test_parse_typescript_namespace,
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(name)));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(name)}));
   }
 }
 
@@ -96,16 +112,19 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
     test_parser p(u8"namespace ns { export function f() {} }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // ns
-                                      "visit_enter_namespace_scope",      // {
-                                      "visit_variable_declaration",       // f
-                                      "visit_enter_function_scope",       // f
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope",        // }
-                                      "visit_exit_namespace_scope",       // }
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(namespace_decl(u8"ns"), function_decl(u8"f")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // ns
+                              "visit_enter_namespace_scope",      // {
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_namespace_scope",       // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({namespace_decl(u8"ns"), function_decl(u8"f")}));
   }
 }
 
@@ -113,13 +132,16 @@ TEST_F(test_parse_typescript_namespace, namespace_alias) {
   {
     test_parser p(u8"import A = ns;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
-                                      "visit_variable_namespace_use"));  // ns
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                          }));
     // TODO(#793): Instead of emitting an import declaration, we should emit a
     // import alias declaration. Use-before-declaration is okay for ES imports,
     // but is problematic for namespace aliases.
-    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"A")));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_decl(u8"A")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 }
 
@@ -128,14 +150,19 @@ TEST_F(test_parse_typescript_namespace,
   {
     test_parser p(u8"import A = ns;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
-                                      "visit_variable_namespace_use"));  // ns
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_typescript_import_alias_not_allowed_in_javascript,  //
-                    import_keyword, 0, u8"import",                           //
-                    equal, strlen(u8"import A "), u8"=")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_import_alias_not_allowed_in_javascript,  //
+                import_keyword, 0, u8"import",                           //
+                equal, strlen(u8"import A "), u8"="),
+        }));
   }
 }
 
@@ -143,21 +170,26 @@ TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   {
     test_parser p(u8"import A = ns.B;"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
-                                      "visit_variable_namespace_use",  // ns
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_end_of_module",
+                          }));
     // TODO(#793): Emit a import alias declaration instead.
-    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"A")));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_decl(u8"A")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 
   {
     test_parser p(u8"import A = ns.subns.B;"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
-                                      "visit_variable_namespace_use",  // ns
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 }
 
@@ -167,14 +199,19 @@ TEST_F(test_parse_typescript_namespace,
     test_parser p(u8"import A = ns nextStatement"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
-                                      "visit_variable_namespace_use",  // ns
-                                      "visit_variable_use",  // nextStatement
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_variable_use",            // nextStatement
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"import A = ns"), u8"")));
+                              where, strlen(u8"import A = ns"), u8""),
+        }));
   }
 }
 
@@ -185,10 +222,12 @@ TEST_F(test_parse_typescript_namespace,
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
-                                      "visit_variable_namespace_use",  // (name)
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(name));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // (name)
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
   }
 }
 
@@ -199,10 +238,12 @@ TEST_F(test_parse_typescript_namespace,
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
-                                      "visit_variable_namespace_use",  // ns
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 }
 }

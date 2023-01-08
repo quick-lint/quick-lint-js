@@ -22,6 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using namespace std::literals::string_literals;
+using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -35,8 +36,10 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
     ASSERT_EQ(ast->kind(), expression_kind::angle_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var expr");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<Type>expr"));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Type"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"}));
   }
 
   {
@@ -55,29 +58,36 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
   {
     test_parser p(u8"f(<T>x);"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
-                                      "visit_variable_use",       // f
-                                      "visit_variable_use"));     // x
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"f", u8"x"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_use",       // f
+                              "visit_variable_use",       // x
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f", u8"x"}));
   }
 
   {
     test_parser p(u8"(<T>lhs) = rhs;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",      // T
-                                      "visit_variable_use",           // rhs
-                                      "visit_variable_assignment"));  // lhs
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"rhs"));
-    EXPECT_THAT(p.variable_assignments, ElementsAre(u8"lhs"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",    // T
+                              "visit_variable_use",         // rhs
+                              "visit_variable_assignment",  // lhs
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"rhs"}));
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"lhs"}));
   }
 
   {
     test_parser p(u8"<Type1 | Type2>(expr);"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type1
-                                      "visit_variable_type_use",  // Type2
-                                      "visit_variable_use"));     // expr
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Type1", u8"Type2", u8"expr"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // Type1
+                              "visit_variable_type_use",  // Type2
+                              "visit_variable_use",       // expr
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"Type1", u8"Type2", u8"expr"}));
   }
 
   for (string8_view code : {
@@ -91,9 +101,11 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
-                                      "visit_variable_use"));     // expr
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Type", u8"expr"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // Type
+                              "visit_variable_use",       // expr
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type", u8"expr"}));
   }
 
   for (const string8& type :
@@ -101,8 +113,10 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
     test_parser p(concat(u8"<", type, u8">expr;"), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // expr
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"expr"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // expr
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"expr"}));
   }
 }
 
@@ -148,28 +162,38 @@ TEST_F(test_parse_typescript_angle_type_assertion,
     test_parser p(u8"<Type1 | Type2>(expr);"_sv, typescript_jsx_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type1
-                                      "visit_variable_type_use",  // Type2
-                                      "visit_variable_use"));     // expr
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
-                    bracketed_type, 0, u8"<Type1 | Type2>",                   //
-                    expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8"")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // Type1
+                              "visit_variable_type_use",  // Type2
+                              "visit_variable_use",       // expr
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
+                bracketed_type, 0, u8"<Type1 | Type2>",                   //
+                expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8""),
+        }));
   }
 
   {
     test_parser p(u8"<(Type)>expr;"_sv, typescript_jsx_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
-                                      "visit_variable_use"));     // expr
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
-                    bracketed_type, 0, u8"<(Type)>",                          //
-                    expected_as, strlen(u8"<(Type)>expr"), u8"")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // Type
+                              "visit_variable_use",       // expr
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
+                bracketed_type, 0, u8"<(Type)>",                          //
+                expected_as, strlen(u8"<(Type)>expr"), u8""),
+        }));
   }
 }
 
@@ -178,23 +202,30 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   {
     test_parser p(u8"(<T>x) => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
-                              diag_invalid_parameter,  //
-                              parameter, strlen(u8"("), u8"<T>x")));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"x")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code,
+                                      diag_invalid_parameter,  //
+                                      parameter, strlen(u8"("), u8"<T>x"),
+                }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"x")}));
   }
 
   {
     test_parser p(u8"function f(<T>x) {}"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_invalid_parameter,  //
-                              parameter, strlen(u8"function f("), u8"<T>x")));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), func_param_decl(u8"x")));
+                              parameter, strlen(u8"function f("), u8"<T>x"),
+        }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({function_decl(u8"f"), func_param_decl(u8"x")}));
   }
 }
 }

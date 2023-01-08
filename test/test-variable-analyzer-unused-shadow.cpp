@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -58,10 +59,12 @@ TEST(test_variable_analyzer_unused_shadow,
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_SPANS(
-                      diag_unused_variable_shadows,                       //
-                      shadowing_declaration, span_of(inner_declaration),  //
-                      shadowed_declaration, span_of(outer_declaration))));
+                  ElementsAreArray({
+                      DIAG_TYPE_2_SPANS(
+                          diag_unused_variable_shadows,                       //
+                          shadowing_declaration, span_of(inner_declaration),  //
+                          shadowed_declaration, span_of(outer_declaration)),
+                  }));
     }
 
     // TODO(strager): See NOTE[unused-var-shadows-nested-block].
@@ -89,10 +92,12 @@ TEST(test_variable_analyzer_unused_shadow,
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_SPANS(
-                      diag_unused_variable_shadows,                       //
-                      shadowing_declaration, span_of(inner_declaration),  //
-                      shadowed_declaration, span_of(outer_declaration))));
+                  ElementsAreArray({
+                      DIAG_TYPE_2_SPANS(
+                          diag_unused_variable_shadows,                       //
+                          shadowing_declaration, span_of(inner_declaration),  //
+                          shadowed_declaration, span_of(outer_declaration)),
+                  }));
     }
   }
 }
@@ -374,8 +379,9 @@ TEST(test_variable_analyzer_unused_shadow,
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_variable_used_before_declaration),
+                          }));
   }
 
   {
@@ -401,8 +407,9 @@ TEST(test_variable_analyzer_unused_shadow,
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_variable_used_before_declaration),
+                          }));
   }
 
   {

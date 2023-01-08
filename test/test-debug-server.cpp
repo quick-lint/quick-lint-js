@@ -230,12 +230,13 @@ TEST_F(test_debug_server,
                   &trace_stream_event_visitor::
                       vector_max_size_histogram_by_owner_entry::owner,
                   u8"debug server test vector"sv),
-              ::testing::Field(
-                  "max_size_entries",
-                  &trace_stream_event_visitor::
-                      vector_max_size_histogram_by_owner_entry::
-                          max_size_entries,
-                  ::testing::ElementsAre(entry{.max_size = 0, .count = 1})))));
+              ::testing::Field("max_size_entries",
+                               &trace_stream_event_visitor::
+                                   vector_max_size_histogram_by_owner_entry::
+                                       max_size_entries,
+                               ::testing::ElementsAreArray({
+                                   entry{.max_size = 0, .count = 1},
+                               })))));
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
 
@@ -363,13 +364,14 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
                   &trace_stream_event_visitor::
                       vector_max_size_histogram_by_owner_entry::owner,
                   u8"debug server test vector"sv),
-              ::testing::Field(
-                  "max_size_entries",
-                  &trace_stream_event_visitor::
-                      vector_max_size_histogram_by_owner_entry::
-                          max_size_entries,
-                  ::testing::ElementsAre(entry{.max_size = 2, .count = 1},
-                                         entry{.max_size = 4, .count = 1})))));
+              ::testing::Field("max_size_entries",
+                               &trace_stream_event_visitor::
+                                   vector_max_size_histogram_by_owner_entry::
+                                       max_size_entries,
+                               ::testing::ElementsAreArray({
+                                   entry{.max_size = 2, .count = 1},
+                                   entry{.max_size = 4, .count = 1},
+                               })))));
       this->received_vector_max_size_histogram_by_owner_event = true;
     }
 

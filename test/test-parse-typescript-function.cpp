@@ -20,6 +20,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -32,13 +33,15 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"function f(p: T) { }"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_type_annotations_not_allowed_in_javascript,  //
-            type_colon, strlen(u8"function f(p"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_type_annotations_not_allowed_in_javascript,  //
+                type_colon, strlen(u8"function f(p"), u8":"),
+        }));
   }
 }
 
@@ -47,13 +50,15 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"function f(): C { }"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_type_annotations_not_allowed_in_javascript,  //
-            type_colon, strlen(u8"function f()"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_type_annotations_not_allowed_in_javascript,  //
+                type_colon, strlen(u8"function f()"), u8":"),
+        }));
   }
 }
 
@@ -61,13 +66,14 @@ TEST_F(test_parse_typescript_function, function_return_type_annotation) {
   {
     test_parser p(u8"function f(): C { }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       // f
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 }
 
@@ -75,47 +81,51 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   {
     test_parser p(u8"((param): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       //
-                            "visit_variable_declaration",       // param
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 
   {
     test_parser p(u8"((): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       //
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 
   {
     test_parser p(u8"(async (param): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       //
-                            "visit_variable_declaration",       // param
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 
   {
     test_parser p(u8"(async (): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       //
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 }
 
@@ -123,13 +133,14 @@ TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
     test_parser p(u8"({ method(param): C {} })"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       // method
-                            "visit_variable_declaration",       // param
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       // method
+                              "visit_variable_declaration",       // param
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 }
 
@@ -137,18 +148,19 @@ TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
   {
     test_parser p(u8"class C { method(param): C {} }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",          // C
-                            "visit_enter_class_scope_body",     // {
-                            "visit_property_declaration",       // method
-                            "visit_enter_function_scope",       // method
-                            "visit_variable_declaration",       // param
-                            "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope",        // }
-                            "visit_exit_class_scope",           // }
-                            "visit_variable_declaration"));     // C
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_enter_class_scope_body",     // {
+                              "visit_property_declaration",       // method
+                              "visit_enter_function_scope",       // method
+                              "visit_variable_declaration",       // param
+                              "visit_variable_type_use",          // C
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 }
 
@@ -157,16 +169,17 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"interface I { method(param): C; }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_property_declaration",    // method
-                            "visit_enter_function_scope",    // method
-                            "visit_variable_declaration",    // param
-                            "visit_variable_type_use",       // C
-                            "visit_exit_function_scope",     // method
-                            "visit_exit_interface_scope"));  // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_property_declaration",   // method
+                              "visit_enter_function_scope",   // method
+                              "visit_variable_declaration",   // param
+                              "visit_variable_type_use",      // C
+                              "visit_exit_function_scope",    // method
+                              "visit_exit_interface_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 }
 
@@ -175,14 +188,15 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"<T,>() => x in y"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       //
-                            "visit_variable_declaration",       // T
-                            "visit_enter_function_scope_body",  //
-                            "visit_variable_use",               // x
-                            "visit_variable_use",               // y
-                            "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"y"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // T
+                              "visit_enter_function_scope_body",  //
+                              "visit_variable_use",               // x
+                              "visit_variable_use",               // y
+                              "visit_exit_function_scope",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"y"}));
   }
 }
 
@@ -192,32 +206,38 @@ TEST_F(test_parse_typescript_function,
     test_parser p(u8"function f(param!) {}"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       // f
-                            "visit_variable_declaration",       // param
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_non_null_assertion_not_allowed_in_parameter,  //
-                    bang, strlen(u8"function f(param"), u8"!")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_non_null_assertion_not_allowed_in_parameter,  //
+                        bang, strlen(u8"function f(param"), u8"!"),
+                }));
   }
 
   {
     test_parser p(u8"(param!) => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",       // f
-                            "visit_variable_declaration",       // param
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_non_null_assertion_not_allowed_in_parameter,  //
-                    bang, strlen(u8"(param"), u8"!")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_non_null_assertion_not_allowed_in_parameter,  //
+                        bang, strlen(u8"(param"), u8"!"),
+                }));
   }
 }
 
@@ -227,28 +247,32 @@ TEST_F(test_parse_typescript_function,
     test_parser p(u8"function f(p1: A, p2: B = init) {}"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_function_scope",  // f
-                                      "visit_variable_type_use",     // A
-                                      "visit_variable_declaration",  // p1
-                                      "visit_variable_use",          // init
-                                      "visit_variable_type_use",     // B
-                                      "visit_variable_declaration",  // p2
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"init", u8"B"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // A
+                              "visit_variable_declaration",       // p1
+                              "visit_variable_use",               // init
+                              "visit_variable_type_use",          // B
+                              "visit_variable_declaration",       // p2
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"init", u8"B"}));
   }
 
   {
     test_parser p(u8"function f([a, b]: C) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
-                                      "visit_enter_function_scope",       // f
-                                      "visit_variable_type_use",          // C
-                                      "visit_variable_declaration",       // a
-                                      "visit_variable_declaration",       // b
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // C
+                              "visit_variable_declaration",       // a
+                              "visit_variable_declaration",       // b
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 }
 
@@ -258,26 +282,30 @@ TEST_F(test_parse_typescript_function,
     test_parser p(u8"class C { method(param: Type) {} }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
-                                      "visit_enter_class_scope_body",  // {
-                                      "visit_property_declaration",    // f
-                                      "visit_enter_function_scope",    // f
-                                      "visit_variable_type_use",       // Type
-                                      "visit_variable_declaration",    // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope",        // }
-                                      "visit_exit_class_scope",           // }
-                                      "visit_variable_declaration"));     // C
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_enter_class_scope_body",     // {
+                              "visit_property_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                          }));
   }
 
   {
     test_parser p(u8"({ method(param: Type) {} });"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  // f
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 }
 
@@ -286,27 +314,31 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"((param: Type) => {});"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"((p1: T1, {p2}: T2 = init, [p3]: T3) => {});"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // T1
-                                      "visit_variable_declaration",  // p1
-                                      "visit_variable_use",          // init
-                                      "visit_variable_type_use",     // T2
-                                      "visit_variable_declaration",  // p2
-                                      "visit_variable_type_use",     // T3
-                                      "visit_variable_declaration",  // p3
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // T1
+                              "visit_variable_declaration",       // p1
+                              "visit_variable_use",               // init
+                              "visit_variable_type_use",          // T2
+                              "visit_variable_declaration",       // p2
+                              "visit_variable_type_use",          // T3
+                              "visit_variable_declaration",       // p3
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 }
 
@@ -316,36 +348,45 @@ TEST_F(test_parse_typescript_function,
     test_parser p(u8"(param: Type => {});"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
-            parameter_and_annotation, strlen(u8"("), u8"param: Type",        //
-            type_colon, strlen(u8"(param"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
+                parameter_and_annotation, strlen(u8"("), u8"param: Type",  //
+                type_colon, strlen(u8"(param"), u8":"),
+        }));
   }
 
   {
     test_parser p(u8"(async param: Type => {});"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
-            parameter_and_annotation, strlen(u8"(async "), u8"param: Type",  //
-            type_colon, strlen(u8"(async param"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
+                parameter_and_annotation, strlen(u8"(async "),
+                u8"param: Type",  //
+                type_colon, strlen(u8"(async param"), u8":"),
+        }));
   }
 }
 
@@ -359,11 +400,16 @@ TEST_F(test_parse_typescript_function, optional_expression) {
   {
     test_parser p(u8"(x?)"_sv, typescript_options, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // x
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_unexpected_question_in_expression,  //
-                              question, strlen(u8"(x"), u8"?")));
+                              question, strlen(u8"(x"), u8"?"),
+        }));
   }
 
   {
@@ -375,7 +421,9 @@ TEST_F(test_parse_typescript_function, optional_expression) {
         static_cast<expression::type_annotated*>(ast->without_paren());
     spy_visitor v;
     type_annotated->visit_type_annotation(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // Type
+                          }));
   }
 
   {
@@ -387,10 +435,13 @@ TEST_F(test_parse_typescript_function, optional_expression) {
   {
     test_parser p(u8"(x?, other)"_sv, typescript_options, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // x
-                                      "visit_variable_use"));  // other
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(diag_unexpected_question_in_expression)));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // x
+                              "visit_variable_use",  // other
+                          }));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_unexpected_question_in_expression),
+                          }));
   }
 }
 
@@ -398,75 +449,89 @@ TEST_F(test_parse_typescript_function, optional_parameter) {
   {
     test_parser p(u8"function f(param1?, param2?) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param1
-                                      "visit_variable_declaration",  // param2
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param1
+                              "visit_variable_declaration",       // param2
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"function f(param?: ParamType) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_type_use",  // ParamType
-                                      "visit_variable_declaration",  // param1
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ParamType
+                              "visit_variable_declaration",       // param1
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"(param?) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"(param1?, param2?) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param1
-                                      "visit_variable_declaration",  // param2
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param1
+                              "visit_variable_declaration",       // param2
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"(param?: ParamType) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",  // ParamType
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ParamType
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"(param1?: Param1Type, param2?: Param2Type) => {}"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",  // Param1Type
-                                      "visit_variable_declaration",  // param1
-                                      "visit_variable_type_use",  // Param2Type
-                                      "visit_variable_declaration",  // param2
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Param1Type
+                              "visit_variable_declaration",       // param1
+                              "visit_variable_type_use",          // Param2Type
+                              "visit_variable_declaration",       // param2
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 
   {
     test_parser p(u8"async (param?: ParamType) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",  // ParamType
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ParamType
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
   }
 }
 
@@ -475,13 +540,15 @@ TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
     test_parser p(u8"(param1?: ParamType, param2?, param3?) => ReturnType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",  // ParamType
-                                      "visit_variable_declaration",  // param1
-                                      "visit_variable_declaration",  // param2
-                                      "visit_variable_declaration",  // param3
-                                      "visit_variable_type_use",  // ReturnType
-                                      "visit_exit_function_scope"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_variable_type_use",     // ParamType
+                              "visit_variable_declaration",  // param1
+                              "visit_variable_declaration",  // param2
+                              "visit_variable_declaration",  // param3
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_function_scope",
+                          }));
   }
 }
 
@@ -492,10 +559,12 @@ TEST_F(test_parse_typescript_function,
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_optional_parameters_not_allowed_in_javascript,  //
-            question, strlen(u8"(param"), u8"?")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_optional_parameters_not_allowed_in_javascript,  //
+                question, strlen(u8"(param"), u8"?"),
+        }));
   }
 
   {
@@ -504,10 +573,12 @@ TEST_F(test_parse_typescript_function,
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_optional_parameters_not_allowed_in_javascript,  //
-            question, strlen(u8"function f(param"), u8"?")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_optional_parameters_not_allowed_in_javascript,  //
+                question, strlen(u8"function f(param"), u8"?"),
+        }));
   }
 }
 
@@ -518,11 +589,13 @@ TEST_F(test_parse_typescript_function,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_optional_parameter_cannot_have_initializer,  //
-                    equal, strlen(u8"(param? "), u8"=",               //
-                    question, strlen(u8"(param"), u8"?")));
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_optional_parameter_cannot_have_initializer,  //
+                        equal, strlen(u8"(param? "), u8"=",               //
+                        question, strlen(u8"(param"), u8"?"),
+                }));
   }
 
   {
@@ -530,11 +603,13 @@ TEST_F(test_parse_typescript_function,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_optional_parameter_cannot_have_initializer,  //
-                    equal, strlen(u8"function f(param? "), u8"=",     //
-                    question, strlen(u8"function f(param"), u8"?")));
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_optional_parameter_cannot_have_initializer,  //
+                        equal, strlen(u8"function f(param? "), u8"=",     //
+                        question, strlen(u8"function f(param"), u8"?"),
+                }));
   }
 }
 
@@ -543,31 +618,40 @@ TEST_F(test_parse_typescript_function,
   {
     test_parser p(u8"param? => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_optional_arrow_parameter_requires_parentheses,  //
-                    parameter_and_question, 0, u8"param?",               //
-                    question, strlen(u8"param"), u8"?")));
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_optional_arrow_parameter_requires_parentheses,  //
+                        parameter_and_question, 0, u8"param?",               //
+                        question, strlen(u8"param"), u8"?"),
+                }));
   }
 
   {
     test_parser p(u8"async param? => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code,
-                    diag_optional_arrow_parameter_requires_parentheses,      //
-                    parameter_and_question, strlen(u8"async "), u8"param?",  //
-                    question, strlen(u8"async param"), u8"?")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_optional_arrow_parameter_requires_parentheses,      //
+                parameter_and_question, strlen(u8"async "), u8"param?",  //
+                question, strlen(u8"async param"), u8"?"),
+        }));
   }
 }
 
@@ -578,38 +662,47 @@ TEST_F(test_parse_typescript_function,
     test_parser p(u8"(param?: Type => {})"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_3_OFFSETS(
-            p.code,
-            diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
-            parameter_and_annotation, strlen(u8"("), u8"param?: Type",  //
-            question, strlen(u8"(param"), u8"?",                        //
-            type_colon, strlen(u8"(param?"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code,
+                diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
+                parameter_and_annotation, strlen(u8"("), u8"param?: Type",  //
+                question, strlen(u8"(param"), u8"?",                        //
+                type_colon, strlen(u8"(param?"), u8":"),
+        }));
   }
 
   {
     test_parser p(u8"async param?: Type => {}"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_type_use",     // Type
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // Type
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_3_OFFSETS(
-            p.code,
-            diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
-            parameter_and_annotation, strlen(u8"async "), u8"param?: Type",  //
-            question, strlen(u8"async param"), u8"?",                        //
-            type_colon, strlen(u8"async param?"), u8":")));
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code,
+                diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
+                parameter_and_annotation, strlen(u8"async "),
+                u8"param?: Type",                          //
+                question, strlen(u8"async param"), u8"?",  //
+                type_colon, strlen(u8"async param?"), u8":"),
+        }));
   }
 }
 
@@ -618,55 +711,59 @@ TEST_F(test_parse_typescript_function, type_predicate) {
     test_parser p(u8"function f(param): param is SomeType {}"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",         // f
-                            "visit_enter_function_scope",         //
-                            "visit_variable_declaration",         // param
-                            "visit_variable_type_predicate_use",  // param
-                            "visit_variable_type_use",            // SomeType
-                            "visit_enter_function_scope_body",    // {
-                            "visit_exit_function_scope"));        // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // f
+                              "visit_enter_function_scope",         //
+                              "visit_variable_declaration",         // param
+                              "visit_variable_type_predicate_use",  // param
+                              "visit_variable_type_use",            // SomeType
+                              "visit_enter_function_scope_body",    // {
+                              "visit_exit_function_scope",          // }
+                          }));
   }
 
   {
     test_parser p(u8"(param): param is SomeType => {}"_sv, typescript_options);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",         //
-                            "visit_variable_declaration",         // param
-                            "visit_variable_type_predicate_use",  // param
-                            "visit_variable_type_use",            // SomeType
-                            "visit_enter_function_scope_body",    // {
-                            "visit_exit_function_scope"));        // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",         //
+                              "visit_variable_declaration",         // param
+                              "visit_variable_type_predicate_use",  // param
+                              "visit_variable_type_use",            // SomeType
+                              "visit_enter_function_scope_body",    // {
+                              "visit_exit_function_scope",          // }
+                          }));
   }
 
   {
     test_parser p(u8"<T>(param): param is SomeType => {}"_sv,
                   typescript_options);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",         //
-                            "visit_variable_declaration",         // T
-                            "visit_variable_declaration",         // param
-                            "visit_variable_type_predicate_use",  // param
-                            "visit_variable_type_use",            // SomeType
-                            "visit_enter_function_scope_body",    // {
-                            "visit_exit_function_scope"));        // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",         //
+                              "visit_variable_declaration",         // T
+                              "visit_variable_declaration",         // param
+                              "visit_variable_type_predicate_use",  // param
+                              "visit_variable_type_use",            // SomeType
+                              "visit_enter_function_scope_body",    // {
+                              "visit_exit_function_scope",          // }
+                          }));
   }
 
   {
     test_parser p(u8"<T, U>(param): param is SomeType => {}"_sv,
                   typescript_options);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_function_scope",         //
-                            "visit_variable_declaration",         // T
-                            "visit_variable_declaration",         // U
-                            "visit_variable_declaration",         // param
-                            "visit_variable_type_predicate_use",  // param
-                            "visit_variable_type_use",            // SomeType
-                            "visit_enter_function_scope_body",    // {
-                            "visit_exit_function_scope"));        // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",         //
+                              "visit_variable_declaration",         // T
+                              "visit_variable_declaration",         // U
+                              "visit_variable_declaration",         // param
+                              "visit_variable_type_predicate_use",  // param
+                              "visit_variable_type_use",            // SomeType
+                              "visit_enter_function_scope_body",    // {
+                              "visit_exit_function_scope",          // }
+                          }));
   }
 
   // TODO(#881): Only allow 'this' within class and interface method signatures.
@@ -674,17 +771,18 @@ TEST_F(test_parse_typescript_function, type_predicate) {
     test_parser p(u8"class C { f(): this is Derived { return true; } }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",          // C
-                            "visit_enter_class_scope_body",     // {
-                            "visit_property_declaration",       // f
-                            "visit_enter_function_scope",       // f
-                            "visit_variable_type_use",          // Derived
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope",        // }
-                            "visit_exit_class_scope",           // }
-                            "visit_variable_declaration"));     // C
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Derived"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_enter_class_scope_body",     // {
+                              "visit_property_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_variable_type_use",          // Derived
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Derived"}));
   }
 }
 
@@ -695,14 +793,14 @@ TEST_F(test_parse_typescript_function, type_predicate_on_async_function) {
     test_parser p(u8"async function f(param): param is SomeType {}"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));
   }
 
   {
     test_parser p(u8"async <T>(param): param is SomeType => {}"_sv,
                   typescript_options);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));
   }
 }
 
@@ -713,7 +811,7 @@ TEST_F(test_parse_typescript_function, type_predicate_on_generator_function) {
     test_parser p(u8"function *f(param): param is SomeType {}"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"param", u8"SomeType"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));
   }
 }
 
@@ -726,15 +824,16 @@ TEST_F(test_parse_typescript_function,
                   typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.visits,
-        ElementsAre("visit_variable_declaration",         // f
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_variable_declaration",         // f
                     "visit_enter_function_scope",         //
                     "visit_variable_declaration",         // (parameter_name)
                     "visit_variable_type_predicate_use",  // (parameter_name)
                     "visit_variable_type_use",            // SomeType
                     "visit_enter_function_scope_body",    // {
-                    "visit_exit_function_scope"));        // }
+                    "visit_exit_function_scope",          // }
+                }));
   }
 }
 
@@ -745,14 +844,16 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function f() {}"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -762,14 +863,16 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function f() {}"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -778,7 +881,8 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function \\u{66}() {}"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   for (string8_view function_name : contextual_keywords) {
@@ -790,7 +894,7 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(function_name)));
+                ElementsAreArray({function_decl(function_name)}));
   }
 
   {
@@ -799,7 +903,8 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function f() {}"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -808,8 +913,9 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"async function f() { await(myPromise); }"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -818,9 +924,10 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function f() { await(myPromise); }"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"await", u8"myPromise"))
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"await", u8"myPromise"}))
         << "'async' keyword should not apply to implementation";
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -829,9 +936,10 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"function *f() { yield(myValue); }"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"))
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}))
         << "'yield' should be a keyword in the implementation";
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 
   {
@@ -840,9 +948,10 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
         u8"async function *f() { yield(myValue); await(myPromise); }"_sv,
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue", u8"myPromise"))
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue", u8"myPromise"}))
         << "both 'await' and 'yield' should be keywords in the implementation";
-    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"f")));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f")}));
   }
 }
 
@@ -854,24 +963,27 @@ TEST_F(test_parse_typescript_function,
         u8"function g() {}"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       // f(
-                            "visit_exit_function_scope",        // )
-                            "visit_enter_function_scope",       // g(
-                            "visit_enter_function_scope_body",  // ){
-                            "visit_exit_function_scope",        // }
-                            "visit_variable_declaration",       // g
-                            "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f(
+                              "visit_exit_function_scope",        // )
+                              "visit_enter_function_scope",       // g(
+                              "visit_enter_function_scope_body",  // ){
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // g
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_have_same_name,
-            overload_name, strlen(u8"function "), u8"f",  //
-            function_name, strlen(u8"function f();\nfunction "), u8"g")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name, strlen(u8"function "), u8"f",  //
+                function_name, strlen(u8"function f();\nfunction "), u8"g"),
+        }));
   }
 
   {
@@ -881,18 +993,19 @@ TEST_F(test_parse_typescript_function,
         u8"function h() {}"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       // f(
-                            "visit_exit_function_scope",        // )
-                            "visit_enter_function_scope",       // g(
-                            "visit_exit_function_scope",        // )
-                            "visit_enter_function_scope",       // h(
-                            "visit_enter_function_scope_body",  // ){
-                            "visit_exit_function_scope",        // }
-                            "visit_variable_declaration",       // g
-                            "visit_variable_declaration",       // h
-                            "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f(
+                              "visit_exit_function_scope",        // )
+                              "visit_enter_function_scope",       // g(
+                              "visit_exit_function_scope",        // )
+                              "visit_enter_function_scope",       // h(
+                              "visit_enter_function_scope_body",  // ){
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // g
+                              "visit_variable_declaration",       // h
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.variable_declarations,
                 UnorderedElementsAre(function_decl(u8"f"), function_decl(u8"g"),
                                      function_decl(u8"h")));
@@ -921,15 +1034,17 @@ TEST_F(test_parse_typescript_function,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_have_same_name,
-            overload_name, strlen(u8"function f();\nfunction "), u8"g",  //
-            function_name, strlen(u8"function f();\nfunction g();\nfunction "),
-            u8"f")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name, strlen(u8"function f();\nfunction "), u8"g",  //
+                function_name,
+                strlen(u8"function f();\nfunction g();\nfunction "), u8"f"),
+        }));
   }
 
   {
@@ -940,15 +1055,17 @@ TEST_F(test_parse_typescript_function,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_have_same_name,
-            overload_name, strlen(u8"function "), u8"f",  //
-            function_name, strlen(u8"function f();\nfunction g();\nfunction "),
-            u8"g")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name, strlen(u8"function "), u8"f",  //
+                function_name,
+                strlen(u8"function f();\nfunction g();\nfunction "), u8"g"),
+        }));
   }
 
   {
@@ -963,27 +1080,29 @@ TEST_F(test_parse_typescript_function,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_have_same_name,
-            overload_name,
-            strlen(u8"function f();\n"
-                   u8"function f();\n"
-                   u8"function f();\n"
-                   u8"function "),
-            u8"g",  //
-            function_name,
-            strlen(u8"function f();\n"
-                   u8"function f();\n"
-                   u8"function f();\n"
-                   u8"function g();\n"
-                   u8"function f();\n"
-                   u8"function f();\n"
-                   u8"function "),
-            u8"g")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_have_same_name,
+                overload_name,
+                strlen(u8"function f();\n"
+                       u8"function f();\n"
+                       u8"function f();\n"
+                       u8"function "),
+                u8"g",  //
+                function_name,
+                strlen(u8"function f();\n"
+                       u8"function f();\n"
+                       u8"function f();\n"
+                       u8"function g();\n"
+                       u8"function f();\n"
+                       u8"function f();\n"
+                       u8"function "),
+                u8"g"),
+        }));
   }
 
   {
@@ -992,20 +1111,24 @@ TEST_F(test_parse_typescript_function,
         u8"function g() {}"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_variable_declaration",       // g
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope",        // }
-                            "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_variable_declaration",       // g
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_function_body, expected_body,
-                              strlen(u8"function f()"), u8"")))
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_function_body, expected_body,
+                              strlen(u8"function f()"), u8""),
+        }))
         << "missing function body is more likely, so don't report "
            "diag_typescript_function_overload_signature_must_have_same_name";
   }
@@ -1017,26 +1140,30 @@ TEST_F(test_parse_typescript_function,
         u8"function g() { await(myPromise); }"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_variable_use",               // async
-                            "visit_variable_declaration",       // g
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_variable_use",               // await
-                            "visit_variable_use",               // myPromise
-                            "visit_exit_function_scope",        // }
-                            "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_variable_use",               // async
+                              "visit_variable_declaration",       // g
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_variable_use",               // await
+                              "visit_variable_use",               // myPromise
+                              "visit_exit_function_scope",        // }
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
     EXPECT_THAT(p.variable_uses,
-                ElementsAre(u8"async", u8"await", u8"myPromise"))
+                ElementsAreArray({u8"async", u8"await", u8"myPromise"}))
         << "'async' should be a variable reference, not a keyword";
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_function_body, expected_body,
-                              strlen(u8"function f()"), u8"")))
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_function_body, expected_body,
+                              strlen(u8"function f()"), u8""),
+        }))
         << "missing function body is more likely, so don't report "
            "diag_typescript_function_overload_signature_must_have_same_name";
   }
@@ -1055,23 +1182,27 @@ TEST_F(test_parse_typescript_function,
         u8"function f() { await(myPromise); }"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_variable_use",               // myPromise
-                            "visit_exit_function_scope",        // }
-                            "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_variable_use",               // myPromise
+                              "visit_exit_function_scope",        // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            p.code, diag_newline_not_allowed_between_async_and_function_keyword,
-            async_keyword, strlen(u8"function f()\n"), u8"async",  //
-            function_keyword, strlen(u8"function f()\nasync\n"),
-            u8"function")));
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_newline_not_allowed_between_async_and_function_keyword,
+                async_keyword, strlen(u8"function f()\n"), u8"async",  //
+                function_keyword, strlen(u8"function f()\nasync\n"),
+                u8"function"),
+        }));
   }
 }
 
@@ -1083,22 +1214,25 @@ TEST_F(test_parse_typescript_function,
         u8"function *f() { yield(myValue); }"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       //
-                            "visit_exit_function_scope",        //
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  // {
-                            "visit_variable_use",               // myValue
-                            "visit_exit_function_scope",        // }
-                            "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_variable_use",               // myValue
+                              "visit_exit_function_scope",        // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_not_have_generator_star,
-            generator_star, strlen(u8"function "), u8"*")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_not_have_generator_star,
+                generator_star, strlen(u8"function "), u8"*"),
+        }));
   }
 
   {
@@ -1108,10 +1242,10 @@ TEST_F(test_parse_typescript_function,
         u8"function *f(...args) { yield(myValue); }"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
+        ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_function_overload_signature_must_not_have_generator_star,
@@ -1119,7 +1253,8 @@ TEST_F(test_parse_typescript_function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_function_overload_signature_must_not_have_generator_star,
-                generator_star, strlen(u8"function *f(a);function "), u8"*")));
+                generator_star, strlen(u8"function *f(a);function "), u8"*"),
+        }));
   }
 
   {
@@ -1129,14 +1264,16 @@ TEST_F(test_parse_typescript_function,
         u8"function f(...args) { yield(myValue); }"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"yield", u8"myValue"))
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"yield", u8"myValue"}))
         << "'yield' should not be a keyword in the implementation";
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_function_overload_signature_must_not_have_generator_star,
-            generator_star, strlen(u8"function "), u8"*")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_function_overload_signature_must_not_have_generator_star,
+                generator_star, strlen(u8"function "), u8"*"),
+        }));
   }
 }
 }

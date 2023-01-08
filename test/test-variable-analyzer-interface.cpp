@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -66,9 +67,10 @@ TEST(test_variable_analyzer_interface,
     l.visit_exit_interface_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                           span_of(type_use))));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(type_use)),
+                          }));
   }
 }
 

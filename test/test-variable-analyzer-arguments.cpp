@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -46,9 +47,10 @@ TEST(test_variable_analyzer_arguments,
   l.visit_variable_use(identifier_of(arguments_use));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
-                                         span_of(arguments_use))));
+  EXPECT_THAT(v.errors, ElementsAreArray({
+                            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(arguments_use)),
+                        }));
 }
 
 TEST(test_variable_analyzer_arguments,
@@ -178,11 +180,13 @@ TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_SPANS(
-                    diag_variable_used_before_declaration,  //
-                    use, span_of(arguments_use),            //
-                    declaration, span_of(arguments_declaration))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_SPANS(diag_variable_used_before_declaration,  //
+                              use, span_of(arguments_use),            //
+                              declaration, span_of(arguments_declaration)),
+        }));
   }
 }
 

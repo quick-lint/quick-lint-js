@@ -12,9 +12,8 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/variable-analyzer-support.h>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
@@ -87,8 +86,11 @@ TEST(test_variable_analyzer_type, type_use_with_no_declaration_is_an_error) {
   l.visit_variable_type_use(identifier_of(use));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type,
-                                                   name, span_of(use))));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAreArray({
+          DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+      }));
 }
 
 TEST(test_variable_analyzer_type,
@@ -113,9 +115,11 @@ TEST(test_variable_analyzer_type,
     l.visit_variable_type_use(identifier_of(use));
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                           span_of(use))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+        }));
   }
 }
 
@@ -316,9 +320,11 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
 
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                             span_of(use))));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAreArray({
+              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+          }));
     }
 
     {
@@ -337,9 +343,11 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
 
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                             span_of(use))));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAreArray({
+              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+          }));
     }
 
     {
@@ -359,9 +367,11 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
 
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                             span_of(use))));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAreArray({
+              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+          }));
     }
 
     {
@@ -386,9 +396,11 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
 
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
-                                             span_of(use))));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAreArray({
+              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name, span_of(use)),
+          }));
     }
   }
 }
@@ -437,18 +449,20 @@ TEST(test_variable_analyzer_type,
               -> diags_matcher {
             if (runtime_var_kind.has_value()) {
               if (*runtime_var_kind == variable_kind::_const) {
-                return ElementsAre(
+                return ElementsAreArray({
                     DIAG_TYPE_2_SPANS(diag_assignment_to_const_variable,  //
                                       assignment, span_of(assignment),    //
-                                      declaration, span_of(outer_declaration)));
+                                      declaration, span_of(outer_declaration)),
+                });
               } else {
                 return IsEmpty();
               }
             } else {
               // TODO(strager): Report a more helpful message.
-              return ElementsAre(
+              return ElementsAreArray({
                   DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
-                                 assignment, span_of(assignment)));
+                                 assignment, span_of(assignment)),
+              });
             }
           },
       },
@@ -463,10 +477,12 @@ TEST(test_variable_analyzer_type,
           .get_diags_matcher = [](std::optional<variable_kind> runtime_var_kind)
               -> diags_matcher {
             if (runtime_var_kind.has_value()) {
-              return ElementsAre(DIAG_TYPE_FIELD(
-                  diag_redundant_delete_statement_on_variable,
-                  delete_expression,
-                  offsets_matcher(&delete_expression, 0, u8"delete I")));
+              return ElementsAreArray({
+                  DIAG_TYPE_FIELD(
+                      diag_redundant_delete_statement_on_variable,
+                      delete_expression,
+                      offsets_matcher(&delete_expression, 0, u8"delete I")),
+              });
             } else {
               return IsEmpty();
             }
@@ -484,8 +500,10 @@ TEST(test_variable_analyzer_type,
            return IsEmpty();
          } else {
            // TODO(strager): Report a more helpful message.
-           return ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
-                                             name, span_of(use)));
+           return ElementsAreArray({
+               DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                              span_of(use)),
+           });
          }
        }},
   };
@@ -823,13 +841,14 @@ TEST(test_variable_analyzer_type, interfaces_conflict_with_generic_parameters) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      ElementsAre(DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,  //
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,  //
                                     redeclaration,
                                     span_of(interface_declaration),  //
                                     original_declaration,
-                                    span_of(generic_parameter_declaration))));
+                                    span_of(generic_parameter_declaration)),
+              }));
 }
 
 TEST(test_variable_analyzer_type, type_predicate_finds_function_parameter) {
@@ -879,10 +898,12 @@ TEST(test_variable_analyzer_type,
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_SPAN(
-                  diag_use_of_undeclared_parameter_in_type_predicate,  //
-                  name, span_of(parameter_use))));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAreArray({
+          DIAG_TYPE_SPAN(diag_use_of_undeclared_parameter_in_type_predicate,  //
+                         name, span_of(parameter_use)),
+      }));
 }
 
 TEST(test_variable_analyzer_type,
@@ -907,10 +928,12 @@ TEST(test_variable_analyzer_type,
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_SPAN(
-                  diag_use_of_undeclared_parameter_in_type_predicate,  //
-                  name, span_of(parameter_use))));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAreArray({
+          DIAG_TYPE_SPAN(diag_use_of_undeclared_parameter_in_type_predicate,  //
+                         name, span_of(parameter_use)),
+      }));
 }
 }
 }

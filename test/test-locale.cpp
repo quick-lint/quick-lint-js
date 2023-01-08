@@ -6,48 +6,51 @@
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
 TEST(test_locale, combinations_for_language) {
-  EXPECT_THAT(locale_name_combinations("en"), ElementsAre("en"));
+  EXPECT_THAT(locale_name_combinations("en"), ElementsAreArray({"en"}));
 }
 
 TEST(test_locale, combinations_for_language_with_territory) {
-  EXPECT_THAT(locale_name_combinations("fr_FR"), ElementsAre("fr_FR", "fr"));
+  EXPECT_THAT(locale_name_combinations("fr_FR"),
+              ElementsAreArray({"fr_FR", "fr"}));
 }
 
 TEST(test_locale, combinations_for_language_with_codeset) {
   EXPECT_THAT(locale_name_combinations("fr.utf8"),
-              ElementsAre("fr.utf8", "fr"));
+              ElementsAreArray({"fr.utf8", "fr"}));
 }
 
 TEST(test_locale, combinations_for_language_with_modifier) {
-  EXPECT_THAT(locale_name_combinations("fr@bon"), ElementsAre("fr@bon", "fr"));
+  EXPECT_THAT(locale_name_combinations("fr@bon"),
+              ElementsAreArray({"fr@bon", "fr"}));
 }
 
 TEST(test_locale, combinations_for_language_with_territory_and_modifier) {
   EXPECT_THAT(locale_name_combinations("fr_FR@bon"),
-              ElementsAre("fr_FR@bon", "fr@bon", "fr_FR", "fr"));
+              ElementsAreArray({"fr_FR@bon", "fr@bon", "fr_FR", "fr"}));
 }
 
 TEST(test_locale, combinations_for_language_with_territory_and_codeset) {
   EXPECT_THAT(locale_name_combinations("fr_FR.utf8"),
-              ElementsAre("fr_FR.utf8", "fr_FR", "fr.utf8", "fr"));
+              ElementsAreArray({"fr_FR.utf8", "fr_FR", "fr.utf8", "fr"}));
 }
 
 TEST(test_locale,
      combinations_for_language_with_territory_and_codeset_and_modifier) {
-  EXPECT_THAT(locale_name_combinations("fr_FR.utf8@bon"),
-              ElementsAre("fr_FR.utf8@bon", "fr_FR@bon", "fr.utf8@bon",
-                          "fr@bon", "fr_FR.utf8", "fr_FR", "fr.utf8", "fr"));
+  EXPECT_THAT(
+      locale_name_combinations("fr_FR.utf8@bon"),
+      ElementsAreArray({"fr_FR.utf8@bon", "fr_FR@bon", "fr.utf8@bon", "fr@bon",
+                        "fr_FR.utf8", "fr_FR", "fr.utf8", "fr"}));
 }
 
 TEST(test_locale, modifier_can_contain_underscores_and_at_signs) {
   EXPECT_THAT(locale_name_combinations("fr@a_b@c"),
-              ElementsAre("fr@a_b@c", "fr"));
+              ElementsAreArray({"fr@a_b@c", "fr"}));
 }
 
 template <class Func>

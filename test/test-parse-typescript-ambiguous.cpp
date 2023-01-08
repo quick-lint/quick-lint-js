@@ -19,7 +19,7 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -29,17 +29,21 @@ TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   {
     test_parser p(u8"async<T>();"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
-                                      "visit_variable_use"));     // async
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"async"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_use",       // async
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"async"}));
   }
 
   {
     test_parser p(u8"async<T>;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
-                                      "visit_variable_use"));     // async
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"async"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_use",       // async
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"async"}));
   }
 }
 
@@ -47,9 +51,11 @@ TEST_F(test_parse_typescript_ambiguous, async_variable_less_than_expression) {
   {
     test_parser p(u8"async < someexpr;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // async
-                                      "visit_variable_use"));  // someexpr
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"async", u8"someexpr"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // async
+                              "visit_variable_use",  // someexpr
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async", u8"someexpr"}));
   }
 }
 }

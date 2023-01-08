@@ -25,6 +25,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::_;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 using ::testing::VariantWith;
@@ -51,10 +52,14 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                                              token, 0, token)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
-                                      "visit_end_of_module"));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
+                                      token, 0, token),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // x
+                              "visit_end_of_module",
+                          }));
   }
 }
 
@@ -64,28 +69,32 @@ TEST_F(test_parse, comma_not_allowed_between_class_methods) {
         u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv,
         capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_comma_not_allowed_between_class_methods,  //
-                    unexpected_comma, 44, u8",")));
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",          //
-                            "visit_enter_class_scope_body",     //
-                            "visit_property_declaration",       //
-                            "visit_enter_function_scope",       //
-                            "visit_enter_function_scope_body",  //
-                            "visit_exit_function_scope",        //
-                            "visit_property_declaration",       //
-                            "visit_enter_function_scope",       //
-                            "visit_variable_declaration",       //
-                            "visit_enter_function_scope_body",  //
-                            "visit_enter_block_scope",          //
-                            "visit_variable_use",               //
-                            "visit_variable_use",               //
-                            "visit_exit_block_scope",           //
-                            "visit_exit_function_scope",        //
-                            "visit_exit_class_scope",           //
-                            "visit_variable_declaration"));     // f
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_comma_not_allowed_between_class_methods,  //
+                              unexpected_comma, 44, u8","),
+        }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          //
+                              "visit_enter_class_scope_body",     //
+                              "visit_property_declaration",       //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  //
+                              "visit_exit_function_scope",        //
+                              "visit_property_declaration",       //
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       //
+                              "visit_enter_function_scope_body",  //
+                              "visit_enter_block_scope",          //
+                              "visit_variable_use",               //
+                              "visit_variable_use",               //
+                              "visit_exit_block_scope",           //
+                              "visit_exit_function_scope",        //
+                              "visit_exit_class_scope",           //
+                              "visit_variable_declaration",       // f
+                          }));
   }
 }
 
@@ -97,7 +106,7 @@ TEST_F(test_parse, commas_not_allowed_between_class_methods) {
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(
+        ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
                               unexpected_comma, 10, u8","),
@@ -124,26 +133,28 @@ TEST_F(test_parse, commas_not_allowed_between_class_methods) {
                               unexpected_comma, 112, u8","),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 113, u8",")));
+                              unexpected_comma, 113, u8","),
+        }));
 
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_enter_class_scope",          // {
-                            "visit_enter_class_scope_body",     //
-                            "visit_property_declaration",       // constructor
-                            "visit_enter_function_scope",       // ()
-                            "visit_enter_function_scope_body",  // {
-                            "visit_exit_function_scope",        // }
-                            "visit_property_declaration",       // ontext
-                            "visit_enter_function_scope",       // (
-                            "visit_variable_declaration",       // text)
-                            "visit_enter_function_scope_body",  // { if
-                            "visit_enter_block_scope",          // {
-                            "visit_variable_use",               // this._a
-                            "visit_variable_use",               // text
-                            "visit_exit_block_scope",           // }
-                            "visit_exit_function_scope",        // }
-                            "visit_exit_class_scope",           // }
-                            "visit_variable_declaration"));     // class f
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // {
+                              "visit_enter_class_scope_body",     //
+                              "visit_property_declaration",       // constructor
+                              "visit_enter_function_scope",       // ()
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_property_declaration",       // ontext
+                              "visit_enter_function_scope",       // (
+                              "visit_variable_declaration",       // text)
+                              "visit_enter_function_scope_body",  // { if
+                              "visit_enter_block_scope",          // {
+                              "visit_variable_use",               // this._a
+                              "visit_variable_use",               // text
+                              "visit_exit_block_scope",           // }
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // class f
+                          }));
   }
 }
 
@@ -156,7 +167,7 @@ TEST_F(test_parse, asi_for_statement_at_right_curly) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"f"), function_decl(u8"g")));
+                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
   }
 }
 
@@ -167,7 +178,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"console", u8"console"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console", u8"console"}));
   }
 
   for (string8_view second_statement : {
@@ -183,8 +194,9 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     SCOPED_TRACE(p.code);
     auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"cond"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_init_decl(u8"x")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"cond"}));
   }
 
   {
@@ -193,13 +205,15 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
                   capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"console", u8"console"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console", u8"console"}));
     cli_source_position::offset_type end_of_first_expression =
         strlen(u8"console.log('hello')");
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_missing_semicolon_after_statement,  //
-                    where, end_of_first_expression, u8"")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, end_of_first_expression, u8""),
+                }));
   }
 
   for (string8_view variable_kind : {u8"const", u8"let", u8"var"}) {
@@ -210,9 +224,10 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // a
-                            "visit_variable_declaration"));  // b
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // a
+                              "visit_variable_declaration",  // b
+                          }));
   }
 
   {
@@ -220,9 +235,10 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",  // a
-                            "visit_variable_use"));        // b
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // a
+                              "visit_variable_use",          // b
+                          }));
   }
 
   {
@@ -230,10 +246,11 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_use",            // a
-                            "visit_variable_use",            // b
-                            "visit_variable_declaration"));  // x
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // a
+                              "visit_variable_use",          // b
+                              "visit_variable_declaration",  // x
+                          }));
   }
 }
 
@@ -276,7 +293,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
     auto guard = p.enter_function(function_attributes::async);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
   }
 
   {
@@ -284,7 +301,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
     auto guard = p.enter_function(function_attributes::generator);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
   }
 
   for (string8 keyword : contextual_keywords) {
@@ -297,10 +314,12 @@ TEST_F(test_parse, asi_between_expression_statements) {
   {
     test_parser p(u8"one\n#two\nthree"_sv, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"one", u8"three"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(
-                    diag_cannot_refer_to_private_variable_without_object)));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"one", u8"three"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE(diag_cannot_refer_to_private_variable_without_object),
+        }));
   }
 }
 
@@ -317,7 +336,7 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
     )"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses,
-                ElementsAre(u8"x", u8"a", u8"f", u8"b", u8"g"));
+                ElementsAreArray({u8"x", u8"a", u8"f", u8"b", u8"g"}));
   }
 
   {
@@ -331,7 +350,8 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
       }
     )"_sv);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"a", u8"f", u8"g"));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"x", u8"a", u8"f", u8"g"}));
   }
 }
 
@@ -339,13 +359,14 @@ TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
   {
     test_parser p(u8"f()\nclass C {}"_sv);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_use",            // f
-                            "visit_enter_class_scope",       // {
-                            "visit_enter_class_scope_body",  // C
-                            "visit_exit_class_scope",        // }
-                            "visit_variable_declaration",    // C
-                            "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",            // f
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
   }
 }
 
@@ -361,8 +382,10 @@ TEST_F(test_parse, utter_garbage) {
     test_parser p(u8"if :\nkjaslkjd;kjaslkjd"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // kjaslkjd
-                                      "visit_variable_use"));  // kjaslkjd
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // kjaslkjd
+                              "visit_variable_use",  // kjaslkjd
+                          }));
     EXPECT_THAT(
         p.errors,
         UnorderedElementsAre(
@@ -378,11 +401,15 @@ TEST_F(test_parse, statement_starting_with_extends) {
   {
     test_parser p(u8"extends Base"_sv, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // Base
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // Base
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                                              token, 0, u8"extends")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
+                                      token, 0, u8"extends"),
+                }));
   }
 }
 
@@ -390,10 +417,14 @@ TEST_F(test_parse, stray_right_curly_at_top_level) {
   {
     test_parser p(u8"}"_sv, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_unmatched_right_curly,  //
-                              right_curly, 0, u8"}")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_unmatched_right_curly,  //
+                                      right_curly, 0, u8"}"),
+                }));
   }
 }
 
@@ -408,26 +439,36 @@ TEST_F(
       test_parser p(escaped_keyword, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, 0, u8"\\u{??}")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_keyword_variable_use",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_keywords_cannot_contain_escape_sequences,  //
+                  escape_sequence, 0, u8"\\u{??}"),
+          }));
     }
 
     {
       test_parser p(concat(u8"(", escaped_keyword, u8")"), capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"("), u8"\\u{??}")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_keyword_variable_use",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_keywords_cannot_contain_escape_sequences,  //
+                  escape_sequence, strlen(u8"("), u8"\\u{??}"),
+          }));
     }
   }
 }
@@ -438,59 +479,79 @@ TEST_F(
   {
     test_parser p(u8"const \\u{69}f = 42;"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(u8"if")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({const_init_decl(u8"if")}));
   }
 
   {
     test_parser p(u8"let \\u{69}f;"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"if")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_noinit_decl(u8"if")}));
   }
 
   {
     test_parser p(u8"var \\u{69}f;"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(u8"if")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({var_noinit_decl(u8"if")}));
   }
 
   {
     test_parser p(u8"function g(\\u{69}f) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // g
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // if
+                              "visit_enter_function_scope_body",  //
+                              "visit_exit_function_scope",
+                          }));
     EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // g
-                                      "visit_enter_function_scope",       //
-                                      "visit_variable_declaration",       // if
-                                      "visit_enter_function_scope_body",  //
-                                      "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(function_decl(u8"g"), func_param_decl(u8"if")));
+        p.variable_declarations,
+        ElementsAreArray({function_decl(u8"g"), func_param_decl(u8"if")}));
   }
 
   {
     test_parser p(u8"((\\u{69}f) => {})()"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
-                                      "visit_variable_declaration",       // if
-                                      "visit_enter_function_scope_body",  //
-                                      "visit_exit_function_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(arrow_param_decl(u8"if")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+                }));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // if
+                              "visit_enter_function_scope_body",  //
+                              "visit_exit_function_scope",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"if")}));
   }
 }
 
@@ -504,9 +565,11 @@ TEST_F(test_parse,
       test_parser p(escaped_keyword, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_use",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -514,9 +577,11 @@ TEST_F(test_parse,
       test_parser p(concat(u8"({ ", escaped_keyword, u8" })"), capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_use",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -525,10 +590,12 @@ TEST_F(test_parse,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
-                                        "visit_enter_function_scope_body",  //
-                                        "visit_exit_function_scope",        //
-                                        "visit_end_of_module"));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_function_scope",       //
+                                "visit_enter_function_scope_body",  //
+                                "visit_exit_function_scope",        //
+                                "visit_end_of_module",
+                            }));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -537,7 +604,9 @@ TEST_F(test_parse,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_end_of_module",
+                            }));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -546,9 +615,12 @@ TEST_F(test_parse,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(keyword)));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({var_init_decl(keyword)}));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -557,11 +629,14 @@ TEST_F(test_parse,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // a
-                                        "visit_variable_use",          // b
-                                        "visit_variable_declaration",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(keyword)));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_use",          // a
+                                "visit_variable_use",          // b
+                                "visit_variable_declaration",  //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({var_init_decl(keyword)}));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -570,16 +645,18 @@ TEST_F(test_parse,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",          //
-                                        "visit_enter_class_scope_body",     //
-                                        "visit_property_declaration",       //
-                                        "visit_enter_function_scope",       //
-                                        "visit_enter_function_scope_body",  //
-                                        "visit_exit_function_scope",        //
-                                        "visit_exit_class_scope",           //
-                                        "visit_variable_declaration",       // C
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_class_scope",          //
+                                "visit_enter_class_scope_body",     //
+                                "visit_property_declaration",       //
+                                "visit_enter_function_scope",       //
+                                "visit_enter_function_scope_body",  //
+                                "visit_exit_function_scope",        //
+                                "visit_exit_class_scope",           //
+                                "visit_variable_declaration",       // C
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
   }
@@ -608,10 +685,11 @@ TEST_F(test_parse, unimplemented_token_doesnt_crash_if_caught) {
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&unimplemented_token_code,
-                                              diag_unexpected_token,  //
-                                              token, 0, u8"]")));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE_OFFSETS(&unimplemented_token_code,
+                                                diag_unexpected_token,  //
+                                                token, 0, u8"]"),
+                          }));
   }
 }
 
@@ -629,7 +707,9 @@ TEST_F(test_parse, unimplemented_token_returns_to_innermost_handler) {
     });
     EXPECT_TRUE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_unexpected_token),
+                          }));
   }
 }
 
@@ -650,7 +730,9 @@ TEST_F(test_parse,
     });
     EXPECT_FALSE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_unexpected_token),
+                          }));
   }
 }
 
@@ -691,7 +773,9 @@ TEST_F(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
     EXPECT_THAT(v.errors, IsEmpty())
         << "diag_unexpected_token should be buffered in the transaction";
     p.commit_transaction(std::move(transaction));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)))
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_unexpected_token),
+                          }))
         << "diag_unexpected_token should be reported when committing the "
            "transaction";
   }
@@ -838,7 +922,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_depth_limit_exceeded),
+                          }));
   }
 
   {
@@ -859,7 +945,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
         capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_depth_limit_exceeded),
+                          }));
   }
 
   for (const string8& jsx : {
@@ -879,7 +967,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_depth_limit_exceeded),
+                          }));
   }
 
   for (const string8& type : {
@@ -891,7 +981,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_depth_limit_exceeded),
+                          }));
   }
 }
 }

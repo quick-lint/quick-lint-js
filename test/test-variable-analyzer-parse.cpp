@@ -15,6 +15,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -28,10 +29,13 @@ TEST(test_variable_analyzer_parse,
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
-                            &input, diag_variable_used_before_declaration,  //
-                            use, 8, u8"y",                                  //
-                            declaration, 11, u8"y")));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAreArray({
+          DIAG_TYPE_2_OFFSETS(&input, diag_variable_used_before_declaration,  //
+                              use, 8, u8"y",                                  //
+                              declaration, 11, u8"y"),
+      }));
 }
 
 TEST(
@@ -57,10 +61,12 @@ TEST(test_variable_analyzer_parse,
   p.parse_and_visit_module(l);
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_2_FIELDS(
-                  diag_assignment_to_const_variable,                 //
-                  assignment, offsets_matcher(&input, 26, 26 + 14),  //
-                  declaration, offsets_matcher(&input, 6, 6 + 14))));
+              ElementsAreArray({
+                  DIAG_TYPE_2_FIELDS(
+                      diag_assignment_to_const_variable,                 //
+                      assignment, offsets_matcher(&input, 26, 26 + 14),  //
+                      declaration, offsets_matcher(&input, 6, 6 + 14)),
+              }));
 }
 
 TEST(test_variable_analyzer_parse,
@@ -110,10 +116,13 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_on_const_variable) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
-                              diag_assignment_to_const_variable, assignment,
-                              offsets_matcher(&input, 16, 16 + 1), declaration,
-                              offsets_matcher(&input, 6, 6 + 1))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(diag_assignment_to_const_variable, assignment,
+                               offsets_matcher(&input, 16, 16 + 1), declaration,
+                               offsets_matcher(&input, 6, 6 + 1)),
+        }));
   }
 
   {
@@ -148,10 +157,13 @@ TEST(test_variable_analyzer_parse, prefix_plusplus_plus_operand) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
-                              diag_assignment_to_const_variable, assignment,
-                              offsets_matcher(&input, 31, 31 + 1), declaration,
-                              offsets_matcher(&input, 6, 6 + 1))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(diag_assignment_to_const_variable, assignment,
+                               offsets_matcher(&input, 31, 31 + 1), declaration,
+                               offsets_matcher(&input, 6, 6 + 1)),
+        }));
   }
 }
 
@@ -187,9 +199,10 @@ TEST(test_variable_analyzer_parse, escape_sequence_in_keyword_identifier) {
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences),
+              }));
 }
 
 TEST(test_variable_analyzer_parse, delete_local_variable) {
@@ -201,10 +214,11 @@ TEST(test_variable_analyzer_parse, delete_local_variable) {
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      ElementsAre(DIAG_TYPE(diag_redundant_delete_statement_on_variable),
-                  DIAG_TYPE(diag_redundant_delete_statement_on_variable)));
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE(diag_redundant_delete_statement_on_variable),
+                  DIAG_TYPE(diag_redundant_delete_statement_on_variable),
+              }));
 }
 
 TEST(test_variable_analyzer_parse, extends_self) {
@@ -220,8 +234,9 @@ TEST(test_variable_analyzer_parse, extends_self) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_variable_used_before_declaration),
+                          }));
   }
 
   {
@@ -236,8 +251,9 @@ TEST(test_variable_analyzer_parse, extends_self) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_variable_used_before_declaration),
+                          }));
   }
 
   {
@@ -252,8 +268,9 @@ TEST(test_variable_analyzer_parse, extends_self) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+    EXPECT_THAT(v.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_variable_used_before_declaration),
+                          }));
   }
 }
 

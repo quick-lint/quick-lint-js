@@ -21,6 +21,7 @@
 
 using ::testing::Contains;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -34,11 +35,14 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
       u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
       options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                            p.code, diag_jsx_not_allowed_in_javascript,  //
-                            jsx_start, 0, u8"<")));
+  EXPECT_THAT(
+      p.errors,
+      ElementsAreArray({
+          DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_javascript,  //
+                            jsx_start, 0, u8"<"),
+      }));
   EXPECT_THAT(p.variable_uses,
-              ElementsAre(u8"MyComponent", u8"value", u8"Inner"));
+              ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
 }
 
 TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
@@ -51,21 +55,27 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
         u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
         options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_jsx_not_allowed_in_typescript,  //
-                              jsx_start, 0, u8"<")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_typescript,  //
+                              jsx_start, 0, u8"<"),
+        }));
     EXPECT_THAT(p.variable_uses,
-                ElementsAre(u8"MyComponent", u8"value", u8"Inner"));
+                ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
   }
 
   {
     test_parser p(u8"<><Inner>hello</Inner><Inner /></>"_sv, options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_jsx_not_allowed_in_typescript,  //
-                              jsx_start, 0, u8"<")));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Inner", u8"Inner"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_typescript,  //
+                              jsx_start, 0, u8"<"),
+        }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Inner", u8"Inner"}));
   }
 
   // TODO(strager): Detect more cases. There is syntax overlap with generic
@@ -75,8 +85,10 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
 TEST_F(test_parse_jsx, empty_intrinsic_element) {
   test_parser p(u8"c = <div></div>;"_sv, jsx_options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_assignment",  // c
-                                    "visit_end_of_module"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_assignment",  // c
+                            "visit_end_of_module",
+                        }));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -84,10 +96,12 @@ TEST_F(test_parse_jsx, empty_user_element) {
   test_parser p(u8"c = <MyComponent></MyComponent>;"_sv, jsx_options,
                 capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // MyComponent
-                                    "visit_variable_assignment",  // c
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_uses, ElementsAre(u8"MyComponent"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_use",         // MyComponent
+                            "visit_variable_assignment",  // c
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyComponent"}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -96,10 +110,12 @@ TEST_F(test_parse_jsx, member_component) {
       u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv,
       jsx_options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // module
-                                    "visit_variable_assignment",  // c
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_uses, ElementsAre(u8"module"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_use",         // module
+                            "visit_variable_assignment",  // c
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"module"}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -108,7 +124,7 @@ TEST_F(test_parse_jsx, element_child_element) {
     test_parser p(u8"c = <outer><INNER></INNER></outer>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -116,7 +132,7 @@ TEST_F(test_parse_jsx, element_child_element) {
     test_parser p(u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -124,7 +140,7 @@ TEST_F(test_parse_jsx, element_child_element) {
     test_parser p(u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -133,14 +149,14 @@ TEST_F(test_parse_jsx, element_child_element) {
         u8"c = <outer.Component><INNER></INNER></outer.Component>;"_sv,
         jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"outer", u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"c = <><INNER></INNER></>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -150,7 +166,7 @@ TEST_F(test_parse_jsx, element_child_expression) {
     test_parser p(u8"c = <outer>{INNER}</outer>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -158,7 +174,7 @@ TEST_F(test_parse_jsx, element_child_expression) {
     test_parser p(u8"c = <OUTER>{INNER}</OUTER>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -166,7 +182,7 @@ TEST_F(test_parse_jsx, element_child_expression) {
     test_parser p(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -174,14 +190,14 @@ TEST_F(test_parse_jsx, element_child_expression) {
     test_parser p(u8"c = <outer.Component>{INNER}</outer.Component>;"_sv,
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"outer", u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"c = <>{INNER}</>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -191,7 +207,7 @@ TEST_F(test_parse_jsx, element_attribute_expression) {
     test_parser p(u8"c = <outer attr={attrValue}></outer>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"attrValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -199,7 +215,7 @@ TEST_F(test_parse_jsx, element_attribute_expression) {
     test_parser p(u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"attrValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"attrValue"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -207,7 +223,7 @@ TEST_F(test_parse_jsx, element_attribute_expression) {
     test_parser p(u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv,
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"attrValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -216,7 +232,7 @@ TEST_F(test_parse_jsx, element_attribute_expression) {
         u8"c = <outer.Component attr={attrValue}></outer.Component>;"_sv,
         jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"outer", u8"attrValue"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"attrValue"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -225,11 +241,13 @@ TEST_F(test_parse_jsx, attribute_without_name_must_be_spread) {
   {
     test_parser p(u8"c = <div {attr} />;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"attr"));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attr"}));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_missing_dots_for_attribute_spread,  //
-                    expected_dots, strlen(u8"c = <div {"), u8"")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_dots_for_attribute_spread,  //
+                        expected_dots, strlen(u8"c = <div {"), u8""),
+                }));
   }
 }
 
@@ -238,28 +256,36 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = <div></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code, diag_mismatched_jsx_tags,              //
-                    opening_tag_name, strlen(u8"c = <"), u8"div",  //
-                    closing_tag_name, strlen(u8"c = <div></"), u8"span")));
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_mismatched_jsx_tags,              //
+                        opening_tag_name, strlen(u8"c = <"), u8"div",  //
+                        closing_tag_name, strlen(u8"c = <div></"), u8"span"),
+                }));
   }
 
   // opening_tag_name span for normal tag:
   {
     test_parser p(u8"c = < div ></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_mismatched_jsx_tags,  //
-                              opening_tag_name, strlen(u8"c = < "), u8"div")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                              opening_tag_name, strlen(u8"c = < "), u8"div"),
+        }));
   }
 
   // opening_tag_name span for fragment tag:
   {
     test_parser p(u8"c = <  ></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_mismatched_jsx_tags,  //
-                              opening_tag_name, strlen(u8"c = <"), u8"")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                              opening_tag_name, strlen(u8"c = <"), u8""),
+        }));
   }
 
   // opening_tag_name span for member tag:
@@ -267,10 +293,12 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = < module . Component ></span>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_mismatched_jsx_tags,  //
-                              opening_tag_name, strlen(u8"c = < "),
-                              u8"module . Component")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                      opening_tag_name, strlen(u8"c = < "),
+                                      u8"module . Component"),
+                }));
   }
 
   // opening_tag_name span for namespaced tag:
@@ -279,9 +307,11 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_mismatched_jsx_tags,  //
-                    opening_tag_name, strlen(u8"c = < "), u8"svg : path")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                      opening_tag_name, strlen(u8"c = < "),
+                                      u8"svg : path"),
+                }));
   }
 
   // closing_tag_name span for normal tag:
@@ -289,9 +319,11 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = <div></ span >;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_mismatched_jsx_tags,  //
-                    closing_tag_name, strlen(u8"c = <div></ "), u8"span")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                      closing_tag_name,
+                                      strlen(u8"c = <div></ "), u8"span"),
+                }));
   }
 
   // closing_tag_name span for fragment tag:
@@ -299,9 +331,11 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = <div></  >;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_mismatched_jsx_tags,  //
-                    closing_tag_name, strlen(u8"c = <div></  "), u8"")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                      closing_tag_name,
+                                      strlen(u8"c = <div></  "), u8""),
+                }));
   }
 
   // closing_tag_name span for member tag:
@@ -309,38 +343,46 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = <div></ module . Component >;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_mismatched_jsx_tags,  //
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                               closing_tag_name, strlen(u8"c = <div></ "),
-                              u8"module . Component")));
+                              u8"module . Component"),
+        }));
   }
 
   // closing_tag_name span for namespaced tag:
   {
     test_parser p(u8"c = <div></ svg : path >;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_mismatched_jsx_tags,  //
-                              closing_tag_name, strlen(u8"c = <div></ "),
-                              u8"svg : path")));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                      closing_tag_name,
+                                      strlen(u8"c = <div></ "), u8"svg : path"),
+                }));
   }
 
   // opening_tag_name_pretty for normal tag:
   {
     test_parser p(u8"c = <div></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"div"sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                    opening_tag_name_pretty, u8"div"sv),
+                }));
   }
 
   // opening_tag_name_pretty for fragment tag:
   {
     test_parser p(u8"c = <  ></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                            opening_tag_name_pretty, u8""sv)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                              opening_tag_name_pretty, u8""sv),
+                          }));
   }
 
   // opening_tag_name_pretty for member tag:
@@ -348,18 +390,22 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     test_parser p(u8"c = <module.Component></span>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"module.Component"sv)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                              opening_tag_name_pretty,
+                                              u8"module.Component"sv),
+                          }));
   }
 
   // opening_tag_name_pretty for namespaced tag:
   {
     test_parser p(u8"c = <svg:path></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"svg:path"sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                    opening_tag_name_pretty, u8"svg:path"sv),
+                }));
   }
 
   for (string8_view jsx : {
@@ -406,7 +452,9 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_mismatched_jsx_tags)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_mismatched_jsx_tags),
+                          }));
   }
 }
 
@@ -415,27 +463,33 @@ TEST_F(test_parse_jsx,
   {
     test_parser p(u8"c = < div ></x>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"div"sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                    opening_tag_name_pretty, u8"div"sv),
+                }));
   }
 
   {
     test_parser p(u8"c = < my . /* hello */ Component ></x>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"my.Component"sv)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                              opening_tag_name_pretty,
+                                              u8"my.Component"sv),
+                          }));
   }
 
   {
     test_parser p(u8"c = < svg /* */ : path ></x>;"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8"svg:path"sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                    opening_tag_name_pretty, u8"svg:path"sv),
+                }));
   }
 }
 
@@ -444,27 +498,33 @@ TEST_F(test_parse_jsx,
   {
     test_parser p(u8R"(c = <d\u{69}v></x>;)"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
-                                                      opening_tag_name_pretty,
-                                                      u8R"(d\u{69}v)"sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                    opening_tag_name_pretty, u8R"(d\u{69}v)"sv),
+                }));
   }
 
   {
     test_parser p(u8R"(c = <s\u{76}g:p\u{69}th></x>;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(
-                              diag_mismatched_jsx_tags, opening_tag_name_pretty,
-                              u8R"(s\u{76}g:p\u{69}th)"sv)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                              opening_tag_name_pretty,
+                                              u8R"(s\u{76}g:p\u{69}th)"sv),
+                          }));
   }
 
   {
     test_parser p(u8R"(c = <m\u{79}.Com\u{70}onent></x>;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(
-                              diag_mismatched_jsx_tags, opening_tag_name_pretty,
-                              u8R"(m\u{79}.Com\u{70}onent)"sv)));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                              opening_tag_name_pretty,
+                                              u8R"(m\u{79}.Com\u{70}onent)"sv),
+                          }));
   }
 }
 
@@ -485,11 +545,13 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_3_OFFSETS(
-            p.code, diag_adjacent_jsx_without_parent,                     //
-            begin, strlen(u8"c = "), u8"",                                //
-            begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
-            end, strlen(u8"c = <div></div> <div></div>"), u8"")));
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code, diag_adjacent_jsx_without_parent,                     //
+                begin, strlen(u8"c = "), u8"",                                //
+                begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
+                end, strlen(u8"c = <div></div> <div></div>"), u8""),
+        }));
   }
 
   {
@@ -498,11 +560,13 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_3_OFFSETS(
-            p.code, diag_adjacent_jsx_without_parent,                     //
-            begin, strlen(u8"c = "), u8"",                                //
-            begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
-            end, strlen(u8"c = <div></div> <div></div> <div></div>"), u8"")));
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code, diag_adjacent_jsx_without_parent,                     //
+                begin, strlen(u8"c = "), u8"",                                //
+                begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
+                end, strlen(u8"c = <div></div> <div></div> <div></div>"), u8""),
+        }));
   }
 
   // Second element should be visited like normal.
@@ -511,10 +575,12 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
         u8R"(c = <FirstComponent></FirstComponent> <SecondComponent>{child}</SecondComponent>;)"_sv,
         jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"FirstComponent",
-                                             u8"SecondComponent", u8"child"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
+    EXPECT_THAT(
+        p.variable_uses,
+        ElementsAreArray({u8"FirstComponent", u8"SecondComponent", u8"child"}));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_adjacent_jsx_without_parent),
+                          }));
   }
 
   // Because the second element is on its own line, ASI should kick in, and the
@@ -527,9 +593,10 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
         jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses,
-                ElementsAre(u8"FirstComponent", u8"SecondComponent"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
+                ElementsAreArray({u8"FirstComponent", u8"SecondComponent"}));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_adjacent_jsx_without_parent),
+                          }));
   }
 
   // The following code looks like adjacent JSX elements, but it's actually a
@@ -542,18 +609,20 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     test_parser p(u8"c = <div></div> <i>/{child}</i>\ndone"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"child", u8"done"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"child", u8"done"}));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_adjacent_jsx_without_parent),
+                          }));
   }
 
   {
     test_parser p(u8"c = <First></First><Second attr='value'></Second>;"_sv,
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"First", u8"Second"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"First", u8"Second"}));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_adjacent_jsx_without_parent),
+                          }));
   }
 }
 
@@ -580,11 +649,13 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_jsx_event_attribute_should_be_camel_case,  //
-            attribute_name,
-            offsets_matcher(p.code, strlen(u8"c = <div "), u8"onclick"),  //
-            expected_attribute_name, u8"onClick"sv)));
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(
+                diag_jsx_event_attribute_should_be_camel_case,  //
+                attribute_name,
+                offsets_matcher(p.code, strlen(u8"c = <div "), u8"onclick"),  //
+                expected_attribute_name, u8"onClick"sv),
+        }));
   }
 
   // TODO(strager): Should we also report that the handler's value is missing?
@@ -592,12 +663,14 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
     test_parser p(u8R"(c = <div onclick />;)"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_jsx_event_attribute_should_be_camel_case,  //
-                    attribute_name,
-                    offsets_matcher(p.code, strlen(u8"c = <div "),
-                                    u8"onclick"),  //
-                    expected_attribute_name, u8"onClick"sv)));
+                ElementsAreArray({
+                    DIAG_TYPE_2_FIELDS(
+                        diag_jsx_event_attribute_should_be_camel_case,  //
+                        attribute_name,
+                        offsets_matcher(p.code, strlen(u8"c = <div "),
+                                        u8"onclick"),  //
+                        expected_attribute_name, u8"onClick"sv),
+                }));
   }
 
   {
@@ -605,12 +678,14 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_jsx_event_attribute_should_be_camel_case,  //
-                    attribute_name,
-                    offsets_matcher(p.code, strlen(u8"c = <div "),
-                                    u8"onmouseenter"),  //
-                    expected_attribute_name, u8"onMouseEnter"sv)));
+                ElementsAreArray({
+                    DIAG_TYPE_2_FIELDS(
+                        diag_jsx_event_attribute_should_be_camel_case,  //
+                        attribute_name,
+                        offsets_matcher(p.code, strlen(u8"c = <div "),
+                                        u8"onmouseenter"),  //
+                        expected_attribute_name, u8"onMouseEnter"sv),
+                }));
   }
 
   {
@@ -618,12 +693,14 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_jsx_event_attribute_should_be_camel_case,  //
-                    attribute_name,
-                    offsets_matcher(p.code, strlen(u8"c = <div "),
-                                    u8"oncustomevent"),  //
-                    expected_attribute_name, u8"onCustomevent"sv)));
+                ElementsAreArray({
+                    DIAG_TYPE_2_FIELDS(
+                        diag_jsx_event_attribute_should_be_camel_case,  //
+                        attribute_name,
+                        offsets_matcher(p.code, strlen(u8"c = <div "),
+                                        u8"oncustomevent"),  //
+                        expected_attribute_name, u8"onCustomevent"sv),
+                }));
   }
 }
 
@@ -634,37 +711,43 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_jsx_attribute_has_wrong_capitalization,  //
-            attribute_name,
-            offsets_matcher(p.code, strlen(u8"c = <td "), u8"colspan"),  //
-            expected_attribute_name, u8"colSpan"sv)));
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(
+                diag_jsx_attribute_has_wrong_capitalization,  //
+                attribute_name,
+                offsets_matcher(p.code, strlen(u8"c = <td "), u8"colspan"),  //
+                expected_attribute_name, u8"colSpan"sv),
+        }));
   }
 
   {
     test_parser p(u8R"(c = <div onMouseenter={handler} />;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_jsx_attribute_has_wrong_capitalization,  //
-                    attribute_name,
-                    offsets_matcher(p.code, strlen(u8"c = <div "),
-                                    u8"onmouseenter"),  //
-                    expected_attribute_name, u8"onMouseEnter"sv)));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(diag_jsx_attribute_has_wrong_capitalization,  //
+                               attribute_name,
+                               offsets_matcher(p.code, strlen(u8"c = <div "),
+                                               u8"onmouseenter"),  //
+                               expected_attribute_name, u8"onMouseEnter"sv),
+        }));
   }
 
   {
     test_parser p(u8R"(c = <div onmouseENTER={handler} />;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_jsx_attribute_has_wrong_capitalization,  //
-                    attribute_name,
-                    offsets_matcher(p.code, strlen(u8"c = <div "),
-                                    u8"onmouseENTER"),  //
-                    expected_attribute_name, u8"onMouseEnter"sv)));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(diag_jsx_attribute_has_wrong_capitalization,  //
+                               attribute_name,
+                               offsets_matcher(p.code, strlen(u8"c = <div "),
+                                               u8"onmouseENTER"),  //
+                               expected_attribute_name, u8"onMouseEnter"sv),
+        }));
   }
 }
 
@@ -675,11 +758,13 @@ TEST_F(test_parse_jsx, commonly_misspelled_attribute) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_jsx_attribute_renamed_by_react,  //
-            attribute_name,
-            offsets_matcher(p.code, strlen(u8"c = <span "), u8"class"),  //
-            react_attribute_name, u8"className"sv)));
+        ElementsAreArray({
+            DIAG_TYPE_2_FIELDS(
+                diag_jsx_attribute_renamed_by_react,  //
+                attribute_name,
+                offsets_matcher(p.code, strlen(u8"c = <span "), u8"class"),  //
+                react_attribute_name, u8"className"sv),
+        }));
   }
 }
 

@@ -21,6 +21,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -32,25 +33,32 @@ TEST_F(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
   options.typescript = false;
   test_parser p(u8"interface I {}"_sv, options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                    "visit_enter_interface_scope",  // I
-                                    "visit_exit_interface_scope",   // I
-                                    "visit_end_of_module"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
   EXPECT_THAT(p.errors,
-              ElementsAre(DIAG_TYPE_OFFSETS(
-                  p.code,
-                  diag_typescript_interfaces_not_allowed_in_javascript,  //
-                  interface_keyword, 0, u8"interface")));
+              ElementsAreArray({
+                  DIAG_TYPE_OFFSETS(
+                      p.code,
+                      diag_typescript_interfaces_not_allowed_in_javascript,  //
+                      interface_keyword, 0, u8"interface"),
+              }));
 }
 
 TEST_F(test_parse_typescript_interface, empty_interface) {
   test_parser p(u8"interface I {}"_sv, typescript_options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                    "visit_enter_interface_scope",  // I
-                                    "visit_exit_interface_scope",   // I
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_declarations, ElementsAre(interface_decl(u8"I")));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({interface_decl(u8"I")}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -58,31 +66,39 @@ TEST_F(test_parse_typescript_interface, interface_without_body) {
   {
     test_parser p(u8"interface I"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  // I
-                                      "visit_exit_interface_scope",   // I
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_exit_interface_scope",   // I
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_missing_body_for_typescript_interface,  //
-            interface_keyword_and_name_and_heritage, 0, u8"interface I")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_missing_body_for_typescript_interface,  //
+                interface_keyword_and_name_and_heritage, 0, u8"interface I"),
+        }));
   }
 
   {
     test_parser p(u8"interface I extends Other"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  // I
-                                      "visit_variable_type_use",      // J
-                                      "visit_exit_interface_scope",   // I
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_variable_type_use",      // J
+                              "visit_exit_interface_scope",   // I
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_missing_body_for_typescript_interface,  //
-                    interface_keyword_and_name_and_heritage, 0,
-                    u8"interface I extends Other")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_body_for_typescript_interface,  //
+                        interface_keyword_and_name_and_heritage, 0,
+                        u8"interface I extends Other"),
+                }));
   }
 }
 
@@ -90,12 +106,14 @@ TEST_F(test_parse_typescript_interface, extends) {
   test_parser p(u8"interface I extends A {}"_sv, typescript_options,
                 capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                    "visit_enter_interface_scope",  // I
-                                    "visit_variable_type_use",      // A
-                                    "visit_exit_interface_scope",   // I
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_variable_type_use",      // A
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A"}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -103,12 +121,14 @@ TEST_F(test_parse_typescript_interface, extends_interface_from_namespace) {
   test_parser p(u8"interface I extends ns.A {}"_sv, typescript_options,
                 capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // I
-                                    "visit_enter_interface_scope",   // I
-                                    "visit_variable_namespace_use",  // ns
-                                    "visit_exit_interface_scope",    // I
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_variable_namespace_use",  // ns
+                            "visit_exit_interface_scope",    // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -116,14 +136,16 @@ TEST_F(test_parse_typescript_interface, extends_multiple_things) {
   test_parser p(u8"interface I extends A, B, C {}"_sv, typescript_options,
                 capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                    "visit_enter_interface_scope",  // I
-                                    "visit_variable_type_use",      // A
-                                    "visit_variable_type_use",      // B
-                                    "visit_variable_type_use",      // C
-                                    "visit_exit_interface_scope",   // I
-                                    "visit_end_of_module"));
-  EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_variable_type_use",      // A
+                            "visit_variable_type_use",      // B
+                            "visit_variable_type_use",      // C
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
@@ -131,43 +153,58 @@ TEST_F(test_parse_typescript_interface, unclosed_interface_statement) {
   {
     test_parser p(u8"interface I { "_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_unclosed_interface_block,  //
-                              block_open, strlen(u8"interface I "), u8"{")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { property "_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",  // property
-                                      "visit_exit_interface_scope",  //
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_unclosed_interface_block,  //
-                              block_open, strlen(u8"interface I "), u8"{")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // property
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { method() "_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",   // method
-                                      "visit_enter_function_scope",   // method
-                                      "visit_exit_function_scope",    // method
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_unclosed_interface_block,  //
-                              block_open, strlen(u8"interface I "), u8"{")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // method
+                              "visit_enter_function_scope",   // method
+                              "visit_exit_function_scope",    // method
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{"),
+        }));
   }
 }
 
@@ -184,10 +221,13 @@ TEST_F(test_parse_typescript_interface,
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // (name)
-                                      "visit_enter_interface_scope",  //
-                                      "visit_exit_interface_scope"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(interface_decl(name)));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // (name)
+                              "visit_enter_interface_scope",  //
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({interface_decl(name)}));
   }
 }
 
@@ -196,13 +236,18 @@ TEST_F(test_parse_typescript_interface,
   {
     test_parser p(u8"interface\nI {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_exit_interface_scope"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_newline_not_allowed_after_interface_keyword,
-                    interface_keyword, 0, u8"interface")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_newline_not_allowed_after_interface_keyword,
+                              interface_keyword, 0, u8"interface"),
+        }));
   }
 
   {
@@ -210,14 +255,19 @@ TEST_F(test_parse_typescript_interface,
     // in TypeScript.
     test_parser p(u8"interface\nI<T> {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_variable_declaration",   // T
-                                      "visit_exit_interface_scope"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_newline_not_allowed_after_interface_keyword,
-                    interface_keyword, 0, u8"interface")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_variable_declaration",   // T
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_newline_not_allowed_after_interface_keyword,
+                              interface_keyword, 0, u8"interface"),
+        }));
   }
 
   {
@@ -226,14 +276,19 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface\nI<T>\n{}"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_variable_declaration",   // T
-                                      "visit_exit_interface_scope"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_newline_not_allowed_after_interface_keyword,
-                    interface_keyword, 0, u8"interface")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_variable_declaration",   // T
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_newline_not_allowed_after_interface_keyword,
+                              interface_keyword, 0, u8"interface"),
+        }));
   }
 }
 
@@ -242,12 +297,14 @@ TEST_F(test_parse_typescript_interface,
   {
     test_parser p(u8"interface\nI\n{}"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // interface
-                                      "visit_variable_use",       // I
-                                      "visit_enter_block_scope",  // {
-                                      "visit_exit_block_scope",   // }
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"interface", u8"I"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",       // interface
+                              "visit_variable_use",       // I
+                              "visit_enter_block_scope",  // {
+                              "visit_exit_block_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"interface", u8"I"}));
   }
 
   {
@@ -255,10 +312,12 @@ TEST_F(test_parse_typescript_interface,
     // in TypeScript.
     test_parser p(u8"interface\nI<T> {}"_sv, javascript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // interface
-                                      "visit_variable_use",  // I
-                                      "visit_variable_use",  // T
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // interface
+                              "visit_variable_use",  // I
+                              "visit_variable_use",  // T
+                              "visit_end_of_module",
+                          }));
   }
 }
 
@@ -267,51 +326,57 @@ TEST_F(test_parse_typescript_interface, property_without_type) {
     test_parser p(u8"interface I { a;b\nc }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  // I
-                                      "visit_property_declaration",   // a
-                                      "visit_property_declaration",   // b
-                                      "visit_property_declaration",   // c
-                                      "visit_exit_interface_scope",   // I
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_property_declaration",   // a
+                              "visit_property_declaration",   // b
+                              "visit_property_declaration",   // c
+                              "visit_exit_interface_scope",   // I
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"a", u8"b", u8"c"}));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"interface I { 'fieldName'; }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   //
-                            "visit_enter_interface_scope",  //
-                            "visit_property_declaration",   // 'fieldName'
-                            "visit_exit_interface_scope"));
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   //
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // 'fieldName'
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface I { 3.14; }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   //
-                            "visit_enter_interface_scope",  //
-                            "visit_property_declaration",   // 3.14
-                            "visit_exit_interface_scope"));
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   //
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // 3.14
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface I { [x + y]; }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   //
-                            "visit_enter_interface_scope",  //
-                            "visit_variable_use",           // x
-                            "visit_variable_use",           // y
-                            "visit_property_declaration",   // (x + y)
-                            "visit_exit_interface_scope"));
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"y"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   //
+                              "visit_enter_interface_scope",  //
+                              "visit_variable_use",           // x
+                              "visit_variable_use",           // y
+                              "visit_property_declaration",   // (x + y)
+                              "visit_exit_interface_scope",
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"y"}));
   }
 }
 
@@ -319,12 +384,13 @@ TEST_F(test_parse_typescript_interface, optional_property) {
   {
     test_parser p(u8"interface I { fieldName?; }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_property_declaration",    // fieldName
-                            "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_property_declaration",   // fieldName
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"fieldName"}));
   }
 
   {
@@ -333,11 +399,14 @@ TEST_F(test_parse_typescript_interface, optional_property) {
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.property_declarations,
-                ElementsAre(u8"fieldName", u8"otherField"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_semicolon_after_field,  //
+                ElementsAreArray({u8"fieldName", u8"otherField"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_semicolon_after_field,  //
                               expected_semicolon,
-                              strlen(u8"interface I { fieldName?"), u8"")));
+                              strlen(u8"interface I { fieldName?"), u8""),
+        }));
   }
 
   {
@@ -346,43 +415,46 @@ TEST_F(test_parse_typescript_interface, optional_property) {
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
-                ElementsAre(u8"fieldName", u8"otherField"));
+                ElementsAreArray({u8"fieldName", u8"otherField"}));
   }
 
   {
     test_parser p(u8"interface I { [2 + 2]?; }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface I { 'prop'?; }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface I { method?(param); }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_property_declaration",    // method
-                            "visit_enter_function_scope",    // method
-                            "visit_variable_declaration",    // param
-                            "visit_exit_function_scope",     // method
-                            "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_property_declaration",   // method
+                              "visit_enter_function_scope",   // method
+                              "visit_variable_declaration",   // param
+                              "visit_exit_function_scope",    // method
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
   }
 
   {
     test_parser p(u8"interface I { field?; }"_sv, javascript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(
-                    diag_typescript_interfaces_not_allowed_in_javascript)))
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE(diag_typescript_interfaces_not_allowed_in_javascript),
+        }))
         << "should parse optional field but not complain about it";
   }
 }
@@ -393,26 +465,30 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface I { fieldName!: any; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"fieldName"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
-            bang, strlen(u8"interface I { fieldName"), u8"!")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+                bang, strlen(u8"interface I { fieldName"), u8"!"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { fieldName!; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"fieldName"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
-            bang, strlen(u8"interface I { fieldName"), u8"!")))
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+                bang, strlen(u8"interface I { fieldName"), u8"!"),
+        }))
         << "missing type annotation should not report two errors";
   }
 
@@ -420,13 +496,15 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface I { fieldName!: any = init; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"fieldName"}));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
-            bang, strlen(u8"interface I { fieldName"), u8"!")))
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+                bang, strlen(u8"interface I { fieldName"), u8"!"),
+        }))
         << "initializer should not report two errors";
   }
 }
@@ -436,14 +514,15 @@ TEST_F(test_parse_typescript_interface, field_with_type) {
     test_parser p(u8"interface I { fieldName: FieldType; }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_variable_type_use",       // FieldType
-                            "visit_property_declaration",    // fieldName
-                            "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"FieldType"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_variable_type_use",      // FieldType
+                              "visit_property_declaration",   // fieldName
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"fieldName"}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"FieldType"}));
   }
 
   {
@@ -452,12 +531,14 @@ TEST_F(test_parse_typescript_interface, field_with_type) {
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.property_declarations,
-                ElementsAre(u8"fieldName", u8"otherField"));
+                ElementsAreArray({u8"fieldName", u8"otherField"}));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_missing_semicolon_after_field,  //
-                    expected_semicolon,
-                    strlen(u8"interface I { fieldName: FieldType"), u8"")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_field,  //
+                        expected_semicolon,
+                        strlen(u8"interface I { fieldName: FieldType"), u8""),
+                }));
   }
 
   {
@@ -466,7 +547,7 @@ TEST_F(test_parse_typescript_interface, field_with_type) {
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
-                ElementsAre(u8"fieldName", u8"otherField"));
+                ElementsAreArray({u8"fieldName", u8"otherField"}));
   }
 }
 
@@ -479,62 +560,65 @@ TEST_F(test_parse_typescript_interface, interface_with_methods) {
     EXPECT_EQ(p.variable_declarations[0].name, u8"Monster");
     EXPECT_EQ(p.variable_declarations[1].name, u8"muffinCount");
 
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"eatMuffins"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"eatMuffins"}));
 
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // Monster
-                            "visit_enter_interface_scope",  //
-                            "visit_property_declaration",   // eatMuffins
-                            "visit_enter_function_scope",   //
-                            "visit_variable_declaration",   // muffinCount
-                            "visit_exit_function_scope",    //
-                            "visit_exit_interface_scope"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // Monster
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // eatMuffins
+                              "visit_enter_function_scope",   //
+                              "visit_variable_declaration",   // muffinCount
+                              "visit_exit_function_scope",    //
+                              "visit_exit_interface_scope",
+                          }));
   }
 
   {
     test_parser p(u8"interface I { get length(); }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"length"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"length"}));
   }
 
   {
     test_parser p(u8"interface I { set length(value); }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"length"));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"length"}));
   }
 
   {
     test_parser p(u8"interface I { a(); b(); c(); }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"a", u8"b", u8"c"}));
   }
 
   {
     test_parser p(u8"interface I { \"stringKey\"(); }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface I { [x + y](); }"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"y"));
-    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"y"}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
     test_parser p(u8"interface Getter<T> { get(): T; }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // Getter
-                            "visit_enter_interface_scope",   // {
-                            "visit_variable_declaration",    // T
-                            "visit_property_declaration",    // get
-                            "visit_enter_function_scope",    //
-                            "visit_variable_type_use",       // T
-                            "visit_exit_function_scope",     //
-                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // Getter
+                              "visit_enter_interface_scope",  // {
+                              "visit_variable_declaration",   // T
+                              "visit_property_declaration",   // get
+                              "visit_enter_function_scope",   //
+                              "visit_variable_type_use",      // T
+                              "visit_exit_function_scope",    //
+                              "visit_exit_interface_scope",   // }
+                          }));
   }
 }
 
@@ -543,37 +627,44 @@ TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
     test_parser p(u8"interface I { [key: KeyType]: ValueType; }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
-                                      "visit_enter_interface_scope",        // I
-                                      "visit_enter_index_signature_scope",  //
-                                      "visit_variable_type_use",     // KeyType
-                                      "visit_variable_declaration",  // key
-                                      "visit_variable_type_use",  // ValueType
-                                      "visit_exit_index_signature_scope",  //
-                                      "visit_exit_interface_scope"));      // I
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // I
+                              "visit_enter_interface_scope",        // I
+                              "visit_enter_index_signature_scope",  //
+                              "visit_variable_type_use",            // KeyType
+                              "visit_variable_declaration",         // key
+                              "visit_variable_type_use",            // ValueType
+                              "visit_exit_index_signature_scope",   //
+                              "visit_exit_interface_scope",         // I
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"KeyType", u8"ValueType"}));
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(interface_decl(u8"I"),
-                            index_signature_param_decl(u8"key")));
+                ElementsAreArray({interface_decl(u8"I"),
+                                  index_signature_param_decl(u8"key")}));
   }
 
   {
     test_parser p(u8"interface I { [key: KeyType]: ValueType; }"_sv,
                   javascript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
-                                      "visit_enter_interface_scope",        // I
-                                      "visit_enter_index_signature_scope",  //
-                                      "visit_variable_type_use",     // KeyType
-                                      "visit_variable_declaration",  // key
-                                      "visit_variable_type_use",  // ValueType
-                                      "visit_exit_index_signature_scope",  //
-                                      "visit_exit_interface_scope"));      // I
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(
-                    diag_typescript_interfaces_not_allowed_in_javascript)))
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // I
+                              "visit_enter_interface_scope",        // I
+                              "visit_enter_index_signature_scope",  //
+                              "visit_variable_type_use",            // KeyType
+                              "visit_variable_declaration",         // key
+                              "visit_variable_type_use",            // ValueType
+                              "visit_exit_index_signature_scope",   //
+                              "visit_exit_interface_scope",         // I
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE(diag_typescript_interfaces_not_allowed_in_javascript),
+        }))
         << "should parse index signature and not complain about it";
   }
 }
@@ -583,18 +674,22 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
     test_parser p(u8"interface I { [key: KeyType]; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
-                                      "visit_enter_interface_scope",        // I
-                                      "visit_enter_index_signature_scope",  //
-                                      "visit_variable_type_use",     // KeyType
-                                      "visit_variable_declaration",  // key
-                                      "visit_exit_index_signature_scope",  //
-                                      "visit_exit_interface_scope"));      // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // I
+                              "visit_enter_interface_scope",        // I
+                              "visit_enter_index_signature_scope",  //
+                              "visit_variable_type_use",            // KeyType
+                              "visit_variable_declaration",         // key
+                              "visit_exit_index_signature_scope",   //
+                              "visit_exit_interface_scope",         // I
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_index_signature_needs_type,  //
-            expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_typescript_index_signature_needs_type,  //
+                expected_type, strlen(u8"interface I { [key: KeyType]"), u8""),
+        }));
   }
 
   {
@@ -602,21 +697,25 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
     test_parser p(u8"interface I { [key: KeyType]\n  method(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
-                                      "visit_enter_interface_scope",        // I
-                                      "visit_enter_index_signature_scope",  //
-                                      "visit_variable_type_use",     // KeyType
-                                      "visit_variable_declaration",  // key
-                                      "visit_exit_index_signature_scope",  //
-                                      "visit_property_declaration",    // method
-                                      "visit_enter_function_scope",    // method
-                                      "visit_exit_function_scope",     // method
-                                      "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // I
+                              "visit_enter_interface_scope",        // I
+                              "visit_enter_index_signature_scope",  //
+                              "visit_variable_type_use",            // KeyType
+                              "visit_variable_declaration",         // key
+                              "visit_exit_index_signature_scope",   //
+                              "visit_property_declaration",         // method
+                              "visit_enter_function_scope",         // method
+                              "visit_exit_function_scope",          // method
+                              "visit_exit_interface_scope",         // I
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_index_signature_needs_type,  //
-            expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_typescript_index_signature_needs_type,  //
+                expected_type, strlen(u8"interface I { [key: KeyType]"), u8""),
+        }));
   }
 }
 
@@ -625,9 +724,9 @@ TEST_F(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
     test_parser p(u8"interface I { [key: KeyType](param); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.visits,
-        ElementsAre("visit_variable_declaration",         // I
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_variable_declaration",         // I
                     "visit_enter_interface_scope",        // I
                     "visit_enter_index_signature_scope",  //
                     "visit_variable_type_use",            // KeyType
@@ -638,12 +737,15 @@ TEST_F(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
                     "visit_variable_declaration",        // param
                     "visit_exit_function_scope",         //
                     "visit_exit_index_signature_scope",  //
-                    "visit_exit_interface_scope"));      // I
+                    "visit_exit_interface_scope",        // I
+                }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_typescript_index_signature_cannot_be_method,  //
-            left_paren, strlen(u8"interface I { [key: KeyType]"), u8"(")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_typescript_index_signature_cannot_be_method,  //
+                left_paren, strlen(u8"interface I { [key: KeyType]"), u8"("),
+        }));
   }
 }
 
@@ -652,23 +754,27 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_semicolon) {
     test_parser p(u8"interface I { [key: KeyType]: ValueType method(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
-                                      "visit_enter_interface_scope",        // I
-                                      "visit_enter_index_signature_scope",  //
-                                      "visit_variable_type_use",     // KeyType
-                                      "visit_variable_declaration",  // key
-                                      "visit_variable_type_use",  // ValueType
-                                      "visit_exit_index_signature_scope",  //
-                                      "visit_property_declaration",    // method
-                                      "visit_enter_function_scope",    // method
-                                      "visit_exit_function_scope",     // method
-                                      "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",         // I
+                              "visit_enter_interface_scope",        // I
+                              "visit_enter_index_signature_scope",  //
+                              "visit_variable_type_use",            // KeyType
+                              "visit_variable_declaration",         // key
+                              "visit_variable_type_use",            // ValueType
+                              "visit_exit_index_signature_scope",   //
+                              "visit_property_declaration",         // method
+                              "visit_enter_function_scope",         // method
+                              "visit_exit_function_scope",          // method
+                              "visit_exit_interface_scope",         // I
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_missing_semicolon_after_index_signature,  //
-            expected_semicolon,
-            strlen(u8"interface I { [key: KeyType]: ValueType"), u8"")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_missing_semicolon_after_index_signature,  //
+                expected_semicolon,
+                strlen(u8"interface I { [key: KeyType]: ValueType"), u8""),
+        }));
   }
 }
 
@@ -677,20 +783,24 @@ TEST_F(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
     test_parser p(u8"interface I { method() { x } }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",       // I
-                            "visit_enter_interface_scope",      //
-                            "visit_property_declaration",       // method
-                            "visit_enter_function_scope",       // method
-                            "visit_enter_function_scope_body",  // method
-                            "visit_variable_use",               // x
-                            "visit_exit_function_scope",        // method
-                            "visit_exit_interface_scope",       //
-                            "visit_end_of_module"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_methods_cannot_contain_bodies,  //
-                    body_start, strlen(u8"interface I { method() "), u8"{")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // I
+                              "visit_enter_interface_scope",      //
+                              "visit_property_declaration",       // method
+                              "visit_enter_function_scope",       // method
+                              "visit_enter_function_scope_body",  // method
+                              "visit_variable_use",               // x
+                              "visit_exit_function_scope",        // method
+                              "visit_exit_interface_scope",       //
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_interface_methods_cannot_contain_bodies,  //
+                body_start, strlen(u8"interface I { method() "), u8"{"),
+        }));
   }
 
   {
@@ -717,7 +827,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
                       typescript_options);
         SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
-        EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
 
       for (string8_view prefix : {u8"get"_sv, u8"set"_sv}) {
@@ -726,7 +836,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
                       typescript_options);
         SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
-        EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
 
       {
@@ -734,7 +844,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
                       typescript_options);
         SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
-        EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
 
       {
@@ -742,7 +852,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
                       typescript_options);
         SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
-        EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
     }
 
@@ -754,7 +864,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
         SCOPED_TRACE(code);
         test_parser p(code.string_view(), typescript_options);
         p.parse_and_visit_statement();
-        EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
     }
   }
@@ -767,20 +877,21 @@ TEST_F(test_parse_typescript_interface, interface_with_number_methods) {
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"Wat");
 
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // Wat
-                            "visit_enter_interface_scope",  //
-                            "visit_property_declaration",   // 42.0
-                            "visit_enter_function_scope",   //
-                            "visit_exit_function_scope",    //
-                            "visit_exit_interface_scope"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // Wat
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // 42.0
+                              "visit_enter_function_scope",   //
+                              "visit_exit_function_scope",    //
+                              "visit_exit_interface_scope",
+                          }));
   }
 }
 
 TEST_F(test_parse_typescript_interface, interface_allows_stray_semicolons) {
   test_parser p(u8"interface I{ ; f() ; ; }"_sv, typescript_options);
   p.parse_and_visit_statement();
-  EXPECT_THAT(p.property_declarations, ElementsAre(u8"f"));
+  EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f"}));
 }
 
 TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
@@ -788,47 +899,57 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
     test_parser p(u8"interface I { #method(); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",   // #method
-                                      "visit_enter_function_scope",   // #method
-                                      "visit_exit_function_scope",    // #method
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // #method
+                              "visit_enter_function_scope",   // #method
+                              "visit_exit_function_scope",    // #method
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_properties_cannot_be_private,  //
-                    property_name_or_private_keyword,
-                    strlen(u8"interface I { "), u8"#method")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_interface_properties_cannot_be_private,  //
+                        property_name_or_private_keyword,
+                        strlen(u8"interface I { "), u8"#method"),
+                }));
   }
 
   {
     test_parser p(u8"interface I { #field; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",   // #field
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // #field
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_properties_cannot_be_private,  //
-                    property_name_or_private_keyword,
-                    strlen(u8"interface I { "), u8"#field")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_interface_properties_cannot_be_private,  //
+                        property_name_or_private_keyword,
+                        strlen(u8"interface I { "), u8"#field"),
+                }));
   }
 
   {
     test_parser p(u8"interface I { async static #method(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",   // #method
-                                      "visit_enter_function_scope",   // #method
-                                      "visit_exit_function_scope",    // #method
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // #method
+                              "visit_enter_function_scope",   // #method
+                              "visit_exit_function_scope",    // #method
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(p.errors,
                 ::testing::UnorderedElementsAre(
                     DIAG_TYPE(diag_interface_methods_cannot_be_async),
@@ -843,11 +964,13 @@ TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
     test_parser p(u8"interface I { readonly static #field; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                      "visit_enter_interface_scope",  //
-                                      "visit_property_declaration",   // #field
-                                      "visit_exit_interface_scope",   //
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // #field
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module",
+                          }));
     EXPECT_THAT(
         p.errors,
         ::testing::UnorderedElementsAre(
@@ -867,18 +990,22 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
       test_parser p(concat(u8"interface I { static ", property_name, u8"(); }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_property_declaration",   // property
-                              "visit_enter_function_scope",   // property
-                              "visit_exit_function_scope",    // property
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // property
+                                "visit_enter_function_scope",   // property
+                                "visit_exit_function_scope",    // property
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
@@ -886,18 +1013,22 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
           concat(u8"interface I { static get ", property_name, u8"(); }"),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_property_declaration",   // property
-                              "visit_enter_function_scope",   // property
-                              "visit_exit_function_scope",    // property
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // property
+                                "visit_enter_function_scope",   // property
+                                "visit_exit_function_scope",    // property
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
@@ -905,35 +1036,43 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
           concat(u8"interface I { static set ", property_name, u8"(value); }"),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_property_declaration",   // property
-                              "visit_enter_function_scope",   // property
-                              "visit_variable_declaration",   // value
-                              "visit_exit_function_scope",    // property
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // property
+                                "visit_enter_function_scope",   // property
+                                "visit_variable_declaration",   // value
+                                "visit_exit_function_scope",    // property
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
       test_parser p(concat(u8"interface I { static ", property_name, u8"; }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_property_declaration",   // property
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // property
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     // TODO(#736): Fix 'static readonly static'.
@@ -942,16 +1081,20 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
           concat(u8"interface I { static readonly ", property_name, u8"; }"),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_property_declaration",   // property
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // property
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
@@ -959,10 +1102,13 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
           concat(u8"interface I { static async\n ", property_name, u8"(); }"),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
@@ -972,11 +1118,14 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
           concat(u8"interface I { static\n", property_name, u8"(); }"),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.property_declarations, ElementsAre(property_name));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({property_name}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
 
     {
@@ -985,11 +1134,14 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
       test_parser p(concat(u8"interface I { static\n", property_name, u8"; }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.property_declarations, ElementsAre(property_name));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({property_name}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_properties_cannot_be_static,  //
+                  static_keyword, strlen(u8"interface I { "), u8"static"),
+          }));
     }
   }
 
@@ -998,9 +1150,11 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_properties_cannot_be_static,  //
-                    static_keyword, strlen(u8"interface I { "), u8"static")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_interface_properties_cannot_be_static,  //
+                        static_keyword, strlen(u8"interface I { "), u8"static"),
+                }));
   }
 
   {
@@ -1008,9 +1162,11 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_properties_cannot_be_static,  //
-                    static_keyword, strlen(u8"interface I { "), u8"static")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_interface_properties_cannot_be_static,  //
+                        static_keyword, strlen(u8"interface I { "), u8"static"),
+                }));
   }
 
   {
@@ -1034,17 +1190,21 @@ TEST_F(test_parse_typescript_interface, async_methods_are_not_allowed) {
       test_parser p(concat(u8"interface I { async ", method_name, u8"(); }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                        "visit_enter_interface_scope",  //
-                                        "visit_property_declaration",  // method
-                                        "visit_enter_function_scope",  // method
-                                        "visit_exit_function_scope",   // method
-                                        "visit_exit_interface_scope",  //
-                                        "visit_end_of_module"));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // method
+                                "visit_enter_function_scope",   // method
+                                "visit_exit_function_scope",    // method
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
       EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_methods_cannot_be_async,  //
-                      async_keyword, strlen(u8"interface I { "), u8"async")));
+                  ElementsAreArray({
+                      DIAG_TYPE_OFFSETS(
+                          p.code, diag_interface_methods_cannot_be_async,  //
+                          async_keyword, strlen(u8"interface I { "), u8"async"),
+                  }));
     }
 
     {
@@ -1066,17 +1226,22 @@ TEST_F(test_parse_typescript_interface, generator_methods_are_not_allowed) {
       test_parser p(concat(u8"interface I { *", method_name, u8"(); }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
-                                        "visit_enter_interface_scope",  //
-                                        "visit_property_declaration",  // method
-                                        "visit_enter_function_scope",  // method
-                                        "visit_exit_function_scope",   // method
-                                        "visit_exit_interface_scope",  //
-                                        "visit_end_of_module"));
-      EXPECT_THAT(p.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      p.code, diag_interface_methods_cannot_be_generators,  //
-                      star, strlen(u8"interface I { "), u8"*")));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_property_declaration",   // method
+                                "visit_enter_function_scope",   // method
+                                "visit_exit_function_scope",    // method
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(p.code,
+                                diag_interface_methods_cannot_be_generators,  //
+                                star, strlen(u8"interface I { "), u8"*"),
+          }));
     }
 
     {
@@ -1166,18 +1331,22 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
       test_parser p(concat(u8"interface I { ", field_name, u8" = y; }"),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.visits,
-                  ElementsAre("visit_variable_declaration",   // I
-                              "visit_enter_interface_scope",  //
-                              "visit_variable_use",           // y
-                              "visit_property_declaration",   // field_name
-                              "visit_exit_interface_scope",   //
-                              "visit_end_of_module"));
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",   // I
+                                "visit_enter_interface_scope",  //
+                                "visit_variable_use",           // y
+                                "visit_property_declaration",   // field_name
+                                "visit_exit_interface_scope",   //
+                                "visit_end_of_module",
+                            }));
       EXPECT_THAT(
           p.errors,
-          ElementsAre(DIAG_TYPE_OFFSETS(
-              p.code, diag_interface_fields_cannot_have_initializers,  //
-              equal, (u8"interface I { " + field_name + u8" ").size(), u8"=")));
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code, diag_interface_fields_cannot_have_initializers,  //
+                  equal, (u8"interface I { " + field_name + u8" ").size(),
+                  u8"="),
+          }));
     }
 
     {
@@ -1200,10 +1369,13 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
     test_parser p(u8"interface I { 'fieldName' = init; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_fields_cannot_have_initializers,  //
-                    equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_interface_fields_cannot_have_initializers,  //
+                equal, strlen(u8"interface I { 'fieldName' "), u8"="),
+        }));
   }
 
   {
@@ -1212,9 +1384,11 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, diag_interface_fields_cannot_have_initializers,  //
-            equal, strlen(u8"interface I { fieldName: typeName "), u8"=")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_interface_fields_cannot_have_initializers,  //
+                equal, strlen(u8"interface I { fieldName: typeName "), u8"="),
+        }));
   }
 }
 
@@ -1238,10 +1412,13 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"async function g() { interface await {} }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_cannot_declare_await_in_async_function, name,
-                    strlen(u8"async function g() { interface "), u8"await")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_cannot_declare_await_in_async_function, name,
+                strlen(u8"async function g() { interface "), u8"await"),
+        }));
   }
 }
 
@@ -1249,16 +1426,17 @@ TEST_F(test_parse_typescript_interface, call_signature) {
   {
     test_parser p(u8"interface I { (param); }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // I
-                            "visit_enter_interface_scope",  // I
-                            // TODO(strager): Emit something other than
-                            // visit_property_declaration instead?
-                            "visit_property_declaration",    // (call signature)
-                            "visit_enter_function_scope",    // (call signature)
-                            "visit_variable_declaration",    // param
-                            "visit_exit_function_scope",     // (call signature)
-                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              // TODO(strager): Emit something other than
+                              // visit_property_declaration instead?
+                              "visit_property_declaration",  // (call signature)
+                              "visit_enter_function_scope",  // (call signature)
+                              "visit_variable_declaration",  // param
+                              "visit_exit_function_scope",   // (call signature)
+                              "visit_exit_interface_scope",  // I
+                          }));
   }
 }
 
@@ -1272,23 +1450,26 @@ TEST_F(test_parse_typescript_interface,
         u8"}"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // I
-                            "visit_enter_interface_scope",  // I
-                            "visit_property_declaration",   // field
-                            // TODO(strager): Emit something other than
-                            // visit_property_declaration instead?
-                            "visit_property_declaration",    // (call signature)
-                            "visit_enter_function_scope",    // (call signature)
-                            "visit_variable_declaration",    // param
-                            "visit_exit_function_scope",     // (call signature)
-                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_property_declaration",   // field
+                              // TODO(strager): Emit something other than
+                              // visit_property_declaration instead?
+                              "visit_property_declaration",  // (call signature)
+                              "visit_enter_function_scope",  // (call signature)
+                              "visit_variable_declaration",  // param
+                              "visit_exit_function_scope",   // (call signature)
+                              "visit_exit_interface_scope",  // I
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
-            bang, strlen(u8"interface I {\n  field"), u8"!")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+                bang, strlen(u8"interface I {\n  field"), u8"!"),
+        }));
   }
 }
 
@@ -1298,20 +1479,23 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface I { *(param); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // I
-                            "visit_enter_interface_scope",  // I
-                            // TODO(strager): Emit something other than
-                            // visit_property_declaration instead?
-                            "visit_property_declaration",    // (call signature)
-                            "visit_enter_function_scope",    // (call signature)
-                            "visit_variable_declaration",    // param
-                            "visit_exit_function_scope",     // (call signature)
-                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              // TODO(strager): Emit something other than
+                              // visit_property_declaration instead?
+                              "visit_property_declaration",  // (call signature)
+                              "visit_enter_function_scope",  // (call signature)
+                              "visit_variable_declaration",  // param
+                              "visit_exit_function_scope",   // (call signature)
+                              "visit_exit_interface_scope",  // I
+                          }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, diag_interface_methods_cannot_be_generators,  //
-                    star, strlen(u8"interface I { "), u8"*")));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_interface_methods_cannot_be_generators,  //
+                        star, strlen(u8"interface I { "), u8"*"),
+                }));
   }
 }
 
@@ -1319,20 +1503,22 @@ TEST_F(test_parse_typescript_interface, generic_call_signature) {
   {
     test_parser p(u8"interface I { <T>(param); }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",   // I
-                            "visit_enter_interface_scope",  // I
-                            // TODO(strager): Emit something other than
-                            // visit_property_declaration instead?
-                            "visit_property_declaration",    // (call signature)
-                            "visit_enter_function_scope",    // (call signature)
-                            "visit_variable_declaration",    // T
-                            "visit_variable_declaration",    // param
-                            "visit_exit_function_scope",     // (call signature)
-                            "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(interface_decl(u8"I"), generic_param_decl(u8"T"),
-                            func_param_decl(u8"param")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              // TODO(strager): Emit something other than
+                              // visit_property_declaration instead?
+                              "visit_property_declaration",  // (call signature)
+                              "visit_enter_function_scope",  // (call signature)
+                              "visit_variable_declaration",  // T
+                              "visit_variable_declaration",  // param
+                              "visit_exit_function_scope",   // (call signature)
+                              "visit_exit_interface_scope",  // I
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({interface_decl(u8"I"), generic_param_decl(u8"T"),
+                          func_param_decl(u8"param")}));
   }
 }
 
@@ -1340,15 +1526,17 @@ TEST_F(test_parse_typescript_interface, generic_interface) {
   {
     test_parser p(u8"interface I<T> { field: T; }", typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_variable_declaration",    // T
-                            "visit_variable_type_use",       // T
-                            "visit_property_declaration",    // field
-                            "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(interface_decl(u8"I"), generic_param_decl(u8"T")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_variable_declaration",   // T
+                              "visit_variable_type_use",      // T
+                              "visit_property_declaration",   // field
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({interface_decl(u8"I"), generic_param_decl(u8"T")}));
   }
 }
 
@@ -1357,36 +1545,45 @@ TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
     test_parser p(u8"interface I { public method(); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_interface_properties_cannot_be_explicitly_public,  //
-                    public_keyword, strlen(u8"interface I { "), u8"public")));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_interface_properties_cannot_be_explicitly_public,  //
+                public_keyword, strlen(u8"interface I { "), u8"public"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { protected method(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_interface_properties_cannot_be_protected,  //
                               protected_keyword, strlen(u8"interface I { "),
-                              u8"protected")));
+                              u8"protected"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { private method(); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_interface_properties_cannot_be_private,  //
                               property_name_or_private_keyword,
-                              strlen(u8"interface I { "), u8"private")));
+                              strlen(u8"interface I { "), u8"private"),
+        }));
   }
 }
 
@@ -1396,12 +1593,15 @@ TEST_F(test_parse_typescript_interface, static_blocks_are_not_allowed) {
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, IsEmpty());
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"console"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_typescript_interfaces_cannot_contain_static_blocks,  //
-                    static_token, strlen(u8"interface I { "), u8"static")));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_interfaces_cannot_contain_static_blocks,  //
+                static_token, strlen(u8"interface I { "), u8"static"),
+        }));
   }
 }
 
@@ -1411,9 +1611,11 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface I<T> { method(): Type; }"_sv, javascript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE(
-                    diag_typescript_interfaces_not_allowed_in_javascript)))
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE(diag_typescript_interfaces_not_allowed_in_javascript),
+        }))
         << "diag_typescript_type_annotations_not_allowed_in_javascript should "
            "not be reported";
   }
@@ -1427,39 +1629,44 @@ TEST_F(test_parse_typescript_interface, method_requires_semicolon_or_asi) {
         u8"  g() }"_sv,  // ASI
         typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // {
-                            "visit_property_declaration",    // f
-                            "visit_enter_function_scope",    // f
-                            "visit_exit_function_scope",     // f
-                            "visit_property_declaration",    // g
-                            "visit_enter_function_scope",    // g
-                            "visit_exit_function_scope",     // g
-                            "visit_exit_interface_scope"));  // }
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_property_declaration",   // f
+                              "visit_enter_function_scope",   // f
+                              "visit_exit_function_scope",    // f
+                              "visit_property_declaration",   // g
+                              "visit_enter_function_scope",   // g
+                              "visit_exit_function_scope",    // g
+                              "visit_exit_interface_scope",   // }
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f", u8"g"}));
   }
 
   {
     test_parser p(u8"interface I { f() g(); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // {
-                            "visit_property_declaration",    // f
-                            "visit_enter_function_scope",    // f
-                            "visit_exit_function_scope",     // f
-                            "visit_property_declaration",    // g
-                            "visit_enter_function_scope",    // g
-                            "visit_exit_function_scope",     // g
-                            "visit_exit_interface_scope"));  // }
-    EXPECT_THAT(p.property_declarations, ElementsAre(u8"f", u8"g"));
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_missing_semicolon_after_interface_method,  //
-                    expected_semicolon, strlen(u8"interface I { f()"), u8"")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_property_declaration",   // f
+                              "visit_enter_function_scope",   // f
+                              "visit_exit_function_scope",    // f
+                              "visit_property_declaration",   // g
+                              "visit_enter_function_scope",   // g
+                              "visit_exit_function_scope",    // g
+                              "visit_exit_interface_scope",   // }
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f", u8"g"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_missing_semicolon_after_interface_method,  //
+                              expected_semicolon, strlen(u8"interface I { f()"),
+                              u8""),
+        }));
   }
 }
 
@@ -1469,36 +1676,42 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(u8"interface I { abstract myField; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // {
-                            "visit_property_declaration",    // myField
-                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_property_declaration",   // myField
+                              "visit_exit_interface_scope",   // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_abstract_property_not_allowed_in_interface,  //
-            abstract_keyword, strlen(u8"interface I { "), u8"abstract")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_abstract_property_not_allowed_in_interface,  //
+                abstract_keyword, strlen(u8"interface I { "), u8"abstract"),
+        }));
   }
 
   {
     test_parser p(u8"interface I { abstract myMethod(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // {
-                            "visit_property_declaration",    // myMethod
-                            "visit_enter_function_scope",    // myMethod
-                            "visit_exit_function_scope",     // myMethod
-                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_property_declaration",   // myMethod
+                              "visit_enter_function_scope",   // myMethod
+                              "visit_exit_function_scope",    // myMethod
+                              "visit_exit_interface_scope",   // }
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code,
-            diag_abstract_property_not_allowed_in_interface,  //
-            abstract_keyword, strlen(u8"interface I { "), u8"abstract")));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_abstract_property_not_allowed_in_interface,  //
+                abstract_keyword, strlen(u8"interface I { "), u8"abstract"),
+        }));
   }
 }
 }

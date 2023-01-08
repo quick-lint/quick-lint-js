@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #endif
 
-using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using namespace std::literals::chrono_literals;
 

@@ -13,7 +13,7 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using namespace std::literals::string_view_literals;
 
@@ -139,14 +139,16 @@ TEST(test_options, output_format) {
 TEST(test_options, invalid_output_format) {
   {
     options o = parse_options({"--output-format=unknown-garbage"});
-    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("unknown-garbage"sv));
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAreArray({"unknown-garbage"sv}));
     EXPECT_EQ(o.output_format, output_format::default_format)
         << "output_format should remain the default";
   }
 
   {
     options o = parse_options({"--output-format"});
-    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("--output-format"sv));
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAreArray({"--output-format"sv}));
   }
 }
 
@@ -415,7 +417,7 @@ TEST(test_options, language) {
   {
     options o = parse_options({"file.js", "--language=javascript-jsx"});
     EXPECT_THAT(o.warning_language_without_file,
-                ElementsAre("javascript-jsx"sv));
+                ElementsAreArray({"javascript-jsx"sv}));
 
     dumped_errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -428,7 +430,8 @@ TEST(test_options, language) {
   {
     options o = parse_options(
         {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
-    EXPECT_THAT(o.warning_language_without_file, ElementsAre("javascript"sv));
+    EXPECT_THAT(o.warning_language_without_file,
+                ElementsAreArray({"javascript"sv}));
 
     dumped_errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -442,7 +445,8 @@ TEST(test_options, language) {
     options o = parse_options({"--language=badlanguageid", "test.js"});
     EXPECT_THAT(o.warning_language_without_file, IsEmpty());
     // TODO(strager): Highlight the full option, not just the value.
-    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("badlanguageid"sv));
+    EXPECT_THAT(o.error_unrecognized_options,
+                ElementsAreArray({"badlanguageid"sv}));
   }
 }
 
@@ -573,13 +577,13 @@ TEST(test_options, exit_fail_on) {
 TEST(test_options, invalid_vim_file_bufnr) {
   {
     options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
-    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("garbage"sv));
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAreArray({"garbage"sv}));
   }
 
   {
     options o = parse_options({"--vim-file-bufnr"});
     EXPECT_THAT(o.error_unrecognized_options,
-                ElementsAre("--vim-file-bufnr"sv));
+                ElementsAreArray({"--vim-file-bufnr"sv}));
   }
 }
 
@@ -728,27 +732,27 @@ TEST(test_options, invalid_option) {
   {
     options o = parse_options({"--option-does-not-exist", "foo.js"});
     EXPECT_THAT(o.error_unrecognized_options,
-                ElementsAre("--option-does-not-exist"sv));
+                ElementsAreArray({"--option-does-not-exist"sv}));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"--debug-parse-vixxx", "foo.js"});
     EXPECT_THAT(o.error_unrecognized_options,
-                ElementsAre("--debug-parse-vixxx"sv));
+                ElementsAreArray({"--debug-parse-vixxx"sv}));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"--debug-parse-visits-xxx", "foo.js"});
     EXPECT_THAT(o.error_unrecognized_options,
-                ElementsAre("--debug-parse-visits-xxx"sv));
+                ElementsAreArray({"--debug-parse-visits-xxx"sv}));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 
   {
     options o = parse_options({"-version", "foo.js"});
-    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("-version"sv));
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAreArray({"-version"sv}));
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
 }

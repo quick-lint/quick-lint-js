@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -101,10 +102,12 @@ TEST(test_variable_analyzer_typeof,
                                variable_init_kind::normal);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
-                            diag_variable_used_before_declaration,  //
-                            use, span_of(use),                      //
-                            declaration, span_of(declaration))));
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE_2_SPANS(diag_variable_used_before_declaration,  //
+                                    use, span_of(use),                      //
+                                    declaration, span_of(declaration)),
+              }));
 }
 
 TEST(
@@ -133,11 +136,12 @@ TEST(
   l.visit_variable_use(identifier_of(use_after));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
-                                         span_of(use_before)),
-                          DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
-                                         span_of(use_after))));
+  EXPECT_THAT(v.errors, ElementsAreArray({
+                            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use_before)),
+                            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use_after)),
+                        }));
 }
 }
 }

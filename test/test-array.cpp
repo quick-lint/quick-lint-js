@@ -7,7 +7,7 @@
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/port/warning.h>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 
 QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
@@ -17,7 +17,7 @@ TEST(test_array, concat) {
   std::array<int, 3> lhs = {100, 200, 300};
   std::array<int, 4> rhs = {400, 500, 600, 700};
   std::array<int, 7> result = concat(lhs, rhs);
-  EXPECT_THAT(result, ElementsAre(100, 200, 300, 400, 500, 600, 700));
+  EXPECT_THAT(result, ElementsAreArray({100, 200, 300, 400, 500, 600, 700}));
 }
 
 TEST(test_array, concat_not_default_constructible) {
@@ -40,7 +40,7 @@ TEST(test_array, concat_not_default_constructible) {
   std::array<initialized_int, 3> lhs = {100, 200, 300};
   std::array<initialized_int, 4> rhs = {400, 500, 600, 700};
   std::array<initialized_int, 7> result = concat(lhs, rhs);
-  EXPECT_THAT(result, ElementsAre(100, 200, 300, 400, 500, 600, 700));
+  EXPECT_THAT(result, ElementsAreArray({100, 200, 300, 400, 500, 600, 700}));
 }
 }
 }

@@ -34,6 +34,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -573,7 +574,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
     EXPECT_EQ(look_up(diagnostics, 0, "message"),
               "variable used before declaration: x");
 
-    EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
+    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"let x = x;"}));
   }
 }
 
@@ -609,7 +610,7 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"SECOND"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"SECOND"}));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -670,8 +671,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls,
-              ElementsAre(u8"the slow brown fox", u8"the slow purple fox"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow brown fox",
+                                                  u8"the slow purple fox"}));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -719,7 +720,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"the slow purple fox"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow purple fox"}));
 }
 
 TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
@@ -746,7 +747,7 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(
@@ -830,7 +831,7 @@ TEST_F(
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -858,7 +859,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"snowman"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"snowman"}));
 }
 
 TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
@@ -898,7 +899,7 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -941,7 +942,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
@@ -1097,7 +1098,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"updated"sv));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"updated"sv}));
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
@@ -1185,8 +1186,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls,
-              ::testing::UnorderedElementsAre(u8"/* a.js */", u8"/* b.js */",
-                                              u8"/* c.js */"));
+              ::testing::UnorderedElementsAreArray(
+                  {u8"/* a.js */", u8"/* b.js */", u8"/* c.js */"}));
 
   std::vector<std::string> linted_uris;
   for (const ::boost::json::object& notification :
@@ -1203,10 +1204,11 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
     linted_uris.emplace_back(uri);
   }
   EXPECT_THAT(linted_uris,
-              ::testing::UnorderedElementsAre(
+              ::testing::UnorderedElementsAreArray({
                   to_string(this->fs.file_uri_prefix_8() + u8"a.js"),
                   to_string(this->fs.file_uri_prefix_8() + u8"b.js"),
-                  to_string(this->fs.file_uri_prefix_8() + u8"c.js")));
+                  to_string(this->fs.file_uri_prefix_8() + u8"c.js"),
+              }));
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
@@ -1309,7 +1311,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
       })"));
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
 
   std::vector<std::string> linted_uris;
   for (const ::boost::json::object& notification :
@@ -1327,8 +1329,10 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
     }
     linted_uris.emplace_back(uri);
   }
-  EXPECT_THAT(linted_uris, ElementsAre(to_string(this->fs.file_uri_prefix_8() +
-                                                 u8"dir-a/test.js")));
+  EXPECT_THAT(linted_uris,
+              ElementsAreArray({
+                  to_string(this->fs.file_uri_prefix_8() + u8"dir-a/test.js"),
+              }));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1407,7 +1411,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"modified"));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"modified"}));
 }
 
 TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
@@ -1568,7 +1572,7 @@ TEST_F(
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1635,7 +1639,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
@@ -1686,7 +1690,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
       })"));
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
   std::vector< ::boost::json::object> notifications =
@@ -1746,7 +1750,7 @@ TEST_F(test_linting_lsp_server,
       })"));
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
   std::vector< ::boost::json::object> notifications =
@@ -1816,7 +1820,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   this->handler->filesystem_changed();
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs", u8"testjs"}))
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
@@ -2069,7 +2073,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;", u8"let y = y;"));
+  EXPECT_THAT(this->lint_calls,
+              ElementsAreArray({u8"let x = x;", u8"let y = y;"}));
 }
 
 TEST_F(test_linting_lsp_server,

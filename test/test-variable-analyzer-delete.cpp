@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -48,9 +49,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_redundant_delete_statement_on_variable, delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete x")),
+        }));
   }
 
   {
@@ -76,9 +79,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_redundant_delete_statement_on_variable, delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete x")),
+        }));
   }
 
   {
@@ -105,9 +110,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_redundant_delete_statement_on_variable, delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete x")),
+        }));
   }
 
   {
@@ -134,9 +141,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_redundant_delete_statement_on_variable, delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete x")),
+        }));
   }
 
   {
@@ -168,9 +177,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_redundant_delete_statement_on_variable, delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete x")),
+        }));
   }
 }
 
@@ -202,9 +213,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(DIAG_TYPE_FIELD(
-          diag_redundant_delete_statement_on_variable, delete_expression,
-          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+      ElementsAreArray({
+          DIAG_TYPE_FIELD(diag_redundant_delete_statement_on_variable,
+                          delete_expression,
+                          offsets_matcher(&delete_expression, 0, u8"delete x")),
+      }));
 }
 
 TEST(test_variable_analyzer_delete_javascript,
@@ -230,9 +243,11 @@ TEST(test_variable_analyzer_delete_javascript,
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(DIAG_TYPE_FIELD(
-          diag_redundant_delete_statement_on_variable, delete_expression,
-          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+      ElementsAreArray({
+          DIAG_TYPE_FIELD(diag_redundant_delete_statement_on_variable,
+                          delete_expression,
+                          offsets_matcher(&delete_expression, 0, u8"delete x")),
+      }));
 }
 
 TEST(test_variable_analyzer_delete_javascript,
@@ -339,9 +354,12 @@ TEST(test_variable_analyzer_delete_typescript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_typescript_delete_cannot_delete_variables, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete myVar"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_typescript_delete_cannot_delete_variables,
+                delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete myVar")),
+        }));
   }
 
   {
@@ -358,9 +376,12 @@ TEST(test_variable_analyzer_delete_typescript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(
-            diag_typescript_delete_cannot_delete_variables, delete_expression,
-            offsets_matcher(&delete_expression, 0, u8"delete myVar"))));
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(
+                diag_typescript_delete_cannot_delete_variables,
+                delete_expression,
+                offsets_matcher(&delete_expression, 0, u8"delete myVar")),
+        }));
   }
 }
 
@@ -382,11 +403,14 @@ TEST(test_variable_analyzer_delete_typescript,
                                 delete_keyword_span);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
-                              diag_typescript_delete_cannot_delete_variables,
-                              delete_expression,
-                              offsets_matcher(&delete_expression, 0,
-                                              u8"delete myGlobalVariable"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(diag_typescript_delete_cannot_delete_variables,
+                            delete_expression,
+                            offsets_matcher(&delete_expression, 0,
+                                            u8"delete myGlobalVariable")),
+        }));
   }
 
   {
@@ -403,11 +427,14 @@ TEST(test_variable_analyzer_delete_typescript,
                                 delete_keyword_span);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
-                              diag_typescript_delete_cannot_delete_variables,
-                              delete_expression,
-                              offsets_matcher(&delete_expression, 0,
-                                              u8"delete myGlobalVariable"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(diag_typescript_delete_cannot_delete_variables,
+                            delete_expression,
+                            offsets_matcher(&delete_expression, 0,
+                                            u8"delete myGlobalVariable")),
+        }));
   }
 }
 }

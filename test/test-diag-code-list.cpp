@@ -9,7 +9,7 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -195,7 +195,8 @@ TEST(test_diag_code_list, compiling_empty_parsed_diag_code_list_is_an_error) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
   EXPECT_THAT(
       errors.parse_errors("--testoption"),
-      ElementsAre("--testoption must be given at least one category or code"));
+      ElementsAreArray(
+          {"--testoption must be given at least one category or code"}));
 }
 
 TEST(test_diag_code_list, empty_list_is_disallowed) {
@@ -215,7 +216,7 @@ TEST(test_diag_code_list, empty_list_is_disallowed) {
 TEST(test_diag_code_list, add_error_code_to_default) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("+E0420");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
+    EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -233,7 +234,7 @@ TEST(test_diag_code_list, add_error_code_to_default) {
 TEST(test_diag_code_list, remove_error_code_from_default) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("-E0420");
-    EXPECT_THAT(errors.excluded_codes, ElementsAre("E0420"));
+    EXPECT_THAT(errors.excluded_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -251,7 +252,7 @@ TEST(test_diag_code_list, remove_error_code_from_default) {
 TEST(test_diag_code_list, add_error_category_to_default) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("+warning");
-    EXPECT_THAT(errors.included_categories, ElementsAre("warning"));
+    EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -261,7 +262,7 @@ TEST(test_diag_code_list, add_error_category_to_default) {
 TEST(test_diag_code_list, remove_error_category_from_default) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("-warning");
-    EXPECT_THAT(errors.excluded_categories, ElementsAre("warning"));
+    EXPECT_THAT(errors.excluded_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -271,7 +272,7 @@ TEST(test_diag_code_list, remove_error_category_from_default) {
 TEST(test_diag_code_list, set_default_to_category) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("warning");
-    EXPECT_THAT(errors.included_categories, ElementsAre("warning"));
+    EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -281,7 +282,7 @@ TEST(test_diag_code_list, set_default_to_category) {
 TEST(test_diag_code_list, set_default_to_error_code) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("E0420");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
+    EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -292,11 +293,11 @@ TEST(test_diag_code_list, mixed) {
   {
     parsed_diag_code_list errors =
         parse_diag_code_list("+E0420,warning,-pedantic,syntax-error");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
+    EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.excluded_codes, IsEmpty());
     EXPECT_THAT(errors.included_categories,
-                ElementsAre("warning", "syntax-error"));
-    EXPECT_THAT(errors.excluded_categories, ElementsAre("pedantic"));
+                ElementsAreArray({"warning", "syntax-error"}));
+    EXPECT_THAT(errors.excluded_categories, ElementsAreArray({"pedantic"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -306,7 +307,7 @@ TEST(test_diag_code_list, mixed) {
 TEST(test_diag_code_list, whitespace_around_predicates_is_ignored) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("\t +E0420 \t");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
+    EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
@@ -329,37 +330,37 @@ TEST(test_diag_code_list, stray_commas_are_ignored) {
 TEST(test_diag_code_list, unexpected_characters) {
   {
     parsed_diag_code_list errors = parse_diag_code_list("~E0420");
-    EXPECT_THAT(errors.unexpected, ElementsAre("~"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"~"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("E???");
-    EXPECT_THAT(errors.unexpected, ElementsAre("?"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("err0r");
-    EXPECT_THAT(errors.unexpected, ElementsAre("0"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"0"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("err?r");
-    EXPECT_THAT(errors.unexpected, ElementsAre("?"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("+err+r");
-    EXPECT_THAT(errors.unexpected, ElementsAre("+"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"+"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("+%^#");
-    EXPECT_THAT(errors.unexpected, ElementsAre("%"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"%"}));
   }
 
   {
     parsed_diag_code_list errors = parse_diag_code_list("warning error");
-    EXPECT_THAT(errors.unexpected, ElementsAre("e"));
+    EXPECT_THAT(errors.unexpected, ElementsAreArray({"e"}));
   }
 }
 }

@@ -11,6 +11,7 @@
 
 using ::testing::ContainerEq;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -32,7 +33,7 @@ TEST(test_linked_vector, emplace_back_one) {
   linked_vector<int> v(new_delete_resource());
   v.emplace_back(42);
   EXPECT_FALSE(v.empty());
-  EXPECT_THAT(to_vector(v), ElementsAre(42));
+  EXPECT_THAT(to_vector(v), ElementsAreArray({42}));
 }
 
 TEST(test_linked_vector, emplace_back_full_chunk) {
@@ -69,7 +70,7 @@ TEST(test_linked_vector, emplace_back_two_then_pop_back) {
   v.emplace_back(69);
   v.pop_back();
   EXPECT_FALSE(v.empty());
-  EXPECT_THAT(to_vector(v), ElementsAre(42));
+  EXPECT_THAT(to_vector(v), ElementsAreArray({42}));
   EXPECT_EQ(v.back(), 42);
 }
 

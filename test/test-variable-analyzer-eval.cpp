@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -168,9 +169,11 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
-                                           name, span_of(use))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+        }));
   }
 
   {
@@ -187,9 +190,11 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_variable_use(identifier_of(use));
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
-                                           name, span_of(use))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+        }));
   }
 
   {
@@ -215,10 +220,11 @@ TEST(test_variable_analyzer_eval_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
+        ElementsAreArray({
             DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
             DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
-                           span_of(use))));
+                           span_of(use)),
+        }));
   }
 
   {
@@ -242,9 +248,11 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_variable_use(identifier_of(use));
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
-                                           name, span_of(use))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+        }));
   }
 
   {
@@ -266,10 +274,11 @@ TEST(test_variable_analyzer_eval_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
+        ElementsAreArray({
             DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
             DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
-                           span_of(use))));
+                           span_of(use)),
+        }));
   }
 
   {
@@ -302,10 +311,11 @@ TEST(test_variable_analyzer_eval_javascript,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
+        ElementsAreArray({
             DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
             DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
-                           span_of(use))));
+                           span_of(use)),
+        }));
   }
 }
 

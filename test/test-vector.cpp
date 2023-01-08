@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/feature.h>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -32,12 +32,12 @@ TEST(test_bump_vector, append_into_reserved_memory) {
   v.emplace_back(100);
   EXPECT_EQ(v.capacity(), 2);
   EXPECT_EQ(v.size(), 1);
-  EXPECT_THAT(v, ElementsAre(100));
+  EXPECT_THAT(v, ElementsAreArray({100}));
 
   v.emplace_back(200);
   EXPECT_EQ(v.capacity(), 2);
   EXPECT_EQ(v.size(), 2);
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
 }
 
 TEST(test_bump_vector, append_into_new_memory) {
@@ -49,12 +49,12 @@ TEST(test_bump_vector, append_into_new_memory) {
   v.emplace_back(100);
   EXPECT_GT(v.capacity(), 0);
   EXPECT_EQ(v.size(), 1);
-  EXPECT_THAT(v, ElementsAre(100));
+  EXPECT_THAT(v, ElementsAreArray({100}));
 
   v.emplace_back(200);
   EXPECT_GT(v.capacity(), 0);
   EXPECT_EQ(v.size(), 2);
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
 }
 
 TEST(test_bump_vector, growing_allocation_in_place) {
@@ -65,12 +65,12 @@ TEST(test_bump_vector, growing_allocation_in_place) {
   v.emplace_back(100);
   v.emplace_back(200);
   EXPECT_EQ(v.capacity(), 2);
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
 
   v.emplace_back(300);
   EXPECT_GT(v.capacity(), 2);
   v.emplace_back(400);
-  EXPECT_THAT(v, ElementsAre(100, 200, 300, 400));
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 300, 400}));
 }
 
 TEST(test_bump_vector, growing_allocation_by_copy) {
@@ -81,7 +81,7 @@ TEST(test_bump_vector, growing_allocation_by_copy) {
   v.emplace_back(100);
   v.emplace_back(200);
   EXPECT_EQ(v.capacity(), 2);
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
 
@@ -91,7 +91,7 @@ TEST(test_bump_vector, growing_allocation_by_copy) {
   v.emplace_back(300);
   EXPECT_GT(v.capacity(), 2);
   v.emplace_back(400);
-  EXPECT_THAT(v, ElementsAre(100, 200, 300, 400));
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 300, 400}));
 
   EXPECT_NE(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
       << "growing vector should use new data pointer";
@@ -113,7 +113,7 @@ TEST(test_bump_vector, resize_allows_same_size) {
   EXPECT_EQ(v.size(), 2) << "resizing vector should not change size";
   EXPECT_EQ(v.capacity(), old_capacity)
       << "resizing vector should not change capacity";
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
   EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
       << "resizing vector should not change data pointer";
 }
@@ -133,7 +133,7 @@ TEST(test_bump_vector, resize_allows_shrinking) {
   EXPECT_EQ(v.size(), 2) << "shrinking vector should change size";
   EXPECT_EQ(v.capacity(), old_capacity)
       << "shrinking vector should not change capacity";
-  EXPECT_THAT(v, ElementsAre(100, 200))
+  EXPECT_THAT(v, ElementsAreArray({100, 200}))
       << "shrinking vector should preserve some elements";
   EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
       << "shrinking vector should not change data pointer";
@@ -154,7 +154,7 @@ TEST(test_bump_vector, resize_allows_growing_within_capacity) {
   EXPECT_EQ(v.size(), 3) << "growing vector should change size";
   EXPECT_EQ(v.capacity(), old_capacity)
       << "growing vector should not change capacity";
-  EXPECT_THAT(v, ElementsAre(100, 200, 0))
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 0}))
       << "growing vector should default-construct new elements";
   EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
       << "growing vector within capacity should not change data pointer";
@@ -171,8 +171,8 @@ TEST(test_bump_vector, resize_allows_growing_outside_capacity) {
 
   EXPECT_EQ(v.size(), 10) << "growing vector should change size";
   EXPECT_EQ(v.capacity(), 10) << "growing vector should change capacity";
-  EXPECT_THAT(v, ElementsAre(100, 200, 0, 0, 0,  //
-                             0, 0, 0, 0, 0))
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 0, 0, 0,  //
+                                   0, 0, 0, 0, 0}))
       << "growing vector should default-construct new elements";
 }
 
@@ -184,7 +184,7 @@ TEST(test_bump_vector, pop_back_shrinks_vector) {
   v.push_back(300);
   v.pop_back();
 
-  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
   EXPECT_GE(v.capacity(), 3);
 }
 
@@ -200,7 +200,7 @@ TEST(test_bump_vector, pop_back_then_push_back_reuses_memory) {
   v.push_back(400);
   std::uintptr_t v_data_pointer = reinterpret_cast<std::uintptr_t>(v.data());
 
-  EXPECT_THAT(v, ElementsAre(100, 200, 400));
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 400}));
   EXPECT_EQ(v_data_pointer, old_v_data_pointer);
   EXPECT_GE(v.capacity(), 3);
 }

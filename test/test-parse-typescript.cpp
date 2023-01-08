@@ -20,6 +20,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -31,15 +32,20 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
   {
     test_parser p(u8"x = myVar: Type;"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // myVar
-                                      "visit_variable_assignment"))  // x
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",         // myVar
+                              "visit_variable_assignment",  // x
+                          }))
         << "visit_variable_type_use for Type should not happen because it "
            "might produce spurious warnings about undeclared types";
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myVar"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myVar"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_type_annotation_in_expression,  //
-                              type_colon, strlen(u8"x = myVar"), u8":")));
+                              type_colon, strlen(u8"x = myVar"), u8":"),
+        }));
   }
 }
 
@@ -47,27 +53,31 @@ TEST_F(test_parse_typescript, type_alias) {
   {
     test_parser p(u8"type T = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
-                                      "visit_enter_type_alias_scope",   // T
-                                      "visit_variable_type_use",        // U
-                                      "visit_exit_type_alias_scope"));  // T
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(p.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // T
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // T
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({type_alias_decl(u8"T")}));
   }
 
   {
     test_parser p(u8"type MyAlias<T> = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",     // MyAlias
-                            "visit_enter_type_alias_scope",   // MyAlias
-                            "visit_variable_declaration",     // T
-                            "visit_variable_type_use",        // U
-                            "visit_exit_type_alias_scope"));  // MyAlias
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(
-        p.variable_declarations,
-        ElementsAre(type_alias_decl(u8"MyAlias"), generic_param_decl(u8"T")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // MyAlias
+                              "visit_enter_type_alias_scope",  // MyAlias
+                              "visit_variable_declaration",    // T
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // MyAlias
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {type_alias_decl(u8"MyAlias"), generic_param_decl(u8"T")}));
   }
 }
 
@@ -75,43 +85,52 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
     test_parser p(u8"type T = U"_sv, typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
-                                      "visit_enter_type_alias_scope",   // T
-                                      "visit_variable_type_use",        // U
-                                      "visit_exit_type_alias_scope"));  // T
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // T
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // T
+                          }));
   }
 
   {
     test_parser p(u8"type T = U\ntype V = W;"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
-                                      "visit_enter_type_alias_scope",  // T
-                                      "visit_variable_type_use",       // U
-                                      "visit_exit_type_alias_scope",   // T
-                                      "visit_variable_declaration",    // V
-                                      "visit_enter_type_alias_scope",  // V
-                                      "visit_variable_type_use",       // W
-                                      "visit_exit_type_alias_scope",   // V
-                                      "visit_end_of_module"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // T
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // T
+                              "visit_variable_declaration",    // V
+                              "visit_enter_type_alias_scope",  // V
+                              "visit_variable_type_use",       // W
+                              "visit_exit_type_alias_scope",   // V
+                              "visit_end_of_module",
+                          }));
   }
 
   {
     test_parser p(u8"type T = U type V = W;"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
-                                      "visit_enter_type_alias_scope",  // T
-                                      "visit_variable_type_use",       // U
-                                      "visit_exit_type_alias_scope",   // T
-                                      "visit_variable_declaration",    // V
-                                      "visit_enter_type_alias_scope",  // V
-                                      "visit_variable_type_use",       // W
-                                      "visit_exit_type_alias_scope",   // V
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code,
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // T
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // T
+                              "visit_variable_declaration",    // V
+                              "visit_enter_type_alias_scope",  // V
+                              "visit_variable_type_use",       // W
+                              "visit_exit_type_alias_scope",   // V
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"type T = U"), u8"")));
+                              where, strlen(u8"type T = U"), u8""),
+        }));
   }
 }
 
@@ -129,12 +148,14 @@ TEST_F(test_parse_typescript,
     test_parser p(concat(u8"type ", name, u8" = T;"), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",     // (name)
-                            "visit_enter_type_alias_scope",   // (name)
-                            "visit_variable_type_use",        // T
-                            "visit_exit_type_alias_scope"));  // (name)
-    EXPECT_THAT(p.variable_declarations, ElementsAre(type_alias_decl(name)));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // (name)
+                              "visit_enter_type_alias_scope",  // (name)
+                              "visit_variable_type_use",       // T
+                              "visit_exit_type_alias_scope",   // (name)
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({type_alias_decl(name)}));
   }
 }
 
@@ -143,11 +164,13 @@ TEST_F(test_parse_typescript,
   {
     test_parser p(u8"type\nT = U;"_sv, typescript_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // type
-                                      "visit_variable_use",         // U
-                                      "visit_variable_assignment",  // T
-                                      "visit_end_of_module"));
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"type", u8"U"));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",         // type
+                              "visit_variable_use",         // U
+                              "visit_variable_assignment",  // T
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"type", u8"U"}));
   }
 }
 
@@ -155,16 +178,20 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
   {
     test_parser p(u8"type T = U;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits,
-                ElementsAre("visit_variable_declaration",     // T
-                            "visit_enter_type_alias_scope",   // (name)
-                            "visit_variable_type_use",        // U
-                            "visit_exit_type_alias_scope"));  // (name)
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code,
-                    diag_typescript_type_alias_not_allowed_in_javascript,  //
-                    type_keyword, 0, u8"type")));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // (name)
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // (name)
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_type_alias_not_allowed_in_javascript,  //
+                type_keyword, 0, u8"type"),
+        }));
   }
 }
 }

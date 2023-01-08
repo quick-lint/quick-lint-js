@@ -22,6 +22,7 @@
 
 using ::testing::_;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
@@ -77,9 +78,12 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"? b : c"_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(missing, var b, var c)");
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"?")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
+                              where, 0, u8"?"),
+        }));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"? b : c"));
   }
 }
@@ -90,9 +94,12 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"a ? : c"_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, missing, var c)");
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"a "), u8"?")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
+                              where, strlen(u8"a "), u8"?"),
+        }));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? : c"));
   }
 }
@@ -103,9 +110,12 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"a ? b : "_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"a ? b "), u8":")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
+                              where, strlen(u8"a ? b "), u8":"),
+        }));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b : "));
   }
 
@@ -113,9 +123,12 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"(a ? b :)"_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
-    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"(a ? b "), u8":")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
+                              where, strlen(u8"(a ? b "), u8":"),
+        }));
     EXPECT_THAT(ast->child_0()->span(),
                 p.matches_offsets(strlen(u8"("), u8"a ? b :)"));
   }
@@ -127,11 +140,14 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"a ? b "_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code, diag_missing_colon_in_conditional_expression,  //
-                    expected_colon, strlen(u8"a ? b"), u8"",               //
-                    question, strlen(u8"a "), u8"?")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_missing_colon_in_conditional_expression,  //
+                expected_colon, strlen(u8"a ? b"), u8"",               //
+                question, strlen(u8"a "), u8"?"),
+        }));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b"));
   }
 
@@ -139,11 +155,14 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"a ? b c"_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code, diag_missing_colon_in_conditional_expression,  //
-                    expected_colon, strlen(u8"a ? b"), u8"",               //
-                    question, strlen(u8"a "), u8"?")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_missing_colon_in_conditional_expression,  //
+                expected_colon, strlen(u8"a ? b"), u8"",               //
+                question, strlen(u8"a "), u8"?"),
+        }));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b"));
   }
 
@@ -151,11 +170,14 @@ TEST_P(test_parse_conditional_expression,
     test_parser p(u8"(a ? b)"_sv, GetParam(), capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
-    EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code, diag_missing_colon_in_conditional_expression,  //
-                    expected_colon, strlen(u8"(a ? b"), u8"",              //
-                    question, strlen(u8"(a "), u8"?")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_missing_colon_in_conditional_expression,  //
+                expected_colon, strlen(u8"(a ? b"), u8"",              //
+                question, strlen(u8"(a "), u8"?"),
+        }));
     EXPECT_THAT(ast->child_0()->span(),
                 p.matches_offsets(strlen(u8"("), u8"a ? b"));
   }

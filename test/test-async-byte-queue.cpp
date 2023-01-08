@@ -297,9 +297,11 @@ TEST(test_async_byte_queue, append_aligned_with_rewind) {
   string8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data.size(), 1 + sizeof(std::uint32_t) * 2);
   EXPECT_THAT(taken_data,
-              ::testing::ElementsAre(u8'a',                     // first_byte
-                                     0x11, 0x11, 0x11, 0x11,    // out[0]
-                                     0x22, 0x22, 0x22, 0x22));  // out[1]
+              ::testing::ElementsAreArray<std::uint8_t>({
+                  u8'a',                   // first_byte
+                  0x11, 0x11, 0x11, 0x11,  // out[0]
+                  0x22, 0x22, 0x22, 0x22,  // out[1]
+              }));
 }
 }
 }

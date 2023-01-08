@@ -13,6 +13,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -125,10 +126,12 @@ TEST(test_variable_analyzer_enum,
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_SPANS(
-                      diag_redeclaration_of_variable,            //
-                      redeclaration, span_of(enum_declaration),  //
-                      original_declaration, span_of(other_declaration))));
+                  ElementsAreArray({
+                      DIAG_TYPE_2_SPANS(
+                          diag_redeclaration_of_variable,            //
+                          redeclaration, span_of(enum_declaration),  //
+                          original_declaration, span_of(other_declaration)),
+                  }));
     }
 
     {
@@ -146,10 +149,12 @@ TEST(test_variable_analyzer_enum,
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_SPANS(
-                      diag_redeclaration_of_variable,             //
-                      redeclaration, span_of(other_declaration),  //
-                      original_declaration, span_of(enum_declaration))));
+                  ElementsAreArray({
+                      DIAG_TYPE_2_SPANS(
+                          diag_redeclaration_of_variable,             //
+                          redeclaration, span_of(other_declaration),  //
+                          original_declaration, span_of(enum_declaration)),
+                  }));
     }
   }
 }
@@ -205,11 +210,13 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_SPANS(
-                    diag_redeclaration_of_variable,           //
-                    redeclaration, span_of(var_declaration),  //
-                    original_declaration, span_of(enum_declaration))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,           //
+                              redeclaration, span_of(var_declaration),  //
+                              original_declaration, span_of(enum_declaration)),
+        }));
   }
 
   {
@@ -231,11 +238,13 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     l.visit_exit_enum_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_SPANS(
-                    diag_redeclaration_of_variable,            //
-                    redeclaration, span_of(enum_declaration),  //
-                    original_declaration, span_of(var_declaration))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,            //
+                              redeclaration, span_of(enum_declaration),  //
+                              original_declaration, span_of(var_declaration)),
+        }));
   }
 }
 
