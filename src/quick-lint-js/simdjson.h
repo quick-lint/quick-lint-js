@@ -16,6 +16,8 @@ string8_view get_raw_json(::simdjson::ondemand::value&);
 // if root[key] is not an object.
 bool get_object(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
                 const char* key, ::simdjson::ondemand::object* out);
+bool get_object(::simdjson::ondemand::object& root, const char* key,
+                ::simdjson::ondemand::object* out);
 
 // Returns true on success.
 //
@@ -43,6 +45,10 @@ bool get_string8(::simdjson::ondemand::object& root, const char* key1,
                  const char* key2, const char* key3, string8_view* out);
 bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
                  const char* key, string8_view* out);
+
+// TODO(strager): What do we do if the value is integral but is out of range of
+// 'int'?
+bool get_int(::simdjson::ondemand::object& root, const char* key, int* out);
 }
 
 #endif

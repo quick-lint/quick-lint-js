@@ -3,6 +3,7 @@
 
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/in-range.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/simdjson.h>
 #include <simdjson.h>
@@ -30,6 +31,11 @@ string8_view get_raw_json(::simdjson::ondemand::value& value) {
 bool get_object(::simdjson::ondemand::object& root, const char* key1,
                 const char* key2, ::simdjson::ondemand::object* out) {
   return root[key1][key2].get(*out) == ::simdjson::SUCCESS;
+}
+
+bool get_object(::simdjson::ondemand::object& root, const char* key,
+                ::simdjson::ondemand::object* out) {
+  return root[key].get(*out) == ::simdjson::SUCCESS;
 }
 
 bool get_object(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
@@ -89,6 +95,20 @@ bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
     return false;
   }
   *out = to_string8_view(sv);
+  return true;
+}
+
+bool get_int(::simdjson::ondemand::object& root, const char* key, int* out) {
+  std::int64_t int64;
+  if (root[key].get(int64) != ::simdjson::error_code::SUCCESS) {
+    return false;
+  }
+  if (!in_range<int>(int64)) {
+    // TODO(strager): What should we do here? Return false? Return something
+    // else?
+    QLJS_UNIMPLEMENTED();
+  }
+  *out = static_cast<int>(int64);
   return true;
 }
 }

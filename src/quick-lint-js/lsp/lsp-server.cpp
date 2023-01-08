@@ -50,10 +50,6 @@ std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::ondemand::value& string);
 std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
-
-// Returns std::nullopt on failure (e.g. missing key or not an integer).
-std::optional<int> maybe_get_int(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
 }
 
 lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
@@ -591,29 +587,24 @@ void linting_lsp_server_handler::apply_document_changes(
     ::simdjson::ondemand::object raw_range;
     bool is_incremental = get_object(change, "range", &raw_range);
     if (is_incremental) {
-      auto start = raw_range["start"];
-      std::optional<int> start_line = maybe_get_int(start["line"]);
-      std::optional<int> start_character = maybe_get_int(start["character"]);
-      auto end = raw_range["end"];
-      std::optional<int> end_line = maybe_get_int(end["line"]);
-      std::optional<int> end_character = maybe_get_int(end["character"]);
-      if (!(start_line.has_value() && start_character.has_value() &&
-            end_line.has_value() && end_character.has_value())) {
+      lsp_range range;
+
+      ::simdjson::ondemand::object start;
+      if (!(get_object(raw_range, "start", &start) &&
+            get_int(start, "line", &range.start.line) &&
+            get_int(start, "character", &range.start.character))) {
         // Ignore invalid change.
         continue;
       }
-      lsp_range range = {
-          .start =
-              {
-                  .line = *start_line,
-                  .character = *start_character,
-              },
-          .end =
-              {
-                  .line = *end_line,
-                  .character = *end_character,
-              },
-      };
+
+      ::simdjson::ondemand::object end;
+      if (!(get_object(raw_range, "end", &end) &&
+            get_int(end, "line", &range.end.line) &&
+            get_int(end, "character", &range.end.character))) {
+        // Ignore invalid change.
+        continue;
+      }
+
       doc.replace_text(range, change_text);
     } else {
       doc.set_text(change_text);
@@ -710,18 +701,6 @@ std::optional<string_json_token> maybe_get_string_token(
     return std::nullopt;
   }
   return maybe_get_string_token(s);
-}
-
-std::optional<int> maybe_get_int(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& element) {
-  std::int64_t int64;
-  if (element.get(int64) != ::simdjson::error_code::SUCCESS) {
-    return std::nullopt;
-  }
-  if (!in_range<int>(int64)) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return static_cast<int>(int64);
 }
 }
 }
