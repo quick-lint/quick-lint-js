@@ -9,6 +9,29 @@
 
 namespace quick_lint_js {
 string8_view get_raw_json(::simdjson::ondemand::value&);
+
+// Returns true on success.
+//
+// Returns false if root is not an object, or if root does not contain key, or
+// if root[key] is not an object.
+bool get_object(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                const char* key, ::simdjson::ondemand::object* out);
+
+// Returns true on success.
+//
+// Returns false if root does not contain key1, or if root[key1] does not
+// contain key2, or if root[key1][key2] is not an object.
+bool get_object(::simdjson::ondemand::object& root, const char* key1,
+                const char* key2, ::simdjson::ondemand::object* out);
+
+bool get_array(::simdjson::ondemand::object& root, const char* key1,
+               const char* key2, ::simdjson::ondemand::array* out);
+
+bool get_value(::simdjson::ondemand::object& root, const char* key,
+               ::simdjson::ondemand::value* out);
+
+bool get_string(::simdjson::ondemand::object& root, const char* key,
+                std::string_view* out);
 }
 
 #endif

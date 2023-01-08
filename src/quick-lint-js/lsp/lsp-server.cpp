@@ -274,8 +274,7 @@ void linting_lsp_server_handler::handle_initialized_notification() {
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
     ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
-  if (request["params"]["textDocument"].get(text_document) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_object(request, "params", "textDocument", &text_document)) {
     // Ignore invalid notification.
     return;
   }
@@ -286,8 +285,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
     return;
   }
   ::simdjson::ondemand::value version;
-  if (text_document["version"].get(version) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_value(text_document, "version", &version)) {
     // Ignore invalid notification.
     return;
   }
@@ -306,8 +304,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   }
 
   ::simdjson::ondemand::array changes;
-  if (request["params"]["contentChanges"].get(changes) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_array(request, "params", "contentChanges", &changes)) {
     // Ignore invalid notification.
     return;
   }
@@ -364,14 +361,12 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
     ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
-  if (request["params"]["textDocument"].get(text_document) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_object(request, "params", "textDocument", &text_document)) {
     // Ignore invalid notification.
     return;
   }
   std::string_view language_id;
-  if (text_document["languageId"].get(language_id) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_string(text_document, "languageId", &language_id)) {
     // Ignore invalid notification.
     return;
   }
@@ -382,8 +377,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     return;
   }
   ::simdjson::ondemand::value version;
-  if (text_document["version"].get(version) !=
-      ::simdjson::error_code::SUCCESS) {
+  if (!get_value(text_document, "version", &version)) {
     // Ignore invalid notification.
     return;
   }
@@ -458,7 +452,7 @@ void linting_lsp_server_handler::
     handle_workspace_did_change_configuration_notification(
         ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object settings;
-  if (request["params"]["settings"].get(settings) != ::simdjson::SUCCESS) {
+  if (!get_object(request, "params", "settings", &settings)) {
     QLJS_DEBUG_LOG("failed to extract configuration notification settings\n");
     // TODO(strager): Report an error.
     return;
@@ -604,8 +598,7 @@ void linting_lsp_server_handler::apply_document_changes(
       continue;
     }
     ::simdjson::ondemand::object raw_range;
-    bool is_incremental =
-        change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
+    bool is_incremental = get_object(change, "range", &raw_range);
     if (is_incremental) {
       auto start = raw_range["start"];
       std::optional<int> start_line = maybe_get_int(start["line"]);

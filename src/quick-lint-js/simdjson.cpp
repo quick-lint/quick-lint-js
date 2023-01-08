@@ -26,6 +26,31 @@ string8_view get_raw_json(::simdjson::ondemand::value& value) {
   }
   QLJS_UNREACHABLE();
 }
+
+bool get_object(::simdjson::ondemand::object& root, const char* key1,
+                const char* key2, ::simdjson::ondemand::object* out) {
+  return root[key1][key2].get(*out) == ::simdjson::SUCCESS;
+}
+
+bool get_object(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                const char* key, ::simdjson::ondemand::object* out) {
+  return root[key].get(*out) == ::simdjson::SUCCESS;
+}
+
+bool get_array(::simdjson::ondemand::object& root, const char* key1,
+               const char* key2, ::simdjson::ondemand::array* out) {
+  return root[key1][key2].get(*out) == ::simdjson::SUCCESS;
+}
+
+bool get_value(::simdjson::ondemand::object& root, const char* key,
+               ::simdjson::ondemand::value* out) {
+  return root[key].get(*out) == ::simdjson::SUCCESS;
+}
+
+bool get_string(::simdjson::ondemand::object& root, const char* key,
+                std::string_view* out) {
+  return root[key].get(*out) == ::simdjson::SUCCESS;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

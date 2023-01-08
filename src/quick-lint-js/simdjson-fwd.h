@@ -17,8 +17,12 @@
 
 #if defined(QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE)
 namespace simdjson {
+template <class T>
+class simdjson_result;
+
 namespace QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE {
 namespace ondemand {
+class array;
 class object;
 class value;
 }
