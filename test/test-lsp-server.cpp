@@ -2444,6 +2444,38 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   }
 }
 
+TEST(test_lsp_javascript_linter,
+     linted_javascript_file_complains_about_typescript) {
+  fake_configuration_filesystem fs;
+  lsp_javascript_linter linter;
+  linting_lsp_server_handler handler(&fs, &linter);
+  spy_lsp_endpoint_remote client;
+  lsp_endpoint server(&handler, &client);
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "interface I { }"
+          }
+        }
+      })"));
+  handler.flush_pending_notifications(client);
+
+  std::vector< ::boost::json::object> notifications = client.notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object notification = notifications[0];
+  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
+  EXPECT_FALSE(notification.contains("error"));
+  EXPECT_EQ(look_up(notification, "params", "diagnostics", 0, "code"), "E0213")
+      << "should report diagnostic: TypeScript's 'interface' feature is not "
+         "allowed in JavaScript code";
+}
+
 // TODO(strager): For batch requests containing multiple edits, lint and publish
 // diagnostics only once.
 }
