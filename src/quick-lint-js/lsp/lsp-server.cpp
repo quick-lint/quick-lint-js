@@ -301,28 +301,28 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   this->apply_document_changes(doc.doc, changes);
   doc.version_json = get_raw_json(version);
 
-  switch (doc.type) {
-  case document_type::lintable: {
-    lintable_document& lintable_doc = static_cast<lintable_document&>(doc);
-    byte_buffer& notification_json =
-        this->pending_notification_jsons_.emplace_back();
-    this->linter_.lint_and_get_diagnostics_notification(
-        *lintable_doc.config, doc.doc.string(), uri->json, doc.version_json,
-        notification_json);
-    break;
-  }
+  doc.on_text_changed(*this, uri->json);
+}
 
-  case document_type::config: {
-    std::vector<configuration_change> config_changes =
-        this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes);
-    break;
-  }
+void linting_lsp_server_handler::config_document::on_text_changed(
+    linting_lsp_server_handler& handler, string8_view) {
+  std::vector<configuration_change> config_changes =
+      handler.config_loader_.refresh();
+  handler.handle_config_file_changes(config_changes);
+}
 
-  case document_type::unknown:
-    // Ignore.
-    break;
-  }
+void linting_lsp_server_handler::lintable_document::on_text_changed(
+    linting_lsp_server_handler& handler, string8_view document_uri_json) {
+  byte_buffer& notification_json =
+      handler.pending_notification_jsons_.emplace_back();
+  handler.linter_.lint_and_get_diagnostics_notification(
+      *this->config, this->doc.string(), document_uri_json, this->version_json,
+      notification_json);
+}
+
+void linting_lsp_server_handler::unknown_document::on_text_changed(
+    linting_lsp_server_handler&, string8_view) {
+  // Do nothing.
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(

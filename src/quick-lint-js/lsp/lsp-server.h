@@ -123,6 +123,8 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   struct document_base {
     virtual ~document_base() = default;
 
+    virtual void on_text_changed(linting_lsp_server_handler&,
+                                 string8_view document_uri_json) = 0;
     virtual void on_config_file_changed(linting_lsp_server_handler&,
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
@@ -133,12 +135,16 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   };
 
   struct config_document final : document_base {
+    void on_text_changed(linting_lsp_server_handler&,
+                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;
   };
 
   struct lintable_document final : document_base {
+    void on_text_changed(linting_lsp_server_handler&,
+                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;
@@ -147,6 +153,8 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   };
 
   struct unknown_document final : document_base {
+    void on_text_changed(linting_lsp_server_handler&,
+                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;
