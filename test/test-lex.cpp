@@ -46,10 +46,12 @@ using ::testing::VariantWith;
   GTEST_PRED_FORMAT2_(::testing::internal::EqHelper::Compare, lhs, rhs, \
                       ADD_FAILURE_AT_CALLER)
 
-#define ADD_FAILURE_AT_CALLER(message)                                    \
-  GTEST_MESSAGE_AT_((caller.valid() ? caller.file_name() : __FILE__),     \
-                    (caller.valid() ? caller.line() : __LINE__), message, \
-                    ::testing::TestPartResult::kNonFatalFailure)
+#define ADD_FAILURE_AT_CALLER(message)                                   \
+  GTEST_MESSAGE_AT_(                                                     \
+      (caller.valid() ? caller.file_name() : __FILE__),                  \
+      (caller.valid() ? ::quick_lint_js::narrow_cast<int>(caller.line()) \
+                      : __LINE__),                                       \
+      message, ::testing::TestPartResult::kNonFatalFailure)
 
 namespace quick_lint_js {
 namespace {
