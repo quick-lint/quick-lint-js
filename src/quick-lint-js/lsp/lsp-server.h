@@ -29,24 +29,9 @@
 
 namespace quick_lint_js {
 class byte_buffer;
+class lsp_linter;
 class trace_flusher_directory_backend;
 struct watch_io_error;
-
-class lsp_linter {
- public:
-  lsp_linter() = default;
-
-  lsp_linter(const lsp_linter&) = default;
-  lsp_linter(lsp_linter&&) = default;
-  lsp_linter& operator=(const lsp_linter&) = default;
-  lsp_linter& operator=(lsp_linter&&) = default;
-
-  virtual ~lsp_linter();
-
-  virtual void lint_and_get_diagnostics_notification(
-      configuration& config, padded_string_view code, string8_view uri_json,
-      string8_view version_json, byte_buffer& notification_json) = 0;
-};
 
 // A configuration_filesystem which allows unsaved LSP documents (from the
 // client) to appear as real files.
@@ -210,6 +195,28 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
+
+  friend class lsp_linter;
+};
+
+class lsp_linter {
+ public:
+  lsp_linter() = default;
+
+  lsp_linter(const lsp_linter&) = default;
+  lsp_linter(lsp_linter&&) = default;
+  lsp_linter& operator=(const lsp_linter&) = default;
+  lsp_linter& operator=(lsp_linter&&) = default;
+
+  virtual ~lsp_linter();
+
+  virtual void lint_and_get_diagnostics_notification(
+      configuration& config, padded_string_view code, string8_view uri_json,
+      string8_view version_json, byte_buffer& notification_json) = 0;
+
+  void lint_and_get_diagnostics_notification(
+      linting_lsp_server_handler::lintable_document&, string8_view uri_json,
+      byte_buffer& notification_json);
 };
 
 class lsp_javascript_linter final : public lsp_linter {
