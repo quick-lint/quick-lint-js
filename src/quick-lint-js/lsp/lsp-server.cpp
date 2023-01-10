@@ -395,7 +395,6 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       language_id == "js" || language_id == "js-jsx") {
     auto doc = std::make_unique<lintable_document>();
     init_document(*doc);
-    doc->type = document_type::lintable;
 
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
@@ -429,7 +428,6 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   } else if (this->config_loader_.is_config_file_path(document_path)) {
     auto doc = std::make_unique<config_document>();
     init_document(*doc);
-    doc->type = document_type::config;
 
     auto config_file =
         this->config_loader_.watch_and_load_config_file(document_path,

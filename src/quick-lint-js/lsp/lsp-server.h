@@ -114,12 +114,6 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   void add_watch_io_errors(const std::vector<watch_io_error>&);
 
  private:
-  enum class document_type {
-    config,    // quick-lint-js.config
-    lintable,  // .js file
-    unknown,
-  };
-
   struct document_base {
     virtual ~document_base() = default;
 
@@ -130,10 +124,10 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                         const configuration_change&) = 0;
 
     quick_lint_js::document<lsp_locator> doc;
-    document_type type = document_type::unknown;
     string8 version_json;
   };
 
+  // quick-lint-js.config
   struct config_document final : document_base {
     void on_text_changed(linting_lsp_server_handler&,
                          string8_view document_uri_json) override;
@@ -142,6 +136,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                 const configuration_change&) override;
   };
 
+  // .js file
   struct lintable_document final : document_base {
     void on_text_changed(linting_lsp_server_handler&,
                          string8_view document_uri_json) override;
