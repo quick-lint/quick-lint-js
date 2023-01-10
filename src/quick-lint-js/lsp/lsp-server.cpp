@@ -487,45 +487,54 @@ void linting_lsp_server_handler::handle_config_file_changes(
       continue;
     }
 
-    if (doc.type == document_type::lintable) {
-      lintable_document& lintable_doc = static_cast<lintable_document&>(doc);
-
-      std::string document_path = parse_file_from_lsp_uri(document_uri);
-      if (document_path.empty()) {
-        // TODO(strager): Report a warning and use a default configuration.
-        QLJS_UNIMPLEMENTED();
-      }
-      if (change_it->error) {
-        byte_buffer& message_json =
-            this->pending_notification_jsons_.emplace_back();
-        this->write_configuration_loader_error_notification(
-            document_path, change_it->error->error_to_string(), message_json);
-      }
-      configuration* config = change_it->config_file
-                                  ? &change_it->config_file->config
-                                  : &this->default_config_;
-      lintable_doc.config = config;
-      byte_buffer& notification_json =
-          this->pending_notification_jsons_.emplace_back();
-      // TODO(strager): Don't copy document_uri if it contains only non-special
-      // characters.
-      // TODO(strager): Cache the result of to_json_escaped_string?
-      this->linter_.lint_and_get_diagnostics_notification(
-          *config, doc.doc.string(),
-          to_json_escaped_string_with_quotes(document_uri), doc.version_json,
-          notification_json);
-    } else if (doc.type == document_type::config) {
-      QLJS_ASSERT(change_it->config_file);
-      if (change_it->config_file) {
-        byte_buffer& config_diagnostics_json =
-            this->pending_notification_jsons_.emplace_back();
-        this->get_config_file_diagnostics_notification(
-            change_it->config_file,
-            to_json_escaped_string_with_quotes(document_uri), doc.version_json,
-            config_diagnostics_json);
-      }
-    }
+    doc.on_config_file_changed(*this, document_uri, *change_it);
   }
+}
+
+void linting_lsp_server_handler::config_document::on_config_file_changed(
+    linting_lsp_server_handler& handler, string8_view document_uri,
+    const configuration_change& change) {
+  QLJS_ASSERT(change.config_file);
+  if (change.config_file) {
+    byte_buffer& config_diagnostics_json =
+        handler.pending_notification_jsons_.emplace_back();
+    handler.get_config_file_diagnostics_notification(
+        change.config_file, to_json_escaped_string_with_quotes(document_uri),
+        this->version_json, config_diagnostics_json);
+  }
+}
+
+void linting_lsp_server_handler::lintable_document::on_config_file_changed(
+    linting_lsp_server_handler& handler, string8_view document_uri,
+    const configuration_change& change) {
+  std::string document_path = parse_file_from_lsp_uri(document_uri);
+  if (document_path.empty()) {
+    // TODO(strager): Report a warning and use a default configuration.
+    QLJS_UNIMPLEMENTED();
+  }
+  if (change.error) {
+    byte_buffer& message_json =
+        handler.pending_notification_jsons_.emplace_back();
+    handler.write_configuration_loader_error_notification(
+        document_path, change.error->error_to_string(), message_json);
+  }
+  configuration* config = change.config_file ? &change.config_file->config
+                                             : &handler.default_config_;
+  this->config = config;
+  byte_buffer& notification_json =
+      handler.pending_notification_jsons_.emplace_back();
+  // TODO(strager): Don't copy document_uri if it contains only non-special
+  // characters.
+  // TODO(strager): Cache the result of to_json_escaped_string?
+  handler.linter_.lint_and_get_diagnostics_notification(
+      *config, this->doc.string(),
+      to_json_escaped_string_with_quotes(document_uri), this->version_json,
+      notification_json);
+}
+
+void linting_lsp_server_handler::unknown_document::on_config_file_changed(
+    linting_lsp_server_handler&, string8_view, const configuration_change&) {
+  // Do nothing.
 }
 
 void linting_lsp_server_handler::get_config_file_diagnostics_notification(

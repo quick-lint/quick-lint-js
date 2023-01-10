@@ -123,18 +123,34 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   struct document_base {
     virtual ~document_base() = default;
 
+    virtual void on_config_file_changed(linting_lsp_server_handler&,
+                                        string8_view document_uri,
+                                        const configuration_change&) = 0;
+
     quick_lint_js::document<lsp_locator> doc;
     document_type type = document_type::unknown;
     string8 version_json;
   };
 
-  struct config_document final : document_base {};
+  struct config_document final : document_base {
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+  };
 
   struct lintable_document final : document_base {
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+
     configuration* config;
   };
 
-  struct unknown_document final : document_base {};
+  struct unknown_document final : document_base {
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+  };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
                                  string8_view id_json,
