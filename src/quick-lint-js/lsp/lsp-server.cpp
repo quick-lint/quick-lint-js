@@ -285,7 +285,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   if (!url_is_tracked) {
     return;
   }
-  document& doc = document_it->second;
+  document_base& doc = *document_it->second;
 
   std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
@@ -303,10 +303,11 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
 
   switch (doc.type) {
   case document_type::lintable: {
+    lintable_document& lintable_doc = static_cast<lintable_document&>(doc);
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), uri->json, doc.version_json,
+        *lintable_doc.config, doc.doc.string(), uri->json, doc.version_json,
         notification_json);
     break;
   }
@@ -370,33 +371,38 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     // Ignore invalid notification.
     return;
   }
-
-  document& doc = this->documents_[string8(uri->data)];
+  string8_view text;
+  if (!get_string8(text_document, "text", &text)) {
+    // Ignore invalid notification.
+    return;
+  }
 
   std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
-  this->config_fs_.open_document(document_path, &doc.doc);
 
-  string8_view text;
-  if (!get_string8(text_document, "text", &text)) {
-    // Ignore invalid notification.
-    return;
-  }
-  doc.doc.set_text(text);
-  doc.version_json = get_raw_json(version);
+  auto init_document = [&](document_base& doc) {
+    this->config_fs_.open_document(document_path, &doc.doc);
 
+    doc.doc.set_text(text);
+    doc.version_json = get_raw_json(version);
+  };
+
+  std::unique_ptr<document_base> doc_ptr;
   if (language_id == "javascript" || language_id == "javascriptreact" ||
       language_id == "js" || language_id == "js-jsx") {
-    doc.type = document_type::lintable;
+    auto doc = std::make_unique<lintable_document>();
+    init_document(*doc);
+    doc->type = document_type::lintable;
+
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
-                                                     /*token=*/&doc);
+                                                     /*token=*/doc.get());
     if (config_file.ok()) {
       if (*config_file) {
-        doc.config = &(*config_file)->config;
+        doc->config = &(*config_file)->config;
         if (!(*config_file)->errors.empty()) {
           byte_buffer& message_json =
               this->pending_notification_jsons_.emplace_back();
@@ -404,10 +410,10 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
               document_path, *config_file, message_json);
         }
       } else {
-        doc.config = &this->default_config_;
+        doc->config = &this->default_config_;
       }
     } else {
-      doc.config = &this->default_config_;
+      doc->config = &this->default_config_;
       byte_buffer& message_json =
           this->pending_notification_jsons_.emplace_back();
       this->write_configuration_loader_error_notification(
@@ -416,24 +422,37 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), uri->json, doc.version_json,
+        *doc->config, doc->doc.string(), uri->json, doc->version_json,
         notification_json);
+
+    doc_ptr = std::move(doc);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
-    doc.type = document_type::config;
+    auto doc = std::make_unique<config_document>();
+    init_document(*doc);
+    doc->type = document_type::config;
 
     auto config_file =
         this->config_loader_.watch_and_load_config_file(document_path,
-                                                        /*token=*/&doc);
+                                                        /*token=*/doc.get());
     QLJS_ASSERT(config_file.ok());
     byte_buffer& config_diagnostics_json =
         this->pending_notification_jsons_.emplace_back();
     this->get_config_file_diagnostics_notification(
-        *config_file, uri->json, doc.version_json, config_diagnostics_json);
+        *config_file, uri->json, doc->version_json, config_diagnostics_json);
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
     this->handle_config_file_changes(config_changes);
+
+    doc_ptr = std::move(doc);
+  } else {
+    doc_ptr = std::make_unique<unknown_document>();
+    init_document(*doc_ptr);
   }
+
+  // If the document already exists, deallocate that document_base and use ours.
+  // TODO(strager): Should we report a warning if a document already existed?
+  this->documents_[string8(uri->data)] = std::move(doc_ptr);
 }
 
 void linting_lsp_server_handler::
@@ -458,8 +477,9 @@ void linting_lsp_server_handler::handle_config_file_changes(
     const std::vector<configuration_change>& config_changes) {
   for (auto& entry : this->documents_) {
     const string8& document_uri = entry.first;
-    document& doc = entry.second;
+    document_base& doc = *entry.second;
     if (doc.type == document_type::lintable) {
+      lintable_document& lintable_doc = static_cast<lintable_document&>(doc);
       auto change_it = find_unique_if(config_changes,
                                       [&](const configuration_change& change) {
                                         return change.token == &doc;
@@ -482,7 +502,7 @@ void linting_lsp_server_handler::handle_config_file_changes(
       configuration* config = change_it->config_file
                                   ? &change_it->config_file->config
                                   : &this->default_config_;
-      doc.config = config;
+      lintable_doc.config = config;
       byte_buffer& notification_json =
           this->pending_notification_jsons_.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special

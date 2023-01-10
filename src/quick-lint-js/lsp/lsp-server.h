@@ -9,6 +9,7 @@
 #else
 
 #include <cstddef>
+#include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/hash-map.h>
@@ -119,14 +120,21 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
     unknown,
   };
 
-  struct document {
+  struct document_base {
+    virtual ~document_base() = default;
+
     quick_lint_js::document<lsp_locator> doc;
     document_type type = document_type::unknown;
     string8 version_json;
+  };
 
-    // Used only if type == document_type::lintable.
+  struct config_document final : document_base {};
+
+  struct lintable_document final : document_base {
     configuration* config;
   };
+
+  struct unknown_document final : document_base {};
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
                                  string8_view id_json,
@@ -174,7 +182,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   configuration_loader config_loader_;
   configuration default_config_;
   lsp_linter& linter_;
-  hash_map<string8, document> documents_;
+  hash_map<string8, std::unique_ptr<document_base> > documents_;
   // Stores notifications and requests destined for the client.
   // TODO(strager): Rename.
   std::vector<byte_buffer> pending_notification_jsons_;
