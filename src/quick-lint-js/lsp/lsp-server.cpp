@@ -478,15 +478,17 @@ void linting_lsp_server_handler::handle_config_file_changes(
   for (auto& entry : this->documents_) {
     const string8& document_uri = entry.first;
     document_base& doc = *entry.second;
+
+    auto change_it =
+        find_unique_if(config_changes, [&](const configuration_change& change) {
+          return change.token == &doc;
+        });
+    if (change_it == config_changes.end()) {
+      continue;
+    }
+
     if (doc.type == document_type::lintable) {
       lintable_document& lintable_doc = static_cast<lintable_document&>(doc);
-      auto change_it = find_unique_if(config_changes,
-                                      [&](const configuration_change& change) {
-                                        return change.token == &doc;
-                                      });
-      if (change_it == config_changes.end()) {
-        continue;
-      }
 
       std::string document_path = parse_file_from_lsp_uri(document_uri);
       if (document_path.empty()) {
@@ -513,14 +515,6 @@ void linting_lsp_server_handler::handle_config_file_changes(
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
     } else if (doc.type == document_type::config) {
-      auto change_it = find_unique_if(config_changes,
-                                      [&](const configuration_change& change) {
-                                        return change.token == &doc;
-                                      });
-      if (change_it == config_changes.end()) {
-        continue;
-      }
-
       QLJS_ASSERT(change_it->config_file);
       if (change_it->config_file) {
         byte_buffer& config_diagnostics_json =
