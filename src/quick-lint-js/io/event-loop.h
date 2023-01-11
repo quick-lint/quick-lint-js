@@ -204,6 +204,9 @@ class kqueue_event_loop : public event_loop_base<Derived> {
                         /*nevents=*/narrow_cast<int>(events.size()),
                         /*timeout=*/nullptr);
       if (rc == -1) {
+        if (errno == EINTR) {
+          continue;
+        }
         QLJS_UNIMPLEMENTED();
       }
       QLJS_ASSERT(rc > 0);
