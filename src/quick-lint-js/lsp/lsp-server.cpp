@@ -665,14 +665,15 @@ lsp_linter::~lsp_linter() = default;
 void lsp_linter::lint_and_get_diagnostics_notification(
     linting_lsp_server_handler::lintable_document& doc, string8_view uri_json,
     byte_buffer& notification_json) {
-  this->lint_and_get_diagnostics_notification(*doc.config, doc.doc.string(),
-                                              uri_json, doc.version_json,
-                                              notification_json);
+  this->lint_and_get_diagnostics_notification(
+      *doc.config, doc.lint_options, doc.doc.string(), uri_json,
+      doc.version_json, notification_json);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
-    configuration& config, padded_string_view code, string8_view uri_json,
-    string8_view version_json, byte_buffer& notification_json) {
+    configuration& config, linter_options lint_options, padded_string_view code,
+    string8_view uri_json, string8_view version_json,
+    byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -686,20 +687,16 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
   notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
-  this->lint_and_get_diagnostics(config, code, notification_json);
+  this->lint_and_get_diagnostics(config, lint_options, code, notification_json);
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics(
-    configuration& config, padded_string_view code,
+    configuration& config, linter_options lint_options, padded_string_view code,
     byte_buffer& diagnostics_json) {
   lsp_diag_reporter diag_reporter(qljs_messages, diagnostics_json, code);
-
-  linter_options lint_options;
-  lint_options.jsx = true;
   parse_and_lint(code, diag_reporter, config.globals(), lint_options);
-
   diag_reporter.finish();
 }
 

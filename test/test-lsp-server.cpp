@@ -17,6 +17,7 @@
 #include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/logging/trace-flusher.h>
@@ -61,8 +62,9 @@ string8 make_message(string8_view content) {
 class mock_lsp_linter final : public lsp_linter {
  public:
   using lint_and_get_diagnostics_notification_type =
-      void(configuration&, padded_string_view code, string8_view uri_json,
-           string8_view version_json, byte_buffer& notification_json);
+      void(configuration&, linter_options, padded_string_view code,
+           string8_view uri_json, string8_view version_json,
+           byte_buffer& notification_json);
 
   explicit mock_lsp_linter() = default;
 
@@ -76,9 +78,11 @@ class mock_lsp_linter final : public lsp_linter {
   ~mock_lsp_linter() override = default;
 
   void lint_and_get_diagnostics_notification(
-      configuration& config, padded_string_view code, string8_view uri_json,
-      string8_view version_json, byte_buffer& notification_json) override {
-    this->callback_(config, code, uri_json, version_json, notification_json);
+      configuration& config, linter_options lint_options,
+      padded_string_view code, string8_view uri_json, string8_view version_json,
+      byte_buffer& notification_json) override {
+    this->callback_(config, lint_options, code, uri_json, version_json,
+                    notification_json);
   }
 
  private:
@@ -93,14 +97,14 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
     this->lint_callback = {};
     this->lint_calls.clear();
     this->fs.clear();
-    this->linter =
-        mock_lsp_linter([this](configuration& config, padded_string_view code,
-                               string8_view uri_json, string8_view version_json,
-                               byte_buffer& notification_json) {
+    this->linter = mock_lsp_linter(
+        [this](configuration& config, linter_options lint_options,
+               padded_string_view code, string8_view uri_json,
+               string8_view version_json, byte_buffer& notification_json) {
           this->lint_calls.emplace_back(code.string_view());
           if (this->lint_callback) {
-            this->lint_callback(config, code, uri_json, version_json,
-                                notification_json);
+            this->lint_callback(config, lint_options, code, uri_json,
+                                version_json, notification_json);
           }
         });
     this->handler =
@@ -110,7 +114,7 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
         std::make_unique<lsp_endpoint>(this->handler.get(), this->client.get());
   }
 
-  heap_function<void(configuration&, padded_string_view code,
+  heap_function<void(configuration&, linter_options, padded_string_view code,
                      string8_view uri_json, string8_view version,
                      byte_buffer& notification_json)>
       lint_callback;
@@ -508,8 +512,9 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
-    this->lint_callback = [&](configuration&, padded_string_view code,
-                              string8_view uri_json, string8_view version,
+    this->lint_callback = [&](configuration&, linter_options,
+                              padded_string_view code, string8_view uri_json,
+                              string8_view version,
                               byte_buffer& notification_json) {
       EXPECT_EQ(code, u8"let x = x;");
       EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
@@ -727,8 +732,9 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"testGlobalVariable": true}})");
 
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
@@ -808,8 +814,9 @@ TEST_F(
       })"));
 
   this->lint_calls.clear();
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"sv));
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"sv));
   };
@@ -839,8 +846,9 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),
                        u8R"({"globals": {"testGlobalVariable": true}})");
 
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
@@ -863,8 +871,9 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"modified"sv));
   };
 
@@ -904,8 +913,9 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
 
 TEST_F(test_linting_lsp_server,
        linting_uses_already_opened_shadowing_config_file) {
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"sv));
     EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"sv));
   };
@@ -948,9 +958,9 @@ TEST_F(test_linting_lsp_server,
 TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
   bool after_config_was_loaded = false;
 
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
-                            byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json, byte_buffer&) {
     if (config.globals().find(u8"after"sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"sv));
       EXPECT_EQ(version_json, u8"10");
@@ -1070,8 +1080,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  this->lint_callback = [&](configuration&, padded_string_view, string8_view,
-                            string8_view version_json,
+  this->lint_callback = [&](configuration&, linter_options, padded_string_view,
+                            string8_view, string8_view version_json,
                             byte_buffer&) { EXPECT_EQ(version_json, u8"11"); };
   this->lint_calls.clear();
 
@@ -1102,7 +1112,7 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
-  this->lint_callback = [&](configuration&, padded_string_view,
+  this->lint_callback = [&](configuration&, linter_options, padded_string_view,
                             string8_view uri_json, string8_view version_json,
                             byte_buffer& notification_json) {
     notification_json.append_copy(
@@ -1212,7 +1222,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
-  this->lint_callback = [&](configuration&, padded_string_view,
+  this->lint_callback = [&](configuration&, linter_options, padded_string_view,
                             string8_view uri_json, string8_view version_json,
                             byte_buffer& notification_json) {
     notification_json.append_copy(
@@ -1385,9 +1395,9 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   this->lint_calls.clear();
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view version_json,
-                            byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view,
+                            string8_view version_json, byte_buffer&) {
     EXPECT_EQ(version_json, u8"11");
     EXPECT_FALSE(config.globals().find(u8"before"sv));
     EXPECT_TRUE(config.globals().find(u8"after"sv));
@@ -1417,9 +1427,9 @@ TEST_F(test_linting_lsp_server,
 TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   bool after_config_was_loaded = false;
 
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
-                            byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json, byte_buffer&) {
     if (config.globals().find(u8"after"sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"sv));
       EXPECT_EQ(version_json, u8"10");
@@ -1483,8 +1493,9 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   bool after_config_was_loaded = false;
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json,
                             byte_buffer& notification_json) {
     EXPECT_TRUE(config.globals().find(u8"after"sv));
     EXPECT_FALSE(config.globals().find(u8"before"sv));
@@ -1524,8 +1535,9 @@ TEST_F(test_linting_lsp_server,
 TEST_F(
     test_linting_lsp_server,
     linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view, byte_buffer&) {
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"v1"sv));
     EXPECT_FALSE(config.globals().find(u8"v2"sv));
   };
@@ -1609,8 +1621,8 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   this->lint_calls.clear();
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view, string8_view,
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view, string8_view,
                             byte_buffer& notification_json) {
     EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"sv));
     EXPECT_FALSE(config.globals().find(u8"configFromLSP"sv));
@@ -1651,8 +1663,9 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
             .io_error = generic_file_io_error,
         });
       });
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json,
                             byte_buffer& notification_json) {
     EXPECT_TRUE(config.globals().find(u8"Array"sv))
         << "config should be default";
@@ -1711,8 +1724,9 @@ TEST_F(test_linting_lsp_server,
        opening_js_file_with_invalid_config_json_lints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8"INVALID JSON"sv);
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json,
                             byte_buffer& notification_json) {
     EXPECT_TRUE(config.globals().find(u8"Array"sv))
         << "config should be default";
@@ -1796,8 +1810,9 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
             .io_error = generic_file_io_error,
         });
       });
-  this->lint_callback = [&](configuration& config, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
+  this->lint_callback = [&](configuration& config, linter_options,
+                            padded_string_view, string8_view uri_json,
+                            string8_view version_json,
                             byte_buffer& notification_json) {
     EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"sv))
         << "config should be default";
@@ -2341,7 +2356,7 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
 
   lsp_javascript_linter linter;
   linter.lint_and_get_diagnostics_notification(
-      config, &code, u8"\"file:///test.js\""sv, u8"10"sv,
+      config, linter_options(), &code, u8"\"file:///test.js\""sv, u8"10"sv,
       notification_json_buffer);
 
   std::string notification_json;

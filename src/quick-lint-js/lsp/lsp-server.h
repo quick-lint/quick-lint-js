@@ -15,6 +15,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
@@ -130,6 +131,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                 const configuration_change&) override;
 
     configuration* config;
+    linter_options lint_options;
   };
 
   struct unknown_document final : document_base {
@@ -211,8 +213,9 @@ class lsp_linter {
   virtual ~lsp_linter();
 
   virtual void lint_and_get_diagnostics_notification(
-      configuration& config, padded_string_view code, string8_view uri_json,
-      string8_view version_json, byte_buffer& notification_json) = 0;
+      configuration& config, linter_options lint_options,
+      padded_string_view code, string8_view uri_json, string8_view version_json,
+      byte_buffer& notification_json) = 0;
 
   void lint_and_get_diagnostics_notification(
       linting_lsp_server_handler::lintable_document&, string8_view uri_json,
@@ -224,11 +227,13 @@ class lsp_javascript_linter final : public lsp_linter {
   ~lsp_javascript_linter() override = default;
 
   void lint_and_get_diagnostics_notification(
-      configuration&, padded_string_view code, string8_view uri_json,
-      string8_view version_json, byte_buffer& notification_json) override;
+      configuration&, linter_options, padded_string_view code,
+      string8_view uri_json, string8_view version_json,
+      byte_buffer& notification_json) override;
 
  private:
-  void lint_and_get_diagnostics(configuration&, padded_string_view code,
+  void lint_and_get_diagnostics(configuration&, linter_options,
+                                padded_string_view code,
                                 byte_buffer& diagnostics_json);
 };
 }
