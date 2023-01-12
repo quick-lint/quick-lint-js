@@ -10,6 +10,17 @@
 #include <type_traits>
 
 namespace quick_lint_js {
+// Backport of C++20 std::copy.
+template <class InputIt, class OutputIt>
+constexpr OutputIt copy(InputIt begin, InputIt end, OutputIt out_begin) {
+  while (begin != end) {
+    *out_begin = *begin;
+    ++begin;
+    ++out_begin;
+  }
+  return out_begin;
+}
+
 // An alias for std::find which documents intent.
 template <class It, class T>
 It find_first(It begin, It end, const T& needle) {

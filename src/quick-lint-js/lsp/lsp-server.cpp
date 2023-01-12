@@ -50,6 +50,35 @@ std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::ondemand::value& string);
 std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
+
+struct lsp_language {
+  constexpr lsp_language(std::string_view language_id) noexcept {
+    quick_lint_js::copy(language_id.begin(), language_id.end(),
+                        this->raw_language_id);
+    this->language_id_size = static_cast<unsigned char>(language_id.size());
+  }
+
+  std::string_view language_id() const noexcept {
+    return std::string_view(this->raw_language_id, this->language_id_size);
+  }
+
+  // Returns nullptr if the language does not exist.
+  static const lsp_language* find(std::string_view language_id) noexcept {
+    static constexpr lsp_language languages[] = {
+        lsp_language("javascript"sv),
+        lsp_language("javascriptreact"sv),
+        lsp_language("js"sv),
+        lsp_language("js-jsx"sv),
+    };
+    const lsp_language* lang = find_unique_if(
+        std::begin(languages), std::end(languages),
+        [&](const lsp_language& l) { return l.language_id() == language_id; });
+    return lang == std::end(languages) ? nullptr : lang;
+  }
+
+  char raw_language_id[16] = {};
+  unsigned char language_id_size = 0;
+};
 }
 
 lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
@@ -390,8 +419,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   };
 
   std::unique_ptr<document_base> doc_ptr;
-  if (language_id == "javascript" || language_id == "javascriptreact" ||
-      language_id == "js" || language_id == "js-jsx") {
+  if (const lsp_language* lang = lsp_language::find(language_id)) {
     auto doc = std::make_unique<lintable_document>();
     init_document(*doc);
 
