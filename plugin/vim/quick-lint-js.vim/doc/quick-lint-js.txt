@@ -81,6 +81,13 @@ If you enable |g:ale_linters_explicit|, add the following code to
 
     let b:ale_linters = ['quick-lint-js']
 
+To lint TypeScript as well, enable
+|g:ale_javascript_quick_lint_js_experimental_typescript| and also add the
+following code to `~/.vim/ftplugin/typescript.vim` (UNIX) or
+`~/vimfiles/ftplugin/typescript.vim` (Windows):
+
+    let b:ale_linters = ['quick-lint-js']
+
 g:ale_javascript_quick_lint_js_executable
 				*g:ale_javascript_quick_lint_js_executable*
 				*b:ale_javascript_quick_lint_js_executable*
@@ -127,6 +134,15 @@ For security reasons, we recommend leaving this variable at its default value
 (`''`). Because this option logs LSP activity, it will include every change
 you make to your JavaScript source files. Do not distribute the generated log
 files.
+
+g:ale_javascript_quick_lint_js_experimental_typescript
+			*g:ale_javascript_quick_lint_js_experimental_typescript*
+			*b:ale_javascript_quick_lint_js_experimental_typescript*
+  Type: |Boolean|
+  Default: `v:false`
+
+Lint TypeScript and TypeScript JSX files, not just JavaScript and JSX files.
+(EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)
 
 ==============================================================================
 3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*

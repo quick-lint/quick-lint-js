@@ -9,9 +9,11 @@ function! quick_lint_js_ale#init_variables() abort
   call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
 
   call ale#Set('javascript_quick_lint_js_tracing_directory', '')
+
+  call ale#Set('javascript_quick_lint_js_experimental_typescript', v:false)
 endfunction
 
-function! quick_lint_js_ale#define_linter() abort
+function! quick_lint_js_ale#define_linter(filetype) abort
   let l:enable_lsp_linter = v:true
 
   if ale#Has('ale-2.4.0')
@@ -28,7 +30,7 @@ function! quick_lint_js_ale#define_linter() abort
   endif
 
   if l:enable_lsp_linter
-    call ale#linter#Define('javascript', {
+    call ale#linter#Define(a:filetype, {
       \ 'aliases': ['quick-lint-js-lsp', 'quick_lint_js', 'quicklintjs'],
       \ 'lsp': 'stdio',
       \ 'name': 'quick-lint-js',
@@ -38,7 +40,7 @@ function! quick_lint_js_ale#define_linter() abort
       \ 'lsp_config': function('quick_lint_js_ale#get_lsp_config'),
     \ })
   else
-    call ale#linter#Define('javascript', {
+    call ale#linter#Define(a:filetype, {
       \ 'aliases': ['quick-lint-js-cli', 'quick_lint_js', 'quicklintjs'],
       \ 'callback': function('quick_lint_js_ale#parse_command_output'),
       \ 'name': 'quick-lint-js',

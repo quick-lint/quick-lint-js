@@ -5,7 +5,10 @@
 " https://github.com/dense-analysis/ale
 
 call quick_lint_js_ale#init_variables()
-call quick_lint_js_ale#define_linter('javascript')
+
+if g:ale_javascript_quick_lint_js_experimental_typescript
+  call quick_lint_js_ale#define_linter('typescript')
+endif
 
 " quick-lint-js finds bugs in JavaScript programs.
 " Copyright (C) 2020  Matthew "strager" Glazar
