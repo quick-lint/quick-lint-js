@@ -607,6 +607,66 @@ TEST_F(test_linting_lsp_server, javascript_language_ids_enable_jsx) {
   }
 }
 
+TEST_F(test_linting_lsp_server, typescript_language_ids_enable_typescript) {
+  for (string8_view language_id : {u8"typescript"sv}) {
+    SCOPED_TRACE(out_string8(language_id));
+    this->reset();
+
+    this->lint_callback = [&](configuration&, linter_options lint_options,
+                              padded_string_view, string8_view, string8_view,
+                              byte_buffer&) {
+      EXPECT_TRUE(lint_options.typescript);
+      EXPECT_FALSE(lint_options.jsx);
+    };
+
+    this->server->append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "file:///test.ts",
+              "languageId": ")" +
+                     string8(language_id) + u8R"(",
+              "version": 10,
+              "text": "code goes here"
+            }
+          }
+        })"));
+    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
+  }
+}
+
+TEST_F(test_linting_lsp_server, tsx_language_ids_enable_typescript_jsx) {
+  for (string8_view language_id : {u8"typescriptreact"sv, u8"tsx"sv}) {
+    SCOPED_TRACE(out_string8(language_id));
+    this->reset();
+
+    this->lint_callback = [&](configuration&, linter_options lint_options,
+                              padded_string_view, string8_view, string8_view,
+                              byte_buffer&) {
+      EXPECT_TRUE(lint_options.typescript);
+      EXPECT_TRUE(lint_options.jsx);
+    };
+
+    this->server->append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "file:///test.tsx",
+              "languageId": ")" +
+                     string8(language_id) + u8R"(",
+              "version": 10,
+              "text": "code goes here"
+            }
+          }
+        })"));
+    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
+  }
+}
+
 TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
   this->server->append(
       make_message(u8R"({
@@ -2513,6 +2573,38 @@ TEST(test_lsp_javascript_linter,
   EXPECT_EQ(look_up(notification, "params", "diagnostics", 0, "code"), "E0213")
       << "should report diagnostic: TypeScript's 'interface' feature is not "
          "allowed in JavaScript code";
+}
+
+TEST(test_lsp_javascript_linter,
+     linted_typescript_file_accepts_typescript_syntax) {
+  fake_configuration_filesystem fs;
+  lsp_javascript_linter linter;
+  linting_lsp_server_handler handler(&fs, &linter);
+  spy_lsp_endpoint_remote client;
+  lsp_endpoint server(&handler, &client);
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.ts",
+            "languageId": "typescript",
+            "version": 10,
+            "text": "interface I { }"
+          }
+        }
+      })"));
+  handler.flush_pending_notifications(client);
+
+  std::vector< ::boost::json::object> notifications = client.notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object notification = notifications[0];
+  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
+  EXPECT_FALSE(notification.contains("error"));
+  EXPECT_THAT(look_up(notification, "params", "diagnostics").as_array(),
+              IsEmpty())
+      << "should report no diagnostics";
 }
 
 // TODO(strager): For batch requests containing multiple edits, lint and publish

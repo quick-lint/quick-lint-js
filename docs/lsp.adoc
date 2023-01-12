@@ -70,6 +70,27 @@ endif::[]
 * `js-jsx`
 * `js`
 
+quick-lint-js interprets documents with the following document language IDs as if they were TypeScript files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=experimental-typescript* command line option]):
+endif::[]
+ifndef::backend-html5[]
+*--language=experimental-typescript* command-line option):
+endif::[]
+
+* `typescript`
+
+quick-lint-js interprets documents with the following document language IDs as if they were TypeScript JSX files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=experimental-typescript-jsx* command line option]):
+endif::[]
+ifndef::backend-html5[]
+*--language=experimental-typescript-jsx* command-line option):
+endif::[]
+
+* `tsx`
+* `typescriptreact`
+
 quick-lint-js interprets documents with a base name of `quick-lint-js.config` as a JSON config file.
 The document's language ID is ignored.
 See *quick-lint-js.config*(5) for more details.

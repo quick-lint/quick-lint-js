@@ -10,6 +10,8 @@ Semantic Versioning.
 
 ### Added
 
+* LSP: The LSP server now recognizes and lints TypeScript and TypeScript JSX
+  code. However, the editor plugins currently do **not** use this feature.
 * `switch (c) { case A: break; case A: break; }` now reports [E0347][]
   ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
 * Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).

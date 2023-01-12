@@ -52,7 +52,9 @@ std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
 struct lsp_language {
-  constexpr lsp_language(std::string_view language_id) noexcept {
+  constexpr lsp_language(std::string_view language_id,
+                         linter_options lint_options)
+      : lint_options(lint_options) {
     quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
     this->language_id_size = static_cast<unsigned char>(language_id.size());
@@ -64,11 +66,32 @@ struct lsp_language {
 
   // Returns nullptr if the language does not exist.
   static const lsp_language* find(std::string_view language_id) noexcept {
+    static constexpr linter_options jsx = {
+        .jsx = true,
+        .typescript = false,
+        .print_parser_visits = false,
+    };
+    static constexpr linter_options ts = {
+        .jsx = false,
+        .typescript = true,
+        .print_parser_visits = false,
+    };
+    static constexpr linter_options tsx = {
+        .jsx = true,
+        .typescript = true,
+        .print_parser_visits = false,
+    };
     static constexpr lsp_language languages[] = {
-        lsp_language("javascript"sv),
-        lsp_language("javascriptreact"sv),
-        lsp_language("js"sv),
-        lsp_language("js-jsx"sv),
+        // Keep in sync with docs/lsp.adoc.
+        lsp_language("javascript"sv, jsx),
+        lsp_language("javascriptreact"sv, jsx),
+        lsp_language("js"sv, jsx),
+        lsp_language("js-jsx"sv, jsx),
+
+        lsp_language("typescript"sv, ts),
+
+        lsp_language("tsx"sv, tsx),
+        lsp_language("typescriptreact"sv, tsx),
     };
     const lsp_language* lang = find_unique_if(
         std::begin(languages), std::end(languages),
@@ -78,6 +101,7 @@ struct lsp_language {
 
   char raw_language_id[16] = {};
   unsigned char language_id_size = 0;
+  linter_options lint_options;
 };
 }
 
@@ -422,6 +446,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   if (const lsp_language* lang = lsp_language::find(language_id)) {
     auto doc = std::make_unique<lintable_document>();
     init_document(*doc);
+    doc->lint_options = lang->lint_options;
 
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
