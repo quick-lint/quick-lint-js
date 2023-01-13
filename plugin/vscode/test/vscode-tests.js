@@ -193,6 +193,47 @@ tests = {
     });
   },
 
+  "parser does not support TypeScript in JS files": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(
+      helloFilePath,
+      "interface I { }"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0213: TypeScript's interface feature is not allowed in JavaScript code
+      assert.deepStrictEqual(helloDiags.map(diag => diag.code.value), ["E0213"]);
+    });
+  },
+
+  "parser does not check TypeScript files by default": async ({ addCleanup }) => {
+    for (let extension in [".ts", ".tsx"]) {
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let helloFilePath = path.join(scratchDirectory, `hello.${extension}`);
+      fs.writeFileSync(
+        helloFilePath,
+        "this is a bug"
+      );
+      let helloURI = vscode.Uri.file(helloFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+      await pollAsync(async () => {
+        let helloDiags = normalizeDiagnostics(helloURI);
+        assert.deepStrictEqual(helloDiags, []);
+      });
+    }
+  },
+
   "file on disk changes": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.js");
@@ -1482,6 +1523,7 @@ async function runAsync() {
   // because without its JavaScript file detection, our extension doesn't work.
   let vscodeConfig = vscode.workspace.getConfiguration();
   await vscodeConfig.update("javascript.validate.enable", false);
+  await vscodeConfig.update("typescript.validate.enable", false);
 
   // Clean up configuration in case a previous run didn't clean it up.
   await resetConfigurationAsync();
