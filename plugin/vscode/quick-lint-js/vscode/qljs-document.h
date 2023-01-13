@@ -139,7 +139,10 @@ class qljs_config_document : public qljs_document_base {
 
 class qljs_lintable_document : public qljs_document_base {
  public:
-  using qljs_document_base::qljs_document_base;
+  explicit qljs_lintable_document(vscode_document doc,
+                                  const std::optional<std::string>& file_path,
+                                  linter_options lint_options)
+      : qljs_document_base(doc, file_path), lint_options_(lint_options) {}
 
   void after_modification(::Napi::Env, qljs_workspace&,
                           vscode_diagnostic_collection) override;
@@ -158,15 +161,14 @@ class qljs_lintable_document : public qljs_document_base {
 
     vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
                                        this->uri());
-    linter_options lint_options;
-    lint_options.jsx = true;
     parse_and_lint(this->document_.string(), diag_reporter,
-                   this->config_->globals(), lint_options);
+                   this->config_->globals(), this->lint_options_);
 
     return std::move(diag_reporter).diagnostics();
   }
 
-  configuration* config_;
+  configuration* config_;  // Initialized by finish_init.
+  linter_options lint_options_;
 
   friend class qljs_document_base;
   friend class qljs_workspace;

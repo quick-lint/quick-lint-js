@@ -216,9 +216,9 @@ tests = {
   "parser does not check TypeScript files by default": async ({
     addCleanup,
   }) => {
-    for (let extension in [".ts", ".tsx"]) {
+    for (let extension of [".ts", ".tsx"]) {
       let scratchDirectory = makeScratchDirectory({ addCleanup });
-      let helloFilePath = path.join(scratchDirectory, `hello.${extension}`);
+      let helloFilePath = path.join(scratchDirectory, `hello${extension}`);
       fs.writeFileSync(helloFilePath, "this is a bug");
       let helloURI = vscode.Uri.file(helloFilePath);
 
@@ -226,11 +226,74 @@ tests = {
       let helloDocument = await vscode.workspace.openTextDocument(helloURI);
       let helloEditor = await vscode.window.showTextDocument(helloDocument);
 
-      await pollAsync(async () => {
-        let helloDiags = normalizeDiagnostics(helloURI);
-        assert.deepStrictEqual(helloDiags, []);
-      });
+      // Wait for possible linting to take effect.
+      await sleepAsync(100);
+      await waitUntilNoDiagnosticsAsync(helloURI);
     }
+  },
+
+  "parser checks TypeScript files if opted in": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.ts");
+    fs.writeFileSync(
+      helloFilePath,
+      "interface MyTestInterface {}\nMyTestInterface();"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(
+        "experimental-typescript",
+        true,
+        vscode.ConfigurationTarget.Workspace
+      );
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0057: use of undeclared variable 'MyTestInterface'
+      // Should not report E0213 ('interface' not allowed in JavaScript).
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0057"]
+      );
+    });
+  },
+
+  "parser checks TypeScript JSX files if opted in": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.tsx");
+    fs.writeFileSync(
+      helloFilePath,
+      "interface MyTestInterface {}\nconsole.log(<MyTestInterface />);"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(
+        "experimental-typescript",
+        true,
+        vscode.ConfigurationTarget.Workspace
+      );
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0057: use of undeclared variable 'MyTestInterface'
+      // Should not report E0213 ('interface' not allowed in JavaScript).
+      // Should not report E0177 (React/JSX is not allowed in vanilla JavaScript
+      //                          code).
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0057"]
+      );
+    });
   },
 
   "file on disk changes": async ({ addCleanup }) => {
@@ -1505,9 +1568,11 @@ async function pollAsync(callback) {
 }
 
 async function resetConfigurationAsync() {
-  await vscode.workspace
-    .getConfiguration("quick-lint-js")
-    .update("logging", undefined, vscode.ConfigurationTarget.Workspace);
+  for (let setting of ["experimental-typescript", "logging"]) {
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(setting, undefined, vscode.ConfigurationTarget.Workspace);
+  }
 }
 
 async function runAsync() {

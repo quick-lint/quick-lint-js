@@ -14,6 +14,9 @@ Semantic Versioning.
   code. However, the editor plugins currently do **not** use this feature.
 * Vim: You can opt into TypeScript support. Search for `EXPERIMENTAL` in
   `:help quick-lint-js`. (Disabled by default.)
+* VS Code: You can now opt into experimental TypeScript support. Set the
+  `quick-lint-js.experimental-typescript` setting to `true`. (Disabled by
+  default.)
 * `switch (c) { case A: break; case A: break; }` now reports [E0347][]
   ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
 * Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).

@@ -26,6 +26,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/vscode/addon.h>
 #include <quick-lint-js/vscode/napi-support.h>
 #include <quick-lint-js/vscode/qljs-document.h>
@@ -57,6 +58,14 @@ class extension_configuration {
   explicit extension_configuration(::Napi::Env env, vscode_module& vscode)
       : config_ref_(::Napi::Persistent(
             vscode.get_configuration(env, "quick-lint-js"))) {}
+
+  bool get_experimental_typescript(::Napi::Env env) {
+    ::Napi::Value value = this->get(env, "experimental-typescript");
+    if (!value.IsBoolean()) {
+      return false;
+    }
+    return value.As<::Napi::Boolean>().Value();
+  }
 
   logging_value get_logging(::Napi::Env env) {
     ::Napi::Value value = this->get(env, "logging");
@@ -91,6 +100,63 @@ class extension_configuration {
 
  private:
   ::Napi::ObjectReference config_ref_;
+};
+
+struct vscode_language {
+  constexpr vscode_language(std::string_view language_id,
+                            linter_options lint_options)
+      : lint_options(lint_options) {
+    quick_lint_js::copy(language_id.begin(), language_id.end(),
+                        this->raw_language_id);
+    this->language_id_size = static_cast<unsigned char>(language_id.size());
+  }
+
+  std::string_view language_id() const noexcept {
+    return std::string_view(this->raw_language_id, this->language_id_size);
+  }
+
+  // Returns nullptr if the language does not exist.
+  static const vscode_language* find(std::string_view language_id,
+                                     bool allow_typescript) noexcept {
+    static constexpr linter_options jsx = {
+        .jsx = true,
+        .typescript = false,
+        .print_parser_visits = false,
+    };
+    static constexpr linter_options ts = {
+        .jsx = false,
+        .typescript = true,
+        .print_parser_visits = false,
+    };
+    static constexpr linter_options tsx = {
+        .jsx = true,
+        .typescript = true,
+        .print_parser_visits = false,
+    };
+    static constexpr vscode_language languages[] = {
+        vscode_language("javascript"sv, jsx),
+        vscode_language("javascriptreact"sv, jsx),
+
+        vscode_language("typescript"sv, ts),
+        vscode_language("typescriptreact"sv, tsx),
+    };
+    const vscode_language* lang =
+        find_unique_if(std::begin(languages), std::end(languages),
+                       [&](const vscode_language& l) {
+                         return l.language_id() == language_id;
+                       });
+    if (lang == std::end(languages)) {
+      return nullptr;
+    }
+    if (lang->lint_options.typescript && !allow_typescript) {
+      return nullptr;
+    }
+    return lang;
+  }
+
+  char raw_language_id[16] = {};
+  unsigned char language_id_size = 0;
+  linter_options lint_options;
 };
 }
 
@@ -297,11 +363,14 @@ qljs_document_base* qljs_workspace::maybe_create_document(
   if (to_string(vscode_document_uri.Get("scheme")) == "file") {
     file_path = to_string(vscode_document_uri.Get("fsPath"));
   }
+  bool allow_typescript = extension_configuration(env, this->vscode_)
+                              .get_experimental_typescript(env);
 
-  std::string language_id = vscode_doc.language_id();
   qljs_document_base* doc;
-  if (language_id == "javascript" || language_id == "javascriptreact") {
-    doc = new qljs_lintable_document(vscode_doc, file_path);
+  if (const vscode_language* lang =
+          vscode_language::find(vscode_doc.language_id(),
+                                /*allow_typescript=*/allow_typescript)) {
+    doc = new qljs_lintable_document(vscode_doc, file_path, lang->lint_options);
   } else if (file_path.has_value() &&
              this->config_loader_.is_config_file_path(*file_path)) {
     doc = new qljs_config_document(vscode_doc, file_path);
