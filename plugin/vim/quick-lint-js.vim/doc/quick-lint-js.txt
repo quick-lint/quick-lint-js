@@ -236,6 +236,17 @@ filetypes	*quick-lint-js-configure-nvim-lspconfig-filetypes*
 Set this option to a table of strings to enable quick-lint-js for different
 |filetype|s.
 
+To lint TypeScript and TypeScript JSX files, not just JavaScript and JSX
+files, add `"typescript"` and `"typescriptreact"` to `filetypes`
+(EXPERIMENTAL. Subject to change in future versions of quick-lint-js.): >
+
+    require('lspconfig/quick_lint_js').setup {
+      filetypes = {
+        "javascript", "javascriptreact",
+        "typescript", "typescriptreact",
+      },
+    }
+
 root_dir	*quick-lint-js-configure-nvim-lspconfig-root_dir*
   Default: `"/"`
 
