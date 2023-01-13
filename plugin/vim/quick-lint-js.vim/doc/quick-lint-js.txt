@@ -231,7 +231,7 @@ Set this option to a table of strings containing the operating system command
 for quick-lint-js. You must include the `"--lsp-server"` option.
 
 filetypes	*quick-lint-js-configure-nvim-lspconfig-filetypes*
-  Default: `{"javascript"}`
+  Default: `{"javascript", "javascriptreact"}`
 
 Set this option to a table of strings to enable quick-lint-js for different
 |filetype|s.
