@@ -155,7 +155,26 @@ tests = {
     await waitUntilAnyDiagnosticsAsync(jsURI);
   },
 
-  "parser supports JSX": async ({ addCleanup }) => {
+  "parser supports JSX in vanilla JS files": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(
+      helloFilePath,
+      "function MyComponent() { return <div></div>; }\n"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      assert.deepStrictEqual(helloDiags, []);
+    });
+  },
+
+  "parser supports JSX in JSX files": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.jsx");
     fs.writeFileSync(
