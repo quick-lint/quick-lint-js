@@ -179,6 +179,17 @@ snippet into your |coc-configuration| then tweaking it according to
       }
     }
 
+g:coc_quick_lint_js_experimental_typescript
+				*g:coc_quick_lint_js_experimental_typescript*
+				*b:coc_quick_lint_js_experimental_typescript*
+  Type: |Boolean|
+  Default: `v:false`
+
+Set this variable to `v:true` to lint TypeScript and TypeScript JSX files, not
+just JavaScript and JSX files. Must be set before loading the quick-lint-js
+Vim plugin. (EXPERIMENTAL. Subject to change in future versions of
+quick-lint-js.)
+
 ==============================================================================
 3.3. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
 

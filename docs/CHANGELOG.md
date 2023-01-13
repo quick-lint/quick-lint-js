@@ -12,9 +12,8 @@ Semantic Versioning.
 
 * LSP: The LSP server now recognizes and lints TypeScript and TypeScript JSX
   code. However, the editor plugins currently do **not** use this feature.
-* Vim: ALE only: You can opt into TypeScript support with the
-  `g:ale_javascript_quick_lint_js_experimental_typescript` setting (disabled by
-  default).
+* Vim: ALE and coc.nvim only: You can opt into TypeScript support. Search for
+  `EXPERIMENTAL` in `:help quick-lint-js`. (Disabled by default.)
 * `switch (c) { case A: break; case A: break; }` now reports [E0347][]
   ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
 * Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).
