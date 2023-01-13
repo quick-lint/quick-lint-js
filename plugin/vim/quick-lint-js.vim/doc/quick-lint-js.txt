@@ -141,8 +141,9 @@ g:ale_javascript_quick_lint_js_experimental_typescript
   Type: |Boolean|
   Default: `v:false`
 
-Lint TypeScript and TypeScript JSX files, not just JavaScript and JSX files.
-(EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)
+Set this variable to `v:true` to lint TypeScript and TypeScript JSX files, not
+just JavaScript and JSX files. (EXPERIMENTAL. Subject to change in future
+versions of quick-lint-js.)
 
 ==============================================================================
 3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*
