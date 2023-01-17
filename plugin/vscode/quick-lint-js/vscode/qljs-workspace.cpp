@@ -115,7 +115,7 @@ qljs_workspace::qljs_workspace(const Napi::CallbackInfo& info)
       vscode_(info[1].As<::Napi::Object>()),
       check_for_config_file_changes_on_js_thread_(
           /*env=*/info.Env(),
-          /*resourceName=*/"quick-lint-js-fs-thread",
+          /*resource_name=*/"quick-lint-js-fs-thread",
           /*object=*/this->Value()),
       qljs_documents_(info.Env()),
       vscode_diagnostic_collection_ref_(
