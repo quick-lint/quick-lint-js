@@ -1532,7 +1532,16 @@ async function runAsync() {
     throw new Error(message);
   });
 }
-exports.run = runAsync;
+
+async function runCatchingErrorsAsync() {
+  try {
+    return await runAsync();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+exports.run = runCatchingErrorsAsync;
 // vscode-test will invoke the exports.run for us.
 
 // quick-lint-js finds bugs in JavaScript programs.
