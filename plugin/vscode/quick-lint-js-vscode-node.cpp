@@ -126,8 +126,6 @@ class qljs_document_base {
                                       loaded_config_file* config_file) = 0;
 
  protected:
-  ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
-
   ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
                             loaded_config_file* loaded_config) {
     QLJS_ASSERT(this->type_ == document_type::config);
@@ -176,27 +174,25 @@ class qljs_lintable_document : public qljs_document_base {
   void lint_javascript_and_publish_diagnostics(::Napi::Env, qljs_workspace&);
 
  private:
+  ::Napi::Array lint_javascript(::Napi::Env env, vscode_module* vscode) {
+    QLJS_ASSERT(this->type_ == document_type::lintable);
+    vscode->load_non_persistent(env);
+
+    vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
+                                       this->uri());
+    linter_options lint_options;
+    lint_options.jsx = true;
+    parse_and_lint(this->document_.string(), diag_reporter,
+                   this->config_->globals(), lint_options);
+
+    return std::move(diag_reporter).diagnostics();
+  }
+
   configuration* config_;
 
   friend class qljs_document_base;
   friend class qljs_workspace;
 };
-
-::Napi::Array qljs_document_base::lint_javascript(::Napi::Env env,
-                                                  vscode_module* vscode) {
-  QLJS_ASSERT(this->type_ == document_type::lintable);
-  qljs_lintable_document* self = static_cast<qljs_lintable_document*>(this);
-  vscode->load_non_persistent(env);
-
-  vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
-                                     this->uri());
-  linter_options lint_options;
-  lint_options.jsx = true;
-  parse_and_lint(this->document_.string(), diag_reporter,
-                 self->config_->globals(), lint_options);
-
-  return std::move(diag_reporter).diagnostics();
-}
 
 template <class UnderlyingFilesystem>
 class thread_safe_configuration_filesystem : public configuration_filesystem {
