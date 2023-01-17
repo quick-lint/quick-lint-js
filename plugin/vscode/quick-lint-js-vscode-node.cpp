@@ -771,21 +771,21 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       break;
     }
 
-    case document_type::config:
-      if (file_path.has_value()) {
-        QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", this,
-                       file_path->c_str());
-        auto loaded_config_result =
-            this->config_loader_.watch_and_load_config_file(*file_path, doc);
-        if (loaded_config_result.ok()) {
-          this->vscode_.load_non_persistent(env);
-          this->lint_config_and_publish_diagnostics(env, doc,
-                                                    *loaded_config_result);
-        } else {
-          QLJS_UNIMPLEMENTED();
-        }
+    case document_type::config: {
+      QLJS_ASSERT(file_path.has_value());
+      QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", this,
+                     file_path->c_str());
+      auto loaded_config_result =
+          this->config_loader_.watch_and_load_config_file(*file_path, doc);
+      if (loaded_config_result.ok()) {
+        this->vscode_.load_non_persistent(env);
+        this->lint_config_and_publish_diagnostics(env, doc,
+                                                  *loaded_config_result);
+      } else {
+        QLJS_UNIMPLEMENTED();
       }
       break;
+    }
     }
 
     this->report_pending_watch_io_errors(env);
