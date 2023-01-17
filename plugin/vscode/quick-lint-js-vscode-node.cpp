@@ -49,21 +49,31 @@ class addon_state {
  public:
   static std::unique_ptr<addon_state> create(::Napi::Env env);
 
-  ::Napi::FunctionReference qljs_document_class;
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
 };
 
-class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
+class qljs_document {
  public:
-  static ::Napi::Function init(::Napi::Env env) {
-    return DefineClass(env, "QLJSDocument", {});
+  static qljs_document* unwrap(::Napi::Value document) {
+    QLJS_ASSERT(document.IsExternal());
+    ::Napi::External<qljs_document> wrapped =
+        document.As<::Napi::External<qljs_document>>();
+    return wrapped.Data();
   }
 
-  explicit qljs_document(const ::Napi::CallbackInfo& info)
-      : ::Napi::ObjectWrap<qljs_document>(info),
-        vscode_document_(
-            ::Napi::Persistent(vscode_document(info[0].As<::Napi::Object>()))) {
+  explicit qljs_document(vscode_document doc)
+      : vscode_document_(::Napi::Persistent(doc)) {}
+
+  // Takes ownership of this qljs_document.
+  //
+  // This qljs_document must have been allocated with 'new'.
+  ::Napi::Value create_wrapper(::Napi::Env env) {
+    ::Napi::External<qljs_document> wrapped =
+        ::Napi::External<qljs_document>::New(
+            env, this,
+            [](::Napi::Env, qljs_document* data) -> void { delete data; });
+    return wrapped;
   }
 
   void replace_text(::Napi::Array changes) {
@@ -559,7 +569,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   void dispose_documents() {
     this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
-      qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
+      qljs_document* doc = qljs_document::unwrap(value);
       this->delete_diagnostics(doc);
     });
     this->qljs_documents_.clear();
@@ -575,9 +585,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     vscode_document vscode_doc(info[0].As<::Napi::Object>());
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc.get());
     qljs_document* doc =
-        qljs_doc.IsUndefined()
-            ? nullptr
-            : qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+        qljs_doc.IsUndefined() ? nullptr : qljs_document::unwrap(qljs_doc);
     this->tracer_.trace_vscode_document_closed(env, vscode_doc, doc);
     if (doc) {
       QLJS_DEBUG_LOG("Document %p: Closing\n", doc);
@@ -613,7 +621,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         this->after_modification(env, doc);
       }
     } else {
-      doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      doc = qljs_document::unwrap(qljs_doc);
       this->after_modification(env, doc);
     }
 
@@ -626,7 +634,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Value vscode_document = info[0];
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
     if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      qljs_document* doc = qljs_document::unwrap(qljs_doc);
       ::Napi::Array changes = info[1].As<::Napi::Array>();
       this->tracer_.trace_vscode_document_changed(env, doc, changes);
       doc->replace_text(changes);
@@ -642,7 +650,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
     if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      qljs_document* doc = qljs_document::unwrap(qljs_doc);
       QLJS_DEBUG_LOG("Document %p: Saved\n", doc);
       this->tracer_.trace_vscode_document_sync(env, vscode_document(vscode_doc),
                                                doc);
@@ -654,8 +662,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   qljs_document* maybe_create_document(::Napi::Env env,
                                        vscode_document vscode_doc,
                                        string8_view text) {
-    addon_state* state = env.GetInstanceData<addon_state>();
-
     ::Napi::Object vscode_document_uri = vscode_doc.uri();
     std::optional<std::string> file_path = std::nullopt;
     if (to_string(vscode_document_uri.Get("scheme")) == "file") {
@@ -673,8 +679,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       return nullptr;
     }
 
-    ::Napi::Object js_doc = state->qljs_document_class.New({vscode_doc});
-    qljs_document* doc = qljs_document::Unwrap(js_doc);
+    qljs_document* doc = new qljs_document(vscode_doc);
+    ::Napi::Value js_doc = doc->create_wrapper(env);
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
                      file_path->c_str());
@@ -989,7 +995,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   thread_safe_js_function<check_for_config_file_changes_from_thread>
       check_for_config_file_changes_on_js_thread_;
 
-  // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
+  // Mapping from vscode.Document to wrapped qljs_document.
   js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
@@ -1038,7 +1044,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   std::unique_ptr<addon_state> state(new addon_state{
-      .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
       .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
   });
