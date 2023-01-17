@@ -116,14 +116,14 @@ class qljs_document_base {
     return this->document_.string();
   }
 
-  void after_modification(::Napi::Env, qljs_workspace&);
+  virtual void after_modification(::Napi::Env, qljs_workspace&) = 0;
 
-  void finish_init(::Napi::Env, qljs_workspace&,
-                   const std::optional<std::string>& file_path);
+  virtual void finish_init(::Napi::Env, qljs_workspace&,
+                           const std::optional<std::string>& file_path) = 0;
 
   // config_file is optional.
-  void on_config_file_changed(::Napi::Env, qljs_workspace&,
-                              loaded_config_file* config_file);
+  virtual void on_config_file_changed(::Napi::Env, qljs_workspace&,
+                                      loaded_config_file* config_file) = 0;
 
  private:
   ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
@@ -155,11 +155,23 @@ class qljs_config_document : public qljs_document_base {
       : qljs_document_base(doc, file_path) {
     QLJS_ASSERT(file_path.has_value());
   }
+
+  void after_modification(::Napi::Env, qljs_workspace&) override;
+  void finish_init(::Napi::Env, qljs_workspace&,
+                   const std::optional<std::string>& file_path) override;
+  void on_config_file_changed(::Napi::Env, qljs_workspace&,
+                              loaded_config_file* config_file) override;
 };
 
 class qljs_lintable_document : public qljs_document_base {
  public:
   using qljs_document_base::qljs_document_base;
+
+  void after_modification(::Napi::Env, qljs_workspace&) override;
+  void finish_init(::Napi::Env, qljs_workspace&,
+                   const std::optional<std::string>& file_path) override;
+  void on_config_file_changed(::Napi::Env, qljs_workspace&,
+                              loaded_config_file* config_file) override;
 
  private:
   configuration* config_;
@@ -956,7 +968,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::ObjectReference logger_;  // An optional qljs_logger.
   bool logger_enabled_ = false;
 
-  friend class qljs_document_base;
+  friend class qljs_config_document;
+  friend class qljs_lintable_document;
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
@@ -972,108 +985,94 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   });
 }
 
-void qljs_document_base::after_modification(::Napi::Env env,
-                                            qljs_workspace& workspace) {
-  switch (this->type_) {
-  case document_type::config:
-    workspace.check_for_config_file_changes(env);
-    break;
-
-  case document_type::lintable:
-    workspace.lint_javascript_and_publish_diagnostics(env, this);
-    break;
-  }
+void qljs_config_document::after_modification(::Napi::Env env,
+                                              qljs_workspace& workspace) {
+  workspace.check_for_config_file_changes(env);
 }
 
-void qljs_document_base::finish_init(
+void qljs_lintable_document::after_modification(::Napi::Env env,
+                                                qljs_workspace& workspace) {
+  workspace.lint_javascript_and_publish_diagnostics(env, this);
+}
+
+void qljs_lintable_document::finish_init(
     ::Napi::Env env, qljs_workspace& workspace,
     const std::optional<std::string>& file_path) {
-  switch (this->type_) {
-  case document_type::lintable: {
-    qljs_lintable_document* lintable_doc =
-        static_cast<qljs_lintable_document*>(this);
-    lintable_doc->config_ = &workspace.default_config_;
-    if (file_path.has_value()) {
-      QLJS_DEBUG_LOG("Workspace %p: watching config for: %s\n", &workspace,
-                     file_path->c_str());
-      auto loaded_config_result =
-          workspace.config_loader_.watch_and_load_for_file(*file_path, this);
-      if (loaded_config_result.ok()) {
-        loaded_config_file* loaded_config = *loaded_config_result;
-        if (loaded_config) {
-          if (!loaded_config->errors.empty()) {
-            QLJS_ASSERT(loaded_config->config_path);
-            std::string config_file_path(loaded_config->config_path->path());
-            std::string message = "Problems found in the config file for " +
-                                  *file_path + " (" + config_file_path + ").";
-            workspace.vscode_.show_error_message(
-                env, message, {"Open config"},
-                [&workspace, self = ::Napi::Persistent(workspace.Value()),
-                 config_file_path](::Napi::Env callback_env,
-                                   ::Napi::Value clicked_button_label) -> void {
-                  bool popup_dismissed = clicked_button_label.IsUndefined();
-                  if (popup_dismissed) {
-                    return;
-                  }
-                  std::string clicked_button_label_string =
-                      clicked_button_label.As<::Napi::String>().Utf8Value();
-                  QLJS_ASSERT(clicked_button_label_string == "Open config");
-                  workspace.vscode_.open_and_show_text_document_by_path(
-                      callback_env, config_file_path);
-                });
-          }
-          lintable_doc->config_ = &loaded_config->config;
-        }
-      } else {
-        std::string message =
-            "Failed to load configuration file for " + *file_path +
-            ". Using default configuration.\nError details: " +
-            loaded_config_result.error_to_string();
-        workspace.vscode_.window_show_error_message.Value().Call(
-            /*this=*/workspace.vscode_.window_namespace.Value(),
-            {
-                ::Napi::String::New(env, message),
-            });
-      }
-    }
-    break;
-  }
-
-  case document_type::config: {
-    QLJS_ASSERT(file_path.has_value());
-    QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", &workspace,
+  this->config_ = &workspace.default_config_;
+  if (file_path.has_value()) {
+    QLJS_DEBUG_LOG("Workspace %p: watching config for: %s\n", &workspace,
                    file_path->c_str());
     auto loaded_config_result =
-        workspace.config_loader_.watch_and_load_config_file(*file_path, this);
+        workspace.config_loader_.watch_and_load_for_file(*file_path, this);
     if (loaded_config_result.ok()) {
-      workspace.vscode_.load_non_persistent(env);
-      workspace.lint_config_and_publish_diagnostics(env, this,
-                                                    *loaded_config_result);
+      loaded_config_file* loaded_config = *loaded_config_result;
+      if (loaded_config) {
+        if (!loaded_config->errors.empty()) {
+          QLJS_ASSERT(loaded_config->config_path);
+          std::string config_file_path(loaded_config->config_path->path());
+          std::string message = "Problems found in the config file for " +
+                                *file_path + " (" + config_file_path + ").";
+          workspace.vscode_.show_error_message(
+              env, message, {"Open config"},
+              [&workspace, self = ::Napi::Persistent(workspace.Value()),
+               config_file_path](::Napi::Env callback_env,
+                                 ::Napi::Value clicked_button_label) -> void {
+                bool popup_dismissed = clicked_button_label.IsUndefined();
+                if (popup_dismissed) {
+                  return;
+                }
+                std::string clicked_button_label_string =
+                    clicked_button_label.As<::Napi::String>().Utf8Value();
+                QLJS_ASSERT(clicked_button_label_string == "Open config");
+                workspace.vscode_.open_and_show_text_document_by_path(
+                    callback_env, config_file_path);
+              });
+        }
+        this->config_ = &loaded_config->config;
+      }
     } else {
-      QLJS_UNIMPLEMENTED();
+      std::string message = "Failed to load configuration file for " +
+                            *file_path +
+                            ". Using default configuration.\nError details: " +
+                            loaded_config_result.error_to_string();
+      workspace.vscode_.window_show_error_message.Value().Call(
+          /*this=*/workspace.vscode_.window_namespace.Value(),
+          {
+              ::Napi::String::New(env, message),
+          });
     }
-    break;
-  }
   }
 }
 
-void qljs_document_base::on_config_file_changed(
+void qljs_config_document::finish_init(
+    ::Napi::Env env, qljs_workspace& workspace,
+    const std::optional<std::string>& file_path) {
+  QLJS_ASSERT(file_path.has_value());
+  QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", &workspace,
+                 file_path->c_str());
+  auto loaded_config_result =
+      workspace.config_loader_.watch_and_load_config_file(*file_path, this);
+  if (loaded_config_result.ok()) {
+    workspace.vscode_.load_non_persistent(env);
+    workspace.lint_config_and_publish_diagnostics(env, this,
+                                                  *loaded_config_result);
+  } else {
+    QLJS_UNIMPLEMENTED();
+  }
+}
+
+void qljs_config_document::on_config_file_changed(
     ::Napi::Env env, qljs_workspace& workspace,
     loaded_config_file* config_file) {
-  switch (this->type_) {
-  case document_type::config:
-    workspace.lint_config_and_publish_diagnostics(env, this, config_file);
-    break;
+  workspace.lint_config_and_publish_diagnostics(env, this, config_file);
+}
 
-  case document_type::lintable: {
-    qljs_lintable_document* lintable_doc =
-        static_cast<qljs_lintable_document*>(this);
-    lintable_doc->config_ =
-        config_file ? &config_file->config : &workspace.default_config_;
-    workspace.lint_javascript_and_publish_diagnostics(env, this);
-    break;
-  }
-  }
+void qljs_lintable_document::on_config_file_changed(
+    ::Napi::Env env, qljs_workspace& workspace,
+    loaded_config_file* config_file) {
+  this->config_ =
+      config_file ? &config_file->config : &workspace.default_config_;
+  workspace.lint_javascript_and_publish_diagnostics(env, this);
 }
 
 #if QLJS_HAVE_INOTIFY
