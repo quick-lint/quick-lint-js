@@ -121,6 +121,10 @@ class qljs_document_base {
   void finish_init(::Napi::Env, qljs_workspace&,
                    const std::optional<std::string>& file_path);
 
+  // config_file is optional.
+  void on_config_file_changed(::Napi::Env, qljs_workspace&,
+                              loaded_config_file* config_file);
+
  private:
   ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
 
@@ -790,20 +794,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                      change.watched_path->c_str());
       qljs_document_base* doc =
           reinterpret_cast<qljs_document_base*>(change.token);
-      switch (doc->type_) {
-      case document_type::config:
-        this->lint_config_and_publish_diagnostics(env, doc, change.config_file);
-        break;
-
-      case document_type::lintable: {
-        qljs_lintable_document* lintable_doc =
-            static_cast<qljs_lintable_document*>(doc);
-        lintable_doc->config_ = change.config_file ? &change.config_file->config
-                                                   : &this->default_config_;
-        this->lint_javascript_and_publish_diagnostics(env, doc);
-        break;
-      }
-      }
+      doc->on_config_file_changed(env, *this, change.config_file);
     }
   }
 
@@ -1061,6 +1052,25 @@ void qljs_document_base::finish_init(
     } else {
       QLJS_UNIMPLEMENTED();
     }
+    break;
+  }
+  }
+}
+
+void qljs_document_base::on_config_file_changed(
+    ::Napi::Env env, qljs_workspace& workspace,
+    loaded_config_file* config_file) {
+  switch (this->type_) {
+  case document_type::config:
+    workspace.lint_config_and_publish_diagnostics(env, this, config_file);
+    break;
+
+  case document_type::lintable: {
+    qljs_lintable_document* lintable_doc =
+        static_cast<qljs_lintable_document*>(this);
+    lintable_doc->config_ =
+        config_file ? &config_file->config : &workspace.default_config_;
+    workspace.lint_javascript_and_publish_diagnostics(env, this);
     break;
   }
   }
