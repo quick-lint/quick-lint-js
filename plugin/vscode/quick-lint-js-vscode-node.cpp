@@ -61,8 +61,16 @@ class qljs_document_base {
     return wrapped.Data();
   }
 
-  explicit qljs_document_base(vscode_document doc)
-      : vscode_document_(::Napi::Persistent(doc)) {}
+  explicit qljs_document_base(vscode_document doc,
+                              const std::optional<std::string>& file_path)
+      : vscode_document_(::Napi::Persistent(doc)) {
+    if (file_path.has_value()) {
+      QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
+                     file_path->c_str());
+    } else {
+      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", this);
+    }
+  }
 
   virtual ~qljs_document_base() = default;
 
@@ -135,7 +143,11 @@ class qljs_document_base {
 
 class qljs_config_document : public qljs_document_base {
  public:
-  using qljs_document_base::qljs_document_base;
+  explicit qljs_config_document(vscode_document doc,
+                                const std::optional<std::string>& file_path)
+      : qljs_document_base(doc, file_path) {
+    QLJS_ASSERT(file_path.has_value());
+  }
 };
 
 class qljs_lintable_document : public qljs_document_base {
@@ -694,22 +706,16 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     qljs_document_base* doc;
     if (language_id == "javascript" || language_id == "javascriptreact") {
       type = document_type::lintable;
-      doc = new qljs_lintable_document(vscode_doc);
+      doc = new qljs_lintable_document(vscode_doc, file_path);
     } else if (file_path.has_value() &&
                this->config_loader_.is_config_file_path(*file_path)) {
       type = document_type::config;
-      doc = new qljs_config_document(vscode_doc);
+      doc = new qljs_config_document(vscode_doc, file_path);
     } else {
       return nullptr;
     }
     ::Napi::Value js_doc = doc->create_wrapper(env);
 
-    if (file_path.has_value()) {
-      QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
-                     file_path->c_str());
-    } else {
-      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc);
-    }
     doc->type_ = type;
     doc->document_.set_text(text);
     if (file_path.has_value()) {
