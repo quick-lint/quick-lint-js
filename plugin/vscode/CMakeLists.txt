@@ -15,6 +15,7 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       SHARED
       quick-lint-js-vscode-node.cpp
       quick-lint-js/vscode/napi-support.h
+      quick-lint-js/vscode/qljs-document.h
       quick-lint-js/vscode/vscode-diag-reporter.h
       quick-lint-js/vscode/vscode-tracer.h
       quick-lint-js/vscode/vscode.h
