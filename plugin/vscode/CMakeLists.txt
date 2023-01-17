@@ -13,13 +13,13 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
     quick_lint_js_add_library(
       quick-lint-js-vscode-node
       SHARED
-      quick-lint-js-vscode-node.cpp
       quick-lint-js/vscode/addon.cpp
       quick-lint-js/vscode/addon.h
       quick-lint-js/vscode/napi-support.h
       quick-lint-js/vscode/qljs-document.cpp
       quick-lint-js/vscode/qljs-document.h
       quick-lint-js/vscode/qljs-logger.h
+      quick-lint-js/vscode/qljs-workspace.cpp
       quick-lint-js/vscode/qljs-workspace.h
       quick-lint-js/vscode/thread-safe-js-function.h
       quick-lint-js/vscode/vscode-configuration-filesystem.h
