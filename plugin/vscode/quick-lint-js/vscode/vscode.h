@@ -1,12 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_H
-#define QUICK_LINT_JS_VSCODE_H
+#ifndef QUICK_LINT_JS_VSCODE_VSCODE_H
+#define QUICK_LINT_JS_VSCODE_VSCODE_H
 
 #include <memory>
 #include <napi.h>
-#include <quick-lint-js/napi-support.h>
+#include <quick-lint-js/vscode/napi-support.h>
 #include <string>
 #include <utility>
 

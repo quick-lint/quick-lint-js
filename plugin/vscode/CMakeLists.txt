@@ -14,9 +14,10 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       quick-lint-js-vscode-node
       SHARED
       quick-lint-js-vscode-node.cpp
-      quick-lint-js/napi-support.h
-      quick-lint-js/vscode-diag-reporter.h
-      quick-lint-js/vscode.h
+      quick-lint-js/vscode/napi-support.h
+      quick-lint-js/vscode/vscode-diag-reporter.h
+      quick-lint-js/vscode/vscode-tracer.h
+      quick-lint-js/vscode/vscode.h
     )
     set_target_properties(
       quick-lint-js-vscode-node

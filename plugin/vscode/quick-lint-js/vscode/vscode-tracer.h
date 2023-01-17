@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_TRACER_H
-#define QUICK_LINT_JS_VSCODE_TRACER_H
+#ifndef QUICK_LINT_JS_VSCODE_VSCODE_TRACER_H
+#define QUICK_LINT_JS_VSCODE_VSCODE_TRACER_H
 
 #include <cstddef>
 #include <napi.h>
@@ -11,7 +11,7 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
-#include <quick-lint-js/napi-support.h>
+#include <quick-lint-js/vscode/napi-support.h>
 
 namespace quick_lint_js {
 // Writes N-API strings into buffers.

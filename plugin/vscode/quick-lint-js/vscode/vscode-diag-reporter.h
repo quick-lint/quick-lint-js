@@ -1,15 +1,15 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_DIAG_REPORTER_H
-#define QUICK_LINT_JS_VSCODE_DIAG_REPORTER_H
+#ifndef QUICK_LINT_JS_VSCODE_VSCODE_DIAG_REPORTER_H
+#define QUICK_LINT_JS_VSCODE_VSCODE_DIAG_REPORTER_H
 
 #include <napi.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/vscode.h>
+#include <quick-lint-js/vscode/vscode.h>
 #include <string_view>
 
 namespace quick_lint_js {
