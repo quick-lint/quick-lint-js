@@ -38,11 +38,6 @@ namespace quick_lint_js {
 namespace {
 class qljs_workspace;
 
-enum class document_type {
-  config,
-  lintable,
-};
-
 // State global to a specific Node.js instance/thread.
 class addon_state {
  public:
@@ -129,7 +124,6 @@ class qljs_document_base {
   ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }
 
   document<lsp_locator> document_;
-  document_type type_;
   ::Napi::Reference<vscode_document> vscode_document_;
 
   friend class qljs_workspace;
@@ -155,7 +149,6 @@ class qljs_config_document : public qljs_document_base {
 
   ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
                             loaded_config_file* loaded_config) {
-    QLJS_ASSERT(this->type_ == document_type::config);
     vscode->load_non_persistent(env);
 
     lsp_locator locator(&loaded_config->file_content);
@@ -179,7 +172,6 @@ class qljs_lintable_document : public qljs_document_base {
 
  private:
   ::Napi::Array lint_javascript(::Napi::Env env, vscode_module* vscode) {
-    QLJS_ASSERT(this->type_ == document_type::lintable);
     vscode->load_non_persistent(env);
 
     vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
@@ -723,22 +715,18 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       file_path = to_string(vscode_document_uri.Get("fsPath"));
     }
 
-    document_type type;
     std::string language_id = vscode_doc.language_id();
     qljs_document_base* doc;
     if (language_id == "javascript" || language_id == "javascriptreact") {
-      type = document_type::lintable;
       doc = new qljs_lintable_document(vscode_doc, file_path);
     } else if (file_path.has_value() &&
                this->config_loader_.is_config_file_path(*file_path)) {
-      type = document_type::config;
       doc = new qljs_config_document(vscode_doc, file_path);
     } else {
       return nullptr;
     }
     ::Napi::Value js_doc = doc->create_wrapper(env);
 
-    doc->type_ = type;
     doc->document_.set_text(text);
     if (file_path.has_value()) {
       this->fs_.overlay_document(*file_path, doc);
