@@ -159,6 +159,10 @@ class qljs_config_document : public qljs_document_base {
                    const std::optional<std::string>& file_path) override;
   void on_config_file_changed(::Napi::Env, qljs_workspace&,
                               loaded_config_file* config_file) override;
+
+ private:
+  void lint_config_and_publish_diagnostics(::Napi::Env, qljs_workspace&,
+                                           loaded_config_file* loaded_config);
 };
 
 class qljs_lintable_document : public qljs_document_base {
@@ -809,13 +813,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
   }
 
-  void lint_config_and_publish_diagnostics(::Napi::Env env,
-                                           qljs_document_base* doc,
-                                           loaded_config_file* loaded_config) {
-    this->publish_diagnostics(
-        doc, doc->lint_config(env, &this->vscode_, loaded_config));
-  }
-
  private:
   // This function runs on a background thread.
   void run_fs_change_detection_thread() {
@@ -1048,8 +1045,8 @@ void qljs_config_document::finish_init(
       workspace.config_loader_.watch_and_load_config_file(*file_path, this);
   if (loaded_config_result.ok()) {
     workspace.vscode_.load_non_persistent(env);
-    workspace.lint_config_and_publish_diagnostics(env, this,
-                                                  *loaded_config_result);
+    this->lint_config_and_publish_diagnostics(env, workspace,
+                                              *loaded_config_result);
   } else {
     QLJS_UNIMPLEMENTED();
   }
@@ -1058,7 +1055,14 @@ void qljs_config_document::finish_init(
 void qljs_config_document::on_config_file_changed(
     ::Napi::Env env, qljs_workspace& workspace,
     loaded_config_file* config_file) {
-  workspace.lint_config_and_publish_diagnostics(env, this, config_file);
+  this->lint_config_and_publish_diagnostics(env, workspace, config_file);
+}
+
+void qljs_config_document::lint_config_and_publish_diagnostics(
+    ::Napi::Env env, qljs_workspace& workspace,
+    loaded_config_file* loaded_config) {
+  workspace.publish_diagnostics(
+      this, this->lint_config(env, &workspace.vscode_, loaded_config));
 }
 
 void qljs_lintable_document::on_config_file_changed(
