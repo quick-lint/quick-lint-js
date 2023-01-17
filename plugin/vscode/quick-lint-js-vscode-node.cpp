@@ -28,6 +28,7 @@
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/vscode/napi-support.h>
 #include <quick-lint-js/vscode/qljs-document.h>
+#include <quick-lint-js/vscode/thread-safe-js-function.h>
 #include <quick-lint-js/vscode/vscode-configuration-filesystem.h>
 #include <quick-lint-js/vscode/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode/vscode-tracer.h>
@@ -45,82 +46,6 @@ class addon_state {
 
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
-};
-
-// Like ::Napi::TypedThreadSafeFunction, but with saner lifetime semantics.
-template <void (*Func)(::Napi::Env, ::Napi::Object)>
-class thread_safe_js_function {
- public:
-  // thread_safe_js_function holds a weak reference to 'object'. If 'object'
-  // is garbage-collected, then this thread_safe_js_function will not call
-  // 'Func'.
-  explicit thread_safe_js_function(::Napi::Env env, const char* resource_name,
-                                   ::Napi::Object object)
-      : function_(::Napi::TypedThreadSafeFunction<
-                  /*ContextType=*/void, /*DataType=*/void,
-                  /*Callback=*/call_func>::
-                      New(
-                          /*env=*/env,
-                          /*callback=*/nullptr,
-                          /*resource=*/::Napi::Object(),
-                          /*resourceName=*/resource_name,
-                          /*maxQueueSize=*/0,
-                          /*initialThreadCount=*/1,
-                          /*context=*/this->create_weak_reference(env, object),
-                          /*finalizeCallback=*/finalize_weak_reference,
-                          /*data=*/static_cast<void*>(nullptr))) {}
-
-  // Like ::Napi::TypedThreadSafeFunction::BlockingCall.
-  ::napi_status BlockingCall() { return this->function_.BlockingCall(); }
-
-  // Like ::Napi::TypedThreadSafeFunction::Release.
-  void Release() { this->function_.Release(); }
-
- private:
-  static ::napi_ref create_weak_reference(::Napi::Env env,
-                                          ::Napi::Object object) {
-    ::napi_ref result;
-    ::napi_status status = ::napi_create_reference(
-        /*env=*/env,
-        /*value=*/object,
-        /*initial_refcount=*/0,
-        /*result=*/&result);
-    QLJS_ASSERT(status == ::napi_ok);
-    return result;
-  }
-
-  static void finalize_weak_reference(::Napi::Env env,
-                                      [[maybe_unused]] void* data,
-                                      void* context) {
-    // See NOTE[workspace-cleanup].
-    ::napi_status status =
-        ::napi_delete_reference(env, reinterpret_cast<::napi_ref>(context));
-    QLJS_ASSERT(status == ::napi_ok);
-  }
-
-  static void call_func(::Napi::Env env, ::Napi::Function, void* context,
-                        [[maybe_unused]] void* data) {
-    if (!env) {
-      return;
-    }
-
-    ::napi_value raw_object;
-    ::napi_status status = ::napi_get_reference_value(
-        env, reinterpret_cast<::napi_ref>(context), &raw_object);
-    QLJS_ASSERT(status == ::napi_ok);
-    ::Napi::Object object(env, raw_object);
-
-    if (object.IsEmpty()) {
-      // See NOTE[workspace-cleanup].
-      QLJS_DEBUG_LOG(
-          "not calling Func because object has been garbage-collected\n");
-      return;
-    }
-
-    Func(env, object);
-  }
-
-  ::Napi::TypedThreadSafeFunction<void, void, call_func> function_;
 };
 
 class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
