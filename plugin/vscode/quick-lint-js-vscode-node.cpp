@@ -743,22 +743,15 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
   void publish_diagnostics(qljs_document_base* doc, ::Napi::Value diagnostics) {
-    this->vscode_diagnostic_collection_ref_.Get("set")
-        .As<::Napi::Function>()
-        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-              {
-                  doc->uri(),
-                  diagnostics,
-              });
+    vscode_diagnostic_collection(
+        this->vscode_diagnostic_collection_ref_.Value())
+        .set(doc->uri(), diagnostics);
   }
 
   void delete_diagnostics(qljs_document_base* doc) {
-    this->vscode_diagnostic_collection_ref_.Get("delete")
-        .As<::Napi::Function>()
-        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-              {
-                  doc->uri(),
-              });
+    vscode_diagnostic_collection(
+        this->vscode_diagnostic_collection_ref_.Value())
+        .delete_(doc->uri());
   }
 
   void report_pending_watch_io_errors(::Napi::Env env) {

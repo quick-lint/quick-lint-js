@@ -254,6 +254,44 @@ class vscode_document {
  private:
   ::Napi::Object doc_;
 };
+
+// A non-owning wrapper around a vscode.DiagnosticCollection.
+class vscode_diagnostic_collection {
+ public:
+  // Do not call.
+  explicit vscode_diagnostic_collection()
+      : vscode_diagnostic_collection(::Napi::Object()) {}
+
+  // Do not call.
+  explicit vscode_diagnostic_collection(napi_env env, napi_value value)
+      : vscode_diagnostic_collection(::Napi::Object(env, value)) {}
+
+  explicit vscode_diagnostic_collection(::Napi::Object collection)
+      : collection_(collection) {}
+
+  // vscode.DiagnosticCollection#set(uri, diagnostics)
+  void set(::Napi::Value uri, ::Napi::Value diagnostics) {
+    this->collection_.Get("set").As<::Napi::Function>().Call(
+        /*this=*/this->collection_, {
+                                        uri,
+                                        diagnostics,
+                                    });
+  }
+
+  // vscode.DiagnosticCollection#delete(uri)
+  void delete_(::Napi::Value uri) {
+    this->collection_.Get("delete").As<::Napi::Function>().Call(
+        /*this=*/this->collection_, {uri});
+  }
+
+  ::Napi::Object get() const { return this->collection_; }
+  napi_env Env() const { return this->collection_.Env(); }
+  operator napi_value() const { return this->collection_; }
+  operator ::Napi::Value() const { return this->collection_; }
+
+ private:
+  ::Napi::Object collection_;
+};
 }
 
 #endif
