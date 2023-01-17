@@ -4,39 +4,9 @@
 #ifndef QUICK_LINT_JS_VSCODE_THREAD_SAFE_JS_FUNCTION_H
 #define QUICK_LINT_JS_VSCODE_THREAD_SAFE_JS_FUNCTION_H
 
-// TODO(strager): Trim includes.
-#include <cstdio>
-#include <memory>
 #include <napi.h>
-#include <optional>
-#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
-#include <quick-lint-js/configuration/change-detecting-filesystem.h>
-#include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/container/hash-map.h>
-#include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-formatter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/fe/diagnostic.h>
-#include <quick-lint-js/fe/linter.h>
-#include <quick-lint-js/io/event-loop.h>
-#include <quick-lint-js/io/pipe.h>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/logging/log.h>
-#include <quick-lint-js/logging/logger.h>
-#include <quick-lint-js/logging/trace-flusher.h>
-#include <quick-lint-js/logging/trace-writer.h>
-#include <quick-lint-js/lsp/lsp-location.h>
-#include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/thread.h>
-#include <quick-lint-js/vscode/napi-support.h>
-#include <quick-lint-js/vscode/vscode-diag-reporter.h>
-#include <quick-lint-js/vscode/vscode-tracer.h>
-#include <quick-lint-js/vscode/vscode.h>
-#include <string>
-#include <string_view>
-#include <vector>
 
 namespace quick_lint_js {
 // Like ::Napi::TypedThreadSafeFunction, but with saner lifetime semantics.
