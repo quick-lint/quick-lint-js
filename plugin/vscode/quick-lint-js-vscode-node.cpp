@@ -195,6 +195,7 @@ class qljs_lintable_document : public qljs_document_base {
 
   return std::move(diag_reporter).diagnostics();
 }
+
 template <class UnderlyingFilesystem>
 class thread_safe_configuration_filesystem : public configuration_filesystem {
  public:
