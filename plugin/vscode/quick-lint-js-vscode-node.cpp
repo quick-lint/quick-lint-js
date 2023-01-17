@@ -36,7 +36,6 @@
 
 namespace quick_lint_js {
 namespace {
-class qljs_document;
 class qljs_workspace;
 
 enum class document_type {
@@ -53,26 +52,30 @@ class addon_state {
   ::Napi::FunctionReference qljs_workspace_class;
 };
 
-class qljs_document {
+class qljs_document_base {
  public:
-  static qljs_document* unwrap(::Napi::Value document) {
+  virtual ~qljs_document_base() = default;
+
+  static qljs_document_base* unwrap(::Napi::Value document) {
     QLJS_ASSERT(document.IsExternal());
-    ::Napi::External<qljs_document> wrapped =
-        document.As<::Napi::External<qljs_document>>();
+    ::Napi::External<qljs_document_base> wrapped =
+        document.As<::Napi::External<qljs_document_base>>();
     return wrapped.Data();
   }
 
-  explicit qljs_document(vscode_document doc)
+  explicit qljs_document_base(vscode_document doc)
       : vscode_document_(::Napi::Persistent(doc)) {}
 
-  // Takes ownership of this qljs_document.
+  // Takes ownership of this qljs_document_base.
   //
-  // This qljs_document must have been allocated with 'new'.
+  // This qljs_document_base must have been allocated with 'new'.
   ::Napi::Value create_wrapper(::Napi::Env env) {
-    ::Napi::External<qljs_document> wrapped =
-        ::Napi::External<qljs_document>::New(
+    ::Napi::External<qljs_document_base> wrapped =
+        ::Napi::External<qljs_document_base>::New(
             env, this,
-            [](::Napi::Env, qljs_document* data) -> void { delete data; });
+            /*finalize=*/[](::Napi::Env, qljs_document_base* data) -> void {
+              delete data;
+            });
     return wrapped;
   }
 
@@ -106,19 +109,7 @@ class qljs_document {
   }
 
  private:
-  ::Napi::Array lint_javascript(::Napi::Env env, vscode_module* vscode) {
-    QLJS_ASSERT(this->type_ == document_type::lintable);
-    vscode->load_non_persistent(env);
-
-    vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
-                                       this->uri());
-    linter_options lint_options;
-    lint_options.jsx = true;
-    parse_and_lint(this->document_.string(), diag_reporter,
-                   this->config_->globals(), lint_options);
-
-    return std::move(diag_reporter).diagnostics();
-  }
+  ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
 
   ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
                             loaded_config_file* loaded_config) {
@@ -137,12 +128,40 @@ class qljs_document {
   document_type type_;
   ::Napi::Reference<vscode_document> vscode_document_;
 
-  // Used only if type_ == document_type::lintable:
-  configuration* config_;
-
   friend class qljs_workspace;
 };
 
+class qljs_config_document : public qljs_document_base {
+ public:
+  using qljs_document_base::qljs_document_base;
+};
+
+class qljs_lintable_document : public qljs_document_base {
+ public:
+  using qljs_document_base::qljs_document_base;
+
+ private:
+  configuration* config_;
+
+  friend class qljs_document_base;
+  friend class qljs_workspace;
+};
+
+::Napi::Array qljs_document_base::lint_javascript(::Napi::Env env,
+                                                  vscode_module* vscode) {
+  QLJS_ASSERT(this->type_ == document_type::lintable);
+  qljs_lintable_document* self = static_cast<qljs_lintable_document*>(this);
+  vscode->load_non_persistent(env);
+
+  vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
+                                     this->uri());
+  linter_options lint_options;
+  lint_options.jsx = true;
+  parse_and_lint(this->document_.string(), diag_reporter,
+                 self->config_->globals(), lint_options);
+
+  return std::move(diag_reporter).diagnostics();
+}
 template <class UnderlyingFilesystem>
 class thread_safe_configuration_filesystem : public configuration_filesystem {
  public:
@@ -217,7 +236,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
 
   result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
-    qljs_document* doc = this->find_document(path.path());
+    qljs_document_base* doc = this->find_document(path.path());
     if (!doc) {
       QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
       return this->underlying_fs_->read_file(path);
@@ -228,13 +247,13 @@ class vscode_configuration_filesystem : public configuration_filesystem {
 
   void clear() { this->overlaid_documents_.clear(); }
 
-  void overlay_document(const std::string& file_path, qljs_document* doc) {
+  void overlay_document(const std::string& file_path, qljs_document_base* doc) {
     auto [_it, inserted] =
         this->overlaid_documents_.try_emplace(file_path, doc);
     QLJS_ASSERT(inserted);
   }
 
-  void forget_document(qljs_document* doc) {
+  void forget_document(qljs_document_base* doc) {
     auto doc_it = std::find_if(this->overlaid_documents_.begin(),
                                this->overlaid_documents_.end(),
                                [&](auto& pair) { return pair.second == doc; });
@@ -249,7 +268,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
   }
 
  private:
-  qljs_document* find_document(std::string_view path) {
+  qljs_document_base* find_document(std::string_view path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
     std::string_view key = path;
 #else
@@ -262,7 +281,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
     return doc_it->second;
   }
 
-  hash_map<std::string, qljs_document*> overlaid_documents_;
+  hash_map<std::string, qljs_document_base*> overlaid_documents_;
   configuration_filesystem* underlying_fs_;
 };
 
@@ -569,7 +588,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   void dispose_documents() {
     this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
-      qljs_document* doc = qljs_document::unwrap(value);
+      qljs_document_base* doc = qljs_document_base::unwrap(value);
       this->delete_diagnostics(doc);
     });
     this->qljs_documents_.clear();
@@ -584,8 +603,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     vscode_document vscode_doc(info[0].As<::Napi::Object>());
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc.get());
-    qljs_document* doc =
-        qljs_doc.IsUndefined() ? nullptr : qljs_document::unwrap(qljs_doc);
+    qljs_document_base* doc =
+        qljs_doc.IsUndefined() ? nullptr : qljs_document_base::unwrap(qljs_doc);
     this->tracer_.trace_vscode_document_closed(env, vscode_doc, doc);
     if (doc) {
       QLJS_DEBUG_LOG("Document %p: Closing\n", doc);
@@ -610,7 +629,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
-    qljs_document* doc;
+    qljs_document_base* doc;
     if (qljs_doc.IsUndefined()) {
       vscode_document d(vscode_doc);
       doc = this->maybe_create_document(
@@ -621,7 +640,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         this->after_modification(env, doc);
       }
     } else {
-      doc = qljs_document::unwrap(qljs_doc);
+      doc = qljs_document_base::unwrap(qljs_doc);
       this->after_modification(env, doc);
     }
 
@@ -634,7 +653,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Value vscode_document = info[0];
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
     if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::unwrap(qljs_doc);
+      qljs_document_base* doc = qljs_document_base::unwrap(qljs_doc);
       ::Napi::Array changes = info[1].As<::Napi::Array>();
       this->tracer_.trace_vscode_document_changed(env, doc, changes);
       doc->replace_text(changes);
@@ -650,7 +669,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
     if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::unwrap(qljs_doc);
+      qljs_document_base* doc = qljs_document_base::unwrap(qljs_doc);
       QLJS_DEBUG_LOG("Document %p: Saved\n", doc);
       this->tracer_.trace_vscode_document_sync(env, vscode_document(vscode_doc),
                                                doc);
@@ -659,9 +678,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
-  qljs_document* maybe_create_document(::Napi::Env env,
-                                       vscode_document vscode_doc,
-                                       string8_view text) {
+  qljs_document_base* maybe_create_document(::Napi::Env env,
+                                            vscode_document vscode_doc,
+                                            string8_view text) {
     ::Napi::Object vscode_document_uri = vscode_doc.uri();
     std::optional<std::string> file_path = std::nullopt;
     if (to_string(vscode_document_uri.Get("scheme")) == "file") {
@@ -670,17 +689,19 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     document_type type;
     std::string language_id = vscode_doc.language_id();
+    qljs_document_base* doc;
     if (language_id == "javascript" || language_id == "javascriptreact") {
       type = document_type::lintable;
+      doc = new qljs_lintable_document(vscode_doc);
     } else if (file_path.has_value() &&
                this->config_loader_.is_config_file_path(*file_path)) {
       type = document_type::config;
+      doc = new qljs_config_document(vscode_doc);
     } else {
       return nullptr;
     }
-
-    qljs_document* doc = new qljs_document(vscode_doc);
     ::Napi::Value js_doc = doc->create_wrapper(env);
+
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
                      file_path->c_str());
@@ -697,8 +718,10 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     this->tracer_.trace_vscode_document_opened(env, vscode_doc, doc);
 
     switch (type) {
-    case document_type::lintable:
-      doc->config_ = &this->default_config_;
+    case document_type::lintable: {
+      qljs_lintable_document* lintable_doc =
+          static_cast<qljs_lintable_document*>(doc);
+      lintable_doc->config_ = &this->default_config_;
       if (file_path.has_value()) {
         QLJS_DEBUG_LOG("Workspace %p: watching config for: %s\n", this,
                        file_path->c_str());
@@ -729,7 +752,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                         callback_env, config_file_path);
                   });
             }
-            doc->config_ = &loaded_config->config;
+            lintable_doc->config_ = &loaded_config->config;
           }
         } else {
           std::string message =
@@ -744,6 +767,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         }
       }
       break;
+    }
 
     case document_type::config:
       if (file_path.has_value()) {
@@ -767,7 +791,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return doc;
   }
 
-  void publish_diagnostics(qljs_document* doc, ::Napi::Value diagnostics) {
+  void publish_diagnostics(qljs_document_base* doc, ::Napi::Value diagnostics) {
     this->vscode_diagnostic_collection_ref_.Get("set")
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
@@ -777,7 +801,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
               });
   }
 
-  void delete_diagnostics(qljs_document* doc) {
+  void delete_diagnostics(qljs_document_base* doc) {
     this->vscode_diagnostic_collection_ref_.Get("delete")
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
@@ -800,7 +824,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
  private:
-  void after_modification(::Napi::Env env, qljs_document* doc) {
+  void after_modification(::Napi::Env env, qljs_document_base* doc) {
     switch (doc->type_) {
     case document_type::config:
       this->check_for_config_file_changes(env);
@@ -831,27 +855,32 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     for (const configuration_change& change : changes) {
       QLJS_DEBUG_LOG("Configuration changed for %s\n",
                      change.watched_path->c_str());
-      qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
+      qljs_document_base* doc =
+          reinterpret_cast<qljs_document_base*>(change.token);
       switch (doc->type_) {
       case document_type::config:
         this->lint_config_and_publish_diagnostics(env, doc, change.config_file);
         break;
 
-      case document_type::lintable:
-        doc->config_ = change.config_file ? &change.config_file->config
-                                          : &this->default_config_;
+      case document_type::lintable: {
+        qljs_lintable_document* lintable_doc =
+            static_cast<qljs_lintable_document*>(doc);
+        lintable_doc->config_ = change.config_file ? &change.config_file->config
+                                                   : &this->default_config_;
         this->lint_javascript_and_publish_diagnostics(env, doc);
         break;
+      }
       }
     }
   }
 
   void lint_javascript_and_publish_diagnostics(::Napi::Env env,
-                                               qljs_document* doc) {
+                                               qljs_document_base* doc) {
     this->publish_diagnostics(doc, doc->lint_javascript(env, &this->vscode_));
   }
 
-  void lint_config_and_publish_diagnostics(::Napi::Env env, qljs_document* doc,
+  void lint_config_and_publish_diagnostics(::Napi::Env env,
+                                           qljs_document_base* doc,
                                            loaded_config_file* loaded_config) {
     this->publish_diagnostics(
         doc, doc->lint_config(env, &this->vscode_, loaded_config));
@@ -995,7 +1024,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   thread_safe_js_function<check_for_config_file_changes_from_thread>
       check_for_config_file_changes_on_js_thread_;
 
-  // Mapping from vscode.Document to wrapped qljs_document.
+  // Mapping from vscode.Document to wrapped qljs_document_base.
   js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
