@@ -54,8 +54,6 @@ class addon_state {
 
 class qljs_document_base {
  public:
-  virtual ~qljs_document_base() = default;
-
   static qljs_document_base* unwrap(::Napi::Value document) {
     QLJS_ASSERT(document.IsExternal());
     ::Napi::External<qljs_document_base> wrapped =
@@ -65,6 +63,8 @@ class qljs_document_base {
 
   explicit qljs_document_base(vscode_document doc)
       : vscode_document_(::Napi::Persistent(doc)) {}
+
+  virtual ~qljs_document_base() = default;
 
   // Takes ownership of this qljs_document_base.
   //
