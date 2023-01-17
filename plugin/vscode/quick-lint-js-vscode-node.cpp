@@ -126,17 +126,6 @@ class qljs_document_base {
                                       loaded_config_file* config_file) = 0;
 
  protected:
-  ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
-                            loaded_config_file* loaded_config) {
-    QLJS_ASSERT(this->type_ == document_type::config);
-    vscode->load_non_persistent(env);
-
-    lsp_locator locator(&loaded_config->file_content);
-    vscode_diag_reporter diag_reporter(vscode, env, &locator, this->uri());
-    loaded_config->errors.copy_into(&diag_reporter);
-    return std::move(diag_reporter).diagnostics();
-  }
-
   ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }
 
   document<lsp_locator> document_;
@@ -163,6 +152,17 @@ class qljs_config_document : public qljs_document_base {
  private:
   void lint_config_and_publish_diagnostics(::Napi::Env, qljs_workspace&,
                                            loaded_config_file* loaded_config);
+
+  ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
+                            loaded_config_file* loaded_config) {
+    QLJS_ASSERT(this->type_ == document_type::config);
+    vscode->load_non_persistent(env);
+
+    lsp_locator locator(&loaded_config->file_content);
+    vscode_diag_reporter diag_reporter(vscode, env, &locator, this->uri());
+    loaded_config->errors.copy_into(&diag_reporter);
+    return std::move(diag_reporter).diagnostics();
+  }
 };
 
 class qljs_lintable_document : public qljs_document_base {
