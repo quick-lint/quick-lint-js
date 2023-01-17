@@ -247,6 +247,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   friend class qljs_config_document;
   friend class qljs_lintable_document;
 };
+
+::Napi::Object create_workspace(const ::Napi::CallbackInfo& info);
 }
 
 #endif

@@ -26,6 +26,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/vscode/addon.h>
 #include <quick-lint-js/vscode/napi-support.h>
 #include <quick-lint-js/vscode/qljs-document.h>
 #include <quick-lint-js/vscode/qljs-logger.h>
@@ -41,15 +42,6 @@
 
 namespace quick_lint_js {
 namespace {
-// State global to a specific Node.js instance/thread.
-class addon_state {
- public:
-  static std::unique_ptr<addon_state> create(::Napi::Env env);
-
-  ::Napi::FunctionReference qljs_logger_class;
-  ::Napi::FunctionReference qljs_workspace_class;
-};
-
 class extension_configuration {
  public:
   enum class logging_value {
@@ -390,7 +382,6 @@ void qljs_workspace::run_fs_change_detection_thread() {
                  this);
 }
 
-namespace {
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();
@@ -402,7 +393,6 @@ namespace {
       /*vscode_diagnostic_collection=*/
       options.Get("vscodeDiagnosticCollection"),
   });
-}
 }
 
 void qljs_config_document::after_modification(::Napi::Env env,
@@ -516,88 +506,7 @@ void qljs_lintable_document::lint_javascript_and_publish_diagnostics(
     vscode_diagnostic_collection diagnostic_collection) {
   diagnostic_collection.set(this->uri(), this->lint_javascript(env, &vscode));
 }
-
-namespace {
-#if QLJS_HAVE_INOTIFY
-::Napi::Value mock_inotify_errors(const ::Napi::CallbackInfo& info) {
-  ::Napi::Env env = info.Env();
-
-  int init_error = narrow_cast<int>(info[0].As<::Napi::Number>().Int32Value());
-  int add_watch_error =
-      narrow_cast<int>(info[1].As<::Napi::Number>().Int32Value());
-  mock_inotify_force_init_error = init_error;
-  mock_inotify_force_add_watch_error = add_watch_error;
-
-  return env.Undefined();
 }
-#endif
-
-#if QLJS_HAVE_KQUEUE
-::Napi::Value mock_kqueue_errors(const ::Napi::CallbackInfo& info) {
-  ::Napi::Env env = info.Env();
-
-  int directory_open_error =
-      narrow_cast<int>(info[0].As<::Napi::Number>().Int32Value());
-  mock_kqueue_force_directory_open_error = directory_open_error;
-
-  return env.Undefined();
-}
-#endif
-
-std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
-  std::unique_ptr<addon_state> state(new addon_state{
-      .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
-      .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
-  });
-  trace_flusher* tracer = trace_flusher::instance();
-  tracer->register_current_thread();
-  tracer->start_flushing_thread();
-  return state;
-}
-
-// Work around a bug in MinGW's dlltool when calling certain
-// N-API functions.
-// https://sourceware.org/bugzilla/show_bug.cgi?id=29189
-void work_around_dlltool_bug(::napi_env env) {
-  // Call all napi_ functions with any double parameters.
-  ::napi_value value;
-  ::napi_create_double(env, 0.0, &value);
-  ::napi_create_date(env, 0.0, &value);
-}
-
-::Napi::Object initialize_addon(::Napi::Env env, ::Napi::Object exports) {
-  work_around_dlltool_bug(env);
-
-  std::unique_ptr<addon_state> state = addon_state::create(env);
-  env.SetInstanceData<addon_state>(state.get());
-  state.release();
-
-  exports.Set("createWorkspace",
-              ::Napi::Function::New(env, create_workspace, "createWorkspace"));
-#if QLJS_HAVE_INOTIFY
-  exports.Set(
-      "mockInotifyErrors",
-      ::Napi::Function::New(env, mock_inotify_errors, "mockInotifyErrors"));
-#endif
-#if QLJS_HAVE_KQUEUE
-  exports.Set("mockKqueueErrors", ::Napi::Function::New(env, mock_kqueue_errors,
-                                                        "mockKqueueErrors"));
-#endif
-  return exports;
-}
-}
-}
-
-namespace {
-::Napi::Object initialize_addon(::Napi::Env env, ::Napi::Object exports) {
-  return quick_lint_js::initialize_addon(env, exports);
-}
-}
-
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
-NODE_API_MODULE(quick_lint_js_vscode_node, initialize_addon)
-QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
