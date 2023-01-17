@@ -108,6 +108,8 @@ class qljs_document_base {
     return this->document_.string();
   }
 
+  void after_modification(::Napi::Env, qljs_workspace&);
+
  private:
   ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
 
@@ -637,11 +639,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
           /*vscode_doc=*/d,
           /*text=*/to_string8_view(d.get_text().Utf8Value()));
       if (doc) {
-        this->after_modification(env, doc);
+        doc->after_modification(env, *this);
       }
     } else {
       doc = qljs_document_base::unwrap(qljs_doc);
-      this->after_modification(env, doc);
+      doc->after_modification(env, *this);
     }
 
     return env.Undefined();
@@ -657,7 +659,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       ::Napi::Array changes = info[1].As<::Napi::Array>();
       this->tracer_.trace_vscode_document_changed(env, doc, changes);
       doc->replace_text(changes);
-      this->after_modification(env, doc);
+      doc->after_modification(env, *this);
     }
 
     return env.Undefined();
@@ -824,18 +826,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
  private:
-  void after_modification(::Napi::Env env, qljs_document_base* doc) {
-    switch (doc->type_) {
-    case document_type::config:
-      this->check_for_config_file_changes(env);
-      break;
-
-    case document_type::lintable:
-      this->lint_javascript_and_publish_diagnostics(env, doc);
-      break;
-    }
-  }
-
   // This function is called on the main JS thread.
   static void check_for_config_file_changes_from_thread(
       ::Napi::Env env, ::Napi::Object workspace_object) {
@@ -850,6 +840,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     workspace->check_for_config_file_changes(env);
   }
 
+ public:
   void check_for_config_file_changes(::Napi::Env env) {
     std::vector<configuration_change> changes = this->config_loader_.refresh();
     for (const configuration_change& change : changes) {
@@ -886,6 +877,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         doc, doc->lint_config(env, &this->vscode_, loaded_config));
   }
 
+ private:
   // This function runs on a background thread.
   void run_fs_change_detection_thread() {
     QLJS_DEBUG_LOG("Workspace %p: starting run_fs_change_detection_thread\n",
@@ -1043,6 +1035,19 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       /*vscode_diagnostic_collection=*/
       options.Get("vscodeDiagnosticCollection"),
   });
+}
+
+void qljs_document_base::after_modification(::Napi::Env env,
+                                            qljs_workspace& workspace) {
+  switch (this->type_) {
+  case document_type::config:
+    workspace.check_for_config_file_changes(env);
+    break;
+
+  case document_type::lintable:
+    workspace.lint_javascript_and_publish_diagnostics(env, this);
+    break;
+  }
 }
 
 #if QLJS_HAVE_INOTIFY
