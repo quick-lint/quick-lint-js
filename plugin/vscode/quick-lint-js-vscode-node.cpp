@@ -742,12 +742,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return doc;
   }
 
-  void publish_diagnostics(qljs_document_base* doc, ::Napi::Value diagnostics) {
-    vscode_diagnostic_collection(
-        this->vscode_diagnostic_collection_ref_.Value())
-        .set(doc->uri(), diagnostics);
-  }
-
   void delete_diagnostics(qljs_document_base* doc) {
     vscode_diagnostic_collection(
         this->vscode_diagnostic_collection_ref_.Value())
@@ -1042,8 +1036,10 @@ void qljs_config_document::on_config_file_changed(
 void qljs_config_document::lint_config_and_publish_diagnostics(
     ::Napi::Env env, qljs_workspace& workspace,
     loaded_config_file* loaded_config) {
-  workspace.publish_diagnostics(
-      this, this->lint_config(env, &workspace.vscode_, loaded_config));
+  vscode_diagnostic_collection diagnostic_collection(
+      workspace.vscode_diagnostic_collection_ref_.Value());
+  diagnostic_collection.set(
+      this->uri(), this->lint_config(env, &workspace.vscode_, loaded_config));
 }
 
 void qljs_lintable_document::on_config_file_changed(
@@ -1056,8 +1052,10 @@ void qljs_lintable_document::on_config_file_changed(
 
 void qljs_lintable_document::lint_javascript_and_publish_diagnostics(
     ::Napi::Env env, qljs_workspace& workspace) {
-  workspace.publish_diagnostics(this,
-                                this->lint_javascript(env, &workspace.vscode_));
+  vscode_diagnostic_collection diagnostic_collection(
+      workspace.vscode_diagnostic_collection_ref_.Value());
+  diagnostic_collection.set(this->uri(),
+                            this->lint_javascript(env, &workspace.vscode_));
 }
 
 #if QLJS_HAVE_INOTIFY
