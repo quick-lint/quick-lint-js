@@ -17,6 +17,7 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       quick-lint-js/vscode/addon.cpp
       quick-lint-js/vscode/addon.h
       quick-lint-js/vscode/napi-support.h
+      quick-lint-js/vscode/qljs-document.cpp
       quick-lint-js/vscode/qljs-document.h
       quick-lint-js/vscode/qljs-logger.h
       quick-lint-js/vscode/qljs-workspace.h
