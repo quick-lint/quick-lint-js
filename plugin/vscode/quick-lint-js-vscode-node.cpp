@@ -125,7 +125,7 @@ class qljs_document_base {
   virtual void on_config_file_changed(::Napi::Env, qljs_workspace&,
                                       loaded_config_file* config_file) = 0;
 
- private:
+ protected:
   ::Napi::Array lint_javascript(::Napi::Env, vscode_module*);
 
   ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
@@ -172,6 +172,8 @@ class qljs_lintable_document : public qljs_document_base {
                    const std::optional<std::string>& file_path) override;
   void on_config_file_changed(::Napi::Env, qljs_workspace&,
                               loaded_config_file* config_file) override;
+
+  void lint_javascript_and_publish_diagnostics(::Napi::Env, qljs_workspace&);
 
  private:
   configuration* config_;
@@ -811,11 +813,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
   }
 
-  void lint_javascript_and_publish_diagnostics(::Napi::Env env,
-                                               qljs_document_base* doc) {
-    this->publish_diagnostics(doc, doc->lint_javascript(env, &this->vscode_));
-  }
-
   void lint_config_and_publish_diagnostics(::Napi::Env env,
                                            qljs_document_base* doc,
                                            loaded_config_file* loaded_config) {
@@ -993,7 +990,7 @@ void qljs_config_document::after_modification(::Napi::Env env,
 
 void qljs_lintable_document::after_modification(::Napi::Env env,
                                                 qljs_workspace& workspace) {
-  workspace.lint_javascript_and_publish_diagnostics(env, this);
+  this->lint_javascript_and_publish_diagnostics(env, workspace);
 }
 
 void qljs_lintable_document::finish_init(
@@ -1073,7 +1070,13 @@ void qljs_lintable_document::on_config_file_changed(
     loaded_config_file* config_file) {
   this->config_ =
       config_file ? &config_file->config : &workspace.default_config_;
-  workspace.lint_javascript_and_publish_diagnostics(env, this);
+  this->lint_javascript_and_publish_diagnostics(env, workspace);
+}
+
+void qljs_lintable_document::lint_javascript_and_publish_diagnostics(
+    ::Napi::Env env, qljs_workspace& workspace) {
+  workspace.publish_diagnostics(this,
+                                this->lint_javascript(env, &workspace.vscode_));
 }
 
 #if QLJS_HAVE_INOTIFY
