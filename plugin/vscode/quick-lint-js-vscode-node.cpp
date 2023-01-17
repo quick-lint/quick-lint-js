@@ -28,6 +28,7 @@
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/vscode/napi-support.h>
 #include <quick-lint-js/vscode/qljs-document.h>
+#include <quick-lint-js/vscode/qljs-logger.h>
 #include <quick-lint-js/vscode/thread-safe-js-function.h>
 #include <quick-lint-js/vscode/vscode-configuration-filesystem.h>
 #include <quick-lint-js/vscode/vscode-diag-reporter.h>
@@ -46,61 +47,6 @@ class addon_state {
 
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
-};
-
-class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
- public:
-  static ::Napi::Function init(::Napi::Env env) {
-    return DefineClass(env, "QLJSLogger", {});
-  }
-
-  explicit qljs_logger(const ::Napi::CallbackInfo& info)
-      : ::Napi::ObjectWrap<qljs_logger>(info),
-        output_channel_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
-        flush_on_js_thread_(
-            /*env=*/info.Env(),
-            /*resourceName=*/"quick-lint-js-log",
-            /*object=*/this->Value()) {}
-
-  void log(std::string_view message) override {
-    {
-      std::lock_guard lock(this->mutex_);
-      this->pending_log_messages_.emplace_back(message);
-    }
-
-    this->begin_flush_async();
-  }
-
-  void flush(::Napi::Env env) {
-    std::vector<std::string> log_messages;
-
-    {
-      std::lock_guard lock(this->mutex_);
-      std::swap(log_messages, this->pending_log_messages_);
-    }
-
-    for (const std::string& message : log_messages) {
-      this->output_channel_ref_.Value()
-          .Get("append")
-          .As<::Napi::Function>()
-          .Call(this->output_channel_ref_.Value(),
-                {::Napi::String::New(env, message)});
-    }
-  }
-
- private:
-  void begin_flush_async() { this->flush_on_js_thread_.BlockingCall(); }
-
-  static void flush_from_thread(::Napi::Env env, ::Napi::Object logger_object) {
-    qljs_logger* logger = qljs_logger::Unwrap(logger_object);
-    logger->flush(env);
-  }
-
-  mutex mutex_;
-  std::vector<std::string> pending_log_messages_;
-
-  ::Napi::Reference<::Napi::Object> output_channel_ref_;
-  thread_safe_js_function<flush_from_thread> flush_on_js_thread_;
 };
 
 class extension_configuration {
