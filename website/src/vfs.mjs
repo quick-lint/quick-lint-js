@@ -71,11 +71,12 @@ export class VFS {
         } else if (fsChild.name === "index.ejs.html") {
           listing._addChild(
             "",
-            new EJSVFSFile(
-              path.join(dirPath, "index.ejs.html"),
-              uri,
-              await this._getCustomComponentsFromIndexScriptsAsync(uri)
-            )
+            new EJSVFSFile({
+              path: path.join(dirPath, "index.ejs.html"),
+              uri: uri,
+              customComponents:
+                await this._getCustomComponentsFromIndexScriptsAsync(uri),
+            })
           );
         } else if (fsChild.name === "index.mjs") {
           // Ignore. index.mjs is imported later.
@@ -171,11 +172,12 @@ export class VFS {
             case "build-ejs":
               // TODO(strager): The path should be relative to index.mjs's
               // parent directory instead.
-              // TODO(strager): Include custom components.
-              childEntry = new EJSVFSFile(
-                path.join(this._rootPath, route.path),
-                routeURI
-              );
+              childEntry = new EJSVFSFile({
+                path: path.join(this._rootPath, route.path),
+                uri: routeURI,
+                // TODO(strager): Include custom components.
+                customComponents: {},
+              });
               break;
 
             case "esbuild":
@@ -271,7 +273,7 @@ export class StaticVFSFile extends VFSEntry {
 
 // An template file (usually generating HTML).
 export class EJSVFSFile extends VFSEntry {
-  constructor(path, uri, customComponents = {}) {
+  constructor({ path, uri, customComponents = {} }) {
     super();
     this._path = path;
     this._uri = uri;

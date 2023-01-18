@@ -545,7 +545,7 @@ describe("EJSVFSFile", () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
     fs.writeFileSync(p, "");
 
-    let f = new EJSVFSFile(p);
+    let f = new EJSVFSFile({ path: p, uri: "/" });
     expect(f.getContentType()).toEqual("text/html");
   });
 
@@ -553,7 +553,7 @@ describe("EJSVFSFile", () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
     fs.writeFileSync(p, "hello <%= 2+2 %>");
 
-    let f = new EJSVFSFile(p, "/");
+    let f = new EJSVFSFile({ path: p, uri: "/" });
     expect(await f.getContentsAsync()).toEqual(Buffer.from("hello 4"));
   });
 
@@ -576,10 +576,10 @@ describe("EJSVFSFile", () => {
       "export function hello() { return 'hi'; }"
     );
 
-    let f = new EJSVFSFile(
-      path.join(temporaryDirectory, "index.ejs.html"),
-      "/"
-    );
+    let f = new EJSVFSFile({
+      path: path.join(temporaryDirectory, "index.ejs.html"),
+      uri: "/",
+    });
     expect(await f.getContentsAsync()).toEqual(Buffer.from("hi"));
   });
 
@@ -613,10 +613,10 @@ describe("EJSVFSFile", () => {
       "export function hello() { return 'hi-b'; }"
     );
 
-    let f = new EJSVFSFile(
-      path.join(temporaryDirectory, "index.ejs.html"),
-      "/"
-    );
+    let f = new EJSVFSFile({
+      path: path.join(temporaryDirectory, "index.ejs.html"),
+      uri: "/",
+    });
     expect(await f.getContentsAsync()).toEqual(Buffer.from("hi-a hi-b"));
   });
 
@@ -629,7 +629,7 @@ describe("EJSVFSFile", () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
     fs.writeFileSync(p, "<x-test myattr=myvalue />");
 
-    let f = new EJSVFSFile(p, "/", components);
+    let f = new EJSVFSFile({ path: p, uri: "/", customComponents: components });
     expect(await f.getContentsAsync()).toEqual(
       Buffer.from("myattr:myvalue, currentURI:/")
     );
@@ -639,7 +639,7 @@ describe("EJSVFSFile", () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
     fs.writeFileSync(p, '<!---{\n"key": "value"\n}--->\n\nhello world');
 
-    let f = new EJSVFSFile(p, "/");
+    let f = new EJSVFSFile({ path: p, uri: "/" });
     expect((await f.getContentsAsync()).toString("utf-8")).toEqual(
       "hello world"
     );
@@ -652,7 +652,7 @@ describe("EJSVFSFile", () => {
       '<!---\n{"key": "value"}\n--->\n' + "<%= meta.key.toUpperCase() %>"
     );
 
-    let f = new EJSVFSFile(p, "/");
+    let f = new EJSVFSFile({ path: p, uri: "/" });
     expect((await f.getContentsAsync()).toString("utf-8")).toContain("VALUE");
   });
 
@@ -667,10 +667,10 @@ describe("EJSVFSFile", () => {
       `<%= meta.myMetaData.toUpperCase() %>`
     );
 
-    let f = new EJSVFSFile(
-      path.join(temporaryDirectory, "index.ejs.html"),
-      "/"
-    );
+    let f = new EJSVFSFile({
+      path: path.join(temporaryDirectory, "index.ejs.html"),
+      uri: "/",
+    });
     expect((await f.getContentsAsync()).toString("utf-8")).toContain(
       "MYMETAVALUE"
     );
