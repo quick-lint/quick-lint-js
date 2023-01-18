@@ -168,6 +168,7 @@ This group is enabled by default.
 This group is enabled by default.
 *quickjs*:: globals defined by QuickJS, including *console* and *scriptArgs*.
 This group is enabled by default.
+(Introduced in version 2.11.0.)
 *web-worker*:: globals defined in HTML standards for dedicated Web Workers, including *postMessage*, *self*, and *console*.
 This group is enabled by default.
 (Introduced in version 2.6.0.)

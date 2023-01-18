@@ -143,7 +143,7 @@ g:ale_javascript_quick_lint_js_experimental_typescript
 
 Set this variable to `v:true` to lint TypeScript and TypeScript JSX files, not
 just JavaScript and JSX files. (EXPERIMENTAL. Subject to change in future
-versions of quick-lint-js.)
+versions of quick-lint-js.) (Introduced in quick-lint-js version 2.11.0.)
 
 ==============================================================================
 3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*
@@ -188,7 +188,7 @@ g:coc_quick_lint_js_experimental_typescript
 Set this variable to `v:true` to lint TypeScript and TypeScript JSX files, not
 just JavaScript and JSX files. Must be set before loading the quick-lint-js
 Vim plugin. (EXPERIMENTAL. Subject to change in future versions of
-quick-lint-js.)
+quick-lint-js.) (Introduced in quick-lint-js version 2.11.0.)
 
 ==============================================================================
 3.3. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
@@ -238,7 +238,8 @@ Set this option to a table of strings to enable quick-lint-js for different
 
 To lint TypeScript and TypeScript JSX files, not just JavaScript and JSX
 files, add `"typescript"` and `"typescriptreact"` to `filetypes`
-(EXPERIMENTAL. Subject to change in future versions of quick-lint-js.): >
+(EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)
+(Introduced in quick-lint-js version 2.11.0.): >
 
     require('lspconfig/quick_lint_js').setup {
       filetypes = {
