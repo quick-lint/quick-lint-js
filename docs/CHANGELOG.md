@@ -11,7 +11,8 @@ Semantic Versioning.
 ### Added
 
 * LSP: The LSP server now recognizes and lints TypeScript and TypeScript JSX
-  code. However, the editor plugins currently do **not** use this feature.
+  code. However, the editor plugins currently do **not** use this feature by
+  default.
 * Vim: You can opt into TypeScript support. Search for `EXPERIMENTAL` in
   `:help quick-lint-js`. (Disabled by default.)
 * VS Code: You can now opt into experimental TypeScript support. Set the
