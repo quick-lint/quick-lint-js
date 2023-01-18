@@ -634,6 +634,16 @@ describe("EJSVFSFile", () => {
       Buffer.from("myattr:myvalue, currentURI:/")
     );
   });
+
+  it("strips front matter", async () => {
+    let p = path.join(temporaryDirectory, "hello.ejs.html");
+    fs.writeFileSync(p, "<!---\nkey: 'value'\n--->\n\nhello world");
+
+    let f = new EJSVFSFile(p, "/");
+    expect((await f.getContentsAsync()).toString("utf-8")).toEqual(
+      "hello world"
+    );
+  });
 });
 
 describe("ESBuildVFSFile", () => {

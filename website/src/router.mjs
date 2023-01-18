@@ -7,10 +7,12 @@ import path from "path";
 import url from "url";
 import { getQuickLintJSVersionInfoAsync } from "./qljs-version.mjs";
 import { makeRelativeURI } from "./uri.mjs";
+import { stripHTMLFrontMatter } from "./front-matter.mjs";
 
 export async function renderEJSFileAsync(ejsFilePath, { currentURI }) {
   ejsFilePath = path.resolve(ejsFilePath);
   let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
+  ejsHTML = stripHTMLFrontMatter(ejsHTML);
 
   let state = {
     cwd: path.dirname(ejsFilePath),
