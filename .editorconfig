@@ -6,7 +6,7 @@
 
 root = true
 
-[*.{c,cpp,css,go,gperf,js,json,h,lua,md,mjs,nix,py,sh,txt,vim,yaml,yml}]
+[*.{c,cpp,css,go,gperf,js,json,h,lua,md,mjs,nix,py,sh,txt,vim,xml,yaml,yml}]
 charset = utf-8
 end_of_line = lf
 insert_final_newline = true

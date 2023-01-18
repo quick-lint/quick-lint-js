@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<rss version="2.0">
+  <channel>
+    <title>quick-lint-js blog</title>
+    <link>https://quick-lint-js.com/blog/</link>
+    <description>Technical writings centered around JavaScript and quick-lint-js development</description>
+
+    <language>en-US</language>
+    <copyright>Copyright (C) 2020  Matthew "strager" Glazar</copyright> 
+    <managingEditor>strager.nds@gmail.com (strager)</managingEditor>
+    <webMaster>strager.nds@gmail.com (strager)</webMaster>
+
+    <image>
+      <url>https://quick-lint-js.com/dusty-right-256x256.png</url>
+      <title>Dusty, the quick-lint-js mascot</title>
+      <description>Dusty, the quick-lint-js mascot</description>
+      <link>https://quick-lint-js.com/blog/</link>
+      <!-- FIXME(strager): These numbers are out of spec. -->
+      <width>256</width>
+      <height>256</height>
+    </image>
+
+    <item>
+      <title>Is coding in Rust as bad as in C++?</title>
+      <link>https://quick-lint-js.com/blog/cpp-vs-rust-build-times/</link>
+      <description>A practical comparison of build and test speed between C++ and Rust.</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>05 Jan 2023 12:00:00 PST</pubDate>
+    </item>
+
+    <item>
+      <title>Sometimes it *is* a compiler bug</title>
+      <link>https://quick-lint-js.com/blog/bug-journey/</link>
+      <description>My journey in finding and fixing a bug in a C++ toolchain.</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>25 May 2022 12:00:00 PDT</pubDate>
+    </item>
+
+    <item>
+      <title>Show JavaScript errors in Neovim on macOS</title>
+      <link>https://quick-lint-js.com/blog/show-js-errors-neovim-macos/</link>
+      <description>Neovim is one of the most popular code editors, and JavaScript is one of the most popular programming languages. Let's look at some plugins to catch JavaScript bugs immediately in Neovim.</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>16 Feb 2022 12:00:00 PST</pubDate>
+    </item>
+
+    <item>
+      <title>quick-lint-js release: version 2.0</title>
+      <link>https://quick-lint-js.com/blog/version-2.0/</link>
+      <description>We are proud to announce version 2.0 of quick-lint-js!</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>04 Feb 2022 12:00:00 PST</pubDate>
+    </item>
+
+    <item>
+      <title>quick-lint-js release: version 1.0</title>
+      <link>https://quick-lint-js.com/blog/version-1.0/</link>
+      <description>Faster, easier, friendlier: how quick-lint-js will take over ESLint</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>13 Dec 2021 12:00:00 PST</pubDate>
+    </item>
+
+    <item>
+      <title>JavaScript syntax errors compared</title>
+      <link>https://quick-lint-js.com/blog/syntax-errors-2021/</link>
+      <description>A JavaScript error beauty contest</description>
+      <author>strager.nds@gmail.com (strager)</author>
+      <pubDate>11 Dec 2021 12:00:00 PST</pubDate>
+    </item>
+  </channel>
+</rss>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
