@@ -83,9 +83,9 @@ QLJS_FORCE_INLINE inline std::uint32_t bool_vector_16_neon::mask() const
   ::uint32x4_t paired16  = ::vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits,  8 - 1));
   ::uint64x2_t paired32  = ::vreinterpretq_u64_u32(vsraq_n_u32(paired16,  paired16,  16 - 2));
   ::uint8x16_t paired64  = ::vreinterpretq_u8_u64 (vsraq_n_u64(paired32,  paired32,  32 - 4));
-  // clang-format on
   return static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 0)) |
-         (static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 8)) << 8);
+        (static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 8)) << 8);
+  // clang-format on
 }
 #endif
 }
