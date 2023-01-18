@@ -306,9 +306,14 @@ void parser::error_on_sketchy_condition(expression* ast) {
     });
   }
 
+  // checking if the third operand is either literal (includes 'null') or
+  // 'undefined'
   if (ast->kind() == expression_kind::binary_operator &&
       ast->children().size() == 3 &&
-      ast->child(2)->kind() == expression_kind::literal) {
+      ((ast->child(2)->kind() == expression_kind::literal) ||
+       ((ast->child(2)->kind() == expression_kind::variable) &&
+        (static_cast<expression::variable*>(ast->child(2))->type_ ==
+         token_type::kw_undefined)))) {
     auto* binary = static_cast<expression::binary_operator*>(ast);
     source_code_span left_operator = binary->operator_spans_[0];
     source_code_span right_operator = binary->operator_spans_[1];

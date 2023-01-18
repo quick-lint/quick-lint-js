@@ -167,6 +167,58 @@ TEST_F(test_error_equals_does_not_distribute_over_or, not_equals) {
   }
 }
 
+TEST_F(test_error_equals_does_not_distribute_over_or, null_and_undefined) {
+  {
+    test_parser p(u8"if (x == 'A' || null) {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_equals_does_not_distribute_over_or,  //
+                        or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
+                        equals_operator, strlen(u8"if (x "), u8"=="),
+                }));
+  }
+
+  {
+    test_parser p(u8"if (x == 'A' || undefined) {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"undefined"}));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_equals_does_not_distribute_over_or,  //
+                        or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
+                        equals_operator, strlen(u8"if (x "), u8"=="),
+                }));
+  }
+
+  {
+    test_parser p(u8"if (x === 10 || null) {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_equals_does_not_distribute_over_or,  //
+                        or_operator, strlen(u8"if (x === 10 "), u8"||",   //
+                        equals_operator, strlen(u8"if (x "), u8"==="),
+                }));
+  }
+
+  {
+    test_parser p(u8"if (x === 10 || undefined) {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_equals_does_not_distribute_over_or,  //
+                        or_operator, strlen(u8"if (x === 10 "), u8"||",   //
+                        equals_operator, strlen(u8"if (x "), u8"==="),
+                }));
+  }
+}
+
 TEST_F(test_error_equals_does_not_distribute_over_or, logical_and) {
   {
     test_parser p(u8"if (x == 'A' && 'B') {}"_sv, capture_diags);
