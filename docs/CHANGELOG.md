@@ -29,6 +29,8 @@ Semantic Versioning.
   parameter cannot be parenthesized) (implemented by [Harshit Aghera][]).
 * QuickJS's global variables are now recognized by default via the new `quickjs`
   global group (implemented by [wagner riffel]).
+* [E0190][] is now reported if the literal is `undefined`, not only `null`,
+  strings, and numbers (implemented by [Harshit Aghera][]).
 
 ### Fixed
 
