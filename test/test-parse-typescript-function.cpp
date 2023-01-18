@@ -129,6 +129,206 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 }
 
+// If an arrow function has a return type, and that return type is an arrow
+// type, then the return type may be parenthesized or unparenthesized.
+TEST_F(test_parse_typescript_function,
+       arrow_with_function_return_type_annotation) {
+  {
+    test_parser p(u8"((): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"((): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"((param): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"((param): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(<T>(param): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(<T>(param): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    // NOTE(strager): There's a different code path for generic arrow functions
+    // for TS and TSX modes.
+    test_parser p(u8"(<T,>(param): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_jsx_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    // NOTE(strager): There's a different code path for generic arrow functions
+    // for TS and TSX modes.
+    test_parser p(u8"(<T,>(param): (returnParam) => ReturnType => {})"_sv,
+                  typescript_jsx_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(async (): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(async (): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(async (param): ((returnParam) => ReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(async (param): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(
+        u8"(async <T>(param): ((returnParam) => ReturnType) => {})"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+
+  {
+    test_parser p(u8"(async <T>(param): (returnParam) => ReturnType => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"),
+                                  arrow_param_decl(u8"param"),
+                                  func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
+       arrow_cannot_have_parenthesized_return_type_annotation) {
+  {
+    test_parser p(u8"((param): (number) => {})"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    // FIXME(strager): The above code is illegal TypeScript.
+    //
+    // Our parser currently interprets the above code as if '(param)' is a
+    // parameter list and '(number) => {}' is the function's return type. It
+    // then backtracks, thinking that ':' was bogus (E0254).
+    //
+    // We should parse intelligently and instead interpret '(param)' as a
+    // parameter list, '(number)' as the return type and '{}' as the function's
+    // body, and also produce a nice diagnostic.
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_typescript_type_annotation_in_expression),
+                }));
+  }
+}
+
+// If a variable or function or method has a type annotation, and that type is
+// an arrow type, then the type may be parenthesized or unparenthesized.
+TEST_F(test_parse_typescript_function,
+       variable_or_function_with_function_return_type_annotation) {
+  {
+    test_parser p(u8"((param: (innerParam) => ParamReturnType) => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_type_param_decl(u8"innerParam"),
+                                  arrow_param_decl(u8"param")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ParamReturnType"}));
+  }
+
+  {
+    test_parser p(u8"function f(param): (returnParam) => ReturnType {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({function_decl(u8"f"), func_param_decl(u8"param"),
+                          func_type_param_decl(u8"returnParam")}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
 TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
     test_parser p(u8"({ method(param): C {} })"_sv, typescript_options);

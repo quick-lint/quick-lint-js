@@ -406,13 +406,15 @@ again:
 }
 
 void parser::parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-    parse_visitor_base &v) {
+    parse_visitor_base &v, bool allow_parenthesized_type) {
   this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression_or_type_predicate(v);
+  this->parse_and_visit_typescript_type_expression_or_type_predicate(
+      v, /*allow_parenthesized_type=*/
+      allow_parenthesized_type);
 }
 
 void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
-    parse_visitor_base &v) {
+    parse_visitor_base &v, bool allow_parenthesized_type) {
   switch (this->peek().type) {
   // param is Type
   // Type
@@ -441,6 +443,31 @@ void parser::parse_and_visit_typescript_type_expression_or_type_predicate(
     }
     break;
   }
+
+  // (param, param) => ReturnType
+  // ((((param, param) => ReturnType)))
+  // // Only if allow_parenthesized_type:
+  // (typeexpr)
+  case token_type::left_paren:
+    if (allow_parenthesized_type) {
+      this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
+    } else {
+      this->skip();
+      // If allow_parenthesized_type is false, we still allow parenthesized
+      // arrow function types.
+      int extra_open_paren_count = 0;
+      while (this->peek().type == token_type::left_paren) {
+        extra_open_paren_count += 1;
+        this->skip();
+      }
+      this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
+          v);
+      for (int i = 0; i < extra_open_paren_count; ++i) {
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+        this->skip();
+      }
+    }
+    break;
 
   // {key: Value}
   // typeof v

@@ -186,9 +186,9 @@ class parser {
       parse_visitor_base &v, bool parse_question_as_invalid = true);
 
   void parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-      parse_visitor_base &v);
+      parse_visitor_base &v, bool allow_parenthesized_type);
   void parse_and_visit_typescript_type_expression_or_type_predicate(
-      parse_visitor_base &v);
+      parse_visitor_base &v, bool allow_parenthesized_type);
 
   enum class typescript_type_arrow_or_paren {
     arrow,

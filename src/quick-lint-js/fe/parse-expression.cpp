@@ -814,7 +814,8 @@ expression* parser::parse_async_expression_only(
     if (this->peek().type == token_type::colon && this->options_.typescript) {
       // async (params): ReturnType => {}  // TypeScript only.
       this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-          return_type_visits);
+          return_type_visits,
+          /*allow_parenthesized_type=*/false);
     }
 
     bool is_arrow_function = this->peek().type == token_type::equal_greater;
@@ -923,7 +924,8 @@ expression* parser::parse_async_expression_only(
         buffering_visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == token_type::colon) {
           this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-              return_type_visits);
+              return_type_visits,
+              /*allow_parenthesized_type=*/false);
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
         return parse_arrow_function_arrow_and_body(
@@ -1960,8 +1962,21 @@ next:
     expression* child = binary_builder.last_expression();
     source_code_span colon_span = this->peek().span();
     buffering_visitor type_visitor(&this->type_expression_memory_);
+
+    // If an arrow function has a return type, then the return type must *not*
+    // be parenthesized. Exception: an possibly-parenthesized arrow return type
+    // is okay.
+    //
+    // let f = (): (s: any) => string => {};    // OK
+    // let g = (): ((s: any) => string) => {};  // OK
+    // let h = (): number => {};                // OK
+    // let m = (): (number) => {};              // Invalid
+    bool is_possibly_arrow_function_return_type_annotation =
+        child->kind() == expression_kind::paren ||
+        child->kind() == expression_kind::paren_empty;
     this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-        type_visitor);
+        type_visitor, /*allow_parenthesized_type=*/
+        !is_possibly_arrow_function_return_type_annotation);
     const char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(
         this->make_expression<expression::type_annotated>(
@@ -3590,7 +3605,8 @@ expression* parser::parse_typescript_generic_arrow_expression(
   buffering_visitor return_type_visits(&this->type_expression_memory_);
   if (this->peek().type == token_type::colon) {
     this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-        return_type_visits);
+        return_type_visits,
+        /*allow_parenthesized_type=*/false);
   }
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
@@ -3661,7 +3677,8 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
         buffering_visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == token_type::colon) {
           this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-              return_type_visits);
+              return_type_visits,
+              /*allow_parenthesized_type=*/false);
         }
         if (this->peek().type == token_type::equal_greater) {
           // <T>(param) => body
