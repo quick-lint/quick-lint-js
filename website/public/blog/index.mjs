@@ -3,6 +3,14 @@
 
 import { parseTimestamp } from "../../src/timestamp.mjs";
 
+export let routes = {
+  "/blog/feed.xml": {
+    type: "build-ejs",
+    path: "blog/feed.ejs.xml",
+    contentType: "application/rss+xml",
+  },
+};
+
 export let customComponents = {
   "qljs-date": qljsDate,
 };

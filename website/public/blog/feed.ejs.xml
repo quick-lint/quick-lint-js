@@ -7,6 +7,11 @@
     <link>https://quick-lint-js.com/blog/</link>
     <description>Technical writings centered around JavaScript and quick-lint-js development</description>
 
+    <%#
+      This block should be stripped by EJS.
+      This block is here just to ensure EJS is working properly.
+    %>
+
     <language>en-US</language>
     <copyright>Copyright (C) 2020  Matthew "strager" Glazar</copyright> 
     <managingEditor>strager.nds@gmail.com (strager)</managingEditor>
