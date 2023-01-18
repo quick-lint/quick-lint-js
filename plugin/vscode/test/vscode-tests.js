@@ -196,10 +196,7 @@ tests = {
   "parser does not support TypeScript in JS files": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(
-      helloFilePath,
-      "interface I { }"
-    );
+    fs.writeFileSync(helloFilePath, "interface I { }");
     let helloURI = vscode.Uri.file(helloFilePath);
 
     await loadExtensionAsync({ addCleanup });
@@ -209,18 +206,20 @@ tests = {
     await pollAsync(async () => {
       let helloDiags = normalizeDiagnostics(helloURI);
       // E0213: TypeScript's interface feature is not allowed in JavaScript code
-      assert.deepStrictEqual(helloDiags.map(diag => diag.code.value), ["E0213"]);
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0213"]
+      );
     });
   },
 
-  "parser does not check TypeScript files by default": async ({ addCleanup }) => {
+  "parser does not check TypeScript files by default": async ({
+    addCleanup,
+  }) => {
     for (let extension in [".ts", ".tsx"]) {
       let scratchDirectory = makeScratchDirectory({ addCleanup });
       let helloFilePath = path.join(scratchDirectory, `hello.${extension}`);
-      fs.writeFileSync(
-        helloFilePath,
-        "this is a bug"
-      );
+      fs.writeFileSync(helloFilePath, "this is a bug");
       let helloURI = vscode.Uri.file(helloFilePath);
 
       await loadExtensionAsync({ addCleanup });
