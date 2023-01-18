@@ -637,11 +637,42 @@ describe("EJSVFSFile", () => {
 
   it("strips front matter", async () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
-    fs.writeFileSync(p, "<!---\nkey: 'value'\n--->\n\nhello world");
+    fs.writeFileSync(p, '<!---{\n"key": "value"\n}--->\n\nhello world');
 
     let f = new EJSVFSFile(p, "/");
     expect((await f.getContentsAsync()).toString("utf-8")).toEqual(
       "hello world"
+    );
+  });
+
+  it("front matter declares meta variables", async () => {
+    let p = path.join(temporaryDirectory, "hello.ejs.html");
+    fs.writeFileSync(
+      p,
+      '<!---\n{"key": "value"}\n--->\n' + "<%= meta.key.toUpperCase() %>"
+    );
+
+    let f = new EJSVFSFile(p, "/");
+    expect((await f.getContentsAsync()).toString("utf-8")).toContain("VALUE");
+  });
+
+  it("front matter meta data is accessible by included EJS", async () => {
+    fs.writeFileSync(
+      path.join(temporaryDirectory, "index.ejs.html"),
+      `<!---{ "myMetaData": "myMetaValue" }--->
+      <%- await include("./included.ejs.html") %>`
+    );
+    fs.writeFileSync(
+      path.join(temporaryDirectory, "included.ejs.html"),
+      `<%= meta.myMetaData.toUpperCase() %>`
+    );
+
+    let f = new EJSVFSFile(
+      path.join(temporaryDirectory, "index.ejs.html"),
+      "/"
+    );
+    expect((await f.getContentsAsync()).toString("utf-8")).toContain(
+      "MYMETAVALUE"
     );
   });
 });

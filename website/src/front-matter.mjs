@@ -1,8 +1,20 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+// @returns { data: object, strippedHTML: string }
 export function stripHTMLFrontMatter(html) {
-  return html.replace(/^<!---.*?--->\n*/s, "");
+  let match = html.match(/^<!---(?<json>.*?)--->\n*/s);
+  if (match === null) {
+    // No front matter is present.
+    return {
+      data: {},
+      strippedHTML: html,
+    };
+  }
+  return {
+    data: JSON.parse(match.groups.json),
+    strippedHTML: html.substr(match[0].length),
+  };
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
