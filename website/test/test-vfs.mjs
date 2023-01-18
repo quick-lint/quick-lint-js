@@ -386,6 +386,29 @@ describe("VFS", () => {
         testfile.path,
         path.join(rootPath, ".hello.ejs")
       );
+      expect(testfile.getContentType()).toEqual("text/html");
+    });
+
+    it("type=build-ejs with explicit content type", async () => {
+      // FIXME(strager): This does not change the content-type after building
+      // static files.
+      fs.writeFileSync(
+        path.join(rootPath, "index.mjs"),
+        `export let routes = {
+          "/testfile": {
+            type: "build-ejs",
+            path: "hello.ejs",
+            contentType: "application/json",
+          },
+        };`
+      );
+      fs.writeFileSync(path.join(rootPath, "hello.ejs"), "");
+
+      let children = await vfs.listDirectoryAsync("/");
+      let testfile = children.get("testfile");
+
+      expect(testfile).toBeInstanceOf(EJSVFSFile);
+      expect(testfile.getContentType()).toEqual("application/json");
     });
 
     it("type=esbuild route is translated into ESBuildVFSFile", async () => {
@@ -541,12 +564,24 @@ describe("EJSVFSFile", () => {
     temporaryDirectory = fs.realpathSync(temporaryDirectory);
   });
 
-  it("content type", async () => {
+  it("default content type", async () => {
     let p = path.join(temporaryDirectory, "hello.ejs.html");
     fs.writeFileSync(p, "");
 
     let f = new EJSVFSFile({ path: p, uri: "/" });
     expect(f.getContentType()).toEqual("text/html");
+  });
+
+  it("explicit content type", async () => {
+    let p = path.join(temporaryDirectory, "hello.ejs.html");
+    fs.writeFileSync(p, "");
+
+    let f = new EJSVFSFile({
+      path: p,
+      uri: "/",
+      contentType: "application/json",
+    });
+    expect(f.getContentType()).toEqual("application/json");
   });
 
   it("resolves basic EJS", async () => {

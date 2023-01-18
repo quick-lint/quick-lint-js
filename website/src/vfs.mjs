@@ -175,6 +175,7 @@ export class VFS {
               childEntry = new EJSVFSFile({
                 path: path.join(this._rootPath, route.path),
                 uri: routeURI,
+                contentType: route.contentType ?? null,
                 // TODO(strager): Include custom components.
                 customComponents: {},
               });
@@ -273,10 +274,11 @@ export class StaticVFSFile extends VFSEntry {
 
 // An template file (usually generating HTML).
 export class EJSVFSFile extends VFSEntry {
-  constructor({ path, uri, customComponents = {} }) {
+  constructor({ path, uri, customComponents = {}, contentType = null }) {
     super();
     this._path = path;
     this._uri = uri;
+    this._contentType = contentType ?? "text/html";
 
     this._customComponents = {};
     for (let name in customComponents) {
@@ -309,7 +311,7 @@ export class EJSVFSFile extends VFSEntry {
   }
 
   getContentType() {
-    return "text/html";
+    return this._contentType;
   }
 }
 
