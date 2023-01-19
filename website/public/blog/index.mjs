@@ -45,6 +45,7 @@ export async function loadBlogPostsAsync() {
       return {
         dir: dir.name,
         meta: meta,
+        timestamp: parseTimestamp(meta.blogDate),
       };
     })
   );

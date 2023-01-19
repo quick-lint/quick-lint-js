@@ -10,6 +10,13 @@ describe("parse timestamp", () => {
       "2022-05-25"
     );
   });
+
+  it("gives RFC 822 timestamp in local timezone without day of week", () => {
+    // This date is 2022-05-26 in UTC.
+    expect(parseTimestamp("2022-05-25T21:04:02-07:00").rfc822).toEqual(
+      "25 May 2022 21:04:02 -0700"
+    );
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.

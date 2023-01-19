@@ -1,12 +1,40 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-// Parses a full ISO 8601 timestamp.
+// See: https://www.w3.org/Protocols/rfc822/#z28
+let rfc822Months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+// Parses a subset of ISO 8601 timestamps.
 //
 // Example: "2022-05-25T21:04:02-07:00"
 export function parseTimestamp(timestamp) {
+  let match = timestamp.match(
+    /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hour>\d{2}):(?<minute>\d{2}):(?<second>\d{2})(?<zoneoffset>[-+]\d{2}:\d{2})$/
+  );
+  if (!match) {
+    throw new Error(`failed to parse timestamp: ${timestamp}`);
+  }
+  let { year, month, day, hour, minute, second, zoneoffset } = match.groups;
+  let monthNumber = parseInt(month, 10);
   return {
-    date: timestamp.match(/^[^T]+/)[0],
+    date: `${year}-${month}-${day}`,
+    // See: https://www.w3.org/Protocols/rfc822/#z28
+    rfc822: `${day} ${
+      rfc822Months[monthNumber - 1]
+    } ${year} ${hour}:${minute}:${second} ${zoneoffset.replace(":", "")}`,
   };
 }
 

@@ -2,15 +2,12 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <rss version="2.0">
+  <% let { loadBlogPostsAsync } = await importFileAsync("./index.mjs"); %>
+
   <channel>
     <title>quick-lint-js blog</title>
     <link>https://quick-lint-js.com/blog/</link>
     <description>Technical writings centered around JavaScript and quick-lint-js development</description>
-
-    <%#
-      This block should be stripped by EJS.
-      This block is here just to ensure EJS is working properly.
-    %>
 
     <language>en-US</language>
     <copyright>Copyright (C) 2020  Matthew "strager" Glazar</copyright> 
@@ -27,53 +24,15 @@
       <height>256</height>
     </image>
 
-    <item>
-      <title>Is coding in Rust as bad as in C++?</title>
-      <link>https://quick-lint-js.com/blog/cpp-vs-rust-build-times/</link>
-      <description>A practical comparison of build and test speed between C++ and Rust.</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>05 Jan 2023 12:00:00 PST</pubDate>
-    </item>
-
-    <item>
-      <title>Sometimes it *is* a compiler bug</title>
-      <link>https://quick-lint-js.com/blog/bug-journey/</link>
-      <description>My journey in finding and fixing a bug in a C++ toolchain.</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>25 May 2022 12:00:00 PDT</pubDate>
-    </item>
-
-    <item>
-      <title>Show JavaScript errors in Neovim on macOS</title>
-      <link>https://quick-lint-js.com/blog/show-js-errors-neovim-macos/</link>
-      <description>Neovim is one of the most popular code editors, and JavaScript is one of the most popular programming languages. Let's look at some plugins to catch JavaScript bugs immediately in Neovim.</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>16 Feb 2022 12:00:00 PST</pubDate>
-    </item>
-
-    <item>
-      <title>quick-lint-js release: version 2.0</title>
-      <link>https://quick-lint-js.com/blog/version-2.0/</link>
-      <description>We are proud to announce version 2.0 of quick-lint-js!</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>04 Feb 2022 12:00:00 PST</pubDate>
-    </item>
-
-    <item>
-      <title>quick-lint-js release: version 1.0</title>
-      <link>https://quick-lint-js.com/blog/version-1.0/</link>
-      <description>Faster, easier, friendlier: how quick-lint-js will take over ESLint</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>13 Dec 2021 12:00:00 PST</pubDate>
-    </item>
-
-    <item>
-      <title>JavaScript syntax errors compared</title>
-      <link>https://quick-lint-js.com/blog/syntax-errors-2021/</link>
-      <description>A JavaScript error beauty contest</description>
-      <author>strager.nds@gmail.com (strager)</author>
-      <pubDate>11 Dec 2021 12:00:00 PST</pubDate>
-    </item>
+    <% for (let post of await loadBlogPostsAsync()) { %>
+      <item>
+        <title><%= post.meta.title %></title>
+        <link>https://quick-lint-js.com/blog/<%= post.dir %>/</link>
+        <description><%= post.meta.description %></description>
+        <author>strager.nds@gmail.com (strager)</author>
+        <pubDate><%= post.timestamp.rfc822 %></pubDate>
+      </item>
+    <% } %>
   </channel>
 </rss>
 
