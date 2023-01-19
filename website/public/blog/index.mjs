@@ -1,7 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import fs from "node:fs";
+import path from "node:path";
+import url from "node:url";
 import { parseTimestamp } from "../../src/timestamp.mjs";
+import { readFrontMatterFromFileAsync } from "../../src/front-matter.mjs";
+
+let __filename = url.fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
 
 export let routes = {
   "/blog/feed.xml": {
@@ -21,6 +28,36 @@ export let customComponents = {
 function qljsDate(attributes, { currentURI }) {
   let timestamp = parseTimestamp(attributes.datetime);
   return `<time>${timestamp.date}</time>`;
+}
+
+export async function loadBlogPostsAsync() {
+  let directories = await fs.promises.readdir(__dirname, {
+    withFileTypes: true,
+  });
+  directories = directories.filter((dir) => dir.isDirectory());
+  let posts = await Promise.all(
+    directories.map(async (dir) => {
+      let indexPath = path.join(__dirname, dir.name, "index.ejs.html");
+      let meta = await readFrontMatterFromFileAsync(indexPath);
+      if (typeof meta.blogDate === "undefined") {
+        throw new Error(`Missing blogDate in front matter of ${indexPath}`);
+      }
+      return {
+        dir: dir.name,
+        meta: meta,
+      };
+    })
+  );
+  sortPostsReverseChronologically(posts);
+  return posts;
+}
+
+function sortPostsReverseChronologically(posts) {
+  posts.sort((a, b) => {
+    if (a.meta.blogDate < b.meta.blogDate) return +1;
+    if (a.meta.blogDate > b.meta.blogDate) return -1;
+    return 0;
+  });
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

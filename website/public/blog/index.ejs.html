@@ -12,35 +12,7 @@
     <script>
       //<%
       let ejs = await import("ejs");
-      let fs = await import("node:fs");
-      let path = await import("node:path");
-      let { readFrontMatterFromFileAsync } = await importFileAsync("../../src/front-matter.mjs");
-
-      async function loadBlogPostsAsync() {
-        let directories = await fs.promises.readdir(absoluteFilePath('.'), {withFileTypes: true});
-        directories = directories.filter(dir => dir.isDirectory());
-        let posts = await Promise.all(directories.map(async dir => {
-          let indexPath = absoluteFilePath(path.join(dir.name, "index.ejs.html"));
-          let meta = await readFrontMatterFromFileAsync(indexPath);
-          if (typeof meta.blogDate === 'undefined') {
-            throw new Error(`Missing blogDate in front matter of ${indexPath}`);
-          }
-          return {
-            dir: dir.name,
-            meta: meta,
-          };
-        }));
-        sortPostsReverseChronologically(posts);
-        return posts;
-      }
-
-      function sortPostsReverseChronologically(posts) {
-        posts.sort((a, b) => {
-          if (a.meta.blogDate < b.meta.blogDate) return +1;
-          if (a.meta.blogDate > b.meta.blogDate) return -1;
-          return 0;
-        });
-      }
+      let { loadBlogPostsAsync } = await importFileAsync("./index.mjs");
       //%>
     </script>
     <link href="../main.css" rel="stylesheet" />
