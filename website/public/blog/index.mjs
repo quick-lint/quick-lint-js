@@ -42,6 +42,9 @@ export async function loadBlogPostsAsync() {
       if (typeof meta.blogDate === "undefined") {
         throw new Error(`Missing blogDate in front matter of ${indexPath}`);
       }
+      if (typeof meta.navTitle === "undefined") {
+        throw new Error(`Missing navTitle in front matter of ${indexPath}`);
+      }
       return {
         dir: dir.name,
         meta: meta,

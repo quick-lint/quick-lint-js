@@ -235,38 +235,7 @@
     {
       uri: "/blog/",
       title: "Blog",
-      subpages: [
-        {
-          uri: "/blog/syntax-errors-2021/",
-          title: "JS errors",
-          hidden: true
-        },
-        {
-          uri: "/blog/version-1.0/",
-          title: "Release 1.0",
-          hidden: true
-        },
-        {
-          uri: "/blog/version-2.0/",
-          title: "Release 2.0",
-          hidden: true
-        },
-        {
-          uri: "/blog/show-js-errors-neovim-macos/",
-          title: "Neovim for JS",
-          hidden: true
-        },
-        {
-          uri: "/blog/bug-journey/",
-          title: "Compiler bug",
-          hidden: true
-        },
-        {
-          uri: "/blog/cpp-vs-rust-build-times/",
-          title: "C++ vs Rust",
-          hidden: true
-        },
-      ]
+      subpages: await loadBlogSubpagesIfNeededAsync(),
     },
   ];
 
@@ -291,6 +260,20 @@
       return html`<li><span class="current-page">${titleHTML}</span></li>`;
     }
     throw new Error("Malformed page or subpage: " + JSON.stringify(subpage));
+  }
+
+  async function loadBlogSubpagesIfNeededAsync() {
+    if (currentURI.startsWith("/blog/")) {
+      let { loadBlogPostsAsync } = await importFileAsync("./blog/index.mjs");
+      let blogPosts = await loadBlogPostsAsync();
+      return blogPosts.map(post => ({
+        uri: `/blog/${post.dir}/`,
+        title: post.meta.navTitle ?? post.meta.title,
+        hidden: true,
+      }));
+    } else {
+      return [];
+    }
   }
 
   function isOnPageOrSubpage(page) {
