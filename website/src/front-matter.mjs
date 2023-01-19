@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import fs from "node:fs";
+
 // @returns { data: object, strippedHTML: string }
 export function stripHTMLFrontMatter(html) {
   let match = html.match(/^<!---(?<json>.*?)--->\n*/s);
@@ -15,6 +17,11 @@ export function stripHTMLFrontMatter(html) {
     data: JSON.parse(match.groups.json),
     strippedHTML: html.substr(match[0].length),
   };
+}
+
+export async function readFrontMatterFromFileAsync(filePath) {
+  let html = await fs.promises.readFile(filePath, "utf-8");
+  return stripHTMLFrontMatter(html).data;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

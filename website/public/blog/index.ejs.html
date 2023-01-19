@@ -9,6 +9,40 @@
   <head>
     <%- await include("../common-head.ejs.html") %> <%- await
     include("./blog-head.ejs.html") %>
+    <script>
+      //<%
+      let ejs = await import("ejs");
+      let fs = await import("node:fs");
+      let path = await import("node:path");
+      let { readFrontMatterFromFileAsync } = await importFileAsync("../../src/front-matter.mjs");
+
+      async function loadBlogPostsAsync() {
+        let directories = await fs.promises.readdir(absoluteFilePath('.'), {withFileTypes: true});
+        directories = directories.filter(dir => dir.isDirectory());
+        let posts = await Promise.all(directories.map(async dir => {
+          let indexPath = absoluteFilePath(path.join(dir.name, "index.ejs.html"));
+          let meta = await readFrontMatterFromFileAsync(indexPath);
+          if (typeof meta.blogDate === 'undefined') {
+            throw new Error(`Missing blogDate in front matter of ${indexPath}`);
+          }
+          return {
+            dir: dir.name,
+            meta: meta,
+          };
+        }));
+        sortPostsReverseChronologically(posts);
+        return posts;
+      }
+
+      function sortPostsReverseChronologically(posts) {
+        posts.sort((a, b) => {
+          if (a.meta.blogDate < b.meta.blogDate) return +1;
+          if (a.meta.blogDate > b.meta.blogDate) return -1;
+          return 0;
+        });
+      }
+      //%>
+    </script>
     <link href="../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -18,30 +52,13 @@
       <h2>quick-lint-js blog</h2>
 
       <ul>
+        <% for (let post of await loadBlogPostsAsync()) { %>
         <li>
-          <a href="cpp-vs-rust-build-times/"
-            >Is coding in Rust as bad as in C++?</a
+          <a href="<%= post.dir %>/"
+            ><%- post.meta.linkLabelHTML ?? ejs.escapeXML(post.meta.title) %></a
           >
         </li>
-        <li>
-          <a href="bug-journey/">Sometimes it <em>is</em> a compiler bug</a>
-        </li>
-        <li>
-          <a href="show-js-errors-neovim-macos/"
-            >Show JavaScript errors in Neovim on macOS</a
-          >
-        </li>
-        <li>
-          <a href="version-2.0/">Release: version 2.0</a>
-        </li>
-        <li>
-          <a href="version-1.0/">Release: version 1.0</a>
-        </li>
-        <li>
-          <a href="syntax-errors-2021/"
-            >JavaScript syntax errors compared (2021)</a
-          >
-        </li>
+        <% } %>
       </ul>
     </main>
 
