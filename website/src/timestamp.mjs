@@ -38,6 +38,20 @@ export function parseTimestamp(timestamp) {
   };
 }
 
+// Parses a subset of ISO 8601 datestamps.
+//
+// Example: "2022-05-25"
+export function datestampToRFC822(datestamp) {
+  let match = datestamp.match(/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})$/);
+  if (!match) {
+    throw new Error(`failed to parse timestamp: ${datestamp}`);
+  }
+  let { year, month, day } = match.groups;
+  let monthNumber = parseInt(month, 10);
+  // See: https://www.w3.org/Protocols/rfc822/#z28
+  return `${day} ${rfc822Months[monthNumber - 1]} ${year} 00:00:00 Z`;
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

@@ -21,6 +21,24 @@ export function releasesMarkdownToHTML(releasesMarkdown) {
   return html;
 }
 
+export function parseReleaseVersionsFromMarkdown(releasesMarkdown) {
+  let env = {};
+  let tokens = markdownParser.parse(releasesMarkdown, env);
+
+  let versionHeadingSpanIndexes = getVersionHeadingSpans(tokens, "h2");
+  let versions = [];
+  for (let [headingBeginIndex, headingEndIndex] of versionHeadingSpanIndexes) {
+    let textTokens = tokens.slice(headingBeginIndex + 1, headingEndIndex);
+    let text = textTokens.map((token) => token.content).join("");
+    let versionInfo = extractVersionInfoFromHeadingText(text);
+    if (versionInfo === null) {
+      continue;
+    }
+    versions.push(versionInfo);
+  }
+  return versions;
+}
+
 function removeTitle(markdownTokens) {
   let filteredTokens = [];
   let inTitle = false;
@@ -56,23 +74,26 @@ function demoteHeadings(markdownTokens) {
   });
 }
 
-function linkifyVersions(markdownTokens) {
-  markdownTokens = [...markdownTokens];
-
-  // @type Array<[number, number]>
-  let versionHeadingSpanIndexes = [];
+// @returns Array<[number, number]>
+function getVersionHeadingSpans(markdownTokens, headingTag) {
+  let spans = [];
   for (let i = 0; i < markdownTokens.length; ++i) {
     let token = markdownTokens[i];
-    if (token.tag === "h3") {
+    if (token.tag === headingTag) {
       if (token.type === "heading_open") {
-        versionHeadingSpanIndexes.push([i]);
+        spans.push([i]);
       }
       if (token.type === "heading_close") {
-        versionHeadingSpanIndexes[versionHeadingSpanIndexes.length - 1].push(i);
+        spans[spans.length - 1].push(i);
       }
     }
   }
+  return spans;
+}
 
+function linkifyVersions(markdownTokens) {
+  markdownTokens = [...markdownTokens];
+  let versionHeadingSpanIndexes = getVersionHeadingSpans(markdownTokens, "h3");
   versionHeadingSpanIndexes.reverse();
   for (let [headingBeginIndex, headingEndIndex] of versionHeadingSpanIndexes) {
     let textTokens = markdownTokens.slice(
