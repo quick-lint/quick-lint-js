@@ -1852,6 +1852,10 @@ msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
 "implementiert"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "',' should be ';' instead"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

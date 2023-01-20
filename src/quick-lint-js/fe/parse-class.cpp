@@ -752,7 +752,15 @@ void parser::parse_and_visit_class_or_interface_member(
         check_modifiers_for_field_without_type_annotation();
         this->parse_field_initializer();
         v.visit_property_declaration(property_name);
-        p->consume_semicolon<diag_missing_semicolon_after_field>();
+        if (p->peek().type == token_type::comma) {
+          p->diag_reporter_->report(
+              diag_unexpected_comma_after_field_initialization{
+                  .comma = p->peek().span(),
+              });
+          p->skip();
+        } else {
+          p->consume_semicolon<diag_missing_semicolon_after_field>();
+        }
         break;
 
       case token_type::identifier:
@@ -857,7 +865,7 @@ void parser::parse_and_visit_class_or_interface_member(
         });
       }
       p->skip();
-      p->parse_and_visit_expression(v);
+      p->parse_and_visit_expression(v, precedence{.commas = false});
     }
 
     function_attributes function_attributes_from_modifiers(

@@ -1733,6 +1733,10 @@ msgstr ""
 msgid "function parameter cannot be parenthesized"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "',' should be ';' instead"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

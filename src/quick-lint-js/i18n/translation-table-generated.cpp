@@ -18,7 +18,8 @@ const translation_table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {31, 56, 0, 32, 0, 28},              //
-        {0, 0, 0, 70, 0, 67},                //
+        {0, 0, 0, 0, 0, 67},                 //
+        {0, 0, 0, 70, 0, 26},                //
         {79, 25, 30, 63, 49857, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
@@ -1701,6 +1702,7 @@ const translation_table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
+        u8"',' should be ';' instead\0"
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
         u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
         u8"'...' belongs before the tuple element name, not before the type\0"

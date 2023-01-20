@@ -1669,6 +1669,10 @@ msgstr "usar '{0}' com uma expressão regular sempre retorna '{1}'"
 msgid "function parameter cannot be parenthesized"
 msgstr "parâmetros opcionais do TypeScript requerem parênteses"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "',' should be ';' instead"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

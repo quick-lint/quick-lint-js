@@ -88,6 +88,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "',' should be ';' instead"_translatable,
+        {
+            u8"',' should be ';' instead",
+            u8"',' should be ';' instead",
+            u8"',' should be ';' instead",
+            u8"',' should be ';' instead",
+            u8"',' should be ';' instead",
+            u8"',' should be ';' instead",
+        },
+    },
+    {
         "'.' is not allowed after generic arguments; write [\"{1}\"] instead"_translatable,
         {
             u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",

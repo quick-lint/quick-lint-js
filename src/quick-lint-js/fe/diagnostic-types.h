@@ -2659,6 +2659,11 @@
       { source_code_span left_paren_to_right_paren; },                          \
       MESSAGE(QLJS_TRANSLATABLE("function parameter cannot be parenthesized"),  \
               left_paren_to_right_paren))                                       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_unexpected_comma_after_field_initialization, "E0330",                \
+      diagnostic_severity::error, { source_code_span comma; },                  \
+      MESSAGE(QLJS_TRANSLATABLE("',' should be ';' instead"), comma))           \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
