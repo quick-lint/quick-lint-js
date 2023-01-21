@@ -5,6 +5,7 @@
 
 import os
 import pathlib
+import pty
 import subprocess
 import tempfile
 import unittest
@@ -326,6 +327,23 @@ class TestQuickLintJSCLI(unittest.TestCase):
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.returncode, 1)
 
+    def test_auto_hyperlinks_are_not_printed_in_dumb_terminals(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
+
+            (pid, fd) = pty.fork()
+            if pid == 0:
+                qljs = get_quick_lint_js_executable_path()
+                os.execve(qljs, [qljs, str(test_file)], {"TERM": "dumb"})
+            else:
+                (_, rc) = os.waitpid(pid, 0)
+                stderr = os.read(fd, 4096)
+                returncode = 0
+                if os.WIFEXITED(rc):
+                    returncode = os.WEXITSTATUS(rc)
+                self.assertEqual(returncode, 1)
+                self.assertNotIn(b"\x1b", stderr)
 
 if __name__ == "__main__":
     unittest.main()
