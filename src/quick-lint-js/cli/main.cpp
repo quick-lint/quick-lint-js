@@ -61,7 +61,8 @@ bool stderr_supports_terminal_escapes() {
 #if defined(_WIN32)
   return false;
 #else
-  return isatty(STDERR_FILENO);
+  const char *term = std::getenv("TERM");
+  return isatty(STDERR_FILENO) && term && term != "dumb"sv;
 #endif
 }
 
