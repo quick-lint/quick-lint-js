@@ -43,6 +43,9 @@ Semantic Versioning.
   [E0048][].
 * Using a variable called `async`, then exporting something, no longer reports
   an unexpected token error (implemented by [Alek Lefebvre][]).
+* `class C { x = 0, y; }` now reports [E0330][] ("',' should be ';' instead")
+  instead of [E0057][] ("use of undeclared variable: y") (implemented by
+  [clegoz][]).
 
 ## 2.10.0 (2022-10-14)
 
@@ -839,6 +842,7 @@ Beta release.
 [E0325]: https://quick-lint-js.com/errors/E0325/
 [E0326]: https://quick-lint-js.com/errors/E0326/
 [E0327]: https://quick-lint-js.com/errors/E0327/
+[E0330]: https://quick-lint-js.com/errors/E0330/
 [E0341]: https://quick-lint-js.com/errors/E0341/
 [E0344]: https://quick-lint-js.com/errors/E0344/
 [E0345]: https://quick-lint-js.com/errors/E0345/
