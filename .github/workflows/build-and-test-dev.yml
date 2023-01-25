@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Based on docs/BUILDING.md.
+# Based on website/public/contribute/build-from-source/.
 jobs:
   build:
     name: ${{ matrix.toolchain.name }}
@@ -36,7 +36,7 @@ jobs:
       - name: 1. Configure with CMake
         run: |
           mkdir build ; cd build ; ${{ matrix.toolchain.extra_environment }} cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
-          if ! [ -f docs/BUILDING.md ]; then
+          if ! [ -f docs/FUZZING.md ]; then
             printf 'error: cwd changed unexpectedly\n' >&2
             exit 1
           fi

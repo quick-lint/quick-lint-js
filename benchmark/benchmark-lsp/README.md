@@ -21,7 +21,7 @@ Install the LSP servers you want to benchmark:
 
 Install a compiler which supports C++20 coroutines (such as Clang version 12).
 [Configure quick-lint-js using CMake with
-`-DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES`](../../docs/BUILDING.md). Build the
+`-DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES`][build-from-source]. Build the
 `quick-lint-js-benchmark-lsp-servers` target. For example, on Linux:
 
     $ mkdir build
@@ -121,4 +121,5 @@ Work (timed):
 
 [Deno]: https://deno.land/
 [Stack]: https://haskellstack.org/
+[build-from-source]: https://quick-lint-js.com/contribute/build-from-source/
 [install-rslint]: https://rslint.org/guide/
