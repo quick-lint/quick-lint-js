@@ -1,0 +1,160 @@
+<!---{
+"title": "Building quick-lint-js on Linux from source",
+"navTitle": "Linux build"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../../common-head.ejs.html") %>
+    <link href="../../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2><%= meta.title %></h2>
+
+      <p>
+        On Linux, you can build quick-lint-js using one of the following build
+        systems:
+      </p>
+      <ul>
+        <li><a href="#ninja">CMake &amp; Ninja</a> (recommended)</li>
+        <li><a href="../nix/">Nix</a> (Nix users only)</li>
+        <li>
+          <a href="../#single-command-build">Single-command build</a> (not
+          recommended)
+        </li>
+      </ul>
+
+      <section id="ninja">
+        <h3>Build with CMake &amp; Ninja</h3>
+
+        <h4>0. Install build dependencies</h4>
+
+        <p>
+          Before building quick-lint-js, install the following third-party
+          dependencies:
+        </p>
+
+        <ul>
+          <li><a href="https://gcc.gnu.org/">GCC</a> version 8.3 or newer</li>
+          <li><a href="https://cmake.org/">CMake</a> version 3.10 or newer</li>
+          <li><a href="https://ninja-build.org/">Ninja</a></li>
+        </ul>
+
+        <p>
+          For <strong>Debian</strong>, <strong>Ubuntu</strong>, and
+          <strong>Linux Mint</strong>, run the following command to install all
+          necessary dependencies:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>sudo apt-get update &amp;&amp; sudo apt-get install cmake g++ ninja-build</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          For <strong>Ubuntu 18.04 Bionic</strong>, run the following command to
+          install all necessary dependencies:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>sudo apt-get update &amp;&amp; sudo apt-get install cmake g++-8 ninja-build</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          For <strong>CentOS</strong>, run the following command to install all
+          necessary dependencies:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>sudo dnf --enablerepo=powertools install cmake gcc-c++ ninja-build</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          For <strong>Fedora</strong>, run the following command to install all
+          necessary dependencies:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>sudo dnf install cmake gcc-c++ ninja-build</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          For <strong>Arch Linux</strong>, run the following command to install
+          all necessary dependencies:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>sudo pacman -Syy cmake gcc ninja</kbd></code></pre>
+        </blockquote>
+
+        <h4>1. Configure with CMake</h4>
+
+        <p>
+          Run the following command to create a directory called
+          <code>build</code>:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>mkdir build ; cd build ; cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd &quot;$OLDPWD&quot;</kbd></span></code></pre>
+        </blockquote>
+
+        <p>For Ubuntu 18.04 Bionic, instead run the following command:</p>
+        <blockquote>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd &quot;$OLDPWD&quot;</kbd></span></code></pre>
+        </blockquote>
+
+        <h4>2. Build</h4>
+
+        <p>
+          Run the following command to build the quick-lint-js executable,
+          quick-lint-js’ tests, and quick-lint-js’ benchmarks:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build</kbd></code></pre>
+        </blockquote>
+
+        <p>If you only want to build the quick-lint-js executable:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js</kbd></code></pre>
+        </blockquote>
+
+        <p>If you only want to build quick-lint-js’ tests:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd></code></pre>
+        </blockquote>
+
+        <h4>3. Run</h4>
+        <p>Run the following command to run quick-lint-js’ test suite:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>./build/test/quick-lint-js-test</kbd></code></pre>
+        </blockquote>
+
+        <p>If you want to run the quick-lint-js program:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>./build/quick-lint-js --help</kbd></code></pre>
+        </blockquote>
+      </section>
+    </main>
+
+    <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

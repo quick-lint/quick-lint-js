@@ -506,6 +506,9 @@ code.shell-session .long-shell-command-line {
 code.shell-session kbd::before {
   content: "$ ";
 }
+code.shell-session.windows kbd::before {
+  content: "> ";
+}
 
 /* Make keystrokes like "CTRL-S" and "RET" distinct from regular key presses. */
 kbd.keystroke {
