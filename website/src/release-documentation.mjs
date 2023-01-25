@@ -3,6 +3,7 @@
 
 import MarkdownIt from "markdown-it";
 import assert from "node:assert";
+import { retagHeadings } from "./markdown.mjs";
 
 let markdownParser = new MarkdownIt("commonmark");
 
@@ -62,16 +63,7 @@ function demoteHeadings(markdownTokens) {
     h3: "h4",
     h4: "h5",
   };
-  return markdownTokens.map((token) => {
-    if (
-      (token.type === "heading_open" || token.type === "heading_close") &&
-      demotions.hasOwnProperty(token.tag)
-    ) {
-      return { ...token, tag: demotions[token.tag] };
-    } else {
-      return token;
-    }
-  });
+  return retagHeadings(markdownTokens, demotions);
 }
 
 // @returns Array<[number, number]>

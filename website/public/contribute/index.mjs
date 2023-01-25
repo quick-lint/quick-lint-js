@@ -16,6 +16,7 @@ export async function loadNavSubpagesAsync() {
     "create-diagnostic",
     "coding-standards",
     "submit",
+    "authors",
   ];
   return [].concat(
     ...(await Promise.all(
