@@ -11,7 +11,12 @@ let __dirname = path.dirname(__filename);
 
 export async function loadNavSubpagesAsync() {
   let root = path.join(__dirname, "..");
-  let subpages = ["build-from-source", "create-diagnostic", "coding-standards"];
+  let subpages = [
+    "build-from-source",
+    "create-diagnostic",
+    "coding-standards",
+    "submit",
+  ];
   return [].concat(
     ...(await Promise.all(
       subpages.map(
