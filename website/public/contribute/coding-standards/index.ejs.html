@@ -1,0 +1,113 @@
+<!---{
+"title": "Coding standards and style guide",
+"navTitle": "Style guide"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>Coding standards and style guide</h2>
+
+      <section id="cxx">
+        <h3>C++ code</h3>
+
+        <p>
+          quick-lint-js’ C++ code is formatted using the
+          <a href="https://clang.llvm.org/docs/ClangFormat.html"
+            >clang-format</a
+          >
+          tool, <strong>version 9.0.x</strong>. During development, use
+          clang-format in one of two ways:
+        </p>
+        <ul>
+          <li>
+            <a href="https://releases.llvm.org/download.html#9.0.0"
+              >Install clang-format</a
+            >
+            yourself, then run the <code>tools/format</code> script to format
+            all of quick-lint-js’ code with one command.
+          </li>
+          <li>
+            Run clang-format in your editor (<a
+              href="https://clang.llvm.org/docs/ClangFormat.html#clion-integration"
+              >CLion</a
+            >,
+            <a
+              href="https://clang.llvm.org/docs/ClangFormat.html#emacs-integration"
+              >Emacs</a
+            >,
+            <a
+              href="https://clang.llvm.org/docs/ClangFormat.html#vim-integration"
+              >Vim</a
+            >,
+            <a
+              href="https://clang.llvm.org/docs/ClangFormat.html#visual-studio-integration"
+              >Visual Studio</a
+            >,
+            <a
+              href="https://marketplace.visualstudio.com/items?itemName=xaver.clang-format"
+              >Visual Studio Code</a
+            >). Be sure to use version 9.0.x, or you might have problems with
+            the CI clang-format checker.
+          </li>
+        </ul>
+      </section>
+
+      <section id="javascript">
+        <h3>JavaScript and HTML</h3>
+        <p>
+          quick-lint-js’ web code (CSS, HTML, and JavaScript) is formatted using
+          the <a href="https://prettier.io/">Prettier</a> tool. During
+          development, use Prettier in one of two ways:
+        </p>
+        <ul>
+          <li>
+            In the <code>plugin/vscode</code>, <code>plugin/vscode-lsp</code>,
+            <code>wasm</code>, or <code>website</code> directory, install
+            Prettier with <code>yarn install</code> then run it with
+            <code>yarn fmt</code>. This formats all of quick-lint-js’ code in
+            that subproject with one command.
+          </li>
+          <li>
+            Run Prettier in your editor with
+            <a href="https://prettier.io/docs/en/editors.html"
+              >Prettier editor integration</a
+            >. You need to run <code>yarn install</code> in the subproject’s
+            directory in order for editor integration to work.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

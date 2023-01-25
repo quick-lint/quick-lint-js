@@ -11,16 +11,18 @@ let __dirname = path.dirname(__filename);
 
 export async function loadNavSubpagesAsync() {
   let root = path.join(__dirname, "..");
-  return [
-    ...(await loadNavSubpageAndSubsubpagesAsync({
-      root: root,
-      uri: "/contribute/build-from-source/",
-    })),
-    ...(await loadNavSubpageAndSubsubpagesAsync({
-      root: root,
-      uri: "/contribute/create-diagnostic/",
-    })),
-  ];
+  let subpages = ["build-from-source", "create-diagnostic", "coding-standards"];
+  return [].concat(
+    ...(await Promise.all(
+      subpages.map(
+        async (dir) =>
+          await loadNavSubpageAndSubsubpagesAsync({
+            root: root,
+            uri: `/contribute/${dir}/`,
+          })
+      )
+    ))
+  );
 }
 
 async function loadNavSubpageAndSubsubpagesAsync({ root, uri }) {
