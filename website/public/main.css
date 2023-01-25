@@ -346,7 +346,8 @@ ins {
 }
 
 /* Make errors stand out. */
-pre mark {
+pre mark,
+.diagnostic {
   color: unset;
   text-decoration: underline;
   background-color: #ffdddd;
@@ -364,7 +365,8 @@ pre mark:empty::before {
   position: absolute;
 }
 @media (prefers-color-scheme: dark) {
-  pre mark {
+  pre mark,
+  .diagnostic {
     background-color: #7a1965;
   }
 }

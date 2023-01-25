@@ -1,0 +1,768 @@
+<!---{
+"title": "Creating a new diagnostic in quick-lint-js",
+"navTitle": "Diagnostics"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      pre mark {
+        text-decoration: none;
+      }
+
+      mark.unimportant {
+        opacity: 0.5;
+      }
+
+      .arg-1 {
+        --arg-color: #ffb;
+      }
+      .arg-2 {
+        --arg-color: #fbf;
+      }
+      .arg-3 {
+        --arg-color: #aff;
+      }
+      .arg-4 {
+        --arg-color: #fcc;
+      }
+      .arg-5 {
+        --arg-color: #cfc;
+      }
+      .arg-6 {
+        --arg-color: #ccf;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .arg-1 {
+          --arg-color: #552;
+        }
+        .arg-2 {
+          --arg-color: #525;
+        }
+        .arg-3 {
+          --arg-color: #255;
+        }
+        .arg-4 {
+          --arg-color: #522;
+        }
+        .arg-5 {
+          --arg-color: #252;
+        }
+        .arg-6 {
+          --arg-color: #236;
+        }
+      }
+
+      mark.arg-1,
+      mark.arg-2,
+      mark.arg-3,
+      mark.arg-4,
+      mark.arg-5,
+      mark.arg-6,
+      .mark-reference {
+        background-color: var(--arg-color);
+      }
+
+      figure.build-error {
+        margin-left: 2rem;
+        margin-right: 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.7);
+        padding: 0 0.5rem;
+      }
+      figure.build-error figcaption {
+        font-style: italic;
+        text-align: center;
+        margin: 0.5rem 0;
+      }
+
+      .gdb-session kbd {
+        font-weight: bold;
+      }
+      .gdb-session samp {
+        opacity: 0.5;
+      }
+      .gdb-session samp.important {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2><%= meta.title %></h2>
+
+      <p>
+        A common task when contributing to quick-lint-js is to create a new
+        diagnostic. In quick-lint-js, <dfn>diagnostic</dfn> is a warning or
+        error reported while parsing the user's JavaScript code.
+      </p>
+
+      <p>Creating a diagnostic involves four pieces of code:</p>
+      <ol>
+        <li><a href="#diagnostic-type">Diagnostic type and metadata</a></li>
+        <li><a href="#test">Test for the diagnostic</a></li>
+        <li><a href="#report">Detection and reporting of the diagnostic</a></li>
+        <li><a href="#document">Documentation for the website</a></li>
+      </ol>
+
+      <section id="diagnostic-type">
+        <h3>1. Diagnostic type and metadata</h3>
+
+        <p>
+          Diagnostic types are listed in
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/fe/diagnostic-types.h"
+            ><code>src/quick-lint-js/fe/diagnostic-types.h</code></a
+          >. They look like this:
+        </p>
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                                                  \
+    <mark class="arg-1">diag_missing_body_for_try_statement</mark>, <mark class="arg-2">"E0120"</mark>,                \
+    <mark class="arg-3">diagnostic_severity::error</mark>,                                  \
+    <mark class="arg-4">{ source_code_span try_token; }</mark>,                             \
+    <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"),</mark> \
+            <mark class="arg-5">try_token)</mark>)                                          \</code></pre>
+        </blockquote>
+
+        <p>
+          Each diagnostic type is created using the
+          <code class="cxx">QLJS_DIAG_TYPE</code> macro. Note the trailing
+          backslashes (<code class="cxx">\</code>) which serve as line
+          continuations.
+        </p>
+
+        <p>
+          The macro generates a class using the
+          <span class="mark-reference arg-1">first argument</span> and the
+          <span class="mark-reference arg-4">fourth argument</span>:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">struct <mark class="arg-1">diag_missing_body_for_try_statement</mark> <mark class="arg-4">{</mark>
+    <mark class="arg-4">source_code_span try_token;</mark>
+<mark class="arg-4">}</mark>;</code></pre>
+        </blockquote>
+
+        <p>
+          Let's pick a name for our diagnostic as the
+          <span class="arg-1 mark-reference">first argument</span>. The name
+          needs to start with <code class="cxx">diag_</code> and be a legal C++
+          class name. We will use this name later to report the diagnostic and
+          to test for the diagnostic:
+        </p>
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
+    <mark class="arg-1">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-2 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+        </blockquote>
+
+        <p>
+          Each diagnostic in quick-lint-js has a unique diagnostic code as the
+          <span class="arg-2 mark-reference">second argument</span>. A
+          diagnostic code is the letter <code>E</code> followed by four decimal
+          digits. Let's be lazy and reuse an existing diagnostic code for now:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
+    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-2">"E0001"</mark>,                           \
+    <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+        </blockquote>
+
+        <p>
+          We also need to pick a diagnostic severity, error or warning, as the
+          <span class="arg-3 mark-reference">third argument</span>. Our new
+          diagnostic is for a <em>possible</em> issue, so let's pick
+          <code class="cxx">warning</code>:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
+    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-2 unimportant">"E0001"</mark>,                           \
+    <mark class="arg-3">diagnostic_severity::warning</mark>,      \
+    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
+    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+        </blockquote>
+
+        <p>
+          Each diagnostic is actually a class. The class needs to store at least
+          one <code class="cxx">source_code_span</code> or
+          <code class="cxx">identifier</code> variable so the editor knows where
+          to put the <span class="diagnostic">squigglies</span>. We should think
+          about where the squigglies should go and name our variable
+          appropriately to make the reporting and testing code easier to read.
+          Since our diagnostic is about string comparisons, let's name the
+          variable <code class="cxx">comparison_operator</code>. We write the
+          class' body in the
+          <span class="arg-4 mark-reference">fourth argument</span>:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                                \
+    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,         \
+    <mark class="arg-2 unimportant">"E0001"</mark>,                                   \
+    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,              \
+    <mark class="arg-4">{ source_code_span comparison_operator; }</mark>, \
+    <mark class="arg-5 unimportant">/* TODO */</mark>)                                \</code></pre>
+        </blockquote>
+
+        <p>
+          Important: The curly brackets around the
+          <span class="arg-4 mark-reference">fourth argument</span> are
+          significant. Don't forget them!
+        </p>
+
+        <p>
+          Each diagnostic needs a message in the
+          <span class="arg-5 mark-reference">fifth argument</span>. Most
+          diagnostics are simple and just have a simple string. Other
+          diagnostics might have formatting or multiple strings. Our diagnostic
+          is simple, so let's just write a single string with no formatting.
+          Don't forget to mention the
+          <code class="cxx">source_code_span</code> variable we defined inside
+          our <code class="cxx">diag_</code> class:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
+    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
+    <mark class="arg-2 unimportant">"E0001"</mark>,                                       \
+    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
+    <mark class="arg-4 unimportant">{ source_code_span comparison_operator; }</mark>,     \
+    <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
+      <mark class="arg-5">"comparing against empty strings is silly"),</mark> \
+      <mark class="arg-5">comparison_operator)</mark>)                        \</code></pre>
+        </blockquote>
+
+        <p>
+          After added the diagnostic type to <code>diagnostic-types.h</code>,
+          build quick-lint-js. You should get a build error like one of the
+          following:
+
+          <figure class="build-error">
+            <figcaption>Build errors with Clang</figcaption>
+            <pre style="white-space: pre-wrap">
+src/quick-lint-js/fe/diagnostic.cpp:128:5: error: constexpr variable 'all_diagnostic_infos' must be initialized by a constant expression
+    all_diagnostic_infos[] = {
+    ^                        ~
+src/quick-lint-js/i18n/translation-table-generated.h:444:3: note: subexpression not valid in a constant expression
+  QLJS_CONSTEXPR_ASSERT(false);
+  ^
+src/quick-lint-js/assert.h:92:7: note: expanded from macro 'QLJS_CONSTEXPR_ASSERT'
+      asm("");                     \
+      ^
+<i>[snip]</i>
+src/quick-lint-js/fe/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIAG_TYPE'
+  info_for_diagnostic&lt;name&gt;::get(),
+  ^
+1 error generated.</pre
+            >
+          </figure>
+
+          <figure class="build-error">
+            <figcaption>Build errors with GCC</figcaption>
+            <pre style="white-space: pre-wrap">
+In file included from src/quick-lint-js/fe/diagnostic.cpp:7:
+<i>[snip]</i>
+src/quick-lint-js/assert.h:92:7: error: inline assembly is not a constant expression
+   92 |       asm("");                     \
+      |       ^~~
+<i>[snip]</i>
+src/quick-lint-js/fe/diagnostic.cpp: At global scope:
+src/quick-lint-js/fe/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::diag_comparison_with_empty_string&gt;::get()’
+src/quick-lint-js/fe/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
+  133 | };
+      | ^</pre
+            >
+          </figure>
+        </p>
+
+        <p>
+          Don't panic! These errors are expected. The problem is that our new
+          diagnostic's message is not in the translation table. This is easy to
+          fix: From a command line, run the
+          <code>update-translator-sources</code> script in the quick-lint-js
+          repository:
+        </p>
+
+        <blockquote>
+          <pre><code class="shell-session"><kbd>./tools/update-translator-sources</kbd>
+updating: po/messages.pot
+... done.
+updating: po/de.po
+... done.
+updating: po/en_US@snarky.po
+... done.
+updating: po/fr_FR.po
+... done.
+updating: po/pt_BR.po
+... done.
+updating: po/sv_SE.po
+... done.</code></pre>
+        </blockquote>
+
+        <p>
+          The <code>update-translator-sources</code> script modified a few
+          files:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>git status</kbd>
+git status
+On branch dev3
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+        modified:   po/de.po
+        modified:   po/en_US@snarky.po
+        modified:   po/fr_FR.po
+        modified:   po/messages.pot
+        modified:   po/pt_BR.po
+        modified:   po/sv_SE.po
+        modified:   src/quick-lint-js/fe/diagnostic-types.h
+        modified:   src/quick-lint-js/i18n/translation-table-generated.cpp
+        modified:   src/quick-lint-js/i18n/translation-table-generated.h
+        modified:   test/test-translation-table-generated.cpp
+
+no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
+        </blockquote>
+
+        <p>Now let's build again and run the tests:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd>
+ninja: Entering directory `build'
+[103/103] Linking CXX executable test/quick-lint-js-test
+
+<kbd>./build/test/quick-lint-js-test --gtest_brief=1</kbd>
+Running main() from gmock_main.cc
+test/test-diag-code.cpp:50: Failure
+Failed
+<mark>diag code <strong>E0001</strong> used for multiple diags:</mark>
+diag_comparison_with_empty_string, diag_assignment_before_variable_declaration
+<mark>try this unused diag code: <strong>E0331</strong></mark>
+[  FAILED  ] test_diag_code.diag_codes_are_unique (1 ms)
+main thread ID: 372035
+[==========] 1980 tests from 151 test suites ran. (772 ms total)
+[  PASSED  ] 1979 tests.</code></pre>
+        </blockquote>
+
+        <p>
+          A test is telling us that the error code we chose (<code>E0001</code>)
+          is already in use. Let's change our
+          <code class="cxx">QLJS_DIAG_TYPE</code> call in
+          <code>diagnostic-types.h</code> to use the unused code suggested by
+          the test:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
+    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
+    <mark class="arg-2">"E0331"</mark>,                                       \
+    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
+    <mark class="arg-4 unimportant">{ source_code_span comparison_operator; }</mark>,     \
+    <mark class="arg-5 unimportant">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
+      <mark class="arg-5 unimportant">"comparing against empty strings is silly"),</mark> \
+      <mark class="arg-5 unimportant">comparison_operator)</mark>)                        \</code></pre>
+        </blockquote>
+
+        <p>
+          Build and re-run the tests. We should get no failures, which means we
+          didn't break anything.
+        </p>
+
+        <p>
+          Now that we have created the diagnostic type, let's move on to writing
+          a test.
+        </p>
+      </section>
+
+      <section id="test">
+        <h3>2. Test for the diagnostic</h3>
+
+        <p>
+          All diagnostics must be tested with an automated test. To create a
+          test, copy-paste an existing test in a
+          <code>test/test-parse-*.cpp</code> file and tweak it. Let's put our
+          test in
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/test/test-parse-warning.cpp"
+            ><code>test/test-parse-warning.cpp</code></a
+          >:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">TEST_F(test_parse_warning, warn_on_empty_string_literal_comparison) {
+  {
+    test_parser p(<mark class="arg-1">u8"a === ''"_sv</mark>, <mark class="arg-2">capture_diags</mark>);
+    <mark class="arg-3">p.parse_and_visit_expression();</mark>
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, <mark class="arg-4">diag_comparison_with_empty_string</mark>,
+                              <mark class="arg-5">comparison_operator</mark>, <mark class="arg-6">strlen(u8"a "), u8"==="_sv</mark>),
+        }));
+  }
+}</code></pre>
+        </blockquote>
+
+        <p>There are a few pieces of this test worth mentioning:</p>
+        <dl>
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-1">u8"a == ''"_sv</span></code
+            >
+          </dt>
+          <dd>
+            The input source code we want to test. The
+            <code class="cxx">u8</code> prefix is required so the code is parsed
+            as UTF-8. The <code class="cxx">_sv</code> suffix is required so
+            that code containing null bytes is handled correctly.
+          </dd>
+
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-2">capture_diags</span></code
+            >
+          </dt>
+          <dd>
+            By default, <code class="cxx">test_parser</code> fails the test if
+            any diagnostics are reported. Because we want to check for
+            diagnostics ourselves, we must specify the
+            <code class="cxx">capture_diags</code> tag.
+          </dd>
+
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-3"
+                >p.parse_and_visit_expression();</span
+              ></code
+            >
+          </dt>
+          <dd>
+            quick-lint-js' parser can parse several things, including
+            statements, expressions, and TypeScript types. Our diagnostic is
+            specific to JavaScript expressions, so we call
+            <code class="cxx">parse_and_visit_expression</code>.
+          </dd>
+
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-4"
+                >diag_comparison_with_empty_string</span
+              ></code
+            >
+          </dt>
+          <dd>
+            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> which
+            kind of diagnostic we expect. We do this by writing the diagnostic
+            class' name as it appears in
+            <code class="cxx">QLJS_DIAG_TYPE</code>.
+          </dd>
+
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-5"
+                >comparison_operator</span
+              ></code
+            >
+          </dt>
+          <dd>
+            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> which
+            variable in the diagnostic class we want to check. Most diagnostic
+            classes (such as ours) have only one variable, but we still need to
+            write it explicitly.
+          </dd>
+
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-6"
+                >strlen(u8"a "), u8"==="_sv</span
+              ></code
+            >
+          </dt>
+          <dd>
+            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> where in
+            the source code the diagnostic should be reported. This is
+            represented using two parameters: a beginning offset and a span of
+            characters. <code class="cxx">strlen(u8"a ")</code> is 2, so the
+            diagnostic should start at the character at offset 2.
+            <code class="cxx">u8"==="_sv</code> has 3 characters, so the
+            diagnostic should cover offsets 2, 3, and 4:
+            <blockquote>
+              <pre><code>a === ''
+  ^~~
+  offsets 2, 3, and 4</code></pre>
+            </blockquote>
+          </dd>
+        </dl>
+
+        <p>
+          Build and run the test to make sure it fails. The failure says that we
+          expected a diagnostic, but didn't get any. This makes sense because we
+          haven't written the code to report the diagnostic yet:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd>
+ninja: Entering directory `build'
+[2/2] Linking CXX executable test/quick-lint-js-test
+
+<kbd>./build/test/quick-lint-js-test --gtest_brief=1</kbd>
+Running main() from gmock_main.cc
+/home/strager/Projects/quick-lint-js-sl/test/test-parse-warning.cpp:561: Failure
+Value of: p.errors
+<mark>Expected: has 1 element that has type diag_comparison_with_empty_string</mark>
+  <mark>Actual: {}</mark>
+[  FAILED  ] test_parse_warning.warn_on_empty_string_literal_comparison (0 ms)
+main thread ID: 373982
+[==========] 1981 tests from 151 test suites ran. (755 ms total)
+[  PASSED  ] 1980 tests.</code></pre>
+        </blockquote>
+      </section>
+
+      <section id="report">
+        <h3>3. Detection and reporting of the diagnostic</h3>
+
+        <p>
+          Now for the hard part: writing the production code. Most likely we
+          will report our diagnostic in one of these files:
+        </p>
+        <ul>
+          <li>
+            <a
+              href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/fe/lex.cpp"
+              >src/quick-lint-js/fe/lex.cpp</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/fe/parse.cpp"
+              >src/quick-lint-js/fe/parse.cpp</a
+            >
+            or parse-*.cpp
+          </li>
+          <li>
+            <a
+              href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/fe/variable-analyzer.cpp"
+              >src/quick-lint-js/fe/variable-analyzer.cpp</a
+            >
+          </li>
+        </ul>
+
+        <p>
+          But these files contain thousands of lines of code. How do we know
+          where to put our new code?
+        </p>
+
+        <p>One technique is to step through the code in a debugger:</p>
+
+        <blockquote>
+          <pre
+            class="gdb-session"
+          >$ <kbd>gdb --args ./build/test/quick-lint-js-test --gtest_filter=test_parse_warning.warn_on_empty_string_literal_comparison</kbd>
+(gdb) <kbd>b parse_and_visit_expression</kbd>
+<samp class="important">Breakpoint 1 at 0x754ae0: parse_and_visit_expression. (3 locations)</samp>
+(gdb) <kbd>run</kbd>
+<samp>Starting program: build/test/quick-lint-js-test --gtest_filter=test_parse_warning.warn_on_empty_string_literal_comparison
+Running main() from gmock_main.cc
+Note: Google Test filter = test_parse_warning.warn_on_empty_string_literal_comparison
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from test_parse_warning
+[ RUN      ] test_parse_warning.warn_on_empty_string_literal_comparison
+
+Breakpoint 1, quick_lint_js::test_parser::parse_and_visit_expression at test/./quick-lint-js/parse-support.h:97
+97          this-&gt;parser_.parse_and_visit_expression(this-&gt;errors_);</samp>
+(gdb) <kbd>c</kbd>
+<samp>Continuing.
+
+Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:174
+174         this-&gt;parse_and_visit_expression(v, precedence{});</samp>
+(gdb) <kbd>c</kbd>
+<samp>Continuing.
+
+Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:550
+550         monotonic_allocator &amp;alloc = *this-&gt;expressions_.allocator();</samp>
+(gdb) <kbd>n</kbd>
+<samp>551         auto rewind_guard = alloc.make_rewind_guard();</samp>
+(gdb) <kbd>n</kbd>
+<samp>553         expression *ast = this-&gt;parse_expression(v, prec);</samp>
+(gdb) <kbd>n</kbd>
+<samp>555           auto disable_guard = alloc.disable();</samp>
+(gdb) <kbd>n</kbd>
+<samp class="important">556           this-&gt;visit_expression(ast, v, variable_context::rhs);</samp>
+(gdb) <kbd>step</kbd>
+<samp>quick_lint_js::parser::visit_expression at src/quick-lint-js/fe/parse-expression.cpp:36
+36        auto visit_children = [&amp;] {</samp>
+(gdb) <kbd>n</kbd>
+<samp>41        switch (ast-&gt;kind()) {</samp>
+(gdb) <kbd>n</kbd>
+<samp>67          visit_children();</samp>
+(gdb) <kbd>n</kbd>
+<samp>69          static_cast&lt;expression::binary_operator*&gt;(ast));</samp>
+(gdb) <kbd>n</kbd>
+<samp class="important">68          this-&gt;error_on_pointless_compare_against_literal(</samp></pre>
+        </blockquote>
+
+        <p>
+          <code class="cxx">error_on_pointless_compare_against_literal</code>
+          looks like a good place to put our code.
+        </p>
+
+        <p>
+          Detecting when to report the diagnostic is up to you. But once you
+          have the information you need, reporting a diagnostics is easy:
+        </p>
+
+        <blockquote>
+          <pre><code class="cxx">source_code_span op_span = /* usually this->peek().span */;
+this->diag_reporter_->report(diag_comparison_with_empty_string{
+    .comparison_operator = op_span,
+});</code></pre>
+        </blockquote>
+
+        <p>Build and test to prove that our code worked:</p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd>
+ninja: Entering directory `build'
+[3/3] Linking CXX executable test/quick-lint-js-test
+
+<kbd>./build/test/quick-lint-js-test --gtest_brief=1</kbd>
+Running main() from gmock_main.cc
+main thread ID: 375845
+[==========] 1981 tests from 151 test suites ran. (785 ms total)
+[  PASSED  ] 1981 tests.</code></pre>
+        </blockquote>
+
+        <p>Huzzah! 🥳</p>
+
+        <p>
+          But we're not done yet... We still have to write 💀
+          <a href="#document">documentation</a> 💀
+        </p>
+      </section>
+
+      <section id="document">
+        <h3>4. Documentation for the website</h3>
+
+        <p>
+          Each diagnostic has associated documentation stored separately from
+          the code. The docs are stored in
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/tree/master/docs/errors"
+            >docs/errors/</a
+          >
+          with one file per diagnostic. Let's write our documentation:
+        </p>
+
+        <blockquote>
+          <pre><code class="markdown"># <mark class="arg-1">E0331: comparing against empty strings is silly</mark>
+
+Empty strings are error-prone, and comparing against empty strings is extra
+error-prone:
+
+<mark class="arg-2">```javascript
+let x = prompt();
+if (x === '') {
+    alert('You were supposed to type something!');
+}
+```</mark>
+
+To fix this mistake, check the string's `length` property instead:
+
+<mark class="arg-3">```javascript
+let x = prompt();
+if (x.length === 0) {
+    alert('You were supposed to type something!');
+}
+```</mark>
+
+Alternatively, treat the string as a boolean:
+
+<mark class="arg-4">```javascript
+let x = prompt();
+if (!x) {
+    alert('You were supposed to type something!');
+}
+```</mark>
+
+(This is an example diagnostic for contributor documentation purposes. Comparing
+against empty strings is totally fine, and the fact that quick-lint-js reports a
+diagnostic in this case is sad.)</code></pre>
+        </blockquote>
+
+        <p>Some important parts of diagnostic documentation:</p>
+        <dl>
+          <dt><span class="arg-1 mark-reference">title</span></dt>
+          <dd>
+            The title of the document should include the diagnostic's code. The
+            diagnostic's message should follow the code. The title should
+            include the message mentioned in <code>diagnostic-types.h</code>,
+            but it doesn't have to match exactly. Interpolation markers such as
+            <code>{1:headlinese}</code> should be omitted.
+          </dd>
+
+          <dt><span class="arg-2 mark-reference">first example</span></dt>
+          <dd>
+            The first code snippet should be fenced with
+            <code class="markdown">```javascript</code> or
+            <code class="markdown">```typescript</code> (or another other
+            support language). This code snippet demonstrates broken code and
+            <strong>must</strong> cause quick-lint-js to report a diagnostic. A
+            broken code snippet is <strong>required</strong>.
+          </dd>
+
+          <dt><span class="arg-3 mark-reference">second example</span></dt>
+          <dd>
+            The second code snippet should also be fenced. This code snippet
+            demonstrates working code and <strong>must not</strong> cause
+            quick-lint-js to report any diagnostic. A working code snippet is
+            <strong>required</strong>.
+          </dd>
+
+          <dt><span class="arg-4 mark-reference">extra examples</span></dt>
+          <dd>
+            You can include more code snippets after the second. Each of these
+            extra code snippet must cause no diagnostics. Usually these code
+            snippets show alternate ways of addressing the original issue. These
+            extra examples are optional.
+          </dd>
+        </dl>
+      </section>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

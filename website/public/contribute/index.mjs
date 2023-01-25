@@ -10,10 +10,15 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 export async function loadNavSubpagesAsync() {
+  let root = path.join(__dirname, "..");
   return [
     ...(await loadNavSubpageAndSubsubpagesAsync({
-      root: path.join(__dirname, ".."),
+      root: root,
       uri: "/contribute/build-from-source/",
+    })),
+    ...(await loadNavSubpageAndSubsubpagesAsync({
+      root: root,
+      uri: "/contribute/create-diagnostic/",
     })),
   ];
 }
@@ -42,7 +47,7 @@ async function loadNavSinglePageAsync({ root, uri }) {
   let frontMatter = await readFrontMatterFromFileAsync(
     path.join(root, uri, "index.ejs.html")
   );
-  return { uri: uri, title: frontMatter.navTitle };
+  return { uri: uri, title: frontMatter.navTitle, meta: frontMatter };
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
