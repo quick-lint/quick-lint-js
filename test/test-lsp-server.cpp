@@ -78,10 +78,10 @@ class mock_lsp_linter final : public lsp_linter {
 
   ~mock_lsp_linter() override = default;
 
-  void lint_and_get_diagnostics_notification(
-      configuration& config, linter_options lint_options,
-      padded_string_view code, string8_view uri_json, string8_view version_json,
-      outgoing_lsp_message_queue& outgoing_messages) override {
+  void lint(configuration& config, linter_options lint_options,
+            padded_string_view code, string8_view uri_json,
+            string8_view version_json,
+            outgoing_lsp_message_queue& outgoing_messages) override {
     this->callback_(config, lint_options, code, uri_json, version_json,
                     outgoing_messages);
   }
@@ -2502,9 +2502,8 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   configuration config;
 
   lsp_javascript_linter linter;
-  linter.lint_and_get_diagnostics_notification(config, linter_options(), &code,
-                                               u8"\"file:///test.js\""_sv,
-                                               u8"10"_sv, notifications);
+  linter.lint(config, linter_options(), &code, u8"\"file:///test.js\""_sv,
+              u8"10"_sv, notifications);
 
   spy_lsp_endpoint_remote endpoint;
   notifications.send(endpoint);
