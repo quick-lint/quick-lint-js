@@ -14,6 +14,7 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-metadata.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <utility>
 
@@ -50,8 +51,7 @@ void trace_flusher_directory_backend::trace_thread_end(
 }
 
 void trace_flusher_directory_backend::trace_thread_write_data(
-    trace_flusher_thread_index thread_index, const std::byte *data,
-    std::size_t size) {
+    trace_flusher_thread_index thread_index, span<const std::byte> data) {
   auto it = this->thread_files_.find(thread_index);
   if (it == this->thread_files_.end()) {
     // Opening the file failed. Don't write anything.
@@ -59,7 +59,8 @@ void trace_flusher_directory_backend::trace_thread_write_data(
   }
   platform_file_ref file = it->second.ref();
 
-  auto write_result = file.write_full(data, size);
+  auto write_result =
+      file.write_full(data.data(), narrow_cast<std::size_t>(data.size()));
   if (!write_result.ok()) {
     QLJS_DEBUG_LOG("warning: failed to append to trace stream file: %s\n",
                    write_result.error_to_string().c_str());

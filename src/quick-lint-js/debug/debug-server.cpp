@@ -22,6 +22,7 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/instance-tracker.h>
@@ -43,12 +44,11 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
   void trace_thread_end(trace_flusher_thread_index) override {}
 
   void trace_thread_write_data(trace_flusher_thread_index thread_index,
-                               const std::byte *data,
-                               std::size_t size) override {
+                               span<const std::byte> data) override {
     std::lock_guard<mutex> lock(this->mutex_);
 
     async_byte_queue &queue = this->thread_queues_[thread_index];
-    queue.append_copy(data, size);
+    queue.append_copy(data.data(), narrow_cast<std::size_t>(data.size()));
     queue.commit();
     server_->wake_up_server_thread();
   }

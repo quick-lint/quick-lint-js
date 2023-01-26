@@ -20,6 +20,7 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/process.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -218,7 +219,9 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
   t.stream_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
         for (trace_flusher_backend* backend : this->backends_) {
-          backend->trace_thread_write_data(t.thread_index, data, size);
+          backend->trace_thread_write_data(
+              t.thread_index,
+              span<const std::byte>(data, narrow_cast<span_size>(size)));
         }
       },
       [] {});
@@ -255,7 +258,9 @@ void trace_flusher::write_thread_header_to_backend(
   temp_queue.commit();
   temp_queue.take_committed(
       [&](const std::byte* data, std::size_t size) {
-        backend->trace_thread_write_data(t.thread_index, data, size);
+        backend->trace_thread_write_data(
+            t.thread_index,
+            span<const std::byte>(data, narrow_cast<span_size>(size)));
       },
       [] {});
 }

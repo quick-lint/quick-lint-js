@@ -15,6 +15,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <string>
 #include <vector>
@@ -57,8 +58,7 @@ class trace_flusher_backend {
   //
   // Called from any thread.
   virtual void trace_thread_write_data(trace_flusher_thread_index thread_index,
-                                       const std::byte* data,
-                                       std::size_t size) = 0;
+                                       span<const std::byte> data) = 0;
 };
 
 class trace_flusher_directory_backend final : public trace_flusher_backend {
@@ -68,8 +68,7 @@ class trace_flusher_directory_backend final : public trace_flusher_backend {
   void trace_thread_begin(trace_flusher_thread_index thread_index) override;
   void trace_thread_end(trace_flusher_thread_index thread_index) override;
   void trace_thread_write_data(trace_flusher_thread_index thread_index,
-                               const std::byte* data,
-                               std::size_t size) override;
+                               span<const std::byte> data) override;
 
   // Creates a 'metadata' file in the given directory.
   //

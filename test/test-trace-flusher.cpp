@@ -22,6 +22,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/process.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/trace-stream-reader-mock.h>
@@ -120,15 +121,15 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
   }
 
   void trace_thread_write_data(trace_flusher_thread_index thread_index,
-                               const std::byte* data,
-                               std::size_t size) override {
+                               span<const std::byte> data) override {
     std::lock_guard<mutex> lock(this->mutex_);
 
     thread_state& t = this->thread_states[thread_index];
     EXPECT_GE(t.begin_calls, 1);
     EXPECT_EQ(t.end_calls, 0);
 
-    t.written_data.append(reinterpret_cast<const char*>(data), size);
+    t.written_data.append(reinterpret_cast<const char*>(data.data()),
+                          narrow_cast<std::size_t>(data.size()));
     t.write_calls += 1;
   }
 
