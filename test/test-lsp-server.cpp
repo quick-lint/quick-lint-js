@@ -14,6 +14,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
@@ -151,7 +152,7 @@ TEST_F(test_linting_lsp_server, initialize) {
           "rootUri": null,
           "capabilities": {}
         }
-      })"));
+      })"_sv));
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
@@ -202,17 +203,18 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
     this->reset();
 
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
-          "id": )" + string8(test.id_json) +
-                     u8R"(,
+          "id": )"_sv,
+                            test.id_json,
+                            u8R"(,
           "method": "initialize",
           "params": {
             "processId": null,
             "rootUri": null,
             "capabilities": {}
           }
-        })"));
+        })"_sv)));
 
     std::vector< ::boost::json::object> responses = this->client->responses();
     ASSERT_EQ(responses.size(), 1);
@@ -226,7 +228,7 @@ TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
         "jsonrpc": "2.0",
         "method": "initialized",
         "params": {}
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
@@ -237,7 +239,7 @@ TEST_F(test_linting_lsp_server, loads_config_after_client_initialization) {
         "jsonrpc": "2.0",
         "method": "initialized",
         "params": {}
-      })"));
+      })"_sv));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> requests = this->client->requests();
@@ -262,7 +264,7 @@ TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
         "jsonrpc": "2.0",
         "method": "initialized",
         "params": {}
-      })"));
+      })"_sv));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> requests = this->client->requests();
@@ -284,13 +286,15 @@ TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
   }
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
-        "id": )" + json_to_string8(config_request_id) +
-                   u8R"(,
-        "result": )" +
-                   json_to_string8(config_response_params) + u8R"(
-      })"));
+        "id": )"_sv,
+                          json_to_string8(config_request_id),
+                          u8R"(,
+        "result": )"_sv,
+                          json_to_string8(config_response_params),
+                          u8R"(
+      })"_sv)));
 
   linting_lsp_server_config& config = this->handler->server_config();
   EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");
@@ -306,7 +310,7 @@ TEST_F(test_linting_lsp_server, did_change_configuration_notification) {
             "quick-lint-js.tracing-directory": "/test/tracing/dir"
           }
         }
-      })"));
+      })"_sv));
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->client->messages, IsEmpty());
@@ -324,16 +328,17 @@ TEST_F(test_linting_lsp_server,
   lsp_endpoint server(&handler, &client);
 
   server.append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
-            "quick-lint-js.tracing-directory": )" +
-                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+            "quick-lint-js.tracing-directory": )"_sv,
+                          json_to_string8(::boost::json::string(temp_dir)),
+                          u8R"(
           }
         }
-      })"));
+      })"_sv)));
 
   std::vector<std::string> original_children =
       list_files_in_directory(temp_dir);
@@ -342,16 +347,17 @@ TEST_F(test_linting_lsp_server,
       << " should create a trace subdirectory";
 
   server.append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
-            "quick-lint-js.tracing-directory": )" +
-                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+            "quick-lint-js.tracing-directory": )"_sv,
+                          json_to_string8(::boost::json::string(temp_dir)),
+                          u8R"(
           }
         }
-      })"));
+      })"_sv)));
 
   std::vector<std::string> new_children = list_files_in_directory(temp_dir);
   EXPECT_THAT(new_children, original_children)
@@ -371,29 +377,29 @@ TEST_F(test_linting_lsp_server,
   std::string new_tracing_dir = this->make_temporary_directory();
 
   server.append(make_message(
-      u8R"({
+      concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
-            "quick-lint-js.tracing-directory": )" +
-      json_to_string8(::boost::json::string(original_tracing_dir)) +
-      u8R"(
+            "quick-lint-js.tracing-directory": )"_sv,
+             json_to_string8(::boost::json::string(original_tracing_dir)),
+             u8R"(
           }
         }
-      })"));
-  server.append(
-      make_message(u8R"({
+      })"_sv)));
+  server.append(make_message(
+      concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
-            "quick-lint-js.tracing-directory": )" +
-                   json_to_string8(::boost::json::string(new_tracing_dir)) +
-                   u8R"(
+            "quick-lint-js.tracing-directory": )"_sv,
+             json_to_string8(::boost::json::string(new_tracing_dir)),
+             u8R"(
           }
         }
-      })"));
+      })"_sv)));
 
   std::vector<std::string> new_children =
       list_files_in_directory(new_tracing_dir);
@@ -415,16 +421,17 @@ TEST_F(test_linting_lsp_server,
   lsp_endpoint server(&handler, &client);
 
   server.append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
-            "quick-lint-js.tracing-directory": )" +
-                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+            "quick-lint-js.tracing-directory": )"_sv,
+                          json_to_string8(::boost::json::string(temp_dir)),
+                          u8R"(
           }
         }
-      })"));
+      })"_sv)));
   EXPECT_TRUE(tracer.is_enabled());
   server.append(
       make_message(u8R"({
@@ -435,7 +442,7 @@ TEST_F(test_linting_lsp_server,
             "quick-lint-js.tracing-directory": ""
           }
         }
-      })"));
+      })"_sv));
   EXPECT_FALSE(tracer.is_enabled());
 }
 
@@ -446,7 +453,7 @@ TEST_F(test_linting_lsp_server, shutdown) {
         "jsonrpc": "2.0",
         "id": 10,
         "method": "shutdown"
-      })"));
+      })"_sv));
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
@@ -465,7 +472,7 @@ TEST_F(test_linting_lsp_server,
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "exit"
-        })"));
+        })"_sv));
     std::exit(99);  // Shouldn't happen.
   };
   EXPECT_EXIT({ send_exit(); }, ::testing::ExitedWithCode(1), "");
@@ -481,7 +488,7 @@ TEST_F(test_linting_lsp_server,
         "jsonrpc": "2.0",
         "id": 10,
         "method": "shutdown"
-      })"));
+      })"_sv));
   this->client->messages.clear();
 
   auto send_exit = [this]() {
@@ -489,7 +496,7 @@ TEST_F(test_linting_lsp_server,
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "exit"
-        })"));
+        })"_sv));
     std::exit(99);  // Shouldn't happen.
   };
   EXPECT_EXIT({ send_exit(); }, ::testing::ExitedWithCode(0), "");
@@ -502,7 +509,7 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "$/someNotification"
-      })"));
+      })"_sv));
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
@@ -550,7 +557,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
               "text": "let x = x;"
             }
           }
-        })"));
+        })"_sv));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -590,19 +597,20 @@ TEST_F(test_linting_lsp_server, javascript_language_ids_enable_jsx) {
     };
 
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
           "params": {
             "textDocument": {
               "uri": "file:///test.js",
-              "languageId": ")" +
-                     string8(language_id) + u8R"(",
+              "languageId": ")"_sv,
+                            language_id,
+                            u8R"(",
               "version": 10,
               "text": "code goes here"
             }
           }
-        })"));
+        })"_sv)));
     EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
@@ -620,19 +628,20 @@ TEST_F(test_linting_lsp_server, typescript_language_ids_enable_typescript) {
     };
 
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
           "params": {
             "textDocument": {
               "uri": "file:///test.ts",
-              "languageId": ")" +
-                     string8(language_id) + u8R"(",
+              "languageId": ")"_sv,
+                            language_id,
+                            u8R"(",
               "version": 10,
               "text": "code goes here"
             }
           }
-        })"));
+        })"_sv)));
     EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
@@ -650,19 +659,20 @@ TEST_F(test_linting_lsp_server, tsx_language_ids_enable_typescript_jsx) {
     };
 
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
           "params": {
             "textDocument": {
               "uri": "file:///test.tsx",
-              "languageId": ")" +
-                     string8(language_id) + u8R"(",
+              "languageId": ")"_sv,
+                            language_id,
+                            u8R"(",
               "version": 10,
               "text": "code goes here"
             }
           }
-        })"));
+        })"_sv)));
     EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
@@ -680,7 +690,7 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
             "text": "FIRST"
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
   this->server->append(
       make_message(u8R"({
@@ -697,7 +707,7 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"SECOND"}));
 }
@@ -716,7 +726,7 @@ TEST_F(test_linting_lsp_server,
             "text": "the quick brown fox"
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
 
   this->server->append(
@@ -738,7 +748,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -758,7 +768,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow brown fox",
                                                   u8"the slow purple fox"}));
@@ -778,7 +788,7 @@ TEST_F(test_linting_lsp_server,
             "text": "the quick brown fox"
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
 
   this->server->append(
@@ -807,7 +817,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow purple fox"}));
 }
@@ -823,19 +833,20 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -844,58 +855,62 @@ TEST_F(
     test_linting_lsp_server,
     open_then_close_then_open_js_file_then_modify_config_file_lints_js_file) {
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "json",
             "version": 1,
             "text": "{\"globals\": {\"testGlobalVariableBefore\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   this->lint_calls.clear();
   this->lint_callback = [&](configuration& config, linter_options,
@@ -905,13 +920,14 @@ TEST_F(
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"sv));
   };
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -920,7 +936,7 @@ TEST_F(
             }
           ]
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -937,19 +953,20 @@ TEST_F(test_linting_lsp_server,
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(a%25b%7E/%E2%98%83.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(a%25b%7E/%E2%98%83.js",
             "languageId": "javascript",
             "version": 10,
             "text": "snowman"
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"snowman"}));
 }
@@ -964,33 +981,35 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"modified": false}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"modified\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -1007,34 +1026,35 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"haveOuterConfig": false}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(inner/quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(inner/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"haveInnerConfig\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(inner/test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -1057,42 +1077,45 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"before\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
   // Change 'before' to 'after'.
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -1105,7 +1128,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
             }
           ]
         }
-      })"));
+      })"_sv)));
 
   EXPECT_TRUE(after_config_was_loaded);
 }
@@ -1115,42 +1138,45 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"before\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
             "version": 10,
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
             "version": 11,
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js"
           },
           "contentChanges": [
             {
@@ -1162,7 +1188,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv)));
 
   this->lint_callback = [&](configuration&, linter_options, padded_string_view,
                             string8_view, string8_view version_json,
@@ -1171,13 +1197,14 @@ TEST_F(test_linting_lsp_server,
 
   // Change 'before' to 'after'.
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -1190,7 +1217,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"updated"sv}));
 }
@@ -1220,36 +1247,39 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"before\": true}}"
           }
         }
-      })"));
+      })"_sv)));
 
   for (const char8* js_file : {u8"a.js", u8"b.js", u8"c.js"}) {
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
           "params": {
             "textDocument": {
-              "uri": ")" +
-                     this->fs.file_uri_prefix_8() + js_file + u8R"(",
+              "uri": ")"_sv,
+                            this->fs.file_uri_prefix_8(), js_file,
+                            u8R"(",
               "languageId": "javascript",
               "version": 10,
-              "text": "/* )" +
-                     js_file + u8R"( */"
+              "text": "/* )"_sv,
+                            js_file,
+                            u8R"( */"
             }
           }
-        })"));
+        })"_sv)));
   }
 
   this->handler->flush_pending_notifications(*this->client);
@@ -1257,13 +1287,14 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   this->client->messages.clear();
   // Change 'before' to 'after'.
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -1276,7 +1307,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
             }
           ]
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls,
@@ -1328,52 +1359,54 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(dir-a/quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(dir-a/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"a\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(dir-b/quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(dir-b/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"b\": true}}"
           }
         }
-      })"));
+      })"_sv)));
 
   for (const char8* js_file : {u8"dir-a/test.js", u8"dir-b/test.js"}) {
     this->server->append(
-        make_message(u8R"({
+        make_message(concat(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
           "params": {
             "textDocument": {
-              "uri": ")" +
-                     this->fs.file_uri_prefix_8() + js_file + u8R"(",
+              "uri": ")"_sv,
+                            this->fs.file_uri_prefix_8(), js_file,
+                            u8R"(",
               "languageId": "javascript",
               "version": 10,
-              "text": "/* )" +
-                     js_file + u8R"( */"
+              "text": "/* )"_sv,
+                            js_file,
+                            u8R"( */"
             }
           }
-        })"));
+        })"_sv)));
   }
 
   this->handler->flush_pending_notifications(*this->client);
@@ -1382,14 +1415,14 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   // Change 'a' to 'A' in dir-a/quick-lint-js.config (but leave
   // dir-b/quick-lint-js.config as-is).
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(dir-a/quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(dir-a/quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -1402,7 +1435,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
             }
           ]
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
@@ -1432,51 +1465,53 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
 TEST_F(test_linting_lsp_server,
        editing_js_file_after_shadowing_config_uses_latest_config) {
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"before\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(inner/test.js",
             "languageId": "javascript",
             "version": 10,
             "text": "original"
           }
         }
-      })"));
+      })"_sv)));
 
   // After opening test.js, create /inner/quick-lint-js.config which shadows
   // /quick-lint-js.config.
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(inner/quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(inner/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"after\": true}}"
           }
         }
-      })"));
+      })"_sv)));
 
   this->lint_calls.clear();
   this->lint_callback = [&](configuration& config, linter_options,
@@ -1488,14 +1523,15 @@ TEST_F(test_linting_lsp_server,
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
             "version": 11,
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js"
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(inner/test.js"
           },
           "contentChanges": [
             {
@@ -1503,7 +1539,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"modified"}));
 }
@@ -1526,33 +1562,35 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"after\": true}}"
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_TRUE(after_config_was_loaded);
 }
@@ -1562,19 +1600,20 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   bool after_config_was_loaded = false;
   this->lint_callback = [&](configuration& config, linter_options,
@@ -1629,44 +1668,47 @@ TEST_F(
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"v1": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"v2\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config"
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -1676,33 +1718,35 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"configFromFilesystem": true}})");
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"configFromLSP\": true}}"
           }
         }
-      })"));
+      })"_sv)));
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
           }
         }
-      })"));
+      })"_sv)));
 
   this->lint_calls.clear();
   this->lint_callback = [&](configuration& config, linter_options,
@@ -1724,16 +1768,17 @@ TEST_F(test_linting_lsp_server,
     })");
   };
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config"
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config"
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
 }
@@ -1772,19 +1817,20 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": "testjs"
           }
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
@@ -1833,19 +1879,20 @@ TEST_F(test_linting_lsp_server,
   };
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": "testjs"
           }
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
@@ -1872,19 +1919,20 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
                        u8R"({"globals": {"configFromFilesystem": true}})");
 
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(test.js",
             "languageId": "javascript",
             "version": 10,
             "text": "testjs"
           }
         }
-      })"));
+      })"_sv)));
 
   this->fs.create_file(
       this->fs.rooted("quick-lint-js.config"),
@@ -1939,19 +1987,20 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
 
 TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "json",
             "version": 1,
             "text": "THIS IS INVALID JSON"
           }
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -1981,30 +2030,32 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
 TEST_F(test_linting_lsp_server,
        introducing_config_file_error_shows_diagnostics) {
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "languageId": "json",
             "version": 1,
             "text": "{ \"globals\": {} }"
           }
         }
-      })"));
+      })"_sv)));
 
   this->handler->flush_pending_notifications(*this->client);
   this->client->messages.clear();
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(quick-lint-js.config",
             "version": 2
           },
           "contentChanges": [
@@ -2013,7 +2064,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv)));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -2054,7 +2105,7 @@ TEST_F(test_linting_lsp_server,
             "text": ""
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
   this->server->append(
       make_message(u8R"({
@@ -2071,27 +2122,27 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server, json_file_which_is_not_config_file_is_ignored) {
   this->server->append(
-      make_message(u8R"({
+      make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
         "params": {
           "textDocument": {
-            "uri": ")" +
-                   this->fs.file_uri_prefix_8() +
-                   u8R"(not-quick-lint-js.config",
+            "uri": ")"_sv,
+                          this->fs.file_uri_prefix_8(),
+                          u8R"(not-quick-lint-js.config",
             "languageId": "json",
             "version": 1,
             "text": "THIS IS INVALID JSON"
           }
         }
-      })"));
+      })"_sv)));
 
   EXPECT_THAT(this->client->messages, IsEmpty());
   EXPECT_THAT(this->lint_calls, IsEmpty());
@@ -2111,7 +2162,7 @@ TEST_F(test_linting_lsp_server,
             "text": "<b>hi</b>"
           }
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
@@ -2130,7 +2181,7 @@ TEST_F(test_linting_lsp_server,
             "text": "let x = x;"
           }
         }
-      })"));
+      })"_sv));
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2140,7 +2191,7 @@ TEST_F(test_linting_lsp_server,
             "uri": "file:///test.js"
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
   this->server->append(
       make_message(u8R"({
@@ -2154,7 +2205,7 @@ TEST_F(test_linting_lsp_server,
             "text": "let x = x;"
           }
         }
-      })"));
+      })"_sv));
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2170,7 +2221,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls,
               ElementsAreArray({u8"let x = x;", u8"let y = y;"}));
@@ -2190,7 +2241,7 @@ TEST_F(test_linting_lsp_server,
             "text": "let x = x;"
           }
         }
-      })"));
+      })"_sv));
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2200,7 +2251,7 @@ TEST_F(test_linting_lsp_server,
             "uri": "file:///test.js"
           }
         }
-      })"));
+      })"_sv));
   this->lint_calls.clear();
   this->server->append(
       make_message(u8R"({
@@ -2214,7 +2265,7 @@ TEST_F(test_linting_lsp_server,
             "text": "let x = x;"
           }
         }
-      })"));
+      })"_sv));
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2230,7 +2281,7 @@ TEST_F(test_linting_lsp_server,
             }
           ]
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
@@ -2342,7 +2393,7 @@ TEST_F(test_linting_lsp_server,
         "jsonrpc": "2.0",
         "method": "textDocument/shinyNewMethod",
         "params": {}
-      })"));
+      })"_sv));
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
@@ -2353,7 +2404,7 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
         "method": "textDocument/shinyNewMethod",
         "id": 10,
         "params": {}
-      })"));
+      })"_sv));
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
@@ -2421,7 +2472,7 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
             "text": ""
           }
         }
-      })"));
+      })"_sv));
 
     this->server->append(make_message(message));
 
@@ -2493,7 +2544,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
             "text": "let \\u{79}; x;"
           }
         }
-      })"));
+      })"_sv));
   handler.flush_pending_notifications(remote);
 
   {
@@ -2529,7 +2580,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
             }
           ]
         }
-      })"));
+      })"_sv));
   handler.flush_pending_notifications(remote);
 
   {
@@ -2562,7 +2613,7 @@ TEST(test_lsp_javascript_linter,
             "text": "interface I { }"
           }
         }
-      })"));
+      })"_sv));
   handler.flush_pending_notifications(client);
 
   std::vector< ::boost::json::object> notifications = client.notifications();
@@ -2594,7 +2645,7 @@ TEST(test_lsp_javascript_linter,
             "text": "interface I { }"
           }
         }
-      })"));
+      })"_sv));
   handler.flush_pending_notifications(client);
 
   std::vector< ::boost::json::object> notifications = client.notifications();
