@@ -155,11 +155,6 @@ byte_buffer& outgoing_lsp_message_queue::new_message() {
 
 void outgoing_lsp_message_queue::send(lsp_endpoint_remote& remote) {
   for (byte_buffer& notification_json : this->messages_) {
-    if (notification_json.empty()) {
-      // TODO(strager): Fix our tests so they don't make empty
-      // byte_buffer-s.
-      continue;
-    }
     remote.send_message(std::move(notification_json));
   }
   this->messages_.clear();
