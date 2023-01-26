@@ -149,6 +149,22 @@ void lsp_overlay_configuration_filesystem::close_document(
   QLJS_ASSERT(erased > 0);
 }
 
+byte_buffer& outgoing_lsp_message_queue::new_message() {
+  return this->messages_.emplace_back();
+}
+
+void outgoing_lsp_message_queue::send(lsp_endpoint_remote& remote) {
+  for (byte_buffer& notification_json : this->messages_) {
+    if (notification_json.empty()) {
+      // TODO(strager): Fix our tests so they don't make empty
+      // byte_buffer-s.
+      continue;
+    }
+    remote.send_message(std::move(notification_json));
+  }
+  this->messages_.clear();
+}
+
 linting_lsp_server_handler::linting_lsp_server_handler(
     configuration_filesystem* fs, lsp_linter* linter)
     : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {
@@ -253,7 +269,7 @@ void linting_lsp_server_handler::filesystem_changed() {
 void linting_lsp_server_handler::add_watch_io_errors(
     const std::vector<watch_io_error>& errors) {
   if (!errors.empty() && !this->did_report_watch_io_error_) {
-    byte_buffer& out_json = this->pending_notification_jsons_.emplace_back();
+    byte_buffer& out_json = this->outgoing_messages_.new_message();
     // clang-format off
     out_json.append_copy(u8R"--({)--"
       u8R"--("jsonrpc":"2.0",)--"
@@ -309,7 +325,7 @@ void linting_lsp_server_handler::handle_workspace_configuration_response(
 }
 
 void linting_lsp_server_handler::handle_initialized_notification() {
-  byte_buffer& request_json = this->pending_notification_jsons_.emplace_back();
+  byte_buffer& request_json = this->outgoing_messages_.new_message();
   this->workspace_configuration_.build_request(initial_configuration_request_id,
                                                request_json);
 }
@@ -366,8 +382,7 @@ void linting_lsp_server_handler::config_document::on_text_changed(
 
 void linting_lsp_server_handler::lintable_document::on_text_changed(
     linting_lsp_server_handler& handler, string8_view document_uri_json) {
-  byte_buffer& notification_json =
-      handler.pending_notification_jsons_.emplace_back();
+  byte_buffer& notification_json = handler.outgoing_messages_.new_message();
   handler.linter_.lint_and_get_diagnostics_notification(
       *this, document_uri_json, notification_json);
 }
@@ -455,8 +470,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       if (*config_file) {
         doc->config = &(*config_file)->config;
         if (!(*config_file)->errors.empty()) {
-          byte_buffer& message_json =
-              this->pending_notification_jsons_.emplace_back();
+          byte_buffer& message_json = this->outgoing_messages_.new_message();
           this->write_configuration_errors_notification(
               document_path, *config_file, message_json);
         }
@@ -465,13 +479,11 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       }
     } else {
       doc->config = &this->default_config_;
-      byte_buffer& message_json =
-          this->pending_notification_jsons_.emplace_back();
+      byte_buffer& message_json = this->outgoing_messages_.new_message();
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
     }
-    byte_buffer& notification_json =
-        this->pending_notification_jsons_.emplace_back();
+    byte_buffer& notification_json = this->outgoing_messages_.new_message();
     this->linter_.lint_and_get_diagnostics_notification(*doc, uri->json,
                                                         notification_json);
 
@@ -485,7 +497,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
                                                         /*token=*/doc.get());
     QLJS_ASSERT(config_file.ok());
     byte_buffer& config_diagnostics_json =
-        this->pending_notification_jsons_.emplace_back();
+        this->outgoing_messages_.new_message();
     this->get_config_file_diagnostics_notification(
         *config_file, uri->json, doc->version_json, config_diagnostics_json);
 
@@ -546,7 +558,7 @@ void linting_lsp_server_handler::config_document::on_config_file_changed(
   QLJS_ASSERT(change.config_file);
   if (change.config_file) {
     byte_buffer& config_diagnostics_json =
-        handler.pending_notification_jsons_.emplace_back();
+        handler.outgoing_messages_.new_message();
     handler.get_config_file_diagnostics_notification(
         change.config_file, to_json_escaped_string_with_quotes(document_uri),
         this->version_json, config_diagnostics_json);
@@ -562,16 +574,14 @@ void linting_lsp_server_handler::lintable_document::on_config_file_changed(
     QLJS_UNIMPLEMENTED();
   }
   if (change.error) {
-    byte_buffer& message_json =
-        handler.pending_notification_jsons_.emplace_back();
+    byte_buffer& message_json = handler.outgoing_messages_.new_message();
     handler.write_configuration_loader_error_notification(
         document_path, change.error->error_to_string(), message_json);
   }
   configuration* config = change.config_file ? &change.config_file->config
                                              : &handler.default_config_;
   this->config = config;
-  byte_buffer& notification_json =
-      handler.pending_notification_jsons_.emplace_back();
+  byte_buffer& notification_json = handler.outgoing_messages_.new_message();
   // TODO(strager): Don't copy document_uri if it contains only non-special
   // characters.
   // TODO(strager): Cache the result of to_json_escaped_string?

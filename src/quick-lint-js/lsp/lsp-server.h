@@ -58,6 +58,18 @@ struct linting_lsp_server_config {
   std::string tracing_directory;
 };
 
+// List of asynchronous LSP messages (requests and notifications) to send to the
+// client.
+class outgoing_lsp_message_queue {
+ public:
+  byte_buffer& new_message();
+
+  void send(lsp_endpoint_remote&);
+
+ private:
+  std::vector<byte_buffer> messages_;
+};
+
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
 class linting_lsp_server_handler final : public lsp_endpoint_handler {
@@ -86,15 +98,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   // Sends notifications and requests to the client.
   // TODO(strager): Rename.
   void flush_pending_notifications(lsp_endpoint_remote& remote) {
-    for (byte_buffer& notification_json : this->pending_notification_jsons_) {
-      if (notification_json.empty()) {
-        // TODO(strager): Fix our tests so they don't make empty
-        // byte_buffer-s.
-        continue;
-      }
-      remote.send_message(std::move(notification_json));
-    }
-    this->pending_notification_jsons_.clear();
+    this->outgoing_messages_.send(remote);
   }
 
   void add_watch_io_errors(const std::vector<watch_io_error>&);
@@ -189,9 +193,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   configuration default_config_;
   lsp_linter& linter_;
   hash_map<string8, std::unique_ptr<document_base> > documents_;
-  // Stores notifications and requests destined for the client.
-  // TODO(strager): Rename.
-  std::vector<byte_buffer> pending_notification_jsons_;
+  outgoing_lsp_message_queue outgoing_messages_;
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
   std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
