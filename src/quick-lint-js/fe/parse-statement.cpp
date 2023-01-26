@@ -1183,7 +1183,7 @@ void parser::parse_and_visit_typescript_generic_parameters(
         diag_typescript_generic_parameter_list_is_empty{
             .expected_parameter = source_code_span::unit(less_end),
         });
-    for (std::size_t i = 1; i < leading_commas.size(); ++i) {
+    for (bump_vector_size i = 1; i < leading_commas.size(); ++i) {
       this->diag_reporter_->report(
           diag_multiple_commas_in_generic_parameter_list{
               .unexpected_comma = leading_commas[i],
@@ -1425,7 +1425,7 @@ void parser::parse_and_visit_function_declaration(
       //
       // We already declared the first overload (#0 above).
       // The last overload (#3 above) is the real function.
-      for (std::size_t i = 0; i < overload_names.size() - 1; ++i) {
+      for (bump_vector_size i = 0; i < overload_names.size() - 1; ++i) {
         identifier &overload_name = overload_names[i];
         if (overload_name.normalized_name() !=
             real_function_name.normalized_name()) {

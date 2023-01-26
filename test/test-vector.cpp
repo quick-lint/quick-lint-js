@@ -106,7 +106,7 @@ TEST(test_bump_vector, resize_allows_same_size) {
   v.emplace_back(200);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  std::size_t old_capacity = v.capacity();
+  bump_vector_size old_capacity = v.capacity();
 
   v.resize(2);
 
@@ -126,7 +126,7 @@ TEST(test_bump_vector, resize_allows_shrinking) {
   v.emplace_back(300);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  std::size_t old_capacity = v.capacity();
+  bump_vector_size old_capacity = v.capacity();
 
   v.resize(2);
 
@@ -146,7 +146,7 @@ TEST(test_bump_vector, resize_allows_growing_within_capacity) {
   v.emplace_back(200);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  std::size_t old_capacity = v.capacity();
+  bump_vector_size old_capacity = v.capacity();
 
   ASSERT_GE(old_capacity, 3);
   v.resize(3);
@@ -223,8 +223,8 @@ TEST(test_bump_vector, move_constructor_preserves_pointers) {
 
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  std::size_t old_v_capacity = v.capacity();
-  std::size_t old_v_size = v.size();
+  bump_vector_size old_v_capacity = v.capacity();
+  bump_vector_size old_v_size = v.size();
 
   bump_vector<int, decltype(alloc)> v2(std::move(v));
 

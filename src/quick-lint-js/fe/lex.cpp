@@ -1745,7 +1745,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         normalized.append(4, u8'\0');
         const char8* end =
             encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
-        normalized.resize(narrow_cast<std::size_t>(end - normalized.data()));
+        normalized.resize(
+            narrow_cast<bump_vector_size>(end - normalized.data()));
         escape_sequences->emplace_back(escape_begin, escape.end);
       }
     } else {

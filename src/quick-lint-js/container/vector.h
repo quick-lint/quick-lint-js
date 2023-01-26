@@ -84,13 +84,15 @@ class uninstrumented_vector : private Vector {
   using Vector::release;
 };
 
+using bump_vector_size = std::ptrdiff_t;
+
 template <class T, class BumpAllocator>
 class raw_bump_vector {
  public:
   using value_type = T;
   using allocator_type = BumpAllocator *;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = bump_vector_size;
+  using difference_type = bump_vector_size;
   using reference = T &;
   using const_reference = const T &;
   using pointer = T *;
@@ -121,11 +123,11 @@ class raw_bump_vector {
   BumpAllocator *get_allocator() const noexcept { return this->allocator_; }
 
   bool empty() const noexcept { return this->data_ == this->data_end_; }
-  std::size_t size() const noexcept {
-    return narrow_cast<std::size_t>(this->data_end_ - this->data_);
+  size_type size() const noexcept {
+    return narrow_cast<size_type>(this->data_end_ - this->data_);
   }
-  std::size_t capacity() const noexcept {
-    return narrow_cast<std::size_t>(this->capacity_end_ - this->data_);
+  size_type capacity() const noexcept {
+    return narrow_cast<size_type>(this->capacity_end_ - this->data_);
   }
 
   QLJS_FORCE_INLINE T *data() noexcept { return this->data_; }
@@ -157,25 +159,26 @@ class raw_bump_vector {
     return this->data_[index];
   }
 
-  void reserve(std::size_t new_capacity) {
+  void reserve(size_type new_capacity) {
+    QLJS_ASSERT(new_capacity > 0);
     if (this->capacity() < new_capacity) {
       this->reserve_grow(new_capacity);
     }
   }
 
-  void reserve_grow(std::size_t new_capacity) {
+  void reserve_grow(size_type new_capacity) {
     QLJS_ASSERT(new_capacity > this->capacity());
     if (this->data_) {
       bool grew = this->allocator_->try_grow_array_in_place(
           this->data_,
-          /*old_size=*/this->capacity(),
-          /*new_size=*/new_capacity);
+          /*old_size=*/narrow_cast<std::size_t>(this->capacity()),
+          /*new_size=*/narrow_cast<std::size_t>(new_capacity));
       if (grew) {
         this->capacity_end_ = this->data_ + new_capacity;
       } else {
         T *new_data =
             this->allocator_->template allocate_uninitialized_array<T>(
-                new_capacity);
+                narrow_cast<std::size_t>(new_capacity));
         T *new_data_end =
             std::uninitialized_move(this->data_, this->data_end_, new_data);
         this->clear();
@@ -185,7 +188,7 @@ class raw_bump_vector {
       }
     } else {
       this->data_ = this->allocator_->template allocate_uninitialized_array<T>(
-          new_capacity);
+          narrow_cast<std::size_t>(new_capacity));
       this->data_end_ = this->data_;
       this->capacity_end_ = this->data_ + new_capacity;
     }
@@ -248,8 +251,11 @@ class raw_bump_vector {
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
-      this->allocator_->deallocate(this->data_, this->size() * sizeof(T),
-                                   alignof(T));
+      this->allocator_->deallocate(
+          this->data_,
+          narrow_cast<std::size_t>(this->size() *
+                                   static_cast<bump_vector_size>(sizeof(T))),
+          alignof(T));
       this->release();
     }
   }
@@ -276,14 +282,15 @@ class raw_bump_vector {
   }
 
   explicit operator std::basic_string_view<value_type>() const noexcept {
-    return std::basic_string_view<value_type>(this->data_, this->size());
+    return std::basic_string_view<value_type>(
+        this->data_, narrow_cast<std::size_t>(this->size()));
   }
 
  private:
-  void reserve_grow_by_at_least(std::size_t minimum_new_entries) {
-    std::size_t old_capacity = this->capacity();
-    constexpr std::size_t minimum_capacity = 4;
-    std::size_t new_size = (std::max)(
+  void reserve_grow_by_at_least(size_type minimum_new_entries) {
+    size_type old_capacity = this->capacity();
+    constexpr size_type minimum_capacity = 4;
+    size_type new_size = (std::max)(
         (std::max)(minimum_capacity, old_capacity + minimum_new_entries),
         old_capacity * 2);
     this->reserve_grow(new_size);

@@ -856,7 +856,7 @@ expression* parser::parse_async_expression_only(
           this->expressions_.allocator());
       call_children.emplace_back(this->make_expression<expression::variable>(
           async_or_await_token.identifier_name(), async_or_await_token.type));
-      for (std::size_t i = 0; i < parameters.size(); ++i) {
+      for (bump_vector_size i = 0; i < parameters.size(); ++i) {
         if (parameters.data()[i]->kind() != expression_kind::_invalid) {
           call_children.emplace_back(parameters.data()[i]);
         }

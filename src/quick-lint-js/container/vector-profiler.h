@@ -277,9 +277,9 @@ class instrumented_vector {
     this->add_instrumentation_entry(vector_instrumentation::event::clear);
   }
 
-  void reserve(std::size_t new_capacity) { this->data_.reserve(new_capacity); }
+  void reserve(size_type new_capacity) { this->data_.reserve(new_capacity); }
 
-  void resize(std::size_t new_size) {
+  void resize(size_type new_size) {
     this->data_.resize(new_size);
     this->add_instrumentation_entry(vector_instrumentation::event::resize);
   }
@@ -326,8 +326,8 @@ class instrumented_vector {
         /*owner=*/this->debug_owner_,
         /*event=*/event,
         /*data_pointer=*/reinterpret_cast<std::uintptr_t>(this->data()),
-        /*size=*/this->size(),
-        /*capacity=*/this->capacity());
+        /*size=*/narrow_cast<std::size_t>(this->size()),
+        /*capacity=*/narrow_cast<std::size_t>(this->capacity()));
   }
 
   Vector data_;
