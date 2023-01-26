@@ -27,6 +27,10 @@ class span {
 
   explicit span() noexcept : data_(nullptr), size_(0) {}
 
+  template <std::size_t N>
+  explicit span(const std::array<std::remove_const_t<T>, N> &data) noexcept
+      : data_(data.data()), size_(N) {}
+
   explicit span(T *data, size_type size) noexcept : data_(data), size_(size) {}
 
   explicit span(T *begin, T *end) noexcept

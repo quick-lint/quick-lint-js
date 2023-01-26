@@ -1146,9 +1146,7 @@ inline expression_arena::array_ptr<expression *> expression::children() const
   case expression_kind::compound_assignment:
   case expression_kind::conditional_assignment: {
     auto *assignment = static_cast<const expression::assignment *>(this);
-    return expression_arena::array_ptr<expression *>(
-        assignment->children_.data(),
-        narrow_cast<int>(assignment->children_.size()));
+    return expression_arena::array_ptr<expression *>(assignment->children_);
   }
 
   case expression_kind::_delete:
@@ -1196,9 +1194,7 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return static_cast<const expression::call *>(this)->children_;
   case expression_kind::conditional: {
     auto *conditional = static_cast<const expression::conditional *>(this);
-    return expression_arena::array_ptr<expression *>(
-        conditional->children_.data(),
-        narrow_cast<int>(conditional->children_.size()));
+    return expression_arena::array_ptr<expression *>(conditional->children_);
   }
   case expression_kind::dot: {
     auto *dot = static_cast<const expression::dot *>(this);
@@ -1206,8 +1202,7 @@ inline expression_arena::array_ptr<expression *> expression::children() const
   }
   case expression_kind::index: {
     auto *index = static_cast<const expression::index *>(this);
-    return expression_arena::array_ptr<expression *>(
-        index->children_.data(), narrow_cast<int>(index->children_.size()));
+    return expression_arena::array_ptr<expression *>(index->children_);
   }
   case expression_kind::non_null_assertion: {
     auto *assertion = static_cast<const expression::non_null_assertion *>(this);
