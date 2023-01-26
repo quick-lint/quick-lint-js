@@ -1314,26 +1314,24 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
               ::testing::UnorderedElementsAreArray(
                   {u8"/* a.js */", u8"/* b.js */", u8"/* c.js */"}));
 
-  std::vector<std::string> linted_uris;
+  std::vector<string8> linted_uris;
   for (const ::boost::json::object& notification :
        this->client->notifications()) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
-    std::string uri(
-        to_string_view(look_up(notification, "params", "uri").get_string()));
-    if (uri ==
-        to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config")) {
+    string8 uri(to_string8_view(
+        to_string_view(look_up(notification, "params", "uri").get_string())));
+    if (uri == this->fs.file_uri_prefix_8() + u8"quick-lint-js.config") {
       // Ignore.
       continue;
     }
     linted_uris.emplace_back(uri);
   }
-  EXPECT_THAT(linted_uris,
-              ::testing::UnorderedElementsAreArray({
-                  to_string(this->fs.file_uri_prefix_8() + u8"a.js"),
-                  to_string(this->fs.file_uri_prefix_8() + u8"b.js"),
-                  to_string(this->fs.file_uri_prefix_8() + u8"c.js"),
-              }));
+  EXPECT_THAT(linted_uris, ::testing::UnorderedElementsAreArray({
+                               this->fs.file_uri_prefix_8() + u8"a.js",
+                               this->fs.file_uri_prefix_8() + u8"b.js",
+                               this->fs.file_uri_prefix_8() + u8"c.js",
+                           }));
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
