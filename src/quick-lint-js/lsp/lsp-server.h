@@ -160,8 +160,14 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   void handle_initialized_notification();
   void handle_text_document_did_change_notification(
       ::simdjson::ondemand::object& request);
+
+  struct lsp_text_document_did_close_notification {
+    string8_view uri;
+  };
   void handle_text_document_did_close_notification(
       ::simdjson::ondemand::object& request);
+  void handle_text_document_did_close_notification(
+      const lsp_text_document_did_close_notification& notification);
 
   struct lsp_text_document_did_open_notification {
     std::string_view language_id;

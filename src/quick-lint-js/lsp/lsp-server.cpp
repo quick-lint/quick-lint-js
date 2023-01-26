@@ -387,7 +387,15 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
     // Ignore invalid notification.
     return;
   }
-  std::string path = parse_file_from_lsp_uri(uri);
+  this->handle_text_document_did_close_notification(
+      lsp_text_document_did_close_notification{
+          .uri = uri,
+      });
+}
+
+void linting_lsp_server_handler::handle_text_document_did_close_notification(
+    const lsp_text_document_did_close_notification& notification) {
+  std::string path = parse_file_from_lsp_uri(notification.uri);
   if (path.empty()) {
     // TODO(strager): Report a warning.
     QLJS_UNIMPLEMENTED();
@@ -395,7 +403,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.erase(string8(uri));
+  this->documents_.erase(string8(notification.uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
