@@ -18,6 +18,7 @@
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -153,8 +154,9 @@ struct object_property_value_pair {
 
 class expression_arena {
  public:
-  template <class>
-  class array_ptr;
+  // TODO(strager): Inline.
+  template <class T>
+  using array_ptr = span<const T>;
 
   using buffering_visitor_ptr = buffering_visitor *;
 
@@ -301,41 +303,6 @@ Derived *expression_cast(expression *p) noexcept {
 template <class Derived, class Expression>
 Derived *expression_cast(Expression *) noexcept = delete;
 
-template <class T>
-class expression_arena::array_ptr {
- public:
-  explicit array_ptr() noexcept : data_(nullptr), size_(0) {}
-
-  explicit array_ptr(const T *data, int size) noexcept
-      : data_(data), size_(size) {}
-
-  explicit array_ptr(const T *begin, const T *end) noexcept
-      : data_(begin), size_(narrow_cast<int>(end - begin)) {}
-
-  T operator[](int index) const noexcept {
-    QLJS_ASSERT(index >= 0);
-    QLJS_ASSERT(index < this->size());
-    return this->data_[index];
-  }
-
-  T front() const noexcept { return (*this)[0]; }
-
-  T back() const noexcept { return (*this)[this->size() - 1]; }
-
-  const T *data() const noexcept { return this->data_; }
-
-  int size() const noexcept { return this->size_; }
-
-  const T *begin() const noexcept { return this->data_; }
-  const T *end() const noexcept { return this->data_ + this->size_; }
-
-  bool empty() const noexcept { return this->size() == 0; }
-
- private:
-  const T *data_;
-  int size_;
-};
-
 template <class Expression, class... Args>
 expression *expression_arena::make_expression(Args &&... args) {
   expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
@@ -348,7 +315,7 @@ inline expression_arena::array_ptr<T> expression_arena::make_array(
     bump_vector<T, monotonic_allocator> &&elements) {
   QLJS_ASSERT(elements.get_allocator() == &this->allocator_);
   // NOTE(strager): Adopt the pointer instead of copying.
-  array_ptr<T> result(elements.data(), narrow_cast<int>(elements.size()));
+  array_ptr<T> result(elements.data(), elements.size());
   elements.release();
   return result;
 }
@@ -357,7 +324,7 @@ template <class T>
 inline expression_arena::array_ptr<T> expression_arena::make_array(T *begin,
                                                                    T *end) {
   T *result_begin = this->allocate_array_move(begin, end);
-  int size = narrow_cast<int>(end - begin);
+  span_size size = narrow_cast<span_size>(end - begin);
   return array_ptr<T>(result_begin, size);
 }
 
@@ -1161,7 +1128,8 @@ inline token_type expression::variable_identifier_token_type() const noexcept {
 }
 
 inline int expression::child_count() const noexcept {
-  return this->children().size();
+  // TODO(strager): Remove this cast.
+  return narrow_cast<int>(this->children().size());
 }
 
 inline expression *expression::child(int index) const noexcept {
@@ -1286,7 +1254,8 @@ inline expression *expression::without_paren() const noexcept {
 inline int expression::object_entry_count() const noexcept {
   switch (this->kind_) {
   case expression_kind::object:
-    return static_cast<const expression::object *>(this)->entries_.size();
+    // TODO(strager): Remove this cast.
+    return narrow_cast<int>(static_cast<const expression::object *>(this)->entries_.size());
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
