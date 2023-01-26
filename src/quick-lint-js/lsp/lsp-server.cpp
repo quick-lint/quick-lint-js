@@ -339,28 +339,39 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
     return;
   }
 
-  auto document_it = this->documents_.find(string8(uri->data));
+  ::simdjson::ondemand::array changes;
+  if (!get_array(request, "params", "contentChanges", &changes)) {
+    // Ignore invalid notification.
+    return;
+  }
+
+  return this->handle_text_document_did_change_notification(
+      lsp_text_document_did_change_notification{
+          .uri = *uri,
+          .version_json = get_raw_json(version),
+          .changes = changes,
+      });
+}
+
+void linting_lsp_server_handler::handle_text_document_did_change_notification(
+    const lsp_text_document_did_change_notification& notification) {
+  auto document_it = this->documents_.find(string8(notification.uri.data));
   bool url_is_tracked = document_it != this->documents_.end();
   if (!url_is_tracked) {
     return;
   }
   document_base& doc = *document_it->second;
 
-  std::string document_path = parse_file_from_lsp_uri(uri->data);
+  std::string document_path = parse_file_from_lsp_uri(notification.uri.data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
 
-  ::simdjson::ondemand::array changes;
-  if (!get_array(request, "params", "contentChanges", &changes)) {
-    // Ignore invalid notification.
-    return;
-  }
-  this->apply_document_changes(doc.doc, changes);
-  doc.version_json = get_raw_json(version);
+  this->apply_document_changes(doc.doc, notification.changes);
+  doc.version_json = notification.version_json;
 
-  doc.on_text_changed(*this, uri->json);
+  doc.on_text_changed(*this, notification.uri.json);
 }
 
 void linting_lsp_server_handler::config_document::on_text_changed(

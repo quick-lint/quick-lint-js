@@ -158,8 +158,16 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
       ::simdjson::ondemand::value& result);
 
   void handle_initialized_notification();
+
+  struct lsp_text_document_did_change_notification {
+    string_json_token uri;
+    string8_view version_json;
+    ::simdjson::ondemand::array& changes;
+  };
   void handle_text_document_did_change_notification(
       ::simdjson::ondemand::object& request);
+  void handle_text_document_did_change_notification(
+      const lsp_text_document_did_change_notification& notification);
 
   struct lsp_text_document_did_close_notification {
     string8_view uri;
