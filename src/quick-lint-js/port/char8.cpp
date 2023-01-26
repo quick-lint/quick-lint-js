@@ -42,6 +42,8 @@ std::size_t strlen(const char8 *s) {
   return std::strlen(reinterpret_cast<const char *>(s));
 }
 
+int strlen_i(const char8 *s) { return narrow_cast<int>(strlen(s)); }
+
 const char8 *strchr(const char8 *haystack, char8 needle) {
   return reinterpret_cast<const char8 *>(std::strchr(
       reinterpret_cast<const char *>(haystack), static_cast<char>(needle)));
