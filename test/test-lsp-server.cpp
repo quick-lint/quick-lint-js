@@ -28,7 +28,6 @@
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/version.h>
-#include <simdjson.h>
 #include <tuple>
 #include <utility>
 
