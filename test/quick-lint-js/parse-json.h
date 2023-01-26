@@ -8,7 +8,7 @@
 #include <iosfwd>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/port/char8.h>
-#include <simdjson.h>
+#include <quick-lint-js/simdjson-fwd.h>
 #include <string>
 #include <utility>
 
