@@ -495,6 +495,13 @@ void print_help_message() {
   print_option("", "auto (default)");
   print_option("", "always");
   print_option("", "never");
+  print_option("--language=[LANG]", "Interpret input files as if they were");
+  print_option("", "written in LANG. LANG is one of:");
+  print_option("", "default (default): use file extension");
+  print_option("", "javascript");
+  print_option("", "javascript-jsx");
+  print_option("", "experimental-typescript");
+  print_option("", "experimental-typescript-jsx");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
