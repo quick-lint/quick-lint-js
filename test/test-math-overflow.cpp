@@ -7,47 +7,55 @@
 #include <quick-lint-js/util/math-overflow.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
-using int_limits = std::numeric_limits<int>;
-
 namespace quick_lint_js {
 namespace {
-TEST(test_math_checked_add_int, small_in_range) {
-  EXPECT_EQ(checked_add(2, 3), 5);
-  EXPECT_EQ(checked_add(-2, -3), -5);
-  EXPECT_EQ(checked_add(-2, 3), 1);
-  EXPECT_EQ(checked_add(2, -3), -1);
+template <class BoolVector16>
+class test_math_checked_add_signed : public ::testing::Test {};
+using signed_types = ::testing::Types<int>;
+TYPED_TEST_SUITE(test_math_checked_add_signed, signed_types,
+                 ::testing::internal::DefaultNameGenerator);
+
+TYPED_TEST(test_math_checked_add_signed, small_in_range) {
+  using I = TypeParam;
+  EXPECT_EQ(checked_add(I{2}, I{3}), I{5});
+  EXPECT_EQ(checked_add(I{-2}, I{-3}), I{-5});
+  EXPECT_EQ(checked_add(I{-2}, I{3}), I{1});
+  EXPECT_EQ(checked_add(I{2}, I{-3}), I{-1});
 }
 
-TEST(test_math_checked_add_int, near_min) {
-  int low = int_limits::lowest();
-  EXPECT_EQ(checked_add(low, 0), low);
-  EXPECT_EQ(checked_add(0, low), low);
-  EXPECT_EQ(checked_add(low + 1, -1), low);
-  EXPECT_EQ(checked_add(-1, low + 1), low);
-  EXPECT_EQ(checked_add(low + 3, -1), low + 2);
-  EXPECT_EQ(checked_add(-1, low + 3), low + 2);
-  EXPECT_EQ(checked_add(low + 100, -100), low);
-  EXPECT_EQ(checked_add(-100, low + 100), low);
+TYPED_TEST(test_math_checked_add_signed, near_min) {
+  using I = TypeParam;
+  I low = std::numeric_limits<I>::lowest();
+  EXPECT_EQ(checked_add(low, I{0}), low);
+  EXPECT_EQ(checked_add(I{0}, low), low);
+  EXPECT_EQ(checked_add(low + I{1}, I{-1}), low);
+  EXPECT_EQ(checked_add(I{-1}, low + I{1}), low);
+  EXPECT_EQ(checked_add(low + I{3}, I{-1}), low + I{2});
+  EXPECT_EQ(checked_add(I{-1}, low + I{3}), low + I{2});
+  EXPECT_EQ(checked_add(low + I{100}, I{-100}), low);
+  EXPECT_EQ(checked_add(I{-100}, low + I{100}), low);
 }
 
-TEST(test_math_checked_add_int, near_max) {
-  int high = (int_limits::max)();
-  EXPECT_EQ(checked_add(high, 0), high);
-  EXPECT_EQ(checked_add(0, high), high);
-  EXPECT_EQ(checked_add(high - 1, 1), high);
-  EXPECT_EQ(checked_add(1, high - 1), high);
-  EXPECT_EQ(checked_add(high - 3, 1), high - 2);
-  EXPECT_EQ(checked_add(1, high - 3), high - 2);
-  EXPECT_EQ(checked_add(high - 100, 100), high);
-  EXPECT_EQ(checked_add(100, high - 100), high);
+TYPED_TEST(test_math_checked_add_signed, near_max) {
+  using I = TypeParam;
+  I high = (std::numeric_limits<I>::max)();
+  EXPECT_EQ(checked_add(high, I{0}), high);
+  EXPECT_EQ(checked_add(I{0}, high), high);
+  EXPECT_EQ(checked_add(high - I{1}, I{1}), high);
+  EXPECT_EQ(checked_add(I{1}, high - I{1}), high);
+  EXPECT_EQ(checked_add(high - I{3}, I{1}), high - I{2});
+  EXPECT_EQ(checked_add(I{1}, high - I{3}), high - I{2});
+  EXPECT_EQ(checked_add(high - I{100}, I{100}), high);
+  EXPECT_EQ(checked_add(I{100}, high - I{100}), high);
 }
 
-TEST(test_math_checked_add_int, over_max) {
-  int high = (int_limits::max)();
-  EXPECT_EQ(checked_add(high, 1), std::nullopt);
-  EXPECT_EQ(checked_add(1, high), std::nullopt);
+TYPED_TEST(test_math_checked_add_signed, over_max) {
+  using I = TypeParam;
+  I high = (std::numeric_limits<I>::max)();
+  EXPECT_EQ(checked_add(high, I{1}), std::nullopt);
+  EXPECT_EQ(checked_add(I{1}, high), std::nullopt);
   EXPECT_EQ(checked_add(high, high), std::nullopt);
-  EXPECT_EQ(checked_add(high / 2 + 1, high / 2 + 1), std::nullopt);
+  EXPECT_EQ(checked_add(high / I{2} + I{1}, high / I{2} + I{1}), std::nullopt);
 }
 }
 }
