@@ -671,8 +671,7 @@ void linting_lsp_server_handler::write_configuration_errors_notification(
 }
 
 void linting_lsp_server_handler::apply_document_changes(
-    quick_lint_js::document<lsp_locator>& doc,
-    ::simdjson::ondemand::array& changes) {
+    document<lsp_locator>& doc, ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
     ::simdjson::ondemand::object change_object;
@@ -685,8 +684,7 @@ void linting_lsp_server_handler::apply_document_changes(
 }
 
 void linting_lsp_server_handler::apply_document_change(
-    quick_lint_js::document<lsp_locator>& doc,
-    ::simdjson::ondemand::object& raw_change) {
+    document<lsp_locator>& doc, ::simdjson::ondemand::object& raw_change) {
   lsp_document_change change;
   if (!get_string8(raw_change, "text", &change.text)) {
     // Ignore invalid change.
@@ -717,8 +715,7 @@ void linting_lsp_server_handler::apply_document_change(
 }
 
 void linting_lsp_server_handler::apply_document_change(
-    quick_lint_js::document<lsp_locator>& doc,
-    const lsp_document_change& change) {
+    document<lsp_locator>& doc, const lsp_document_change& change) {
   if (change.range.has_value()) {
     doc.replace_text(*change.range, change.text);
   } else {

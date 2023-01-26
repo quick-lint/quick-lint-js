@@ -114,7 +114,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
 
-    quick_lint_js::document<lsp_locator> doc;
+    document<lsp_locator> doc;
     string8 version_json;
   };
 
@@ -211,11 +211,11 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
     // If a range is not provided, the document's text is entirely replaced.
     std::optional<lsp_range> range;
   };
-  static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
+  static void apply_document_changes(document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
-  static void apply_document_change(quick_lint_js::document<lsp_locator>& doc,
+  static void apply_document_change(document<lsp_locator>& doc,
                                     ::simdjson::ondemand::object& raw_change);
-  static void apply_document_change(quick_lint_js::document<lsp_locator>& doc,
+  static void apply_document_change(document<lsp_locator>& doc,
                                     const lsp_document_change& change);
 
   static void write_method_not_found_error_response(
