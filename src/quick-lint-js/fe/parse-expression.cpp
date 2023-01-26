@@ -148,7 +148,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     break;
   }
   case expression_kind::object:
-    for (int i = 0; i < ast->object_entry_count(); ++i) {
+    for (span_size i = 0; i < ast->object_entry_count(); ++i) {
       auto entry = ast->object_entry(i);
 
       if (entry.init && entry.is_merged_property_and_value_shorthand()) {
@@ -251,7 +251,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
     }
     break;
   case expression_kind::object:
-    for (int i = 0; i < ast->object_entry_count(); ++i) {
+    for (span_size i = 0; i < ast->object_entry_count(); ++i) {
       expression* value = ast->object_entry(i).value;
       this->maybe_visit_assignment(value, v);
     }

@@ -270,10 +270,9 @@ class expression {
   // Remove wrapping paren expressions, if any.
   expression *without_paren() const noexcept;
 
-  // TODO(strager): Return span_size instead.
-  int object_entry_count() const noexcept;
+  span_size object_entry_count() const noexcept;
 
-  object_property_value_pair object_entry(int) const noexcept;
+  object_property_value_pair object_entry(span_size) const noexcept;
 
   source_code_span span() const noexcept;
 
@@ -1243,19 +1242,18 @@ inline expression *expression::without_paren() const noexcept {
   return const_cast<expression *>(ast);
 }
 
-inline int expression::object_entry_count() const noexcept {
+inline span_size expression::object_entry_count() const noexcept {
   switch (this->kind_) {
   case expression_kind::object:
-    // TODO(strager): Remove this cast.
-    return narrow_cast<int>(static_cast<const expression::object *>(this)->entries_.size());
+    return static_cast<const expression::object *>(this)->entries_.size();
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 }
 
-inline object_property_value_pair expression::object_entry(int index) const
-    noexcept {
+inline object_property_value_pair expression::object_entry(
+    span_size index) const noexcept {
   switch (this->kind_) {
   case expression_kind::object:
     return static_cast<const expression::object *>(this)->entries_[index];
