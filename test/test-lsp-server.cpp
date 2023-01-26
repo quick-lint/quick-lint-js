@@ -54,9 +54,9 @@ posix_file_io_error generic_file_io_error = {EIO};
 #endif
 
 string8 make_message(string8_view content) {
-  return string8(u8"Content-Length: ") +
-         to_string8(std::to_string(content.size())) + u8"\r\n\r\n" +
-         string8(content);
+  return concat(u8"Content-Length: "_sv,
+                to_string8_view(std::to_string(content.size())),
+                u8"\r\n\r\n"_sv, content);
 }
 
 class mock_lsp_linter final : public lsp_linter {
@@ -130,13 +130,13 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
 
   std::string config_file_load_error_message(const char* js_path,
                                              const char* error_path) {
-    return "Failed to load configuration file for "s +
-           this->fs.rooted(js_path).path() +
-           ". "s
-           "Using default configuration.\n"s
-           "Error details: failed to read from "s +
-           this->fs.rooted(error_path).path() + ": "s +
-           generic_file_io_error.to_string();
+    return concat("Failed to load configuration file for ",
+                  this->fs.rooted(js_path).path(),
+                  ". "
+                  "Using default configuration.\n"
+                  "Error details: failed to read from ",
+                  this->fs.rooted(error_path).path(), ": ",
+                  generic_file_io_error.to_string());
   }
 };
 
@@ -1070,8 +1070,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
-      EXPECT_EQ(uri_json,
-                u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+      EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
+                                 u8"test.js\""_sv));
       after_config_was_loaded = true;
     }
   };
@@ -1232,21 +1232,21 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
                             outgoing_lsp_message_queue& outgoing_messages) {
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"(
+        concat(u8R"(
               {
                 "method": "textDocument/publishDiagnostics",
                 "params":{
-                  "uri": )" +
-        string8(uri_json) +
-        u8R"(,
-                  "version": )" +
-        string8(version_json) +
-        u8R"(,
+                  "uri": )"_sv,
+               uri_json,
+               u8R"(,
+                  "version": )"_sv,
+               version_json,
+               u8R"(,
                   "diagnostics": []
                 },
                 "jsonrpc":"2.0"
               }
-            )");
+            )"_sv));
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
@@ -1345,21 +1345,21 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
                             outgoing_lsp_message_queue& outgoing_messages) {
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"(
+        concat(u8R"(
               {
                 "method": "textDocument/publishDiagnostics",
                 "params":{
-                  "uri": )" +
-        string8(uri_json) +
-        u8R"(,
-                  "version": )" +
-        string8(version_json) +
-        u8R"(,
+                  "uri": )"_sv,
+               uri_json,
+               u8R"(,
+                  "version": )"_sv,
+               version_json,
+               u8R"(,
                   "diagnostics": []
                 },
                 "jsonrpc":"2.0"
               }
-            )");
+            )"_sv));
   };
 
   this->server->append(
@@ -1559,8 +1559,8 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
-      EXPECT_EQ(uri_json,
-                u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+      EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
+                                 u8"test.js\""_sv));
       after_config_was_loaded = true;
     }
   };
@@ -1629,22 +1629,23 @@ TEST_F(test_linting_lsp_server,
     EXPECT_TRUE(config.globals().find(u8"after"_sv));
     EXPECT_FALSE(config.globals().find(u8"before"_sv));
     EXPECT_EQ(version_json, u8"10");
-    EXPECT_EQ(uri_json, u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+    EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
+                               u8"test.js\""_sv));
     after_config_was_loaded = true;
 
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"({
+        concat(u8R"({
       "method": "textDocument/publishDiagnostics",
       "params": {
-        "uri": ")" +
-        this->fs.file_uri_prefix_8() +
-        u8R"(test.js",
+        "uri": ")"_sv,
+               this->fs.file_uri_prefix_8(),
+               u8R"(test.js",
         "version": 10,
         "diagnostics": []
       },
       "jsonrpc": "2.0"
-    })");
+    })"_sv));
   };
   this->client->messages.clear();
 
@@ -1763,17 +1764,17 @@ TEST_F(test_linting_lsp_server,
     EXPECT_FALSE(config.globals().find(u8"configFromLSP"_sv));
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"({
+        concat(u8R"({
       "method": "textDocument/publishDiagnostics",
       "params": {
-        "uri": ")" +
-        this->fs.file_uri_prefix_8() +
-        u8R"(test.js",
+        "uri": ")"_sv,
+               this->fs.file_uri_prefix_8(),
+               u8R"(test.js",
         "version": 10,
         "diagnostics": []
       },
       "jsonrpc": "2.0"
-    })");
+    })"_sv));
   };
   this->server->append(
       make_message(concat(u8R"({
@@ -1810,19 +1811,19 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
         << "config should be default";
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"({
+        concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
-            "uri": )" +
-        string8(uri_json) +
-        u8R"(,
-            "version": )" +
-        string8(version_json) +
-        u8R"(,
+            "uri": )"_sv,
+               uri_json,
+               u8R"(,
+            "version": )"_sv,
+               version_json,
+               u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
-        })");
+        })"_sv));
   };
 
   this->server->append(
@@ -1873,19 +1874,19 @@ TEST_F(test_linting_lsp_server,
         << "config should be default";
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"({
+        concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
-            "uri": )" +
-        string8(uri_json) +
-        u8R"(,
-            "version": )" +
-        string8(version_json) +
-        u8R"(,
+            "uri": )"_sv,
+               uri_json,
+               u8R"(,
+            "version": )"_sv,
+               version_json,
+               u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
-        })");
+        })"_sv));
   };
 
   this->server->append(
@@ -1919,9 +1920,9 @@ TEST_F(test_linting_lsp_server,
             lsp_warning_message_type);
   EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
             to_boost_string_view(
-                "Problems found in the config file for "s +
-                this->fs.rooted("test.js").c_str() + " (" +
-                this->fs.rooted("quick-lint-js.config").c_str() + ")."));
+                concat("Problems found in the config file for ",
+                       this->fs.rooted("test.js").path(), " (",
+                       this->fs.rooted("quick-lint-js.config").path(), ").")));
 }
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
@@ -1960,19 +1961,19 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
         << "config should be default";
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
-        u8R"({
+        concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
-            "uri": )" +
-        string8(uri_json) +
-        u8R"(,
-            "version": )" +
-        string8(version_json) +
-        u8R"(,
+            "uri": )"_sv,
+               uri_json,
+               u8R"(,
+            "version": )"_sv,
+               version_json,
+               u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
-        })");
+        })"_sv));
   };
   this->client->messages.clear();
   this->handler->filesystem_changed();
