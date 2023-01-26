@@ -9,26 +9,16 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-// Only permit tested specializations, and disallow implicit conversions (e.g.
-// long -> int).
 template <class T>
-std::optional<T> checked_add(T x, T y) noexcept = delete;
-
-template <>
-inline std::optional<int> checked_add(int x, int y) noexcept {
-  using out = int;
-  using wider_int = long long;
-  constexpr out out_max = (std::numeric_limits<out>::max)();
-  constexpr out out_min = std::numeric_limits<out>::lowest();
-  static_assert(std::numeric_limits<wider_int>::lowest() / 2 <= out_min);
-  static_assert(out_max <= (std::numeric_limits<wider_int>::max)() / 2);
-
-  wider_int sum = static_cast<wider_int>(x) + static_cast<wider_int>(y);
-  if (in_range<out>(sum)) {
-    return static_cast<out>(sum);
-  } else {
+std::enable_if_t<std::is_signed_v<T> && std::is_integral_v<T>, std::optional<T>>
+checked_add(T x, T y) noexcept {
+  // https://wiki.sei.cmu.edu/confluence/display/c/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
+  constexpr T t_max = (std::numeric_limits<T>::max)();
+  constexpr T t_min = std::numeric_limits<T>::lowest();
+  if (((y > 0) && (x > (t_max - y))) || ((y < 0) && (x < (t_min - y)))) {
     return std::nullopt;
   }
+  return x + y;
 }
 }
 

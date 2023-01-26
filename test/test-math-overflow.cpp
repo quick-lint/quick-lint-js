@@ -11,7 +11,7 @@ namespace quick_lint_js {
 namespace {
 template <class BoolVector16>
 class test_math_checked_add_signed : public ::testing::Test {};
-using signed_types = ::testing::Types<int>;
+using signed_types = ::testing::Types<int, long, long long>;
 TYPED_TEST_SUITE(test_math_checked_add_signed, signed_types,
                  ::testing::internal::DefaultNameGenerator);
 
