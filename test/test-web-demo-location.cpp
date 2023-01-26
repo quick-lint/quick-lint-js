@@ -5,6 +5,7 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/characters.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
@@ -26,8 +27,8 @@ TEST(test_web_demo_location, ranges_on_first_line) {
 
 TEST(test_web_demo_location, ranges_on_second_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"let x = 2;" + string8(line_terminator) +
-                       u8"let y = 3;");
+    padded_string code(
+        concat(u8"let x = 2;"_sv, line_terminator, u8"let y = 3;"_sv));
     const char8* y = strchr(code.c_str(), u8'y');
     web_demo_locator l(&code);
     web_demo_source_range x_range = l.range(source_code_span(y, y + 1));

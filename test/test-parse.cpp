@@ -888,7 +888,7 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   for (const string8& type : {
            repeated_str(u8"("_sv, u8"T"_sv, u8")"_sv, parser::stack_limit - 2),
        }) {
-    padded_string code(u8"let x: " + type + u8";");
+    padded_string code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, typescript_options);

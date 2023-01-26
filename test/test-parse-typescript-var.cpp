@@ -151,7 +151,7 @@ TEST_F(test_parse_typescript_var,
 TEST_F(test_parse_typescript_var,
        catch_variable_can_have_any_or_unknown_or_star_type_annotation) {
   for (string8 type : {u8"*", u8"any", u8"unknown"}) {
-    padded_string code(u8"try { } catch (e: " + type + u8") {} ");
+    padded_string code(concat(u8"try { } catch (e: "_sv, type, u8") {} "_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();

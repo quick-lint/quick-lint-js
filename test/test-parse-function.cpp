@@ -1132,9 +1132,8 @@ TEST_F(test_parse_function, function_with_invalid_parameters) {
            u8"x.prop"_sv,
            u8"html`<strong>hello</strong>`"_sv,
        }) {
-    test_parser p(
-        concat(u8"function f("_sv, string8(parameter_list), u8") {}"_sv),
-        capture_diags);
+    test_parser p(concat(u8"function f("_sv, parameter_list, u8") {}"_sv),
+                  capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAreArray({
@@ -1185,7 +1184,7 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
            u8"(html`<strong>hello</strong>`)"_sv,
            u8"(html`<strong>${hello}</strong>`)"_sv,
        }) {
-    test_parser p(concat(u8"("_sv, string8(parameter_list), u8" => {});"_sv),
+    test_parser p(concat(u8"("_sv, parameter_list, u8" => {});"_sv),
                   jsx_options, capture_diags);
     SCOPED_TRACE(p.code);
     auto guard = p.enter_function(function_attributes::async_generator);
@@ -2168,7 +2167,7 @@ TEST_F(test_parse_function, invalid_function_parameter) {
 
 TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
-    test_parser p(concat(u8"[a, "_sv, string8(function), u8", c];"_sv));
+    test_parser p(concat(u8"[a, "_sv, function, u8", c];"_sv));
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2183,8 +2182,8 @@ TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   }
 
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
-    test_parser p(concat(u8"[a, ("_sv, string8(function),
-                         u8")().prop, c] = [1, 2, 3];"_sv));
+    test_parser p(
+        concat(u8"[a, ("_sv, function, u8")().prop, c] = [1, 2, 3];"_sv));
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({

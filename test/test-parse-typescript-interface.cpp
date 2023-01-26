@@ -217,7 +217,7 @@ TEST_F(test_parse_typescript_interface,
                               u8"static",
                               u8"yield",
                           }) {
-    padded_string code(u8"interface " + name + u8" {}");
+    padded_string code(concat(u8"interface "_sv, name, u8" {}"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();

@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -98,7 +99,7 @@ TEST_F(test_parse_typescript_namespace,
        namespace_name_can_be_contextual_keyword) {
   for (string8 name :
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
-    padded_string code(u8"namespace " + name + u8" {}");
+    padded_string code(concat(u8"namespace "_sv, name, u8" {}"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
@@ -218,7 +219,7 @@ TEST_F(test_parse_typescript_namespace,
 TEST_F(test_parse_typescript_namespace,
        namespace_can_be_contextual_keyword_in_import_alias) {
   for (string8 name : contextual_keywords) {
-    padded_string code(u8"import A = " + name + u8".Member;");
+    padded_string code(concat(u8"import A = "_sv, name, u8".Member;"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
@@ -234,7 +235,7 @@ TEST_F(test_parse_typescript_namespace,
 TEST_F(test_parse_typescript_namespace,
        namespace_member_can_be_contextual_keyword_in_import_alias) {
   for (string8 name : contextual_keywords) {
-    padded_string code(u8"import A = ns." + name + u8";");
+    padded_string code(concat(u8"import A = ns."_sv, name, u8";"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();

@@ -349,7 +349,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     {
-      test_parser p(concat(u8"var "_sv, string8_view(keyword)), capture_diags);
+      test_parser p(concat(u8"var "_sv, keyword), capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
@@ -1629,7 +1629,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
            u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
            u8"^",   u8"in",  u8"instanceof", u8"|",  u8"||",
        }) {
-    padded_string code(u8"await " + op + u8" x;");
+    padded_string code(concat(u8"await "_sv, op, u8" x;"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view());
     p.parse_and_visit_module();
@@ -1657,7 +1657,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
            u8"|=",
            u8"||=",
        }) {
-    padded_string code(u8"await " + op + u8" x;");
+    padded_string code(concat(u8"await "_sv, op, u8" x;"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view());
     p.parse_and_visit_module();

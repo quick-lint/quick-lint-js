@@ -9,6 +9,7 @@
 #include <iostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/characters.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
@@ -248,7 +249,7 @@ TEST_F(test_lex, lex_line_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"// hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     this->check_single_token(
-        u8"// hello" + string8(line_terminator) + u8"world", u8"world"_sv);
+        concat(u8"// hello"_sv, line_terminator, u8"world"_sv), u8"world"_sv);
   }
   EXPECT_THAT(this->lex_to_eof(u8"// hello\n// world"_sv), IsEmpty());
   this->check_tokens(u8"hello//*/\n \n \nworld"_sv,
@@ -267,8 +268,8 @@ TEST_F(test_lex, lex_line_comments) {
 TEST_F(test_lex, lex_line_comments_with_control_characters) {
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"// hello " + string8(control_character) +
-                        u8" world\n42.0");
+    padded_string input(
+        concat(u8"// hello "_sv, control_character, u8" world\n42.0"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::number});
   }
@@ -278,7 +279,7 @@ TEST_F(test_lex, lex_html_open_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"<!-- --> hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     this->check_single_token(
-        u8"<!-- hello" + string8(line_terminator) + u8"world", u8"world"_sv);
+        concat(u8"<!-- hello"_sv, line_terminator, u8"world"_sv), u8"world"_sv);
   }
   EXPECT_THAT(this->lex_to_eof(u8"<!-- hello\n<!-- world"_sv), IsEmpty());
   EXPECT_THAT(this->lex_to_eof(u8"<!--// hello"_sv), IsEmpty());
@@ -286,8 +287,8 @@ TEST_F(test_lex, lex_html_open_comments) {
                      {token_type::identifier, token_type::identifier});
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"<!-- hello " + string8(control_character) +
-                        u8" world\n42.0");
+    padded_string input(
+        concat(u8"<!-- hello "_sv, control_character, u8" world\n42.0"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::number});
   }
@@ -310,19 +311,22 @@ TEST_F(test_lex, lex_html_close_comments) {
   for (string8_view line_terminator : line_terminators) {
     string8 eol(line_terminator);
 
-    this->check_single_token(u8"-->" + eol + u8"hello", u8"hello"_sv);
-    this->check_single_token(u8"--> comment" + eol + u8"hello", u8"hello"_sv);
-    this->check_single_token(
-        u8"--> comment1" + eol + u8"--> comment2" + eol + u8"hello",
-        u8"hello"_sv);
-
-    this->check_single_token(u8"/*" + eol + u8"*/--> comment" + eol + u8"hello",
+    this->check_single_token(concat(u8"-->"_sv, eol, u8"hello"_sv),
                              u8"hello"_sv);
+    this->check_single_token(concat(u8"--> comment"_sv, eol, u8"hello"_sv),
+                             u8"hello"_sv);
+    this->check_single_token(concat(u8"--> comment1"_sv, eol,
+                                    u8"--> comment2"_sv, eol, u8"hello"_sv),
+                             u8"hello"_sv);
+
     this->check_single_token(
-        u8"/* */ /*" + eol + u8"*/ --> comment" + eol + u8"hello",
+        concat(u8"/*"_sv, eol, u8"*/--> comment"_sv, eol, u8"hello"_sv),
         u8"hello"_sv);
     this->check_single_token(
-        u8"/*" + eol + u8"*/ /* */ --> comment" + eol + u8"hello",
+        concat(u8"/* */ /*"_sv, eol, u8"*/ --> comment"_sv, eol, u8"hello"_sv),
+        u8"hello"_sv);
+    this->check_single_token(
+        concat(u8"/*"_sv, eol, u8"*/ /* */ --> comment"_sv, eol, u8"hello"_sv),
         u8"hello"_sv);
   }
 
@@ -1036,18 +1040,18 @@ TEST_F(test_lex, lex_strings) {
       });
 
   for (string8_view line_terminator : line_terminators) {
-    for (const char8* quotation_mark : {u8"'", u8"\""}) {
-      padded_string input(quotation_mark +
-                          (u8"line1\\" + string8(line_terminator) + u8"line2") +
-                          quotation_mark);
+    for (string8_view quotation_mark : {u8"'"_sv, u8"\""_sv}) {
+      padded_string input(concat(quotation_mark, u8"line1\\"_sv,
+                                 line_terminator, u8"line2"_sv,
+                                 quotation_mark));
       this->check_tokens(&input, {token_type::string});
     }
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     diag_collector v;
-    padded_string input(u8"'unterminated" + string8(line_terminator) +
-                        u8"hello");
+    padded_string input(
+        concat(u8"'unterminated"_sv, line_terminator, u8"hello"_sv));
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
@@ -1063,7 +1067,8 @@ TEST_F(test_lex, lex_strings) {
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     diag_collector v;
-    padded_string input(u8"'separated" + string8(line_terminator) + u8"hello'");
+    padded_string input(
+        concat(u8"'separated"_sv, line_terminator, u8"hello'"_sv));
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
@@ -1079,8 +1084,8 @@ TEST_F(test_lex, lex_strings) {
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     diag_collector v;
-    padded_string input(u8"'separated" + string8(line_terminator) +
-                        string8(line_terminator) + u8"hello'");
+    padded_string input(concat(u8"'separated"_sv, line_terminator,
+                               line_terminator, u8"hello'"_sv));
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
@@ -1104,8 +1109,8 @@ TEST_F(test_lex, lex_strings) {
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     diag_collector v;
-    padded_string input(u8"let x = 'hello" + string8(line_terminator) +
-                        u8"let y = 'world'");
+    padded_string input(
+        concat(u8"let x = 'hello"_sv, line_terminator, u8"let y = 'world'"_sv));
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::kw_let);
     l.skip();
@@ -1240,14 +1245,16 @@ TEST_F(test_lex, lex_strings) {
 TEST_F(test_lex, lex_string_with_ascii_control_characters) {
   for (string8_view control_character :
        concat(control_characters_except_line_terminators, ls_and_ps)) {
-    padded_string input(u8"'hello" + string8(control_character) + u8"world'");
+    padded_string input(
+        concat(u8"'hello"_sv, control_character, u8"world'"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::string});
   }
 
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"'hello\\" + string8(control_character) + u8"world'");
+    padded_string input(
+        concat(u8"'hello\\"_sv, control_character, u8"world'"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::string});
   }
@@ -1598,14 +1605,16 @@ TEST_F(test_lex, templates_do_not_buffer_valid_unicode_escapes) {
 TEST_F(test_lex, lex_template_literal_with_ascii_control_characters) {
   for (string8_view control_character :
        concat(control_characters_except_line_terminators, line_terminators)) {
-    padded_string input(u8"`hello" + string8(control_character) + u8"world`");
+    padded_string input(
+        concat(u8"`hello"_sv, control_character, u8"world`"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::complete_template});
   }
 
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"`hello\\" + string8(control_character) + u8"world`");
+    padded_string input(
+        concat(u8"`hello\\"_sv, control_character, u8"world`"_sv));
     SCOPED_TRACE(input);
     this->check_tokens(&input, {token_type::complete_template});
   }
@@ -1660,8 +1669,8 @@ TEST_F(test_lex, lex_regular_expression_literals) {
   }
 
   for (string8_view line_terminator : line_terminators) {
-    padded_string code(u8"/first_line" + string8(line_terminator) +
-                       u8"second_line/");
+    padded_string code(
+        concat(u8"/first_line"_sv, line_terminator, u8"second_line/"_sv));
     SCOPED_TRACE(code);
     diag_collector v;
     lexer l(&code, &v);
@@ -1683,8 +1692,8 @@ TEST_F(test_lex, lex_regular_expression_literals) {
   }
 
   for (string8_view line_terminator : line_terminators) {
-    padded_string code(u8"/first[line" + string8(line_terminator) +
-                       u8"second]line/");
+    padded_string code(
+        concat(u8"/first[line"_sv, line_terminator, u8"second]line/"_sv));
     SCOPED_TRACE(code);
     diag_collector v;
     lexer l(&code, &v);
@@ -1781,7 +1790,8 @@ TEST_F(test_lex,
 TEST_F(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"/hello" + string8(control_character) + u8"world/");
+    padded_string input(
+        concat(u8"/hello"_sv, control_character, u8"world/"_sv));
     SCOPED_TRACE(input);
     diag_collector errors;
     lexer l(&input, &errors);
@@ -1796,7 +1806,8 @@ TEST_F(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
 
   for (string8_view control_character :
        control_characters_except_line_terminators) {
-    padded_string input(u8"/hello\\" + string8(control_character) + u8"world/");
+    padded_string input(
+        concat(u8"/hello\\"_sv, control_character, u8"world/"_sv));
     SCOPED_TRACE(input);
     diag_collector errors;
     lexer l(&input, &errors);
@@ -2830,7 +2841,7 @@ TEST_F(test_lex, ascii_control_characters_are_disallowed) {
 
 TEST_F(test_lex, ascii_control_characters_sorta_treated_like_whitespace) {
   for (string8_view control_character : control_characters_except_whitespace) {
-    padded_string input(u8"  " + string8(control_character) + u8"  hello");
+    padded_string input(concat(u8"  "_sv, control_character, u8"  hello"_sv));
     SCOPED_TRACE(input);
     diag_collector v;
     lexer l(&input, &v);
@@ -2843,7 +2854,7 @@ TEST_F(test_lex, ascii_control_characters_sorta_treated_like_whitespace) {
 
 TEST_F(test_lex, lex_token_notes_leading_newline) {
   for (string8_view line_terminator : line_terminators) {
-    padded_string code(u8"a b" + string8(line_terminator) + u8"c d");
+    padded_string code(concat(u8"a b"_sv, line_terminator, u8"c d"_sv));
     lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
@@ -2857,7 +2868,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline) {
 
 TEST_F(test_lex, lex_token_notes_leading_newline_after_single_line_comment) {
   for (string8_view line_terminator : line_terminators) {
-    padded_string code(u8"a // hello" + string8(line_terminator) + u8"b");
+    padded_string code(concat(u8"a // hello"_sv, line_terminator, u8"b"_sv));
     lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
@@ -2867,7 +2878,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline_after_single_line_comment) {
 
 TEST_F(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
   for (string8_view line_terminator : line_terminators) {
-    padded_string code(u8"a /*" + string8(line_terminator) + u8"*/ b");
+    padded_string code(concat(u8"a /*"_sv, line_terminator, u8"*/ b"_sv));
     lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();

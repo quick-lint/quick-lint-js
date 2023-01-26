@@ -18,10 +18,10 @@ TEST(test_concat, string_literals) {
   EXPECT_EQ(concat("hello", "beautiful", "world", "!"),
             "hellobeautifulworld!"s);
 
-  EXPECT_EQ(concat(u8"hello", u8"world"), u8"helloworld"s);
-  EXPECT_EQ(concat(u8"hello", u8"beautiful", u8"world"),
+  EXPECT_EQ(concat(u8"hello"_sv, u8"world"_sv), u8"helloworld"s);
+  EXPECT_EQ(concat(u8"hello"_sv, u8"beautiful"_sv, u8"world"_sv),
             u8"hellobeautifulworld"s);
-  EXPECT_EQ(concat(u8"hello", u8"beautiful", u8"world", u8"!"),
+  EXPECT_EQ(concat(u8"hello"_sv, u8"beautiful"_sv, u8"world"_sv, u8"!"_sv),
             u8"hellobeautifulworld!"s);
 }
 

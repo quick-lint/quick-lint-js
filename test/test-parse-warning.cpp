@@ -280,10 +280,9 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
 
 TEST_F(test_parse_warning, warn_on_pointless_string_compare_all_operators) {
   {
-    for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
-      test_parser p(
-          concat(u8"s.toLowerCase() "_sv, string8(op), u8" 'Banana'"_sv),
-          capture_diags);
+    for (string8_view op : {u8"=="_sv, u8"==="_sv, u8"!="_sv, u8"!=="_sv}) {
+      test_parser p(concat(u8"s.toLowerCase() "_sv, op, u8" 'Banana'"_sv),
+                    capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(
           p.errors,

@@ -454,7 +454,8 @@ TEST_F(test_parse_module, export_from) {
   }
 
   for (string8 keyword : keywords) {
-    padded_string code(u8"export {" + keyword + u8"} from 'other';");
+    padded_string code(
+        concat(u8"export {"_sv, keyword, u8"} from 'other';"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view());
     p.parse_and_visit_statement();
@@ -1118,8 +1119,8 @@ TEST_F(
     string8 exported_name = escape_first_character_in_keyword(keyword);
 
     {
-      padded_string code(u8"import {" + exported_name +
-                         u8" as someFunction} from 'somewhere';");
+      padded_string code(concat(u8"import {"_sv, exported_name,
+                                u8" as someFunction} from 'somewhere';"));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();
@@ -1129,7 +1130,8 @@ TEST_F(
     }
 
     {
-      padded_string code(u8"export {someFunction as " + exported_name + u8"};");
+      padded_string code(
+          concat(u8"export {someFunction as "_sv, exported_name, u8"};"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();
@@ -1139,7 +1141,8 @@ TEST_F(
     }
 
     {
-      padded_string code(u8"export * as " + exported_name + u8" from 'other';");
+      padded_string code(
+          concat(u8"export * as "_sv, exported_name, u8" from 'other';"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();

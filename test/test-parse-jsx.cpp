@@ -449,7 +449,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
            u8"<A></A:A>"sv,
            u8"<A:A></A>"sv,
        }) {
-    test_parser p(concat(u8"c = "_sv, string8(jsx), u8";"_sv), jsx_options,
+    test_parser p(concat(u8"c = "_sv, jsx, u8";"_sv), jsx_options,
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();

@@ -996,7 +996,8 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        access_specifiers_are_allowed_in_typescript) {
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
-    padded_string code(u8"class C { " + specifier + u8" method() {} }");
+    padded_string code(
+        concat(u8"class C { "_sv, specifier, u8" method() {} }"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();

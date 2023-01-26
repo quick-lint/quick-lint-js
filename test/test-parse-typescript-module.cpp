@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -81,7 +82,8 @@ TEST_F(test_parse_typescript_module,
   for (string8 name :
        contextual_keywords - dirty_set<string8>{u8"from", u8"let"}) {
     {
-      padded_string code(u8"import type " + name + u8" from 'mod';");
+      padded_string code(
+          concat(u8"import type "_sv, name, u8" from 'mod';"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
@@ -235,7 +237,8 @@ TEST_F(test_parse_typescript_module,
   // TypeScript allows.
   for (string8 name : contextual_keywords - dirty_set<string8>{u8"let"}) {
     {
-      padded_string code(u8"import {type " + name + u8"} from 'mod';");
+      padded_string code(
+          concat(u8"import {type "_sv, name, u8"} from 'mod';"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
@@ -248,7 +251,8 @@ TEST_F(test_parse_typescript_module,
     }
 
     {
-      padded_string code(u8"import {type " + name + u8", other} from 'mod';");
+      padded_string code(
+          concat(u8"import {type "_sv, name, u8", other} from 'mod';"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();

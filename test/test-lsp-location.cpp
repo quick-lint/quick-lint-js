@@ -5,6 +5,7 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/characters.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
@@ -28,8 +29,8 @@ TEST(test_lsp_location, ranges_on_first_line) {
 
 TEST(test_lsp_location, ranges_on_second_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"let x = 2;" + string8(line_terminator) +
-                       u8"let y = 3;");
+    padded_string code(
+        concat(u8"let x = 2;"_sv, line_terminator, u8"let y = 3;"_sv));
     SCOPED_TRACE(code);
     const char8* y = strchr(code.c_str(), u8'y');
     lsp_locator l(&code);
@@ -45,8 +46,8 @@ TEST(test_lsp_location, ranges_on_second_line) {
 
 TEST(test_lsp_location, first_character_on_line_is_character_0) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"function f() {}" + string8(line_terminator) +
-                       u8"g();");
+    padded_string code(
+        concat(u8"function f() {}"_sv, line_terminator, u8"g();"_sv));
     SCOPED_TRACE(code);
     const char8* g = strchr(code.c_str(), u8'g');
     lsp_locator l(&code);
@@ -59,7 +60,8 @@ TEST(test_lsp_location, first_character_on_line_is_character_0) {
 
 TEST(test_lsp_location, ls_and_ps_are_not_treated_as_newline_characters) {
   for (string8_view not_line_terminator : ls_and_ps) {
-    padded_string code(u8"one" + string8(not_line_terminator) + u8"two\nTHREE");
+    padded_string code(
+        concat(u8"one"_sv, not_line_terminator, u8"two\nTHREE"_sv));
     SCOPED_TRACE(code);
     const char8* r = strchr(code.c_str(), u8'R');
     lsp_locator l(&code);
@@ -183,7 +185,7 @@ TEST(test_lsp_location, offset_from_empty_line) {
 
 TEST(test_lsp_location, offset_from_last_character_in_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"hello" + string8(line_terminator) + u8"world");
+    padded_string code(concat(u8"hello"_sv, line_terminator, u8"world"_sv));
     SCOPED_TRACE(code);
     lsp_locator l(&code);
     const char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
@@ -194,7 +196,7 @@ TEST(test_lsp_location, offset_from_last_character_in_line) {
 TEST(test_lsp_location,
      offset_from_beyond_end_of_line_refers_to_line_terminator) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"hello" + string8(line_terminator) + u8"world");
+    padded_string code(concat(u8"hello"_sv, line_terminator, u8"world"_sv));
     SCOPED_TRACE(code);
     lsp_locator l(&code);
     const char8* terminator =
@@ -207,8 +209,8 @@ TEST(
     test_lsp_location,
     offset_from_beyond_end_of_line_containing_non_ascii_refers_to_line_terminator) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"hello \u2603!" + string8(line_terminator) +
-                       u8"world");
+    padded_string code(
+        concat(u8"hello \u2603!"_sv, line_terminator, u8"world"_sv));
     SCOPED_TRACE(code);
     lsp_locator l(&code);
     const char8* terminator =
@@ -363,8 +365,8 @@ TEST(test_lsp_location, add_newline_within_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     padded_string original_code(u8"first line\nsecond line\nlast line"_sv);
     SCOPED_TRACE(original_code);
-    padded_string updated_code(u8"first line\nsecond" +
-                               string8(line_terminator) + u8" line\nlast line");
+    padded_string updated_code(concat(
+        u8"first line\nsecond"_sv, line_terminator, u8" line\nlast line"_sv));
     SCOPED_TRACE(updated_code);
 
     lsp_locator locator(&original_code);
@@ -382,8 +384,8 @@ TEST(test_lsp_location, add_newline_within_line) {
 
 TEST(test_lsp_location, delete_newline) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string original_code(u8"first line\nsecond" +
-                                string8(line_terminator) + u8"line\nlast line");
+    padded_string original_code(concat(
+        u8"first line\nsecond"_sv, line_terminator, u8"line\nlast line"_sv));
     SCOPED_TRACE(original_code);
     padded_string updated_code(u8"first line\nsecondline\nlast line"_sv);
     SCOPED_TRACE(updated_code);

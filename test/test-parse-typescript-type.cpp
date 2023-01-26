@@ -73,7 +73,7 @@ TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
     }
 
     {
-      padded_string code(u8"[" + keyword + u8"]");
+      padded_string code(concat(u8"["_sv, keyword, u8"]"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1297,7 +1297,8 @@ TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
 TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
   for (string8 modifier : {u8"-?", u8"+?", u8"?"}) {
     {
-      padded_string code(u8"{ [key: KeyType]" + modifier + u8": PropType }");
+      padded_string code(
+          concat(u8"{ [key: KeyType]"_sv, modifier, u8": PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1311,7 +1312,8 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
     }
 
     {
-      padded_string code(u8"{ [Key in Keys]" + modifier + u8": PropType }");
+      padded_string code(
+          concat(u8"{ [Key in Keys]"_sv, modifier, u8": PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1325,8 +1327,8 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
     }
 
     {
-      padded_string code(u8"{ [Key in Keys as KeyType]" + modifier +
-                         u8": PropType }");
+      padded_string code(concat(u8"{ [Key in Keys as KeyType]"_sv, modifier,
+                                u8": PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1345,7 +1347,8 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
 TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
   for (string8 modifier : {u8"-readonly", u8"+readonly", u8"readonly"}) {
     {
-      padded_string code(u8"{ " + modifier + u8" [key: KeyType]: PropType }");
+      padded_string code(
+          concat(u8"{ "_sv, modifier, u8" [key: KeyType]: PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1359,7 +1362,8 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
     }
 
     {
-      padded_string code(u8"{ " + modifier + u8" [Key in Keys]: PropType }");
+      padded_string code(
+          concat(u8"{ "_sv, modifier, u8" [Key in Keys]: PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1373,8 +1377,8 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
     }
 
     {
-      padded_string code(u8"{ " + modifier +
-                         u8" [Key in Keys as KeyType]: PropType }");
+      padded_string code(concat(u8"{ "_sv, modifier,
+                                u8" [Key in Keys as KeyType]: PropType }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1439,7 +1443,7 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
 TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
   for (string8 keyword : keywords) {
     {
-      padded_string code(u8"{ " + keyword + u8" }");
+      padded_string code(concat(u8"{ "_sv, keyword, u8" }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1447,7 +1451,7 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(u8"{ " + keyword + u8"() }");
+      padded_string code(concat(u8"{ "_sv, keyword, u8"() }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1458,7 +1462,7 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(u8"{ " + keyword + u8": Type }");
+      padded_string code(concat(u8"{ "_sv, keyword, u8": Type }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1468,7 +1472,7 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(u8"{ readonly " + keyword + u8": Type }");
+      padded_string code(concat(u8"{ readonly "_sv, keyword, u8": Type }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1478,7 +1482,7 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(u8"{ " + keyword + u8"?: Type }");
+      padded_string code(concat(u8"{ "_sv, keyword, u8"?: Type }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1494,7 +1498,7 @@ TEST_F(test_parse_typescript_type,
   for (string8 keyword :
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     {
-      padded_string code(u8"{ [" + keyword + u8": T]: T }");
+      padded_string code(concat(u8"{ ["_sv, keyword, u8": T]: T }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
@@ -1503,7 +1507,7 @@ TEST_F(test_parse_typescript_type,
     }
 
     {
-      padded_string code(u8"{ [" + keyword + u8" in T]: T }");
+      padded_string code(concat(u8"{ ["_sv, keyword, u8" in T]: T }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
