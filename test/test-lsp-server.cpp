@@ -1636,16 +1636,16 @@ TEST_F(test_linting_lsp_server,
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
         concat(u8R"({
-      "method": "textDocument/publishDiagnostics",
-      "params": {
-        "uri": ")"_sv,
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": ")"_sv,
                this->fs.file_uri_prefix_8(),
                u8R"(test.js",
-        "version": 10,
-        "diagnostics": []
-      },
-      "jsonrpc": "2.0"
-    })"_sv));
+            "version": 10,
+            "diagnostics": []
+          },
+          "jsonrpc": "2.0"
+        })"_sv));
   };
   this->client->messages.clear();
 
@@ -1765,16 +1765,16 @@ TEST_F(test_linting_lsp_server,
     byte_buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
         concat(u8R"({
-      "method": "textDocument/publishDiagnostics",
-      "params": {
-        "uri": ")"_sv,
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": ")"_sv,
                this->fs.file_uri_prefix_8(),
                u8R"(test.js",
-        "version": 10,
-        "diagnostics": []
-      },
-      "jsonrpc": "2.0"
-    })"_sv));
+            "version": 10,
+            "diagnostics": []
+          },
+          "jsonrpc": "2.0"
+        })"_sv));
   };
   this->server->append(
       make_message(concat(u8R"({
