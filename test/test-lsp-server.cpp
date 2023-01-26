@@ -520,7 +520,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                             byte_buffer& notification_json) {
     EXPECT_EQ(code, u8"let x = x;"_sv);
     EXPECT_EQ(uri_json, u8"\"file:///test.js\""_sv);
-    EXPECT_EQ(version, u8"10"sv);
+    EXPECT_EQ(version, u8"10"_sv);
 
     notification_json.append_copy(
         u8R"--(
@@ -542,7 +542,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                   },
                   "jsonrpc":"2.0"
                 }
-              )--"sv);
+              )--"_sv);
   };
 
   this->server->append(
@@ -585,7 +585,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
 
 TEST_F(test_linting_lsp_server, javascript_language_ids_enable_jsx) {
   for (string8_view language_id :
-       {u8"javascript"sv, u8"js"sv, u8"javascriptreact"sv, u8"js-jsx"sv}) {
+       {u8"javascript"_sv, u8"js"_sv, u8"javascriptreact"_sv, u8"js-jsx"_sv}) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
@@ -616,7 +616,7 @@ TEST_F(test_linting_lsp_server, javascript_language_ids_enable_jsx) {
 }
 
 TEST_F(test_linting_lsp_server, typescript_language_ids_enable_typescript) {
-  for (string8_view language_id : {u8"typescript"sv}) {
+  for (string8_view language_id : {u8"typescript"_sv}) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
@@ -647,7 +647,7 @@ TEST_F(test_linting_lsp_server, typescript_language_ids_enable_typescript) {
 }
 
 TEST_F(test_linting_lsp_server, tsx_language_ids_enable_typescript_jsx) {
-  for (string8_view language_id : {u8"typescriptreact"sv, u8"tsx"sv}) {
+  for (string8_view language_id : {u8"typescriptreact"_sv, u8"tsx"_sv}) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
@@ -829,7 +829,7 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
   };
 
   this->server->append(
@@ -916,8 +916,8 @@ TEST_F(
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"sv));
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"sv));
+    EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"_sv));
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"_sv));
   };
   this->server->append(
       make_message(concat(u8R"({
@@ -949,7 +949,7 @@ TEST_F(test_linting_lsp_server,
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
   };
 
   this->server->append(
@@ -975,7 +975,7 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"modified"sv));
+    EXPECT_TRUE(config.globals().find(u8"modified"_sv));
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
@@ -1019,8 +1019,8 @@ TEST_F(test_linting_lsp_server,
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"sv));
-    EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"sv));
+    EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"_sv));
+    EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"_sv));
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
@@ -1065,8 +1065,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json, byte_buffer&) {
-    if (config.globals().find(u8"after"sv)) {
-      EXPECT_FALSE(config.globals().find(u8"before"sv));
+    if (config.globals().find(u8"after"_sv)) {
+      EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
       EXPECT_EQ(uri_json,
                 u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
@@ -1219,7 +1219,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"updated"sv}));
+  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"updated"_sv}));
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
@@ -1516,8 +1516,8 @@ TEST_F(test_linting_lsp_server,
                             padded_string_view, string8_view,
                             string8_view version_json, byte_buffer&) {
     EXPECT_EQ(version_json, u8"11");
-    EXPECT_FALSE(config.globals().find(u8"before"sv));
-    EXPECT_TRUE(config.globals().find(u8"after"sv));
+    EXPECT_FALSE(config.globals().find(u8"before"_sv));
+    EXPECT_TRUE(config.globals().find(u8"after"_sv));
   };
 
   this->server->append(
@@ -1548,8 +1548,8 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json, byte_buffer&) {
-    if (config.globals().find(u8"after"sv)) {
-      EXPECT_FALSE(config.globals().find(u8"before"sv));
+    if (config.globals().find(u8"after"_sv)) {
+      EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
       EXPECT_EQ(uri_json,
                 u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
@@ -1618,8 +1618,8 @@ TEST_F(test_linting_lsp_server,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
                             byte_buffer& notification_json) {
-    EXPECT_TRUE(config.globals().find(u8"after"sv));
-    EXPECT_FALSE(config.globals().find(u8"before"sv));
+    EXPECT_TRUE(config.globals().find(u8"after"_sv));
+    EXPECT_FALSE(config.globals().find(u8"before"_sv));
     EXPECT_EQ(version_json, u8"10");
     EXPECT_EQ(uri_json, u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
     after_config_was_loaded = true;
@@ -1659,8 +1659,8 @@ TEST_F(
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"v1"sv));
-    EXPECT_FALSE(config.globals().find(u8"v2"sv));
+    EXPECT_TRUE(config.globals().find(u8"v1"_sv));
+    EXPECT_FALSE(config.globals().find(u8"v2"_sv));
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
@@ -1750,8 +1750,8 @@ TEST_F(test_linting_lsp_server,
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
                             byte_buffer& notification_json) {
-    EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"sv));
-    EXPECT_FALSE(config.globals().find(u8"configFromLSP"sv));
+    EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"_sv));
+    EXPECT_FALSE(config.globals().find(u8"configFromLSP"_sv));
     notification_json.append_copy(
         u8R"({
       "method": "textDocument/publishDiagnostics",
@@ -1794,9 +1794,9 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
                             byte_buffer& notification_json) {
-    EXPECT_TRUE(config.globals().find(u8"Array"sv))
+    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
         << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"sv))
+    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
         << "config should be default";
     notification_json.append_copy(
         u8R"({
@@ -1851,14 +1851,14 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
 TEST_F(test_linting_lsp_server,
        opening_js_file_with_invalid_config_json_lints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8"INVALID JSON"sv);
+                       u8"INVALID JSON"_sv);
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
                             byte_buffer& notification_json) {
-    EXPECT_TRUE(config.globals().find(u8"Array"sv))
+    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
         << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"sv))
+    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
         << "config should be default";
     notification_json.append_copy(
         u8R"({
@@ -1944,7 +1944,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
                             byte_buffer& notification_json) {
-    EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"sv))
+    EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"_sv))
         << "config should be default";
     notification_json.append_copy(
         u8R"({
@@ -2359,9 +2359,9 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
 
   for (
       string8_view message : {
-          u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"sv,
-          u8"[falsex]"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": xxx, "params": {} })"sv,
+          u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"_sv,
+          u8"[falsex]"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": xxx, "params": {} })"_sv,
       }) {
     SCOPED_TRACE(out_string8(message));
     this->reset();
@@ -2414,11 +2414,11 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
 TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
   for (
       string8_view message : {
-          u8R"({ "jsonrpc": "2.0", "method": null, "id": 10, "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": null, "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": null, "id": 10, "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": null, "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"_sv,
       }) {
     SCOPED_TRACE(out_string8(message));
     this->reset();
@@ -2435,23 +2435,23 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
 TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
   for (
       string8_view message : {
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen" })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": null } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": {} } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript" } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": null } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js" } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js", "version": 1 } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didClose" })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange" })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": {} } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js" } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 } } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ {} ] } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": null, "character": 0 }, "end": { "line": 0, "character": 0 } } } ] } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": null }, "end": { "line": 0, "character": 0 } } } ] } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": 0 }, "end": { "line": null, "character": 0 } } } ] } })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 0, "character": null } } } ] } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen" })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": null } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": {} } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript" } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": null } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js" } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js", "version": 1 } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didClose" })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange" })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": {} } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js" } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 } } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ {} ] } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": null, "character": 0 }, "end": { "line": 0, "character": 0 } } } ] } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": null }, "end": { "line": 0, "character": 0 } } } ] } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": 0 }, "end": { "line": null, "character": 0 } } } ] } })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 0, "character": null } } } ] } })"_sv,
       }) {
     SCOPED_TRACE(out_string8(message));
     this->reset();
@@ -2489,7 +2489,7 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
 
   lsp_javascript_linter linter;
   linter.lint_and_get_diagnostics_notification(
-      config, linter_options(), &code, u8"\"file:///test.js\""sv, u8"10"sv,
+      config, linter_options(), &code, u8"\"file:///test.js\""_sv, u8"10"_sv,
       notification_json_buffer);
 
   std::string notification_json;

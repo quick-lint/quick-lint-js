@@ -2060,7 +2060,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
              u8"((" + name + u8") => null)",
          }) {
       if (name == u8"await"_sv &&
-          quick_lint_js::starts_with(string8_view(code), u8"(async"sv)) {
+          quick_lint_js::starts_with(string8_view(code), u8"(async"_sv)) {
         // NOTE(erlliam): await parameter isn't allowed in async functions. See
         // test_parse.disallow_await_parameter_in_async_arrow_function.
         continue;

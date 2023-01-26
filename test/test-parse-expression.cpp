@@ -3703,7 +3703,7 @@ TEST_F(test_parse_expression, generator_misplaced_star) {
 }
 
 TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
-  for (char8 op : u8"~!-+"sv) {
+  for (char8 op : u8"~!-+"_sv) {
     test_parser p(op + u8"a ** b"s, capture_diags);
     SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();

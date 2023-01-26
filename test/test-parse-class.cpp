@@ -1530,7 +1530,7 @@ TEST_F(test_parse_class, typescript_style_const_field) {
 
 TEST_F(test_parse_class, class_expression_body_is_visited_first_in_expression) {
   {
-    test_parser p(u8"[before, class C { m() { inside; } }, after];"sv);
+    test_parser p(u8"[before, class C { m() { inside; } }, after];"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // C {
@@ -1550,7 +1550,7 @@ TEST_F(test_parse_class, class_expression_body_is_visited_first_in_expression) {
 
   {
     test_parser p(
-        u8"[before, class C { m() { inside; } }.prop, after] = [1,2,3];"sv);
+        u8"[before, class C { m() { inside; } }.prop, after] = [1,2,3];"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // C {

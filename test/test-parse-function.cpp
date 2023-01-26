@@ -2166,7 +2166,7 @@ TEST_F(test_parse_function, invalid_function_parameter) {
 }
 
 TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
-  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+  for (string8_view function : {u8"function(){b;}"_sv, u8"()=>{b;}"_sv}) {
     test_parser p(concat(u8"[a, "_sv, function, u8", c];"_sv));
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
@@ -2181,7 +2181,7 @@ TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"b", u8"a", u8"c"}));
   }
 
-  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+  for (string8_view function : {u8"function(){b;}"_sv, u8"()=>{b;}"_sv}) {
     test_parser p(
         concat(u8"[a, ("_sv, function, u8")().prop, c] = [1, 2, 3];"_sv));
     SCOPED_TRACE(p.code);

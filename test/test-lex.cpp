@@ -391,7 +391,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                     diag_integer_literal_will_lose_precision,  //
                     characters,
                     offsets_matcher(input, 0, u8"9007199254740993"_sv),  //
-                    rounded_val, u8"9007199254740992"sv),
+                    rounded_val, u8"9007199254740992"_sv),
             }));
       });
   this->check_tokens(u8"999999999999999"_sv, {token_type::number});
@@ -408,7 +408,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                                    characters,
                                    offsets_matcher(input, 0,
                                                    310),  //
-                                   rounded_val, u8"inf"sv),
+                                   rounded_val, u8"inf"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -423,7 +423,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                     offsets_matcher(input, 0,
                                     309),  //
                     rounded_val,
-                    u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"sv),
+                    u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -436,7 +436,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                                    characters,
                                    offsets_matcher(input, 0,
                                                    309),  //
-                                   rounded_val, u8"inf"sv),
+                                   rounded_val, u8"inf"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -449,7 +449,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                     diag_integer_literal_will_lose_precision,  //
                     characters,
                     offsets_matcher(input, 0, u8"18014398509481986"_sv),  //
-                    rounded_val, u8"18014398509481984"sv),
+                    rounded_val, u8"18014398509481984"_sv),
             }));
       });
 }
@@ -3360,7 +3360,7 @@ TEST_F(test_lex, jsx_string) {
 // https://github.com/facebook/jsx/pull/133
 TEST_F(test_lex, jsx_string_ignores_comments) {
   {
-    padded_string code(u8"! 'hello // '\nworld'"sv);
+    padded_string code(u8"! 'hello // '\nworld'"_sv);
     diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
@@ -3378,7 +3378,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
   }
 
   {
-    padded_string code(u8R"(! "hello/* not"comment */world")"sv);
+    padded_string code(u8R"(! "hello/* not"comment */world")"_sv);
     diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
@@ -3397,7 +3397,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
 }
 
 TEST_F(test_lex, unterminated_jsx_string) {
-  padded_string code(u8"! 'hello"sv);
+  padded_string code(u8"! 'hello"_sv);
   diag_collector errors;
   lexer l(&code, &errors);
   l.skip_in_jsx();  // Ignore '!'.
@@ -3423,14 +3423,14 @@ TEST_F(test_lex, jsx_tag) {
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"svg"sv);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"svg"_sv);
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::colon);
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"rect"sv);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"rect"_sv);
 
     EXPECT_THAT(errors.errors, IsEmpty());
   }
@@ -3442,14 +3442,14 @@ TEST_F(test_lex, jsx_tag) {
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"myModule"sv);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"myModule"_sv);
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::dot);
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"MyComponent"sv);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"MyComponent"_sv);
 
     EXPECT_THAT(errors.errors, IsEmpty());
   }

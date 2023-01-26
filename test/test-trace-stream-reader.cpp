@@ -374,7 +374,7 @@ TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
                               0x5678),
              ::testing::Field(&trace_stream_event_visitor::
                                   lsp_client_to_server_message_event::body,
-                              u8"{}"sv))));
+                              u8"{}"_sv))));
   trace_stream_reader reader(&v);
   reader.append_bytes(stream.data(), stream.size());
 }
@@ -400,7 +400,7 @@ TEST(test_trace_stream_reader,
                               0x5678),
              ::testing::Field(&trace_stream_event_visitor::
                                   lsp_client_to_server_message_event::body,
-                              u8"{}"sv))));
+                              u8"{}"_sv))));
   trace_stream_reader reader(&v);
   reader.append_bytes(example_packet_header.data(),
                       example_packet_header.size());
@@ -451,7 +451,7 @@ TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
                       ::testing::Field(
                           &trace_stream_event_visitor::
                               vector_max_size_histogram_by_owner_entry::owner,
-                          u8"o1"sv),
+                          u8"o1"_sv),
                       ::testing::Field(
                           &trace_stream_event_visitor::
                               vector_max_size_histogram_by_owner_entry::
@@ -468,7 +468,7 @@ TEST(test_trace_stream_reader, vector_max_size_histogram_by_owner_event) {
                       ::testing::Field(
                           &trace_stream_event_visitor::
                               vector_max_size_histogram_by_owner_entry::owner,
-                          u8"o2"sv),
+                          u8"o2"_sv),
                       ::testing::Field(
                           &trace_stream_event_visitor::
                               vector_max_size_histogram_by_owner_entry::
