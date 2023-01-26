@@ -11,12 +11,14 @@
 #include <string>
 
 namespace quick_lint_js {
+using padded_string_size = std::ptrdiff_t;
+
 // Like std::string, but guaranteed to have several null bytes at the end.
 //
 // padded_string enables using SIMD instructions without extra bounds checking.
 class padded_string {
  public:
-  using size_type = int;
+  using size_type = padded_string_size;
 
   static constexpr size_type padding_size = 64;
 

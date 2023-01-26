@@ -65,13 +65,15 @@ platform_file_io_error file_too_large_error() {
 }
 
 result<void, platform_file_io_error> read_file_buffered(
-    platform_file_ref file, int buffer_size, padded_string *out_content) {
+    platform_file_ref file, padded_string_size buffer_size,
+    padded_string *out_content) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
-    int size_before = out_content->size();
+    padded_string_size size_before = out_content->size();
     {
-      std::optional<int> new_size = checked_add(size_before, buffer_size);
+      std::optional<padded_string_size> new_size =
+          checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
         return failed_result(file_too_large_error());
@@ -79,16 +81,18 @@ result<void, platform_file_io_error> read_file_buffered(
       out_content->resize_grow_uninitialized(size_before + buffer_size);
     }
 
-    file_read_result read_result =
-        file.read(&out_content->data()[size_before], buffer_size);
+    // TODO(strager): Get rid of this narrow_cast.
+    file_read_result read_result = file.read(&out_content->data()[size_before],
+                                             narrow_cast<int>(buffer_size));
     if (!read_result.ok()) return read_result.propagate();
     if (read_result.at_end_of_file()) {
       // We read the entire file.
       out_content->resize(size_before);
       return {};
     }
-    std::optional<int> new_size =
-        checked_add(size_before, read_result.bytes_read());
+    // TODO(strager): Get rid of this narrow_cast.
+    std::optional<padded_string_size> new_size = checked_add(
+        size_before, narrow_cast<padded_string_size>(read_result.bytes_read()));
     QLJS_ASSERT(new_size.has_value());
     out_content->resize(*new_size);
   }

@@ -71,7 +71,9 @@ const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line)];
   bool is_last_line = line == number_of_lines - 1;
   if (is_last_line) {
-    offset_type line_length = this->input_.size() - line_begin_offset;
+    // TODO(strager): Get rid of this narrow_cast.
+    offset_type line_length =
+        narrow_cast<offset_type>(this->input_.size() - line_begin_offset);
     if (line_is_ascii) {
       if (character > line_length) {
         return &this->input_[this->input_.size()];

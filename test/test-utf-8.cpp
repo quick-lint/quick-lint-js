@@ -504,7 +504,9 @@ TEST(test_advance_lsp_characters_in_utf_8,
 namespace {
 std::ptrdiff_t count_lsp_characters_in_utf_8(
     padded_string_view utf_8) noexcept {
-  return quick_lint_js::count_lsp_characters_in_utf_8(utf_8, utf_8.size());
+  // TODO(strager): Get rid of this narrow_cast.
+  return quick_lint_js::count_lsp_characters_in_utf_8(
+      utf_8, narrow_cast<int>(utf_8.size()));
 }
 
 std::ptrdiff_t count_lsp_characters_in_utf_8(
@@ -564,7 +566,10 @@ TEST(test_count_lsp_characters_in_utf_8,
            "\xed\xbf\xbf"_padded,  // U+DFFF
        }) {
     SCOPED_TRACE(input);
-    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+    // TODO(strager): Get rid of this narrow_cast.
+    EXPECT_EQ(
+        count_lsp_characters_in_utf_8(input, narrow_cast<int>(input.size())),
+        input.size());
   }
 }
 
@@ -590,7 +595,10 @@ TEST(test_count_lsp_characters_in_utf_8,
            "\xfc\x83\xbf\xbf\xbf\xbf"_padded,  // U+03FFFFFF
        }) {
     SCOPED_TRACE(input);
-    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+    // TODO(strager): Get rid of this narrow_cast.
+    EXPECT_EQ(
+        count_lsp_characters_in_utf_8(input, narrow_cast<int>(input.size())),
+        input.size());
   }
 }
 

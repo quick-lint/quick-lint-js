@@ -19,8 +19,8 @@ string8 repeat(string8_view s, int count) {
 void benchmark_advance_lsp_characters_in_utf_8(::benchmark::State& state,
                                                string8_view input) {
   padded_string padded_input(input);
-  int total_character_count = narrow_cast<int>(
-      count_lsp_characters_in_utf_8(&padded_input, padded_input.size()));
+  int total_character_count = narrow_cast<int>(count_lsp_characters_in_utf_8(
+      &padded_input, narrow_cast<int>(padded_input.size())));
   // Avoid count==size optimizations:
   int characters_to_count = total_character_count - 1;
 

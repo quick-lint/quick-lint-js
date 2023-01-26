@@ -134,8 +134,8 @@ TEST(test_padded_string, move_assigning_empty_string_copies_pointers) {
 namespace {
 void expect_null_terminated(const padded_string &s) {
   const char8 *data = s.c_str();
-  for (int i = 0; i < s.padding_size; ++i) {
-    int index = s.size() + i;
+  for (padded_string_size i = 0; i < s.padding_size; ++i) {
+    padded_string_size index = s.size() + i;
     EXPECT_EQ(data[index], u8'\0') << "index=" << index;
   }
 }
