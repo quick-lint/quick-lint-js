@@ -675,36 +675,47 @@ void linting_lsp_server_handler::apply_document_changes(
     ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
-    string8_view change_text;
-    if (!get_string8(change, "text", &change_text)) {
+    ::simdjson::ondemand::object change_object;
+    if (change.get(change_object) != ::simdjson::SUCCESS) {
       // Ignore invalid change.
       continue;
     }
-    ::simdjson::ondemand::object raw_range;
-    bool is_incremental = get_object(change, "range", &raw_range);
-    if (is_incremental) {
-      lsp_range range;
+    apply_document_change(doc, change_object);
+  }
+}
 
-      ::simdjson::ondemand::object start;
-      if (!(get_object(raw_range, "start", &start) &&
-            get_int(start, "line", &range.start.line) &&
-            get_int(start, "character", &range.start.character))) {
-        // Ignore invalid change.
-        continue;
-      }
+void linting_lsp_server_handler::apply_document_change(
+    quick_lint_js::document<lsp_locator>& doc,
+    ::simdjson::ondemand::object& change) {
+  string8_view change_text;
+  if (!get_string8(change, "text", &change_text)) {
+    // Ignore invalid change.
+    return;
+  }
+  ::simdjson::ondemand::object raw_range;
+  bool is_incremental = get_object(change, "range", &raw_range);
+  if (is_incremental) {
+    lsp_range range;
 
-      ::simdjson::ondemand::object end;
-      if (!(get_object(raw_range, "end", &end) &&
-            get_int(end, "line", &range.end.line) &&
-            get_int(end, "character", &range.end.character))) {
-        // Ignore invalid change.
-        continue;
-      }
-
-      doc.replace_text(range, change_text);
-    } else {
-      doc.set_text(change_text);
+    ::simdjson::ondemand::object start;
+    if (!(get_object(raw_range, "start", &start) &&
+          get_int(start, "line", &range.start.line) &&
+          get_int(start, "character", &range.start.character))) {
+      // Ignore invalid change.
+      return;
     }
+
+    ::simdjson::ondemand::object end;
+    if (!(get_object(raw_range, "end", &end) &&
+          get_int(end, "line", &range.end.line) &&
+          get_int(end, "character", &range.end.character))) {
+      // Ignore invalid change.
+      return;
+    }
+
+    doc.replace_text(range, change_text);
+  } else {
+    doc.set_text(change_text);
   }
 }
 

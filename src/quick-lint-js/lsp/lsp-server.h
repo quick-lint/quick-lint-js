@@ -208,6 +208,8 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
+  static void apply_document_change(quick_lint_js::document<lsp_locator>& doc,
+                                    ::simdjson::ondemand::object& change);
 
   static void write_method_not_found_error_response(
       string8_view request_id_json, byte_buffer&);
