@@ -24,6 +24,7 @@ namespace QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE {
 namespace ondemand {
 class array;
 class object;
+class parser;
 class value;
 }
 }

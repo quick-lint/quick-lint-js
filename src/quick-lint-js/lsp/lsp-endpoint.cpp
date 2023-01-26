@@ -32,7 +32,11 @@ lsp_endpoint_handler::~lsp_endpoint_handler() = default;
 
 lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
                            lsp_endpoint_remote* remote)
-    : remote_(remote), handler_(handler) {}
+    : remote_(remote),
+      handler_(handler),
+      json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
+
+lsp_endpoint::~lsp_endpoint() = default;
 
 void lsp_endpoint::message_parsed(string8_view message) {
   trace_writer* tw =
@@ -53,7 +57,8 @@ void lsp_endpoint::message_parsed(string8_view message) {
       reinterpret_cast<const char*>(message.data()), message.size());
   ::simdjson::ondemand::document message_document;
   ::simdjson::error_code parse_error;
-  this->json_parser_.iterate(padded_message).tie(message_document, parse_error);
+  this->json_parser_->iterate(padded_message)
+      .tie(message_document, parse_error);
   if (parse_error != ::simdjson::error_code::SUCCESS) {
     byte_buffer error_json;
     this->write_json_parse_error_response(error_json);

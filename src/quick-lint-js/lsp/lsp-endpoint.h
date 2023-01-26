@@ -9,6 +9,7 @@
 #else
 
 #include <cstddef>
+#include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/json.h>
@@ -17,8 +18,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/simdjson.h>
-#include <simdjson.h>
+#include <quick-lint-js/simdjson-fwd.h>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -114,6 +114,10 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   //     better.
   explicit lsp_endpoint(lsp_endpoint_handler* handler,
                         lsp_endpoint_remote* remote);
+  ~lsp_endpoint();
+
+  lsp_endpoint(const lsp_endpoint&) = delete;
+  lsp_endpoint& operator=(const lsp_endpoint&) = delete;
 
   using message_parser::append;
 
@@ -130,9 +134,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
-  // TODO(strager): Make this a pointer so we can avoid #include-ing
-  // <simdjson.h>.
-  ::simdjson::ondemand::parser json_parser_;
+  std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
 
   friend message_parser;
 };
