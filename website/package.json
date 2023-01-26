@@ -24,5 +24,8 @@
   "devDependencies": {
     "@colors/colors": "^1.5.0",
     "prettier": "2.7.1"
+  },
+  "resolutions": {
+    "yargs": "link:./null-package"
   }
 }
