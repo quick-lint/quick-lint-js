@@ -1133,10 +1133,7 @@ inline int expression::child_count() const noexcept {
 }
 
 inline expression *expression::child(int index) const noexcept {
-  expression_arena::array_ptr<expression *> children = this->children();
-  QLJS_ASSERT(index >= 0);
-  QLJS_ASSERT(index < children.size());
-  return children[index];
+  return this->children()[index];
 }
 
 inline expression_arena::array_ptr<expression *> expression::children() const
