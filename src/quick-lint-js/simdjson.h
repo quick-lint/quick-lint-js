@@ -9,6 +9,13 @@
 #include <string_view>
 
 namespace quick_lint_js {
+struct string_json_token {
+  // The string data.
+  string8_view data;
+  // The string data in JSON format.
+  string8_view json;
+};
+
 string8_view get_raw_json(::simdjson::ondemand::value&);
 
 // Returns true on success.

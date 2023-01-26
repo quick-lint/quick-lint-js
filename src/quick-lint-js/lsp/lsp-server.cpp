@@ -40,11 +40,6 @@ namespace {
 constexpr lsp_endpoint_handler::request_id_type
     initial_configuration_request_id = 1;
 
-struct string_json_token {
-  string8_view data;
-  string8_view json;
-};
-
 // Returns std::nullopt on failure (e.g. missing key or not a string).
 std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::ondemand::value& string);
@@ -437,7 +432,18 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     return;
   }
 
-  std::string document_path = parse_file_from_lsp_uri(uri->data);
+  this->handle_text_document_did_open_notification(
+      lsp_text_document_did_open_notification{
+          .language_id = language_id,
+          .uri = *uri,
+          .version_json = get_raw_json(version),
+          .text = text,
+      });
+}
+
+void linting_lsp_server_handler::handle_text_document_did_open_notification(
+    const lsp_text_document_did_open_notification& notification) {
+  std::string document_path = parse_file_from_lsp_uri(notification.uri.data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
@@ -446,12 +452,12 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   auto init_document = [&](document_base& doc) {
     this->config_fs_.open_document(document_path, &doc.doc);
 
-    doc.doc.set_text(text);
-    doc.version_json = get_raw_json(version);
+    doc.doc.set_text(notification.text);
+    doc.version_json = notification.version_json;
   };
 
   std::unique_ptr<document_base> doc_ptr;
-  if (const lsp_language* lang = lsp_language::find(language_id)) {
+  if (const lsp_language* lang = lsp_language::find(notification.language_id)) {
     auto doc = std::make_unique<lintable_document>();
     init_document(*doc);
     doc->lint_options = lang->lint_options;
@@ -476,7 +482,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
     }
-    this->linter_.lint(*doc, uri->json, this->outgoing_messages_);
+    this->linter_.lint(*doc, notification.uri.json, this->outgoing_messages_);
 
     doc_ptr = std::move(doc);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
@@ -490,7 +496,8 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     byte_buffer& config_diagnostics_json =
         this->outgoing_messages_.new_message();
     this->get_config_file_diagnostics_notification(
-        *config_file, uri->json, doc->version_json, config_diagnostics_json);
+        *config_file, notification.uri.json, doc->version_json,
+        config_diagnostics_json);
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
@@ -504,7 +511,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
   // If the document already exists, deallocate that document_base and use ours.
   // TODO(strager): Should we report a warning if a document already existed?
-  this->documents_[string8(uri->data)] = std::move(doc_ptr);
+  this->documents_[string8(notification.uri.data)] = std::move(doc_ptr);
 }
 
 void linting_lsp_server_handler::

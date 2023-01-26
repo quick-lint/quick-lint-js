@@ -24,6 +24,7 @@
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/simdjson-fwd.h>
+#include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <vector>
@@ -161,8 +162,18 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
       ::simdjson::ondemand::object& request);
   void handle_text_document_did_close_notification(
       ::simdjson::ondemand::object& request);
+
+  struct lsp_text_document_did_open_notification {
+    std::string_view language_id;
+    string_json_token uri;
+    string8_view version_json;
+    string8_view text;
+  };
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request);
+  void handle_text_document_did_open_notification(
+      const lsp_text_document_did_open_notification&);
+
   void handle_workspace_did_change_configuration_notification(
       ::simdjson::ondemand::object& request);
 
