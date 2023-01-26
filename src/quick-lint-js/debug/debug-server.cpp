@@ -70,15 +70,16 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
       }
 
       queue.take_committed(
-          [&](const std::byte *data, std::size_t size) {
+          [&](span<const std::byte> data) {
             // FIXME(strager): ::mg_send fails if size is 0. We shouldn't need
             // this size check, but async_byte_queue gives us empty chunks for
             // some reason. We should make async_byte_queue not give us empty
             // chunks.
-            if (size > 0) {
-              int ok = ::mg_send(this->connection_, data, size);
+            if (!data.empty()) {
+              int ok = ::mg_send(this->connection_, data.data(),
+                                 narrow_cast<std::size_t>(data.size()));
               QLJS_ASSERT(ok);
-              total_message_size += size;
+              total_message_size += narrow_cast<std::size_t>(data.size());
             }
           },
           [] {});

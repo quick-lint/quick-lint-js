@@ -7,6 +7,7 @@
 #include <cstring>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
@@ -52,8 +53,9 @@ void async_byte_queue::commit() {
 string8 async_byte_queue::take_committed_string8() {
   string8 result;
   this->take_committed(
-      [&result](const std::byte* data, std::size_t size) -> void {
-        result.append(reinterpret_cast<const char8*>(data), size);
+      [&result](span<const std::byte> data) -> void {
+        result.append(reinterpret_cast<const char8*>(data.data()),
+                      narrow_cast<std::size_t>(data.size()));
       },
       []() {});
   return result;

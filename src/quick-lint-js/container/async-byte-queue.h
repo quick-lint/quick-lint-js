@@ -9,7 +9,9 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/max-align.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 
 namespace quick_lint_js {
@@ -148,9 +150,9 @@ void async_byte_queue::take_committed(ChunkFunc&& chunk_callback,
   chunk* last_chunk;
   {
     std::unique_lock<mutex> lock(this->mutex_);
-    auto call_chunk_callback = [&](const std::byte* data, size_type size) {
+    auto call_chunk_callback = [&](span<const std::byte> data) {
       lock.unlock();
-      chunk_callback(data, size);
+      chunk_callback(data);
       lock.lock();
     };
 
@@ -161,8 +163,9 @@ void async_byte_queue::take_committed(ChunkFunc&& chunk_callback,
     // NOTE[committed_index-data_size].
     while (c->next) {
       size_type old_data_size = c->data_size;
-      call_chunk_callback(&c->capacity_begin()[c->begin_index],
-                          c->data_size - c->begin_index);
+      call_chunk_callback(span<const std::byte>(
+          &c->capacity_begin()[c->begin_index],
+          narrow_cast<span_size>(c->data_size - c->begin_index)));
 
       // These shouldn't be changed by the callback or by the writer thread.
       QLJS_ASSERT(c->data_size == old_data_size);
@@ -172,8 +175,9 @@ void async_byte_queue::take_committed(ChunkFunc&& chunk_callback,
     }
 
     size_type old_committed_index = c->committed_index;
-    call_chunk_callback(&c->capacity_begin()[c->begin_index],
-                        old_committed_index - c->begin_index);
+    call_chunk_callback(span<const std::byte>(
+        &c->capacity_begin()[c->begin_index],
+        narrow_cast<span_size>(old_committed_index - c->begin_index)));
     c->begin_index = old_committed_index;
     // NOTE(strager): Because call_chunk_callback unlocks the mutex,
     // c->committed_index and c->next might change.

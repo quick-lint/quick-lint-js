@@ -217,11 +217,9 @@ void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
                                           registered_thread& t) {
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
-      [&](const std::byte* data, std::size_t size) {
+      [&](span<const std::byte> data) {
         for (trace_flusher_backend* backend : this->backends_) {
-          backend->trace_thread_write_data(
-              t.thread_index,
-              span<const std::byte>(data, narrow_cast<span_size>(size)));
+          backend->trace_thread_write_data(t.thread_index, data);
         }
       },
       [] {});
@@ -257,10 +255,8 @@ void trace_flusher::write_thread_header_to_backend(
   });
   temp_queue.commit();
   temp_queue.take_committed(
-      [&](const std::byte* data, std::size_t size) {
-        backend->trace_thread_write_data(
-            t.thread_index,
-            span<const std::byte>(data, narrow_cast<span_size>(size)));
+      [&](span<const std::byte> data) {
+        backend->trace_thread_write_data(t.thread_index, data);
       },
       [] {});
 }

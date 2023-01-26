@@ -213,30 +213,24 @@ TEST(test_async_byte_queue,
   std::fill_n(chunk_2, q.default_chunk_size, u8'c');
   q.commit();
 
-  struct chunk {
-    const std::byte* data;
-    async_byte_queue::size_type size;
-  };
-  std::vector<chunk> chunks;
+  std::vector<span<const std::byte>> chunks;
   bool finalize_called = false;
   q.take_committed(
-      [&](const std::byte* data, async_byte_queue::size_type size) {
-        chunks.push_back(chunk{.data = data, .size = size});
-      },
+      [&](span<const std::byte> data) { chunks.push_back(data); },
       [&]() {
         ASSERT_EQ(chunks.size(), 3);
 
-        EXPECT_EQ(chunks[0].size, q.default_chunk_size);
-        EXPECT_EQ(chunks[0].data, reinterpret_cast<std::byte*>(chunk_0));
-        EXPECT_EQ(static_cast<char8>(chunks[0].data[0]), u8'a');
+        EXPECT_EQ(chunks[0].size(), q.default_chunk_size);
+        EXPECT_EQ(chunks[0].data(), reinterpret_cast<std::byte*>(chunk_0));
+        EXPECT_EQ(static_cast<char8>(chunks[0][0]), u8'a');
 
-        EXPECT_EQ(chunks[1].size, q.default_chunk_size);
-        EXPECT_EQ(chunks[1].data, reinterpret_cast<std::byte*>(chunk_1));
-        EXPECT_EQ(static_cast<char8>(chunks[1].data[0]), u8'b');
+        EXPECT_EQ(chunks[1].size(), q.default_chunk_size);
+        EXPECT_EQ(chunks[1].data(), reinterpret_cast<std::byte*>(chunk_1));
+        EXPECT_EQ(static_cast<char8>(chunks[1][0]), u8'b');
 
-        EXPECT_EQ(chunks[2].size, q.default_chunk_size / 4);
-        EXPECT_EQ(chunks[2].data, reinterpret_cast<std::byte*>(chunk_2));
-        EXPECT_EQ(static_cast<char8>(chunks[2].data[0]), u8'c');
+        EXPECT_EQ(chunks[2].size(), q.default_chunk_size / 4);
+        EXPECT_EQ(chunks[2].data(), reinterpret_cast<std::byte*>(chunk_2));
+        EXPECT_EQ(static_cast<char8>(chunks[2][0]), u8'c');
 
         finalize_called = true;
       });
