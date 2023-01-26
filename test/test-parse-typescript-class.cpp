@@ -919,17 +919,17 @@ TEST_F(test_parse_typescript_class,
   }
 
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
-#define MATCH_ACCESS_SPECIFIER_ERROR(code_before)                             \
-  ::testing::AnyOf(                                                           \
-      DIAG_TYPE_OFFSETS(p.code,                                               \
-                        diag_typescript_private_not_allowed_in_javascript,    \
-                        specifier, strlen(u8"class C { "), u8"private"_sv),   \
-      DIAG_TYPE_OFFSETS(p.code,                                               \
-                        diag_typescript_protected_not_allowed_in_javascript,  \
-                        specifier, strlen(u8"class C { "), u8"protected"_sv), \
-      DIAG_TYPE_OFFSETS(p.code,                                               \
-                        diag_typescript_public_not_allowed_in_javascript,     \
-                        specifier, strlen(u8"class C { "), u8"public"_sv))
+#define MATCH_ACCESS_SPECIFIER_ERROR(code_before)                            \
+  ::testing::AnyOf(                                                          \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_private_not_allowed_in_javascript,   \
+                        specifier, strlen(code_before), u8"private"_sv),     \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_protected_not_allowed_in_javascript, \
+                        specifier, strlen(code_before), u8"protected"_sv),   \
+      DIAG_TYPE_OFFSETS(p.code,                                              \
+                        diag_typescript_public_not_allowed_in_javascript,    \
+                        specifier, strlen(code_before), u8"public"_sv))
 
     {
       test_parser p(
