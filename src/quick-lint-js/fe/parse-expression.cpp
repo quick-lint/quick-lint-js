@@ -2237,7 +2237,7 @@ expression* parser::parse_arrow_function_expression_remainder(
     auto* call = expression_cast<expression::call>(parameters_expression);
     if (this->peek().type == token_type::left_curly) {
       parameter_list_begin = call->left_paren_span().begin();
-      for (int i = 1; i < call->child_count(); ++i) {
+      for (span_size i = 1; i < call->child_count(); ++i) {
         parameters.emplace_back(call->child(i));
       }
       // We will report

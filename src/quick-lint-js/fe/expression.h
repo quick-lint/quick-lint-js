@@ -257,19 +257,20 @@ class expression {
   identifier variable_identifier() const noexcept;
   token_type variable_identifier_token_type() const noexcept;
 
-  int child_count() const noexcept;
+  span_size child_count() const noexcept;
 
   expression *child_0() const noexcept { return this->child(0); }
   expression *child_1() const noexcept { return this->child(1); }
   expression *child_2() const noexcept { return this->child(2); }
 
-  expression *child(int) const noexcept;
+  expression *child(span_size) const noexcept;
 
   expression_arena::array_ptr<expression *> children() const noexcept;
 
   // Remove wrapping paren expressions, if any.
   expression *without_paren() const noexcept;
 
+  // TODO(strager): Return span_size instead.
   int object_entry_count() const noexcept;
 
   object_property_value_pair object_entry(int) const noexcept;
@@ -1127,12 +1128,11 @@ inline token_type expression::variable_identifier_token_type() const noexcept {
   }
 }
 
-inline int expression::child_count() const noexcept {
-  // TODO(strager): Remove this cast.
-  return narrow_cast<int>(this->children().size());
+inline span_size expression::child_count() const noexcept {
+  return this->children().size();
 }
 
-inline expression *expression::child(int index) const noexcept {
+inline expression *expression::child(span_size index) const noexcept {
   return this->children()[index];
 }
 

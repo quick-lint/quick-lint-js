@@ -337,7 +337,7 @@ void parser::error_on_pointless_string_compare(
     return *s == '"' || *s == '\'' || *s == '`';
   };
 
-  for (int i = 0; i < ast->child_count() - 1; i++) {
+  for (span_size i = 0; i < ast->child_count() - 1; i++) {
     expression* lhs = ast->child(i)->without_paren();
     expression* rhs = ast->child(i + 1)->without_paren();
 
@@ -420,7 +420,7 @@ void parser::error_on_pointless_compare_against_literal(
     return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
   };
 
-  for (int i = 0; i < ast->child_count() - 1; i++) {
+  for (span_size i = 0; i < ast->child_count() - 1; i++) {
     source_code_span op_span = ast->operator_spans_[i];
     if (is_comparison_operator(op_span.string_view())) {
       this->check_compare_against_literal(ast->child(i), ast->child(i + 1),
