@@ -686,16 +686,15 @@ void linting_lsp_server_handler::apply_document_changes(
 
 void linting_lsp_server_handler::apply_document_change(
     quick_lint_js::document<lsp_locator>& doc,
-    ::simdjson::ondemand::object& change) {
-  string8_view change_text;
-  if (!get_string8(change, "text", &change_text)) {
+    ::simdjson::ondemand::object& raw_change) {
+  lsp_document_change change;
+  if (!get_string8(raw_change, "text", &change.text)) {
     // Ignore invalid change.
     return;
   }
   ::simdjson::ondemand::object raw_range;
-  bool is_incremental = get_object(change, "range", &raw_range);
-  if (is_incremental) {
-    lsp_range range;
+  if (get_object(raw_change, "range", &raw_range)) {
+    lsp_range& range = change.range.emplace();
 
     ::simdjson::ondemand::object start;
     if (!(get_object(raw_range, "start", &start) &&
@@ -712,10 +711,18 @@ void linting_lsp_server_handler::apply_document_change(
       // Ignore invalid change.
       return;
     }
+  }
 
-    doc.replace_text(range, change_text);
+  apply_document_change(doc, change);
+}
+
+void linting_lsp_server_handler::apply_document_change(
+    quick_lint_js::document<lsp_locator>& doc,
+    const lsp_document_change& change) {
+  if (change.range.has_value()) {
+    doc.replace_text(*change.range, change.text);
   } else {
-    doc.set_text(change_text);
+    doc.set_text(change.text);
   }
 }
 

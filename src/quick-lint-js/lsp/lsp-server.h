@@ -206,10 +206,17 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                                loaded_config_file*,
                                                byte_buffer& out_json);
 
+  struct lsp_document_change {
+    string8_view text;
+    // If a range is not provided, the document's text is entirely replaced.
+    std::optional<lsp_range> range;
+  };
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
   static void apply_document_change(quick_lint_js::document<lsp_locator>& doc,
-                                    ::simdjson::ondemand::object& change);
+                                    ::simdjson::ondemand::object& raw_change);
+  static void apply_document_change(quick_lint_js::document<lsp_locator>& doc,
+                                    const lsp_document_change& change);
 
   static void write_method_not_found_error_response(
       string8_view request_id_json, byte_buffer&);
