@@ -214,14 +214,15 @@ class lsp_linter {
 
   virtual ~lsp_linter();
 
+  // TODO(strager): Rename to just 'lint'.
   virtual void lint_and_get_diagnostics_notification(
       configuration& config, linter_options lint_options,
       padded_string_view code, string8_view uri_json, string8_view version_json,
-      byte_buffer& notification_json) = 0;
+      outgoing_lsp_message_queue&) = 0;
 
   void lint_and_get_diagnostics_notification(
       linting_lsp_server_handler::lintable_document&, string8_view uri_json,
-      byte_buffer& notification_json);
+      outgoing_lsp_message_queue&);
 };
 
 class lsp_javascript_linter final : public lsp_linter {
@@ -231,7 +232,7 @@ class lsp_javascript_linter final : public lsp_linter {
   void lint_and_get_diagnostics_notification(
       configuration&, linter_options, padded_string_view code,
       string8_view uri_json, string8_view version_json,
-      byte_buffer& notification_json) override;
+      outgoing_lsp_message_queue&) override;
 
  private:
   void lint_and_get_diagnostics(configuration&, linter_options,

@@ -382,9 +382,8 @@ void linting_lsp_server_handler::config_document::on_text_changed(
 
 void linting_lsp_server_handler::lintable_document::on_text_changed(
     linting_lsp_server_handler& handler, string8_view document_uri_json) {
-  byte_buffer& notification_json = handler.outgoing_messages_.new_message();
   handler.linter_.lint_and_get_diagnostics_notification(
-      *this, document_uri_json, notification_json);
+      *this, document_uri_json, handler.outgoing_messages_);
 }
 
 void linting_lsp_server_handler::unknown_document::on_text_changed(
@@ -483,9 +482,8 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
     }
-    byte_buffer& notification_json = this->outgoing_messages_.new_message();
-    this->linter_.lint_and_get_diagnostics_notification(*doc, uri->json,
-                                                        notification_json);
+    this->linter_.lint_and_get_diagnostics_notification(
+        *doc, uri->json, this->outgoing_messages_);
 
     doc_ptr = std::move(doc);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
@@ -581,13 +579,12 @@ void linting_lsp_server_handler::lintable_document::on_config_file_changed(
   configuration* config = change.config_file ? &change.config_file->config
                                              : &handler.default_config_;
   this->config = config;
-  byte_buffer& notification_json = handler.outgoing_messages_.new_message();
   // TODO(strager): Don't copy document_uri if it contains only non-special
   // characters.
   // TODO(strager): Cache the result of to_json_escaped_string?
   handler.linter_.lint_and_get_diagnostics_notification(
       *this, to_json_escaped_string_with_quotes(document_uri),
-      notification_json);
+      handler.outgoing_messages_);
 }
 
 void linting_lsp_server_handler::unknown_document::on_config_file_changed(
@@ -727,16 +724,17 @@ lsp_linter::~lsp_linter() = default;
 
 void lsp_linter::lint_and_get_diagnostics_notification(
     linting_lsp_server_handler::lintable_document& doc, string8_view uri_json,
-    byte_buffer& notification_json) {
+    outgoing_lsp_message_queue& outgoing_messages) {
   this->lint_and_get_diagnostics_notification(
       *doc.config, doc.lint_options, doc.doc.string(), uri_json,
-      doc.version_json, notification_json);
+      doc.version_json, outgoing_messages);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     configuration& config, linter_options lint_options, padded_string_view code,
     string8_view uri_json, string8_view version_json,
-    byte_buffer& notification_json) {
+    outgoing_lsp_message_queue& outgoing_messages) {
+  byte_buffer& notification_json = outgoing_messages.new_message();
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
