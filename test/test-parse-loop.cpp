@@ -240,7 +240,7 @@ TEST_F(test_parse_loop, c_style_for_loop) {
                 ElementsAreArray({u8"init", u8"cond", u8"body", u8"after"}));
   }
 
-  for (const char8* variable_kind : {u8"const", u8"let"}) {
+  for (string8_view variable_kind : {u8"const"_sv, u8"let"_sv}) {
     test_parser p(concat(u8"for ("_sv, variable_kind,
                          u8" i = 0; cond; after) { body; }"_sv));
     SCOPED_TRACE(p.code);
@@ -1550,7 +1550,7 @@ TEST_F(test_parse_loop,
 
 TEST_F(test_parse_loop,
        break_and_continue_statements_allows_contextual_keyword_as_label) {
-  for (const char8* statement : {u8"break", u8"continue"}) {
+  for (string8_view statement : {u8"break"_sv, u8"continue"_sv}) {
     for (string8_view keyword : contextual_keywords) {
       padded_string code(concat(keyword, u8": for (;;) { "_sv, statement,
                                 u8" "_sv, keyword, u8"; }"_sv));

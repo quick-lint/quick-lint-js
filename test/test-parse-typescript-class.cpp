@@ -981,7 +981,7 @@ TEST_F(test_parse_typescript_class,
 
     {
       test_parser p(concat(u8"class C { "_sv, specifier,
-                           u8" async\nmethod() { const await = null; } }"),
+                           u8" async\nmethod() { const await = null; } }"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();

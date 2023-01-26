@@ -1005,7 +1005,7 @@ TEST_F(test_parse_module,
 
     {
       test_parser p(concat(u8"import { someFunction as "_sv, imported_variable,
-                           u8" } from 'other';"),
+                           u8" } from 'other';"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
@@ -1023,7 +1023,7 @@ TEST_F(test_parse_module,
 
     {
       test_parser p(concat(u8"import { 'someFunction' as "_sv,
-                           imported_variable, u8" } from 'other';"),
+                           imported_variable, u8" } from 'other';"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
@@ -1101,7 +1101,7 @@ TEST_F(test_parse_module, exported_names_can_be_named_keywords) {
 TEST_F(test_parse_module, imported_names_can_be_named_keywords) {
   for (string8 import_name : keywords) {
     test_parser p(concat(u8"import {"_sv, import_name,
-                         u8" as someFunction} from 'somewhere';"));
+                         u8" as someFunction} from 'somewhere';"_sv));
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1120,7 +1120,7 @@ TEST_F(
 
     {
       padded_string code(concat(u8"import {"_sv, exported_name,
-                                u8" as someFunction} from 'somewhere';"));
+                                u8" as someFunction} from 'somewhere';"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();

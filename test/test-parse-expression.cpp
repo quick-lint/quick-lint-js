@@ -260,8 +260,9 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
 
   // NOTE(strager): "/=" is not tested here because "/=/" is a regular
   // expression literal.
-  for (string8_view op : {u8"*=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=",
-                          u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
+  for (string8_view op :
+       {u8"*="_sv, u8"%="_sv, u8"+="_sv, u8"-="_sv, u8"<<="_sv, u8">>="_sv,
+        u8">>>="_sv, u8"&="_sv, u8"^="_sv, u8"|="_sv, u8"**="_sv}) {
     test_parser p(concat(op, u8" 2"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
@@ -355,9 +356,10 @@ TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
 }
 
 TEST_F(test_parse_expression, parse_logical_expression) {
-  for (const char8* input :
-       {u8"2==2", u8"2===2", u8"2!=2", u8"2!==2", u8"2>2", u8"2<2", u8"2>=2",
-        u8"2<=2", u8"2&&2", u8"2??2", u8"2||2"}) {
+  for (string8_view input :
+       {u8"2==2"_sv, u8"2===2"_sv, u8"2!=2"_sv, u8"2!==2"_sv, u8"2>2"_sv,
+        u8"2<2"_sv, u8"2>=2"_sv, u8"2<=2"_sv, u8"2&&2"_sv, u8"2??2"_sv,
+        u8"2||2"_sv}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
     test_parser p(input, capture_diags);
     expression* ast = p.parse_expression();
@@ -600,12 +602,14 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   }
 
   for (string8_view op : {
-           u8"!=",  u8"!==", u8"%",    u8"%=",  u8"&",      u8"&&", u8"&&=",
-           u8"&=",  u8"*",   u8"**",   u8"**=", u8"*=",     u8"+",  u8"+=",
-           u8",",   u8"-",   u8"-=",   u8"/=",  u8"<",      u8"<<", u8"<<=",
-           u8"<=",  u8"=",   u8"==",   u8"===", u8">",      u8">=", u8">>",
-           u8">>=", u8">>>", u8">>>=", u8"??",  u8"?\x3f=", u8"^",  u8"^=",
-           u8"|",   u8"|=",  u8"||",   u8"||=",
+           u8"!="_sv,   u8"!=="_sv, u8"%"_sv,      u8"%="_sv,  u8"&"_sv,
+           u8"&&"_sv,   u8"&&="_sv, u8"&="_sv,     u8"*"_sv,   u8"**"_sv,
+           u8"**="_sv,  u8"*="_sv,  u8"+"_sv,      u8"+="_sv,  u8","_sv,
+           u8"-"_sv,    u8"-="_sv,  u8"/="_sv,     u8"<"_sv,   u8"<<"_sv,
+           u8"<<="_sv,  u8"<="_sv,  u8"="_sv,      u8"=="_sv,  u8"==="_sv,
+           u8">"_sv,    u8">="_sv,  u8">>"_sv,     u8">>="_sv, u8">>>"_sv,
+           u8">>>="_sv, u8"??"_sv,  u8"?\x3f="_sv, u8"^"_sv,   u8"^="_sv,
+           u8"|"_sv,    u8"|="_sv,  u8"||"_sv,     u8"||="_sv,
        }) {
     test_parser p(concat(u8"x. "_sv, op, u8" y"_sv), capture_diags);
     SCOPED_TRACE(p.code);
@@ -1143,7 +1147,7 @@ TEST_F(test_parse_expression,
                                      await_operator, strlen(u8"await "),
                                      u8"await"_sv)}));
         } else {
-          std::size_t await_offset = test.code.find(u8"await");
+          std::size_t await_offset = test.code.find(u8"await"_sv);
           EXPECT_THAT(p.errors,
                       ElementsAreArray({
                           DIAG_TYPE_OFFSETS(
@@ -1225,7 +1229,7 @@ TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
 
 TEST_F(test_parse_expression,
        yield_nullary_operator_inside_generator_functions) {
-  auto parse_expression_in_generator = [](const char8* code) -> std::string {
+  auto parse_expression_in_generator = [](string8_view code) -> std::string {
     test_parser p(code);
     auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
@@ -1242,22 +1246,22 @@ TEST_F(test_parse_expression,
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
-  EXPECT_EQ(parse_expression_in_generator(u8"(yield)"), "paren(yieldnone)");
-  EXPECT_EQ(parse_expression_in_generator(u8"[yield]"), "array(yieldnone)");
-  EXPECT_EQ(parse_expression_in_generator(u8"f(yield, 42)"),
+  EXPECT_EQ(parse_expression_in_generator(u8"(yield)"_sv), "paren(yieldnone)");
+  EXPECT_EQ(parse_expression_in_generator(u8"[yield]"_sv), "array(yieldnone)");
+  EXPECT_EQ(parse_expression_in_generator(u8"f(yield, 42)"_sv),
             "call(var f, yieldnone, literal)");
-  EXPECT_EQ(parse_expression_in_generator(u8"yield ? a : b"),
+  EXPECT_EQ(parse_expression_in_generator(u8"yield ? a : b"_sv),
             "cond(yieldnone, var a, var b)");
-  EXPECT_EQ(parse_expression_in_generator(u8"yield in stuff"),
+  EXPECT_EQ(parse_expression_in_generator(u8"yield in stuff"_sv),
             "binary(yieldnone, var stuff)");
-  EXPECT_EQ(parse_expression_in_generator(u8"yield;"), "yieldnone");
-  EXPECT_EQ(parse_expression_in_generator(u8"yield }"), "yieldnone")
+  EXPECT_EQ(parse_expression_in_generator(u8"yield;"_sv), "yieldnone");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield }"_sv), "yieldnone")
       << "'}' is the end of a function's body, for example";
-  EXPECT_EQ(parse_expression_in_generator(u8"a ? yield : b"),
+  EXPECT_EQ(parse_expression_in_generator(u8"a ? yield : b"_sv),
             "cond(var a, yieldnone, var b)");
-  EXPECT_EQ(parse_expression_in_generator(u8"yield, yield"),
+  EXPECT_EQ(parse_expression_in_generator(u8"yield, yield"_sv),
             "binary(yieldnone, yieldnone)");
-  EXPECT_EQ(parse_expression_in_generator(u8"[yield, yield, yield]"),
+  EXPECT_EQ(parse_expression_in_generator(u8"[yield, yield, yield]"_sv),
             "array(yieldnone, yieldnone, yieldnone)");
 }
 
@@ -1454,8 +1458,9 @@ TEST_F(test_parse_expression, parse_assignment) {
 }
 
 TEST_F(test_parse_expression, parse_compound_assignment) {
-  for (string8_view op : {u8"*=", u8"/=", u8"%=", u8"+=", u8"-=", u8"<<=",
-                          u8">>=", u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
+  for (string8_view op :
+       {u8"*="_sv, u8"/="_sv, u8"%="_sv, u8"+="_sv, u8"-="_sv, u8"<<="_sv,
+        u8">>="_sv, u8">>>="_sv, u8"&="_sv, u8"^="_sv, u8"|="_sv, u8"**="_sv}) {
     SCOPED_TRACE(out_string8(op));
     test_parser p(concat(u8"x "_sv, op, u8" y"_sv), capture_diags);
     expression* ast = p.parse_expression();
@@ -1471,7 +1476,7 @@ TEST_F(test_parse_expression, parse_compound_assignment) {
 }
 
 TEST_F(test_parse_expression, parse_conditional_assignment) {
-  for (string8_view op : {u8"&&=", u8"?\x3f=", u8"||="}) {
+  for (string8_view op : {u8"&&="_sv, u8"?\x3f="_sv, u8"||="_sv}) {
     SCOPED_TRACE(out_string8(op));
     test_parser p(concat(u8"x "_sv, op, u8" y"_sv), capture_diags);
     expression* ast = p.parse_expression();
@@ -1500,11 +1505,11 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
                 }));
   }
 
-  for (const char8* code : {
-           u8"f()=x",
-           u8"-x=y",
-           u8"42=y",
-           u8"(x=y)=z",
+  for (string8_view code : {
+           u8"f()=x"_sv,
+           u8"-x=y"_sv,
+           u8"42=y"_sv,
+           u8"(x=y)=z"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, capture_diags);
@@ -1516,8 +1521,8 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
                 }));
   }
 
-  for (const char8* code : {
-           u8"f()! = x",
+  for (string8_view code : {
+           u8"f()! = x"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code, typescript_options, capture_diags);
@@ -2200,8 +2205,9 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
 }
 
 TEST_F(test_parse_expression, object_literal_with_keyword_key) {
-  for (string8_view keyword : {u8"async", u8"catch", u8"class", u8"default",
-                               u8"function", u8"get", u8"set", u8"try"}) {
+  for (string8_view keyword :
+       {u8"async"_sv, u8"catch"_sv, u8"class"_sv, u8"default"_sv,
+        u8"function"_sv, u8"get"_sv, u8"set"_sv, u8"try"_sv}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
@@ -2243,9 +2249,10 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
 }
 
 TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
-  for (string8_view keyword : {u8"as", u8"async", u8"await", u8"from", u8"get",
-                               u8"let", u8"of", u8"private", u8"protected",
-                               u8"public", u8"set", u8"static", u8"yield"}) {
+  for (string8_view keyword :
+       {u8"as"_sv, u8"async"_sv, u8"await"_sv, u8"from"_sv, u8"get"_sv,
+        u8"let"_sv, u8"of"_sv, u8"private"_sv, u8"protected"_sv, u8"public"_sv,
+        u8"set"_sv, u8"static"_sv, u8"yield"_sv}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
@@ -2552,12 +2559,14 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   for (string8_view op : {
-           u8"!=",   u8"!==", u8"%",   u8"%=",     u8"&",  u8"&&",  u8"&&=",
-           u8"&=",   u8"*",   u8"**",  u8"**=",    u8"*=", u8"+",   u8"+=",
-           u8"-",    u8"-=",  u8".",   u8"/=",     u8"<<", u8"<<=", u8"<=",
-           u8"==",   u8"===", u8">",   u8">=",     u8">>", u8">>=", u8">>>",
-           u8">>>=", u8"?.",  u8"??",  u8"?\x3f=", u8"^",  u8"^=",  u8"|",
-           u8"|=",   u8"||",  u8"||=",
+           u8"!="_sv,  u8"!=="_sv,    u8"%"_sv,   u8"%="_sv,   u8"&"_sv,
+           u8"&&"_sv,  u8"&&="_sv,    u8"&="_sv,  u8"*"_sv,    u8"**"_sv,
+           u8"**="_sv, u8"*="_sv,     u8"+"_sv,   u8"+="_sv,   u8"-"_sv,
+           u8"-="_sv,  u8"."_sv,      u8"/="_sv,  u8"<<"_sv,   u8"<<="_sv,
+           u8"<="_sv,  u8"=="_sv,     u8"==="_sv, u8">"_sv,    u8">="_sv,
+           u8">>"_sv,  u8">>="_sv,    u8">>>"_sv, u8">>>="_sv, u8"?."_sv,
+           u8"??"_sv,  u8"?\x3f="_sv, u8"^"_sv,   u8"^="_sv,   u8"|"_sv,
+           u8"|="_sv,  u8"||"_sv,     u8"||="_sv,
        }) {
     test_parser p(concat(u8"{one "_sv, op, u8" two}"_sv), capture_diags);
     SCOPED_TRACE(p.code);
@@ -2578,9 +2587,10 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   for (string8_view op : {
-           u8"!=", u8"!==", u8"%",  u8"&",  u8"&&", u8"*",   u8"**", u8"+",
-           u8"-",  u8".",   u8"<<", u8"<=", u8"==", u8"===", u8">",  u8">=",
-           u8">>", u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
+           u8"!="_sv, u8"!=="_sv, u8"%"_sv, u8"&"_sv,  u8"&&"_sv, u8"*"_sv,
+           u8"**"_sv, u8"+"_sv,   u8"-"_sv, u8"."_sv,  u8"<<"_sv, u8"<="_sv,
+           u8"=="_sv, u8"==="_sv, u8">"_sv, u8">="_sv, u8">>"_sv, u8">>>"_sv,
+           u8"?."_sv, u8"??"_sv,  u8"^"_sv, u8"|"_sv,  u8"||"_sv,
        }) {
     {
       test_parser p(concat(u8"{'one' "_sv, op, u8" two}"_sv), capture_diags);
@@ -2619,7 +2629,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     }
   }
 
-  for (string8_view op : {u8"++", u8"--"}) {
+  for (string8_view op : {u8"++"_sv, u8"--"_sv}) {
     test_parser p(concat(u8"{one "_sv, op, u8" two}"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
@@ -2664,8 +2674,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
         }));
   }
 
-  for (string8_view prefix :
-       {u8"", u8"async ", u8"get ", u8"set ", u8"*", u8"async *"}) {
+  for (string8_view prefix : {u8""_sv, u8"async "_sv, u8"get "_sv, u8"set "_sv,
+                              u8"*"_sv, u8"async *"_sv}) {
     padded_string code(concat(u8"{ "_sv, prefix, u8"#method() { } }"_sv));
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), capture_diags);
@@ -2875,9 +2885,10 @@ TEST_F(test_parse_expression, parse_comma_expression) {
 
 TEST_F(test_parse_expression, binary_operator_span) {
   for (string8_view op : {
-           u8"!=", u8"!==", u8"%",  u8"&",   u8"&&", u8"*",  u8"**", u8"+",
-           u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
-           u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
+           u8"!="_sv, u8"!=="_sv, u8"%"_sv,  u8"&"_sv,   u8"&&"_sv, u8"*"_sv,
+           u8"**"_sv, u8"+"_sv,   u8","_sv,  u8"-"_sv,   u8"/"_sv,  u8"<"_sv,
+           u8"<<"_sv, u8"<="_sv,  u8"=="_sv, u8"==="_sv, u8">"_sv,  u8">="_sv,
+           u8">>"_sv, u8">>>"_sv, u8"??"_sv, u8"^"_sv,   u8"|"_sv,  u8"||"_sv,
        }) {
     test_parser p(concat(u8"x"_sv, op, u8"y"_sv), capture_diags);
     SCOPED_TRACE(p.code);
@@ -3704,7 +3715,7 @@ TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
                 p.code,
                 diag_missing_parentheses_around_unary_lhs_of_exponent,  //
                 unary_expression, 0, op + u8"a"s,                       //
-                exponent_operator, (op + u8"a "s).size(), u8"**"),
+                exponent_operator, (op + u8"a "s).size(), u8"**"_sv),
         }));
   }
 

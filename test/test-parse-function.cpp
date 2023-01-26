@@ -366,7 +366,7 @@ TEST_F(test_parse_function, await_in_async_function) {
         u8"async function f() {\n"
         u8"  function g() {}\n"
         u8"  await myPromise;\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
   }
@@ -417,7 +417,7 @@ TEST_F(test_parse_function, yield_in_generator_function) {
         u8"function* f() {\n"
         u8"  function g() {}\n"
         u8"  yield myValue;\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
   }

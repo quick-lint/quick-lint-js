@@ -3408,7 +3408,7 @@ TEST_F(test_lex, unterminated_jsx_string) {
       ElementsAreArray({
           DIAG_TYPE_OFFSETS(&code,
                             diag_unclosed_jsx_string_literal,  //
-                            string_literal_begin, strlen(u8"! "), u8"'"),
+                            string_literal_begin, strlen(u8"! "), u8"'"_sv),
       }));
 
   l.skip_in_jsx();
@@ -3503,16 +3503,16 @@ TEST_F(test_lex, jsx_text_children) {
           errors.errors,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(&code, diag_unexpected_greater_in_jsx_text,  //
-                                greater, strlen(u8"<>"), u8">"),
+                                greater, strlen(u8"<>"), u8">"_sv),
           }));
     } else if (text_begin == u8">>" || text_begin == u8">>=") {
       EXPECT_THAT(
           errors.errors,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(&code, diag_unexpected_greater_in_jsx_text,  //
-                                greater, strlen(u8"<>"), u8">"),
+                                greater, strlen(u8"<>"), u8">"_sv),
               DIAG_TYPE_OFFSETS(&code, diag_unexpected_greater_in_jsx_text,  //
-                                greater, strlen(u8"<>>"), u8">"),
+                                greater, strlen(u8"<>>"), u8">"_sv),
           }));
     } else {
       QLJS_UNREACHABLE();
@@ -3533,7 +3533,7 @@ TEST_F(test_lex, jsx_illegal_text_children) {
         errors.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&code, diag_unexpected_greater_in_jsx_text,  //
-                              greater, strlen(u8"<>hello"), u8">"),
+                              greater, strlen(u8"<>hello"), u8">"_sv),
         }));
   }
 
@@ -3549,7 +3549,7 @@ TEST_F(test_lex, jsx_illegal_text_children) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_right_curly_in_jsx_text,  //
-                        right_curly, strlen(u8"<>hello"), u8"}"),
+                        right_curly, strlen(u8"<>hello"), u8"}"_sv),
                 }));
   }
 }

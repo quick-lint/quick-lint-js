@@ -1063,7 +1063,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
     }
 
-    for (const char8* unary_operator : {u8"++", u8"--"}) {
+    for (string8_view unary_operator : {u8"++"_sv, u8"--"_sv}) {
       test_parser p(concat(name, unary_operator));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
@@ -1108,22 +1108,22 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
                             }));
     }
 
-    for (const char8* binary_operator : {
-             u8"%=",
-             u8"&&=",
-             u8"&=",
-             u8"**=",
-             u8"*=",
-             u8"+=",
-             u8"-=",
-             u8"/=",
-             u8"<<=",
-             u8">>=",
-             u8">>>=",
-             u8"?\x3f=",
-             u8"^=",
-             u8"|=",
-             u8"||=",
+    for (string8_view binary_operator : {
+             u8"%="_sv,
+             u8"&&="_sv,
+             u8"&="_sv,
+             u8"**="_sv,
+             u8"*="_sv,
+             u8"+="_sv,
+             u8"-="_sv,
+             u8"/="_sv,
+             u8"<<="_sv,
+             u8">>="_sv,
+             u8">>>="_sv,
+             u8"?\x3f="_sv,
+             u8"^="_sv,
+             u8"|="_sv,
+             u8"||="_sv,
          }) {
       test_parser p(concat(name, u8" "_sv, binary_operator, u8" other"_sv));
       SCOPED_TRACE(p.code);
@@ -1132,11 +1132,13 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
       EXPECT_THAT(p.variable_assignments, ElementsAreArray({name}));
     }
 
-    for (const char8* binary_operator : {
-             u8"!=", u8"!==", u8"%",          u8"&",  u8"&&", u8"*",   u8"**",
-             u8"+",  u8",",   u8"-",          u8"/",  u8"<",  u8"<<",  u8"<=",
-             u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>", u8"??",
-             u8"^",  u8"in",  u8"instanceof", u8"|",  u8"||",
+    for (string8_view binary_operator : {
+             u8"!="_sv,  u8"!=="_sv, u8"%"_sv,  u8"&"_sv,          u8"&&"_sv,
+             u8"*"_sv,   u8"**"_sv,  u8"+"_sv,  u8","_sv,          u8"-"_sv,
+             u8"/"_sv,   u8"<"_sv,   u8"<<"_sv, u8"<="_sv,         u8"=="_sv,
+             u8"==="_sv, u8">"_sv,   u8">="_sv, u8">>"_sv,         u8">>>"_sv,
+             u8"??"_sv,  u8"^"_sv,   u8"in"_sv, u8"instanceof"_sv, u8"|"_sv,
+             u8"||"_sv,
          }) {
       test_parser p(concat(name, u8" "_sv, binary_operator, u8" other"_sv));
       SCOPED_TRACE(p.code);
@@ -1608,23 +1610,24 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code, diag_missing_expression_between_parentheses,  //
-                        left_paren_to_right_paren, 0, u8"()",                 //
-                        left_paren, 0, u8"(",                                 //
-                        right_paren, strlen(u8"("), u8")"),
+                        left_paren_to_right_paren, 0, u8"()"_sv,              //
+                        left_paren, 0, u8"("_sv,                              //
+                        right_paren, strlen(u8"("), u8")"_sv),
                 }));
   }
 
   {
     test_parser p(u8"x = ()"_sv, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_OFFSETS(
-                        p.code, diag_missing_expression_between_parentheses,  //
-                        left_paren_to_right_paren, strlen(u8"x = "), u8"()",  //
-                        left_paren, strlen(u8"x = "), u8"(",                  //
-                        right_paren, strlen(u8"x = ("), u8")"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code, diag_missing_expression_between_parentheses,     //
+                left_paren_to_right_paren, strlen(u8"x = "), u8"()"_sv,  //
+                left_paren, strlen(u8"x = "), u8"("_sv,                  //
+                right_paren, strlen(u8"x = ("), u8")"_sv),
+        }));
   }
 
   {
@@ -1634,9 +1637,9 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code, diag_missing_expression_between_parentheses,  //
-                        left_paren_to_right_paren, 0, u8"()",                 //
-                        left_paren, 0, u8"(",                                 //
-                        right_paren, strlen(u8"("), u8")"),
+                        left_paren_to_right_paren, 0, u8"()"_sv,              //
+                        left_paren, 0, u8"("_sv,                              //
+                        right_paren, strlen(u8"("), u8")"_sv),
                 }));
   }
 }

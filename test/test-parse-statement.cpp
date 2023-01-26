@@ -125,39 +125,39 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
   // TODO(strager): These cases might be dead code instead (e.g. a method call).
   // Report a different error for potentially dead code.
   // TODO(strager): This list is incomplete.
-  for (const char8* second_line : {
-           u8"!true",
-           u8"'string'",
-           u8"() => {}",
-           u8"(2 + 2)",
-           u8"+42",
-           u8"-42",
-           u8"/=pattern/",
-           u8"/pattern/",
-           u8"42",
-           u8"['a', 'b', 'c']",
-           u8"`template${withSubstitution}`",
-           u8"`template`",
-           u8"await myPromise",
-           u8"false",
-           u8"function f() { }",
-           u8"myVariable",
-           u8"new Promise()",
-           u8"null",
-           u8"super.method()",
-           u8"this",
-           u8"true",
-           u8"typeof banana",
-           u8"{}",
-           u8"~bits",
-           u8"<div>hi</div>",
-           u8"<p></p>",
+  for (string8_view second_line : {
+           u8"!true"_sv,
+           u8"'string'"_sv,
+           u8"() => {}"_sv,
+           u8"(2 + 2)"_sv,
+           u8"+42"_sv,
+           u8"-42"_sv,
+           u8"/=pattern/"_sv,
+           u8"/pattern/"_sv,
+           u8"42"_sv,
+           u8"['a', 'b', 'c']"_sv,
+           u8"`template${withSubstitution}`"_sv,
+           u8"`template`"_sv,
+           u8"await myPromise"_sv,
+           u8"false"_sv,
+           u8"function f() { }"_sv,
+           u8"myVariable"_sv,
+           u8"new Promise()"_sv,
+           u8"null"_sv,
+           u8"super.method()"_sv,
+           u8"this"_sv,
+           u8"true"_sv,
+           u8"typeof banana"_sv,
+           u8"{}"_sv,
+           u8"~bits"_sv,
+           u8"<div>hi</div>"_sv,
+           u8"<p></p>"_sv,
            // TODO(strager): Contextual keywords (let, from, yield, etc.).
            // TODO(strager): Function without name. (Must be an expression, not
            // a statement.)
        }) {
     {
-      test_parser p(concat(u8"return\n"s, second_line), jsx_options,
+      test_parser p(concat(u8"return\n"_sv, second_line), jsx_options,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -170,8 +170,8 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
     }
 
     {
-      test_parser p(concat(u8"{ return\n"s, second_line, u8"}"_sv), jsx_options,
-                    capture_diags);
+      test_parser p(concat(u8"{ return\n"_sv, second_line, u8"}"_sv),
+                    jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.errors,
@@ -184,7 +184,7 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
 
     {
       test_parser p(
-          concat(u8"async function f() { return\n"s, second_line, u8"}"_sv),
+          concat(u8"async function f() { return\n"_sv, second_line, u8"}"_sv),
           jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -198,10 +198,8 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
     }
 
     {
-      test_parser p(concat(u8"switch (cond) {\n"s
-                           u8"default:\n"s
-                           u8"return\n"s,
-                           second_line, u8"}"),
+      test_parser p(concat(u8"switch (cond) {\n"_sv, u8"default:\n"_sv,
+                           u8"return\n"_sv, second_line, u8"}"_sv),
                     jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();

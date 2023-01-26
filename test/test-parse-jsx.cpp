@@ -544,15 +544,15 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     test_parser p(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, diag_adjacent_jsx_without_parent,                     //
-                begin, strlen(u8"c = "), u8"",                                //
-                begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
-                end, strlen(u8"c = <div></div> <div></div>"), u8""),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_3_OFFSETS(
+                        p.code, diag_adjacent_jsx_without_parent,  //
+                        begin, strlen(u8"c = "), u8""_sv,          //
+                        begin_of_second_element, strlen(u8"c = <div></div> "),
+                        u8""_sv,  //
+                        end, strlen(u8"c = <div></div> <div></div>"), u8""_sv),
+                }));
   }
 
   {
@@ -563,10 +563,12 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
-                p.code, diag_adjacent_jsx_without_parent,                     //
-                begin, strlen(u8"c = "), u8"",                                //
-                begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
-                end, strlen(u8"c = <div></div> <div></div> <div></div>"), u8""),
+                p.code, diag_adjacent_jsx_without_parent,  //
+                begin, strlen(u8"c = "), u8""_sv,          //
+                begin_of_second_element, strlen(u8"c = <div></div> "),
+                u8""_sv,  //
+                end, strlen(u8"c = <div></div> <div></div> <div></div>"),
+                u8""_sv),
         }));
   }
 

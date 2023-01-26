@@ -619,7 +619,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
                   p.code, diag_cannot_update_variable_during_declaration,  //
                   updating_operator, strlen(u8"let x "),
                   compound_assignment_operator,  //
-                  declaring_token, 0, u8"let"),
+                  declaring_token, 0, u8"let"_sv),
           }));
     }
 
@@ -645,7 +645,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
                   p.code, diag_cannot_update_variable_during_declaration,  //
                   updating_operator, strlen(u8"const [x, y] "),
                   compound_assignment_operator,  //
-                  declaring_token, 0, u8"const"),
+                  declaring_token, 0, u8"const"_sv),
           }));
     }
   }
@@ -1328,7 +1328,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
     test_parser p(
         u8"async function f() {\n"
         u8"  function g() { await(x); }\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"await",  //
                                                    u8"x"}));
@@ -1339,7 +1339,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
         u8"function f() {\n"
         u8"  async function g() {}\n"
         u8"  await();\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"await"}));
   }
@@ -1349,7 +1349,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
         u8"(() => {\n"
         u8"  async () => {};\n"
         u8"  await();\n"
-        u8"})");
+        u8"})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"await"}));
   }
@@ -1394,7 +1394,7 @@ TEST_F(test_parse_var, declare_await_in_non_async_function) {
     test_parser p(
         u8"(async function() {\n"
         u8"  (function(await) { })\n"
-        u8"})");
+        u8"})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({func_param_decl(u8"await"_sv)}));
@@ -1404,7 +1404,7 @@ TEST_F(test_parse_var, declare_await_in_non_async_function) {
     test_parser p(
         u8"(function() {\n"
         u8"  async function await() { }\n"
-        u8"})");
+        u8"})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(u8"await"_sv)}));
@@ -1726,7 +1726,7 @@ TEST_F(
     test_parser p(
         u8"(async function() {\n"
         u8"  (function await() { await; })(); \n"
-        u8"})();");
+        u8"})();"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",        //
@@ -1752,7 +1752,7 @@ TEST_F(test_parse_var, use_yield_in_non_generator_function) {
     test_parser p(
         u8"function* f() {\n"
         u8"  function g() { yield(x); }\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"yield", u8"x"}));
   }
@@ -1762,7 +1762,7 @@ TEST_F(test_parse_var, use_yield_in_non_generator_function) {
         u8"function f() {\n"
         u8"  function* g() {}\n"
         u8"  yield();\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"yield"}));
   }
@@ -1787,7 +1787,7 @@ TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
     test_parser p(
         u8"(async function() {\n"
         u8"  (function(yield) { })\n"
-        u8"})");
+        u8"})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({func_param_decl(u8"yield"_sv)}));
@@ -1797,7 +1797,7 @@ TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
     test_parser p(
         u8"(function() {\n"
         u8"  function* yield() { }\n"
-        u8"})");
+        u8"})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(u8"yield"_sv)}));
@@ -2059,7 +2059,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
              u8"(" + name + u8" => null)",
              u8"((" + name + u8") => null)",
          }) {
-      if (name == u8"await" &&
+      if (name == u8"await"_sv &&
           quick_lint_js::starts_with(string8_view(code), u8"(async"sv)) {
         // NOTE(erlliam): await parameter isn't allowed in async functions. See
         // test_parse.disallow_await_parameter_in_async_arrow_function.

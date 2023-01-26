@@ -721,7 +721,8 @@ TEST_F(test_parse_class,
                   ElementsAre(u8"myField", ::testing::_));
     }
 
-    for (string8_view first_member : {u8"3.14", u8"'bananas'", u8"[expr]"}) {
+    for (string8_view first_member :
+         {u8"3.14"_sv, u8"'bananas'"_sv, u8"[expr]"_sv}) {
       padded_string code(concat(u8"class C { "_sv, first_member, u8"\n"_sv,
                                 second_member, u8" }"_sv));
       SCOPED_TRACE(code);

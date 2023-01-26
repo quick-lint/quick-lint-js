@@ -289,7 +289,7 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"testing",
+      .version = u8"testing"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -309,7 +309,7 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"testing",
+      .version = u8"testing"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -540,7 +540,7 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
     trace_writer* writer = flusher.trace_writer_for_current_thread();
     ASSERT_TRUE(writer);
     writer->write_event_init(trace_event_init{
-        .version = u8"other thread",
+        .version = u8"other thread"_sv,
     });
     writer->commit();
 
@@ -550,7 +550,7 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"main thread",
+      .version = u8"main thread"_sv,
   });
   writer->commit();
 
@@ -662,7 +662,7 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"testing",
+      .version = u8"testing"_sv,
   });
   writer->commit();
 
@@ -685,7 +685,7 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"testing",
+      .version = u8"testing"_sv,
   });
   writer->commit();
   flusher.flush_async();  // Flush the testing init event, but not now.
@@ -710,7 +710,7 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"testing",
+      .version = u8"testing"_sv,
   });
   writer->commit();
   flusher
@@ -765,7 +765,7 @@ TEST_F(test_trace_flusher,
   ASSERT_TRUE(writer);
 
   writer->write_event_init(trace_event_init{
-      .version = u8"A: backend 1",
+      .version = u8"A: backend 1"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -774,7 +774,7 @@ TEST_F(test_trace_flusher,
   flusher.enable_backend(&backend_2);
 
   writer->write_event_init(trace_event_init{
-      .version = u8"B: backend 1 and backend 2",
+      .version = u8"B: backend 1 and backend 2"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -783,7 +783,7 @@ TEST_F(test_trace_flusher,
   flusher.disable_backend(&backend_1);
 
   writer->write_event_init(trace_event_init{
-      .version = u8"C: backend 2",
+      .version = u8"C: backend 2"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -810,7 +810,7 @@ TEST_F(test_trace_flusher, broadcast_to_many_backends_at_once) {
   ASSERT_TRUE(writer);
 
   writer->write_event_init(trace_event_init{
-      .version = u8"broadcast",
+      .version = u8"broadcast"_sv,
   });
   writer->commit();
   flusher.flush_sync();
@@ -908,7 +908,7 @@ TEST_F(test_trace_flusher_directory_backend,
     trace_writer* writer = flusher.trace_writer_for_current_thread();
     ASSERT_TRUE(writer);
     writer->write_event_init(trace_event_init{
-        .version = u8"other thread",
+        .version = u8"other thread"_sv,
     });
     writer->commit();
 
@@ -918,7 +918,7 @@ TEST_F(test_trace_flusher_directory_backend,
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
   writer->write_event_init(trace_event_init{
-      .version = u8"main thread",
+      .version = u8"main thread"_sv,
   });
   writer->commit();
 

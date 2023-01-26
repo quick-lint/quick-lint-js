@@ -875,9 +875,10 @@ TEST_F(test_parse_typescript_function,
             DIAG_TYPE_3_OFFSETS(
                 p.code,
                 diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
-                parameter_and_annotation, strlen(u8"("), u8"param?: Type",  //
-                question, strlen(u8"(param"), u8"?",                        //
-                type_colon, strlen(u8"(param?"), u8":"),
+                parameter_and_annotation, strlen(u8"("),
+                u8"param?: Type"_sv,                     //
+                question, strlen(u8"(param"), u8"?"_sv,  //
+                type_colon, strlen(u8"(param?"), u8":"_sv),
         }));
   }
 
@@ -899,9 +900,9 @@ TEST_F(test_parse_typescript_function,
                 p.code,
                 diag_optional_arrow_parameter_with_type_annotation_requires_parentheses,  //
                 parameter_and_annotation, strlen(u8"async "),
-                u8"param?: Type",                          //
-                question, strlen(u8"async param"), u8"?",  //
-                type_colon, strlen(u8"async param?"), u8":"),
+                u8"param?: Type"_sv,                          //
+                question, strlen(u8"async param"), u8"?"_sv,  //
+                type_colon, strlen(u8"async param?"), u8":"_sv),
         }));
   }
 }
@@ -1020,7 +1021,7 @@ TEST_F(test_parse_typescript_function,
   for (string8_view parameter_name :
        keywords - disallowed_binding_identifier_keywords) {
     test_parser p(concat(u8"function f("_sv, parameter_name, u8"): "_sv,
-                         parameter_name, u8" is SomeType {}"),
+                         parameter_name, u8" is SomeType {}"_sv),
                   typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
@@ -1086,10 +1087,8 @@ TEST_F(test_parse_typescript_function, function_overload_signatures) {
   }
 
   for (string8_view function_name : contextual_keywords) {
-    test_parser p(concat(u8"function "_sv, function_name,
-                         u8"();\n"
-                         u8"function ",
-                         function_name, u8"() {}"),
+    test_parser p(concat(u8"function "_sv, function_name, u8"();\n"_sv,
+                         u8"function "_sv, function_name, u8"() {}"_sv),
                   typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();

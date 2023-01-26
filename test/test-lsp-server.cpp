@@ -187,15 +187,15 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
 
   // TODO(strager): Support numbers with fractional parts, such as 12.34.
   for (const test_case& test : {
-           test_case{u8"null", ::boost::json::value()},
-           test_case{u8"1", ::boost::json::value(1)},
-           test_case{u8"9007199254740991",
+           test_case{u8"null"_sv, ::boost::json::value()},
+           test_case{u8"1"_sv, ::boost::json::value(1)},
+           test_case{u8"9007199254740991"_sv,
                      ::boost::json::value(std::int64_t{9007199254740991LL})},
-           test_case{u8"-12345", ::boost::json::value(-12345)},
-           test_case{u8R"("A")", ::boost::json::value("A")},
-           test_case{u8R"("id value goes \"here\"")",
+           test_case{u8"-12345"_sv, ::boost::json::value(-12345)},
+           test_case{u8R"("A")"_sv, ::boost::json::value("A")},
+           test_case{u8R"("id value goes \"here\"")"_sv,
                      ::boost::json::value("id value goes \"here\"")},
-           test_case{u8R"("id value goes \"here\"")",
+           test_case{u8R"("id value goes \"here\"")"_sv,
                      ::boost::json::value("id value goes \"here\"")},
        }) {
     SCOPED_TRACE(out_string8(test.id_json));
@@ -518,8 +518,8 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                             padded_string_view code, string8_view uri_json,
                             string8_view version,
                             byte_buffer& notification_json) {
-    EXPECT_EQ(code, u8"let x = x;");
-    EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
+    EXPECT_EQ(code, u8"let x = x;"_sv);
+    EXPECT_EQ(uri_json, u8"\"file:///test.js\""_sv);
     EXPECT_EQ(version, u8"10"sv);
 
     notification_json.append_copy(
@@ -824,7 +824,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"testGlobalVariable": true}})");
+                       u8R"({"globals": {"testGlobalVariable": true}})"_sv);
 
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
@@ -944,7 +944,7 @@ TEST_F(
 TEST_F(test_linting_lsp_server,
        linting_uses_config_from_file_with_special_chars_in_document_uri) {
   this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),
-                       u8R"({"globals": {"testGlobalVariable": true}})");
+                       u8R"({"globals": {"testGlobalVariable": true}})"_sv);
 
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
@@ -979,7 +979,7 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"modified": false}})");
+                       u8R"({"globals": {"modified": false}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1024,7 +1024,7 @@ TEST_F(test_linting_lsp_server,
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"haveOuterConfig": false}})");
+                       u8R"({"globals": {"haveOuterConfig": false}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1075,7 +1075,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"before": true}})");
+                       u8R"({"globals": {"before": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1136,7 +1136,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
 TEST_F(test_linting_lsp_server,
        editing_config_lints_latest_version_of_js_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"before": true}})");
+                       u8R"({"globals": {"before": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1245,7 +1245,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"before": true}})");
+                       u8R"({"globals": {"before": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1262,7 +1262,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
         }
       })"_sv)));
 
-  for (const char8* js_file : {u8"a.js", u8"b.js", u8"c.js"}) {
+  for (string8_view js_file : {u8"a.js"_sv, u8"b.js"_sv, u8"c.js"_sv}) {
     this->server->append(
         make_message(concat(u8R"({
           "jsonrpc": "2.0",
@@ -1387,7 +1387,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
         }
       })"_sv)));
 
-  for (const char8* js_file : {u8"dir-a/test.js", u8"dir-b/test.js"}) {
+  for (string8_view js_file : {u8"dir-a/test.js"_sv, u8"dir-b/test.js"_sv}) {
     this->server->append(
         make_message(concat(u8R"({
           "jsonrpc": "2.0",
@@ -1558,7 +1558,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"before": true}})");
+                       u8R"({"globals": {"before": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1596,7 +1596,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
 TEST_F(test_linting_lsp_server,
        changing_config_on_filesystem_relints_open_js_files) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"before": true}})");
+                       u8R"({"globals": {"before": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1640,7 +1640,7 @@ TEST_F(test_linting_lsp_server,
   this->client->messages.clear();
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"after": true}})");
+                       u8R"({"globals": {"after": true}})"_sv);
   this->handler->filesystem_changed();
   this->handler->flush_pending_notifications(*this->client);
 
@@ -1664,7 +1664,7 @@ TEST_F(
   };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"v1": true}})");
+                       u8R"({"globals": {"v1": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1714,7 +1714,7 @@ TEST_F(
 TEST_F(test_linting_lsp_server,
        closing_open_config_reloads_config_from_filesystem) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"configFromFilesystem": true}})");
+                       u8R"({"globals": {"configFromFilesystem": true}})"_sv);
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1914,7 +1914,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"configFromFilesystem": true}})");
+                       u8R"({"globals": {"configFromFilesystem": true}})"_sv);
 
   this->server->append(
       make_message(concat(u8R"({

@@ -834,7 +834,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
 
       for (string8_view prefix : {u8"get"_sv, u8"set"_sv}) {
         test_parser p(concat(u8"interface I { "_sv, prefix, u8" "_sv, keyword,
-                             suffix, u8"(); }"),
+                             suffix, u8"(); }"_sv),
                       typescript_options);
         SCOPED_TRACE(p.code);
         p.parse_and_visit_statement();
@@ -863,7 +863,7 @@ TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
       string8 property = escape_first_character_in_keyword(keyword);
       for (string8_view prefix : {u8""_sv, u8"get"_sv, u8"set"_sv}) {
         padded_string code(concat(u8"interface I { "_sv, prefix, u8" "_sv,
-                                  property, suffix, u8"(); }"));
+                                  property, suffix, u8"(); }"_sv));
         SCOPED_TRACE(code);
         test_parser p(code.string_view(), typescript_options);
         p.parse_and_visit_statement();
@@ -1422,7 +1422,7 @@ TEST_F(test_parse_typescript_interface,
     test_parser p(
         u8"function f() {"
         u8"interface await {}"
-        u8"}",
+        u8"}"_sv,
         typescript_options);
     p.parse_and_visit_statement();
   }
