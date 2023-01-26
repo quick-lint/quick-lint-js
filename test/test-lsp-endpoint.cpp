@@ -91,7 +91,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
         "id": 3,
         "method": "testmethod",
         "params": {}
-      })"));
+      })"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_EQ(look_up(remote.messages[0], "id"), 3);
@@ -134,7 +134,7 @@ TEST(test_lsp_endpoint, batched_request) {
           "method": "testmethod B",
           "params": {}
         }
-      ])"));
+      ])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   ASSERT_EQ(remote.messages[0].as_array().size(), 2);
@@ -166,7 +166,7 @@ TEST(test_lsp_endpoint, successful_response) {
         "jsonrpc": "2.0",
         "id": 3,
         "result": {"key": 42}
-      })"));
+      })"_sv));
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.response_handled);
@@ -201,7 +201,7 @@ TEST(test_lsp_endpoint, successful_response_v2) {
         "jsonrpc": "2.0",
         "id": 3,
         "result": {"key": 42}
-      })"));
+      })"_sv));
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.response_handled);
@@ -232,7 +232,7 @@ TEST(test_lsp_endpoint, error_response) {
           "code": 6969,
           "message": "test error message"
         }
-      })"));
+      })"_sv));
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.error_response_handled);
@@ -272,7 +272,7 @@ TEST(test_lsp_endpoint, batched_responses) {
             "message": "test error message"
           }
         }
-      ])"));
+      ])"_sv));
 
   EXPECT_TRUE(handler.handled_success_response);
   EXPECT_TRUE(handler.handled_error_response);
@@ -299,7 +299,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
         "jsonrpc": "2.0",
         "method": "testmethod",
         "params": {}
-      })"));
+      })"_sv));
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_EQ(handle_notification_count, 1);
@@ -331,7 +331,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
         "jsonrpc": "2.0",
         "method": "testmethod",
         "params": {}
-      })"));
+      })"_sv));
 
   EXPECT_THAT(remote.messages, IsEmpty());
   ASSERT_EQ(handler.pending_notifications.size(), 1);
@@ -361,7 +361,7 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
         "jsonrpc": "2.0",
         "method": "testmethod",
         "params": {}
-      }])"));
+      }])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
@@ -395,7 +395,7 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
         "jsonrpc": "2.0",
         "method": "testmethod",
         "params": {}
-      }])"));
+      }])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
@@ -413,9 +413,9 @@ TEST(test_lsp_endpoint, big_batch) {
       this->handled_request = true;
       EXPECT_EQ(method, "testrequest");
       response_json.append_copy(
-          u8R"({"jsonrpc": "2.0", "params": "response", "id": )"sv);
+          u8R"({"jsonrpc": "2.0", "params": "response", "id": )"_sv);
       response_json.append_copy(id_json);
-      response_json.append_copy(u8"}"sv);
+      response_json.append_copy(u8"}"_sv);
     }
 
     void handle_response(lsp_endpoint_handler::request_id_type request_id,
@@ -473,7 +473,7 @@ TEST(test_lsp_endpoint, big_batch) {
           "code": -1,
           "message": "testerror"
         }
-      }])"));
+      }])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   ::boost::json::array batch = remote.messages[0].as_array();
@@ -492,7 +492,7 @@ TEST(test_lsp_endpoint, malformed_json) {
   spy_lsp_endpoint_remote remote;
   lsp_endpoint server(&handler, &remote);
 
-  server.append(make_message(u8"{ malformed json! }"));
+  server.append(make_message(u8"{ malformed json! }"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
@@ -507,43 +507,43 @@ TEST(test_lsp_endpoint, invalid_message) {
   for (
       string8_view message : {
           // request with missing method
-          u8R"({ "jsonrpc": "2.0", "id": 10, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "params": {} })"_sv,
           // request with method type mismatch
-          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10 })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10 })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10, "params": {} })"_sv,
           // request with id type mismatch
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"_sv,
           // successful response with missing id
-          u8R"({ "jsonrpc": "2.0", "result": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "result": {} })"_sv,
           // successful response with id type mismatch
-          u8R"({ "jsonrpc": "2.0", "id": true, "result": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": [], "result": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": {}, "result": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": true, "result": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": [], "result": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": {}, "result": {} })"_sv,
           // error response with missing id
-          u8R"({ "jsonrpc": "2.0", "error": {"code": 0, "message": ""} })"sv,
+          u8R"({ "jsonrpc": "2.0", "error": {"code": 0, "message": ""} })"_sv,
           // error response with id type mismatch
-          u8R"({ "jsonrpc": "2.0", "id": true, "error": {"code": 0, "message": ""} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": [], "error": {"code": 0, "message": ""} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": {}, "error": {"code": 0, "message": ""} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": true, "error": {"code": 0, "message": ""} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": [], "error": {"code": 0, "message": ""} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": {}, "error": {"code": 0, "message": ""} })"_sv,
           // error response with error type mismatch
-          u8R"({ "jsonrpc": "2.0", "id": 10, "error": 42 })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "error": "bad thing" })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "error": null })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "error": [] })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "error": 42 })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "error": "bad thing" })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "error": null })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "error": [] })"_sv,
           // ambiguous successful or error response
-          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": {"code": 0, "message": ""} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": {"code": 0, "message": ""} })"_sv,
           // ambiguous successful or error response with error type mismatch
-          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": 42 })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": null })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": 42 })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": null })"_sv,
           // ambiguous response or notification
-          u8R"({ "jsonrpc": "2.0", "method": "test", "result": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "method": "test", "error": {"code": 0, "message": ""} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "result": {} })"sv,
-          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "error": {"code": 0, "message": ""} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "test", "result": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "method": "test", "error": {"code": 0, "message": ""} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "result": {} })"_sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "error": {"code": 0, "message": ""} })"_sv,
           // response with missing result or error
-          u8R"({ "jsonrpc": "2.0", "id": 10 })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10 })"_sv,
       }) {
     SCOPED_TRACE(out_string8(message));
 

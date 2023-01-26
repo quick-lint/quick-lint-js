@@ -774,7 +774,7 @@ void parser::parse_and_visit_class_or_interface_member(
           check_modifiers_for_field_without_type_annotation();
           v.visit_property_declaration(property_name);
         } else {
-          if (u8"const" == property_name_span.string_view()) {
+          if (u8"const"_sv == property_name_span.string_view()) {
             // class C {
             //   const field
             // }

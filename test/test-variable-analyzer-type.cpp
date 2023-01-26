@@ -481,7 +481,7 @@ TEST(test_variable_analyzer_type,
                   DIAG_TYPE_FIELD(
                       diag_redundant_delete_statement_on_variable,
                       delete_expression,
-                      offsets_matcher(&delete_expression, 0, u8"delete I")),
+                      offsets_matcher(&delete_expression, 0, u8"delete I"_sv)),
               });
             } else {
               return IsEmpty();

@@ -188,9 +188,9 @@ TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
       .me_span = source_code_span(&code[4], &code[6]),
       .be_span = source_code_span(&code[9], &code[11]),
   };
-  ASSERT_EQ(diag.let_span.string_view(), u8"let");
-  ASSERT_EQ(diag.me_span.string_view(), u8"me");
-  ASSERT_EQ(diag.be_span.string_view(), u8"be");
+  ASSERT_EQ(diag.let_span.string_view(), u8"let"_sv);
+  ASSERT_EQ(diag.me_span.string_view(), u8"me"_sv);
+  ASSERT_EQ(diag.be_span.string_view(), u8"be"_sv);
 
   string_diagnostic_formatter formatter;
   formatter.format_message(

@@ -35,7 +35,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::angle_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var expr");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<Type>expr"));
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<Type>expr"_sv));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",
                           }));
@@ -110,7 +110,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
 
   for (const string8& type :
        typescript_builtin_type_keywords | typescript_special_type_keywords) {
-    test_parser p(concat(u8"<", type, u8">expr;"), typescript_options);
+    test_parser p(concat(u8"<"_sv, type, u8">expr;"_sv), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -148,7 +148,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   }
 
   for (const string8& tag : keywords) {
-    test_parser p(concat(u8"<", tag, u8">text;\n// </", tag, u8">;"),
+    test_parser p(concat(u8"<"_sv, tag, u8">text;\n// </"_sv, tag, u8">;"_sv),
                   typescript_jsx_options);
     SCOPED_TRACE(p.code);
     expression* ast = p.parse_expression();
@@ -173,8 +173,8 @@ TEST_F(test_parse_typescript_angle_type_assertion,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
-                bracketed_type, 0, u8"<Type1 | Type2>",                   //
-                expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8""),
+                bracketed_type, 0, u8"<Type1 | Type2>"_sv, expected_as,
+                strlen(u8"<Type1 | Type2>(expr)"), u8""_sv),
         }));
   }
 
@@ -191,8 +191,8 @@ TEST_F(test_parse_typescript_angle_type_assertion,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
-                bracketed_type, 0, u8"<(Type)>",                          //
-                expected_as, strlen(u8"<(Type)>expr"), u8""),
+                bracketed_type, 0, u8"<(Type)>"_sv, expected_as,
+                strlen(u8"<(Type)>expr"), u8""_sv),
         }));
   }
 }
@@ -206,10 +206,10 @@ TEST_F(test_parse_typescript_angle_type_assertion,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       diag_invalid_parameter,  //
-                                      parameter, strlen(u8"("), u8"<T>x"),
+                                      parameter, strlen(u8"("), u8"<T>x"_sv),
                 }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({arrow_param_decl(u8"x")}));
+                ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
   }
 
   {
@@ -221,11 +221,11 @@ TEST_F(test_parse_typescript_angle_type_assertion,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_invalid_parameter,  //
-                              parameter, strlen(u8"function f("), u8"<T>x"),
+                              parameter, strlen(u8"function f("), u8"<T>x"_sv),
         }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({function_decl(u8"f"), func_param_decl(u8"x")}));
+        ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));
   }
 }
 }

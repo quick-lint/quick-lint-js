@@ -247,7 +247,7 @@ void trace_flusher::write_thread_header_to_backend(
   });
   writer.write_event_init(trace_event_init{
       .timestamp = 0,  // TODO(strager)
-      .version = QUICK_LINT_JS_VERSION_STRING_U8,
+      .version = string8_view(QUICK_LINT_JS_VERSION_STRING_U8),
   });
   writer.write_event_process_id(trace_event_process_id{
       .timestamp = 0,  // TODO(strager)

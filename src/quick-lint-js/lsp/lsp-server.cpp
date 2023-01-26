@@ -153,7 +153,7 @@ linting_lsp_server_handler::linting_lsp_server_handler(
     configuration_filesystem* fs, lsp_linter* linter)
     : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {
   this->workspace_configuration_.add_item(
-      u8"quick-lint-js.tracing-directory"sv,
+      u8"quick-lint-js.tracing-directory"_sv,
       [this](std::string_view new_value) {
         bool changed = this->server_config_.tracing_directory != new_value;
         if (changed) {
@@ -260,10 +260,10 @@ void linting_lsp_server_handler::add_watch_io_errors(
       u8R"--("method":"window/showMessage",)--"
       u8R"--("params":{)--"
         u8R"--("type":2,)--"
-        u8R"--("message":")--"sv);
+        u8R"--("message":")--"_sv);
     // clang-format on
     write_json_escaped_string(out_json, to_string8_view(errors[0].to_string()));
-    out_json.append_copy(u8"\"}}"sv);
+    out_json.append_copy(u8"\"}}"_sv);
     this->did_report_watch_io_error_ = true;
   }
 }
@@ -271,7 +271,7 @@ void linting_lsp_server_handler::add_watch_io_errors(
 void linting_lsp_server_handler::handle_initialize_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
-  response_json.append_copy(u8R"--({"id":)--"sv);
+  response_json.append_copy(u8R"--({"id":)--"_sv);
   response_json.append_copy(id_json);
   // clang-format off
   response_json.append_copy(
@@ -285,7 +285,7 @@ void linting_lsp_server_handler::handle_initialize_request(
         u8R"--("version":")--" QUICK_LINT_JS_VERSION_STRING_U8
       u8R"--("})--"
     u8R"--(},)--"
-    u8R"--("jsonrpc":"2.0"})--"sv);
+    u8R"--("jsonrpc":"2.0"})--"_sv);
   // clang-format on
 }
 
@@ -293,9 +293,9 @@ void linting_lsp_server_handler::handle_shutdown_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
   this->shutdown_requested_ = true;
-  response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"sv);
+  response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"_sv);
   response_json.append_copy(id_json);
-  response_json.append_copy(u8R"--(,"result":null})--"sv);
+  response_json.append_copy(u8R"--(,"result":null})--"_sv);
 }
 
 void linting_lsp_server_handler::handle_workspace_configuration_response(
@@ -593,20 +593,20 @@ void linting_lsp_server_handler::get_config_file_diagnostics_notification(
     u8R"--({)--"
       u8R"--("method":"textDocument/publishDiagnostics",)--"
       u8R"--("params":{)--"
-        u8R"--("uri":)--"sv);
+        u8R"--("uri":)--"_sv);
   // clang-format on
   notification_json.append_copy(uri_json);
 
-  notification_json.append_copy(u8R"--(,"version":)--"sv);
+  notification_json.append_copy(u8R"--(,"version":)--"_sv);
   notification_json.append_copy(version_json);
 
-  notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
+  notification_json.append_copy(u8R"--(,"diagnostics":)--"_sv);
   lsp_diag_reporter diag_reporter(qljs_messages, notification_json,
                                   &config_file->file_content);
   config_file->errors.copy_into(&diag_reporter);
   diag_reporter.finish();
 
-  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
 }
 
 void linting_lsp_server_handler::write_configuration_loader_error_notification(
@@ -618,12 +618,12 @@ void linting_lsp_server_handler::write_configuration_loader_error_notification(
     u8R"--("method":"window/showMessage",)--"
     u8R"--("params":{)--"
       u8R"--("type":2,)--"
-      u8R"--("message":"Failed to load configuration file for )--"sv);
+      u8R"--("message":"Failed to load configuration file for )--"_sv);
   // clang-format on
   write_json_escaped_string(out_json, to_string8_view(document_path));
-  out_json.append_copy(u8". Using default configuration.\\nError details: "sv);
+  out_json.append_copy(u8". Using default configuration.\\nError details: "_sv);
   write_json_escaped_string(out_json, to_string8_view(error_details));
-  out_json.append_copy(u8"\"}}"sv);
+  out_json.append_copy(u8"\"}}"_sv);
 }
 
 void linting_lsp_server_handler::write_configuration_errors_notification(
@@ -635,14 +635,14 @@ void linting_lsp_server_handler::write_configuration_errors_notification(
     u8R"--("method":"window/showMessage",)--"
     u8R"--("params":{)--"
       u8R"--("type":2,)--"
-      u8R"--("message":"Problems found in the config file for )--"sv);
+      u8R"--("message":"Problems found in the config file for )--"_sv);
   // clang-format on
   write_json_escaped_string(out_json, to_string8_view(document_path));
-  out_json.append_copy(u8" ("sv);
+  out_json.append_copy(u8" ("_sv);
   QLJS_ASSERT(config_file->config_path);
   write_json_escaped_string(out_json,
                             to_string8_view(config_file->config_path->path()));
-  out_json.append_copy(u8").\"}}"sv);
+  out_json.append_copy(u8").\"}}"_sv);
 }
 
 void linting_lsp_server_handler::apply_document_changes(
@@ -688,14 +688,14 @@ void linting_lsp_server_handler::write_method_not_found_error_response(
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
-    u8R"("id":)"sv);
+    u8R"("id":)"_sv);
   response_json.append_copy(request_id_json);
   response_json.append_copy(u8R"(,)"
     u8R"("error":{)"
       u8R"("code":-32601,)"
       u8R"("message":"Method not found")"
     u8R"(})"
-  u8R"(})"sv);
+  u8R"(})"_sv);
   // clang-format on
 }
 
@@ -709,7 +709,7 @@ void linting_lsp_server_handler::write_invalid_request_error_response(
       u8R"("code":-32600,)"
       u8R"("message":"Invalid Request")"
     u8R"(})"
-  u8R"(})"sv);
+  u8R"(})"_sv);
   // clang-format on
 }
 
@@ -732,17 +732,17 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     u8R"--({)--"
       u8R"--("method":"textDocument/publishDiagnostics",)--"
       u8R"--("params":{)--"
-        u8R"--("uri":)--"sv);
+        u8R"--("uri":)--"_sv);
   // clang-format on
   notification_json.append_copy(uri_json);
 
-  notification_json.append_copy(u8R"--(,"version":)--"sv);
+  notification_json.append_copy(u8R"--(,"version":)--"_sv);
   notification_json.append_copy(version_json);
 
-  notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
+  notification_json.append_copy(u8R"--(,"diagnostics":)--"_sv);
   this->lint_and_get_diagnostics(config, lint_options, code, notification_json);
 
-  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics(

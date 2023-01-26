@@ -1364,7 +1364,7 @@ void lexer::check_integer_precision_loss(string8_view number_literal) {
         .characters =
             source_code_span(number_literal.data(),
                              number_literal.data() + number_literal.size()),
-        .rounded_val = u8"inf"sv,
+        .rounded_val = u8"inf"_sv,
     });
     return;
   }

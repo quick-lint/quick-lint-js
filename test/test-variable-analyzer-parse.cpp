@@ -33,8 +33,7 @@ TEST(test_variable_analyzer_parse,
       v.errors,
       ElementsAreArray({
           DIAG_TYPE_2_OFFSETS(&input, diag_variable_used_before_declaration,  //
-                              use, 8, u8"y",                                  //
-                              declaration, 11, u8"y"),
+                              use, 8, u8"y"_sv, declaration, 11, u8"y"_sv),
       }));
 }
 

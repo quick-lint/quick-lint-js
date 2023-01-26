@@ -32,9 +32,9 @@ class test_emacs_lisp_diag_reporter : public ::testing::Test {
 TEST_F(test_emacs_lisp_diag_reporter, assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
-  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
   source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
-  ASSERT_EQ(declaration_span.string_view(), u8"x");
+  ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
@@ -49,7 +49,7 @@ TEST_F(test_emacs_lisp_diag_reporter, assignment_before_variable_declaration) {
 TEST_F(test_emacs_lisp_diag_reporter, assignment_to_const_global_variable) {
   padded_string input(u8"to Infinity and beyond"_sv);
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
-  ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
+  ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
 
@@ -79,9 +79,9 @@ TEST_F(test_emacs_lisp_diag_reporter,
 TEST_F(test_emacs_lisp_diag_reporter, redeclaration_of_variable) {
   padded_string input(u8"let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
-  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar"_sv);
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
-  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_redeclaration_of_variable{
@@ -96,9 +96,9 @@ TEST_F(test_emacs_lisp_diag_reporter,
        redeclaration_of_variable_after_multi_byte) {
   padded_string input(u8"/*\u263b*/let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[11], &input[16]);
-  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar"_sv);
   source_code_span redeclaration_span(&input[22], &input[27]);
-  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_redeclaration_of_variable{
@@ -112,7 +112,7 @@ TEST_F(test_emacs_lisp_diag_reporter,
 TEST_F(test_emacs_lisp_diag_reporter, unexpected_hash_character) {
   padded_string input(u8"#"_sv);
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
-  ASSERT_EQ(hash_span.string_view(), u8"#");
+  ASSERT_EQ(hash_span.string_view(), u8"#"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_unexpected_hash_character{hash_span});
@@ -124,7 +124,7 @@ TEST_F(test_emacs_lisp_diag_reporter, unexpected_hash_character) {
 TEST_F(test_emacs_lisp_diag_reporter, use_of_undeclared_variable) {
   padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
@@ -138,7 +138,7 @@ TEST_F(test_emacs_lisp_diag_reporter,
        use_of_undeclared_variable_after_multibyte) {
   padded_string input(u8"/*\u2639*/myvar;"_sv);
   source_code_span myvar_span(&input[7], &input[12]);
-  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});

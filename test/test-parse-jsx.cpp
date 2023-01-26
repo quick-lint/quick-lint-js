@@ -39,7 +39,7 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
       p.errors,
       ElementsAreArray({
           DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_javascript,  //
-                            jsx_start, 0, u8"<"),
+                            jsx_start, 0, u8"<"_sv),
       }));
   EXPECT_THAT(p.variable_uses,
               ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
@@ -59,7 +59,7 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_typescript,  //
-                              jsx_start, 0, u8"<"),
+                              jsx_start, 0, u8"<"_sv),
         }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
@@ -73,7 +73,7 @@ TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_typescript) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_jsx_not_allowed_in_typescript,  //
-                              jsx_start, 0, u8"<"),
+                              jsx_start, 0, u8"<"_sv),
         }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Inner", u8"Inner"}));
   }
@@ -246,7 +246,7 @@ TEST_F(test_parse_jsx, attribute_without_name_must_be_spread) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_dots_for_attribute_spread,  //
-                        expected_dots, strlen(u8"c = <div {"), u8""),
+                        expected_dots, strlen(u8"c = <div {"), u8""_sv),
                 }));
   }
 }
@@ -257,10 +257,10 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_mismatched_jsx_tags,              //
-                        opening_tag_name, strlen(u8"c = <"), u8"div",  //
-                        closing_tag_name, strlen(u8"c = <div></"), u8"span"),
+                    DIAG_TYPE_2_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                                        opening_tag_name, strlen(u8"c = <"),
+                                        u8"div"_sv, closing_tag_name,
+                                        strlen(u8"c = <div></"), u8"span"_sv),
                 }));
   }
 
@@ -272,7 +272,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
-                              opening_tag_name, strlen(u8"c = < "), u8"div"),
+                              opening_tag_name, strlen(u8"c = < "), u8"div"_sv),
         }));
   }
 
@@ -284,7 +284,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
-                              opening_tag_name, strlen(u8"c = <"), u8""),
+                              opening_tag_name, strlen(u8"c = <"), u8""_sv),
         }));
   }
 
@@ -297,7 +297,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                                       opening_tag_name, strlen(u8"c = < "),
-                                      u8"module . Component"),
+                                      u8"module . Component"_sv),
                 }));
   }
 
@@ -310,7 +310,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                                       opening_tag_name, strlen(u8"c = < "),
-                                      u8"svg : path"),
+                                      u8"svg : path"_sv),
                 }));
   }
 
@@ -322,7 +322,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                                       closing_tag_name,
-                                      strlen(u8"c = <div></ "), u8"span"),
+                                      strlen(u8"c = <div></ "), u8"span"_sv),
                 }));
   }
 
@@ -334,7 +334,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                                       closing_tag_name,
-                                      strlen(u8"c = <div></  "), u8""),
+                                      strlen(u8"c = <div></  "), u8""_sv),
                 }));
   }
 
@@ -348,7 +348,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
                               closing_tag_name, strlen(u8"c = <div></ "),
-                              u8"module . Component"),
+                              u8"module . Component"_sv),
         }));
   }
 
@@ -356,12 +356,13 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
   {
     test_parser p(u8"c = <div></ svg : path >;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
-                                      closing_tag_name,
-                                      strlen(u8"c = <div></ "), u8"svg : path"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mismatched_jsx_tags,  //
+                              closing_tag_name, strlen(u8"c = <div></ "),
+                              u8"svg : path"_sv),
+        }));
   }
 
   // opening_tag_name_pretty for normal tag:
@@ -448,7 +449,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
            u8"<A></A:A>"sv,
            u8"<A:A></A>"sv,
        }) {
-    test_parser p(concat(u8"c = ", string8(jsx), u8";"), jsx_options,
+    test_parser p(concat(u8"c = "_sv, string8(jsx), u8";"_sv), jsx_options,
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
@@ -647,15 +648,15 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
     test_parser p(u8R"(c = <div onclick={handler} />;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                diag_jsx_event_attribute_should_be_camel_case,  //
-                attribute_name,
-                offsets_matcher(p.code, strlen(u8"c = <div "), u8"onclick"),  //
-                expected_attribute_name, u8"onClick"sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_FIELDS(
+                        diag_jsx_event_attribute_should_be_camel_case,  //
+                        attribute_name,
+                        offsets_matcher(p.code, strlen(u8"c = <div "),
+                                        u8"onclick"_sv),  //
+                        expected_attribute_name, u8"onClick"sv),
+                }));
   }
 
   // TODO(strager): Should we also report that the handler's value is missing?
@@ -668,7 +669,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
                         diag_jsx_event_attribute_should_be_camel_case,  //
                         attribute_name,
                         offsets_matcher(p.code, strlen(u8"c = <div "),
-                                        u8"onclick"),  //
+                                        u8"onclick"_sv),  //
                         expected_attribute_name, u8"onClick"sv),
                 }));
   }
@@ -683,7 +684,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
                         diag_jsx_event_attribute_should_be_camel_case,  //
                         attribute_name,
                         offsets_matcher(p.code, strlen(u8"c = <div "),
-                                        u8"onmouseenter"),  //
+                                        u8"onmouseenter"_sv),  //
                         expected_attribute_name, u8"onMouseEnter"sv),
                 }));
   }
@@ -698,7 +699,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
                         diag_jsx_event_attribute_should_be_camel_case,  //
                         attribute_name,
                         offsets_matcher(p.code, strlen(u8"c = <div "),
-                                        u8"oncustomevent"),  //
+                                        u8"oncustomevent"_sv),  //
                         expected_attribute_name, u8"onCustomevent"sv),
                 }));
   }
@@ -712,11 +713,11 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                diag_jsx_attribute_has_wrong_capitalization,  //
-                attribute_name,
-                offsets_matcher(p.code, strlen(u8"c = <td "), u8"colspan"),  //
-                expected_attribute_name, u8"colSpan"sv),
+            DIAG_TYPE_2_FIELDS(diag_jsx_attribute_has_wrong_capitalization,  //
+                               attribute_name,
+                               offsets_matcher(p.code, strlen(u8"c = <td "),
+                                               u8"colspan"_sv),  //
+                               expected_attribute_name, u8"colSpan"sv),
         }));
   }
 
@@ -730,7 +731,7 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
             DIAG_TYPE_2_FIELDS(diag_jsx_attribute_has_wrong_capitalization,  //
                                attribute_name,
                                offsets_matcher(p.code, strlen(u8"c = <div "),
-                                               u8"onmouseenter"),  //
+                                               u8"onmouseenter"_sv),  //
                                expected_attribute_name, u8"onMouseEnter"sv),
         }));
   }
@@ -745,7 +746,7 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
             DIAG_TYPE_2_FIELDS(diag_jsx_attribute_has_wrong_capitalization,  //
                                attribute_name,
                                offsets_matcher(p.code, strlen(u8"c = <div "),
-                                               u8"onmouseENTER"),  //
+                                               u8"onmouseENTER"_sv),  //
                                expected_attribute_name, u8"onMouseEnter"sv),
         }));
   }
@@ -759,11 +760,11 @@ TEST_F(test_parse_jsx, commonly_misspelled_attribute) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                diag_jsx_attribute_renamed_by_react,  //
-                attribute_name,
-                offsets_matcher(p.code, strlen(u8"c = <span "), u8"class"),  //
-                react_attribute_name, u8"className"sv),
+            DIAG_TYPE_2_FIELDS(diag_jsx_attribute_renamed_by_react,  //
+                               attribute_name,
+                               offsets_matcher(p.code, strlen(u8"c = <span "),
+                                               u8"class"_sv),  //
+                               react_attribute_name, u8"className"sv),
         }));
   }
 }

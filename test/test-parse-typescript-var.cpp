@@ -39,7 +39,7 @@ TEST_F(test_parse_typescript_var, let_can_have_type_annotation) {
                               "visit_variable_declaration",  // x
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({let_noinit_decl(u8"x")}));
+                ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
   }
 
@@ -179,21 +179,21 @@ TEST_F(test_parse_typescript_var,
                               "visit_exit_block_scope",      // } catch
                           }))
         << "SomeType should be ignored (no visit_variable_type_use)";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_typescript_catch_type_annotation_must_be_any,  //
-                type_expression, strlen(u8"try { } catch (e: "), u8"SomeType"),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_typescript_catch_type_annotation_must_be_any,  //
+                        type_expression, strlen(u8"try { } catch (e: "),
+                        u8"SomeType"_sv),
+                }));
   }
 }
 
 TEST_F(test_parse_typescript_var,
        catch_variable_type_annotations_are_not_allowed_in_javascript) {
   for (string8 type : {u8"*", u8"any", u8"unknown", u8"SomeType"}) {
-    test_parser p(concat(u8"try { } catch (e: ", type, u8") {} "),
+    test_parser p(concat(u8"try { } catch (e: "_sv, type, u8") {} "_sv),
                   javascript_options, capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
@@ -211,7 +211,7 @@ TEST_F(test_parse_typescript_var,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_type_annotations_not_allowed_in_javascript,  //
-                type_colon, strlen(u8"try { } catch (e"), u8":"),
+                type_colon, strlen(u8"try { } catch (e"), u8":"_sv),
         }));
   }
 }

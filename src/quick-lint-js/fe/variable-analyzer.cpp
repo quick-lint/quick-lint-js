@@ -453,7 +453,7 @@ void variable_analyzer::visit_variable_use(identifier name,
     var->is_used = true;
   } else {
     current_scope.variables_used.emplace_back(name, use_kind);
-    if (name.normalized_name() == u8"eval"sv) {
+    if (name.normalized_name() == u8"eval"_sv) {
       current_scope.used_eval_in_this_scope = true;
     }
   }
@@ -624,7 +624,7 @@ void variable_analyzer::propagate_variable_uses_to_parent_scope(
           var->is_used = true;
         }
       } else if (consume_arguments &&
-                 used_var.name.normalized_name() == u8"arguments") {
+                 used_var.name.normalized_name() == u8"arguments"_sv) {
         // Treat this variable as declared in the current scope.
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.

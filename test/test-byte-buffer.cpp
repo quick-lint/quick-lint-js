@@ -44,18 +44,18 @@ TEST(test_byte_buffer, append_small_pieces_within_single_chunk) {
   EXPECT_FALSE(bb.empty());
   std::vector<char8> data(bb.size());
   bb.copy_to(data.data());
-  EXPECT_EQ(string8_view(data.data(), data.size()), u8"one and two thr3");
+  EXPECT_EQ(string8_view(data.data(), data.size()), u8"one and two thr3"_sv);
 }
 
 TEST(test_byte_buffer, appending_copy_behaves_like_append_with_memcpy) {
   byte_buffer bb;
 
-  bb.append_copy(u8"hello"sv);
+  bb.append_copy(u8"hello"_sv);
 
   EXPECT_EQ(bb.size(), 5);
   std::vector<char8> data(bb.size());
   bb.copy_to(data.data());
-  EXPECT_EQ(string8_view(data.data(), data.size()), u8"hello");
+  EXPECT_EQ(string8_view(data.data(), data.size()), u8"hello"_sv);
 }
 
 TEST(test_byte_buffer, append_small_with_callback) {
@@ -73,7 +73,7 @@ TEST(test_byte_buffer, append_small_with_callback) {
   EXPECT_EQ(bb.size(), 2 + 4);
   std::vector<char8> data(bb.size());
   bb.copy_to(data.data());
-  EXPECT_EQ(string8_view(data.data(), data.size()), u8"abcdef");
+  EXPECT_EQ(string8_view(data.data(), data.size()), u8"abcdef"_sv);
 }
 
 TEST(test_byte_buffer,
@@ -149,7 +149,7 @@ TEST(test_byte_buffer, append_integer) {
 TEST(test_byte_buffer, prepend_copy_on_empty_behaves_like_append_copy) {
   byte_buffer bb;
 
-  bb.prepend_copy(u8"hello world"sv);
+  bb.prepend_copy(u8"hello world"_sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -161,9 +161,9 @@ TEST(test_byte_buffer, prepend_copy_on_empty_behaves_like_append_copy) {
 TEST(test_byte_buffer, prepend_copy_on_non_empty) {
   byte_buffer bb;
 
-  bb.append_copy(u8" w"sv);
-  bb.append_copy(u8"orld"sv);
-  bb.prepend_copy(u8"hello"sv);
+  bb.append_copy(u8" w"_sv);
+  bb.append_copy(u8"orld"_sv);
+  bb.prepend_copy(u8"hello"_sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -175,10 +175,10 @@ TEST(test_byte_buffer, prepend_copy_on_non_empty) {
 TEST(test_byte_buffer, prepend_copy_multiple_times) {
   byte_buffer bb;
 
-  bb.prepend_copy(u8"rld"sv);
-  bb.prepend_copy(u8" wo"sv);
-  bb.prepend_copy(u8"lo"sv);
-  bb.prepend_copy(u8"hel"sv);
+  bb.prepend_copy(u8"rld"_sv);
+  bb.prepend_copy(u8" wo"_sv);
+  bb.prepend_copy(u8"lo"_sv);
+  bb.prepend_copy(u8"hel"_sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -190,9 +190,9 @@ TEST(test_byte_buffer, prepend_copy_multiple_times) {
 TEST(test_byte_buffer, append_copy_after_prepend_copy) {
   byte_buffer bb;
 
-  bb.append_copy(u8" wor"sv);
-  bb.prepend_copy(u8"hello"sv);
-  bb.append_copy(u8"ld"sv);
+  bb.append_copy(u8" wor"_sv);
+  bb.prepend_copy(u8"hello"_sv);
+  bb.append_copy(u8"ld"_sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -204,8 +204,8 @@ TEST(test_byte_buffer, append_copy_after_prepend_copy) {
 TEST(test_byte_buffer, clear_after_small_appends) {
   byte_buffer bb;
 
-  bb.append_copy(u8"hello "sv);
-  bb.append_copy(u8"world"sv);
+  bb.append_copy(u8"hello "_sv);
+  bb.append_copy(u8"world"_sv);
   bb.clear();
 
   EXPECT_EQ(bb.size(), 0);
@@ -225,9 +225,9 @@ TEST(test_byte_buffer, clear_after_big_appends) {
 TEST(test_byte_buffer, clear_then_append) {
   byte_buffer bb;
 
-  bb.append_copy(u8"hello "sv);
+  bb.append_copy(u8"hello "_sv);
   bb.clear();
-  bb.append_copy(u8"world"sv);
+  bb.append_copy(u8"world"_sv);
 
   string8 data;
   data.resize(bb.size());
@@ -239,21 +239,21 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
   // Create three chunks for bb_1.
   byte_buffer bb_1;
   string8 bb_1_expected;
-  bb_1.append_copy(u8"hello"sv);
+  bb_1.append_copy(u8"hello"_sv);
   bb_1_expected.append(u8"hello");
   bb_1.append_copy(string8(byte_buffer::default_chunk_size * 2, '-'));
   bb_1_expected.append(string8(byte_buffer::default_chunk_size * 2, '-'));
-  bb_1.append_copy(u8"world"sv);
+  bb_1.append_copy(u8"world"_sv);
   bb_1_expected.append(u8"world");
 
   // Create three chunks for bb_2.
   byte_buffer bb_2;
   string8 bb_2_expected;
-  bb_2.append_copy(u8"HELLO"sv);
+  bb_2.append_copy(u8"HELLO"_sv);
   bb_2_expected.append(u8"HELLO");
   bb_2.append_copy(string8(byte_buffer::default_chunk_size * 2, '_'));
   bb_2_expected.append(string8(byte_buffer::default_chunk_size * 2, '_'));
-  bb_2.append_copy(u8"WORLD"sv);
+  bb_2.append_copy(u8"WORLD"_sv);
   bb_2_expected.append(u8"WORLD");
 
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
@@ -266,7 +266,7 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
 
 TEST(test_byte_buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
   byte_buffer bb_1;
-  bb_1.append_copy(u8"hello"sv);
+  bb_1.append_copy(u8"hello"_sv);
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
 
   byte_buffer bb_2;
@@ -281,7 +281,7 @@ TEST(test_byte_buffer,
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
 
   byte_buffer bb_2;
-  bb_2.append_copy(u8"hello"sv);
+  bb_2.append_copy(u8"hello"_sv);
   iov.append(std::move(bb_2));
 
   EXPECT_EQ(get_data(iov), u8"hello");
@@ -291,7 +291,7 @@ TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
   byte_buffer_iovec iov(std::vector<byte_buffer_chunk>{});
 
   byte_buffer bb;
-  bb.append_copy(u8"hello"sv);
+  bb.append_copy(u8"hello"_sv);
   iov.append(std::move(bb));
 
   EXPECT_EQ(get_data(iov), u8"hello");
@@ -299,14 +299,14 @@ TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
 
 TEST(test_byte_buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec iov(std::move(chunks));
   iov.remove_front(strlen(u8"helloworld"));
 
   byte_buffer bb;
-  bb.append_copy(u8"hiya"sv);
+  bb.append_copy(u8"hiya"_sv);
   iov.append(std::move(bb));
 
   EXPECT_EQ(get_data(iov), u8"hiya");
@@ -318,16 +318,16 @@ TEST(test_byte_buffer, iovec) {
   string8 expected_data;
 
   string8 small_data = u8"hello world";
-  bb.append_copy(small_data);
+  bb.append_copy(string8_view(small_data));
   expected_data.append(small_data);
-  bb.append_copy(small_data);
+  bb.append_copy(string8_view(small_data));
   expected_data.append(small_data);
 
   string8 big_data(bb.default_chunk_size * 2, u8'A');
-  bb.append_copy(big_data);
+  bb.append_copy(string8_view(big_data));
   expected_data.append(big_data);
 
-  bb.append_copy(small_data);
+  bb.append_copy(string8_view(small_data));
   expected_data.append(small_data);
 
   byte_buffer_iovec iovec = std::move(bb).to_iovec();
@@ -378,9 +378,9 @@ TEST(test_byte_buffer,
 
 TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8" "),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8" "_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(strlen(u8"hello"));
@@ -389,9 +389,9 @@ TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
 
 TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8"beautiful"),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8"beautiful"_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(strlen(u8"hello") + strlen(u8"beautiful"));
@@ -400,9 +400,9 @@ TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8" "),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8" "_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(strlen(u8"hello") + strlen(u8" ") + strlen(u8"world"));
@@ -411,9 +411,9 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
 
 TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8" "),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8" "_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(strlen(u8"hel"));
@@ -422,9 +422,9 @@ TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
 
 TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8" "),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8" "_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(1);
@@ -435,9 +435,9 @@ TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
 
 TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8"beautiful"),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8"beautiful"_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   bb.remove_front(strlen(u8"hello") + strlen(u8"beauti"));
@@ -446,9 +446,9 @@ TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8"beautiful"),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8"beautiful"_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb(std::move(chunks));
   for (std::size_t i = 0;
@@ -460,9 +460,9 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
 
 TEST(test_byte_buffer_iovec, moving_makes_original_empty) {
   std::vector<byte_buffer_chunk> chunks = {
-      make_chunk(u8"hello"),
-      make_chunk(u8"beautiful"),
-      make_chunk(u8"world"),
+      make_chunk(u8"hello"_sv),
+      make_chunk(u8"beautiful"_sv),
+      make_chunk(u8"world"_sv),
   };
   byte_buffer_iovec bb_1(std::move(chunks));
 

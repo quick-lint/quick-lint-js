@@ -47,7 +47,7 @@ void configuration::reset_global_groups() {
 }
 
 bool configuration::add_global_group(string8_view group_name) {
-  if (group_name == u8"literally-anything"sv) {
+  if (group_name == u8"literally-anything"_sv) {
     this->literally_anything_global_group_enabled_ = true;
     return true;
   }
@@ -408,7 +408,7 @@ string8_view remove_trailing_json_whitespace(string8_view sv) {
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
   std::size_t last_character_index =
-      sv.find_last_not_of(u8"\u0009\u000a\u000d\u0020"sv);
+      sv.find_last_not_of(u8"\u0009\u000a\u000d\u0020"_sv);
   QLJS_ASSERT(last_character_index != sv.npos);
   return sv.substr(0, last_character_index + 1);
 }

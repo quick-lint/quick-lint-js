@@ -30,7 +30,7 @@ class test_parse_class : public test_parse_expression {};
 
 TEST_F(test_parse_class, super_in_class) {
   {
-    test_parser p(u8"class C extends Base { constructor() { super(); } }");
+    test_parser p(u8"class C extends Base { constructor() { super(); } }"_sv);
     p.parse_and_visit_statement();
   }
 }
@@ -39,7 +39,8 @@ TEST_F(test_parse_class, parse_class_statement) {
   {
     test_parser p(u8"class C {}"_sv);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
@@ -52,7 +53,7 @@ TEST_F(test_parse_class, parse_class_statement) {
     test_parser p(u8"class Derived extends Base {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({class_decl(u8"Derived")}));
+                ElementsAreArray({class_decl(u8"Derived"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Base"}));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
@@ -64,7 +65,7 @@ TEST_F(test_parse_class, parse_class_statement) {
   }
 
   {
-    test_parser p(u8"class FileStream extends fs.ReadStream {}");
+    test_parser p(u8"class FileStream extends fs.ReadStream {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"fs"}));
   }
@@ -74,7 +75,7 @@ TEST_F(test_parse_class, parse_class_statement) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({class_decl(u8"A"), class_decl(u8"B")}));
+                ElementsAreArray({class_decl(u8"A"_sv), class_decl(u8"B"_sv)}));
   }
 }
 
@@ -91,7 +92,7 @@ TEST_F(test_parse_class, class_statement_requires_a_name) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_name_in_class_statement,  //
-                              class_keyword, 0, u8"class"),
+                              class_keyword, 0, u8"class"_sv),
         }));
   }
 }
@@ -110,7 +111,7 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_body_for_class,  //
                                       class_keyword_and_name_and_heritage,
-                                      strlen(u8"class C"), u8""),
+                                      strlen(u8"class C"), u8""_sv),
                 }));
   }
 
@@ -129,7 +130,7 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_body_for_class,  //
                               class_keyword_and_name_and_heritage,
-                              strlen(u8"class Derived extends Base"), u8""),
+                              strlen(u8"class Derived extends Base"), u8""_sv),
         }));
   }
 
@@ -145,10 +146,10 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
                 UnorderedElementsAre(
                     DIAG_TYPE_OFFSETS(p.code,
                                       diag_missing_name_in_class_statement,  //
-                                      class_keyword, 0, u8"class"),
+                                      class_keyword, 0, u8"class"_sv),
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_body_for_class,  //
                                       class_keyword_and_name_and_heritage,
-                                      strlen(u8"class"), u8"")));
+                                      strlen(u8"class"), u8""_sv)));
   }
 }
 
@@ -162,11 +163,12 @@ TEST_F(test_parse_class, unclosed_class_statement) {
                               "visit_exit_class_scope",        //
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
-                                      block_open, strlen(u8"class C "), u8"{"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{"_sv),
+        }));
   }
 
   {
@@ -182,11 +184,12 @@ TEST_F(test_parse_class, unclosed_class_statement) {
                               "visit_exit_class_scope",           // C
                               "visit_variable_declaration",       // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
-                                      block_open, strlen(u8"class C "), u8"{"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{"_sv),
+        }));
   }
 
   {
@@ -199,11 +202,12 @@ TEST_F(test_parse_class, unclosed_class_statement) {
                               "visit_exit_class_scope",        // C
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
-                                      block_open, strlen(u8"class C "), u8"{"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{"_sv),
+        }));
   }
 }
 
@@ -271,7 +275,7 @@ TEST_F(test_parse_class, class_statement_extending_class_expression) {
 
 TEST_F(test_parse_class, class_statement_with_methods) {
   {
-    test_parser p(u8"class Monster { eatMuffins(muffinCount) { } }");
+    test_parser p(u8"class Monster { eatMuffins(muffinCount) { } }"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 2);
     EXPECT_EQ(p.variable_declarations[0].name, u8"muffinCount");
@@ -344,7 +348,7 @@ TEST_F(test_parse_class, class_statement_with_methods) {
         u8"class C {\n"
         u8"  static get length() { }\n"
         u8"  static set length(l) { }\n"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"length", u8"length"}));
@@ -358,7 +362,7 @@ TEST_F(test_parse_class, class_statement_with_methods) {
   }
 
   {
-    test_parser p(u8"class C { \"stringKey\"() {} }");
+    test_parser p(u8"class C { \"stringKey\"() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
@@ -415,7 +419,7 @@ TEST_F(test_parse_class, class_statement_methods_with_arrow_operator) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_functions_or_methods_should_not_have_arrow_operator,  //
-                arrow_operator, strlen(u8"class C { method() "), u8"=>"),
+                arrow_operator, strlen(u8"class C { method() "), u8"=>"_sv),
         }));
   }
 }
@@ -439,14 +443,14 @@ TEST_F(test_parse_class, missing_class_method_name_fails) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_class_method_name,  //
-                        expected_name, strlen(u8"class Monster { "), u8""),
+                        expected_name, strlen(u8"class Monster { "), u8""_sv),
                 }));
   }
 }
 
 TEST_F(test_parse_class, class_statement_with_fields) {
   {
-    test_parser p(u8"class FruitBasket { banana; }");
+    test_parser p(u8"class FruitBasket { banana; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -460,7 +464,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    test_parser p(u8"class FruitBasket { banana }");
+    test_parser p(u8"class FruitBasket { banana }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -473,7 +477,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { prop = init; }");
+    test_parser p(u8"class C { prop = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -489,7 +493,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after field with initializer.
-    test_parser p(u8"class C { prop = init }");
+    test_parser p(u8"class C { prop = init }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -504,7 +508,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { static prop = init }");
+    test_parser p(u8"class C { static prop = init }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -519,14 +523,14 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { #prop = init; }");
+    test_parser p(u8"class C { #prop = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"#prop"}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"init"}));
   }
 
   {
-    test_parser p(u8"class C { #prop = init;\nf() {this.#prop;} }");
+    test_parser p(u8"class C { #prop = init;\nf() {this.#prop;} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"#prop", u8"f"}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"init"}));
@@ -534,7 +538,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after field name before private identifier.
-    test_parser p(u8"class C { #first\n#second }");
+    test_parser p(u8"class C { #first\n#second }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"#first", u8"#second"}));
@@ -542,14 +546,14 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after initializer before private identifier.
-    test_parser p(u8"class C { #first = x\n#second }");
+    test_parser p(u8"class C { #first = x\n#second }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"#first", u8"#second"}));
   }
 
   {
-    test_parser p(u8"class C { 'fieldName'; }");
+    test_parser p(u8"class C { 'fieldName'; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -563,7 +567,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    test_parser p(u8"class C { 'fieldName' }");
+    test_parser p(u8"class C { 'fieldName' }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -576,7 +580,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { 'fieldName' = init; }");
+    test_parser p(u8"class C { 'fieldName' = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -591,7 +595,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { 3.14 = pi; }");
+    test_parser p(u8"class C { 3.14 = pi; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -606,7 +610,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { [x + y]; }");
+    test_parser p(u8"class C { [x + y]; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -623,7 +627,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    test_parser p(u8"class C { [x + y] }");
+    test_parser p(u8"class C { [x + y] }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -639,7 +643,7 @@ TEST_F(test_parse_class, class_statement_with_fields) {
   }
 
   {
-    test_parser p(u8"class C { [x + y] = init; }");
+    test_parser p(u8"class C { [x + y] = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
@@ -676,14 +680,14 @@ TEST_F(test_parse_class, class_fields_with_comma) {
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code, diag_unexpected_comma_after_field_initialization,  //
-            comma, strlen(u8"class C { a = 1"), u8",")));
+            comma, strlen(u8"class C { a = 1"), u8","_sv)));
   }
 }
 
 TEST_F(test_parse_class,
        class_fields_without_initializer_allow_asi_after_name) {
   {
-    test_parser p(u8"class C { f\ng() {} }");
+    test_parser p(u8"class C { f\ng() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // C
@@ -704,12 +708,12 @@ TEST_F(test_parse_class,
       u8"'method'() {}", u8"3.14() {}",
   };
   for (string8_view keyword : keywords) {
-    class_declarations.emplace_back(concat(keyword, u8"() {}"));
+    class_declarations.emplace_back(concat(keyword, u8"() {}"_sv));
   }
   for (const string8& second_member : class_declarations) {
     {
       padded_string code(
-          concat(u8"class C { myField\n", second_member, u8" }"));
+          concat(u8"class C { myField\n"_sv, second_member, u8" }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();
@@ -718,8 +722,8 @@ TEST_F(test_parse_class,
     }
 
     for (string8_view first_member : {u8"3.14", u8"'bananas'", u8"[expr]"}) {
-      padded_string code(
-          concat(u8"class C { ", first_member, u8"\n", second_member, u8" }"));
+      padded_string code(concat(u8"class C { "_sv, first_member, u8"\n"_sv,
+                                second_member, u8" }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();
@@ -748,7 +752,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_methods_should_not_use_function_keyword,  //
-                function_token, strlen(u8"class C { "), u8"function"),
+                function_token, strlen(u8"class C { "), u8"function"_sv),
         }));
   }
 
@@ -760,7 +764,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_methods_should_not_use_function_keyword,  //
-                function_token, strlen(u8"class C { async "), u8"function"),
+                function_token, strlen(u8"class C { async "), u8"function"_sv),
         }));
   }
 
@@ -772,7 +776,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_methods_should_not_use_function_keyword,  //
-                function_token, strlen(u8"class C { "), u8"function"),
+                function_token, strlen(u8"class C { "), u8"function"_sv),
         }));
   }
 
@@ -784,7 +788,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_methods_should_not_use_function_keyword,  //
-                function_token, strlen(u8"class C { static "), u8"function"),
+                function_token, strlen(u8"class C { static "), u8"function"_sv),
         }));
   }
 }
@@ -792,14 +796,14 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
 TEST_F(test_parse_class, class_statement_with_keyword_property) {
   for (string8_view keyword : keywords) {
     {
-      test_parser p(concat(u8"class C { ", keyword, u8"(){} }"));
+      test_parser p(concat(u8"class C { "_sv, keyword, u8"(){} }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
     }
 
     {
-      test_parser p(concat(u8"class C { *", keyword, u8"(){} }"));
+      test_parser p(concat(u8"class C { *"_sv, keyword, u8"(){} }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
@@ -808,28 +812,29 @@ TEST_F(test_parse_class, class_statement_with_keyword_property) {
     for (string8_view prefix :
          {u8"async"_sv, u8"get"_sv, u8"set"_sv, u8"static"_sv,
           u8"static async"_sv, u8"static get"_sv, u8"static set"_sv}) {
-      test_parser p(concat(u8"class C { ", prefix, u8" ", keyword, u8"(){} }"));
+      test_parser p(
+          concat(u8"class C { "_sv, prefix, u8" "_sv, keyword, u8"(){} }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
     }
 
     {
-      test_parser p(concat(u8"class C { ", keyword, u8" }"));
+      test_parser p(concat(u8"class C { "_sv, keyword, u8" }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
     }
 
     {
-      test_parser p(concat(u8"class C { ", keyword, u8"; }"));
+      test_parser p(concat(u8"class C { "_sv, keyword, u8"; }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
     }
 
     {
-      test_parser p(concat(u8"class C { ", keyword, u8" = init; }"));
+      test_parser p(concat(u8"class C { "_sv, keyword, u8" = init; }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
@@ -843,7 +848,7 @@ TEST_F(test_parse_class, class_statement_with_keyword_property) {
           u8"set"_sv, u8"static"_sv, u8"static *"_sv, u8"static async"_sv,
           u8"static async *"_sv, u8"static get"_sv, u8"static set"_sv}) {
       padded_string code(
-          concat(u8"class C { ", prefix, u8" ", property, u8"(){} }"));
+          concat(u8"class C { "_sv, prefix, u8" "_sv, property, u8"(){} }"_sv));
       SCOPED_TRACE(code);
       test_parser p(code.string_view());
       p.parse_and_visit_statement();
@@ -856,7 +861,7 @@ TEST_F(test_parse_class,
        typescript_class_statement_with_readonly_keyword_property) {
   for (string8_view keyword : keywords) {
     {
-      test_parser p(concat(u8"class C { readonly ", keyword, u8"; }"),
+      test_parser p(concat(u8"class C { readonly "_sv, keyword, u8"; }"_sv),
                     typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
@@ -868,7 +873,7 @@ TEST_F(test_parse_class,
 TEST_F(test_parse_class, typescript_class_with_keyword_generic_method) {
   for (string8_view keyword : keywords) {
     {
-      test_parser p(concat(u8"class C { ", keyword, u8"<T>(){} }"),
+      test_parser p(concat(u8"class C { "_sv, keyword, u8"<T>(){} }"_sv),
                     typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
@@ -1022,7 +1027,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_function_parameter_list,  //
                               expected_parameter_list,
-                              strlen(u8"class C { method"), u8""),
+                              strlen(u8"class C { method"), u8""_sv),
         }));
   }
 
@@ -1034,7 +1039,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_function_parameter_list,  //
                               expected_parameter_list,
-                              strlen(u8"class C { [method+name]"), u8""),
+                              strlen(u8"class C { [method+name]"), u8""_sv),
         }));
   }
 
@@ -1046,7 +1051,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_function_parameter_list,  //
                               expected_parameter_list,
-                              strlen(u8"class C { 'method name'"), u8""),
+                              strlen(u8"class C { 'method name'"), u8""_sv),
         }));
   }
 }
@@ -1073,7 +1078,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
                                       token, strlen(u8"class C { "),
-                                      u8"junkIdentifier"),
+                                      u8"junkIdentifier"_sv),
                 }));
   }
 
@@ -1086,7 +1091,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
                                       token, strlen(u8"class C { "),
-                                      u8"#junkIdentifier"),
+                                      u8"#junkIdentifier"_sv),
                 }));
   }
 
@@ -1111,7 +1116,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
                                       token, strlen(u8"class C { "),
-                                      u8"junkIdentifier"),
+                                      u8"junkIdentifier"_sv),
                 }));
   }
 }
@@ -1125,7 +1130,7 @@ TEST_F(test_parse_class, stray_left_curly_in_class_is_ignored) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                                      token, strlen(u8"class C { "), u8"{"),
+                                      token, strlen(u8"class C { "), u8"{"_sv),
                 }));
   }
 }
@@ -1139,11 +1144,11 @@ TEST_F(test_parse_class, stray_keyword_in_class_body) {
     EXPECT_THAT(p.errors,
                 UnorderedElementsAre(
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                                      token, strlen(u8"class C { "), u8"if"),
+                                      token, strlen(u8"class C { "), u8"if"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_token,  //
                         token, strlen(u8"class C { if method(arg) { body; } "),
-                        u8"instanceof")));
+                        u8"instanceof"_sv)));
   }
 }
 
@@ -1166,9 +1171,9 @@ TEST_F(test_parse_class,
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::do_while_loop,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"do"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"do"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"do "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"do "), u8"class"_sv)),
         }));
   }
 }
@@ -1193,9 +1198,9 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::if_statement,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"if (cond)"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"if (cond)"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"if (cond) "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"if (cond) "), u8"class"_sv)),
         }));
   }
 
@@ -1219,9 +1224,9 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::if_statement,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"if (cond)"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"if (cond)"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"if (cond) "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"if (cond) "), u8"class"_sv)),
         }));
   }
 
@@ -1246,10 +1251,10 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
                 statement_kind::if_statement,  //
                 expected_body,
                 offsets_matcher(p.code, strlen(u8"if (cond) {} else"),
-                                u8""),  //
+                                u8""_sv),  //
                 class_keyword,
                 offsets_matcher(p.code, strlen(u8"if (cond) {} else "),
-                                u8"class")),
+                                u8"class"_sv)),
         }));
   }
 }
@@ -1272,9 +1277,10 @@ TEST_F(test_parse_class, class_statement_as_for_statement_body_is_disallowed) {
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::for_loop,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"for (;cond;)"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"for (;cond;)"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"for (;cond;) "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"for (;cond;) "),
+                                u8"class"_sv)),
         }));
   }
 }
@@ -1298,9 +1304,10 @@ TEST_F(test_parse_class,
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::while_loop,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"while (cond)"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"while (cond)"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"while (cond) "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"while (cond) "),
+                                u8"class"_sv)),
         }));
   }
 }
@@ -1325,9 +1332,9 @@ TEST_F(test_parse_class, class_statement_as_with_statement_body_is_disallowed) {
                 diag_class_statement_not_allowed_in_body, kind_of_statement,
                 statement_kind::with_statement,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"with (obj)"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"with (obj)"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"with (obj) "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"with (obj) "), u8"class"_sv)),
         }));
   }
 }
@@ -1349,9 +1356,9 @@ TEST_F(test_parse_class, class_statement_as_label_body_is_disallowed) {
                 diag_class_statement_not_allowed_in_body,               //
                 kind_of_statement, statement_kind::labelled_statement,  //
                 expected_body,
-                offsets_matcher(p.code, strlen(u8"l:"), u8""),  //
+                offsets_matcher(p.code, strlen(u8"l:"), u8""_sv),  //
                 class_keyword,
-                offsets_matcher(p.code, strlen(u8"l: "), u8"class")),
+                offsets_matcher(p.code, strlen(u8"l: "), u8"class"_sv)),
         }));
   }
 }
@@ -1368,7 +1375,7 @@ TEST_F(test_parse_class, class_in_async_function_is_allowed) {
 
 TEST_F(test_parse_class, class_named_await_in_async_function) {
   {
-    test_parser p(u8"class await {}");
+    test_parser p(u8"class await {}"_sv);
     p.parse_and_visit_statement();
   }
 
@@ -1388,7 +1395,7 @@ TEST_F(test_parse_class, class_named_await_in_async_function) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_cannot_declare_await_in_async_function, name,
-                strlen(u8"async function g() { class "), u8"await"),
+                strlen(u8"async function g() { class "), u8"await"_sv),
         }));
   }
 }
@@ -1417,7 +1424,7 @@ TEST_F(test_parse_class, async_static_method_is_disallowed) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_async_static_method,  //
                                       async_static, strlen(u8"class C { "),
-                                      u8"async static"),
+                                      u8"async static"_sv),
                 }));
   }
 
@@ -1430,7 +1437,7 @@ TEST_F(test_parse_class, async_static_method_is_disallowed) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_async_static_method,  //
                                       async_static, strlen(u8"class C { "),
-                                      u8"async static"),
+                                      u8"async static"_sv),
                 }));
   }
 
@@ -1444,7 +1451,7 @@ TEST_F(test_parse_class, async_static_method_is_disallowed) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_async_static_method,  //
                                       async_static, strlen(u8"class C { "),
-                                      u8"async static"),
+                                      u8"async static"_sv),
                 }));
   }
 }
@@ -1500,23 +1507,23 @@ TEST_F(test_parse_class, typescript_style_const_field) {
     test_parser p(u8"class C { const f = null }"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, diag_typescript_style_const_field,  //
-                              const_token, strlen(u8"class C { "), u8"const"),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_style_const_field,  //
+                        const_token, strlen(u8"class C { "), u8"const"_sv),
+                }));
   }
   {
     test_parser p(u8"class C { const f }"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, diag_typescript_style_const_field,  //
-                              const_token, strlen(u8"class C { "), u8"const"),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_style_const_field,  //
+                        const_token, strlen(u8"class C { "), u8"const"_sv),
+                }));
   }
 }
 
@@ -1564,7 +1571,7 @@ TEST_F(test_parse_class, class_expression_body_is_visited_first_in_expression) {
 
 TEST_F(test_parse_class, static_blocks) {
   {
-    test_parser p(u8"class C { static #private; static { C.#private; } }");
+    test_parser p(u8"class C { static #private; static { C.#private; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C

@@ -39,7 +39,7 @@ lsp_message_parser_base::parse_message_headers(string8_view headers) {
     parsed_header header = parse_header(headers);
     headers = header.remaining;
 
-    if (header_is(header.name, u8"content-length")) {
+    if (header_is(header.name, u8"content-length"_sv)) {
       const char8* header_value_end = &header.value.data()[header.value.size()];
       content_length.emplace();
       from_char8s_result result =
@@ -64,17 +64,17 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
     string8_view data) {
   // tchar: https://tools.ietf.org/html/rfc7230#section-3.2
   // ALPHA and DIGIT: https://tools.ietf.org/html/rfc5234#appendix-B.1
-  static constexpr const char8 tchar[] =
+  static constexpr string8_view tchar =
       u8"!#$%&'*+-.^_`|~"
       u8"0123456789"
       u8"abcdefghijklmnopqrstuvwxyz"
-      u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ"_sv;
 
   // Part of HTTP-message: https://tools.ietf.org/html/rfc7230#section-3
   static constexpr const char8 crlf[] = u8"\r\n";
 
   // OWS: https://tools.ietf.org/html/rfc7230#section-3.2.3
-  static constexpr const char8 ows[] = u8" \t";
+  static constexpr string8_view ows = u8" \t"_sv;
 
   auto find_line_terminator = [](string8_view haystack) -> const char8* {
     auto terminator_begin = std::search(haystack.begin(), haystack.end(), crlf,

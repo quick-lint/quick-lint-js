@@ -129,7 +129,7 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C", u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
   }
 
   {
@@ -215,7 +215,7 @@ TEST_F(test_parse_typescript_type, special_types) {
 
 TEST_F(test_parse_typescript_type, unique_symbol_type) {
   {
-    test_parser p(u8"unique symbol", typescript_options);
+    test_parser p(u8"unique symbol"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -223,7 +223,7 @@ TEST_F(test_parse_typescript_type, unique_symbol_type) {
   }
 
   {
-    test_parser p(u8"(unique symbol)", typescript_options);
+    test_parser p(u8"(unique symbol)"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -406,8 +406,8 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[A?, B"), u8"",  //
-                previous_optional_question, strlen(u8"[A"), u8"?"),
+                expected_question, strlen(u8"[A?, B"), u8""_sv,
+                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
         }));
   }
 
@@ -421,8 +421,8 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[A?, B?, C"), u8"",  //
-                previous_optional_question, strlen(u8"[A?, B"), u8"?"),
+                expected_question, strlen(u8"[A?, B?, C"), u8""_sv,
+                previous_optional_question, strlen(u8"[A?, B"), u8"?"_sv),
         }))
         << "diagnostic should point to the last optional '?'";
   }
@@ -437,13 +437,13 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[A?, B"), u8"",  //
-                previous_optional_question, strlen(u8"[A"), u8"?"),
+                expected_question, strlen(u8"[A?, B"), u8""_sv,
+                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[A?, B, C"), u8"",  //
-                previous_optional_question, strlen(u8"[A"), u8"?"),
+                expected_question, strlen(u8"[A?, B, C"), u8""_sv,
+                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
         }));
   }
 }
@@ -572,8 +572,8 @@ TEST_F(test_parse_typescript_type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_optional_tuple_element_cannot_follow_spread_element,
-                optional_question, strlen(u8"[...A, B"), u8"?",  //
-                previous_spread, strlen(u8"["), u8"..."),
+                optional_question, strlen(u8"[...A, B"), u8"?"_sv,
+                previous_spread, strlen(u8"["), u8"..."_sv),
         }));
   }
 
@@ -586,8 +586,8 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_typescript_spread_element_cannot_be_optional,
-                optional_question, strlen(u8"[...A"), u8"?",  //
-                spread, strlen(u8"["), u8"..."),
+                optional_question, strlen(u8"[...A"), u8"?"_sv, spread,
+                strlen(u8"["), u8"..."_sv),
         }));
   }
 }
@@ -634,7 +634,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
                                                                  u8"typeof",
                                                                  u8"void",
                                                              }) {
-    test_parser p(concat(u8"[", name, u8": A]"), typescript_options);
+    test_parser p(concat(u8"["_sv, name, u8": A]"_sv), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -659,8 +659,8 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_missing_name_and_colon_in_named_tuple_type,
-                expected_name_and_colon, strlen(u8"[a: A, "), u8"",  //
-                existing_name, strlen(u8"["), u8"a:"),
+                expected_name_and_colon, strlen(u8"[a: A, "), u8""_sv,
+                existing_name, strlen(u8"["), u8"a:"_sv),
         }));
   }
 
@@ -674,8 +674,8 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_missing_name_and_colon_in_named_tuple_type,
-                expected_name_and_colon, strlen(u8"[a: A, b: B, "), u8"",  //
-                existing_name, strlen(u8"["), u8"a:"),
+                expected_name_and_colon, strlen(u8"[a: A, b: B, "), u8""_sv,
+                existing_name, strlen(u8"["), u8"a:"_sv),
         }));
   }
 
@@ -693,8 +693,8 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_missing_name_and_colon_in_named_tuple_type,
-                expected_name_and_colon, strlen(u8"["), u8"",  //
-                existing_name, strlen(u8"[A, "), u8"b:"),
+                expected_name_and_colon, strlen(u8"["), u8""_sv, existing_name,
+                strlen(u8"[A, "), u8"b:"_sv),
         }));
   }
 
@@ -711,7 +711,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_missing_name_in_named_tuple_type,
-                              colon, strlen(u8"["), u8":"),
+                              colon, strlen(u8"["), u8":"_sv),
         }));
   }
 
@@ -728,7 +728,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_missing_name_in_named_tuple_type,
-                              colon, strlen(u8"["), u8":"),
+                              colon, strlen(u8"["), u8":"_sv),
         }))
         << "should not also report a missing name for the second element, "
            "because maybe the ':' was a mistake";
@@ -743,12 +743,12 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_missing_name_in_named_tuple_type,
-                              colon, strlen(u8"["), u8":"),
+                              colon, strlen(u8"["), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_missing_name_and_colon_in_named_tuple_type,
-                expected_name_and_colon, strlen(u8"[: A, b: B, "), u8"",  //
-                existing_name, strlen(u8"[: A, "), u8"b:")));
+                expected_name_and_colon, strlen(u8"[: A, b: B, "), u8""_sv,
+                existing_name, strlen(u8"[: A, "), u8"b:"_sv)));
   }
 
   {
@@ -760,12 +760,12 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_missing_name_in_named_tuple_type,
-                              colon, strlen(u8"["), u8":"),
+                              colon, strlen(u8"["), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_missing_name_and_colon_in_named_tuple_type,
-                expected_name_and_colon, strlen(u8"[: A, "), u8"",  //
-                existing_name, strlen(u8"[: A, B, "), u8"c:"),
+                expected_name_and_colon, strlen(u8"[: A, "), u8""_sv,
+                existing_name, strlen(u8"[: A, B, "), u8"c:"_sv),
         }));
   }
 }
@@ -802,8 +802,8 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[a?: A, b"), u8"",  //
-                previous_optional_question, strlen(u8"[a"), u8"?"),
+                expected_question, strlen(u8"[a?: A, b"), u8""_sv,
+                previous_optional_question, strlen(u8"[a"), u8"?"_sv),
         }));
   }
 
@@ -818,8 +818,8 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_required_tuple_element_after_optional_element,
-                expected_question, strlen(u8"[a?: A, b?: B, c"), u8"",  //
-                previous_optional_question, strlen(u8"[a?: A, b"), u8"?"),
+                expected_question, strlen(u8"[a?: A, b?: B, c"), u8""_sv,
+                previous_optional_question, strlen(u8"[a?: A, b"), u8"?"_sv),
         }))
         << "diagnostic should point to the last optional '?'";
   }
@@ -839,8 +839,8 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_typescript_named_tuple_element_question_after_type,
-                question, strlen(u8"[a: A"), u8"?",  //
-                expected_question, strlen(u8"[a"), u8""),
+                question, strlen(u8"[a: A"), u8"?"_sv, expected_question,
+                strlen(u8"[a"), u8""_sv),
         }));
   }
 
@@ -857,8 +857,8 @@ TEST_F(test_parse_typescript_type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_named_tuple_element_question_after_name_and_type,
-                type_question, strlen(u8"[a?: A"), u8"?",  //
-                name_question, strlen(u8"[a"), u8"?"),
+                type_question, strlen(u8"[a?: A"), u8"?"_sv, name_question,
+                strlen(u8"[a"), u8"?"_sv),
         }));
   }
 }
@@ -912,8 +912,8 @@ TEST_F(test_parse_typescript_type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_optional_tuple_element_cannot_follow_spread_element,
-                optional_question, strlen(u8"[...a: A, b"), u8"?",  //
-                previous_spread, strlen(u8"["), u8"..."),
+                optional_question, strlen(u8"[...a: A, b"), u8"?"_sv,
+                previous_spread, strlen(u8"["), u8"..."_sv),
         }));
   }
 
@@ -926,8 +926,8 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_typescript_spread_element_cannot_be_optional,
-                optional_question, strlen(u8"[...a"), u8"?",  //
-                spread, strlen(u8"["), u8"..."),
+                optional_question, strlen(u8"[...a"), u8"?"_sv, spread,
+                strlen(u8"["), u8"..."_sv),
         }));
   }
 }
@@ -946,8 +946,8 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_typescript_named_tuple_element_spread_before_type,
-                spread, strlen(u8"[ a: "), u8"...",  //
-                expected_spread, strlen(u8"[ "), u8""),
+                spread, strlen(u8"[ a: "), u8"..."_sv, expected_spread,
+                strlen(u8"[ "), u8""_sv),
         }));
   }
 
@@ -964,8 +964,8 @@ TEST_F(test_parse_typescript_type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_named_tuple_element_spread_before_name_and_type,
-                type_spread, strlen(u8"[...a: "), u8"...",  //
-                name_spread, strlen(u8"["), u8"..."),
+                type_spread, strlen(u8"[...a: "), u8"..."_sv, name_spread,
+                strlen(u8"["), u8"..."_sv),
         }));
   }
 }
@@ -1057,7 +1057,7 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_missing_separator_between_object_type_entries,
-                expected_separator, strlen(u8"{ p1: Type1"), u8""),
+                expected_separator, strlen(u8"{ p1: Type1"), u8""_sv),
         }));
   }
 }
@@ -1149,7 +1149,7 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_method) {
                               "visit_exit_function_scope",   // method
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
   }
 }
 
@@ -1254,7 +1254,7 @@ TEST_F(test_parse_typescript_type, object_type_with_index_signature) {
                               "visit_exit_index_signature_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({index_signature_param_decl(u8"key")}));
+                ElementsAreArray({index_signature_param_decl(u8"key"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"KeyType", u8"PropType"}));
   }
 }
@@ -1271,7 +1271,7 @@ TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
                               "visit_exit_index_signature_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"Key")}));
+                ElementsAreArray({generic_param_decl(u8"Key"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Keys", u8"PropType"}));
   }
 
@@ -1288,7 +1288,7 @@ TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
                               "visit_exit_index_signature_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"Key")}));
+                ElementsAreArray({generic_param_decl(u8"Key"_sv)}));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"Keys", u8"KeyType", u8"PropType"}));
   }
@@ -1412,7 +1412,7 @@ TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_param_decl(u8"param")}));
+                ElementsAreArray({func_param_decl(u8"param"_sv)}));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"ParamType", u8"ReturnType"}));
   }
@@ -1430,8 +1430,8 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray(
-                    {generic_param_decl(u8"T"), func_param_decl(u8"param")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                  func_param_decl(u8"param"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
   }
 }
@@ -1536,7 +1536,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"param")}));
+                ElementsAreArray({func_type_param_decl(u8"param"_sv)}));
   }
 
   {
@@ -1552,9 +1552,9 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"a"),
-                                  func_type_param_decl(u8"b"),
-                                  func_type_param_decl(u8"c")}));
+                ElementsAreArray({func_type_param_decl(u8"a"_sv),
+                                  func_type_param_decl(u8"b"_sv),
+                                  func_type_param_decl(u8"c"_sv)}));
   }
 
   {
@@ -1570,7 +1570,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"ParamType", u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"param")}));
+                ElementsAreArray({func_type_param_decl(u8"param"_sv)}));
   }
 
   {
@@ -1586,9 +1586,9 @@ TEST_F(test_parse_typescript_type, arrow_function) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"a"),
-                                  func_type_param_decl(u8"b"),
-                                  func_type_param_decl(u8"c")}));
+                ElementsAreArray({func_type_param_decl(u8"a"_sv),
+                                  func_type_param_decl(u8"b"_sv),
+                                  func_type_param_decl(u8"c"_sv)}));
   }
 
   {
@@ -1605,7 +1605,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"ParamType", u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"param")}));
+                ElementsAreArray({func_type_param_decl(u8"param"_sv)}));
   }
 
   {
@@ -1622,7 +1622,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"ParamsType", u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"params")}));
+                ElementsAreArray({func_type_param_decl(u8"params"_sv)}));
   }
 }
 
@@ -1641,7 +1641,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
                 question,
                 strlen(u8"fs.promises.writeFile(outputPath, result).then((err: "
                        u8"Error"),
-                u8"?"),
+                u8"?"_sv),
         }));
   }
 
@@ -1659,7 +1659,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
                 question,
                 strlen(
                     u8"fs.promises.writeFile(outputPath, result).then((err: "),
-                u8"?"),
+                u8"?"_sv),
         }));
   }
 
@@ -1672,7 +1672,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_question_in_type_expression_should_be_void,
-                question, strlen(u8"Type"), u8"?"),
+                question, strlen(u8"Type"), u8"?"_sv),
         }));
   }
 
@@ -1685,7 +1685,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_question_in_type_expression_should_be_void,
-                question, 0, u8"?"),
+                question, 0, u8"?"_sv),
         }));
   }
 }
@@ -1701,7 +1701,7 @@ TEST_F(test_parse_typescript_type, generic_arrow_function) {
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
   }
 
@@ -1715,7 +1715,7 @@ TEST_F(test_parse_typescript_type, generic_arrow_function) {
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
   }
 }
@@ -1745,8 +1745,8 @@ TEST_F(test_parse_typescript_type, constructor_function) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({func_type_param_decl(u8"param1"),
-                                  func_type_param_decl(u8"param2")}));
+                ElementsAreArray({func_type_param_decl(u8"param1"_sv),
+                                  func_type_param_decl(u8"param2"_sv)}));
   }
 }
 
@@ -1877,8 +1877,8 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_missing_type_between_intersection_or_union,
-                        left_operator, strlen(u8""), u8"|",  //
-                        right_operator, strlen(u8"| "), u8"|"),
+                        left_operator, strlen(u8""), u8"|"_sv, right_operator,
+                        strlen(u8"| "), u8"|"_sv),
                 }));
   }
 
@@ -1893,8 +1893,8 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_missing_type_between_intersection_or_union,
-                        left_operator, strlen(u8"Type1 "), u8"|",  //
-                        right_operator, strlen(u8"Type1 | "), u8"|"),
+                        left_operator, strlen(u8"Type1 "), u8"|"_sv,
+                        right_operator, strlen(u8"Type1 | "), u8"|"_sv),
                 }));
   }
 }
@@ -1936,8 +1936,8 @@ TEST_F(test_parse_typescript_type,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_missing_type_between_intersection_or_union,
-                        left_operator, strlen(u8""), u8"&",  //
-                        right_operator, strlen(u8"& "), u8"&"),
+                        left_operator, strlen(u8""), u8"&"_sv, right_operator,
+                        strlen(u8"& "), u8"&"_sv),
                 }));
   }
 
@@ -1952,8 +1952,8 @@ TEST_F(test_parse_typescript_type,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_missing_type_between_intersection_or_union,
-                        left_operator, strlen(u8"Type1 "), u8"&",  //
-                        right_operator, strlen(u8"Type1 & "), u8"&"),
+                        left_operator, strlen(u8"Type1 "), u8"&"_sv,
+                        right_operator, strlen(u8"Type1 & "), u8"&"_sv),
                 }));
   }
 }
@@ -2118,13 +2118,13 @@ TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_dot_not_allowed_after_generic_arguments_in_type,
-                dot, strlen(u8"typeof Class<T>"), u8".",  //
-                property_name, strlen(u8"typeof Class<T>."), u8"member"),
+                dot, strlen(u8"typeof Class<T>"), u8"."_sv, property_name,
+                strlen(u8"typeof Class<T>."), u8"member"_sv),
         }));
   }
 
   for (string8 keyword : keywords) {
-    test_parser p(concat(u8"typeof Class<T>.", keyword), typescript_options,
+    test_parser p(concat(u8"typeof Class<T>."_sv, keyword), typescript_options,
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();
@@ -2206,7 +2206,7 @@ TEST_F(test_parse_typescript_type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
-                                      expected_type, strlen(u8" "), u8""),
+                                      expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
@@ -2218,7 +2218,7 @@ TEST_F(test_parse_typescript_type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
-                                      expected_type, strlen(u8" "), u8""),
+                                      expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
@@ -2230,7 +2230,7 @@ TEST_F(test_parse_typescript_type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
-                                      expected_type, strlen(u8" "), u8""),
+                                      expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
@@ -2242,7 +2242,7 @@ TEST_F(test_parse_typescript_type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
-                                      expected_type, strlen(u8" "), u8""),
+                                      expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 }
@@ -2294,7 +2294,7 @@ TEST_F(test_parse_typescript_type, readonly_requires_tuple_or_array_type) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_readonly_in_type_needs_array_or_tuple_type,
-                readonly_keyword, 0, u8"readonly"),
+                readonly_keyword, 0, u8"readonly"_sv),
         }));
   }
 }

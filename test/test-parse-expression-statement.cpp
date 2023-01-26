@@ -29,8 +29,8 @@ namespace {
 class test_parse_expression_statement : public test_parse_expression {};
 
 TEST_F(test_parse_expression_statement, parse_math_expression) {
-  for (const char8* input :
-       {u8"2", u8"2+2", u8"2^2", u8"2 + + 2", u8"2 * (3 + 4)", u8"1+1+1+1+1"}) {
+  for (string8_view input : {u8"2"_sv, u8"2+2"_sv, u8"2^2"_sv, u8"2 + + 2"_sv,
+                             u8"2 * (3 + 4)"_sv, u8"1+1+1+1+1"_sv}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
     test_parser p(input);
     p.parse_and_visit_expression();
@@ -65,7 +65,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"2 "), u8"+"),
+                              where, strlen(u8"2 "), u8"+"_sv),
         }));
   }
 
@@ -76,7 +76,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"^"),
+                              where, 0, u8"^"_sv),
         }));
   }
 
@@ -87,7 +87,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"2 "), u8"*"),
+                              where, strlen(u8"2 "), u8"*"_sv),
         }));
   }
 
@@ -98,9 +98,9 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"2 "), u8"&"),
+                              where, strlen(u8"2 "), u8"&"_sv),
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"2 & "), u8"&"),
+                              where, strlen(u8"2 & "), u8"&"_sv),
         }));
   }
 
@@ -111,7 +111,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"(2 "), u8"*"),
+                              where, strlen(u8"(2 "), u8"*"_sv),
         }));
   }
   {
@@ -120,7 +120,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"2 * "), u8"("),
+                                      where, strlen(u8"2 * "), u8"("_sv),
                 }));
   }
 
@@ -130,9 +130,9 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"2 * (3 + "), u8"("),
+                                      where, strlen(u8"2 * (3 + "), u8"("_sv),
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"2 * "), u8"("),
+                                      where, strlen(u8"2 * "), u8"("_sv),
                 }));
   }
 
@@ -148,7 +148,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"x "), u8"+="),
+                              where, strlen(u8"x "), u8"+="_sv),
         }));
   }
 }
@@ -160,7 +160,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, 0, u8")"),
+                                      where, 0, u8")"_sv),
                 }));
   }
 
@@ -170,9 +170,9 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"x"), u8")"),
+                                      where, strlen(u8"x"), u8")"_sv),
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"x)"), u8")"),
+                                      where, strlen(u8"x)"), u8")"_sv),
                 }));
   }
 
@@ -182,9 +182,9 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"-x"), u8")"),
+                                      where, strlen(u8"-x"), u8")"_sv),
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"-x)"), u8")"),
+                                      where, strlen(u8"-x)"), u8")"_sv),
                 }));
   }
 
@@ -195,7 +195,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"await p"), u8")"),
+                                      where, strlen(u8"await p"), u8")"_sv),
                 }));
   }
 
@@ -206,28 +206,30 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"yield p"), u8")"),
+                                      where, strlen(u8"yield p"), u8")"_sv),
                 }));
   }
 
   {
     test_parser p(u8"return result)"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"return result"), u8")"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
+                              where, strlen(u8"return result"), u8")"_sv),
+        }));
   }
 
   {
     test_parser p(u8"throw banana)"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
-                                      where, strlen(u8"throw banana"), u8")"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_unmatched_parenthesis,  //
+                              where, strlen(u8"throw banana"), u8")"_sv),
+        }));
   }
 }
 
@@ -235,12 +237,13 @@ TEST_F(test_parse_expression_statement,
        statement_starting_with_binary_only_operator) {
   // '<' omitted. It is used for JSX.
   for (string8_view op : {
-           u8"!=",  u8"!==", u8"%",          u8"&",  u8"&&",  u8"*",
-           u8"**",  u8",",   u8"<<",         u8"<=", u8"=",   u8"==",
-           u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
-           u8"^",   u8"in",  u8"instanceof", u8"|",
+           u8"!="_sv,         u8"!=="_sv, u8"%"_sv,   u8"&"_sv,  u8"&&"_sv,
+           u8"*"_sv,          u8"**"_sv,  u8","_sv,   u8"<<"_sv, u8"<="_sv,
+           u8"="_sv,          u8"=="_sv,  u8"==="_sv, u8">"_sv,  u8">="_sv,
+           u8">>"_sv,         u8">>>"_sv, u8"??"_sv,  u8"^"_sv,  u8"in"_sv,
+           u8"instanceof"_sv, u8"|"_sv,
        }) {
-    test_parser p(concat(op, u8" x"), capture_diags);
+    test_parser p(concat(op, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(
@@ -262,7 +265,7 @@ TEST_F(test_parse_expression_statement,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"."),
+                              where, 0, u8"."_sv),
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // y
@@ -278,7 +281,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_semicolon_after_statement,  //
-                        where, strlen(u8"one"), u8""),
+                        where, strlen(u8"one"), u8""_sv),
                 }));
   }
 
@@ -289,7 +292,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"(one "), u8"two"),
+                        unexpected, strlen(u8"(one "), u8"two"_sv),
                 }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"one", u8"two"}));
   }
@@ -301,7 +304,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"f(one "), u8"two"),
+                        unexpected, strlen(u8"f(one "), u8"two"_sv),
                 }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"f", u8"one", u8"two"}));
   }
@@ -313,7 +316,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"xs[one "), u8"two"),
+                        unexpected, strlen(u8"xs[one "), u8"two"_sv),
                 }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs", u8"one", u8"two"}));
   }
@@ -325,13 +328,13 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
                 UnorderedElementsAre(
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"(a "), u8"b"),
+                        unexpected, strlen(u8"(a "), u8"b"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"(a b "), u8"c"),
+                        unexpected, strlen(u8"(a b "), u8"c"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_unexpected_identifier_in_expression,  //
-                        unexpected, strlen(u8"(a b c "), u8"d")));
+                        unexpected, strlen(u8"(a b c "), u8"d"_sv)));
   }
 }
 
@@ -343,8 +346,8 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_expected_right_paren_for_function_call,  //
-                        expected_right_paren, strlen(u8"f(x"), u8"",          //
-                        left_paren, strlen(u8"f"), u8"("),
+                        expected_right_paren, strlen(u8"f(x"), u8""_sv,
+                        left_paren, strlen(u8"f"), u8"("_sv),
                 }));
   }
 
@@ -355,8 +358,8 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_expected_right_paren_for_function_call,  //
-                        expected_right_paren, strlen(u8"{ f("), u8"",         //
-                        left_paren, strlen(u8"{ f"), u8"("),
+                        expected_right_paren, strlen(u8"{ f("), u8""_sv,
+                        left_paren, strlen(u8"{ f"), u8"("_sv),
                 }));
   }
 
@@ -373,8 +376,8 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_expected_right_paren_for_function_call,  //
-                        expected_right_paren, strlen(u8"f(x"), u8"",          //
-                        left_paren, strlen(u8"f"), u8"("),
+                        expected_right_paren, strlen(u8"f(x"), u8""_sv,
+                        left_paren, strlen(u8"f"), u8"("_sv),
                 }));
   }
 
@@ -392,8 +395,8 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_expected_right_paren_for_function_call,  //
-                        expected_right_paren, strlen(u8"f(x"), u8"",          //
-                        left_paren, strlen(u8"f"), u8"("),
+                        expected_right_paren, strlen(u8"f(x"), u8""_sv,
+                        left_paren, strlen(u8"f"), u8"("_sv),
                 }));
   }
 }
@@ -662,7 +665,7 @@ TEST_F(test_parse_expression_statement,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_functions_or_methods_should_not_have_arrow_operator,  //
-                arrow_operator, strlen(u8"let o = {method() "), u8"=>"),
+                arrow_operator, strlen(u8"let o = {method() "), u8"=>"_sv),
         }));
   }
 }
@@ -688,7 +691,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
 
   for (string8 literal : {u8"null", u8"true", u8"false"}) {
     SCOPED_TRACE(out_string8(literal));
-    test_parser p((literal + u8";").c_str());
+    test_parser p(concat(literal, u8";"_sv));
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -714,7 +717,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    test_parser p(u8R"("use strict";)");
+    test_parser p(u8R"("use strict";)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -793,7 +796,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   for (string8 op : {u8"void ", u8"!", u8"~", u8"+", u8"-"}) {
-    test_parser p(concat(op, u8" x;"));
+    test_parser p(concat(op, u8" x;"_sv));
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -831,7 +834,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    test_parser p(u8"<MyJSXComponent />", jsx_options);
+    test_parser p(u8"<MyJSXComponent />"_sv, jsx_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // MyJSXComponent
@@ -871,7 +874,7 @@ TEST_F(test_parse_expression_statement,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_cannot_access_private_identifier_outside_class,  //
-                private_identifier, strlen(u8"this."), u8"#x"),
+                private_identifier, strlen(u8"this."), u8"#x"_sv),
         }));
   }
 }
@@ -987,7 +990,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_function_calls) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_semicolon_after_statement,  //
-                        where, strlen(u8"(x)"), u8""),
+                        where, strlen(u8"(x)"), u8""_sv),
                 }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"f"}));
   }
@@ -1036,26 +1039,26 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      test_parser p(concat(name, u8" = other;"));
+      test_parser p(concat(name, u8" = other;"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAreArray({name}));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"other"}));
     }
 
     {
-      test_parser p(concat(name, u8"();"));
+      test_parser p(concat(name, u8"();"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
     }
 
     {
-      test_parser p(concat(name, u8".method();"));
+      test_parser p(concat(name, u8".method();"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
     }
 
     {
-      test_parser p(concat(name, u8";"));
+      test_parser p(concat(name, u8";"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
     }
@@ -1071,13 +1074,13 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      test_parser p(concat(name, u8" ? a : b;"));
+      test_parser p(concat(name, u8" ? a : b;"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"a", u8"b"));
     }
 
     {
-      test_parser p(concat(name, u8" => {body;};"));
+      test_parser p(concat(name, u8" => {body;};"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
@@ -1089,7 +1092,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      test_parser p(concat(name, u8"`template`;"));
+      test_parser p(concat(name, u8"`template`;"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_use",  // (name)
@@ -1097,7 +1100,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
     }
 
     {
-      test_parser p(concat(name, u8"`template${variable}`;"));
+      test_parser p(concat(name, u8"`template${variable}`;"_sv));
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_use",  // (name)
@@ -1122,7 +1125,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"|=",
              u8"||=",
          }) {
-      test_parser p(concat(name, u8" ", binary_operator, u8" other"));
+      test_parser p(concat(name, u8" "_sv, binary_operator, u8" other"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"other"));
@@ -1135,14 +1138,14 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
              u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>", u8"??",
              u8"^",  u8"in",  u8"instanceof", u8"|",  u8"||",
          }) {
-      test_parser p(concat(name, u8" ", binary_operator, u8" other"));
+      test_parser p(concat(name, u8" "_sv, binary_operator, u8" other"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"other"));
     }
 
     {
-      test_parser p(concat(name, u8": while (go());"));
+      test_parser p(concat(name, u8": while (go());"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"go"}));
@@ -1153,7 +1156,7 @@ TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
 TEST_F(test_parse_expression_statement,
        async_followed_by_newline_is_a_variable_reference) {
   {
-    test_parser p(u8"x = async\na => b;");
+    test_parser p(u8"x = async\na => b;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // async
@@ -1189,8 +1192,8 @@ TEST_F(test_parse_expression_statement,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_newline_not_allowed_between_async_and_parameter_list,  //
-                async, strlen(u8"x = "), u8"async",                         //
-                arrow, strlen(u8"x = async\n(x) "), u8"=>"),
+                async, strlen(u8"x = "), u8"async"_sv, arrow,
+                strlen(u8"x = async\n(x) "), u8"=>"_sv),
         }));
   }
 }
@@ -1204,7 +1207,7 @@ TEST_F(test_parse_expression_statement,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, strlen(u8"(a, b"), u8","),
+                              where, strlen(u8"(a, b"), u8","_sv),
         }));
   }
 }
@@ -1259,7 +1262,7 @@ TEST_F(test_parse_expression_statement,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"!"),
+                              where, 0, u8"!"_sv),
         }));
   }
 
@@ -1276,7 +1279,7 @@ TEST_F(test_parse_expression_statement,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"!"),
+                              where, 0, u8"!"_sv),
         }));
   }
 
@@ -1293,7 +1296,7 @@ TEST_F(test_parse_expression_statement,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_operand_for_operator,  //
-                              where, 0, u8"!"),
+                              where, 0, u8"!"_sv),
         }));
   }
 }
@@ -1326,7 +1329,7 @@ TEST_F(test_parse_expression_statement,
   // statements starting with 'let'.
 
   {
-    test_parser p(u8"do let(); while (cond);");
+    test_parser p(u8"do let(); while (cond);"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // let
@@ -1337,7 +1340,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser p(u8"for (;cond;) let = y;");
+    test_parser p(u8"for (;cond;) let = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1350,7 +1353,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser p(u8"if (cond) let++; else let ? a : b;");
+    test_parser p(u8"if (cond) let++; else let ? a : b;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1374,7 +1377,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   // statements starting with 'let'.
 
   {
-    test_parser p(u8"do let\nwhile (cond);");
+    test_parser p(u8"do let\nwhile (cond);"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // let
@@ -1385,7 +1388,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"for (;cond;) let\nx = y;");
+    test_parser p(u8"for (;cond;) let\nx = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1399,7 +1402,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"if (cond) let\nx = y;");
+    test_parser p(u8"if (cond) let\nx = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1413,7 +1416,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"if (cond) let\nelse {}");
+    test_parser p(u8"if (cond) let\nelse {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
@@ -1426,7 +1429,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"if (cond) {} else let\nx = y;");
+    test_parser p(u8"if (cond) {} else let\nx = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1442,7 +1445,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"while (cond) let\nx = y;");
+    test_parser p(u8"while (cond) let\nx = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // cond
@@ -1456,7 +1459,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   }
 
   {
-    test_parser p(u8"with (obj) let\nx = y;");
+    test_parser p(u8"with (obj) let\nx = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",      // obj
@@ -1487,7 +1490,7 @@ TEST_F(test_parse_expression_statement,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_cannot_declare_await_in_async_function,  //
-                        name, strlen(u8"(async ("), u8"await"),
+                        name, strlen(u8"(async ("), u8"await"_sv),
                 }));
   }
 
@@ -1504,7 +1507,7 @@ TEST_F(test_parse_expression_statement,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_cannot_declare_await_in_async_function,  //
-                        name, strlen(u8"(async "), u8"await"),
+                        name, strlen(u8"(async "), u8"await"_sv),
                 }));
   }
 
@@ -1525,13 +1528,13 @@ TEST_F(test_parse_expression_statement,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_cannot_declare_await_in_async_function,  //
-                              name, strlen(u8"(async ("), u8"await"),
+                              name, strlen(u8"(async ("), u8"await"_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_cannot_declare_await_in_async_function,  //
-                              name, strlen(u8"(async (await, "), u8"await"),
+                              name, strlen(u8"(async (await, "), u8"await"_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_cannot_declare_await_in_async_function,  //
-                name, strlen(u8"(async (await, await, "), u8"await"),
+                name, strlen(u8"(async (await, await, "), u8"await"_sv),
         }));
   }
 
@@ -1542,11 +1545,11 @@ TEST_F(test_parse_expression_statement,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_cannot_declare_await_in_async_function,  //
-                        name, strlen(u8"(async ("), u8"await"),
+                        name, strlen(u8"(async ("), u8"await"_sv),
                 }));
     // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({arrow_param_decl(u8"await")}));
+                ElementsAreArray({arrow_param_decl(u8"await"_sv)}));
   }
 }
 
@@ -1565,7 +1568,7 @@ TEST_F(test_parse_expression_statement,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_object_literal_default_in_expression,  //
-                        equal, strlen(u8"({eky "), u8"="),
+                        equal, strlen(u8"({eky "), u8"="_sv),
                 }));
   }
 }

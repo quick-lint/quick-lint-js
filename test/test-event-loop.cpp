@@ -127,7 +127,7 @@ TEST_F(test_event_loop, stops_on_pipe_read_eof) {
 }
 
 TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
-  write_full_message(this->pipe.writer.ref(), u8"Hi");
+  write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
   this->pipe.writer.close();
 
   this->loop.run();
@@ -137,11 +137,11 @@ TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
 
 TEST_F(test_event_loop, reads_many_messages) {
   std::thread writer_thread([this]() {
-    write_full_message(this->pipe.writer.ref(), u8"first");
+    write_full_message(this->pipe.writer.ref(), u8"first"_sv);
     this->loop.wait_until_data(
         [](const string8& data) -> bool { return data == u8"first"; });
 
-    write_full_message(this->pipe.writer.ref(), u8"SECOND");
+    write_full_message(this->pipe.writer.ref(), u8"SECOND"_sv);
     this->loop.wait_until_data(
         [](const string8& data) -> bool { return data == u8"firstSECOND"; });
 

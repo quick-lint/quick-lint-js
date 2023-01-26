@@ -72,9 +72,9 @@ TEST_F(test_text_diag_reporter, change_source) {
 TEST_F(test_text_diag_reporter, assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
-  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
   source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
-  ASSERT_EQ(declaration_span.string_view(), u8"x");
+  ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
   this->make_reporter(&input).report(
       diag_assignment_before_variable_declaration{
@@ -89,7 +89,7 @@ TEST_F(test_text_diag_reporter, assignment_before_variable_declaration) {
 TEST_F(test_text_diag_reporter, assignment_to_const_global_variable) {
   padded_string input(u8"to Infinity and beyond"_sv);
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
-  ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
+  ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
   this->make_reporter(&input).report(
       diag_assignment_to_const_global_variable{identifier(infinity_span)});
@@ -114,9 +114,9 @@ TEST_F(test_text_diag_reporter, expected_parenthesis_around_if_condition) {
 TEST_F(test_text_diag_reporter, redeclaration_of_variable) {
   padded_string input(u8"let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
-  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar"_sv);
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
-  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
+  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input).report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
@@ -128,7 +128,7 @@ TEST_F(test_text_diag_reporter, redeclaration_of_variable) {
 TEST_F(test_text_diag_reporter, unexpected_hash_character) {
   padded_string input(u8"#"_sv);
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
-  ASSERT_EQ(hash_span.string_view(), u8"#");
+  ASSERT_EQ(hash_span.string_view(), u8"#"_sv);
 
   this->make_reporter(&input).report(diag_unexpected_hash_character{hash_span});
   EXPECT_EQ(this->get_output(), u8"FILE:1:1: error: unexpected '#' [E0052]\n");
@@ -137,7 +137,7 @@ TEST_F(test_text_diag_reporter, unexpected_hash_character) {
 TEST_F(test_text_diag_reporter, use_of_undeclared_variable) {
   padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input).report(
       diag_use_of_undeclared_variable{identifier(myvar_span)});
@@ -148,7 +148,7 @@ TEST_F(test_text_diag_reporter, use_of_undeclared_variable) {
 TEST_F(test_text_diag_reporter, use_of_undeclared_variable_escaped_error) {
   padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input, /*escape_errors=*/true)
       .report(diag_use_of_undeclared_variable{identifier(myvar_span)});
@@ -160,14 +160,14 @@ TEST_F(test_text_diag_reporter, use_of_undeclared_variable_escaped_error) {
 TEST_F(test_text_diag_reporter, string8_view_parameter) {
   padded_string input(u8"<a . b></c>;"_sv);
   source_code_span open_span(&input[2 - 1], &input[6 + 1 - 1]);
-  ASSERT_EQ(open_span.string_view(), u8"a . b");
+  ASSERT_EQ(open_span.string_view(), u8"a . b"_sv);
   source_code_span close_span(&input[10 - 1], &input[10 + 1 - 1]);
-  ASSERT_EQ(close_span.string_view(), u8"c");
+  ASSERT_EQ(close_span.string_view(), u8"c"_sv);
 
   this->make_reporter(&input).report(diag_mismatched_jsx_tags{
       .opening_tag_name = open_span,
       .closing_tag_name = close_span,
-      .opening_tag_name_pretty = u8"a.b"sv,
+      .opening_tag_name_pretty = u8"a.b"_sv,
   });
   EXPECT_EQ(
       this->get_output(),

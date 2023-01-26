@@ -28,26 +28,26 @@ void lsp_workspace_configuration::add_item(
 void lsp_workspace_configuration::build_request(
     lsp_endpoint_handler::request_id_type request_id,
     byte_buffer& request_json) {
-  request_json.append_copy(u8R"--({"id":)--"sv);
+  request_json.append_copy(u8R"--({"id":)--"_sv);
   request_json.append_decimal_integer(request_id);
   // clang-format off
   request_json.append_copy(
     u8R"--(,)--"
     u8R"--("method":"workspace/configuration",)--"
     u8R"--("params":{)--"
-      u8R"--("items":[)--"sv);
+      u8R"--("items":[)--"_sv);
   // clang-format on
   bool need_comma = false;
   for (const item& i : this->items_) {
     if (need_comma) {
       request_json.append_copy(u8',');
     }
-    request_json.append_copy(u8R"({"section":")"sv);
+    request_json.append_copy(u8R"({"section":")"_sv);
     request_json.append_copy(i.name);
-    request_json.append_copy(u8R"("})"sv);
+    request_json.append_copy(u8R"("})"_sv);
     need_comma = true;
   }
-  request_json.append_copy(u8R"--(]},"jsonrpc":"2.0"})--"sv);
+  request_json.append_copy(u8R"--(]},"jsonrpc":"2.0"})--"_sv);
 }
 
 bool lsp_workspace_configuration::process_response(

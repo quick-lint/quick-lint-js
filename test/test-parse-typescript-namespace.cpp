@@ -40,7 +40,7 @@ TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
                   DIAG_TYPE_OFFSETS(
                       p.code,
                       diag_typescript_namespaces_not_allowed_in_javascript,  //
-                      namespace_keyword, 0, u8"namespace"),
+                      namespace_keyword, 0, u8"namespace"_sv),
               }));
 }
 
@@ -53,7 +53,7 @@ TEST_F(test_parse_typescript_namespace, empty_namespace) {
                             "visit_exit_namespace_scope",   // }
                         }));
   EXPECT_THAT(p.variable_declarations,
-              ElementsAreArray({namespace_decl(u8"ns")}));
+              ElementsAreArray({namespace_decl(u8"ns"_sv)}));
 }
 
 TEST_F(test_parse_typescript_namespace,
@@ -67,13 +67,13 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_exit_namespace_scope",   // }
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns")}));
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_newline_not_allowed_after_namespace_keyword,  //
-                        namespace_keyword, 0, u8"namespace"),
+                        namespace_keyword, 0, u8"namespace"_sv),
                 }));
   }
 }
@@ -124,7 +124,7 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({namespace_decl(u8"ns"), function_decl(u8"f")}));
+        ElementsAreArray({namespace_decl(u8"ns"_sv), function_decl(u8"f"_sv)}));
   }
 }
 
@@ -140,7 +140,7 @@ TEST_F(test_parse_typescript_namespace, namespace_alias) {
     // import alias declaration. Use-before-declaration is okay for ES imports,
     // but is problematic for namespace aliases.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A")}));
+                ElementsAreArray({import_decl(u8"A"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 }
@@ -160,8 +160,8 @@ TEST_F(test_parse_typescript_namespace,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_import_alias_not_allowed_in_javascript,  //
-                import_keyword, 0, u8"import",                           //
-                equal, strlen(u8"import A "), u8"="),
+                import_keyword, 0, u8"import"_sv, equal, strlen(u8"import A "),
+                u8"="_sv),
         }));
   }
 }
@@ -177,7 +177,7 @@ TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
                           }));
     // TODO(#793): Emit a import alias declaration instead.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A")}));
+                ElementsAreArray({import_decl(u8"A"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 
@@ -210,7 +210,7 @@ TEST_F(test_parse_typescript_namespace,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"import A = ns"), u8""),
+                              where, strlen(u8"import A = ns"), u8""_sv),
         }));
   }
 }

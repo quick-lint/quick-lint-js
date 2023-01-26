@@ -44,7 +44,7 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_typescript_type_annotation_in_expression,  //
-                              type_colon, strlen(u8"x = myVar"), u8":"),
+                              type_colon, strlen(u8"x = myVar"), u8":"_sv),
         }));
   }
 }
@@ -61,7 +61,7 @@ TEST_F(test_parse_typescript, type_alias) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({type_alias_decl(u8"T")}));
+                ElementsAreArray({type_alias_decl(u8"T"_sv)}));
   }
 
   {
@@ -76,8 +76,8 @@ TEST_F(test_parse_typescript, type_alias) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray(
-                    {type_alias_decl(u8"MyAlias"), generic_param_decl(u8"T")}));
+                ElementsAreArray({type_alias_decl(u8"MyAlias"_sv),
+                                  generic_param_decl(u8"T"_sv)}));
   }
 }
 
@@ -129,7 +129,7 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"type T = U"), u8""),
+                              where, strlen(u8"type T = U"), u8""_sv),
         }));
   }
 }
@@ -145,7 +145,7 @@ TEST_F(test_parse_typescript,
                 u8"static",
                 u8"yield",
             })) {
-    test_parser p(concat(u8"type ", name, u8" = T;"), typescript_options);
+    test_parser p(concat(u8"type "_sv, name, u8" = T;"_sv), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -190,7 +190,7 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_type_alias_not_allowed_in_javascript,  //
-                type_keyword, 0, u8"type"),
+                type_keyword, 0, u8"type"_sv),
         }));
   }
 }

@@ -215,16 +215,16 @@ inline void diagnostic_formatter<Derived>::format_message(
         left_curly_index + 1, right_curly_index - (left_curly_index + 1));
 
     string8_view expanded_parameter;
-    if (curly_content == u8"0") {
+    if (curly_content == u8"0"_sv) {
       expanded_parameter = this->expand_argument(args, diagnostic, 0);
-    } else if (curly_content == u8"1") {
+    } else if (curly_content == u8"1"_sv) {
       expanded_parameter = this->expand_argument(args, diagnostic, 1);
-    } else if (curly_content == u8"1:headlinese") {
+    } else if (curly_content == u8"1:headlinese"_sv) {
       expanded_parameter =
           this->expand_argument_headlinese(args, diagnostic, 1);
-    } else if (curly_content == u8"1:singular") {
+    } else if (curly_content == u8"1:singular"_sv) {
       expanded_parameter = this->expand_argument_singular(args, diagnostic, 1);
-    } else if (curly_content == u8"2") {
+    } else if (curly_content == u8"2"_sv) {
       expanded_parameter = this->expand_argument(args, diagnostic, 2);
     } else {
       QLJS_ASSERT(false && "invalid message format: unrecognized placeholder");

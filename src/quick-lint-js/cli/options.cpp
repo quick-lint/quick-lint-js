@@ -177,70 +177,70 @@ bool options::dump_errors(output_stream& out) const {
   if (this->lsp_server) {
     if (this->exit_fail_on.is_user_provided()) {
       out.append_copy(
-          u8"warning: --exit-fail-on ignored with --lsp-server\n"sv);
+          u8"warning: --exit-fail-on ignored with --lsp-server\n"_sv);
     }
     if (this->output_format != output_format::default_format) {
       out.append_copy(
-          u8"warning: --output-format ignored with --lsp-server\n"sv);
+          u8"warning: --output-format ignored with --lsp-server\n"_sv);
     }
     if (!this->files_to_lint.empty()) {
       out.append_copy(
-          u8"warning: ignoring files given on command line in --lsp-server mode\n"sv);
+          u8"warning: ignoring files given on command line in --lsp-server mode\n"_sv);
     }
     if (this->has_config_file) {
       out.append_copy(
-          u8"warning: --config-file ignored in --lsp-server mode\n"sv);
+          u8"warning: --config-file ignored in --lsp-server mode\n"_sv);
     }
   }
   if (this->has_multiple_stdin) {
     out.append_copy(
-        u8"warning: multiple standard input given on command line\n"sv);
+        u8"warning: multiple standard input given on command line\n"_sv);
   }
 
   if (this->has_vim_file_bufnr && this->lsp_server) {
     out.append_copy(
-        u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n"sv);
+        u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n"_sv);
   } else if (this->has_vim_file_bufnr &&
              this->output_format != output_format::vim_qflist_json) {
     out.append_copy(
-        u8"warning: --output-format selected which doesn't use --vim-file-bufnr\n"sv);
+        u8"warning: --output-format selected which doesn't use --vim-file-bufnr\n"_sv);
   } else {
     for (const auto& argument : this->warning_vim_bufnr_without_file) {
       QLJS_ASSERT(argument != nullptr);
-      out.append_copy(u8"warning: flag: '--vim-file-bufnr="sv);
+      out.append_copy(u8"warning: flag: '--vim-file-bufnr="_sv);
       out.append_copy(to_string8_view(argument));
       out.append_copy(
-          u8"' should be followed by an input file name or --stdin\n"sv);
+          u8"' should be followed by an input file name or --stdin\n"_sv);
     }
   }
 
   if (this->has_language && this->lsp_server) {
-    out.append_copy(u8"warning: ignoring --language in --lsp-server mode\n"sv);
+    out.append_copy(u8"warning: ignoring --language in --lsp-server mode\n"_sv);
   } else {
     for (const char* argument : this->warning_language_without_file) {
       QLJS_ASSERT(argument != nullptr);
-      out.append_copy(u8"warning: flag '--language="sv);
+      out.append_copy(u8"warning: flag '--language="_sv);
       out.append_copy(to_string8_view(argument));
       out.append_copy(
-          u8"' should be followed by an input file name or --stdin\n"sv);
+          u8"' should be followed by an input file name or --stdin\n"_sv);
     }
   }
 
   for (const auto& option : this->error_unrecognized_options) {
-    out.append_copy(u8"error: unrecognized option: "sv);
+    out.append_copy(u8"error: unrecognized option: "_sv);
     out.append_copy(to_string8_view(option));
     out.append_copy(u8'\n');
     have_errors = true;
   }
   for (const std::string& error :
        this->exit_fail_on.parse_errors("--exit-fail-on")) {
-    out.append_copy(u8"error: "sv);
+    out.append_copy(u8"error: "_sv);
     out.append_copy(to_string8_view(error));
     out.append_copy(u8'\n');
     have_errors = true;
   }
   for (const std::string& warning : this->exit_fail_on.parse_warnings()) {
-    out.append_copy(u8"warning: "sv);
+    out.append_copy(u8"warning: "_sv);
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');
   }

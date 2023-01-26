@@ -67,7 +67,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
   bool is_batch_message =
       message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
   if (is_batch_message) {
-    response_json.append_copy(u8"["sv);
+    response_json.append_copy(u8"["_sv);
     std::size_t empty_response_json_size = response_json.size();
     for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
              sub_message_or_error : batched_messages) {
@@ -80,12 +80,12 @@ void lsp_endpoint::message_parsed(string8_view message) {
                 empty_response_json_size);
       } else {
         if (response_json.size() != empty_response_json_size) {
-          response_json.append_copy(u8","sv);
+          response_json.append_copy(u8","_sv);
         }
         this->write_json_parse_error_response(response_json);
       }
     }
-    response_json.append_copy(u8"]"sv);
+    response_json.append_copy(u8"]"_sv);
   } else {
     ::simdjson::ondemand::object message_object;
     if (message_document.get(message_object) ==
@@ -199,7 +199,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
 
   if (have_id && have_method && !have_error && !have_result) {
     if (add_comma_before_response) {
-      response_json.append_copy(u8","sv);
+      response_json.append_copy(u8","_sv);
     }
     this->handler_->handle_request(message, method, id_json, response_json);
   } else if (have_id && !have_method && have_error && !have_result) {
@@ -235,7 +235,7 @@ void lsp_endpoint::write_json_parse_error_response(byte_buffer& response_json) {
       u8R"("code":-32700,)"
       u8R"("message":"Parse error")"
     u8R"(})"
-  u8R"(})"sv);
+  u8R"(})"_sv);
   // clang-format on
 }
 
@@ -250,7 +250,7 @@ void lsp_endpoint::write_invalid_request_error_response(
       u8R"("code":-32600,)"
       u8R"("message":"Invalid Request")"
     u8R"(})"
-  u8R"(})"sv);
+  u8R"(})"_sv);
   // clang-format on
 }
 

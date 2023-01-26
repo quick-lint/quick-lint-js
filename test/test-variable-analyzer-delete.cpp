@@ -52,7 +52,7 @@ TEST(test_variable_analyzer_delete_javascript,
         ElementsAreArray({
             DIAG_TYPE_FIELD(
                 diag_redundant_delete_statement_on_variable, delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete x")),
+                offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
         }));
   }
 
@@ -82,7 +82,7 @@ TEST(test_variable_analyzer_delete_javascript,
         ElementsAreArray({
             DIAG_TYPE_FIELD(
                 diag_redundant_delete_statement_on_variable, delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete x")),
+                offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
         }));
   }
 
@@ -113,7 +113,7 @@ TEST(test_variable_analyzer_delete_javascript,
         ElementsAreArray({
             DIAG_TYPE_FIELD(
                 diag_redundant_delete_statement_on_variable, delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete x")),
+                offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
         }));
   }
 
@@ -144,7 +144,7 @@ TEST(test_variable_analyzer_delete_javascript,
         ElementsAreArray({
             DIAG_TYPE_FIELD(
                 diag_redundant_delete_statement_on_variable, delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete x")),
+                offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
         }));
   }
 
@@ -180,7 +180,7 @@ TEST(test_variable_analyzer_delete_javascript,
         ElementsAreArray({
             DIAG_TYPE_FIELD(
                 diag_redundant_delete_statement_on_variable, delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete x")),
+                offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
         }));
   }
 }
@@ -214,9 +214,9 @@ TEST(test_variable_analyzer_delete_javascript,
   EXPECT_THAT(
       v.errors,
       ElementsAreArray({
-          DIAG_TYPE_FIELD(diag_redundant_delete_statement_on_variable,
-                          delete_expression,
-                          offsets_matcher(&delete_expression, 0, u8"delete x")),
+          DIAG_TYPE_FIELD(
+              diag_redundant_delete_statement_on_variable, delete_expression,
+              offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
       }));
 }
 
@@ -244,9 +244,9 @@ TEST(test_variable_analyzer_delete_javascript,
   EXPECT_THAT(
       v.errors,
       ElementsAreArray({
-          DIAG_TYPE_FIELD(diag_redundant_delete_statement_on_variable,
-                          delete_expression,
-                          offsets_matcher(&delete_expression, 0, u8"delete x")),
+          DIAG_TYPE_FIELD(
+              diag_redundant_delete_statement_on_variable, delete_expression,
+              offsets_matcher(&delete_expression, 0, u8"delete x"_sv)),
       }));
 }
 
@@ -260,7 +260,7 @@ TEST(test_variable_analyzer_delete_javascript,
 
   global_declared_variable_set globals;
   globals.add_global_variable(global_declared_variable{
-      .name = u8"myGlobalVariable",
+      .name = u8"myGlobalVariable"_sv,
       .is_writable = true,
       .is_shadowable = true,
   });
@@ -358,7 +358,7 @@ TEST(test_variable_analyzer_delete_typescript,
             DIAG_TYPE_FIELD(
                 diag_typescript_delete_cannot_delete_variables,
                 delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete myVar")),
+                offsets_matcher(&delete_expression, 0, u8"delete myVar"_sv)),
         }));
   }
 
@@ -380,7 +380,7 @@ TEST(test_variable_analyzer_delete_typescript,
             DIAG_TYPE_FIELD(
                 diag_typescript_delete_cannot_delete_variables,
                 delete_expression,
-                offsets_matcher(&delete_expression, 0, u8"delete myVar")),
+                offsets_matcher(&delete_expression, 0, u8"delete myVar"_sv)),
         }));
   }
 }
@@ -409,7 +409,7 @@ TEST(test_variable_analyzer_delete_typescript,
             DIAG_TYPE_FIELD(diag_typescript_delete_cannot_delete_variables,
                             delete_expression,
                             offsets_matcher(&delete_expression, 0,
-                                            u8"delete myGlobalVariable")),
+                                            u8"delete myGlobalVariable"_sv)),
         }));
   }
 
@@ -417,7 +417,7 @@ TEST(test_variable_analyzer_delete_typescript,
     // delete myGlobalVariable;  // ERROR
     global_declared_variable_set globals;
     globals.add_global_variable(global_declared_variable{
-        .name = u8"myGlobalVariable",
+        .name = u8"myGlobalVariable"_sv,
         .is_writable = true,
         .is_shadowable = true,
     });
@@ -433,7 +433,7 @@ TEST(test_variable_analyzer_delete_typescript,
             DIAG_TYPE_FIELD(diag_typescript_delete_cannot_delete_variables,
                             delete_expression,
                             offsets_matcher(&delete_expression, 0,
-                                            u8"delete myGlobalVariable")),
+                                            u8"delete myGlobalVariable"_sv)),
         }));
   }
 }

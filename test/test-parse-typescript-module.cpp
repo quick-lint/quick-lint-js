@@ -36,7 +36,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"T")}));
+                ElementsAreArray({import_type_decl(u8"T"_sv)}));
   }
 
   {
@@ -47,7 +47,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"U")}));
+                ElementsAreArray({import_type_decl(u8"U"_sv)}));
   }
 
   {
@@ -58,7 +58,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"T")}));
+                ElementsAreArray({import_type_decl(u8"T"_sv)}));
   }
 
   {
@@ -70,7 +70,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
                           }));
     // TODO(#788): Assert import_module_decl instead.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"M")}));
+                ElementsAreArray({import_decl(u8"M"_sv)}));
   }
 }
 
@@ -110,7 +110,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_import_not_allowed_in_javascript,
-                type_keyword, strlen(u8"import "), u8"type"),
+                type_keyword, strlen(u8"import "), u8"type"_sv),
         }));
   }
 }
@@ -127,7 +127,7 @@ TEST_F(test_parse_typescript_module,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAre(import_type_decl(u8"A"), import_decl(u8"B")))
+                ElementsAre(import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
     EXPECT_THAT(
@@ -136,7 +136,7 @@ TEST_F(test_parse_typescript_module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_type_only_import_cannot_import_default_and_named,
-                type_keyword, strlen(u8"import "), u8"type"),
+                type_keyword, strlen(u8"import "), u8"type"_sv),
         }));
   }
 
@@ -151,14 +151,14 @@ TEST_F(test_parse_typescript_module,
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({import_type_decl(u8"A"), import_decl(u8"B")}));
+        ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 diag_typescript_type_only_import_cannot_import_default_and_named,
-                type_keyword, strlen(u8"import "), u8"type"),
+                type_keyword, strlen(u8"import "), u8"type"_sv),
         }));
   }
 }
@@ -172,7 +172,7 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"T")}));
+                ElementsAreArray({import_type_decl(u8"T"_sv)}));
   }
 
   {
@@ -184,9 +184,9 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
                               "visit_variable_declaration",  // U
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.variable_declarations,
-        ElementsAreArray({import_type_decl(u8"T"), import_type_decl(u8"U")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {import_type_decl(u8"T"_sv), import_type_decl(u8"U"_sv)}));
   }
 
   {
@@ -197,7 +197,7 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"U")}));
+                ElementsAreArray({import_type_decl(u8"U"_sv)}));
   }
 }
 
@@ -212,7 +212,7 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({import_type_decl(u8"T"), import_decl(u8"f")}));
+        ElementsAreArray({import_type_decl(u8"T"_sv), import_decl(u8"f"_sv)}));
   }
 
   {
@@ -225,7 +225,7 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({import_decl(u8"f"), import_type_decl(u8"T")}));
+        ElementsAreArray({import_decl(u8"f"_sv), import_type_decl(u8"T"_sv)}));
   }
 }
 
@@ -257,9 +257,9 @@ TEST_F(test_parse_typescript_module,
                                 "visit_variable_declaration",  // other
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.variable_declarations,
-          ElementsAreArray({import_type_decl(name), import_decl(u8"other")}));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {import_type_decl(name), import_decl(u8"other"_sv)}));
     }
   }
 }
@@ -279,7 +279,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_import_not_allowed_in_javascript,
-                type_keyword, strlen(u8"import {"), u8"type"),
+                type_keyword, strlen(u8"import {"), u8"type"_sv),
         }));
   }
 
@@ -296,7 +296,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_import_not_allowed_in_javascript,
-                type_keyword, strlen(u8"import {"), u8"type"),
+                type_keyword, strlen(u8"import {"), u8"type"_sv),
         }));
   }
 }
@@ -311,15 +311,15 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_type_decl(u8"T")}));
+                ElementsAreArray({import_type_decl(u8"T"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_inline_type_import_not_allowed_in_type_only_import,
-                inline_type_keyword, strlen(u8"import type {"), u8"type",  //
-                type_only_keyword, strlen(u8"import "), u8"type"),
+                inline_type_keyword, strlen(u8"import type {"), u8"type"_sv,
+                type_only_keyword, strlen(u8"import "), u8"type"_sv),
         }));
   }
 }
@@ -368,7 +368,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_export_not_allowed_in_javascript,
-                type_keyword, strlen(u8"export "), u8"type"),
+                type_keyword, strlen(u8"export "), u8"type"_sv),
         }));
   }
 }
@@ -420,7 +420,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_export_not_allowed_in_javascript,
-                type_keyword, strlen(u8"export {"), u8"type"),
+                type_keyword, strlen(u8"export {"), u8"type"_sv),
         }));
   }
 
@@ -436,7 +436,7 @@ TEST_F(test_parse_typescript_module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_typescript_type_export_not_allowed_in_javascript,
-                type_keyword, strlen(u8"export {"), u8"type"),
+                type_keyword, strlen(u8"export {"), u8"type"_sv),
         }));
   }
 }
@@ -457,8 +457,8 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_inline_type_export_not_allowed_in_type_only_export,
-                inline_type_keyword, strlen(u8"export type {"), u8"type",  //
-                type_only_keyword, strlen(u8"export "), u8"type"),
+                inline_type_keyword, strlen(u8"export type {"), u8"type"_sv,
+                type_only_keyword, strlen(u8"export "), u8"type"_sv),
         }));
   }
 }
@@ -472,7 +472,7 @@ TEST_F(test_parse_typescript_module, import_require) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"fs")}));
+                ElementsAreArray({import_decl(u8"fs"_sv)}));
   }
 }
 
@@ -487,7 +487,7 @@ TEST_F(test_parse_typescript_module, export_interface) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({interface_decl(u8"I")}));
+                ElementsAreArray({interface_decl(u8"I"_sv)}));
   }
 }
 
@@ -504,13 +504,13 @@ TEST_F(test_parse_typescript_module,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({interface_decl(u8"I")}));
+                ElementsAreArray({interface_decl(u8"I"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_newline_not_allowed_after_interface_keyword,
-                interface_keyword, strlen(u8"export "), u8"interface"),
+                interface_keyword, strlen(u8"export "), u8"interface"_sv),
         }));
   }
 }
@@ -526,7 +526,7 @@ TEST_F(test_parse_typescript_module, export_default_interface) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({interface_decl(u8"I")}));
+                ElementsAreArray({interface_decl(u8"I"_sv)}));
   }
 
   // A newline is allowed after 'interface' (unlike with 'export interface').
@@ -540,7 +540,7 @@ TEST_F(test_parse_typescript_module, export_default_interface) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({interface_decl(u8"I")}));
+                ElementsAreArray({interface_decl(u8"I"_sv)}));
   }
 }
 
@@ -558,7 +558,8 @@ TEST_F(test_parse_typescript_module, export_abstract_class) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
   }
 
   {
@@ -574,7 +575,8 @@ TEST_F(test_parse_typescript_module, export_abstract_class) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
   }
 
   {
@@ -598,12 +600,13 @@ TEST_F(test_parse_typescript_module,
     test_parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_newline_not_allowed_after_abstract_keyword,
-                        abstract_keyword, strlen(u8"export "), u8"abstract"),
+                        abstract_keyword, strlen(u8"export "), u8"abstract"_sv),
                 }));
   }
 
@@ -611,12 +614,13 @@ TEST_F(test_parse_typescript_module,
     test_parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_newline_not_allowed_after_abstract_keyword,
-                        abstract_keyword, strlen(u8"export "), u8"abstract"),
+                        abstract_keyword, strlen(u8"export "), u8"abstract"_sv),
                 }));
   }
 
@@ -626,7 +630,8 @@ TEST_F(test_parse_typescript_module,
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"abstract"}))
         << "'abstract' should be treated as a variable name, not a keyword";
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
@@ -646,7 +651,7 @@ TEST_F(test_parse_typescript_module, export_namespace) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns")}));
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
   }
 }
 
@@ -663,13 +668,13 @@ TEST_F(test_parse_typescript_module,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns")}));
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_newline_not_allowed_after_namespace_keyword,
-                namespace_keyword, strlen(u8"export "), u8"namespace"),
+                namespace_keyword, strlen(u8"export "), u8"namespace"_sv),
         }));
   }
 }
@@ -684,7 +689,8 @@ TEST_F(test_parse_typescript_module, export_enum) {
                               "visit_exit_enum_scope",       // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({enum_decl(u8"E")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({enum_decl(u8"E"_sv)}));
   }
 }
 
@@ -698,7 +704,8 @@ TEST_F(test_parse_typescript_module, export_const_enum) {
                               "visit_exit_enum_scope",       // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.variable_declarations, ElementsAreArray({enum_decl(u8"E")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({enum_decl(u8"E"_sv)}));
   }
 }
 
@@ -714,7 +721,7 @@ TEST_F(test_parse_typescript_module, export_type_alias) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({type_alias_decl(u8"T")}));
+                ElementsAreArray({type_alias_decl(u8"T"_sv)}));
   }
 }
 
@@ -734,7 +741,7 @@ TEST_F(test_parse_typescript_module,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_newline_not_allowed_after_type_keyword,
-                        type_keyword, strlen(u8"export "), u8"type"),
+                        type_keyword, strlen(u8"export "), u8"type"_sv),
                 }));
   }
 }
@@ -750,7 +757,7 @@ TEST_F(test_parse_typescript_module, export_import_alias) {
                           }));
     // TODO(#793): Emit a import alias declaration instead.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A")}));
+                ElementsAreArray({import_decl(u8"A"_sv)}));
   }
 }
 

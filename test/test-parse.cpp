@@ -45,10 +45,10 @@ class test_overflow : public test_parse_expression {};
 
 TEST_F(test_parse, statement_starting_with_invalid_token) {
   for (string8_view token : {
-           u8":",
-           u8"?",
+           u8":"_sv,
+           u8"?"_sv,
        }) {
-    test_parser p(concat(string8(token), u8" x"), capture_diags);
+    test_parser p(concat(token, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
@@ -74,7 +74,7 @@ TEST_F(test_parse, comma_not_allowed_between_class_methods) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 44, u8","),
+                              unexpected_comma, 44, u8","_sv),
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          //
@@ -109,31 +109,31 @@ TEST_F(test_parse, commas_not_allowed_between_class_methods) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 10, u8","),
+                              unexpected_comma, 10, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 11, u8","),
+                              unexpected_comma, 11, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 12, u8","),
+                              unexpected_comma, 12, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 48, u8","),
+                              unexpected_comma, 48, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 49, u8","),
+                              unexpected_comma, 49, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 50, u8","),
+                              unexpected_comma, 50, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 111, u8","),
+                              unexpected_comma, 111, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 112, u8","),
+                              unexpected_comma, 112, u8","_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_comma_not_allowed_between_class_methods,  //
-                              unexpected_comma, 113, u8","),
+                              unexpected_comma, 113, u8","_sv),
         }));
 
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -166,8 +166,9 @@ TEST_F(test_parse, asi_for_statement_at_right_curly) {
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({function_decl(u8"f"), function_decl(u8"g")}));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
   }
 }
 
@@ -195,7 +196,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
     auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({let_init_decl(u8"x")}));
+                ElementsAreArray({let_init_decl(u8"x"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"cond"}));
   }
 
@@ -212,13 +213,13 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_semicolon_after_statement,  //
-                        where, end_of_first_expression, u8""),
+                        where, end_of_first_expression, u8""_sv),
                 }));
   }
 
-  for (string8_view variable_kind : {u8"const", u8"let", u8"var"}) {
+  for (string8_view variable_kind : {u8"const"_sv, u8"let"_sv, u8"var"_sv}) {
     test_parser p(
-        concat(variable_kind, u8" a = 1\n", variable_kind, u8" b = 2\n"),
+        concat(variable_kind, u8" a = 1\n"_sv, variable_kind, u8" b = 2\n"_sv),
         capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
@@ -391,9 +392,9 @@ TEST_F(test_parse, utter_garbage) {
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code,
                               diag_expected_parentheses_around_if_condition,  //
-                              condition, strlen(u8"if "), u8":"),
+                              condition, strlen(u8"if "), u8":"_sv),
             DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                              token, strlen(u8"if "), u8":")));
+                              token, strlen(u8"if "), u8":"_sv)));
   }
 }
 
@@ -408,7 +409,7 @@ TEST_F(test_parse, statement_starting_with_extends) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token,  //
-                                      token, 0, u8"extends"),
+                                      token, 0, u8"extends"_sv),
                 }));
   }
 }
@@ -423,7 +424,7 @@ TEST_F(test_parse, stray_right_curly_at_top_level) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, diag_unmatched_right_curly,  //
-                                      right_curly, 0, u8"}"),
+                                      right_curly, 0, u8"}"_sv),
                 }));
   }
 }
@@ -449,12 +450,12 @@ TEST_F(
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, diag_keywords_cannot_contain_escape_sequences,  //
-                  escape_sequence, 0, u8"\\u{??}"),
+                  escape_sequence, 0, u8"\\u{??}"_sv),
           }));
     }
 
     {
-      test_parser p(concat(u8"(", escaped_keyword, u8")"), capture_diags);
+      test_parser p(concat(u8"("_sv, escaped_keyword, u8")"_sv), capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -467,7 +468,7 @@ TEST_F(
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, diag_keywords_cannot_contain_escape_sequences,  //
-                  escape_sequence, strlen(u8"("), u8"\\u{??}"),
+                  escape_sequence, strlen(u8"("), u8"\\u{??}"_sv),
           }));
     }
   }
@@ -487,7 +488,7 @@ TEST_F(
                               "visit_variable_declaration",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({const_init_decl(u8"if")}));
+                ElementsAreArray({const_init_decl(u8"if"_sv)}));
   }
 
   {
@@ -501,7 +502,7 @@ TEST_F(
                               "visit_variable_declaration",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({let_noinit_decl(u8"if")}));
+                ElementsAreArray({let_noinit_decl(u8"if"_sv)}));
   }
 
   {
@@ -515,7 +516,7 @@ TEST_F(
                               "visit_variable_declaration",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({var_noinit_decl(u8"if")}));
+                ElementsAreArray({var_noinit_decl(u8"if"_sv)}));
   }
 
   {
@@ -532,9 +533,9 @@ TEST_F(
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",
                           }));
-    EXPECT_THAT(
-        p.variable_declarations,
-        ElementsAreArray({function_decl(u8"g"), func_param_decl(u8"if")}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {function_decl(u8"g"_sv), func_param_decl(u8"if"_sv)}));
   }
 
   {
@@ -551,7 +552,7 @@ TEST_F(
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({arrow_param_decl(u8"if")}));
+                ElementsAreArray({arrow_param_decl(u8"if"_sv)}));
   }
 }
 
@@ -574,7 +575,8 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"({ ", escaped_keyword, u8" })"), capture_diags);
+      test_parser p(concat(u8"({ "_sv, escaped_keyword, u8" })"_sv),
+                    capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -586,7 +588,7 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"({ ", escaped_keyword, u8"() {} })"),
+      test_parser p(concat(u8"({ "_sv, escaped_keyword, u8"() {} })"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -600,7 +602,7 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"({ ", escaped_keyword, u8": null })"),
+      test_parser p(concat(u8"({ "_sv, escaped_keyword, u8": null })"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -611,7 +613,7 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"var ", escaped_keyword, u8" = null;"),
+      test_parser p(concat(u8"var "_sv, escaped_keyword, u8" = null;"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -625,7 +627,7 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"var { ", escaped_keyword, u8" = a } = b;"),
+      test_parser p(concat(u8"var { "_sv, escaped_keyword, u8" = a } = b;"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -641,7 +643,7 @@ TEST_F(test_parse,
     }
 
     {
-      test_parser p(concat(u8"class C { ", escaped_keyword, u8"() {} }"),
+      test_parser p(concat(u8"class C { "_sv, escaped_keyword, u8"() {} }"_sv),
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
@@ -688,7 +690,7 @@ TEST_F(test_parse, unimplemented_token_doesnt_crash_if_caught) {
     EXPECT_THAT(v.errors, ElementsAreArray({
                               DIAG_TYPE_OFFSETS(&unimplemented_token_code,
                                                 diag_unexpected_token,  //
-                                                token, 0, u8"]"),
+                                                token, 0, u8"]"_sv),
                           }));
   }
 }
@@ -812,31 +814,34 @@ string8 repeated_str(string8_view before, string8_view inner,
 
 TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   for (const string8& exps : {
-           repeated_str(u8"(", u8"10", u8")", parser::stack_limit - 2),
-           repeated_str(u8"[", u8"10", u8"]", parser::stack_limit - 2),
-           repeated_str(u8"{", u8"10", u8"}", parser::stack_limit - 2),
-           repeated_str(u8"while(true) ", u8"10", u8"",
+           repeated_str(u8"("_sv, u8"10"_sv, u8")"_sv, parser::stack_limit - 2),
+           repeated_str(u8"["_sv, u8"10"_sv, u8"]"_sv, parser::stack_limit - 2),
+           repeated_str(u8"{"_sv, u8"10"_sv, u8"}"_sv, parser::stack_limit - 2),
+           repeated_str(u8"while(true) "_sv, u8"10"_sv, u8""_sv,
                         parser::stack_limit - 2),
-           repeated_str(u8"for(;;) ", u8"10", u8"", parser::stack_limit - 2),
-           repeated_str(u8"await ", u8"10", u8"", parser::stack_limit - 2),
-           repeated_str(u8"if(true) ", u8"10", u8"", parser::stack_limit - 2),
-           repeated_str(u8"function f() { ", u8"", u8"}",
+           repeated_str(u8"for(;;) "_sv, u8"10"_sv, u8""_sv,
+                        parser::stack_limit - 2),
+           repeated_str(u8"await "_sv, u8"10"_sv, u8""_sv,
+                        parser::stack_limit - 2),
+           repeated_str(u8"if(true) "_sv, u8"10"_sv, u8""_sv,
+                        parser::stack_limit - 2),
+           repeated_str(u8"function f() { "_sv, u8""_sv, u8"}"_sv,
                         parser::stack_limit - 1),
-           repeated_str(u8"() => { ", u8"", u8"}",
+           repeated_str(u8"() => { "_sv, u8""_sv, u8"}"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"if(true) { ", u8"", u8"}",
+           repeated_str(u8"if(true) { "_sv, u8""_sv, u8"}"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"while(true) { ", u8"", u8"}",
+           repeated_str(u8"while(true) { "_sv, u8""_sv, u8"}"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"for(;;) { ", u8"", u8"}",
+           repeated_str(u8"for(;;) { "_sv, u8""_sv, u8"}"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"with({}) { ", u8"", u8"}",
+           repeated_str(u8"with({}) { "_sv, u8""_sv, u8"}"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"do{ ", u8"", u8"} while (true);",
+           repeated_str(u8"do{ "_sv, u8""_sv, u8"} while (true);"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"try{ ", u8"", u8"} catch(e) {}",
+           repeated_str(u8"try{ "_sv, u8""_sv, u8"} catch(e) {}"_sv,
                         parser::stack_limit - 1),
-           repeated_str(u8"class C { m() { ", u8"", u8"} }",
+           repeated_str(u8"class C { m() { "_sv, u8""_sv, u8"} }"_sv,
                         parser::stack_limit - 1),
        }) {
     test_parser p(exps, capture_diags);
@@ -848,11 +853,11 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    test_parser p(
-        concat(u8"(",
-               repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3),
-               u8")"),
-        capture_diags);
+    test_parser p(concat(u8"("_sv,
+                         repeated_str(u8"{x:"_sv, u8""_sv, u8"}"_sv,
+                                      parser::stack_limit - 3),
+                         u8")"_sv),
+                  capture_diags);
     SCOPED_TRACE(p.code);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_TRUE(ok);
@@ -860,14 +865,15 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   for (const string8& jsx : {
-           repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit - 2),
-           u8"<>" +
-               repeated_str(u8"<div>", u8"", u8"</div>",
-                            parser::stack_limit - 3) +
-               u8"</>",
-           repeated_str(u8"<div>{", u8"", u8"}</div>",
+           repeated_str(u8"<div>"_sv, u8""_sv, u8"</div>"_sv,
+                        parser::stack_limit - 2),
+           concat(u8"<>"_sv,
+                  repeated_str(u8"<div>"_sv, u8""_sv, u8"</div>"_sv,
+                               parser::stack_limit - 3),
+                  u8"</>"_sv),
+           repeated_str(u8"<div>{"_sv, u8""_sv, u8"}</div>"_sv,
                         (parser::stack_limit / 2) - 1),
-           repeated_str(u8"<div attr={", u8"'value'", u8"} />",
+           repeated_str(u8"<div attr={"_sv, u8"'value'"_sv, u8"} />"_sv,
                         (parser::stack_limit / 2) - 1),
        }) {
     padded_string code(u8"return " + jsx);
@@ -880,7 +886,7 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   for (const string8& type : {
-           repeated_str(u8"(", u8"T", u8")", parser::stack_limit - 2),
+           repeated_str(u8"("_sv, u8"T"_sv, u8")"_sv, parser::stack_limit - 2),
        }) {
     padded_string code(u8"let x: " + type + u8";");
     SCOPED_TRACE(code);
@@ -894,26 +900,32 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
 
 TEST_F(test_overflow, parser_depth_limit_exceeded) {
   for (const string8& exps : {
-           repeated_str(u8"(", u8"10", u8")", parser::stack_limit + 1),
-           repeated_str(u8"[", u8"10", u8"]", parser::stack_limit + 1),
-           repeated_str(u8"{", u8"10", u8"}", parser::stack_limit + 1),
-           repeated_str(u8"while(true) ", u8"10", u8"",
+           repeated_str(u8"("_sv, u8"10"_sv, u8")"_sv, parser::stack_limit + 1),
+           repeated_str(u8"["_sv, u8"10"_sv, u8"]"_sv, parser::stack_limit + 1),
+           repeated_str(u8"{"_sv, u8"10"_sv, u8"}"_sv, parser::stack_limit + 1),
+           repeated_str(u8"while(true) "_sv, u8"10"_sv, u8""_sv,
                         parser::stack_limit + 1),
-           repeated_str(u8"for(;;) ", u8"10", u8"", parser::stack_limit + 1),
-           repeated_str(u8"if(true) ", u8"10", u8"", parser::stack_limit + 1),
-           repeated_str(u8"function f() { ", u8"", u8"}",
+           repeated_str(u8"for(;;) "_sv, u8"10"_sv, u8""_sv,
                         parser::stack_limit + 1),
-           repeated_str(u8"() => { ", u8"", u8"}", parser::stack_limit + 1),
-           repeated_str(u8"if(true) { ", u8"", u8"}", parser::stack_limit + 1),
-           repeated_str(u8"while(true) { ", u8"", u8"}",
+           repeated_str(u8"if(true) "_sv, u8"10"_sv, u8""_sv,
                         parser::stack_limit + 1),
-           repeated_str(u8"for(;;) { ", u8"", u8"}", parser::stack_limit + 1),
-           repeated_str(u8"with({}) { ", u8"", u8"}", parser::stack_limit + 1),
-           repeated_str(u8"do{ ", u8"", u8"} while (true);",
+           repeated_str(u8"function f() { "_sv, u8""_sv, u8"}"_sv,
                         parser::stack_limit + 1),
-           repeated_str(u8"try{ ", u8"", u8"} catch(e) {}",
+           repeated_str(u8"() => { "_sv, u8""_sv, u8"}"_sv,
                         parser::stack_limit + 1),
-           repeated_str(u8"class C { m() { ", u8"", u8"} }",
+           repeated_str(u8"if(true) { "_sv, u8""_sv, u8"}"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"while(true) { "_sv, u8""_sv, u8"}"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"for(;;) { "_sv, u8""_sv, u8"}"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"with({}) { "_sv, u8""_sv, u8"}"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"do{ "_sv, u8""_sv, u8"} while (true);"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"try{ "_sv, u8""_sv, u8"} catch(e) {}"_sv,
+                        parser::stack_limit + 1),
+           repeated_str(u8"class C { m() { "_sv, u8""_sv, u8"} }"_sv,
                         parser::stack_limit + 1),
        }) {
     padded_string code(exps);
@@ -928,9 +940,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    test_parser p(
-        repeated_str(u8"await ", u8"10", u8"", parser::stack_limit + 1),
-        capture_diags);
+    test_parser p(repeated_str(u8"await "_sv, u8"10"_sv, u8""_sv,
+                               parser::stack_limit + 1),
+                  capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
     EXPECT_THAT(p.errors,
@@ -938,11 +950,11 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    test_parser p(
-        concat(u8"(",
-               repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1),
-               u8")"),
-        capture_diags);
+    test_parser p(concat(u8"("_sv,
+                         repeated_str(u8"{x:"_sv, u8""_sv, u8"}"_sv,
+                                      parser::stack_limit + 1),
+                         u8")"_sv),
+                  capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
     EXPECT_THAT(p.errors, ElementsAreArray({
@@ -951,17 +963,18 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
   }
 
   for (const string8& jsx : {
-           repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit + 1),
-           u8"<>" +
-               repeated_str(u8"<div>", u8"", u8"</div>",
-                            parser::stack_limit + 1) +
-               u8"</>",
-           repeated_str(u8"<div>{", u8"", u8"}</div>",
+           repeated_str(u8"<div>"_sv, u8""_sv, u8"</div>"_sv,
+                        parser::stack_limit + 1),
+           concat(u8"<>"_sv,
+                  repeated_str(u8"<div>"_sv, u8""_sv, u8"</div>"_sv,
+                               parser::stack_limit + 1),
+                  u8"</>"_sv),
+           repeated_str(u8"<div>{"_sv, u8""_sv, u8"}</div>"_sv,
                         (parser::stack_limit / 2) + 1),
-           repeated_str(u8"<div attr={", u8"'value'", u8"} />",
+           repeated_str(u8"<div attr={"_sv, u8"'value'"_sv, u8"} />"_sv,
                         (parser::stack_limit / 2) + 1),
        }) {
-    padded_string code(u8"return " + jsx);
+    padded_string code(concat(u8"return "_sv, jsx));
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
@@ -973,9 +986,9 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
   }
 
   for (const string8& type : {
-           repeated_str(u8"(", u8"T", u8")", parser::stack_limit + 1),
+           repeated_str(u8"("_sv, u8"T"_sv, u8")"_sv, parser::stack_limit + 1),
        }) {
-    padded_string code(u8"let x: " + type + u8";");
+    padded_string code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, typescript_options);

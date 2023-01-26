@@ -317,9 +317,9 @@ void parser::error_on_sketchy_condition(expression* ast) {
     auto* binary = static_cast<expression::binary_operator*>(ast);
     source_code_span left_operator = binary->operator_spans_[0];
     source_code_span right_operator = binary->operator_spans_[1];
-    if (right_operator.string_view() == u8"||"sv &&
-        (left_operator.string_view() == u8"=="sv ||
-         left_operator.string_view() == u8"==="sv)) {
+    if (right_operator.string_view() == u8"||"_sv &&
+        (left_operator.string_view() == u8"=="_sv ||
+         left_operator.string_view() == u8"==="_sv)) {
       this->diag_reporter_->report(diag_equals_does_not_distribute_over_or{
           .or_operator = right_operator,
           .equals_operator = left_operator,
@@ -331,7 +331,8 @@ void parser::error_on_sketchy_condition(expression* ast) {
 void parser::error_on_pointless_string_compare(
     expression::binary_operator* ast) {
   auto is_comparison_operator = [](string8_view s) {
-    return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
+    return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
+           s == u8"!=="_sv;
   };
   auto char_is_a_quote = [](const char8* s) {
     return *s == '"' || *s == '\'' || *s == '`';
@@ -371,12 +372,12 @@ void parser::error_on_pointless_string_compare(
         continue;
       }
 
-      if (call == u8"toLowerCase"sv) {
+      if (call == u8"toLowerCase"_sv) {
         if (hasupper(literal)) {
           this->diag_reporter_->report(
               diag_pointless_string_comp_contains_upper{op_span});
         }
-      } else if (call == u8"toUpperCase"sv) {
+      } else if (call == u8"toUpperCase"_sv) {
         if (haslower(literal)) {
           this->diag_reporter_->report(
               diag_pointless_string_comp_contains_lower{op_span});
@@ -417,7 +418,8 @@ void parser::error_on_invalid_as_const(expression* ast,
 void parser::error_on_pointless_compare_against_literal(
     expression::binary_operator* ast) {
   auto is_comparison_operator = [](string8_view s) -> bool {
-    return s == u8"=="sv || s == u8"==="sv || s == u8"!="sv || s == u8"!=="sv;
+    return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
+           s == u8"!=="_sv;
   };
 
   for (span_size i = 0; i < ast->child_count() - 1; i++) {
@@ -433,12 +435,12 @@ void parser::check_compare_against_literal(expression* lhs, expression* rhs,
                                            source_code_span op_span) {
   auto get_comparison_result =
       [](string8_view equals_operator) -> string8_view {
-    return (equals_operator == u8"==="sv || equals_operator == u8"=="sv)
-               ? u8"false"sv
-               : u8"true"sv;
+    return (equals_operator == u8"==="_sv || equals_operator == u8"=="_sv)
+               ? u8"false"_sv
+               : u8"true"_sv;
   };
   auto is_strict_operator = [](string8_view op) -> bool {
-    return op == u8"==="sv || op == u8"!=="sv;
+    return op == u8"==="_sv || op == u8"!=="_sv;
   };
 
   for (expression* child : {lhs, rhs}) {

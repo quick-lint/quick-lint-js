@@ -355,7 +355,7 @@ class expression::_delete final
   explicit _delete(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {
-    QLJS_ASSERT(operator_span.string_view() == u8"delete");
+    QLJS_ASSERT(operator_span.string_view() == u8"delete"_sv);
   }
 
   source_code_span unary_operator_span() {

@@ -166,7 +166,7 @@ TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_in_arrow_functions,  //
-                        this_keyword, strlen(u8""), u8"this"),
+                        this_keyword, strlen(u8""), u8"this"_sv),
                 }));
   }
 
@@ -183,7 +183,7 @@ TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_in_arrow_functions,  //
-                        this_keyword, strlen(u8"("), u8"this"),
+                        this_keyword, strlen(u8"("), u8"this"_sv),
                 }));
   }
 
@@ -195,7 +195,7 @@ TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_in_arrow_functions,  //
-                        this_keyword, strlen(u8"async "), u8"this"),
+                        this_keyword, strlen(u8"async "), u8"this"_sv),
                 }));
   }
 
@@ -207,7 +207,7 @@ TEST_F(test_parse_typescript_this_parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_in_arrow_functions,  //
-                        this_keyword, strlen(u8"async ("), u8"this"),
+                        this_keyword, strlen(u8"async ("), u8"this"_sv),
                 }));
   }
 }
@@ -227,7 +227,7 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_when_destructuring) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_when_destructuring,  //
-                        this_keyword, strlen(u8"function(["), u8"this"),
+                        this_keyword, strlen(u8"function(["), u8"this"_sv),
                 }));
   }
 
@@ -245,7 +245,7 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_when_destructuring) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         diag_this_parameter_not_allowed_when_destructuring,  //
-                        this_keyword, strlen(u8"function({key: "), u8"this"),
+                        this_keyword, strlen(u8"function({key: "), u8"this"_sv),
                 }));
   }
 }
@@ -264,9 +264,9 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_when_spreading) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        diag_spread_parameter_cannot_be_this,              //
-                        this_keyword, strlen(u8"function(..."), u8"this",  //
-                        spread_operator, strlen(u8"function("), u8"..."),
+                        diag_spread_parameter_cannot_be_this,  //
+                        this_keyword, strlen(u8"function(..."), u8"this"_sv,
+                        spread_operator, strlen(u8"function("), u8"..."_sv),
                 }));
   }
 }
@@ -285,11 +285,11 @@ TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                diag_this_parameter_must_be_first,                      //
-                this_keyword, strlen(u8"function( other, "), u8"this",  //
-                first_parameter_begin, strlen(u8"function( "), u8""),
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                diag_this_parameter_must_be_first,  //
+                                this_keyword, strlen(u8"function( other, "),
+                                u8"this"_sv, first_parameter_begin,
+                                strlen(u8"function( "), u8""_sv),
         }));
   }
 
@@ -297,14 +297,14 @@ TEST_F(test_parse_typescript_this_parameters, only_allowed_as_first_parameter) {
     test_parser p(u8"(other, this) => ReturnType"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        diag_this_parameter_must_be_first,             //
-                        this_keyword, strlen(u8"(other, "), u8"this",  //
-                        first_parameter_begin, strlen(u8"("), u8""),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                diag_this_parameter_must_be_first,  //
+                                this_keyword, strlen(u8"(other, "), u8"this"_sv,
+                                first_parameter_begin, strlen(u8"("), u8""_sv),
+        }));
   }
 }
 
@@ -322,7 +322,7 @@ TEST_F(test_parse_typescript_this_parameters, not_allowed_in_javascript) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_this_parameter_not_allowed_in_javascript,  //
-                              this_keyword, strlen(u8"function("), u8"this"),
+                              this_keyword, strlen(u8"function("), u8"this"_sv),
         }));
   }
 }

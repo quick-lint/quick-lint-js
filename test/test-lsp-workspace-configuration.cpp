@@ -62,9 +62,9 @@ TEST(test_lsp_workspace_configuration, empty_config_request) {
 
 TEST(test_lsp_workspace_configuration, config_request_with_three_items) {
   lsp_workspace_configuration config;
-  config.add_item(u8"first"sv, [](std::string_view) {});
-  config.add_item(u8"second"sv, [](std::string_view) {});
-  config.add_item(u8"third"sv, [](std::string_view) {});
+  config.add_item(u8"first"_sv, [](std::string_view) {});
+  config.add_item(u8"second"_sv, [](std::string_view) {});
+  config.add_item(u8"third"_sv, [](std::string_view) {});
 
   byte_buffer request_json;
   config.build_request(77, request_json);
@@ -90,13 +90,13 @@ TEST(test_lsp_workspace_configuration, empty_config_response) {
 TEST(test_lsp_workspace_configuration, config_response_with_strings) {
   std::string items[3];
   lsp_workspace_configuration config;
-  config.add_item(u8"first"sv, [&items](std::string_view new_value) {
+  config.add_item(u8"first"_sv, [&items](std::string_view new_value) {
     items[0] = new_value;
   });
-  config.add_item(u8"second"sv, [&items](std::string_view new_value) {
+  config.add_item(u8"second"_sv, [&items](std::string_view new_value) {
     items[1] = new_value;
   });
-  config.add_item(u8"third"sv, [&items](std::string_view new_value) {
+  config.add_item(u8"third"_sv, [&items](std::string_view new_value) {
     items[2] = new_value;
   });
 
@@ -115,8 +115,8 @@ TEST(test_lsp_workspace_configuration,
      empty_config_response_with_added_items_fails) {
   lsp_workspace_configuration config;
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"sv, [&myitem_callback_called](
-                                    std::string_view new_value) {
+  config.add_item(u8"myitem"_sv, [&myitem_callback_called](
+                                     std::string_view new_value) {
     myitem_callback_called = true;
     ADD_FAILURE() << "myitem callback should not have been called; new_value="
                   << new_value;
@@ -134,7 +134,7 @@ TEST(test_lsp_workspace_configuration,
      more_values_than_config_fails_but_calls_callback_anyway) {
   lsp_workspace_configuration config;
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"sv,
+  config.add_item(u8"myitem"_sv,
                   [&myitem_callback_called](std::string_view new_value) {
                     myitem_callback_called = true;
                     EXPECT_EQ(new_value, "val");
@@ -151,7 +151,7 @@ TEST(test_lsp_workspace_configuration,
 TEST(test_lsp_workspace_configuration, null_is_coerced_to_empty_string) {
   lsp_workspace_configuration config;
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"sv,
+  config.add_item(u8"myitem"_sv,
                   [&myitem_callback_called](std::string_view new_value) {
                     myitem_callback_called = true;
                     EXPECT_EQ(new_value, "");
@@ -187,7 +187,7 @@ TEST(test_lsp_workspace_configuration,
      config_notification_calls_item_callbacks) {
   lsp_workspace_configuration config;
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"sv,
+  config.add_item(u8"myitem"_sv,
                   [&myitem_callback_called](std::string_view new_value) {
                     myitem_callback_called = true;
                     EXPECT_EQ(new_value, "hello");
@@ -205,7 +205,7 @@ TEST(test_lsp_workspace_configuration,
      config_notification_ignores_extra_entries) {
   lsp_workspace_configuration config;
   int myitem_callback_called_count = 0;
-  config.add_item(u8"myitem"sv,
+  config.add_item(u8"myitem"_sv,
                   [&myitem_callback_called_count](std::string_view new_value) {
                     myitem_callback_called_count += 1;
                     EXPECT_EQ(new_value, "hello");
@@ -224,8 +224,8 @@ TEST(test_lsp_workspace_configuration,
      config_notification_does_not_call_callback_for_unnotified_items) {
   lsp_workspace_configuration config;
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"sv, [&myitem_callback_called](
-                                    std::string_view new_value) {
+  config.add_item(u8"myitem"_sv, [&myitem_callback_called](
+                                     std::string_view new_value) {
     myitem_callback_called = true;
     ADD_FAILURE() << "myitem callback should not have been called; new_value="
                   << new_value;

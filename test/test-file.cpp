@@ -53,7 +53,7 @@ class test_file : public ::testing::Test, protected filesystem_test {};
 
 TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file_or_exit(temp_file_path, u8"hello\nworld!\n");
+  write_file_or_exit(temp_file_path, u8"hello\nworld!\n"_sv);
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
@@ -63,7 +63,7 @@ TEST_F(test_file, read_regular_file) {
 
 TEST_F(test_file, read_empty_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file_or_exit(temp_file_path, u8"");
+  write_file_or_exit(temp_file_path, u8""_sv);
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
@@ -112,7 +112,7 @@ TEST_F(test_file, read_fifo) {
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
-      [&]() { write_file_or_exit(temp_file_path, u8"hello from fifo"); });
+      [&]() { write_file_or_exit(temp_file_path, u8"hello from fifo"_sv); });
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
@@ -127,7 +127,7 @@ TEST_F(test_file, read_empty_fifo) {
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
-      [&]() { write_file_or_exit(temp_file_path, u8""); });
+      [&]() { write_file_or_exit(temp_file_path, u8""_sv); });
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());

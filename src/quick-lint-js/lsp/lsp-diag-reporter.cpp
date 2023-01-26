@@ -23,14 +23,14 @@ namespace quick_lint_js {
 lsp_diag_reporter::lsp_diag_reporter(translator t, byte_buffer &output,
                                      padded_string_view input)
     : output_(output), locator_(input), translator_(t) {
-  this->output_.append_copy(u8"["sv);
+  this->output_.append_copy(u8"["_sv);
 }
 
-void lsp_diag_reporter::finish() { this->output_.append_copy(u8"]"sv); }
+void lsp_diag_reporter::finish() { this->output_.append_copy(u8"]"_sv); }
 
 void lsp_diag_reporter::report_impl(diag_type type, void *diag) {
   if (this->need_comma_) {
-    this->output_.append_copy(u8",\n"sv);
+    this->output_.append_copy(u8",\n"_sv);
   }
   this->need_comma_ = true;
   lsp_diag_formatter formatter(/*output=*/this->output_,
@@ -60,28 +60,28 @@ void lsp_diag_formatter::write_before_message(std::string_view code,
 
   lsp_range r = this->locator_.range(origin);
   this->output_.append_copy(
-      u8"{\"range\":{\"start\":"sv
-      u8"{\"line\":"sv);
+      u8"{\"range\":{\"start\":"_sv
+      u8"{\"line\":"_sv);
   this->output_.append_decimal_integer(r.start.line);
-  this->output_.append_copy(u8",\"character\":"sv);
+  this->output_.append_copy(u8",\"character\":"_sv);
   this->output_.append_decimal_integer(r.start.character);
   this->output_.append_copy(
-      u8"},\"end\":"sv
-      u8"{\"line\":"sv);
+      u8"},\"end\":"_sv
+      u8"{\"line\":"_sv);
   this->output_.append_decimal_integer(r.end.line);
-  this->output_.append_copy(u8",\"character\":"sv);
+  this->output_.append_copy(u8",\"character\":"_sv);
   this->output_.append_decimal_integer(r.end.character);
-  this->output_.append_copy(u8"}},\"severity\":"sv);
+  this->output_.append_copy(u8"}},\"severity\":"_sv);
   this->output_.append_copy(severity_type);
-  this->output_.append_copy(u8",\"code\":\""sv);
+  this->output_.append_copy(u8",\"code\":\""_sv);
   this->output_.append_copy(to_string8_view(code));
   this->output_.append_copy(
-      u8"\",\"codeDescription\":"sv
-      u8"{\"href\":\"https://quick-lint-js.com/errors/"sv);
+      u8"\",\"codeDescription\":"_sv
+      u8"{\"href\":\"https://quick-lint-js.com/errors/"_sv);
   this->output_.append_copy(to_string8_view(code));
   this->output_.append_copy(
-      u8"/\"},\"source\":\"quick-lint-js\""sv
-      u8",\"message\":\""sv);
+      u8"/\"},\"source\":\"quick-lint-js\""_sv
+      u8",\"message\":\""_sv);
 }
 
 void lsp_diag_formatter::write_message_part(
@@ -103,7 +103,7 @@ void lsp_diag_formatter::write_after_message(
     return;
   }
 
-  this->output_.append_copy(u8"\"}"sv);
+  this->output_.append_copy(u8"\"}"_sv);
 }
 }
 

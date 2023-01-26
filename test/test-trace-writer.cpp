@@ -66,7 +66,7 @@ TEST(test_trace_writer, write_event_init) {
   trace_writer w(&data);
   w.write_event_init(trace_event_init{
       .timestamp = 0x5678,
-      .version = u8"1.0.0",
+      .version = u8"1.0.0"_sv,
   });
 
   data.commit();
@@ -311,7 +311,7 @@ TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
   w.write_event_lsp_client_to_server_message(
       trace_event_lsp_client_to_server_message{
           .timestamp = 0x5678,
-          .body = u8"{ }"sv,
+          .body = u8"{ }"_sv,
       });
 
   data.commit();

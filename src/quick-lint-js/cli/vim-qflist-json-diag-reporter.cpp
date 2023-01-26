@@ -18,7 +18,7 @@ namespace quick_lint_js {
 vim_qflist_json_diag_reporter::vim_qflist_json_diag_reporter(
     translator t, output_stream *output)
     : output_(*output), translator_(t) {
-  this->output_.append_literal(u8"{\"qflist\": ["sv);
+  this->output_.append_literal(u8"{\"qflist\": ["_sv);
 }
 
 void vim_qflist_json_diag_reporter::set_source(padded_string_view input,
@@ -49,12 +49,12 @@ void vim_qflist_json_diag_reporter::set_source(padded_string_view input,
 }
 
 void vim_qflist_json_diag_reporter::finish() {
-  this->output_.append_literal(u8"]}"sv);
+  this->output_.append_literal(u8"]}"_sv);
 }
 
 void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *diag) {
   if (this->need_comma_) {
-    this->output_.append_literal(u8",\n"sv);
+    this->output_.append_literal(u8",\n"_sv);
   }
   this->need_comma_ = true;
   QLJS_ASSERT(this->locator_.has_value());
@@ -81,31 +81,31 @@ void vim_qflist_json_diag_formatter::write_before_message(
   string8_view severity_type{};
   switch (sev) {
   case diagnostic_severity::error:
-    severity_type = u8"E"sv;
+    severity_type = u8"E"_sv;
     break;
   case diagnostic_severity::note:
     // Don't write notes. Only write the main message.
     return;
   case diagnostic_severity::warning:
-    severity_type = u8"W"sv;
+    severity_type = u8"W"_sv;
     break;
   }
 
   vim_source_range r = this->locator_.range(origin);
   auto end_col = origin.begin() == origin.end() ? r.begin.col : (r.end.col - 1);
-  this->output_.append_literal(u8"{\"col\": "sv);
+  this->output_.append_literal(u8"{\"col\": "_sv);
   this->output_.append_decimal_integer(r.begin.col);
-  this->output_.append_literal(u8", \"lnum\": "sv);
+  this->output_.append_literal(u8", \"lnum\": "_sv);
   this->output_.append_decimal_integer(r.begin.lnum);
-  this->output_.append_literal(u8", \"end_col\": "sv);
+  this->output_.append_literal(u8", \"end_col\": "_sv);
   this->output_.append_decimal_integer(end_col);
-  this->output_.append_literal(u8", \"end_lnum\": "sv);
+  this->output_.append_literal(u8", \"end_lnum\": "_sv);
   this->output_.append_decimal_integer(r.end.lnum);
-  this->output_.append_literal(u8", \"type\": \""sv);
+  this->output_.append_literal(u8", \"type\": \""_sv);
   this->output_.append_copy(severity_type);
-  this->output_.append_literal(u8"\", \"nr\": \""sv);
+  this->output_.append_literal(u8"\", \"nr\": \""_sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_literal(u8"\", \"vcol\": 0, \"text\": \""sv);
+  this->output_.append_literal(u8"\", \"vcol\": 0, \"text\": \""_sv);
 }
 
 void vim_qflist_json_diag_formatter::write_message_part(
@@ -129,11 +129,11 @@ void vim_qflist_json_diag_formatter::write_after_message(
 
   this->output_.append_copy(u8'\"');
   if (!this->bufnr_.empty()) {
-    this->output_.append_literal(u8", \"bufnr\": "sv);
+    this->output_.append_literal(u8", \"bufnr\": "_sv);
     this->output_.append_copy(to_string8_view(this->bufnr_));
   }
   if (!this->file_name_.empty()) {
-    this->output_.append_literal(u8", \"filename\": \""sv);
+    this->output_.append_literal(u8", \"filename\": \""_sv);
     write_json_escaped_string(this->output_, to_string8_view(this->file_name_));
     this->output_.append_copy(u8'"');
   }

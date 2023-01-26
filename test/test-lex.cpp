@@ -105,10 +105,10 @@ class test_lex : public ::testing::Test {
 };
 
 TEST_F(test_lex, lex_block_comments) {
-  this->check_single_token(u8"/* */ hello"_sv, u8"hello");
-  this->check_single_token(u8"/*/ comment */ hi"_sv, u8"hi");
-  this->check_single_token(u8"/* comment /*/ hi"_sv, u8"hi");
-  this->check_single_token(u8"/* not /* nested */ ident"_sv, u8"ident");
+  this->check_single_token(u8"/* */ hello"_sv, u8"hello"_sv);
+  this->check_single_token(u8"/*/ comment */ hi"_sv, u8"hi"_sv);
+  this->check_single_token(u8"/* comment /*/ hi"_sv, u8"hi"_sv);
+  this->check_single_token(u8"/* not /* nested */ ident"_sv, u8"ident"_sv);
   EXPECT_THAT(this->lex_to_eof(u8"/**/"_sv), IsEmpty());
 
   {
@@ -118,11 +118,12 @@ TEST_F(test_lex, lex_block_comments) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(&input, diag_unclosed_block_comment,  //
-                                      comment_open, strlen(u8"hello "), u8"/*"),
-                }));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(&input, diag_unclosed_block_comment,  //
+                              comment_open, strlen(u8"hello "), u8"/*"_sv),
+        }));
   }
 }
 
@@ -138,7 +139,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unopened_block_comment,  //
-                              comment_close, strlen(u8"hello "), u8"*/"),
+                              comment_close, strlen(u8"hello "), u8"*/"_sv),
         }));
   }
   {
@@ -155,7 +156,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unopened_block_comment,  //
-                              comment_close, strlen(u8"*-----"), u8"*/"),
+                              comment_close, strlen(u8"*-----"), u8"*/"_sv),
         }));
   }
   {
@@ -174,7 +175,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unopened_block_comment,  //
-                              comment_close, strlen(u8"******"), u8"*/"),
+                              comment_close, strlen(u8"******"), u8"*/"_sv),
         }));
   }
   {
@@ -186,7 +187,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&input, diag_unopened_block_comment,  //
-                                      comment_close, 0, u8"*/"),
+                                      comment_close, 0, u8"*/"_sv),
                 }));
   }
   {
@@ -199,7 +200,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&input, diag_unopened_block_comment,  //
-                                      comment_close, strlen(u8"*"), u8"*/"),
+                                      comment_close, strlen(u8"*"), u8"*/"_sv),
                 }));
   }
 }
@@ -247,7 +248,7 @@ TEST_F(test_lex, lex_line_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"// hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     this->check_single_token(
-        u8"// hello" + string8(line_terminator) + u8"world", u8"world");
+        u8"// hello" + string8(line_terminator) + u8"world", u8"world"_sv);
   }
   EXPECT_THAT(this->lex_to_eof(u8"// hello\n// world"_sv), IsEmpty());
   this->check_tokens(u8"hello//*/\n \n \nworld"_sv,
@@ -277,7 +278,7 @@ TEST_F(test_lex, lex_html_open_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"<!-- --> hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     this->check_single_token(
-        u8"<!-- hello" + string8(line_terminator) + u8"world", u8"world");
+        u8"<!-- hello" + string8(line_terminator) + u8"world", u8"world"_sv);
   }
   EXPECT_THAT(this->lex_to_eof(u8"<!-- hello\n<!-- world"_sv), IsEmpty());
   EXPECT_THAT(this->lex_to_eof(u8"<!--// hello"_sv), IsEmpty());
@@ -309,22 +310,26 @@ TEST_F(test_lex, lex_html_close_comments) {
   for (string8_view line_terminator : line_terminators) {
     string8 eol(line_terminator);
 
-    this->check_single_token(u8"-->" + eol + u8"hello", u8"hello");
-    this->check_single_token(u8"--> comment" + eol + u8"hello", u8"hello");
+    this->check_single_token(u8"-->" + eol + u8"hello", u8"hello"_sv);
+    this->check_single_token(u8"--> comment" + eol + u8"hello", u8"hello"_sv);
     this->check_single_token(
-        u8"--> comment1" + eol + u8"--> comment2" + eol + u8"hello", u8"hello");
+        u8"--> comment1" + eol + u8"--> comment2" + eol + u8"hello",
+        u8"hello"_sv);
 
     this->check_single_token(u8"/*" + eol + u8"*/--> comment" + eol + u8"hello",
-                             u8"hello");
+                             u8"hello"_sv);
     this->check_single_token(
-        u8"/* */ /*" + eol + u8"*/ --> comment" + eol + u8"hello", u8"hello");
+        u8"/* */ /*" + eol + u8"*/ --> comment" + eol + u8"hello",
+        u8"hello"_sv);
     this->check_single_token(
-        u8"/*" + eol + u8"*/ /* */ --> comment" + eol + u8"hello", u8"hello");
+        u8"/*" + eol + u8"*/ /* */ --> comment" + eol + u8"hello",
+        u8"hello"_sv);
   }
 
   // Not an HTML close comment because non-whitespace non-comment preceeds.
-  this->check_tokens(u8"3 --> 4", {token_type::number, token_type::minus_minus,
-                                   token_type::greater, token_type::number});
+  this->check_tokens(u8"3 --> 4"_sv,
+                     {token_type::number, token_type::minus_minus,
+                      token_type::greater, token_type::number});
 }
 
 TEST_F(test_lex, lex_numbers) {
@@ -375,14 +380,15 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
   this->check_tokens_with_errors(
       u8"9007199254740993"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_2_FIELDS(
-                            diag_integer_literal_will_lose_precision,  //
-                            characters,
-                            offsets_matcher(input, 0, u8"9007199254740993"),  //
-                            rounded_val, u8"9007199254740992"sv),
-                    }));
+        EXPECT_THAT(
+            errors,
+            ElementsAreArray({
+                DIAG_TYPE_2_FIELDS(
+                    diag_integer_literal_will_lose_precision,  //
+                    characters,
+                    offsets_matcher(input, 0, u8"9007199254740993"_sv),  //
+                    rounded_val, u8"9007199254740992"sv),
+            }));
       });
   this->check_tokens(u8"999999999999999"_sv, {token_type::number});
   this->check_tokens(
@@ -438,7 +444,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                 DIAG_TYPE_2_FIELDS(
                     diag_integer_literal_will_lose_precision,  //
                     characters,
-                    offsets_matcher(input, 0, u8"18014398509481986"),  //
+                    offsets_matcher(input, 0, u8"18014398509481986"_sv),  //
                     rounded_val, u8"18014398509481984"sv),
             }));
       });
@@ -452,7 +458,7 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_binary_number,  //
-                                  characters, 0, u8"0b"),
+                                  characters, 0, u8"0b"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -462,7 +468,7 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_binary_number,  //
-                                  characters, 0, u8"0bn"),
+                                  characters, 0, u8"0bn"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -472,7 +478,7 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_binary_number,  //
-                                  characters, 0, u8"0b"),
+                                  characters, 0, u8"0b"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -483,7 +489,7 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_binary_number,  //
-                                  characters, strlen(u8"["), u8"0b"),
+                                  characters, strlen(u8"["), u8"0b"_sv),
             }));
       });
 }
@@ -497,7 +503,7 @@ TEST_F(test_lex, fail_lex_binary_number) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_binary_number,  //
-                    characters, strlen(u8"0b1"), u8"ee"),
+                    characters, strlen(u8"0b1"), u8"ee"_sv),
             }));
       });
 }
@@ -521,7 +527,7 @@ TEST_F(test_lex, fail_lex_modern_octal_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_octal_number,  //
-                                  characters, 0, u8"0o"),
+                                  characters, 0, u8"0o"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -531,7 +537,7 @@ TEST_F(test_lex, fail_lex_modern_octal_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_octal_number,  //
-                                  characters, 0, u8"0o"),
+                                  characters, 0, u8"0o"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -542,7 +548,7 @@ TEST_F(test_lex, fail_lex_modern_octal_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_octal_number,  //
-                                  characters, strlen(u8"["), u8"0o"),
+                                  characters, strlen(u8"["), u8"0o"_sv),
             }));
       });
 }
@@ -556,7 +562,7 @@ TEST_F(test_lex, fail_lex_modern_octal_numbers) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_octal_number,  //
-                    characters, strlen(u8"0o5"), u8"8"),
+                    characters, strlen(u8"0o5"), u8"8"_sv),
             }));
       });
 
@@ -568,7 +574,7 @@ TEST_F(test_lex, fail_lex_modern_octal_numbers) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_octal_number,  //
-                    characters, strlen(u8"0o5"), u8"8.2"),
+                    characters, strlen(u8"0o5"), u8"8.2"_sv),
             }));
       });
 }
@@ -602,7 +608,7 @@ TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_legacy_octal_literal_may_not_be_big_int,  //
-                    characters, strlen(u8"0123"), u8"n"),
+                    characters, strlen(u8"0123"), u8"n"_sv),
             }));
       });
 
@@ -613,7 +619,7 @@ TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_octal_literal_may_not_have_decimal,  //
-                            characters, strlen(u8"052"), u8"."),
+                            characters, strlen(u8"052"), u8"."_sv),
                     }));
       });
 }
@@ -631,7 +637,7 @@ TEST_F(test_lex, legacy_octal_numbers_cannot_contain_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_legacy_octal_literal_may_not_contain_underscores,  //
-                    underscores, strlen(u8"0775"), u8"_"),
+                    underscores, strlen(u8"0775"), u8"_"_sv),
             }));
       });
 
@@ -644,7 +650,7 @@ TEST_F(test_lex, legacy_octal_numbers_cannot_contain_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_legacy_octal_literal_may_not_contain_underscores,  //
-                    underscores, strlen(u8"0775"), u8"____"),
+                    underscores, strlen(u8"0775"), u8"____"_sv),
             }));
       });
 }
@@ -671,7 +677,7 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_hex_number,  //
-                                  characters, 0, u8"0x"),
+                                  characters, 0, u8"0x"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -681,7 +687,7 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_hex_number,  //
-                                  characters, 0, u8"0xn"),
+                                  characters, 0, u8"0xn"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -691,7 +697,7 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_hex_number,  //
-                                  characters, 0, u8"0x"),
+                                  characters, 0, u8"0x"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -702,7 +708,7 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_no_digits_in_hex_number,  //
-                                  characters, strlen(u8"["), u8"0x"),
+                                  characters, strlen(u8"["), u8"0x"_sv),
             }));
       });
 }
@@ -715,7 +721,7 @@ TEST_F(test_lex, fail_lex_hex_number) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_hex_number,  //
-                            characters, strlen(u8"0xf"), u8"qqn"),
+                            characters, strlen(u8"0xf"), u8"qqn"_sv),
                     }));
       });
 }
@@ -728,7 +734,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_number,  //
-                            characters, strlen(u8"123"), u8"abcd"),
+                            characters, strlen(u8"123"), u8"abcd"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -738,7 +744,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_number,  //
-                            characters, strlen(u8"123"), u8"e"),
+                            characters, strlen(u8"123"), u8"e"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -749,7 +755,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_number,  //
-                            characters, strlen(u8"123"), u8"e"),
+                            characters, strlen(u8"123"), u8"e"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -760,7 +766,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_binary_number,  //
-                    characters, strlen(u8"0b01"), u8"234"),
+                    characters, strlen(u8"0b01"), u8"234"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -771,7 +777,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_binary_number,  //
-                    characters, strlen(u8"0b0"), u8"h0lla"),
+                    characters, strlen(u8"0b0"), u8"h0lla"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -781,7 +787,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_hex_number,  //
-                            characters, strlen(u8"0xab"), u8"jjw"),
+                            characters, strlen(u8"0xab"), u8"jjw"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -792,7 +798,7 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unexpected_characters_in_octal_number,  //
-                    characters, strlen(u8"0o6"), u8"9"),
+                    characters, strlen(u8"0o6"), u8"9"_sv),
             }));
       });
 }
@@ -808,7 +814,7 @@ TEST_F(test_lex, lex_decimal_number_with_dot_method_call_is_invalid) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_number,  //
-                            characters, strlen(u8"0."), u8"toString"),
+                            characters, strlen(u8"0."), u8"toString"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -818,7 +824,7 @@ TEST_F(test_lex, lex_decimal_number_with_dot_method_call_is_invalid) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_characters_in_number,  //
-                            characters, strlen(u8"09."), u8"toString"),
+                            characters, strlen(u8"09."), u8"toString"_sv),
                     }));
       });
 
@@ -835,7 +841,7 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_big_int_literal_contains_decimal_point,  //
-                    where, 0, u8"12.34n"),
+                    where, 0, u8"12.34n"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -845,7 +851,7 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_big_int_literal_contains_exponent,  //
-                            where, 0, u8"1e3n"),
+                            where, 0, u8"1e3n"_sv),
                     }));
       });
 
@@ -893,7 +899,7 @@ TEST_F(test_lex, lex_number_with_double_underscore) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_consecutive_underscores,  //
-                    underscores, strlen(u8"123"), u8"__"),
+                    underscores, strlen(u8"123"), u8"__"_sv),
             }));
       });
 }
@@ -908,7 +914,7 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_consecutive_underscores,  //
-                    underscores, strlen(u8"123"), u8"_____"),
+                    underscores, strlen(u8"123"), u8"_____"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -920,7 +926,7 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_consecutive_underscores,  //
-                    underscores, strlen(u8"0xfee"), u8"_____"),
+                    underscores, strlen(u8"0xfee"), u8"_____"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -932,7 +938,7 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_consecutive_underscores,  //
-                    underscores, strlen(u8"0o777"), u8"_____"),
+                    underscores, strlen(u8"0o777"), u8"_____"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -944,7 +950,7 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_consecutive_underscores,  //
-                    underscores, strlen(u8"0b111"), u8"_____"),
+                    underscores, strlen(u8"0b111"), u8"_____"_sv),
             }));
       });
 }
@@ -965,11 +971,11 @@ TEST_F(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
             DIAG_TYPE_OFFSETS(
                 &input,
                 diag_number_literal_contains_consecutive_underscores,  //
-                underscores, strlen(u8"123"), u8"__"),
+                underscores, strlen(u8"123"), u8"__"_sv),
             DIAG_TYPE_OFFSETS(
                 &input,
                 diag_number_literal_contains_consecutive_underscores,  //
-                underscores, strlen(u8"123__45"), u8"___"),
+                underscores, strlen(u8"123__45"), u8"___"_sv),
         }));
   }
 }
@@ -984,7 +990,7 @@ TEST_F(test_lex, lex_number_with_trailing_underscore) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_trailing_underscores,  //
-                    underscores, strlen(u8"123456"), u8"_"),
+                    underscores, strlen(u8"123456"), u8"_"_sv),
             }));
       });
 }
@@ -999,33 +1005,33 @@ TEST_F(test_lex, lex_number_with_trailing_underscores) {
                 DIAG_TYPE_OFFSETS(
                     input,
                     diag_number_literal_contains_trailing_underscores,  //
-                    underscores, strlen(u8"123456"), u8"___"),
+                    underscores, strlen(u8"123456"), u8"___"_sv),
             }));
       });
 }
 
 TEST_F(test_lex, lex_strings) {
-  this->check_tokens(u8R"('hello')", {token_type::string});
-  this->check_tokens(u8R"("hello")", {token_type::string});
-  this->check_tokens(u8R"("hello\"world")", {token_type::string});
-  this->check_tokens(u8R"('hello\'world')", {token_type::string});
-  this->check_tokens(u8R"('hello"world')", {token_type::string});
-  this->check_tokens(u8R"("hello'world")", {token_type::string});
+  this->check_tokens(u8R"('hello')"_sv, {token_type::string});
+  this->check_tokens(u8R"("hello")"_sv, {token_type::string});
+  this->check_tokens(u8R"("hello\"world")"_sv, {token_type::string});
+  this->check_tokens(u8R"('hello\'world')"_sv, {token_type::string});
+  this->check_tokens(u8R"('hello"world')"_sv, {token_type::string});
+  this->check_tokens(u8R"("hello'world")"_sv, {token_type::string});
   this->check_tokens(u8"'hello\\\nworld'"_sv, {token_type::string});
-  this->check_tokens(u8"\"hello\\\nworld\"", {token_type::string});
-  this->check_tokens(u8"'hello\\x0aworld'", {token_type::string});
-  this->check_tokens(u8R"('\x68\x65\x6c\x6C\x6f')", {token_type::string});
-  this->check_tokens(u8R"('\uabcd')", {token_type::string});
-  this->check_tokens(u8R"('\u{abcd}')", {token_type::string});
+  this->check_tokens(u8"\"hello\\\nworld\""_sv, {token_type::string});
+  this->check_tokens(u8"'hello\\x0aworld'"_sv, {token_type::string});
+  this->check_tokens(u8R"('\x68\x65\x6c\x6C\x6f')"_sv, {token_type::string});
+  this->check_tokens(u8R"('\uabcd')"_sv, {token_type::string});
+  this->check_tokens(u8R"('\u{abcd}')"_sv, {token_type::string});
 
   this->check_tokens_with_errors(
-      u8R"("unterminated)", {token_type::string},
+      u8R"("unterminated)"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
-                                  string_literal, 0, u8R"("unterminated)"),
+                                  string_literal, 0, u8R"("unterminated)"_sv),
             }));
       });
 
@@ -1051,7 +1057,7 @@ TEST_F(test_lex, lex_strings) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&input, diag_unclosed_string_literal,  //
-                                      string_literal, 0, u8"'unterminated"),
+                                      string_literal, 0, u8"'unterminated"_sv),
                 }));
   }
 
@@ -1088,11 +1094,11 @@ TEST_F(test_lex, lex_strings) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unclosed_string_literal,  //
-                              string_literal, 0, u8"'separated"),
+                              string_literal, 0, u8"'separated"_sv),
             DIAG_TYPE_OFFSETS(
                 &input, diag_unclosed_string_literal, string_literal,  //
                 strlen(u8"'separatedhello") + 2 * line_terminator.size(),
-                u8"'"),
+                u8"'"_sv),
         }));
   }
 
@@ -1119,12 +1125,12 @@ TEST_F(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&input, diag_unclosed_string_literal,  //
-                              string_literal, strlen(u8"let x = "), u8"'hello"),
-        }));
+    EXPECT_THAT(v.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(&input, diag_unclosed_string_literal,  //
+                                      string_literal, strlen(u8"let x = "),
+                                      u8"'hello"_sv),
+                }));
   }
 
   this->check_tokens_with_errors(
@@ -1134,95 +1140,96 @@ TEST_F(test_lex, lex_strings) {
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
-                                  string_literal, 0, u8"'unterminated\\"),
+                                  string_literal, 0, u8"'unterminated\\"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'\\x", {token_type::string},
+      u8"'\\x"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'"), u8"\\x"_sv),
                 DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
-                                  string_literal, 0, u8"'\\x"),
+                                  string_literal, 0, u8"'\\x"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'\\x1", {token_type::string},
+      u8"'\\x1"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'"), u8"\\x"_sv),
                 DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
-                                  string_literal, 0, u8"'\\x1"),
+                                  string_literal, 0, u8"'\\x1"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'\\x'", {token_type::string},
+      u8"'\\x'"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'"), u8"\\x"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'\\x\\xyz'", {token_type::string},
+      u8"'\\x\\xyz'"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'"), u8"\\x"_sv),
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'\\x"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'\\x"),
+                                  u8"\\x"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'\\x1 \\xff \\xg '", {token_type::string},
+      u8"'\\x1 \\xff \\xg '"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
-                                  escape_sequence, strlen(u8"'"), u8"\\x"),
+                                  escape_sequence, strlen(u8"'"), u8"\\x"_sv),
                 DIAG_TYPE_OFFSETS(input, diag_invalid_hex_escape_sequence,  //
                                   escape_sequence, strlen(u8"'\\x1 \\xff "),
-                                  u8"\\x"),
+                                  u8"\\x"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'hello\\u'", {token_type::string},
+      u8"'hello\\u'"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"'hello"), u8"\\u'"),
+                    escape_sequence, strlen(u8"'hello"), u8"\\u'"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"'hello\\u{110000}'", {token_type::string},
+      u8"'hello\\u{110000}'"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_code_point_in_unicode_out_of_range,  //
-                    escape_sequence, strlen(u8"'hello"), u8"\\u{110000}"),
+                    escape_sequence, strlen(u8"'hello"), u8"\\u{110000}"_sv),
             }));
       });
 
@@ -1249,102 +1256,102 @@ TEST_F(test_lex, lex_string_with_ascii_control_characters) {
 TEST_F(test_lex, string_with_curly_quotes) {
   // Curly single quotes:
   this->check_tokens_with_errors(
-      u8"\u2018string here\u2019", {token_type::string},
+      u8"\u2018string here\u2019"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u2018"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u2018"_sv),  //
                     suggested_quote, u8'\''),
             }));
       });
   this->check_tokens_with_errors(
-      u8"\u2019string here\u2018", {token_type::string},
+      u8"\u2019string here\u2018"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u2019"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u2019"_sv),  //
                     suggested_quote, u8'\''),
             }));
       });
   this->check_tokens_with_errors(
-      u8"\u2018string \u201c \" \u201d here\u2019", {token_type::string},
+      u8"\u2018string \u201c \" \u201d here\u2019"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u2018"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u2018"_sv),  //
                     suggested_quote, u8'\''),
             }));
       });
 
   // Curly double quotes:
   this->check_tokens_with_errors(
-      u8"\u201cstring here\u201d", {token_type::string},
+      u8"\u201cstring here\u201d"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u201d"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u201d"_sv),  //
                     suggested_quote, u8'"'),
             }));
       });
   this->check_tokens_with_errors(
-      u8"\u201dstring here\u201c", {token_type::string},
+      u8"\u201dstring here\u201c"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u201c"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u201c"_sv),  //
                     suggested_quote, u8'"'),
             }));
       });
   this->check_tokens_with_errors(
-      u8"\u201cstring \u2018 ' \u2019 here\u201d", {token_type::string},
+      u8"\u201cstring \u2018 ' \u2019 here\u201d"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u201d"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u201d"_sv),  //
                     suggested_quote, u8'"'),
             }));
       });
 
   // Start with curly quote, but end with matching straight quote:
   this->check_tokens_with_errors(
-      u8"\u2018string here'", {token_type::string},
+      u8"\u2018string here'"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u2018"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u2018"_sv),  //
                     suggested_quote, u8'\''),
             }));
       });
   this->check_tokens_with_errors(
-      u8"\u201cstring here\"", {token_type::string},
+      u8"\u201cstring here\""_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_2_FIELDS(
-                    diag_invalid_quotes_around_string_literal,             //
-                    opening_quote, offsets_matcher(input, 0, u8"\u201d"),  //
+                    diag_invalid_quotes_around_string_literal,                //
+                    opening_quote, offsets_matcher(input, 0, u8"\u201d"_sv),  //
                     suggested_quote, u8'"'),
             }));
       });
@@ -1391,16 +1398,18 @@ TEST_F(test_lex, lex_templates) {
   this->check_tokens(u8"`hello`"_sv, {token_type::complete_template});
   this->check_tokens(u8"`hello$world`"_sv, {token_type::complete_template});
   this->check_tokens(u8"`hello{world`"_sv, {token_type::complete_template});
-  this->check_tokens(u8R"(`hello\`world`)", {token_type::complete_template});
-  this->check_tokens(u8R"(`hello$\{world`)", {token_type::complete_template});
-  this->check_tokens(u8R"(`hello\${world`)", {token_type::complete_template});
+  this->check_tokens(u8R"(`hello\`world`)"_sv, {token_type::complete_template});
+  this->check_tokens(u8R"(`hello$\{world`)"_sv,
+                     {token_type::complete_template});
+  this->check_tokens(u8R"(`hello\${world`)"_sv,
+                     {token_type::complete_template});
   this->check_tokens(
       u8R"(`hello
-world`)",
+world`)"_sv,
       {token_type::complete_template});
   this->check_tokens(u8"`hello\\\nworld`"_sv, {token_type::complete_template});
-  this->check_tokens(u8R"(`\uabcd`)", {token_type::complete_template});
-  this->check_tokens(u8R"(`\u{abcd}`)", {token_type::complete_template});
+  this->check_tokens(u8R"(`\uabcd`)"_sv, {token_type::complete_template});
+  this->check_tokens(u8R"(`\u{abcd}`)"_sv, {token_type::complete_template});
 
   {
     padded_string code(u8"`hello${42}`"_sv);
@@ -1464,7 +1473,7 @@ world`)",
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_unclosed_template,  //
-                                  incomplete_template, 0, u8"`unterminated"),
+                                  incomplete_template, 0, u8"`unterminated"_sv),
             }));
       });
 
@@ -1487,19 +1496,19 @@ world`)",
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unclosed_template,  //
-                              incomplete_template, 0, u8"`${un}terminated"),
+                              incomplete_template, 0, u8"`${un}terminated"_sv),
         }));
   }
 
   this->check_tokens_with_errors(
       u8"`unterminated\\"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, diag_unclosed_template,  //
-                                  incomplete_template, 0, u8"`unterminated\\"),
-            }));
+        EXPECT_THAT(errors,
+                    ElementsAreArray({
+                        DIAG_TYPE_OFFSETS(input, diag_unclosed_template,  //
+                                          incomplete_template, 0,
+                                          u8"`unterminated\\"_sv),
+                    }));
       });
 }
 
@@ -1515,7 +1524,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"`hello"), u8"\\u`")}));
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`"_sv)}));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -1532,7 +1541,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &input, diag_escaped_code_point_in_unicode_out_of_range,  //
-                    escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")}));
+                    escape_sequence, strlen(u8"`hello"), u8"\\u{110000}"_sv)}));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -1549,7 +1558,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"`hello"), u8"\\u`")}));
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`"_sv)}));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -1665,7 +1674,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&code, diag_unclosed_regexp_literal,  //
-                                      regexp_literal, 0, u8"/first_line"),
+                                      regexp_literal, 0, u8"/first_line"_sv),
                 }));
 
     l.skip();
@@ -1688,7 +1697,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&code, diag_unclosed_regexp_literal,  //
-                                      regexp_literal, 0, u8"/first[line"),
+                                      regexp_literal, 0, u8"/first[line"_sv),
                 }));
 
     l.skip();
@@ -1732,7 +1741,7 @@ TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
       errors.errors,
       ElementsAreArray({DIAG_TYPE_OFFSETS(
           &input, diag_regexp_literal_flags_cannot_contain_unicode_escapes,  //
-          escape_sequence, strlen(u8"/hello/"), u8"\\u{67}")}));
+          escape_sequence, strlen(u8"/hello/"), u8"\\u{67}"_sv)}));
 }
 
 TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
@@ -1872,66 +1881,70 @@ TEST_F(test_lex, lex_identifiers) {
   this->check_tokens(u8"i"_sv, {token_type::identifier});
   this->check_tokens(u8"_"_sv, {token_type::identifier});
   this->check_tokens(u8"$"_sv, {token_type::identifier});
-  this->check_single_token(u8"id"_sv, u8"id");
-  this->check_single_token(u8"id "_sv, u8"id");
+  this->check_single_token(u8"id"_sv, u8"id"_sv);
+  this->check_single_token(u8"id "_sv, u8"id"_sv);
   this->check_single_token(u8"this_is_an_identifier"_sv,
-                           u8"this_is_an_identifier");
-  this->check_single_token(u8"MixedCaseIsAllowed"_sv, u8"MixedCaseIsAllowed");
-  this->check_single_token(u8"ident$with$dollars"_sv, u8"ident$with$dollars");
-  this->check_single_token(u8"digits0123456789"_sv, u8"digits0123456789");
+                           u8"this_is_an_identifier"_sv);
+  this->check_single_token(u8"MixedCaseIsAllowed"_sv,
+                           u8"MixedCaseIsAllowed"_sv);
+  this->check_single_token(u8"ident$with$dollars"_sv,
+                           u8"ident$with$dollars"_sv);
+  this->check_single_token(u8"digits0123456789"_sv, u8"digits0123456789"_sv);
 }
 
 TEST_F(test_lex, ascii_identifier_with_escape_sequence) {
-  this->check_single_token(u8"\\u0061"_sv, u8"a");
-  this->check_single_token(u8"\\u0041"_sv, u8"A");
-  this->check_single_token(u8"\\u004E"_sv, u8"N");
-  this->check_single_token(u8"\\u004e"_sv, u8"N");
+  this->check_single_token(u8"\\u0061"_sv, u8"a"_sv);
+  this->check_single_token(u8"\\u0041"_sv, u8"A"_sv);
+  this->check_single_token(u8"\\u004E"_sv, u8"N"_sv);
+  this->check_single_token(u8"\\u004e"_sv, u8"N"_sv);
 
-  this->check_single_token(u8"\\u{41}"_sv, u8"A");
-  this->check_single_token(u8"\\u{0041}"_sv, u8"A");
-  this->check_single_token(u8"\\u{00000000000000000000041}"_sv, u8"A");
-  this->check_single_token(u8"\\u{004E}"_sv, u8"N");
-  this->check_single_token(u8"\\u{004e}"_sv, u8"N");
+  this->check_single_token(u8"\\u{41}"_sv, u8"A"_sv);
+  this->check_single_token(u8"\\u{0041}"_sv, u8"A"_sv);
+  this->check_single_token(u8"\\u{00000000000000000000041}"_sv, u8"A"_sv);
+  this->check_single_token(u8"\\u{004E}"_sv, u8"N"_sv);
+  this->check_single_token(u8"\\u{004e}"_sv, u8"N"_sv);
 
-  this->check_single_token(u8"hell\\u006f"_sv, u8"hello");
-  this->check_single_token(u8"\\u0068ello"_sv, u8"hello");
-  this->check_single_token(u8"w\\u0061t"_sv, u8"wat");
+  this->check_single_token(u8"hell\\u006f"_sv, u8"hello"_sv);
+  this->check_single_token(u8"\\u0068ello"_sv, u8"hello"_sv);
+  this->check_single_token(u8"w\\u0061t"_sv, u8"wat"_sv);
 
-  this->check_single_token(u8"hel\\u006c0"_sv, u8"hell0");
+  this->check_single_token(u8"hel\\u006c0"_sv, u8"hell0"_sv);
 
-  this->check_single_token(u8"\\u0077\\u0061\\u0074"_sv, u8"wat");
-  this->check_single_token(u8"\\u{77}\\u{61}\\u{74}"_sv, u8"wat");
+  this->check_single_token(u8"\\u0077\\u0061\\u0074"_sv, u8"wat"_sv);
+  this->check_single_token(u8"\\u{77}\\u{61}\\u{74}"_sv, u8"wat"_sv);
 
   // _ and $ are in IdentifierStart, even though they aren't in UnicodeIDStart.
-  this->check_single_token(u8"\\u{5f}wakka"_sv, u8"_wakka");
-  this->check_single_token(u8"\\u{24}wakka"_sv, u8"$wakka");
+  this->check_single_token(u8"\\u{5f}wakka"_sv, u8"_wakka"_sv);
+  this->check_single_token(u8"\\u{24}wakka"_sv, u8"$wakka"_sv);
 
   // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
   // UnicodeIDContinue.
-  this->check_single_token(u8"wakka\\u{24}"_sv, u8"wakka$");
-  this->check_single_token(u8"wak\\u200cka"_sv, u8"wak\u200cka");
-  this->check_single_token(u8"wak\\u200dka"_sv, u8"wak\u200dka");
+  this->check_single_token(u8"wakka\\u{24}"_sv, u8"wakka$"_sv);
+  this->check_single_token(u8"wak\\u200cka"_sv, u8"wak\u200cka"_sv);
+  this->check_single_token(u8"wak\\u200dka"_sv, u8"wak\u200dka"_sv);
 }
 
 TEST_F(test_lex, non_ascii_identifier) {
-  this->check_single_token(u8"\U00013337"_sv, u8"\U00013337");
+  this->check_single_token(u8"\U00013337"_sv, u8"\U00013337"_sv);
 
-  this->check_single_token(u8"\u00b5"_sv, u8"\u00b5");          // 2 UTF-8 bytes
-  this->check_single_token(u8"\u05d0"_sv, u8"\u05d0");          // 3 UTF-8 bytes
-  this->check_single_token(u8"a\u0816"_sv, u8"a\u0816");        // 3 UTF-8 bytes
-  this->check_single_token(u8"\U0001e93f"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
+  this->check_single_token(u8"\u00b5"_sv, u8"\u00b5"_sv);    // 2 UTF-8 bytes
+  this->check_single_token(u8"\u05d0"_sv, u8"\u05d0"_sv);    // 3 UTF-8 bytes
+  this->check_single_token(u8"a\u0816"_sv, u8"a\u0816"_sv);  // 3 UTF-8 bytes
+  this->check_single_token(u8"\U0001e93f"_sv,
+                           u8"\U0001e93f"_sv);  // 4 UTF-8 bytes
 
   // KHOJKI LETTER QA, introduced in Unicode 15.
-  this->check_single_token(u8"\U0001123f"_sv, u8"\U0001123f");
+  this->check_single_token(u8"\U0001123f"_sv, u8"\U0001123f"_sv);
 }
 
 TEST_F(test_lex, non_ascii_identifier_with_escape_sequence) {
-  this->check_single_token(u8"\\u{013337}"_sv, u8"\U00013337");
+  this->check_single_token(u8"\\u{013337}"_sv, u8"\U00013337"_sv);
 
-  this->check_single_token(u8"\\u{b5}"_sv, u8"\u00b5");         // 2 UTF-8 bytes
-  this->check_single_token(u8"a\\u{816}"_sv, u8"a\u0816");      // 3 UTF-8 bytes
-  this->check_single_token(u8"a\\u0816"_sv, u8"a\u0816");       // 3 UTF-8 bytes
-  this->check_single_token(u8"\\u{1e93f}"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
+  this->check_single_token(u8"\\u{b5}"_sv, u8"\u00b5"_sv);     // 2 UTF-8 bytes
+  this->check_single_token(u8"a\\u{816}"_sv, u8"a\u0816"_sv);  // 3 UTF-8 bytes
+  this->check_single_token(u8"a\\u0816"_sv, u8"a\u0816"_sv);   // 3 UTF-8 bytes
+  this->check_single_token(u8"\\u{1e93f}"_sv,
+                           u8"\U0001e93f"_sv);  // 4 UTF-8 bytes
 }
 
 TEST_F(test_lex,
@@ -1945,14 +1958,14 @@ TEST_F(test_lex,
 
 TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
   this->check_single_token_with_errors(
-      u8" are\\ufriendly ", u8"are\\ufriendly",
+      u8" are\\ufriendly "_sv, u8"are\\ufriendly"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8" are"), u8"\\ufr"),
+                    escape_sequence, strlen(u8" are"), u8"\\ufr"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -1963,27 +1976,27 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"are"), u8"\\uf "),
+                    escape_sequence, strlen(u8"are"), u8"\\uf "_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"stray\\backslash", u8"stray\\backslash",
+      u8"stray\\backslash"_sv, u8"stray\\backslash"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_backslash_in_identifier,  //
-                            backslash, strlen(u8"stray"), u8"\\"),
+                            backslash, strlen(u8"stray"), u8"\\"_sv),
                     }));
       });
   this->check_single_token_with_errors(
-      u8"stray\\", u8"stray\\",
+      u8"stray\\"_sv, u8"stray\\"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unexpected_backslash_in_identifier,  //
-                            backslash, strlen(u8"stray"), u8"\\"),
+                            backslash, strlen(u8"stray"), u8"\\"_sv),
                     }));
       });
   this->check_tokens_with_errors(
@@ -1995,7 +2008,7 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"hello"), u8"\\u}"),
+                    escape_sequence, strlen(u8"hello"), u8"\\u}"_sv),
             }));
       });
   this->check_tokens_with_errors(
@@ -2007,80 +2020,80 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"negative"), u8"\\u-"),
+                    escape_sequence, strlen(u8"negative"), u8"\\u-"_sv),
             }));
       });
 
   this->check_single_token_with_errors(
-      u8"a\\u{}b", u8"a\\u{}b",
+      u8"a\\u{}b"_sv, u8"a\\u{}b"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"a"), u8"\\u{}"),
+                    escape_sequence, strlen(u8"a"), u8"\\u{}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"a\\u{q}b", u8"a\\u{q}b",
+      u8"a\\u{q}b"_sv, u8"a\\u{q}b"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"a"), u8"\\u{q}"),
+                    escape_sequence, strlen(u8"a"), u8"\\u{q}"_sv),
             }));
       });
 
   this->check_single_token_with_errors(
-      u8"unterminated\\u", u8"unterminated\\u",
+      u8"unterminated\\u"_sv, u8"unterminated\\u"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"unterminated"), u8"\\u"),
+                    escape_sequence, strlen(u8"unterminated"), u8"\\u"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"unterminated\\u012", u8"unterminated\\u012",
+      u8"unterminated\\u012"_sv, u8"unterminated\\u012"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_expected_hex_digits_in_unicode_escape,  //
-                    escape_sequence, strlen(u8"unterminated"), u8"\\u012"),
+                    escape_sequence, strlen(u8"unterminated"), u8"\\u012"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"unterminated\\u{", u8"unterminated\\u{",
+      u8"unterminated\\u{"_sv, u8"unterminated\\u{"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unclosed_identifier_escape_sequence,  //
-                    escape_sequence, strlen(u8"unterminated"), u8"\\u{"),
+                    escape_sequence, strlen(u8"unterminated"), u8"\\u{"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"unterminated\\u{0123", u8"unterminated\\u{0123",
+      u8"unterminated\\u{0123"_sv, u8"unterminated\\u{0123"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unclosed_identifier_escape_sequence,  //
-                    escape_sequence, strlen(u8"unterminated"), u8"\\u{0123"),
+                    escape_sequence, strlen(u8"unterminated"), u8"\\u{0123"_sv),
             }));
       });
 
   this->check_tokens_with_errors(
-      u8"unclosed\\u{0123 'string'",
+      u8"unclosed\\u{0123 'string'"_sv,
       {token_type::identifier, token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
@@ -2088,36 +2101,37 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_unclosed_identifier_escape_sequence,  //
-                    escape_sequence, strlen(u8"unclosed"), u8"\\u{0123"),
+                    escape_sequence, strlen(u8"unclosed"), u8"\\u{0123"_sv),
             }));
       });
   this->check_tokens_with_errors(
-      u8"unclosed\\u{+=42",
+      u8"unclosed\\u{+=42"_sv,
       {token_type::identifier, token_type::plus_equal, token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_unclosed_identifier_escape_sequence,  //
-                            escape_sequence, strlen(u8"unclosed"), u8"\\u{"),
+                            escape_sequence, strlen(u8"unclosed"), u8"\\u{"_sv),
                     }));
       });
 }
 
 TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
   this->check_single_token_with_errors(
-      u8"too\\u{110000}big", u8"too\\u{110000}big",
+      u8"too\\u{110000}big"_sv, u8"too\\u{110000}big"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_code_point_in_unicode_out_of_range,  //
-                    escape_sequence, strlen(u8"too"), u8"\\u{110000}"),
+                    escape_sequence, strlen(u8"too"), u8"\\u{110000}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"waytoo\\u{100000000000000}big", u8"waytoo\\u{100000000000000}big",
+      u8"waytoo\\u{100000000000000}big"_sv,
+      u8"waytoo\\u{100000000000000}big"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
@@ -2125,7 +2139,7 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_code_point_in_unicode_out_of_range,  //
                     escape_sequence, strlen(u8"waytoo"),
-                    u8"\\u{100000000000000}"),
+                    u8"\\u{100000000000000}"_sv),
             }));
       });
 }
@@ -2166,105 +2180,105 @@ TEST_F(test_lex, lex_identifier_with_malformed_utf_8_sequence) {
 
 TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
   this->check_single_token_with_errors(
-      u8"illegal\\u0020", u8"illegal\\u0020",
+      u8"illegal\\u0020"_sv, u8"illegal\\u0020"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"illegal"), u8"\\u0020"),
+                    escape_sequence, strlen(u8"illegal"), u8"\\u0020"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"illegal\\u{0020}", u8"illegal\\u{0020}",
+      u8"illegal\\u{0020}"_sv, u8"illegal\\u{0020}"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"illegal"), u8"\\u{0020}"),
+                    escape_sequence, strlen(u8"illegal"), u8"\\u{0020}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"\\u{20}illegal", u8"\\u{20}illegal",
+      u8"\\u{20}illegal"_sv, u8"\\u{20}illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, 0, u8"\\u{20}"),
+                    escape_sequence, 0, u8"\\u{20}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"illegal\\u{10ffff}", u8"illegal\\u{10ffff}",
+      u8"illegal\\u{10ffff}"_sv, u8"illegal\\u{10ffff}"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"illegal"), u8"\\u{10ffff}"),
+                    escape_sequence, strlen(u8"illegal"), u8"\\u{10ffff}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"\\u{10ffff}illegal", u8"\\u{10ffff}illegal",
+      u8"\\u{10ffff}illegal"_sv, u8"\\u{10ffff}illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, 0, u8"\\u{10ffff}"),
+                    escape_sequence, 0, u8"\\u{10ffff}"_sv),
             }));
       });
 
   // U+005c is \ (backslash)
   this->check_single_token_with_errors(
-      u8"\\u{5c}u0061illegal", u8"\\u{5c}u0061illegal",
+      u8"\\u{5c}u0061illegal"_sv, u8"\\u{5c}u0061illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, 0, u8"\\u{5c}"),
+                    escape_sequence, 0, u8"\\u{5c}"_sv),
             }));
       });
   this->check_single_token_with_errors(
-      u8"illegal\\u{5c}u0061", u8"illegal\\u{5c}u0061",
+      u8"illegal\\u{5c}u0061"_sv, u8"illegal\\u{5c}u0061"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"illegal"), u8"\\u{5c}"),
+                    escape_sequence, strlen(u8"illegal"), u8"\\u{5c}"_sv),
             }));
       });
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
   this->check_single_token_with_errors(
-      u8"illegal\U0010ffff", u8"illegal\U0010ffff",
+      u8"illegal\U0010ffff"_sv, u8"illegal\U0010ffff"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_character_disallowed_in_identifiers,  //
-                            character, strlen(u8"illegal"), u8"\U0010ffff"),
+                            character, strlen(u8"illegal"), u8"\U0010ffff"_sv),
                     }));
       });
   this->check_single_token_with_errors(
-      u8"\U0010ffffillegal", u8"\U0010ffffillegal",
+      u8"\U0010ffffillegal"_sv, u8"\U0010ffffillegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_character_disallowed_in_identifiers,  //
-                            character, 0, u8"\U0010ffff"),
+                            character, 0, u8"\U0010ffff"_sv),
                     }));
       });
 }
@@ -2272,39 +2286,39 @@ TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
 TEST_F(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
   // Identifiers cannot start with a digit.
   this->check_single_token_with_errors(
-      u8"\\u{30}illegal", u8"\\u{30}illegal",
+      u8"\\u{30}illegal"_sv, u8"\\u{30}illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, 0, u8"\\u{30}"),
+                    escape_sequence, 0, u8"\\u{30}"_sv),
             }));
       });
 
   this->check_single_token_with_errors(
-      u8"\\u0816illegal", u8"\\u0816illegal",
+      u8"\\u0816illegal"_sv, u8"\\u0816illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, 0, u8"\\u0816"),
+                    escape_sequence, 0, u8"\\u0816"_sv),
             }));
       });
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
   this->check_single_token_with_errors(
-      u8"\u0816illegal", u8"\u0816illegal",
+      u8"\u0816illegal"_sv, u8"\u0816illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_character_disallowed_in_identifiers,  //
-                            character, 0, u8"\u0816"),
+                            character, 0, u8"\u0816"_sv),
                     }));
       });
 }
@@ -2313,11 +2327,11 @@ TEST_F(
     test_lex,
     lex_identifier_with_disallowed_initial_character_as_subsequent_character) {
   // Identifiers can contain a digit.
-  this->check_single_token(u8"legal0"_sv, u8"legal0");
-  this->check_single_token(u8"legal\\u{30}"_sv, u8"legal0");
+  this->check_single_token(u8"legal0"_sv, u8"legal0"_sv);
+  this->check_single_token(u8"legal\\u{30}"_sv, u8"legal0"_sv);
 
-  this->check_single_token(u8"legal\\u0816"_sv, u8"legal\u0816");
-  this->check_single_token(u8"legal\u0816"_sv, u8"legal\u0816");
+  this->check_single_token(u8"legal\\u0816"_sv, u8"legal\u0816"_sv);
+  this->check_single_token(u8"legal\u0816"_sv, u8"legal\u0816"_sv);
 }
 
 TEST_F(test_lex, lex_identifiers_which_look_like_keywords) {
@@ -2343,15 +2357,15 @@ TEST_F(test_lex, private_identifier) {
     EXPECT_EQ(ident.normalized_name(), u8"#id"_sv);
   }
 
-  this->check_single_token(u8"#\u00b5"_sv, u8"#\u00b5");    // 2 UTF-8 bytes
-  this->check_single_token(u8"#\u05d0"_sv, u8"#\u05d0");    // 2 UTF-8 bytes
-  this->check_single_token(u8"#a\u0816"_sv, u8"#a\u0816");  // 3 UTF-8 bytes
+  this->check_single_token(u8"#\u00b5"_sv, u8"#\u00b5"_sv);    // 2 UTF-8 bytes
+  this->check_single_token(u8"#\u05d0"_sv, u8"#\u05d0"_sv);    // 2 UTF-8 bytes
+  this->check_single_token(u8"#a\u0816"_sv, u8"#a\u0816"_sv);  // 3 UTF-8 bytes
   this->check_single_token(u8"#\U0001e93f"_sv,
-                           u8"#\U0001e93f");  // 4 UTF-8 bytes
+                           u8"#\U0001e93f"_sv);  // 4 UTF-8 bytes
 
-  this->check_single_token(u8"#\\u{b5}"_sv, u8"#\u00b5");
-  this->check_single_token(u8"#a\\u0816"_sv, u8"#a\u0816");
-  this->check_single_token(u8"#\\u{0001e93f}"_sv, u8"#\U0001e93f");
+  this->check_single_token(u8"#\\u{b5}"_sv, u8"#\u00b5"_sv);
+  this->check_single_token(u8"#a\\u0816"_sv, u8"#a\u0816"_sv);
+  this->check_single_token(u8"#\\u{0001e93f}"_sv, u8"#\U0001e93f"_sv);
 
   {
     padded_string code(u8" #\\u{78} "_sv);
@@ -2372,24 +2386,24 @@ TEST_F(test_lex, private_identifier) {
 TEST_F(test_lex,
        private_identifier_with_disallowed_non_ascii_initial_character) {
   this->check_single_token_with_errors(
-      u8"#\u0816illegal", u8"#\u0816illegal",
+      u8"#\u0816illegal"_sv, u8"#\u0816illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(
                             input, diag_character_disallowed_in_identifiers,  //
-                            character, strlen(u8"#"), u8"\u0816"),
+                            character, strlen(u8"#"), u8"\u0816"_sv),
                     }));
       });
 
   this->check_tokens_with_errors(
-      u8"#123", {token_type::number},
+      u8"#123"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(input, diag_unexpected_hash_character,  //
-                                  where, 0, u8"#"),
+                                  where, 0, u8"#"_sv),
             }));
       });
 }
@@ -2397,26 +2411,26 @@ TEST_F(test_lex,
 TEST_F(test_lex, private_identifier_with_disallowed_escaped_initial_character) {
   // Private identifiers cannot start with a digit.
   this->check_single_token_with_errors(
-      u8"#\\u{30}illegal", u8"#\\u{30}illegal",
+      u8"#\\u{30}illegal"_sv, u8"#\\u{30}illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"#"), u8"\\u{30}"),
+                    escape_sequence, strlen(u8"#"), u8"\\u{30}"_sv),
             }));
       });
 
   this->check_single_token_with_errors(
-      u8"#\\u0816illegal", u8"#\\u0816illegal",
+      u8"#\\u0816illegal"_sv, u8"#\\u0816illegal"_sv,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_character_disallowed_in_identifiers,  //
-                    escape_sequence, strlen(u8"#"), u8"\\u0816"),
+                    escape_sequence, strlen(u8"#"), u8"\\u0816"_sv),
             }));
       });
 }
@@ -2530,7 +2544,7 @@ TEST_F(
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &code, diag_keywords_cannot_contain_escape_sequences,  //
-                    escape_sequence, 0, u8"\\u{??}")}));
+                    escape_sequence, 0, u8"\\u{??}"_sv)}));
   }
 }
 
@@ -2670,7 +2684,7 @@ TEST_F(test_lex, lex_whitespace) {
     {
       string8 input = string8(u8"a") + whitespace + u8"b";
       SCOPED_TRACE(out_string8(input));
-      this->check_tokens(input.c_str(),
+      this->check_tokens(input,
                          {token_type::identifier, token_type::identifier});
     }
 
@@ -2678,15 +2692,14 @@ TEST_F(test_lex, lex_whitespace) {
       string8 input =
           string8(whitespace) + u8"10" + whitespace + u8"'hi'" + whitespace;
       SCOPED_TRACE(out_string8(input));
-      this->check_tokens(input.c_str(),
-                         {token_type::number, token_type::string});
+      this->check_tokens(input, {token_type::number, token_type::string});
     }
 
     {
       string8 input =
           string8(u8"async") + whitespace + u8"function" + whitespace;
       SCOPED_TRACE(out_string8(input));
-      this->check_tokens(input.c_str(),
+      this->check_tokens(input,
                          {token_type::kw_async, token_type::kw_function});
     }
   }
@@ -2710,7 +2723,7 @@ TEST_F(test_lex, lex_not_shebang) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unexpected_hash_character,  //
-                              where, 0, u8"#"),
+                              where, 0, u8"#"_sv),
         }));
   }
 
@@ -2725,7 +2738,7 @@ TEST_F(test_lex, lex_not_shebang) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unexpected_hash_character,  //
-                              where, strlen(u8"\n"), u8"#"),
+                              where, strlen(u8"\n"), u8"#"_sv),
         }));
   }
 
@@ -2740,7 +2753,7 @@ TEST_F(test_lex, lex_not_shebang) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unexpected_hash_character,  //
-                              where, strlen(u8"  "), u8"#"),
+                              where, strlen(u8"  "), u8"#"_sv),
         }));
   }
 
@@ -2756,7 +2769,7 @@ TEST_F(test_lex, lex_not_shebang) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 &input, diag_escaped_character_disallowed_in_identifiers,  //
-                escape_sequence, strlen(u8"#"), u8"\\u{21}"),
+                escape_sequence, strlen(u8"#"), u8"\\u{21}"_sv),
         }));
   }
 }
@@ -2773,7 +2786,7 @@ TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
         v.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(&input, diag_unexpected_bom_before_shebang,  //
-                              bom, 0, u8"\ufeff"),
+                              bom, 0, u8"\ufeff"_sv),
         }));
   }
 }
@@ -2792,7 +2805,7 @@ TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(&input, diag_unexpected_at_character,  //
-                                      character, strlen(u8"hello "), u8"@"),
+                                      character, strlen(u8"hello "), u8"@"_sv),
                 }));
   }
 }
@@ -3277,7 +3290,7 @@ TEST_F(test_lex, invalid_jsx_identifier) {
   this->lex_jsx_tokens = true;
 
   this->check_tokens_with_errors(
-      u8"<hello\\u{2d}world>",
+      u8"<hello\\u{2d}world>"_sv,
       {token_type::less, token_type::identifier, token_type::greater},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
@@ -3285,7 +3298,7 @@ TEST_F(test_lex, invalid_jsx_identifier) {
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     input, diag_escaped_hyphen_not_allowed_in_jsx_tag,  //
-                    escape_sequence, strlen(u8"<hello"), u8"\\u{2d}"),
+                    escape_sequence, strlen(u8"<hello"), u8"\\u{2d}"_sv),
             }));
       });
 }
@@ -3307,23 +3320,23 @@ TEST_F(test_lex, jsx_string) {
     EXPECT_THAT(errors.errors, IsEmpty());
   };
 
-  check_string(u8R"('hello')"sv);
-  check_string(u8R"("hello")"sv);
+  check_string(u8R"('hello')"_sv);
+  check_string(u8R"("hello")"_sv);
 
   // Backslashes are ignored.
-  check_string(u8R"("hello\nworld")"sv);
-  check_string(u8R"("hello\")"sv);
-  check_string(u8R"("hello\\")"sv);
-  check_string(u8R"('hello\')"sv);
-  check_string(u8R"('hello\\')"sv);
-  check_string(u8R"('hello\u{}world')"sv);
-  check_string(u8R"('hello\u00xyworld')"sv);
-  check_string(u8R"('hello\u00')"sv);
+  check_string(u8R"("hello\nworld")"_sv);
+  check_string(u8R"("hello\")"_sv);
+  check_string(u8R"("hello\\")"_sv);
+  check_string(u8R"('hello\')"_sv);
+  check_string(u8R"('hello\\')"_sv);
+  check_string(u8R"('hello\u{}world')"_sv);
+  check_string(u8R"('hello\u00xyworld')"_sv);
+  check_string(u8R"('hello\u00')"_sv);
 
   // Null bytes are allowed.
-  check_string(u8"'hello\u0000world'"sv);
-  check_string(u8"'\u0000world'"sv);
-  check_string(u8"'hello\u0000'"sv);
+  check_string(u8"'hello\u0000world'"_sv);
+  check_string(u8"'\u0000world'"_sv);
+  check_string(u8"'hello\u0000'"_sv);
 
   // Line terminators are allowed.
   for (string8_view line_terminator : line_terminators) {

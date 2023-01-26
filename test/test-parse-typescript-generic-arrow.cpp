@@ -38,7 +38,7 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
                               "visit_exit_function_scope",        // }
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"Type")}));
+                ElementsAreArray({generic_param_decl(u8"Type"_sv)}));
   }
 
   {
@@ -52,8 +52,8 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
                               "visit_exit_function_scope",        // }
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"Type"),
-                                  arrow_param_decl(u8"param")}));
+                ElementsAreArray({generic_param_decl(u8"Type"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
   }
 
   {
@@ -69,8 +69,8 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"Type"),
-                                  arrow_param_decl(u8"param")}));
+                ElementsAreArray({generic_param_decl(u8"Type"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
   }
 }
 
@@ -116,7 +116,7 @@ TEST_F(test_parse_typescript_generic_arrow,
     SCOPED_TRACE(
         "'>' is invalid in JSX, so this code cannot be interpreted as legal "
         "JSX");
-    test_parser p(u8"<T>() => {body} // </T>", typescript_jsx_options,
+    test_parser p(u8"<T>() => {body} // </T>"_sv, typescript_jsx_options,
                   capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
@@ -133,9 +133,9 @@ TEST_F(test_parse_typescript_generic_arrow,
             DIAG_TYPE_3_OFFSETS(
                 p.code,
                 diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
-                generic_parameters_less, 0, u8"<",                      //
-                expected_comma, strlen(u8"<T"), u8"",                   //
-                arrow, strlen(u8"<T>() "), u8"=>"),
+                generic_parameters_less, 0, u8"<"_sv,                   //
+                expected_comma, strlen(u8"<T"), u8""_sv,                //
+                arrow, strlen(u8"<T>() "), u8"=>"_sv),
         }));
   }
 
@@ -148,7 +148,7 @@ TEST_F(test_parse_typescript_generic_arrow,
 TEST_F(test_parse_typescript_generic_arrow,
        unambiguous_generic_arrow_is_treated_as_jsx_in_non_typescript) {
   {
-    test_parser p(u8"<T>() => {body} // </T>", jsx_options, capture_diags);
+    test_parser p(u8"<T>() => {body} // </T>"_sv, jsx_options, capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
     EXPECT_THAT(p.visits, IsEmpty());
@@ -156,7 +156,7 @@ TEST_F(test_parse_typescript_generic_arrow,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       diag_unexpected_greater_in_jsx_text,  //
-                                      greater, strlen(u8"<T>() ="), u8">"),
+                                      greater, strlen(u8"<T>() ="), u8">"_sv),
                 }));
   }
 }
@@ -164,16 +164,17 @@ TEST_F(test_parse_typescript_generic_arrow,
 TEST_F(test_parse_typescript_generic_arrow,
        arrow_without_parentheses_in_tsx_is_interpreted_as_jsx_element) {
   {
-    test_parser p(u8"<T>param => {body} // </T>", typescript_jsx_options,
+    test_parser p(u8"<T>param => {body} // </T>"_sv, typescript_jsx_options,
                   capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      diag_unexpected_greater_in_jsx_text,  //
-                                      greater, strlen(u8"<T>param ="), u8">"),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_unexpected_greater_in_jsx_text,  //
+                              greater, strlen(u8"<T>param ="), u8">"_sv),
+        }));
   }
 }
 
@@ -190,8 +191,8 @@ TEST_F(test_parse_typescript_generic_arrow,
                               "visit_exit_function_scope",        // }
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray(
-                    {generic_param_decl(u8"T"), arrow_param_decl(u8"param")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
   }
 
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
@@ -206,7 +207,7 @@ TEST_F(test_parse_typescript_generic_arrow,
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
   }
 }
 
@@ -225,8 +226,8 @@ TEST_F(test_parse_typescript_generic_arrow,
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray(
-                    {generic_param_decl(u8"T"), arrow_param_decl(u8"param")}));
+                ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
   }
 }
 
@@ -245,7 +246,7 @@ TEST_F(test_parse_typescript_generic_arrow,
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({generic_param_decl(u8"T")}));
+                  ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     }
 
     {
@@ -261,7 +262,7 @@ TEST_F(test_parse_typescript_generic_arrow,
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U", u8"myPromise"}));
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({generic_param_decl(u8"T")}));
+                  ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     }
 
     {
@@ -283,8 +284,8 @@ TEST_F(test_parse_typescript_generic_arrow,
           p.variable_uses,
           ElementsAreArray({u8"ParamType", u8"ReturnType", u8"myPromise"}));
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({generic_param_decl(u8"T"),
-                                    arrow_param_decl(u8"param")}));
+                  ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                    arrow_param_decl(u8"param"_sv)}));
     }
   }
 }

@@ -51,7 +51,7 @@ byte_buffer byte_buffer_of(string8_view data) {
 }
 
 TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
-  this->writer.send_message(byte_buffer_of(u8"hi"));
+  this->writer.send_message(byte_buffer_of(u8"hi"_sv));
   this->writer.flush();
   this->pipe.writer.close();
 

@@ -42,7 +42,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_assignment_makes_condition_constant,  //
-                        assignment_operator, strlen(u8"if (x "), u8"="),
+                        assignment_operator, strlen(u8"if (x "), u8"="_sv),
                 }));
   }
 
@@ -53,7 +53,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_assignment_makes_condition_constant,  //
-                        assignment_operator, strlen(u8"if (o.prop "), u8"="),
+                        assignment_operator, strlen(u8"if (o.prop "), u8"="_sv),
                 }));
   }
 
@@ -123,8 +123,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x === 'A' "), u8"||",  //
-                        equals_operator, strlen(u8"if (x "), u8"==="),
+                        or_operator, strlen(u8"if (x === 'A' "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"==="_sv),
                 }));
   }
 
@@ -135,8 +135,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x === 10 "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"==="),
+                        or_operator, strlen(u8"if (x === 10 "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"==="_sv),
                 }));
   }
 
@@ -147,8 +147,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"=="),
+                        or_operator, strlen(u8"if (x == 'A' "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"=="_sv),
                 }));
   }
 }
@@ -176,8 +176,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, null_and_undefined) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"=="),
+                        or_operator, strlen(u8"if (x == 'A' "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"=="_sv),
                 }));
   }
 
@@ -189,8 +189,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, null_and_undefined) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x == 'A' "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"=="),
+                        or_operator, strlen(u8"if (x == 'A' "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"=="_sv),
                 }));
   }
 
@@ -201,8 +201,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, null_and_undefined) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x === 10 "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"==="),
+                        or_operator, strlen(u8"if (x === 10 "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"==="_sv),
                 }));
   }
 
@@ -213,8 +213,8 @@ TEST_F(test_error_equals_does_not_distribute_over_or, null_and_undefined) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_equals_does_not_distribute_over_or,  //
-                        or_operator, strlen(u8"if (x === 10 "), u8"||",   //
-                        equals_operator, strlen(u8"if (x "), u8"==="),
+                        or_operator, strlen(u8"if (x === 10 "), u8"||"_sv,
+                        equals_operator, strlen(u8"if (x "), u8"==="_sv),
                 }));
   }
 }
@@ -248,7 +248,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_pointless_string_comp_contains_upper,
-                        span_operator, strlen(u8"s.toLowerCase() "), u8"=="),
+                        span_operator, strlen(u8"s.toLowerCase() "), u8"=="_sv),
                 }));
   }
   {
@@ -263,7 +263,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_pointless_string_comp_contains_lower,
-                        span_operator, strlen(u8"s.toUpperCase() "), u8"=="),
+                        span_operator, strlen(u8"s.toUpperCase() "), u8"=="_sv),
                 }));
   }
   {
@@ -273,7 +273,7 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_pointless_string_comp_contains_upper,
-                        span_operator, strlen(u8"s.toLowerCase() "), u8"=="),
+                        span_operator, strlen(u8"s.toLowerCase() "), u8"=="_sv),
                 }));
   }
 }
@@ -281,8 +281,9 @@ TEST_F(test_parse_warning, warn_on_pointless_string_compare) {
 TEST_F(test_parse_warning, warn_on_pointless_string_compare_all_operators) {
   {
     for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
-      test_parser p(concat(u8"s.toLowerCase() ", string8(op), u8" 'Banana'"),
-                    capture_diags);
+      test_parser p(
+          concat(u8"s.toLowerCase() "_sv, string8(op), u8" 'Banana'"_sv),
+          capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(
           p.errors,
@@ -322,7 +323,7 @@ TEST_F(test_parse_warning,
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator,
                               strlen(u8"stringBuilder.build().toLowerCase() "),
-                              u8"=="),
+                              u8"=="_sv),
         }));
   }
   {
@@ -337,7 +338,7 @@ TEST_F(test_parse_warning,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
-                              span_operator, strlen(u8"'BANANA' "), u8"=="),
+                              span_operator, strlen(u8"'BANANA' "), u8"=="_sv),
         }));
   }
 }
@@ -352,7 +353,7 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator, strlen(u8"if(s.toLowerCase() "),
-                              u8"==="),
+                              u8"==="_sv),
         }));
   }
   {
@@ -363,7 +364,7 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator, strlen(u8"((s.toLowerCase())) "),
-                              u8"==="),
+                              u8"==="_sv),
         }));
   }
   {
@@ -375,7 +376,7 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator, strlen(u8"(((s.toLowerCase())) "),
-                              u8"==="),
+                              u8"==="_sv),
         }));
   }
   {
@@ -388,12 +389,12 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator, strlen(u8"s.toLowerCase() "),
-                              u8"=="),
+                              u8"=="_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_pointless_string_comp_contains_lower,
                 span_operator,
                 strlen(u8"s.tolowerCASE() == 'BANANA' && s.toUpperCase() "),
-                u8"!=="),
+                u8"!=="_sv),
         }));
   }
   {
@@ -406,12 +407,12 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_pointless_string_comp_contains_upper,
                               span_operator, strlen(u8"((s.toLowerCase() "),
-                              u8"=="),
+                              u8"=="_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_pointless_string_comp_contains_lower,
                 span_operator,
                 strlen(u8"((s.toLowerCASE() == 'BANANA') && s.toUpperCase() "),
-                u8"!=="),
+                u8"!=="_sv),
         }));
   }
 }
@@ -439,7 +440,7 @@ TEST_F(test_parse_warning,
        warn_on_pointless_strict_compare_against_array_literals) {
   for (string8 op : {u8"===", u8"!=="}) {
     {
-      test_parser p(concat(u8"x ", op, u8" []"), capture_diags);
+      test_parser p(concat(u8"x "_sv, op, u8" []"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
           p.errors,
@@ -451,7 +452,7 @@ TEST_F(test_parse_warning,
           }));
     }
     {
-      test_parser p(concat(u8"x ", op, u8" [1, 2, 3]"), capture_diags);
+      test_parser p(concat(u8"x "_sv, op, u8" [1, 2, 3]"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
           p.errors,
@@ -467,7 +468,7 @@ TEST_F(test_parse_warning,
 TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
   for (string8 op : {u8"==", u8"!=", u8"===", u8"!=="}) {
     {
-      test_parser p(concat(u8"x ", op, u8" {}"), capture_diags);
+      test_parser p(concat(u8"x "_sv, op, u8" {}"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
                   ElementsAreArray({
@@ -477,7 +478,7 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
                   }));
     }
     {
-      test_parser p(concat(u8"x ", op, u8" class C{}"), capture_diags);
+      test_parser p(concat(u8"x "_sv, op, u8" class C{}"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
                   ElementsAreArray({
@@ -488,8 +489,8 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
     }
     {
       test_parser p(
-          concat(u8"x ", op,
-                 u8" ((parameter) => { some_object.call(parameter); })"),
+          concat(u8"x "_sv, op,
+                 u8" ((parameter) => { some_object.call(parameter); })"_sv),
           capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(p.errors,
@@ -500,7 +501,8 @@ TEST_F(test_parse_warning, warn_on_pointless_compare_against_literals) {
                   }));
     }
     {
-      test_parser p(concat(u8"x ", op, u8" /some_pattern/a"), capture_diags);
+      test_parser p(concat(u8"x "_sv, op, u8" /some_pattern/a"_sv),
+                    capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
           p.errors,
@@ -518,7 +520,7 @@ TEST_F(test_parse_warning,
        warn_on_pointless_compare_against_literals_complex_expressions) {
   {
     test_parser p(
-        u8"({} == {} && (x) === [1, 2, 3]) || ((/pattern/) == y.prop)",
+        u8"({} == {} && (x) === [1, 2, 3]) || ((/pattern/) == y.prop)"_sv,
         capture_diags);
     p.parse_and_visit_expression();
     EXPECT_THAT(
@@ -526,26 +528,27 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               diag_pointless_comp_against_object_literal,
-                              equals_operator, strlen(u8"({} "), u8"=="),
+                              equals_operator, strlen(u8"({} "), u8"=="_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_pointless_strict_comp_against_array_literal,
-                equals_operator, strlen(u8"({} == {} && (x) "), u8"==="),
+                equals_operator, strlen(u8"({} == {} && (x) "), u8"==="_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, diag_pointless_comp_against_regular_expression_literal,
                 equals_operator,
                 strlen(u8"({} == {} && (x) === [1, 2, 3]) || ((/pattern/) "),
-                u8"=="),
+                u8"=="_sv),
         }));
   }
   {
-    test_parser p(u8"x === y || ({}) != obj.prop", capture_diags);
+    test_parser p(u8"x === y || ({}) != obj.prop"_sv, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_pointless_comp_against_object_literal,
-                        equals_operator, strlen(u8"x === y || ({}) "), u8"!="),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_pointless_comp_against_object_literal,
+                equals_operator, strlen(u8"x === y || ({}) "), u8"!="_sv),
+        }));
   }
 }
 }

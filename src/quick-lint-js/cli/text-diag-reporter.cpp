@@ -60,16 +60,16 @@ void text_diag_formatter::write_before_message(
   this->output_.append_decimal_integer(p.line_number);
   this->output_.append_copy(u8':');
   this->output_.append_decimal_integer(p.column_number);
-  this->output_.append_literal(u8": "sv);
+  this->output_.append_literal(u8": "_sv);
   switch (sev) {
   case diagnostic_severity::error:
-    this->output_.append_literal(u8"error: "sv);
+    this->output_.append_literal(u8"error: "_sv);
     break;
   case diagnostic_severity::note:
-    this->output_.append_literal(u8"note: "sv);
+    this->output_.append_literal(u8"note: "_sv);
     break;
   case diagnostic_severity::warning:
-    this->output_.append_literal(u8"warning: "sv);
+    this->output_.append_literal(u8"warning: "_sv);
     break;
   }
 }
@@ -85,15 +85,15 @@ void text_diag_formatter::write_after_message(std::string_view code,
                                               const source_code_span &) {
   if (this->format_escape_errors_) {
     this->output_.append_copy(
-        u8" [\x1B]8;;https://quick-lint-js.com/errors/"sv);
+        u8" [\x1B]8;;https://quick-lint-js.com/errors/"_sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_literal(u8"/\x1B\\"sv);
+    this->output_.append_literal(u8"/\x1B\\"_sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_literal(u8"\x1B]8;;\x1B\\]\n"sv);
+    this->output_.append_literal(u8"\x1B]8;;\x1B\\]\n"_sv);
   } else {
-    this->output_.append_literal(u8" ["sv);
+    this->output_.append_literal(u8" ["_sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_literal(u8"]\n"sv);
+    this->output_.append_literal(u8"]\n"_sv);
   }
 }
 }

@@ -10,13 +10,13 @@ namespace quick_lint_js {
 string8_view headlinese_enum_kind(enum_kind ek) noexcept {
   switch (ek) {
   case enum_kind::const_enum:
-    return u8"const enum"sv;
+    return u8"const enum"_sv;
   case enum_kind::declare_const_enum:
-    return u8"declare const enum"sv;
+    return u8"declare const enum"_sv;
   case enum_kind::declare_enum:
-    return u8"declare enum"sv;
+    return u8"declare enum"_sv;
   case enum_kind::normal:
-    return u8"enum"sv;
+    return u8"enum"_sv;
   }
   QLJS_UNREACHABLE();
 }

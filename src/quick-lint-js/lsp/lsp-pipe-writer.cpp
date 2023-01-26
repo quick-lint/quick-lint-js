@@ -14,8 +14,8 @@
 
 namespace quick_lint_js {
 namespace {
-constexpr string8_view header_prefix = u8"Content-Length: ";
-constexpr string8_view header_suffix = u8"\r\n\r\n";
+constexpr string8_view header_prefix = u8"Content-Length: "_sv;
+constexpr string8_view header_suffix = u8"\r\n\r\n"_sv;
 constexpr std::size_t max_header_size = header_prefix.size() +
                                         integer_string_length<std::size_t> +
                                         header_suffix.size();
