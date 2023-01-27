@@ -876,13 +876,39 @@ expression* parser::parse_async_expression_only(
     QLJS_UNREACHABLE();
   }
 
-  // async < 42         // Variable.
-  // async <T>() => {}  // Arrow function. TypeScript only.
-  // async<T>()         // Function call. TypeScript only.
-  // async<T>           // Variable with generic arguments. TypeScript only.
+  // async < 42          // Variable.
+  // async <T,>() => {}  // Arrow function. TypeScript only.
+  // async <T>() => {}   // Invalid in TypeScript.
+  // async<T>()          // Function call. TypeScript only.
+  // async<T>            // Variable with generic arguments. TypeScript only.
   // TODO(#832): Parse generic arrow with 'await' keyword.
   case token_type::less:
     if (this->options_.typescript) {
+      source_code_span less = this->peek().span();
+
+      // If illegal_lone_parameter is set, then the code is like
+      // 'async <T>() => {}' which TypeScript rejects in JSX mode. Therefore,
+      // we may need to report
+      // diag_typescript_generic_arrow_needs_comma_in_jsx_mode.
+      //
+      // TODO(strager): Figure out a more efficient way to do this than with
+      // two transactions.
+      std::optional<source_code_span> illegal_lone_parameter;
+      if (this->options_.jsx) {
+        lexer_transaction lone_parameter_transaction =
+            this->lexer_.begin_transaction();
+        this->skip();  // <
+        if (this->peek().type == token_type::identifier) {
+          source_code_span parameter_name = this->peek().span();
+          this->skip();  // (name)
+          if (this->peek().type == token_type::greater) {
+            illegal_lone_parameter = parameter_name;
+          }
+        }
+        this->lexer_.roll_back_transaction(
+            std::move(lone_parameter_transaction));
+      }
+
       parser_transaction transaction = this->begin_transaction();
 
       stacked_buffering_visitor parameter_visits =
@@ -915,7 +941,9 @@ expression* parser::parse_async_expression_only(
             }
           });
       if (parsed_arrow_function_parameters_without_fatal_error) {
-        // async <T>() => {}
+        // async <T,>() => {}
+        // async <T extends U>() => {}
+        // async <T>() => {}   // Invalid.
         this->commit_transaction(std::move(transaction));
         // TODO(strager): Error if newline after 'async' token (like non-generic
         // code path).
@@ -928,6 +956,17 @@ expression* parser::parse_async_expression_only(
               /*allow_parenthesized_type=*/false);
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+
+        if (illegal_lone_parameter.has_value()) {
+          this->diag_reporter_->report(
+              diag_typescript_generic_arrow_needs_comma_in_jsx_mode{
+                  .generic_parameters_less = less,
+                  .expected_comma =
+                      source_code_span::unit(illegal_lone_parameter->end()),
+                  .arrow = this->peek().span(),
+              });
+        }
+
         return parse_arrow_function_arrow_and_body(
             std::move(*parameters),
             /*parameter_visits=*/&parameter_visits.visitor(),

@@ -178,6 +178,45 @@ TEST_F(test_parse_typescript_generic_arrow,
   }
 }
 
+// TypeScript rejects this code. This seems like a TypeScript compiler bug to
+// me...
+TEST_F(test_parse_typescript_generic_arrow,
+       generic_async_arrow_with_lone_parameter_is_not_allowed_in_tsx) {
+  {
+    test_parser p(u8"async <T>() => {}"_sv, typescript_jsx_options,
+                  capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code,
+                diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
+                expected_comma, strlen(u8"async <T"), u8""_sv,          //
+                arrow, strlen(u8"async <T>() "), u8"=>"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"async <T>(): ReturnType => {}"_sv, typescript_jsx_options,
+                  capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code,
+                diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
+                expected_comma, strlen(u8"async <T"), u8""_sv,          //
+                arrow, strlen(u8"async <T>(): ReturnType "), u8"=>"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_generic_arrow,
        generic_arrow_with_comma_is_allowed_in_tsx) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
@@ -255,21 +294,6 @@ TEST_F(test_parse_typescript_generic_arrow,
        generic_async_arrow_function_is_allowed_in_tsx) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
     {
-      test_parser p(u8"async <T>() => { await myPromise; }"_sv, o);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_enter_function_scope",       //
-                                "visit_variable_declaration",       // T
-                                "visit_enter_function_scope_body",  // {
-                                "visit_variable_use",               // myPromise
-                                "visit_exit_function_scope",        // }
-                            }));
-      EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
-      EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({generic_param_decl(u8"T"_sv)}));
-    }
-
-    {
       test_parser p(u8"async <T extends U>() => { await myPromise; }"_sv, o);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -283,29 +307,6 @@ TEST_F(test_parse_typescript_generic_arrow,
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U", u8"myPromise"}));
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({generic_param_decl(u8"T"_sv)}));
-    }
-
-    {
-      test_parser p(
-          u8"async <T>(param: ParamType): ReturnType => { await myPromise; }"_sv,
-          o);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_enter_function_scope",  //
-                                "visit_variable_declaration",  // T
-                                "visit_variable_type_use",     // ParamType
-                                "visit_variable_declaration",  // param
-                                "visit_variable_type_use",     // ReturnType
-                                "visit_enter_function_scope_body",  // {
-                                "visit_variable_use",               // myPromise
-                                "visit_exit_function_scope",        // }
-                            }));
-      EXPECT_THAT(
-          p.variable_uses,
-          ElementsAreArray({u8"ParamType", u8"ReturnType", u8"myPromise"}));
-      EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({generic_param_decl(u8"T"_sv),
-                                    arrow_param_decl(u8"param"_sv)}));
     }
 
     {
