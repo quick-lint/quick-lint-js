@@ -43,6 +43,7 @@ quick_lint_js_add_executable(
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
   test-c-api.cpp
+  test-c-string-list.cpp
   test-cli-location.cpp
   test-concat.cpp
   test-configuration-loader.cpp

@@ -4,6 +4,7 @@
 #include <array>
 #include <cstring>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/c-string-list.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -73,16 +74,17 @@ void locale_name_combinations(const char* locale_name, Func&& callback);
 }
 
 std::optional<int> find_locale(const char* locales, const char* locale_name) {
+  c_string_list_view locales_list(locales);
   std::optional<int> found_entry = std::nullopt;
   locale_name_combinations(locale_name,
                            [&](std::string_view current_locale_name) -> bool {
                              int i = 0;
-                             for (const char* l = locales; *l != '\0';
-                                  l += std::strlen(l) + 1, ++i) {
+                             for (std::string_view l : locales_list) {
                                if (l == current_locale_name) {
                                  found_entry = i;
                                  return false;
                                }
+                               ++i;
                              }
                              return true;
                            });

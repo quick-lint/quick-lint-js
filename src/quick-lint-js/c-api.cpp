@@ -8,6 +8,7 @@
 #include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/c-string-list.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -89,12 +90,12 @@ const char* const* qljs_list_locales() {
     const char** locales = new const char*[locale_count + 1];
 
     std::size_t i = 0;
-    const char* l;
-    for (l = translation_data.locale_table; *l != '\0';
-         l += std::strlen(l) + 1, ++i) {
-      locales[i] = l;
+    c_string_list_view locale_table(translation_data.locale_table);
+    for (c_string_list_iterator it = locale_table.begin();
+         it != locale_table.end(); ++it, ++i) {
+      locales[i] = it.c_str();
     }
-    locales[i] = l;  // Default locale (empty string).
+    locales[i] = "";  // Default locale.
     ++i;
     QLJS_ASSERT(i == locale_count);
     locales[i] = nullptr;  // Terminator.
