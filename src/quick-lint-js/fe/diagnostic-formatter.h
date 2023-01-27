@@ -26,103 +26,21 @@ translatable_message singular_statement_kind(statement_kind) noexcept;
 
 class diagnostic_formatter_base {
  public:
-  explicit diagnostic_formatter_base(translator t) : translator_(t) {}
+  explicit diagnostic_formatter_base(translator t);
 
   source_code_span get_argument_source_code_span(
       const diagnostic_message_args& args, const void* diagnostic,
-      int arg_index) {
-    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
-    switch (arg_type) {
-    case diagnostic_arg_type::identifier:
-      return reinterpret_cast<const identifier*>(arg_data)->span();
-
-    case diagnostic_arg_type::source_code_span:
-      return *reinterpret_cast<const source_code_span*>(arg_data);
-
-    case diagnostic_arg_type::char8:
-    case diagnostic_arg_type::enum_kind:
-    case diagnostic_arg_type::invalid:
-    case diagnostic_arg_type::statement_kind:
-    case diagnostic_arg_type::string8_view:
-    case diagnostic_arg_type::variable_kind:
-      QLJS_UNREACHABLE();
-    }
-    QLJS_UNREACHABLE();
-  }
+      int arg_index);
 
   string8_view expand_argument(const diagnostic_message_args& args,
-                               const void* diagnostic, int arg_index) {
-    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
-    switch (arg_type) {
-    case diagnostic_arg_type::char8:
-      return string8_view(reinterpret_cast<const char8*>(arg_data), 1);
-
-    case diagnostic_arg_type::identifier:
-      return reinterpret_cast<const identifier*>(arg_data)
-          ->span()
-          .string_view();
-
-    case diagnostic_arg_type::source_code_span:
-      return reinterpret_cast<const source_code_span*>(arg_data)->string_view();
-
-    case diagnostic_arg_type::string8_view:
-      return *reinterpret_cast<const string8_view*>(arg_data);
-
-    case diagnostic_arg_type::enum_kind:
-    case diagnostic_arg_type::invalid:
-    case diagnostic_arg_type::statement_kind:
-    case diagnostic_arg_type::variable_kind:
-      QLJS_UNREACHABLE();
-    }
-    QLJS_UNREACHABLE();
-  }
+                               const void* diagnostic, int arg_index);
 
   string8_view expand_argument_headlinese(const diagnostic_message_args& args,
                                           const void* diagnostic,
-                                          int arg_index) {
-    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
-    switch (arg_type) {
-    case diagnostic_arg_type::enum_kind:
-      return headlinese_enum_kind(
-          *reinterpret_cast<const enum_kind*>(arg_data));
-
-    case diagnostic_arg_type::statement_kind:
-      return this->translator_.translate(headlinese_statement_kind(
-          *reinterpret_cast<const statement_kind*>(arg_data)));
-
-    case diagnostic_arg_type::char8:
-    case diagnostic_arg_type::identifier:
-    case diagnostic_arg_type::invalid:
-    case diagnostic_arg_type::source_code_span:
-    case diagnostic_arg_type::string8_view:
-    case diagnostic_arg_type::variable_kind:
-      QLJS_UNREACHABLE();
-    }
-    QLJS_UNREACHABLE();
-  }
+                                          int arg_index);
 
   string8_view expand_argument_singular(const diagnostic_message_args& args,
-                                        const void* diagnostic, int arg_index) {
-    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
-    switch (arg_type) {
-    case diagnostic_arg_type::statement_kind:
-      return this->translator_.translate(singular_statement_kind(
-          *reinterpret_cast<const statement_kind*>(arg_data)));
-
-    case diagnostic_arg_type::enum_kind:
-      QLJS_UNIMPLEMENTED();
-      break;
-
-    case diagnostic_arg_type::char8:
-    case diagnostic_arg_type::identifier:
-    case diagnostic_arg_type::invalid:
-    case diagnostic_arg_type::source_code_span:
-    case diagnostic_arg_type::string8_view:
-    case diagnostic_arg_type::variable_kind:
-      QLJS_UNREACHABLE();
-    }
-    QLJS_UNREACHABLE();
-  }
+                                        const void* diagnostic, int arg_index);
 
  protected:
   translator translator_;
@@ -130,13 +48,7 @@ class diagnostic_formatter_base {
  private:
   std::pair<const void*, diagnostic_arg_type> get_arg(
       const diagnostic_message_args& args, const void* diagnostic,
-      int arg_index) noexcept {
-    const diagnostic_message_arg_info& arg_info =
-        args[narrow_cast<std::size_t>(arg_index)];
-    const void* arg_data =
-        reinterpret_cast<const char*>(diagnostic) + arg_info.offset();
-    return std::make_pair(arg_data, arg_info.type);
-  }
+      int arg_index) noexcept;
 };
 
 template <class Derived>

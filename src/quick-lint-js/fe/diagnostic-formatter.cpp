@@ -1,10 +1,21 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cstddef>
+#include <initializer_list>
+#include <iterator>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
+#include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
+#include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/i18n/translation.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <type_traits>
+#include <utility>
 
 namespace quick_lint_js {
 string8_view headlinese_enum_kind(enum_kind ek) noexcept {
@@ -55,6 +66,114 @@ translatable_message singular_statement_kind(statement_kind sk) noexcept {
     return QLJS_TRANSLATABLE("a labelled statement");
   }
   QLJS_UNREACHABLE();
+}
+
+diagnostic_formatter_base::diagnostic_formatter_base(translator t)
+    : translator_(t) {}
+
+source_code_span diagnostic_formatter_base::get_argument_source_code_span(
+    const diagnostic_message_args& args, const void* diagnostic,
+    int arg_index) {
+  auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
+  switch (arg_type) {
+  case diagnostic_arg_type::identifier:
+    return reinterpret_cast<const identifier*>(arg_data)->span();
+
+  case diagnostic_arg_type::source_code_span:
+    return *reinterpret_cast<const source_code_span*>(arg_data);
+
+  case diagnostic_arg_type::char8:
+  case diagnostic_arg_type::enum_kind:
+  case diagnostic_arg_type::invalid:
+  case diagnostic_arg_type::statement_kind:
+  case diagnostic_arg_type::string8_view:
+  case diagnostic_arg_type::variable_kind:
+    QLJS_UNREACHABLE();
+  }
+  QLJS_UNREACHABLE();
+}
+
+string8_view diagnostic_formatter_base::expand_argument(
+    const diagnostic_message_args& args, const void* diagnostic,
+    int arg_index) {
+  auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
+  switch (arg_type) {
+  case diagnostic_arg_type::char8:
+    return string8_view(reinterpret_cast<const char8*>(arg_data), 1);
+
+  case diagnostic_arg_type::identifier:
+    return reinterpret_cast<const identifier*>(arg_data)->span().string_view();
+
+  case diagnostic_arg_type::source_code_span:
+    return reinterpret_cast<const source_code_span*>(arg_data)->string_view();
+
+  case diagnostic_arg_type::string8_view:
+    return *reinterpret_cast<const string8_view*>(arg_data);
+
+  case diagnostic_arg_type::enum_kind:
+  case diagnostic_arg_type::invalid:
+  case diagnostic_arg_type::statement_kind:
+  case diagnostic_arg_type::variable_kind:
+    QLJS_UNREACHABLE();
+  }
+  QLJS_UNREACHABLE();
+}
+
+string8_view diagnostic_formatter_base::expand_argument_headlinese(
+    const diagnostic_message_args& args, const void* diagnostic,
+    int arg_index) {
+  auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
+  switch (arg_type) {
+  case diagnostic_arg_type::enum_kind:
+    return headlinese_enum_kind(*reinterpret_cast<const enum_kind*>(arg_data));
+
+  case diagnostic_arg_type::statement_kind:
+    return this->translator_.translate(headlinese_statement_kind(
+        *reinterpret_cast<const statement_kind*>(arg_data)));
+
+  case diagnostic_arg_type::char8:
+  case diagnostic_arg_type::identifier:
+  case diagnostic_arg_type::invalid:
+  case diagnostic_arg_type::source_code_span:
+  case diagnostic_arg_type::string8_view:
+  case diagnostic_arg_type::variable_kind:
+    QLJS_UNREACHABLE();
+  }
+  QLJS_UNREACHABLE();
+}
+
+string8_view diagnostic_formatter_base::expand_argument_singular(
+    const diagnostic_message_args& args, const void* diagnostic,
+    int arg_index) {
+  auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
+  switch (arg_type) {
+  case diagnostic_arg_type::statement_kind:
+    return this->translator_.translate(singular_statement_kind(
+        *reinterpret_cast<const statement_kind*>(arg_data)));
+
+  case diagnostic_arg_type::enum_kind:
+    QLJS_UNIMPLEMENTED();
+    break;
+
+  case diagnostic_arg_type::char8:
+  case diagnostic_arg_type::identifier:
+  case diagnostic_arg_type::invalid:
+  case diagnostic_arg_type::source_code_span:
+  case diagnostic_arg_type::string8_view:
+  case diagnostic_arg_type::variable_kind:
+    QLJS_UNREACHABLE();
+  }
+  QLJS_UNREACHABLE();
+}
+
+std::pair<const void*, diagnostic_arg_type> diagnostic_formatter_base::get_arg(
+    const diagnostic_message_args& args, const void* diagnostic,
+    int arg_index) noexcept {
+  const diagnostic_message_arg_info& arg_info =
+      args[narrow_cast<std::size_t>(arg_index)];
+  const void* arg_data =
+      reinterpret_cast<const char*>(diagnostic) + arg_info.offset();
+  return std::make_pair(arg_data, arg_info.type);
 }
 }
 
