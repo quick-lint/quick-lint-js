@@ -673,7 +673,6 @@ TEST(test_count_utf_8_characters, mixed_ascii_with_invalid) {
   std::size_t n = count_utf_8_characters(u8"a\xe2\x80"_padded);
   EXPECT_EQ(n, 3);
 }
-
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
