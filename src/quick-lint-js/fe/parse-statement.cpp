@@ -1245,6 +1245,12 @@ next_parameter:
     this->parse_and_visit_typescript_type_expression(v);
   }
 
+  if (this->peek().type == token_type::equal) {
+    // <T = Default>
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+  }
+
   QLJS_ASSERT(parameter_name.has_value());
   v.visit_variable_declaration(*parameter_name,
                                variable_kind::_generic_parameter,

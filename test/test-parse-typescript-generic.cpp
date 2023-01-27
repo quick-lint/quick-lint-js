@@ -237,6 +237,38 @@ TEST_F(test_parse_typescript_generic, parameter_list_extends) {
   }
 }
 
+TEST_F(test_parse_typescript_generic, type_parameter_default) {
+  {
+    test_parser p(u8"<T = U>"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // U
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_typescript_generic, type_parameter_default_with_extends) {
+  {
+    test_parser p(u8"<T extends U = Def>"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // U
+                              "visit_variable_type_use",     // Def
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U", u8"Def"}));
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
 TEST_F(test_parse_typescript_generic,
        parameters_can_be_named_contextual_keywords) {
   for (string8 name :

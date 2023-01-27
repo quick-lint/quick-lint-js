@@ -3139,7 +3139,9 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
       switch (this->peek().type) {
       // <T,>() => {}                 // Generic arrow function.
       // <T extends U>(params) => {}  // Generic arrow function.
+      // <T = U>(params) => {}        // Generic arrow function.
       case token_type::comma:
+      case token_type::equal:
       case token_type::kw_extends:
         this->lexer_.roll_back_transaction(std::move(transaction));
         return this->parse_typescript_generic_arrow_expression(
