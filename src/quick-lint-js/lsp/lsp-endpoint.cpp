@@ -72,25 +72,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
   bool is_batch_message =
       message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
   if (is_batch_message) {
-    response_json.append_copy(u8"["_sv);
-    std::size_t empty_response_json_size = response_json.size();
-    for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
-             sub_message_or_error : batched_messages) {
-      ::simdjson::ondemand::object sub_message;
-      if (sub_message_or_error.get(sub_message) ==
-          ::simdjson::error_code::SUCCESS) {
-        this->handle_message(
-            sub_message, response_json,
-            /*add_comma_before_response=*/response_json.size() !=
-                empty_response_json_size);
-      } else {
-        if (response_json.size() != empty_response_json_size) {
-          response_json.append_copy(u8","_sv);
-        }
-        this->write_json_parse_error_response(response_json);
-      }
-    }
-    response_json.append_copy(u8"]"_sv);
+    this->write_json_batch_messages_not_supported_error(response_json);
   } else {
     ::simdjson::ondemand::object message_object;
     if (message_document.get(message_object) ==
@@ -102,11 +84,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
     }
   }
 
-  if (is_batch_message) {
-    // Batch messages require batch responses.
-    QLJS_ASSERT(!response_json.empty());
-  }
-
+  // TODO(strager): Remove this 'if'.
   if (!response_json.empty()) {
     this->remote_->send_message(std::move(response_json));
   }
@@ -242,6 +220,19 @@ void lsp_endpoint::write_json_parse_error_response(byte_buffer& response_json) {
     u8R"(})"
   u8R"(})"_sv);
   // clang-format on
+}
+
+void lsp_endpoint::write_json_batch_messages_not_supported_error(
+    byte_buffer& response_json) {
+  // clang-format off
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32700,)"
+      u8R"("message":"Parse error: batch messages not supported")"
+    u8R"(})"
+  u8R"(})"_sv);
 }
 
 void lsp_endpoint::write_invalid_request_error_response(

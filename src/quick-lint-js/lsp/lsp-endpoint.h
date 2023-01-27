@@ -129,6 +129,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
                       bool add_comma_before_response);
 
   void write_json_parse_error_response(byte_buffer& response_json);
+  void write_json_batch_messages_not_supported_error(
+      byte_buffer& response_json);
 
   static void write_invalid_request_error_response(byte_buffer& response_json);
 

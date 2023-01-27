@@ -65,7 +65,12 @@ std::string json_get_string(
   return std::string(s);
 }
 
-TEST(test_lsp_endpoint, single_unbatched_request) {
+void expect_batch_not_supported_error(::boost::json::value& message) {
+  expect_error(message, -32700, "Parse error: batch messages not supported");
+  EXPECT_EQ(look_up(message, "id"), ::boost::json::value());
+}
+
+TEST(test_lsp_endpoint, single_request) {
   struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
                         std::string_view method, string8_view id_json,
@@ -99,27 +104,9 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
   EXPECT_EQ(look_up(remote.messages[0], "params"), "testresponse");
 }
 
-TEST(test_lsp_endpoint, batched_request) {
-  struct mock_lsp_server_handler : public test_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object& request,
-                        std::string_view method, string8_view id_json,
-                        byte_buffer& response_json) override {
-      EXPECT_THAT(json_get_string(request["method"]),
-                  ::testing::AnyOf("testmethod A", "testmethod B"));
-      EXPECT_THAT(method, ::testing::AnyOf("testmethod A", "testmethod B"));
-      EXPECT_THAT(id_json, ::testing::AnyOf(u8"3", u8"4"));
-
-      ::boost::json::value response = {
-          {"jsonrpc", "2.0"},
-          {"id", simdjson_to_boost_json(request["id"])},
-          {"params", "testresponse"},
-      };
-      response_json.append_copy(json_to_string(response));
-    }
-  };
-  mock_lsp_server_handler handler;
+TEST(test_lsp_endpoint, batched_request_is_not_supported) {
+  test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  remote.allow_batch_messages = true;
   lsp_endpoint server(&handler, &remote);
 
   server.append(
@@ -138,9 +125,9 @@ TEST(test_lsp_endpoint, batched_request) {
       ])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  ASSERT_EQ(remote.messages[0].as_array().size(), 2);
-  EXPECT_EQ(look_up(remote.messages[0], 0, "id"), 3);
-  EXPECT_EQ(look_up(remote.messages[0], 1, "id"), 4);
+  EXPECT_TRUE(remote.messages[0].is_object())
+      << "server should not respond with a batch response (array)";
+  expect_batch_not_supported_error(remote.messages[0]);
 }
 
 TEST(test_lsp_endpoint, successful_response) {
@@ -239,24 +226,9 @@ TEST(test_lsp_endpoint, error_response) {
   EXPECT_TRUE(handler.error_response_handled);
 }
 
-TEST(test_lsp_endpoint, batched_responses) {
-  struct mock_lsp_server_handler : public test_lsp_server_handler {
-    void handle_response(lsp_endpoint_handler::request_id_type,
-                         ::simdjson::ondemand::value&) override {
-      this->handled_success_response = true;
-    }
-
-    void handle_error_response(lsp_endpoint_handler::request_id_type,
-                               std::int64_t, std::string_view) override {
-      this->handled_error_response = true;
-    }
-
-    bool handled_success_response = false;
-    bool handled_error_response = false;
-  };
-  mock_lsp_server_handler handler;
+TEST(test_lsp_endpoint, batched_responses_are_not_supported) {
+  test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  remote.allow_batch_messages = true;
   lsp_endpoint server(&handler, &remote);
 
   server.append(
@@ -275,11 +247,12 @@ TEST(test_lsp_endpoint, batched_responses) {
         }
       ])"_sv));
 
-  EXPECT_TRUE(handler.handled_success_response);
-  EXPECT_TRUE(handler.handled_error_response);
+  EXPECT_TRUE(remote.messages[0].is_object())
+      << "server should not respond with a batch response (array)";
+  expect_batch_not_supported_error(remote.messages[0]);
 }
 
-TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
+TEST(test_lsp_endpoint, single_notification_with_no_reply) {
   static int handle_notification_count;
   handle_notification_count = 0;
 
@@ -306,7 +279,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   EXPECT_EQ(handle_notification_count, 1);
 }
 
-TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
+TEST(test_lsp_endpoint, single_notification_with_reply) {
   struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
@@ -340,21 +313,9 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
 }
 
-TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
-  static int handle_notification_count;
-  handle_notification_count = 0;
-
-  struct mock_lsp_server_handler : public test_lsp_server_handler {
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::string_view method) override {
-      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
-      EXPECT_EQ(method, "testmethod");
-      handle_notification_count += 1;
-    }
-  };
-  mock_lsp_server_handler handler;
+TEST(test_lsp_endpoint, batched_notification_is_not_supported) {
+  test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  remote.allow_batch_messages = true;
   lsp_endpoint server(&handler, &remote);
 
   server.append(
@@ -365,126 +326,9 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       }])"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
-  EXPECT_EQ(handle_notification_count, 1);
-}
-
-TEST(test_lsp_endpoint, batched_notification_with_reply) {
-  struct mock_lsp_server_handler : public test_lsp_server_handler {
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::string_view method) override {
-      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
-      EXPECT_EQ(method, "testmethod");
-
-      ::boost::json::value reply = {
-          {"jsonrpc", "2.0"},
-          {"method", "testreply"},
-          {"params", "testparams"},
-      };
-      this->pending_notifications.push_back(reply);
-    }
-
-    std::vector< ::boost::json::value> pending_notifications;
-  };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  remote.allow_batch_messages = true;
-  lsp_endpoint server(&handler, &remote);
-
-  server.append(
-      make_message(u8R"([{
-        "jsonrpc": "2.0",
-        "method": "testmethod",
-        "params": {}
-      }])"_sv));
-
-  ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
-
-  ASSERT_EQ(handler.pending_notifications.size(), 1);
-  EXPECT_EQ(look_up(handler.pending_notifications[0], "method"), "testreply");
-  EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
-}
-
-TEST(test_lsp_endpoint, big_batch) {
-  struct mock_lsp_server_handler : public test_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view method,
-                        string8_view id_json,
-                        byte_buffer& response_json) override {
-      this->handled_request = true;
-      EXPECT_EQ(method, "testrequest");
-      response_json.append_copy(
-          u8R"({"jsonrpc": "2.0", "params": "response", "id": )"_sv);
-      response_json.append_copy(id_json);
-      response_json.append_copy(u8"}"_sv);
-    }
-
-    void handle_response(lsp_endpoint_handler::request_id_type request_id,
-                         ::simdjson::ondemand::value& result) override {
-      this->handled_response = true;
-      EXPECT_EQ(request_id, 2);
-      std::string_view result_string;
-      ASSERT_EQ(result.get(result_string), ::simdjson::SUCCESS);
-      EXPECT_EQ(result_string, "testresult");
-    }
-
-    void handle_error_response(lsp_endpoint_handler::request_id_type request_id,
-                               std::int64_t code,
-                               std::string_view message) override {
-      this->handled_error_response = true;
-      EXPECT_EQ(request_id, 3);
-      EXPECT_EQ(code, -1);
-      EXPECT_EQ(message, "testerror");
-    }
-
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::string_view method) override {
-      this->handled_notification = 1;
-      EXPECT_EQ(method, "testnotification");
-    }
-
-    bool handled_request = false;
-    bool handled_response = false;
-    bool handled_error_response = false;
-    bool handled_notification = false;
-  };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  remote.allow_batch_messages = true;
-  lsp_endpoint server(&handler, &remote);
-
-  server.append(
-      make_message(u8R"([{
-        "jsonrpc": "2.0",
-        "method": "testnotification",
-        "params": {}
-      }, {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "testrequest",
-        "params": {}
-      }, {
-        "jsonrpc": "2.0",
-        "id": 2,
-        "result": "testresult"
-      }, {
-        "jsonrpc": "2.0",
-        "id": 3,
-        "error": {
-          "code": -1,
-          "message": "testerror"
-        }
-      }])"_sv));
-
-  ASSERT_EQ(remote.messages.size(), 1);
-  ::boost::json::array batch = remote.messages[0].as_array();
-  ASSERT_THAT(batch, ::testing::ElementsAre(::testing::_));
-  EXPECT_EQ(look_up(batch, 0, "params"), "response");
-
-  EXPECT_TRUE(handler.handled_request);
-  EXPECT_TRUE(handler.handled_response);
-  EXPECT_TRUE(handler.handled_error_response);
-  EXPECT_TRUE(handler.handled_notification);
+  EXPECT_TRUE(remote.messages[0].is_object())
+      << "server should not respond with a batch response (array)";
+  expect_batch_not_supported_error(remote.messages[0]);
 }
 
 // https://www.jsonrpc.org/specification#error_object

@@ -2362,21 +2362,11 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
     SCOPED_TRACE(out_string8(message));
     this->reset();
 
-    this->client->allow_batch_messages = true;
-
     this->server->append(make_message(message));
 
     ASSERT_EQ(this->client->messages.size(), 1);
     ::boost::json::value response = this->client->messages[0];
-    if (::boost::json::array* sub_responses = response.if_array()) {
-      for (::boost::json::value& sub_response : *sub_responses) {
-        // TODO(strager): Batched JSON parse errors don't make any sense. We
-        // should return a non-batched response instead.
-        expect_parse_error(sub_response);
-      }
-    } else {
-      expect_parse_error(response);
-    }
+    expect_parse_error(response);
   }
 }
 
@@ -2649,9 +2639,6 @@ TEST(test_lsp_javascript_linter,
               IsEmpty())
       << "should report no diagnostics";
 }
-
-// TODO(strager): For batch requests containing multiple edits, lint and publish
-// diagnostics only once.
 }
 }
 

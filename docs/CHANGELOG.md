@@ -8,6 +8,15 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+* LSP: The quick-lint-js LSP server no longer accepts JSON-RPC 2.0 batch
+  messages. In practice, LSP clients don't use this feature, so this breaking
+  change should do no harm. The LSP specification recently started
+  [prohibiting batch
+  messages](https://github.com/microsoft/language-server-protocol/pull/1651) to
+  match the status quo.
+
 ### Added
 
 * LSP: The LSP server now recognizes and lints TypeScript and TypeScript JSX

@@ -21,15 +21,9 @@ class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
     if (auto object = parsed_message.if_object()) {
       EXPECT_EQ((*object)["jsonrpc"], "2.0");
     } else if (auto array = parsed_message.if_array()) {
-      // Visual Studio Code's LSP client does not support batch JSON-RPC
-      // messages (as of vscode-jsonrpc version 6.0.0):
-      // https://github.com/microsoft/vscode-languageserver-node/issues/781
-      if (!this->allow_batch_messages) {
-        ADD_FAILURE() << "JSON-RPC batch messages are poorly supported by LSP "
-                         "clients, but quick-lint-js gave the client a batch "
-                         "message. Send multiple messages instead.";
-      }
-
+      ADD_FAILURE() << "JSON-RPC batch messages are poorly supported by LSP "
+                       "clients, but quick-lint-js gave the client a batch "
+                       "message. Send multiple messages instead.";
       for (::boost::json::value& sub_message : *array) {
         EXPECT_EQ(look_up(sub_message, "jsonrpc"), "2.0");
       }

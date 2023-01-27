@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_LSP_SUPPORT_H
 
 #include <boost/json/value.hpp>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/boost-json.h>
 #include <string_view>
@@ -16,8 +17,11 @@ inline void expect_error(::boost::json::object& response, int error_code,
   EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
   EXPECT_FALSE(look_up(response).as_object().contains("result"));
   EXPECT_EQ(look_up(response, "error", "code"), error_code);
-  EXPECT_EQ(look_up(response, "error", "message"),
-            to_boost_string_view(error_message));
+  // HACK(strager): std::string casts are necessary for older Google Test (e.g.
+  // version 1.10.0).
+  EXPECT_THAT(std::string(boost::json::string_view(
+                  look_up(response, "error", "message").as_string())),
+              ::testing::HasSubstr(std::string(error_message)));
 }
 
 inline void expect_error(::boost::json::value& response, int error_code,
@@ -29,7 +33,6 @@ inline void expect_parse_error(::boost::json::value& message) {
   expect_error(message, -32700, "Parse error");
   EXPECT_EQ(look_up(message, "id"), ::boost::json::value());
 }
-
 }
 
 #endif
