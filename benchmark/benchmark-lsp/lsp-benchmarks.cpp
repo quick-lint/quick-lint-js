@@ -465,7 +465,7 @@ std::vector<benchmark_factory> get_benchmark_factories() {
               // In Cart's render function in react-quickly-ch10.jsx, clear the
               // "Your cart is empty" text then re-type it character by
               // character.
-              static constexpr char text[] = "Your cart is empty";
+              static constexpr char8 text[] = u8"Your cart is empty";
               static constexpr int text_length = sizeof(text) - 1;
               int characters_already_typed = (i % text_length == 0)
                                                  ? text_length
