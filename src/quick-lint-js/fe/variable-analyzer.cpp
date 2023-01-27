@@ -320,7 +320,13 @@ void variable_analyzer::declare_variable(
       // Use before declaration is legal for variable exports.
       break;
     case used_variable_kind::type:
-      // Use before declaration is legal for types.
+      if (kind == variable_kind::_generic_parameter) {
+        this->diag_reporter_->report(diag_variable_used_before_declaration{
+            .use = used_var.name,
+            .declaration = name,
+        });
+      }
+      // Use before declaration is normally legal for types.
       break;
     }
     return true;

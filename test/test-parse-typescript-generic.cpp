@@ -227,8 +227,8 @@ TEST_F(test_parse_typescript_generic, parameter_list_extends) {
     test_parser p(u8"<T extends U>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",  // T
                               "visit_variable_type_use",     // U
+                              "visit_variable_declaration",  // T
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));

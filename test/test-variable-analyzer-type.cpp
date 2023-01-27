@@ -197,6 +197,35 @@ TEST(test_variable_analyzer_type, type_use_of_import_is_okay) {
   }
 }
 
+TEST(test_variable_analyzer_type,
+     generic_parameter_use_before_declaration_is_an_error) {
+  const char8 other_declaration[] = u8"T";
+  const char8 use[] = u8"U";
+  const char8 declaration[] = u8"U";
+
+  // (function<
+  //   T extends U,  // ERROR
+  //   U,
+  // >() { });
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals, typescript_var_options);
+  l.visit_variable_declaration(identifier_of(other_declaration),
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
+  l.visit_variable_type_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE_2_SPANS(diag_variable_used_before_declaration,  //
+                                    use, span_of(use),                      //
+                                    declaration, span_of(declaration)),
+              }));
+}
+
 TEST(test_variable_analyzer_type, interface_can_be_exported) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";

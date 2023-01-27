@@ -1201,6 +1201,7 @@ void parser::parse_and_visit_typescript_generic_parameters(
   }
 
 next_parameter:
+  std::optional<identifier> parameter_name;
   switch (this->peek().type) {
   case token_type::identifier:
   case token_type::kw_abstract:
@@ -1229,9 +1230,7 @@ next_parameter:
   case token_type::kw_type:
   case token_type::kw_undefined:
   case token_type::kw_unique:
-    v.visit_variable_declaration(this->peek().identifier_name(),
-                                 variable_kind::_generic_parameter,
-                                 variable_init_kind::normal);
+    parameter_name = this->peek().identifier_name();
     this->skip();
     break;
 
@@ -1245,6 +1244,11 @@ next_parameter:
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
   }
+
+  QLJS_ASSERT(parameter_name.has_value());
+  v.visit_variable_declaration(*parameter_name,
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
 
   switch (this->peek().type) {
   case token_type::greater:

@@ -37,6 +37,23 @@ TEST(test_variable_analyzer_parse,
       }));
 }
 
+TEST(test_variable_analyzer_parse, generic_parameter_use_before_declaration) {
+  padded_string input(u8"function f<T extends T>() {}"_sv);
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals, typescript_var_options);
+  parser p(&input, &v, typescript_options);
+  EXPECT_TRUE(p.parse_and_visit_statement(l));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAreArray({
+                  DIAG_TYPE_2_OFFSETS(
+                      &input, diag_variable_used_before_declaration,     //
+                      use, strlen(u8"function f<T extends "), u8"T"_sv,  //
+                      declaration, strlen(u8"function f<"), u8"T"_sv),
+              }));
+}
+
 TEST(
     test_variable_analyzer_parse,
     variables_with_different_escape_sequences_are_equivalent_after_normalization) {
