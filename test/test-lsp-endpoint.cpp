@@ -10,6 +10,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/lsp-support.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -495,12 +496,8 @@ TEST(test_lsp_endpoint, malformed_json) {
   server.append(make_message(u8"{ malformed json! }"_sv));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
   EXPECT_EQ(look_up(remote.messages[0], "id"), ::boost::json::value());
-  EXPECT_FALSE(look_up(remote.messages[0]).as_object().contains("result"));
-  ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
-  EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32700);
-  EXPECT_EQ(look_up(remote.messages[0], "error", "message"), "Parse error");
+  expect_parse_error(remote.messages[0]);
 }
 
 TEST(test_lsp_endpoint, invalid_message) {

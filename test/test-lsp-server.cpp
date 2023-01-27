@@ -22,6 +22,7 @@
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/lsp-support.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/char8.h>
@@ -2351,26 +2352,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
 
-void expect_error(::boost::json::object& response, int error_code,
-                  std::string_view error_message) {
-  EXPECT_FALSE(response.contains("method"));
-  EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
-  EXPECT_EQ(look_up(response, "error", "code"), error_code);
-  EXPECT_EQ(look_up(response, "error", "message"),
-            to_boost_string_view(error_message));
-}
-
-void expect_error(::boost::json::value& response, int error_code,
-                  std::string_view error_message) {
-  expect_error(response.as_object(), error_code, error_message);
-}
-
 TEST_F(test_linting_lsp_server, invalid_json_in_request) {
-  auto expect_parse_error = [](::boost::json::value& response) -> void {
-    expect_error(response, -32700, "Parse error");
-    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
-  };
-
   for (
       string8_view message : {
           u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"_sv,
