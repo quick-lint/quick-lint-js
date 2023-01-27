@@ -11,8 +11,23 @@
 namespace quick_lint_js {
 char8* encode_utf_8(char32_t code_point, char8* out);
 
+// There are three cases with decode_utf_8_result:
+//
+// 1. The input string is empty. In this case, .size == 0 && .ok == false.
+//    .code_point is unspecified.
+//
+// 2. The input string starts with a valid character sequence.
+//    .ok == true && .size > 0. .code_point refers to the first Unicode code
+//    point in the input. .size is the number of char8-s in the first character
+//    sequence.
+//
+// 3. The input string starts with an invalid character sequence.
+//    .ok == false && .size > 0. .code_point is unspecified. .size is the number
+//    of char8-s you should skip.
 struct decode_utf_8_result {
+  // Invariant: !(this->ok && this->size == 0)
   std::ptrdiff_t size;
+  // Valid only if this->ok == true.
   char32_t code_point;
   bool ok;
 };
