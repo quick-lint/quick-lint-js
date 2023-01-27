@@ -13,6 +13,7 @@
 #include <quick-lint-js/spy-visitor.h>
 
 using ::testing::ElementsAreArray;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -95,6 +96,32 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                               "visit_variable_typeof_use",          //
                               "visit_variable_use",                 //
                           }));
+}
+
+TEST(test_buffering_visitor, copy_to_repeats_buffered_visits) {
+  buffering_visitor v(new_delete_resource());
+  v.visit_end_of_module();
+
+  spy_visitor spy_1;
+  v.copy_into(spy_1);
+  EXPECT_THAT(spy_1.visits, ElementsAreArray({"visit_end_of_module"}));
+
+  spy_visitor spy_2;
+  v.copy_into(spy_2);
+  EXPECT_THAT(spy_2.visits, ElementsAreArray({"visit_end_of_module"}));
+}
+
+TEST(test_buffering_visitor, move_to_clears_buffered_visits) {
+  buffering_visitor v(new_delete_resource());
+  v.visit_end_of_module();
+
+  spy_visitor spy_1;
+  v.move_into(spy_1);
+  EXPECT_THAT(spy_1.visits, ElementsAreArray({"visit_end_of_module"}));
+
+  spy_visitor spy_2;
+  v.move_into(spy_2);
+  EXPECT_THAT(spy_2.visits, IsEmpty());
 }
 }
 }

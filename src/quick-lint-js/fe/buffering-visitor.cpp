@@ -10,6 +10,7 @@ buffering_visitor::buffering_visitor(memory_resource *memory)
 
 void buffering_visitor::move_into(parse_visitor_base &target) {
   this->copy_into(target);
+  this->visits_.clear();
 }
 
 void buffering_visitor::copy_into(parse_visitor_base &target) const {
