@@ -612,26 +612,20 @@ parse_statement:
   }
 
     // do { } while (can);
-  case token_type::kw_do: {
-    loop_guard guard = this->enter_loop();
+  case token_type::kw_do:
     this->parse_and_visit_do_while(v);
     break;
-  }
 
     // for (let i = 0; i < length; ++i) {}
     // for (let x of xs) {}
-  case token_type::kw_for: {
-    loop_guard guard = this->enter_loop();
+  case token_type::kw_for:
     this->parse_and_visit_for(v);
     break;
-  }
 
     // while (cond) {}
-  case token_type::kw_while: {
-    loop_guard guard = this->enter_loop();
+  case token_type::kw_while:
     this->parse_and_visit_while(v);
     break;
-  }
 
     // with (o) { eek(); }
   case token_type::kw_with:
@@ -2529,6 +2523,8 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_do_while(parse_visitor_base &v) {
+  loop_guard guard = this->enter_loop();
+
   QLJS_ASSERT(this->peek().type == token_type::kw_do);
   source_code_span do_token_span = this->peek().span();
   this->skip();
@@ -2573,6 +2569,8 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_for(parse_visitor_base &v) {
+  loop_guard guard = this->enter_loop();
+
   QLJS_ASSERT(this->peek().type == token_type::kw_for);
   source_code_span for_token_span = this->peek().span();
   this->skip();
@@ -2957,6 +2955,8 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_while(parse_visitor_base &v) {
+  loop_guard guard = this->enter_loop();
+
   QLJS_ASSERT(this->peek().type == token_type::kw_while);
   source_code_span while_token_span = this->peek().span();
   this->skip();
