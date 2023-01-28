@@ -143,15 +143,13 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   void flush_error_responses(lsp_endpoint_remote&);
 
  private:
-  void handle_message(::simdjson::ondemand::object& request,
-                      byte_buffer& response_json);
+  void handle_message(::simdjson::ondemand::object& request);
 
   void write_json_parse_error_response();
   void write_json_batch_messages_not_supported_error();
 
   void write_invalid_request_error_response();
 
-  lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
   std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
   outgoing_lsp_message_queue error_responses_;

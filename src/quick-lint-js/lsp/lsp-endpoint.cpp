@@ -31,9 +31,9 @@ lsp_endpoint_remote::~lsp_endpoint_remote() = default;
 lsp_endpoint_handler::~lsp_endpoint_handler() = default;
 
 lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
-                           lsp_endpoint_remote* remote)
-    : remote_(remote),
-      handler_(handler),
+                           // TODO(strager): Remove this parameter.
+                           lsp_endpoint_remote*)
+    : handler_(handler),
       json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
 
 lsp_endpoint::~lsp_endpoint() = default;
@@ -64,8 +64,6 @@ void lsp_endpoint::message_parsed(string8_view message) {
     return;
   }
 
-  byte_buffer response_json;
-
   ::simdjson::ondemand::array batched_messages;
   bool is_batch_message =
       message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
@@ -75,15 +73,10 @@ void lsp_endpoint::message_parsed(string8_view message) {
     ::simdjson::ondemand::object message_object;
     if (message_document.get(message_object) ==
         ::simdjson::error_code::SUCCESS) {
-      this->handle_message(message_object, response_json);
+      this->handle_message(message_object);
     } else {
       this->write_json_parse_error_response();
     }
-  }
-
-  // TODO(strager): Remove this code.
-  if (!response_json.empty()) {
-    this->remote_->send_message(std::move(response_json));
   }
 }
 
@@ -91,8 +84,7 @@ void lsp_endpoint::flush_error_responses(lsp_endpoint_remote& remote) {
   this->error_responses_.send(remote);
 }
 
-void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
-                                  byte_buffer&) {
+void lsp_endpoint::handle_message(::simdjson::ondemand::object& message) {
   using namespace std::literals::string_view_literals;
 
   bool have_id;
