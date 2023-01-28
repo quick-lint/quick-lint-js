@@ -210,7 +210,7 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   configuration default_config_;
   lsp_linter& linter_;
   hash_map<string8, std::unique_ptr<document_base> > documents_;
-  outgoing_lsp_message_queue outgoing_messages_;
+  outgoing_json_rpc_message_queue outgoing_messages_;
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
   std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
@@ -233,10 +233,11 @@ class lsp_linter {
 
   virtual void lint(configuration& config, linter_options lint_options,
                     padded_string_view code, string8_view uri_json,
-                    string8_view version_json, outgoing_lsp_message_queue&) = 0;
+                    string8_view version_json,
+                    outgoing_json_rpc_message_queue&) = 0;
 
   void lint(linting_lsp_server_handler::lintable_document&,
-            string8_view uri_json, outgoing_lsp_message_queue&);
+            string8_view uri_json, outgoing_json_rpc_message_queue&);
 };
 
 class lsp_javascript_linter final : public lsp_linter {
@@ -245,7 +246,7 @@ class lsp_javascript_linter final : public lsp_linter {
 
   void lint(configuration&, linter_options, padded_string_view code,
             string8_view uri_json, string8_view version_json,
-            outgoing_lsp_message_queue&) override;
+            outgoing_json_rpc_message_queue&) override;
 
  private:
   void lint_and_get_diagnostics(configuration&, linter_options,

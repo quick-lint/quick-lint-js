@@ -31,9 +31,12 @@ class lsp_endpoint_remote {
   virtual void send_message(byte_buffer&& message) = 0;
 };
 
-// List of asynchronous LSP messages (requests, responses, and notifications) to
-// send to the client.
-class outgoing_lsp_message_queue {
+// List of asynchronous JSON-RPC/LSP messages (requests, responses, and
+// notifications) to send to the client.
+//
+// Each message excludes the LSP header; each message should only be the JSON
+// message content.
+class outgoing_json_rpc_message_queue {
  public:
   byte_buffer& new_message();
 
@@ -102,7 +105,7 @@ class lsp_json_rpc_message_parser
 
   json_rpc_message_handler* handler_;
   std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
-  outgoing_lsp_message_queue error_responses_;
+  outgoing_json_rpc_message_queue error_responses_;
 
   friend message_parser;
 };

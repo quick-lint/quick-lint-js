@@ -144,11 +144,11 @@ void lsp_overlay_configuration_filesystem::close_document(
   QLJS_ASSERT(erased > 0);
 }
 
-byte_buffer& outgoing_lsp_message_queue::new_message() {
+byte_buffer& outgoing_json_rpc_message_queue::new_message() {
   return this->messages_.emplace_back();
 }
 
-void outgoing_lsp_message_queue::send(lsp_endpoint_remote& remote) {
+void outgoing_json_rpc_message_queue::send(lsp_endpoint_remote& remote) {
   for (byte_buffer& notification_json : this->messages_) {
     remote.send_message(std::move(notification_json));
   }
@@ -744,7 +744,7 @@ lsp_linter::~lsp_linter() = default;
 
 void lsp_linter::lint(linting_lsp_server_handler::lintable_document& doc,
                       string8_view uri_json,
-                      outgoing_lsp_message_queue& outgoing_messages) {
+                      outgoing_json_rpc_message_queue& outgoing_messages) {
   this->lint(*doc.config, doc.lint_options, doc.doc.string(), uri_json,
              doc.version_json, outgoing_messages);
 }
@@ -752,7 +752,7 @@ void lsp_linter::lint(linting_lsp_server_handler::lintable_document& doc,
 void lsp_javascript_linter::lint(
     configuration& config, linter_options lint_options, padded_string_view code,
     string8_view uri_json, string8_view version_json,
-    outgoing_lsp_message_queue& outgoing_messages) {
+    outgoing_json_rpc_message_queue& outgoing_messages) {
   byte_buffer& notification_json = outgoing_messages.new_message();
   // clang-format off
   notification_json.append_copy(

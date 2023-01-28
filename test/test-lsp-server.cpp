@@ -65,7 +65,7 @@ class mock_lsp_linter final : public lsp_linter {
   using lint_and_get_diagnostics_notification_type =
       void(configuration&, linter_options, padded_string_view code,
            string8_view uri_json, string8_view version_json,
-           outgoing_lsp_message_queue& outgoing_messages);
+           outgoing_json_rpc_message_queue& outgoing_messages);
 
   explicit mock_lsp_linter() = default;
 
@@ -81,7 +81,7 @@ class mock_lsp_linter final : public lsp_linter {
   void lint(configuration& config, linter_options lint_options,
             padded_string_view code, string8_view uri_json,
             string8_view version_json,
-            outgoing_lsp_message_queue& outgoing_messages) override {
+            outgoing_json_rpc_message_queue& outgoing_messages) override {
     this->callback_(config, lint_options, code, uri_json, version_json,
                     outgoing_messages);
   }
@@ -102,7 +102,7 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
         [this](configuration& config, linter_options lint_options,
                padded_string_view code, string8_view uri_json,
                string8_view version_json,
-               outgoing_lsp_message_queue& outgoing_messages) {
+               outgoing_json_rpc_message_queue& outgoing_messages) {
           this->lint_calls.emplace_back(code.string_view());
           if (this->lint_callback) {
             this->lint_callback(config, lint_options, code, uri_json,
@@ -118,7 +118,7 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
 
   heap_function<void(configuration&, linter_options, padded_string_view code,
                      string8_view uri_json, string8_view version,
-                     outgoing_lsp_message_queue& outgoing_messages)>
+                     outgoing_json_rpc_message_queue& outgoing_messages)>
       lint_callback;
   std::vector<string8> lint_calls;
 
@@ -523,17 +523,17 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
-  this->lint_callback = [&](configuration&, linter_options,
-                            padded_string_view code, string8_view uri_json,
-                            string8_view version,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_EQ(code, u8"let x = x;"_sv);
-    EXPECT_EQ(uri_json, u8"\"file:///test.js\""_sv);
-    EXPECT_EQ(version, u8"10"_sv);
+  this->lint_callback =
+      [&](configuration&, linter_options, padded_string_view code,
+          string8_view uri_json, string8_view version,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_EQ(code, u8"let x = x;"_sv);
+        EXPECT_EQ(uri_json, u8"\"file:///test.js\""_sv);
+        EXPECT_EQ(version, u8"10"_sv);
 
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        u8R"--(
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            u8R"--(
                 {
                   "method":"textDocument/publishDiagnostics",
                   "params":{
@@ -553,7 +553,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                   "jsonrpc":"2.0"
                 }
               )--"_sv);
-  };
+      };
 
   this->server->append(
       make_message(u8R"({
@@ -602,7 +602,7 @@ TEST_F(test_linting_lsp_server, javascript_language_ids_enable_jsx) {
 
     this->lint_callback = [&](configuration&, linter_options lint_options,
                               padded_string_view, string8_view, string8_view,
-                              outgoing_lsp_message_queue&) {
+                              outgoing_json_rpc_message_queue&) {
       EXPECT_TRUE(lint_options.jsx);
       EXPECT_FALSE(lint_options.typescript);
     };
@@ -633,7 +633,7 @@ TEST_F(test_linting_lsp_server, typescript_language_ids_enable_typescript) {
 
     this->lint_callback = [&](configuration&, linter_options lint_options,
                               padded_string_view, string8_view, string8_view,
-                              outgoing_lsp_message_queue&) {
+                              outgoing_json_rpc_message_queue&) {
       EXPECT_TRUE(lint_options.typescript);
       EXPECT_FALSE(lint_options.jsx);
     };
@@ -664,7 +664,7 @@ TEST_F(test_linting_lsp_server, tsx_language_ids_enable_typescript_jsx) {
 
     this->lint_callback = [&](configuration&, linter_options lint_options,
                               padded_string_view, string8_view, string8_view,
-                              outgoing_lsp_message_queue&) {
+                              outgoing_json_rpc_message_queue&) {
       EXPECT_TRUE(lint_options.typescript);
       EXPECT_TRUE(lint_options.jsx);
     };
@@ -839,7 +839,7 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
 
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
   };
 
@@ -926,7 +926,7 @@ TEST_F(
   this->lint_calls.clear();
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"_sv));
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"_sv));
   };
@@ -959,7 +959,7 @@ TEST_F(test_linting_lsp_server,
 
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
   };
 
@@ -985,7 +985,7 @@ TEST_F(test_linting_lsp_server,
 TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_TRUE(config.globals().find(u8"modified"_sv));
   };
 
@@ -1029,7 +1029,7 @@ TEST_F(test_linting_lsp_server,
        linting_uses_already_opened_shadowing_config_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"_sv));
     EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"_sv));
   };
@@ -1076,7 +1076,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
@@ -1204,7 +1204,7 @@ TEST_F(test_linting_lsp_server,
 
   this->lint_callback = [&](configuration&, linter_options, padded_string_view,
                             string8_view, string8_view version_json,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_EQ(version_json, u8"11");
   };
   this->lint_calls.clear();
@@ -1237,27 +1237,28 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
-  this->lint_callback = [&](configuration&, linter_options, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"(
+  this->lint_callback =
+      [&](configuration&, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"(
               {
                 "method": "textDocument/publishDiagnostics",
                 "params":{
                   "uri": )"_sv,
-               uri_json,
-               u8R"(,
+                   uri_json,
+                   u8R"(,
                   "version": )"_sv,
-               version_json,
-               u8R"(,
+                   version_json,
+                   u8R"(,
                   "diagnostics": []
                 },
                 "jsonrpc":"2.0"
               }
             )"_sv));
-  };
+      };
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})"_sv);
@@ -1351,27 +1352,28 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
 }
 
 TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
-  this->lint_callback = [&](configuration&, linter_options, padded_string_view,
-                            string8_view uri_json, string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"(
+  this->lint_callback =
+      [&](configuration&, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"(
               {
                 "method": "textDocument/publishDiagnostics",
                 "params":{
                   "uri": )"_sv,
-               uri_json,
-               u8R"(,
+                   uri_json,
+                   u8R"(,
                   "version": )"_sv,
-               version_json,
-               u8R"(,
+                   version_json,
+                   u8R"(,
                   "diagnostics": []
                 },
                 "jsonrpc":"2.0"
               }
             )"_sv));
-  };
+      };
 
   this->server->append(
       make_message(concat(u8R"({
@@ -1533,7 +1535,7 @@ TEST_F(test_linting_lsp_server,
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view,
                             string8_view version_json,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_EQ(version_json, u8"11");
     EXPECT_FALSE(config.globals().find(u8"before"_sv));
     EXPECT_TRUE(config.globals().find(u8"after"_sv));
@@ -1567,7 +1569,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view uri_json,
                             string8_view version_json,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10");
@@ -1634,31 +1636,31 @@ TEST_F(test_linting_lsp_server,
       })"_sv)));
 
   bool after_config_was_loaded = false;
-  this->lint_callback = [&](configuration& config, linter_options,
-                            padded_string_view, string8_view uri_json,
-                            string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"after"_sv));
-    EXPECT_FALSE(config.globals().find(u8"before"_sv));
-    EXPECT_EQ(version_json, u8"10");
-    EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
-                               u8"test.js\""_sv));
-    after_config_was_loaded = true;
+  this->lint_callback =
+      [&](configuration& config, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_TRUE(config.globals().find(u8"after"_sv));
+        EXPECT_FALSE(config.globals().find(u8"before"_sv));
+        EXPECT_EQ(version_json, u8"10");
+        EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
+                                   u8"test.js\""_sv));
+        after_config_was_loaded = true;
 
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"({
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": ")"_sv,
-               this->fs.file_uri_prefix_8(),
-               u8R"(test.js",
+                   this->fs.file_uri_prefix_8(),
+                   u8R"(test.js",
             "version": 10,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
         })"_sv));
-  };
+      };
   this->client->messages.clear();
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
@@ -1681,7 +1683,7 @@ TEST_F(
     linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {
   this->lint_callback = [&](configuration& config, linter_options,
                             padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue&) {
+                            outgoing_json_rpc_message_queue&) {
     EXPECT_TRUE(config.globals().find(u8"v1"_sv));
     EXPECT_FALSE(config.globals().find(u8"v2"_sv));
   };
@@ -1770,25 +1772,26 @@ TEST_F(test_linting_lsp_server,
       })"_sv)));
 
   this->lint_calls.clear();
-  this->lint_callback = [&](configuration& config, linter_options,
-                            padded_string_view, string8_view, string8_view,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"_sv));
-    EXPECT_FALSE(config.globals().find(u8"configFromLSP"_sv));
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"({
+  this->lint_callback =
+      [&](configuration& config, linter_options, padded_string_view,
+          string8_view, string8_view,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"_sv));
+        EXPECT_FALSE(config.globals().find(u8"configFromLSP"_sv));
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": ")"_sv,
-               this->fs.file_uri_prefix_8(),
-               u8R"(test.js",
+                   this->fs.file_uri_prefix_8(),
+                   u8R"(test.js",
             "version": 10,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
         })"_sv));
-  };
+      };
   this->server->append(
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
@@ -1814,30 +1817,30 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
             .io_error = generic_file_io_error,
         });
       });
-  this->lint_callback = [&](configuration& config, linter_options,
-                            padded_string_view, string8_view uri_json,
-                            string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
-        << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
-        << "config should be default";
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"({
+  this->lint_callback =
+      [&](configuration& config, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_TRUE(config.globals().find(u8"Array"_sv))
+            << "config should be default";
+        EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
+            << "config should be default";
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": )"_sv,
-               uri_json,
-               u8R"(,
+                   uri_json,
+                   u8R"(,
             "version": )"_sv,
-               version_json,
-               u8R"(,
+                   version_json,
+                   u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
         })"_sv));
-  };
+      };
 
   this->server->append(
       make_message(concat(u8R"({
@@ -1878,30 +1881,30 @@ TEST_F(test_linting_lsp_server,
        opening_js_file_with_invalid_config_json_lints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8"INVALID JSON"_sv);
-  this->lint_callback = [&](configuration& config, linter_options,
-                            padded_string_view, string8_view uri_json,
-                            string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
-        << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
-        << "config should be default";
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"({
+  this->lint_callback =
+      [&](configuration& config, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_TRUE(config.globals().find(u8"Array"_sv))
+            << "config should be default";
+        EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
+            << "config should be default";
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": )"_sv,
-               uri_json,
-               u8R"(,
+                   uri_json,
+                   u8R"(,
             "version": )"_sv,
-               version_json,
-               u8R"(,
+                   version_json,
+                   u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
         })"_sv));
-  };
+      };
 
   this->server->append(
       make_message(concat(u8R"({
@@ -1968,28 +1971,28 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
             .io_error = generic_file_io_error,
         });
       });
-  this->lint_callback = [&](configuration& config, linter_options,
-                            padded_string_view, string8_view uri_json,
-                            string8_view version_json,
-                            outgoing_lsp_message_queue& outgoing_messages) {
-    EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"_sv))
-        << "config should be default";
-    byte_buffer& notification_json = outgoing_messages.new_message();
-    notification_json.append_copy(
-        concat(u8R"({
+  this->lint_callback =
+      [&](configuration& config, linter_options, padded_string_view,
+          string8_view uri_json, string8_view version_json,
+          outgoing_json_rpc_message_queue& outgoing_messages) {
+        EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"_sv))
+            << "config should be default";
+        byte_buffer& notification_json = outgoing_messages.new_message();
+        notification_json.append_copy(
+            concat(u8R"({
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": )"_sv,
-               uri_json,
-               u8R"(,
+                   uri_json,
+                   u8R"(,
             "version": )"_sv,
-               version_json,
-               u8R"(,
+                   version_json,
+                   u8R"(,
             "diagnostics": []
           },
           "jsonrpc": "2.0"
         })"_sv));
-  };
+      };
   this->client->messages.clear();
   this->handler->filesystem_changed();
   this->server->flush_error_responses(*this->client);
@@ -2494,7 +2497,7 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
 
 TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   padded_string code(u8"let x = x;"_sv);
-  outgoing_lsp_message_queue notifications;
+  outgoing_json_rpc_message_queue notifications;
   configuration config;
 
   lsp_javascript_linter linter;
