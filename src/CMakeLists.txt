@@ -198,6 +198,8 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-uri.h
   quick-lint-js/lsp/lsp-workspace-configuration.cpp
   quick-lint-js/lsp/lsp-workspace-configuration.h
+  quick-lint-js/lsp/outgoing-json-rpc-message-queue.cpp
+  quick-lint-js/lsp/outgoing-json-rpc-message-queue.h
   quick-lint-js/port/attribute.h
   quick-lint-js/port/bit.h
   quick-lint-js/port/char8.cpp

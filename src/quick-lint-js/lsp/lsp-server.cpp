@@ -21,6 +21,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/lsp-uri.h>
+#include <quick-lint-js/lsp/outgoing-json-rpc-message-queue.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -142,17 +143,6 @@ void lsp_overlay_configuration_filesystem::close_document(
     const std::string& path) {
   std::size_t erased = this->overlaid_documents_.erase(path);
   QLJS_ASSERT(erased > 0);
-}
-
-byte_buffer& outgoing_json_rpc_message_queue::new_message() {
-  return this->messages_.emplace_back();
-}
-
-void outgoing_json_rpc_message_queue::send(lsp_endpoint_remote& remote) {
-  for (byte_buffer& notification_json : this->messages_) {
-    remote.send_message(std::move(notification_json));
-  }
-  this->messages_.clear();
 }
 
 linting_lsp_server_handler::linting_lsp_server_handler(

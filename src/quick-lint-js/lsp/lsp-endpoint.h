@@ -14,6 +14,7 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/lsp/outgoing-json-rpc-message-queue.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -24,28 +25,6 @@
 #include <vector>
 
 namespace quick_lint_js {
-class lsp_endpoint_remote {
- public:
-  virtual ~lsp_endpoint_remote();
-
-  virtual void send_message(byte_buffer&& message) = 0;
-};
-
-// List of asynchronous JSON-RPC/LSP messages (requests, responses, and
-// notifications) to send to the client.
-//
-// Each message excludes the LSP header; each message should only be the JSON
-// message content.
-class outgoing_json_rpc_message_queue {
- public:
-  byte_buffer& new_message();
-
-  void send(lsp_endpoint_remote&);
-
- private:
-  std::vector<byte_buffer> messages_;
-};
-
 // Receives JSON-RPC messages parsed by lsp_json_rpc_message_parser.
 class json_rpc_message_handler {
  public:

@@ -26,8 +26,6 @@
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-lsp_endpoint_remote::~lsp_endpoint_remote() = default;
-
 json_rpc_message_handler::~json_rpc_message_handler() = default;
 
 lsp_json_rpc_message_parser::lsp_json_rpc_message_parser(

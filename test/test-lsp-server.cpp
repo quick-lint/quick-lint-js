@@ -25,6 +25,7 @@
 #include <quick-lint-js/lsp-support.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/lsp/outgoing-json-rpc-message-queue.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
