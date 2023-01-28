@@ -61,7 +61,7 @@ struct linting_lsp_server_config {
 
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
-class linting_lsp_server_handler final : public lsp_endpoint_handler {
+class linting_lsp_server_handler final : public json_rpc_message_handler {
  public:
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
                                       lsp_linter* linter);
@@ -73,11 +73,11 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
 
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, string8_view id_json) override;
-  void handle_response(lsp_endpoint_handler::request_id_type request_id,
+  void handle_response(json_rpc_message_handler::request_id_type request_id,
                        ::simdjson::ondemand::value& result) override;
-  void handle_error_response(lsp_endpoint_handler::request_id_type request_id,
-                             std::int64_t code,
-                             std::string_view message) override;
+  void handle_error_response(
+      json_rpc_message_handler::request_id_type request_id, std::int64_t code,
+      std::string_view message) override;
   void handle_notification(::simdjson::ondemand::object& request,
                            std::string_view method) override;
 

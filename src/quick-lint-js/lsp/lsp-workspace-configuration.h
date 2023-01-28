@@ -33,7 +33,7 @@ class lsp_workspace_configuration {
 
   // Create a workspace/configuration JSON-RPC request to send to the LSP
   // client.
-  void build_request(lsp_endpoint_handler::request_id_type request_id,
+  void build_request(json_rpc_message_handler::request_id_type request_id,
                      byte_buffer& request_json);
 
   // Handle a workspace/configuration JSON-RPC response sent by the LSP client.

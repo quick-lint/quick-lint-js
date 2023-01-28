@@ -43,16 +43,17 @@ class outgoing_lsp_message_queue {
   std::vector<byte_buffer> messages_;
 };
 
-class lsp_endpoint_handler {
+// Receives JSON-RPC messages parsed by lsp_endpoint.
+class json_rpc_message_handler {
  public:
   // The type of IDs used for requests sent by this handler (thus responses
   // handled by this handler).
   using request_id_type = std::uint64_t;
 
-  virtual ~lsp_endpoint_handler();
+  virtual ~json_rpc_message_handler();
 
-  // It is the responsibility of the lsp_endpoint_handler to create and send a
-  // response back to the peer.
+  // It is the responsibility of the json_rpc_message_handler to create and send
+  // a response back to the peer.
   virtual void handle_request(::simdjson::ondemand::object& request,
                               std::string_view method,
                               string8_view id_json) = 0;
@@ -69,7 +70,7 @@ class lsp_endpoint_handler {
 };
 
 // An lsp_endpoint parses Language Server Protocol messages and dispatches them
-// to lsp_endpoint_handler.
+// to json_rpc_message_handler.
 //
 // lsp_endpoint implements JSON-RPC.
 class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
@@ -77,7 +78,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   using message_parser = lsp_message_parser<lsp_endpoint>;
 
  public:
-  explicit lsp_endpoint(lsp_endpoint_handler* handler);
+  explicit lsp_endpoint(json_rpc_message_handler* handler);
   ~lsp_endpoint();
 
   lsp_endpoint(const lsp_endpoint&) = delete;
@@ -97,7 +98,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   void write_invalid_request_error_response();
 
-  lsp_endpoint_handler* handler_;
+  json_rpc_message_handler* handler_;
   std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
   outgoing_lsp_message_queue error_responses_;
 

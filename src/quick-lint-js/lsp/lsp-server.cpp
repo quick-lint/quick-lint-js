@@ -37,7 +37,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-constexpr lsp_endpoint_handler::request_id_type
+constexpr json_rpc_message_handler::request_id_type
     initial_configuration_request_id = 1;
 
 // Returns std::nullopt on failure (e.g. missing key or not a string).
@@ -200,7 +200,7 @@ void linting_lsp_server_handler::handle_request(
 }
 
 void linting_lsp_server_handler::handle_response(
-    lsp_endpoint_handler::request_id_type request_id,
+    json_rpc_message_handler::request_id_type request_id,
     ::simdjson::ondemand::value& result) {
   if (request_id == initial_configuration_request_id) {
     this->handle_workspace_configuration_response(result);
@@ -211,7 +211,7 @@ void linting_lsp_server_handler::handle_response(
 }
 
 void linting_lsp_server_handler::handle_error_response(
-    lsp_endpoint_handler::request_id_type request_id, std::int64_t code,
+    json_rpc_message_handler::request_id_type request_id, std::int64_t code,
     std::string_view message) {
   static_cast<void>(code);
   static_cast<void>(message);

@@ -28,9 +28,9 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 namespace quick_lint_js {
 lsp_endpoint_remote::~lsp_endpoint_remote() = default;
 
-lsp_endpoint_handler::~lsp_endpoint_handler() = default;
+json_rpc_message_handler::~json_rpc_message_handler() = default;
 
-lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler)
+lsp_endpoint::lsp_endpoint(json_rpc_message_handler* handler)
     : handler_(handler),
       json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
 
@@ -87,7 +87,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message) {
 
   bool have_id;
   string8_view id_json;
-  lsp_endpoint_handler::request_id_type int_id = 0;
+  json_rpc_message_handler::request_id_type int_id = 0;
   ::simdjson::error_code int_id_rc = ::simdjson::NO_SUCH_FIELD;
 
   ::simdjson::ondemand::value id;

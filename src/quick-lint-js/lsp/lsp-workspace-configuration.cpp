@@ -26,7 +26,7 @@ void lsp_workspace_configuration::add_item(
 }
 
 void lsp_workspace_configuration::build_request(
-    lsp_endpoint_handler::request_id_type request_id,
+    json_rpc_message_handler::request_id_type request_id,
     byte_buffer& request_json) {
   request_json.append_copy(u8R"--({"id":)--"_sv);
   request_json.append_decimal_integer(request_id);
