@@ -453,7 +453,7 @@ void run_lsp_server() {
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;
     lsp_pipe_writer writer_;
-    lsp_endpoint endpoint_;
+    lsp_json_rpc_message_parser endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING

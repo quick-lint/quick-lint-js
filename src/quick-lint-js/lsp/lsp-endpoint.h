@@ -43,7 +43,7 @@ class outgoing_lsp_message_queue {
   std::vector<byte_buffer> messages_;
 };
 
-// Receives JSON-RPC messages parsed by lsp_endpoint.
+// Receives JSON-RPC messages parsed by lsp_json_rpc_message_parser.
 class json_rpc_message_handler {
  public:
   // The type of IDs used for requests sent by this handler (thus responses
@@ -69,20 +69,22 @@ class json_rpc_message_handler {
                                    std::string_view method) = 0;
 };
 
-// An lsp_endpoint parses Language Server Protocol messages and dispatches them
-// to json_rpc_message_handler.
+// An lsp_json_rpc_message_parser parses Language Server Protocol messages and
+// dispatches them to json_rpc_message_handler.
 //
-// lsp_endpoint implements JSON-RPC.
-class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
+// lsp_json_rpc_message_parser implements JSON-RPC.
+class lsp_json_rpc_message_parser
+    : private lsp_message_parser<lsp_json_rpc_message_parser> {
  private:
-  using message_parser = lsp_message_parser<lsp_endpoint>;
+  using message_parser = lsp_message_parser<lsp_json_rpc_message_parser>;
 
  public:
-  explicit lsp_endpoint(json_rpc_message_handler* handler);
-  ~lsp_endpoint();
+  explicit lsp_json_rpc_message_parser(json_rpc_message_handler* handler);
+  ~lsp_json_rpc_message_parser();
 
-  lsp_endpoint(const lsp_endpoint&) = delete;
-  lsp_endpoint& operator=(const lsp_endpoint&) = delete;
+  lsp_json_rpc_message_parser(const lsp_json_rpc_message_parser&) = delete;
+  lsp_json_rpc_message_parser& operator=(const lsp_json_rpc_message_parser&) =
+      delete;
 
   using message_parser::append;
 
@@ -105,7 +107,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   friend message_parser;
 };
 
-extern template void lsp_message_parser<lsp_endpoint>::append(string8_view);
+extern template void lsp_message_parser<lsp_json_rpc_message_parser>::append(
+    string8_view);
 }
 
 #endif

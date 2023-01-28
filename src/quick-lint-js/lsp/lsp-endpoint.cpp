@@ -30,13 +30,14 @@ lsp_endpoint_remote::~lsp_endpoint_remote() = default;
 
 json_rpc_message_handler::~json_rpc_message_handler() = default;
 
-lsp_endpoint::lsp_endpoint(json_rpc_message_handler* handler)
+lsp_json_rpc_message_parser::lsp_json_rpc_message_parser(
+    json_rpc_message_handler* handler)
     : handler_(handler),
       json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
 
-lsp_endpoint::~lsp_endpoint() = default;
+lsp_json_rpc_message_parser::~lsp_json_rpc_message_parser() = default;
 
-void lsp_endpoint::message_parsed(string8_view message) {
+void lsp_json_rpc_message_parser::message_parsed(string8_view message) {
   trace_writer* tw =
       trace_flusher::instance()->trace_writer_for_current_thread();
   if (tw) {
@@ -78,11 +79,13 @@ void lsp_endpoint::message_parsed(string8_view message) {
   }
 }
 
-void lsp_endpoint::flush_error_responses(lsp_endpoint_remote& remote) {
+void lsp_json_rpc_message_parser::flush_error_responses(
+    lsp_endpoint_remote& remote) {
   this->error_responses_.send(remote);
 }
 
-void lsp_endpoint::handle_message(::simdjson::ondemand::object& message) {
+void lsp_json_rpc_message_parser::handle_message(
+    ::simdjson::ondemand::object& message) {
   using namespace std::literals::string_view_literals;
 
   bool have_id;
@@ -195,7 +198,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message) {
   }
 }
 
-void lsp_endpoint::write_json_parse_error_response() {
+void lsp_json_rpc_message_parser::write_json_parse_error_response() {
   byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
@@ -210,7 +213,8 @@ void lsp_endpoint::write_json_parse_error_response() {
   // clang-format on
 }
 
-void lsp_endpoint::write_json_batch_messages_not_supported_error() {
+void lsp_json_rpc_message_parser::
+    write_json_batch_messages_not_supported_error() {
   byte_buffer& response_json = this->error_responses_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -223,7 +227,7 @@ void lsp_endpoint::write_json_batch_messages_not_supported_error() {
   u8R"(})"_sv);
 }
 
-void lsp_endpoint::write_invalid_request_error_response() {
+void lsp_json_rpc_message_parser::write_invalid_request_error_response() {
   byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
@@ -238,7 +242,8 @@ void lsp_endpoint::write_invalid_request_error_response() {
   // clang-format on
 }
 
-template void lsp_message_parser<lsp_endpoint>::append(string8_view);
+template void lsp_message_parser<lsp_json_rpc_message_parser>::append(
+    string8_view);
 }
 
 #endif
