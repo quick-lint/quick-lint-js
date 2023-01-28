@@ -583,22 +583,7 @@ parse_statement:
 
     // throw fit;
   case token_type::kw_throw:
-    this->skip();
-    if (this->peek().type == token_type::semicolon) {
-      this->diag_reporter_->report(
-          diag_expected_expression_before_semicolon{this->peek().span()});
-      this->skip();
-      break;
-    }
-    if (this->peek().has_leading_newline) {
-      this->lexer_.insert_semicolon();
-      this->diag_reporter_->report(
-          diag_expected_expression_before_newline{this->peek().span()});
-      this->skip();
-      break;
-    }
-    this->parse_and_visit_expression(v);
-    this->parse_end_of_expression_statement();
+    this->parse_and_visit_throw_statement(v);
     break;
 
     // try { hard(); } catch (exhaustion) {}
@@ -772,6 +757,25 @@ parse_statement:
   }
 
   return true;
+}
+
+void parser::parse_and_visit_throw_statement(parse_visitor_base &v) {
+  this->skip();
+  if (this->peek().type == token_type::semicolon) {
+    this->diag_reporter_->report(
+        diag_expected_expression_before_semicolon{this->peek().span()});
+    this->skip();
+    return;
+  }
+  if (this->peek().has_leading_newline) {
+    this->lexer_.insert_semicolon();
+    this->diag_reporter_->report(
+        diag_expected_expression_before_newline{this->peek().span()});
+    this->skip();
+    return;
+  }
+  this->parse_and_visit_expression(v);
+  this->parse_end_of_expression_statement();
 }
 
 void parser::parse_and_visit_return_statement(
