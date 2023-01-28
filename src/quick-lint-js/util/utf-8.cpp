@@ -15,21 +15,23 @@ char8* encode_utf_8(char32_t code_point, char8* out) {
   };
   char32_t cont_flag = 0b1000'0000;  // 'cont' is short for 'continuation'.
   char32_t cont_mask = 0b0011'1111;
+  // clang-format off
   if (code_point >= 0x10000) {
-    *out++ = byte((code_point >> (3 * 6)) | 0b1111'0000);
+    *out++ = byte((code_point >> (3 * 6)            ) | 0b1111'0000);
     *out++ = byte((code_point >> (2 * 6) & cont_mask) | cont_flag);
     *out++ = byte((code_point >> (1 * 6) & cont_mask) | cont_flag);
     *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else if (code_point >= 0x0800) {
-    *out++ = byte((code_point >> (2 * 6)) | 0b1110'0000);
+    *out++ = byte((code_point >> (2 * 6)            ) | 0b1110'0000);
     *out++ = byte((code_point >> (1 * 6) & cont_mask) | cont_flag);
     *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else if (code_point >= 0x80) {
-    *out++ = byte((code_point >> (1 * 6)) | 0b1100'0000);
+    *out++ = byte((code_point >> (1 * 6)            ) | 0b1100'0000);
     *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else {
     *out++ = byte(code_point);
   }
+  // clang-format on
   return out;
 }
 
