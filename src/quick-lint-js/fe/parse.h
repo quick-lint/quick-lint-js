@@ -866,6 +866,8 @@ class parser {
   [[nodiscard]] switch_guard enter_switch();
 
   void parse_end_of_expression_statement();
+  void parse_and_visit_return_statement(
+      parse_visitor_base &v, const parse_statement_type &statement_type);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

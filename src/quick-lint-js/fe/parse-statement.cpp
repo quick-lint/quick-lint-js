@@ -577,64 +577,9 @@ parse_statement:
 
     // return;
     // return 42;
-  case token_type::kw_return: {
-    source_code_span return_span = this->peek().span();
-    this->skip();
-    switch (this->peek().type) {
-    case token_type::semicolon:
-      this->skip();
-      break;
-
-    case token_type::right_curly:
-      break;
-
-    default:
-      if (this->peek().has_leading_newline) {
-        switch (this->peek().type) {
-          // 'return' followed by a newline (ASI) followed by an expression.
-        case token_type::bang:
-        case token_type::complete_template:
-        case token_type::identifier:
-        case token_type::incomplete_template:
-        case token_type::kw_await:
-        case token_type::kw_false:
-        case token_type::kw_function:
-        case token_type::kw_new:
-        case token_type::kw_null:
-        case token_type::kw_super:
-        case token_type::kw_this:
-        case token_type::kw_true:
-        case token_type::kw_typeof:
-        case token_type::left_curly:  // Object literal.
-        case token_type::left_paren:
-        case token_type::left_square:  // Array literal.
-        case token_type::less:
-        case token_type::minus:
-        case token_type::number:
-        case token_type::plus:
-        case token_type::slash:        // Regular expression.
-        case token_type::slash_equal:  // Regular expression.
-        case token_type::string:
-        case token_type::tilde:
-          if (statement_type == parse_statement_type::any_statement_in_block) {
-            this->diag_reporter_->report(diag_return_statement_returns_nothing{
-                .return_keyword = return_span,
-            });
-          }
-          break;
-
-        default:
-          break;
-        }
-        // Insert a semicolon, then consume it.
-      } else {
-        this->parse_and_visit_expression(v);
-        this->parse_end_of_expression_statement();
-      }
-      break;
-    }
+  case token_type::kw_return:
+    this->parse_and_visit_return_statement(v, statement_type);
     break;
-  }
 
     // throw fit;
   case token_type::kw_throw:
@@ -828,6 +773,66 @@ parse_statement:
 
   return true;
 }
+
+void parser::parse_and_visit_return_statement(
+    parse_visitor_base &v, const parser::parse_statement_type &statement_type) {
+  source_code_span return_span = this->peek().span();
+  this->skip();
+  switch (this->peek().type) {
+  case token_type::semicolon:
+    this->skip();
+    break;
+
+  case token_type::right_curly:
+    break;
+
+  default:
+    if (this->peek().has_leading_newline) {
+      switch (this->peek().type) {
+        // 'return' followed by a newline (ASI) followed by an expression.
+      case token_type::bang:
+      case token_type::complete_template:
+      case token_type::identifier:
+      case token_type::incomplete_template:
+      case token_type::kw_await:
+      case token_type::kw_false:
+      case token_type::kw_function:
+      case token_type::kw_new:
+      case token_type::kw_null:
+      case token_type::kw_super:
+      case token_type::kw_this:
+      case token_type::kw_true:
+      case token_type::kw_typeof:
+      case token_type::left_curly:  // Object literal.
+      case token_type::left_paren:
+      case token_type::left_square:  // Array literal.
+      case token_type::less:
+      case token_type::minus:
+      case token_type::number:
+      case token_type::plus:
+      case token_type::slash:        // Regular expression.
+      case token_type::slash_equal:  // Regular expression.
+      case token_type::string:
+      case token_type::tilde:
+        if (statement_type == parse_statement_type::any_statement_in_block) {
+          this->diag_reporter_->report(diag_return_statement_returns_nothing{
+              .return_keyword = return_span,
+          });
+        }
+        break;
+
+      default:
+        break;
+      }
+      // Insert a semicolon, then consume it.
+    } else {
+      this->parse_and_visit_expression(v);
+      this->parse_end_of_expression_statement();
+    }
+    break;
+  }
+}
+
 void parser::parse_end_of_expression_statement() {
   while (this->peek().type == token_type::right_paren) {
     this->diag_reporter_->report(diag_unmatched_parenthesis{
