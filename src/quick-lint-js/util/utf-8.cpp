@@ -9,27 +9,28 @@
 namespace quick_lint_js {
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 char8* encode_utf_8(char32_t code_point, char8* out) {
-  auto byte = [](char32_t x) -> char8 {
+  auto append = [&out](char32_t x) -> void {
     QLJS_ASSERT(x <= 0x100);
-    return static_cast<char8>(x);
+    *out = static_cast<char8>(x);
+    ++out;
   };
   char32_t cont_flag = 0b1000'0000;  // 'cont' is short for 'continuation'.
   char32_t cont_mask = 0b0011'1111;
   // clang-format off
   if (code_point >= 0x10000) {
-    *out++ = byte((code_point >> (3 * 6)            ) | 0b1111'0000);
-    *out++ = byte((code_point >> (2 * 6) & cont_mask) | cont_flag);
-    *out++ = byte((code_point >> (1 * 6) & cont_mask) | cont_flag);
-    *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (3 * 6)            ) | 0b1111'0000);
+    append((code_point >> (2 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (1 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else if (code_point >= 0x0800) {
-    *out++ = byte((code_point >> (2 * 6)            ) | 0b1110'0000);
-    *out++ = byte((code_point >> (1 * 6) & cont_mask) | cont_flag);
-    *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (2 * 6)            ) | 0b1110'0000);
+    append((code_point >> (1 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else if (code_point >= 0x80) {
-    *out++ = byte((code_point >> (1 * 6)            ) | 0b1100'0000);
-    *out++ = byte((code_point >> (0 * 6) & cont_mask) | cont_flag);
+    append((code_point >> (1 * 6)            ) | 0b1100'0000);
+    append((code_point >> (0 * 6) & cont_mask) | cont_flag);
   } else {
-    *out++ = byte(code_point);
+    append(code_point);
   }
   // clang-format on
   return out;
