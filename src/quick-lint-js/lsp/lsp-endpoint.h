@@ -125,8 +125,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
  private:
   void handle_message(::simdjson::ondemand::object& request,
-                      byte_buffer& response_json,
-                      bool add_comma_before_response);
+                      byte_buffer& response_json);
 
   void write_json_parse_error_response(byte_buffer& response_json);
   void write_json_batch_messages_not_supported_error(

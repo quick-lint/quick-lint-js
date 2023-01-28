@@ -77,8 +77,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
     ::simdjson::ondemand::object message_object;
     if (message_document.get(message_object) ==
         ::simdjson::error_code::SUCCESS) {
-      this->handle_message(message_object, response_json,
-                           /*add_comma_before_response=*/false);
+      this->handle_message(message_object, response_json);
     } else {
       this->write_json_parse_error_response(response_json);
     }
@@ -91,8 +90,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
 }
 
 void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
-                                  byte_buffer& response_json,
-                                  bool add_comma_before_response) {
+                                  byte_buffer& response_json) {
   using namespace std::literals::string_view_literals;
 
   bool have_id;
@@ -181,9 +179,6 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
   bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
 
   if (have_id && have_method && !have_error && !have_result) {
-    if (add_comma_before_response) {
-      response_json.append_copy(u8","_sv);
-    }
     this->handler_->handle_request(message, method, id_json, response_json);
   } else if (have_id && !have_method && have_error && !have_result) {
     if (int_id_rc != ::simdjson::SUCCESS) {
