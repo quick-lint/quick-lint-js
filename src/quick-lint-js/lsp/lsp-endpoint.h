@@ -39,14 +39,18 @@ class lsp_endpoint_handler {
 
   virtual ~lsp_endpoint_handler();
 
+  // It is the responsibility of the lsp_endpoint_handler to create and send a
+  // response back to the peer.
   virtual void handle_request(::simdjson::ondemand::object& request,
-                              std::string_view method, string8_view id_json,
-                              byte_buffer& reply) = 0;
+                              std::string_view method, string8_view id_json) = 0;
+
   virtual void handle_response(request_id_type request_id,
                                ::simdjson::ondemand::value& result) = 0;
+
   virtual void handle_error_response(request_id_type request_id,
                                      std::int64_t code,
                                      std::string_view message) = 0;
+
   virtual void handle_notification(::simdjson::ondemand::object& request,
                                    std::string_view method) = 0;
 };

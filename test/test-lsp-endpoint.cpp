@@ -28,7 +28,7 @@ namespace {
 // Fails the test if any not-overridden method is called.
 struct test_lsp_server_handler : public lsp_endpoint_handler {
   void handle_request(::simdjson::ondemand::object&, std::string_view,
-                      string8_view, byte_buffer&) override {
+                      string8_view) override {
     ADD_FAILURE() << "handle_request should not be called";
   }
 
@@ -54,10 +54,6 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-string8 json_to_string(const ::boost::json::value& value) {
-  return to_string8(::boost::json::serialize(value));
-}
-
 std::string json_get_string(
     ::simdjson::simdjson_result< ::simdjson::ondemand::value>&& value) {
   std::string_view s = "<not found>";
@@ -73,19 +69,15 @@ void expect_batch_not_supported_error(::boost::json::value& message) {
 TEST(test_lsp_endpoint, single_request) {
   struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
-                        std::string_view method, string8_view id_json,
-                        byte_buffer& response_json) override {
+                        std::string_view method, string8_view id_json) override {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
       EXPECT_EQ(method, "testmethod");
       EXPECT_EQ(id_json, u8"3");
 
-      ::boost::json::value response = {
-          {"jsonrpc", "2.0"},
-          {"id", simdjson_to_boost_json(request["id"])},
-          {"params", "testresponse"},
-      };
-      response_json.append_copy(json_to_string(response));
+      this->handle_request_called = true;
     }
+
+    bool handle_request_called = false;
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
@@ -99,9 +91,7 @@ TEST(test_lsp_endpoint, single_request) {
         "params": {}
       })"_sv));
 
-  ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(look_up(remote.messages[0], "id"), 3);
-  EXPECT_EQ(look_up(remote.messages[0], "params"), "testresponse");
+  EXPECT_TRUE(handler.handle_request_called);
 }
 
 TEST(test_lsp_endpoint, batched_request_is_not_supported) {

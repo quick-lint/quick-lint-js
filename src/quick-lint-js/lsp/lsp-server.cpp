@@ -189,7 +189,7 @@ linting_lsp_server_handler::linting_lsp_server_handler(
 
 void linting_lsp_server_handler::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
-    string8_view id_json, byte_buffer&) {
+    string8_view id_json) {
   if (method == "initialize") {
     this->handle_initialize_request(request, id_json);
   } else if (method == "shutdown") {

@@ -83,7 +83,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
     }
   }
 
-  // TODO(strager): Remove this 'if'.
+  // TODO(strager): Remove this code.
   if (!response_json.empty()) {
     this->remote_->send_message(std::move(response_json));
   }
@@ -179,7 +179,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
   bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
 
   if (have_id && have_method && !have_error && !have_result) {
-    this->handler_->handle_request(message, method, id_json, response_json);
+    this->handler_->handle_request(message, method, id_json);
   } else if (have_id && !have_method && have_error && !have_result) {
     if (int_id_rc != ::simdjson::SUCCESS) {
       this->write_invalid_request_error_response(response_json);
