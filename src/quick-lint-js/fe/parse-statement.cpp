@@ -58,16 +58,6 @@ void parser::parse_and_visit_module(parse_visitor_base &v) {
 bool parser::parse_and_visit_statement(
     parse_visitor_base &v, parser::parse_statement_type statement_type) {
   depth_guard d_guard(this);
-  auto parse_expression_end = [this]() -> void {
-    while (this->peek().type == token_type::right_paren) {
-      this->diag_reporter_->report(diag_unmatched_parenthesis{
-          .where = this->peek().span(),
-      });
-      this->skip();
-    }
-    this->consume_semicolon_after_statement();
-  };
-
 parse_statement:
   switch (this->peek().type) {
     // export class C {}
@@ -116,7 +106,7 @@ parse_statement:
       expression *ast =
           this->parse_expression(v, precedence{.in_operator = true});
       this->visit_expression(ast, v, variable_context::rhs);
-      parse_expression_end();
+      this->parse_end_of_expression_statement();
     } else {
       // Variable declaration.
       this->lexer_.commit_transaction(std::move(transaction));
@@ -358,7 +348,7 @@ parse_statement:
       }
     }
     this->parse_and_visit_expression(v);
-    parse_expression_end();
+    this->parse_end_of_expression_statement();
     break;
   }
 
@@ -383,7 +373,7 @@ parse_statement:
           this->parse_await_expression(v, await_token, precedence{});
       ast = this->parse_expression_remainder(v, ast, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
-      parse_expression_end();
+      this->parse_end_of_expression_statement();
     }
     break;
   }
@@ -394,7 +384,7 @@ parse_statement:
   case token_type::kw_yield:
     if (this->in_generator_function_) {
       this->parse_and_visit_expression(v);
-      parse_expression_end();
+      this->parse_end_of_expression_statement();
       break;
     } else {
       goto parse_loop_label_or_expression_starting_with_identifier;
@@ -450,7 +440,7 @@ parse_statement:
           this->make_expression<expression::variable>(ident, ident_token_type);
       ast = this->parse_expression_remainder(v, ast, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
-      parse_expression_end();
+      this->parse_end_of_expression_statement();
       break;
     }
     break;
@@ -558,7 +548,7 @@ parse_statement:
     default:
       this->lexer_.roll_back_transaction(std::move(transaction));
       this->parse_and_visit_expression(v);
-      parse_expression_end();
+      this->parse_end_of_expression_statement();
       break;
     }
     break;
@@ -642,7 +632,7 @@ parse_statement:
         // Insert a semicolon, then consume it.
       } else {
         this->parse_and_visit_expression(v);
-        parse_expression_end();
+        this->parse_end_of_expression_statement();
       }
       break;
     }
@@ -666,7 +656,7 @@ parse_statement:
       break;
     }
     this->parse_and_visit_expression(v);
-    parse_expression_end();
+    this->parse_end_of_expression_statement();
     break;
 
     // try { hard(); } catch (exhaustion) {}
@@ -840,6 +830,15 @@ parse_statement:
   }
 
   return true;
+}
+void parser::parse_end_of_expression_statement() {
+  while (this->peek().type == token_type::right_paren) {
+    this->diag_reporter_->report(diag_unmatched_parenthesis{
+        .where = this->peek().span(),
+    });
+    this->skip();
+  }
+  this->consume_semicolon_after_statement();
 }
 
 void parser::parse_and_visit_export(parse_visitor_base &v) {
