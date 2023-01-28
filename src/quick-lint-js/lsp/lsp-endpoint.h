@@ -77,60 +77,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   using message_parser = lsp_message_parser<lsp_endpoint>;
 
  public:
-  // TODO(strager): It would be nice if we didn't have to pass an
-  // lsp_endpoint_remote* here. It makes tests uglier and control flow
-  // non-obvious. Some options I considered:
-  //
-  // * lsp_endpoint stores an outgoing_lsp_message_queue and exposes a function:
-  //   void lsp_endpoint::flush_outgoing_messages(lsp_endpoint_remote*);
-  //   * This means that both lsp_endpoint and linting_lsp_server_handler have
-  //     flush functions which need to be called, which is probably confusing.
-  //
-  // * The above option, and additionally a reference to the
-  //   outgoing_lsp_message_queue object is given to lsp_endpoint_handler.
-  //   * Asynchronous events (e.g. filesystem notifications) can cause
-  //     asynchronous messages from linting_lsp_server_handler, so
-  //     linting_lsp_server_handler still needs its own
-  //     outgoing_lsp_message_queue. Therefore, the two-flush-function issue
-  //     isn't solved.
-  //   * Tests are even harder to write than they already are.
-  //
-  // * lsp_endpoint accepts an outgoing_lsp_message_queue* instead of an
-  //   lsp_endpoint_remote*.
-  //   * This runs the risk of someone else using the outgoing_lsp_message_queue
-  //     while we're working with it. Perhaps this can be solved by making
-  //     outgoing_lsp_message_queue safer to use.
-  //   * Tests are slightly harder to write because outgoing_lsp_message_queue
-  //     isn't polymorphic. However, we could add test utilities directly to
-  //     outgoing_lsp_message_queue to paper over this, because
-  //     outgoing_lsp_message_queue now buffers messages like
-  //     spy_lsp_endpoint_remote does.
-  //
-  // * lsp_endpoint sends responses by calling a new function:
-  //   void lsp_endpoint_handler::send_message_to_client_later(byte_buffer&);
-  //   * From this class' perspective, this new design effectively merges
-  //     lsp_endpoint_remote and lsp_endpoint_handler.
-  //   * This centralizes the outgoing_lsp_message_queue inside each
-  //     lsp_endpoint_handler. This means flushing is more consistent.
-  //   * From a design perspective, it's weird that lsp_endpoint_handler is
-  //     responsible for publicly holding the outgoing_lsp_message_queue. But
-  //     this design quirk already exists.
-  //   * I don't know whether tests would change for the worse or for the
-  //     better.
-  //
-  // * Drop support for batched requests and responses, and remove the
-  //   reply parameter from lsp_endpoint_handler::handle_request.
-  //   * In practice, no LSP client sends batched requests anyway.
-  //     * TODO(strager): Codify this in the LSP spec.
-  //       https://github.com/microsoft/language-server-protocol/pull/1651
-  //   * This gives lsp_endpoint_handler full responsibility in sending
-  //     responses.
-  //     * This means flushing is more consistent.
-  //     * This means lsp_endpoint_handler implementations need more code.
-  //   * I don't know whether tests would change for the worse or for the
-  //     better.
-  explicit lsp_endpoint(lsp_endpoint_handler* handler,
-                        lsp_endpoint_remote* remote);
+  explicit lsp_endpoint(lsp_endpoint_handler* handler);
   ~lsp_endpoint();
 
   lsp_endpoint(const lsp_endpoint&) = delete;

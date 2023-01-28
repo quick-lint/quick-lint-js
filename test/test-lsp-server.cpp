@@ -112,8 +112,7 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
     this->handler =
         std::make_unique<linting_lsp_server_handler>(&this->fs, &this->linter);
     this->client = std::make_unique<spy_lsp_endpoint_remote>();
-    this->server =
-        std::make_unique<lsp_endpoint>(this->handler.get(), this->client.get());
+    this->server = std::make_unique<lsp_endpoint>(this->handler.get());
   }
 
   heap_function<void(configuration&, linter_options, padded_string_view code,
@@ -334,7 +333,7 @@ TEST_F(test_linting_lsp_server,
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote client;
-  lsp_endpoint server(&handler, &client);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(concat(u8R"({
@@ -380,7 +379,7 @@ TEST_F(test_linting_lsp_server,
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote client;
-  lsp_endpoint server(&handler, &client);
+  lsp_endpoint server(&handler);
 
   std::string original_tracing_dir = this->make_temporary_directory();
   std::string new_tracing_dir = this->make_temporary_directory();
@@ -427,7 +426,7 @@ TEST_F(test_linting_lsp_server,
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote client;
-  lsp_endpoint server(&handler, &client);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(concat(u8R"({
@@ -2540,7 +2539,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2611,7 +2610,7 @@ TEST(test_lsp_javascript_linter,
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote client;
-  lsp_endpoint server(&handler, &client);
+  lsp_endpoint server(&handler);
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2644,7 +2643,7 @@ TEST(test_lsp_javascript_linter,
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote client;
-  lsp_endpoint server(&handler, &client);
+  lsp_endpoint server(&handler);
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",

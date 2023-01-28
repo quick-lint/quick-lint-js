@@ -30,9 +30,7 @@ lsp_endpoint_remote::~lsp_endpoint_remote() = default;
 
 lsp_endpoint_handler::~lsp_endpoint_handler() = default;
 
-lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
-                           // TODO(strager): Remove this parameter.
-                           lsp_endpoint_remote*)
+lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler)
     : handler_(handler),
       json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
 

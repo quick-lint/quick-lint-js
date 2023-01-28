@@ -336,7 +336,7 @@ void run_lsp_server() {
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_),
           writer_(output_pipe),
-          endpoint_(&this->handler_, &this->writer_) {
+          endpoint_(&this->handler_) {
       this->report_pending_watch_io_errors();
 
       trace_flusher *tracer = trace_flusher::instance();

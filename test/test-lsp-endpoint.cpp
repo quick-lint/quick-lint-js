@@ -82,7 +82,7 @@ TEST(test_lsp_endpoint, single_request) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -98,7 +98,7 @@ TEST(test_lsp_endpoint, single_request) {
 TEST(test_lsp_endpoint, batched_request_is_not_supported) {
   test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"([
@@ -139,7 +139,7 @@ TEST(test_lsp_endpoint, successful_response) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -175,7 +175,7 @@ TEST(test_lsp_endpoint, successful_response_v2) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -204,7 +204,7 @@ TEST(test_lsp_endpoint, error_response) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -224,7 +224,7 @@ TEST(test_lsp_endpoint, error_response) {
 TEST(test_lsp_endpoint, batched_responses_are_not_supported) {
   test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"([
@@ -262,7 +262,7 @@ TEST(test_lsp_endpoint, single_notification_with_no_reply) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -295,7 +295,7 @@ TEST(test_lsp_endpoint, single_notification_with_reply) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -314,7 +314,7 @@ TEST(test_lsp_endpoint, single_notification_with_reply) {
 TEST(test_lsp_endpoint, batched_notification_is_not_supported) {
   test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(
       make_message(u8R"([{
@@ -334,7 +334,7 @@ TEST(test_lsp_endpoint, batched_notification_is_not_supported) {
 TEST(test_lsp_endpoint, malformed_json) {
   test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint server(&handler, &remote);
+  lsp_endpoint server(&handler);
 
   server.append(make_message(u8"{ malformed json! }"_sv));
   server.flush_error_responses(remote);
@@ -390,7 +390,7 @@ TEST(test_lsp_endpoint, invalid_message) {
 
     test_lsp_server_handler handler;
     spy_lsp_endpoint_remote remote;
-    lsp_endpoint server(&handler, &remote);
+    lsp_endpoint server(&handler);
 
     server.append(make_message(message));
     server.flush_error_responses(remote);
