@@ -869,6 +869,7 @@ class parser {
   void parse_and_visit_return_statement(
       parse_visitor_base &v, const parse_statement_type &statement_type);
   void parse_and_visit_throw_statement(parse_visitor_base &v);
+  void parse_and_visit_break_or_continue();
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

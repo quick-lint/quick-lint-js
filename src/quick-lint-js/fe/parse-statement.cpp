@@ -654,38 +654,9 @@ parse_statement:
     // break;
     // continue label;
   case token_type::kw_break:
-  case token_type::kw_continue: {
-    bool is_break = this->peek().type == token_type::kw_break;
-    source_code_span token_span = this->peek().span();
-    this->skip();
-    switch (this->peek().type) {
-    QLJS_CASE_CONTEXTUAL_KEYWORD:
-    case token_type::identifier:
-    case token_type::kw_await:
-    case token_type::kw_yield:
-      if (this->peek().has_leading_newline) {
-        // ASI.
-        this->lexer_.insert_semicolon();
-      } else {
-        // Loop label.
-        this->skip();
-      }
-      break;
-    default:
-      if (is_break) {
-        if (!(this->in_switch_statement_ || this->in_loop_statement_)) {
-          this->diag_reporter_->report(diag_invalid_break{token_span});
-        }
-      } else {
-        if (!this->in_loop_statement_) {
-          this->diag_reporter_->report(diag_invalid_continue{token_span});
-        }
-      }
-      break;
-    }
-    this->consume_semicolon_after_statement();
+  case token_type::kw_continue:
+    this->parse_and_visit_break_or_continue();
     break;
-  }
 
     // debugger;
   case token_type::kw_debugger:
@@ -751,6 +722,38 @@ parse_statement:
   }
 
   return true;
+}
+
+void parser::parse_and_visit_break_or_continue() {
+  bool is_break = this->peek().type == token_type::kw_break;
+  source_code_span token_span = this->peek().span();
+  this->skip();
+  switch (this->peek().type) {
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case token_type::identifier:
+  case token_type::kw_await:
+  case token_type::kw_yield:
+    if (this->peek().has_leading_newline) {
+      // ASI.
+      this->lexer_.insert_semicolon();
+    } else {
+      // Loop label.
+      this->skip();
+    }
+    break;
+  default:
+    if (is_break) {
+      if (!(this->in_switch_statement_ || this->in_loop_statement_)) {
+        this->diag_reporter_->report(diag_invalid_break{token_span});
+      }
+    } else {
+      if (!this->in_loop_statement_) {
+        this->diag_reporter_->report(diag_invalid_continue{token_span});
+      }
+    }
+    break;
+  }
+  this->consume_semicolon_after_statement();
 }
 
 void parser::parse_and_visit_throw_statement(parse_visitor_base &v) {
