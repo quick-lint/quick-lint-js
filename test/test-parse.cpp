@@ -898,6 +898,21 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 }
 
+TEST_F(test_no_overflow, certain_syntax_does_not_have_stack_limit) {
+  for (const string8& exps : {
+           // TODO(strager): Multiple labels with the same name are not allowed.
+           repeated_str(u8"type: "_sv, u8"console.log('hi');"_sv, u8""_sv,
+                        parser::stack_limit + 50),
+       }) {
+    test_parser p(exps, capture_diags);
+    SCOPED_TRACE(p.code);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
+                              DIAG_TYPE(diag_depth_limit_exceeded))));
+  }
+}
+
 TEST_F(test_overflow, parser_depth_limit_exceeded) {
   for (const string8& exps : {
            repeated_str(u8"("_sv, u8"10"_sv, u8")"_sv, parser::stack_limit + 1),
