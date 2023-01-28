@@ -332,7 +332,6 @@ TEST_F(test_linting_lsp_server,
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
-  spy_lsp_endpoint_remote client;
   lsp_endpoint server(&handler);
 
   server.append(
@@ -378,7 +377,6 @@ TEST_F(test_linting_lsp_server,
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
-  spy_lsp_endpoint_remote client;
   lsp_endpoint server(&handler);
 
   std::string original_tracing_dir = this->make_temporary_directory();
@@ -425,7 +423,6 @@ TEST_F(test_linting_lsp_server,
   fake_configuration_filesystem fs;
   mock_lsp_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
-  spy_lsp_endpoint_remote client;
   lsp_endpoint server(&handler);
 
   server.append(
