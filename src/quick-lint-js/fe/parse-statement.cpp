@@ -571,11 +571,9 @@ parse_statement:
     break;
 
     // switch (x) { default: ; }
-  case token_type::kw_switch: {
-    switch_guard s = this->enter_switch();
+  case token_type::kw_switch:
     this->parse_and_visit_switch(v);
     break;
-  }
 
     // return;
     // return 42;
@@ -1877,6 +1875,8 @@ parser::parse_end_of_typescript_overload_signature(
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {
+  switch_guard s = this->enter_switch();
+
   QLJS_ASSERT(this->peek().type == token_type::kw_switch);
   source_code_span switch_token_span = this->peek().span();
   this->skip();
