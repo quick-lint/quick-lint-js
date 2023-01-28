@@ -460,99 +460,16 @@ parse_statement:
   // interface I {}   // TypeScript only.
   case token_type::kw_interface:
   case token_type::kw_namespace:
-  case token_type::kw_type: {
-    token initial_keyword = this->peek();
-    lexer_transaction transaction = this->lexer_.begin_transaction();
-    this->skip();
-    switch (this->peek().type) {
-    // type:  // Labelled statement.
-    case token_type::colon:
-      this->lexer_.commit_transaction(std::move(transaction));
-      this->skip();
-      this->check_body_after_label();
+  case token_type::kw_type:
+    switch (
+        this->parse_and_visit_typescript_interface_or_namespace_or_type_statement(
+            v)) {
+    case parse_possible_label_result::parsed_not_as_a_label:
+      break;
+    case parse_possible_label_result::parsed_as_label:
       goto parse_statement;
-
-    // type T = number;  // TypeScript only.
-    //
-    // type  // ASI
-    // f();
-    QLJS_CASE_CONTEXTUAL_KEYWORD:
-    case token_type::kw_await:
-    case token_type::identifier:
-      if (this->peek().has_leading_newline) {
-        bool is_expression = true;
-        if (initial_keyword.type == token_type::kw_interface) {
-          parser_transaction inner_transaction = this->begin_transaction();
-          this->skip();
-          bool has_generic_parameters = false;
-          if (this->options_.typescript &&
-              this->peek().type == token_type::less) {
-            // interface
-            //   I<T> {}  // Invalid TypeScript.
-            this->parse_and_visit_typescript_generic_parameters(
-                null_visitor::instance);
-            has_generic_parameters = true;
-          }
-          if (this->peek().type == token_type::left_curly &&
-              (!this->peek().has_leading_newline || has_generic_parameters)) {
-            // interface
-            //   I {}     // Invalid.
-            // Treat 'interface' as a keyword.
-            is_expression = false;
-          }
-          this->roll_back_transaction(std::move(inner_transaction));
-
-          if (!is_expression) {
-            this->diag_reporter_->report(
-                diag_newline_not_allowed_after_interface_keyword{
-                    .interface_keyword = initial_keyword.span(),
-                });
-          }
-        }
-        if (initial_keyword.type == token_type::kw_namespace) {
-          lexer_transaction inner_transaction =
-              this->lexer_.begin_transaction();
-          this->skip();
-          if (this->peek().type == token_type::left_curly &&
-              !this->peek().has_leading_newline) {
-            // namespace
-            //   ns {}     // Invalid.
-            // Treat 'namespace' as a keyword.
-            is_expression = false;
-            // diag_newline_not_allowed_after_namespace_keyword is reported
-            // later by parse_and_visit_typescript_namespace.
-          }
-          this->lexer_.roll_back_transaction(std::move(inner_transaction));
-        }
-        if (is_expression) {
-          goto initial_keyword_is_expression;
-        }
-      }
-      switch (initial_keyword.type) {
-      case token_type::kw_interface:
-        this->parse_and_visit_typescript_interface(v, initial_keyword.span());
-        break;
-      case token_type::kw_namespace:
-        this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
-        break;
-      case token_type::kw_type:
-        this->parse_and_visit_typescript_type_alias(v, initial_keyword.span());
-        break;
-      default:
-        QLJS_UNREACHABLE();
-      }
-      break;
-
-    // type++;  // Expression.
-    initial_keyword_is_expression:
-    default:
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      this->parse_and_visit_expression(v);
-      this->parse_end_of_expression_statement();
-      break;
     }
     break;
-  }
 
   case token_type::kw_implements:
   case token_type::kw_package:
@@ -722,6 +639,100 @@ parse_statement:
   }
 
   return true;
+}
+
+parser::parse_possible_label_result
+parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
+    parse_visitor_base &v) {
+  token initial_keyword = this->peek();
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+  this->skip();
+  switch (this->peek().type) {
+  // type:  // Labelled statement.
+  case token_type::colon:
+    this->lexer_.commit_transaction(std::move(transaction));
+    this->skip();
+    this->check_body_after_label();
+    return parse_possible_label_result::parsed_as_label;
+
+  // type T = number;  // TypeScript only.
+  //
+  // type  // ASI
+  // f();
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case token_type::kw_await:
+  case token_type::identifier:
+    if (this->peek().has_leading_newline) {
+      bool is_expression = true;
+      if (initial_keyword.type == token_type::kw_interface) {
+        parser_transaction inner_transaction = this->begin_transaction();
+        this->skip();
+        bool has_generic_parameters = false;
+        if (this->options_.typescript &&
+            this->peek().type == token_type::less) {
+          // interface
+          //   I<T> {}  // Invalid TypeScript.
+          this->parse_and_visit_typescript_generic_parameters(
+              null_visitor::instance);
+          has_generic_parameters = true;
+        }
+        if (this->peek().type == token_type::left_curly &&
+            (!this->peek().has_leading_newline || has_generic_parameters)) {
+          // interface
+          //   I {}     // Invalid.
+          // Treat 'interface' as a keyword.
+          is_expression = false;
+        }
+        this->roll_back_transaction(std::move(inner_transaction));
+
+        if (!is_expression) {
+          this->diag_reporter_->report(
+              diag_newline_not_allowed_after_interface_keyword{
+                  .interface_keyword = initial_keyword.span(),
+              });
+        }
+      }
+      if (initial_keyword.type == token_type::kw_namespace) {
+        lexer_transaction inner_transaction = this->lexer_.begin_transaction();
+        this->skip();
+        if (this->peek().type == token_type::left_curly &&
+            !this->peek().has_leading_newline) {
+          // namespace
+          //   ns {}     // Invalid.
+          // Treat 'namespace' as a keyword.
+          is_expression = false;
+          // diag_newline_not_allowed_after_namespace_keyword is reported
+          // later by parse_and_visit_typescript_namespace.
+        }
+        this->lexer_.roll_back_transaction(std::move(inner_transaction));
+      }
+      if (is_expression) {
+        goto initial_keyword_is_expression;
+      }
+    }
+    switch (initial_keyword.type) {
+    case token_type::kw_interface:
+      this->parse_and_visit_typescript_interface(v, initial_keyword.span());
+      break;
+    case token_type::kw_namespace:
+      this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
+      break;
+    case token_type::kw_type:
+      this->parse_and_visit_typescript_type_alias(v, initial_keyword.span());
+      break;
+    default:
+      QLJS_UNREACHABLE();
+    }
+    return parse_possible_label_result::parsed_not_as_a_label;
+
+  // type++;  // Expression.
+  initial_keyword_is_expression:
+  default:
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    this->parse_and_visit_expression(v);
+    this->parse_end_of_expression_statement();
+    return parse_possible_label_result::parsed_not_as_a_label;
+  }
 }
 
 void parser::parse_and_visit_break_or_continue() {

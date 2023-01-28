@@ -870,6 +870,15 @@ class parser {
       parse_visitor_base &v, const parse_statement_type &statement_type);
   void parse_and_visit_throw_statement(parse_visitor_base &v);
   void parse_and_visit_break_or_continue();
+
+  enum class parse_possible_label_result {
+    parsed_as_label,
+    parsed_not_as_a_label,
+  };
+
+  parse_possible_label_result
+  parse_and_visit_typescript_interface_or_namespace_or_type_statement(
+      parse_visitor_base &v);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
