@@ -189,13 +189,13 @@ linting_lsp_server_handler::linting_lsp_server_handler(
 
 void linting_lsp_server_handler::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
-    string8_view id_json, byte_buffer& response_json) {
+    string8_view id_json, byte_buffer&) {
   if (method == "initialize") {
-    this->handle_initialize_request(request, id_json, response_json);
+    this->handle_initialize_request(request, id_json);
   } else if (method == "shutdown") {
-    this->handle_shutdown_request(request, id_json, response_json);
+    this->handle_shutdown_request(request, id_json);
   } else {
-    this->write_method_not_found_error_response(id_json, response_json);
+    this->write_method_not_found_error_response(id_json);
   }
 }
 
@@ -275,8 +275,8 @@ void linting_lsp_server_handler::add_watch_io_errors(
 }
 
 void linting_lsp_server_handler::handle_initialize_request(
-    ::simdjson::ondemand::object&, string8_view id_json,
-    byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json) {
+  byte_buffer& response_json = this->outgoing_messages_.new_message();
   response_json.append_copy(u8R"--({"id":)--"_sv);
   response_json.append_copy(id_json);
   // clang-format off
@@ -296,8 +296,8 @@ void linting_lsp_server_handler::handle_initialize_request(
 }
 
 void linting_lsp_server_handler::handle_shutdown_request(
-    ::simdjson::ondemand::object&, string8_view id_json,
-    byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json) {
+  byte_buffer& response_json = this->outgoing_messages_.new_message();
   this->shutdown_requested_ = true;
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"_sv);
   response_json.append_copy(id_json);
@@ -724,7 +724,8 @@ void linting_lsp_server_handler::apply_document_change(
 }
 
 void linting_lsp_server_handler::write_method_not_found_error_response(
-    string8_view request_id_json, byte_buffer& response_json) {
+    string8_view request_id_json) {
+  byte_buffer& response_json = this->outgoing_messages_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"

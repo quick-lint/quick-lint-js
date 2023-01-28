@@ -148,11 +148,9 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
-                                 string8_view id_json,
-                                 byte_buffer& response_json);
+                                 string8_view id_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
-                               string8_view id_json,
-                               byte_buffer& response_json);
+                               string8_view id_json);
 
   void handle_workspace_configuration_response(
       ::simdjson::ondemand::value& result);
@@ -218,8 +216,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   static void apply_document_change(document<lsp_locator>& doc,
                                     const lsp_document_change& change);
 
-  static void write_method_not_found_error_response(
-      string8_view request_id_json, byte_buffer&);
+  void write_method_not_found_error_response(string8_view request_id_json);
 
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;

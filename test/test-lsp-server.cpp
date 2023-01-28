@@ -154,6 +154,7 @@ TEST_F(test_linting_lsp_server, initialize) {
           "capabilities": {}
         }
       })"_sv));
+  this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
@@ -216,6 +217,7 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
             "capabilities": {}
           }
         })"_sv)));
+    this->handler->flush_pending_notifications(*this->client);
 
     std::vector< ::boost::json::object> responses = this->client->responses();
     ASSERT_EQ(responses.size(), 1);
@@ -455,6 +457,7 @@ TEST_F(test_linting_lsp_server, shutdown) {
         "id": 10,
         "method": "shutdown"
       })"_sv));
+  this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
@@ -2389,6 +2392,7 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
         "id": 10,
         "params": {}
       })"_sv));
+  this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
