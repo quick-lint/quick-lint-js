@@ -16,17 +16,17 @@ char8* encode_utf_8(char32_t code_point, char8* out) {
   char32_t continuation_flag = 0b1000'0000;
   char32_t continuation_mask = 0b0011'1111;
   if (code_point >= 0x10000) {
-    *out++ = byte(0b1111'0000 | (code_point >> 18));
-    *out++ = byte(continuation_flag | ((code_point >> 12) & continuation_mask));
-    *out++ = byte(continuation_flag | ((code_point >> 6) & continuation_mask));
-    *out++ = byte(continuation_flag | ((code_point >> 0) & continuation_mask));
+    *out++ = byte(((code_point >> 18)) | 0b1111'0000);
+    *out++ = byte(((code_point >> 12) & continuation_mask) | continuation_flag);
+    *out++ = byte(((code_point >> 6) & continuation_mask) | continuation_flag);
+    *out++ = byte(((code_point >> 0) & continuation_mask) | continuation_flag);
   } else if (code_point >= 0x0800) {
-    *out++ = byte(0b1110'0000 | (code_point >> 12));
-    *out++ = byte(continuation_flag | ((code_point >> 6) & continuation_mask));
-    *out++ = byte(continuation_flag | ((code_point >> 0) & continuation_mask));
+    *out++ = byte(((code_point >> 12)) | 0b1110'0000);
+    *out++ = byte(((code_point >> 6) & continuation_mask) | continuation_flag);
+    *out++ = byte(((code_point >> 0) & continuation_mask) | continuation_flag);
   } else if (code_point >= 0x80) {
-    *out++ = byte(0b1100'0000 | (code_point >> 6));
-    *out++ = byte(continuation_flag | ((code_point >> 0) & continuation_mask));
+    *out++ = byte(((code_point >> 6)) | 0b1100'0000);
+    *out++ = byte(((code_point >> 0) & continuation_mask) | continuation_flag);
   } else {
     *out++ = byte(code_point);
   }
