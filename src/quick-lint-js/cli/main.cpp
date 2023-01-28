@@ -31,7 +31,7 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/logging/trace-flusher.h>
-#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/char8.h>

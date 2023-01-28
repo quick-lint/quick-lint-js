@@ -74,7 +74,7 @@ quick_lint_js_add_executable(
   test-linked-vector.cpp
   test-locale.cpp
   test-lsp-diag-reporter.cpp
-  test-lsp-endpoint.cpp
+  test-lsp-json-rpc-message-parser.cpp
   test-lsp-location.cpp
   test-lsp-message-parser.cpp
   test-lsp-pipe-writer.cpp

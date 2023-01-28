@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/char8.h>
 

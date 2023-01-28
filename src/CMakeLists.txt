@@ -184,8 +184,8 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-writer.h
   quick-lint-js/lsp/lsp-diag-reporter.cpp
   quick-lint-js/lsp/lsp-diag-reporter.h
-  quick-lint-js/lsp/lsp-endpoint.cpp
-  quick-lint-js/lsp/lsp-endpoint.h
+  quick-lint-js/lsp/lsp-json-rpc-message-parser.cpp
+  quick-lint-js/lsp/lsp-json-rpc-message-parser.h
   quick-lint-js/lsp/lsp-location.cpp
   quick-lint-js/lsp/lsp-location.h
   quick-lint-js/lsp/lsp-message-parser.cpp

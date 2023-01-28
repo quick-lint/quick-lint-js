@@ -18,7 +18,7 @@
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>

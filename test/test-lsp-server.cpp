@@ -23,7 +23,7 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp-support.h>
-#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/outgoing-json-rpc-message-queue.h>
 #include <quick-lint-js/port/char8.h>

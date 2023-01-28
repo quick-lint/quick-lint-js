@@ -11,7 +11,7 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
-#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
