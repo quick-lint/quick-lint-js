@@ -563,13 +563,12 @@ parse_statement:
     goto parse_loop_label_or_expression_starting_with_identifier;
 
     // class C {}
-  case token_type::kw_class: {
+  case token_type::kw_class:
     this->parse_and_visit_class(
         v,
         /*require_name=*/name_requirement::required_for_statement,
         /*abstract_keyword_span=*/std::nullopt);
     break;
-  }
 
     // switch (x) { default: ; }
   case token_type::kw_switch: {
