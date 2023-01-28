@@ -31,8 +31,8 @@ class lsp_endpoint_remote {
   virtual void send_message(byte_buffer&& message) = 0;
 };
 
-// List of asynchronous LSP messages (requests and notifications) to send to the
-// client.
+// List of asynchronous LSP messages (requests, responses, and notifications) to
+// send to the client.
 class outgoing_lsp_message_queue {
  public:
   byte_buffer& new_message();
@@ -68,8 +68,8 @@ class lsp_endpoint_handler {
                                    std::string_view method) = 0;
 };
 
-// An lsp_endpoint parses Language Server Protocol messages, dispatches them to
-// lsp_endpoint_handler, and sends responses to lsp_endpoint_remote.
+// An lsp_endpoint parses Language Server Protocol messages and dispatches them
+// to lsp_endpoint_handler.
 //
 // lsp_endpoint implements JSON-RPC.
 class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
