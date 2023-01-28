@@ -739,20 +739,6 @@ void linting_lsp_server_handler::write_method_not_found_error_response(
   // clang-format on
 }
 
-void linting_lsp_server_handler::write_invalid_request_error_response(
-    byte_buffer& response_json) {
-  // clang-format off
-  response_json.append_copy(u8R"({)"
-    u8R"("jsonrpc":"2.0",)"
-    u8R"("id":null,)"
-    u8R"("error":{)"
-      u8R"("code":-32600,)"
-      u8R"("message":"Invalid Request")"
-    u8R"(})"
-  u8R"(})"_sv);
-  // clang-format on
-}
-
 lsp_linter::~lsp_linter() = default;
 
 void lsp_linter::lint(linting_lsp_server_handler::lintable_document& doc,
