@@ -858,9 +858,7 @@ class parser {
 
   int depth_ = 0;
 
-  // TODO(#735): Reduce stack usage in our parse functions and increase this
-  // limit.
-  static constexpr const int stack_limit = 130;
+  static constexpr const int stack_limit = 150;
 
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();

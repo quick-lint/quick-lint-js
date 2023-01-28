@@ -67,7 +67,7 @@ function f() {
   ()=>{{{{{{{await/
   ()=>{{{{{{{await/
   ()=>{{{{{{{await/
-  ()=>{{{{{{ await/ 
+  ()=>{{{{{{{await/
 }
 )"_sv);
 BENCHMARK_CAPTURE(benchmark_parse, pathological_await_slash_top_level,
