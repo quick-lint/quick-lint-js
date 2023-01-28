@@ -60,9 +60,7 @@ void lsp_endpoint::message_parsed(string8_view message) {
   this->json_parser_->iterate(padded_message)
       .tie(message_document, parse_error);
   if (parse_error != ::simdjson::error_code::SUCCESS) {
-    byte_buffer error_json;
-    this->write_json_parse_error_response(error_json);
-    this->remote_->send_message(std::move(error_json));
+    this->write_json_parse_error_response();
     return;
   }
 
@@ -72,14 +70,14 @@ void lsp_endpoint::message_parsed(string8_view message) {
   bool is_batch_message =
       message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
   if (is_batch_message) {
-    this->write_json_batch_messages_not_supported_error(response_json);
+    this->write_json_batch_messages_not_supported_error();
   } else {
     ::simdjson::ondemand::object message_object;
     if (message_document.get(message_object) ==
         ::simdjson::error_code::SUCCESS) {
       this->handle_message(message_object, response_json);
     } else {
-      this->write_json_parse_error_response(response_json);
+      this->write_json_parse_error_response();
     }
   }
 
@@ -94,7 +92,7 @@ void lsp_endpoint::flush_error_responses(lsp_endpoint_remote& remote) {
 }
 
 void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
-                                  byte_buffer& response_json) {
+                                  byte_buffer&) {
   using namespace std::literals::string_view_literals;
 
   bool have_id;
@@ -107,7 +105,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
   case ::simdjson::error_code::SUCCESS: {
     ::simdjson::ondemand::json_type id_type;
     if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
-      this->write_json_parse_error_response(response_json);
+      this->write_json_parse_error_response();
       return;
     }
     switch (id_type) {
@@ -117,7 +115,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
       break;
 
     default:
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
 
@@ -133,7 +131,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     break;
 
   case ::simdjson::error_code::TAPE_ERROR:
-    this->write_json_parse_error_response(response_json);
+    this->write_json_parse_error_response();
     return;
 
   default:
@@ -151,7 +149,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     have_method = false;
     break;
   default:
-    this->write_invalid_request_error_response(response_json);
+    this->write_invalid_request_error_response();
     return;
   }
 
@@ -163,18 +161,18 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
   switch (error_rc) {
   case ::simdjson::SUCCESS:
     if (error["code"].get(error_code) != ::simdjson::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
     if (error["message"].get(error_message) != ::simdjson::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
     break;
   case ::simdjson::NO_SUCH_FIELD:
     break;
   default:
-    this->write_invalid_request_error_response(response_json);
+    this->write_invalid_request_error_response();
     return;
   }
 
@@ -186,28 +184,28 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     this->handler_->handle_request(message, method, id_json);
   } else if (have_id && !have_method && have_error && !have_result) {
     if (int_id_rc != ::simdjson::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
     this->handler_->handle_error_response(int_id, error_code, error_message);
   } else if (have_id && !have_method && !have_error && have_result) {
     if (int_id_rc != ::simdjson::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
     if (result_rc != ::simdjson::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
+      this->write_invalid_request_error_response();
       return;
     }
     this->handler_->handle_response(int_id, result);
   } else if (!have_id && have_method && !have_error && !have_result) {
     this->handler_->handle_notification(message, method);
   } else {
-    this->write_invalid_request_error_response(response_json);
+    this->write_invalid_request_error_response();
   }
 }
 
-void lsp_endpoint::write_json_parse_error_response(byte_buffer&) {
+void lsp_endpoint::write_json_parse_error_response() {
   byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
@@ -222,7 +220,7 @@ void lsp_endpoint::write_json_parse_error_response(byte_buffer&) {
   // clang-format on
 }
 
-void lsp_endpoint::write_json_batch_messages_not_supported_error(byte_buffer&) {
+void lsp_endpoint::write_json_batch_messages_not_supported_error() {
   byte_buffer& response_json = this->error_responses_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -235,8 +233,7 @@ void lsp_endpoint::write_json_batch_messages_not_supported_error(byte_buffer&) {
   u8R"(})"_sv);
 }
 
-void lsp_endpoint::write_invalid_request_error_response(
-    byte_buffer& ) {
+void lsp_endpoint::write_invalid_request_error_response() {
   byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
