@@ -59,18 +59,6 @@ struct linting_lsp_server_config {
   std::string tracing_directory;
 };
 
-// List of asynchronous LSP messages (requests and notifications) to send to the
-// client.
-class outgoing_lsp_message_queue {
- public:
-  byte_buffer& new_message();
-
-  void send(lsp_endpoint_remote&);
-
- private:
-  std::vector<byte_buffer> messages_;
-};
-
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
 class linting_lsp_server_handler final : public lsp_endpoint_handler {

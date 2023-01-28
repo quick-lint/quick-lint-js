@@ -89,6 +89,10 @@ void lsp_endpoint::message_parsed(string8_view message) {
   }
 }
 
+void lsp_endpoint::flush_error_responses(lsp_endpoint_remote& remote) {
+  this->error_responses_.send(remote);
+}
+
 void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
                                   byte_buffer& response_json) {
   using namespace std::literals::string_view_literals;
@@ -203,7 +207,8 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
   }
 }
 
-void lsp_endpoint::write_json_parse_error_response(byte_buffer& response_json) {
+void lsp_endpoint::write_json_parse_error_response(byte_buffer&) {
+  byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -217,8 +222,8 @@ void lsp_endpoint::write_json_parse_error_response(byte_buffer& response_json) {
   // clang-format on
 }
 
-void lsp_endpoint::write_json_batch_messages_not_supported_error(
-    byte_buffer& response_json) {
+void lsp_endpoint::write_json_batch_messages_not_supported_error(byte_buffer&) {
+  byte_buffer& response_json = this->error_responses_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
@@ -231,7 +236,8 @@ void lsp_endpoint::write_json_batch_messages_not_supported_error(
 }
 
 void lsp_endpoint::write_invalid_request_error_response(
-    byte_buffer& response_json) {
+    byte_buffer& ) {
+  byte_buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
   response_json.append_copy(u8R"({)"

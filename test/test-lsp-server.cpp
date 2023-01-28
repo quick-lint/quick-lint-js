@@ -154,6 +154,7 @@ TEST_F(test_linting_lsp_server, initialize) {
           "capabilities": {}
         }
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
@@ -217,6 +218,7 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
             "capabilities": {}
           }
         })"_sv)));
+    this->server->flush_error_responses(*this->client);
     this->handler->flush_pending_notifications(*this->client);
 
     std::vector< ::boost::json::object> responses = this->client->responses();
@@ -232,6 +234,7 @@ TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
         "method": "initialized",
         "params": {}
       })"_sv));
+  this->server->flush_error_responses(*this->client);
 
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
@@ -243,6 +246,7 @@ TEST_F(test_linting_lsp_server, loads_config_after_client_initialization) {
         "method": "initialized",
         "params": {}
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> requests = this->client->requests();
@@ -268,6 +272,7 @@ TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
         "method": "initialized",
         "params": {}
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> requests = this->client->requests();
@@ -314,6 +319,7 @@ TEST_F(test_linting_lsp_server, did_change_configuration_notification) {
           }
         }
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->client->messages, IsEmpty());
@@ -457,6 +463,7 @@ TEST_F(test_linting_lsp_server, shutdown) {
         "id": 10,
         "method": "shutdown"
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
@@ -514,6 +521,7 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
         "jsonrpc": "2.0",
         "method": "$/someNotification"
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
@@ -563,6 +571,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
             }
           }
         })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -1317,6 +1326,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
           ]
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls,
@@ -1444,6 +1454,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
           ]
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
@@ -1656,6 +1667,7 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"after": true}})"_sv);
   this->handler->filesystem_changed();
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_TRUE(after_config_was_loaded);
@@ -1845,6 +1857,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
           }
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
@@ -1908,6 +1921,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
@@ -1981,6 +1995,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   };
   this->client->messages.clear();
   this->handler->filesystem_changed();
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs", u8"testjs"}))
@@ -2017,6 +2032,7 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
           }
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -2081,6 +2097,7 @@ TEST_F(test_linting_lsp_server,
           ]
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> notifications =
@@ -2159,6 +2176,7 @@ TEST_F(test_linting_lsp_server, json_file_which_is_not_config_file_is_ignored) {
           }
         }
       })"_sv)));
+  this->server->flush_error_responses(*this->client);
 
   EXPECT_THAT(this->client->messages, IsEmpty());
   EXPECT_THAT(this->lint_calls, IsEmpty());
@@ -2366,6 +2384,7 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
     this->reset();
 
     this->server->append(make_message(message));
+    this->server->flush_error_responses(*this->client);
 
     ASSERT_EQ(this->client->messages.size(), 1);
     ::boost::json::value response = this->client->messages[0];
@@ -2381,6 +2400,7 @@ TEST_F(test_linting_lsp_server,
         "method": "textDocument/shinyNewMethod",
         "params": {}
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
@@ -2392,6 +2412,7 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
         "id": 10,
         "params": {}
       })"_sv));
+  this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector< ::boost::json::object> responses = this->client->responses();
@@ -2414,6 +2435,7 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
     this->reset();
 
     this->server->append(make_message(message));
+    this->server->flush_error_responses(*this->client);
 
     ASSERT_EQ(this->client->messages.size(), 1);
     ::boost::json::value response = this->client->messages[0];
@@ -2463,6 +2485,7 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
       })"_sv));
 
     this->server->append(make_message(message));
+    this->server->flush_error_responses(*this->client);
 
     // TODO(strager): Have the LSP server respond with a notification instead?
     EXPECT_THAT(this->client->messages, IsEmpty());
@@ -2531,6 +2554,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
           }
         }
       })"_sv));
+  server.flush_error_responses(remote);
   handler.flush_pending_notifications(remote);
 
   {
@@ -2567,6 +2591,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
           ]
         }
       })"_sv));
+  server.flush_error_responses(remote);
   handler.flush_pending_notifications(remote);
 
   {
@@ -2600,6 +2625,7 @@ TEST(test_lsp_javascript_linter,
           }
         }
       })"_sv));
+  server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
   std::vector< ::boost::json::object> notifications = client.notifications();
@@ -2632,6 +2658,7 @@ TEST(test_lsp_javascript_linter,
           }
         }
       })"_sv));
+  server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
   std::vector< ::boost::json::object> notifications = client.notifications();

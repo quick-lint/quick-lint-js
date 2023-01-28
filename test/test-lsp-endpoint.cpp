@@ -69,7 +69,8 @@ void expect_batch_not_supported_error(::boost::json::value& message) {
 TEST(test_lsp_endpoint, single_request) {
   struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
-                        std::string_view method, string8_view id_json) override {
+                        std::string_view method,
+                        string8_view id_json) override {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
       EXPECT_EQ(method, "testmethod");
       EXPECT_EQ(id_json, u8"3");
@@ -113,6 +114,7 @@ TEST(test_lsp_endpoint, batched_request_is_not_supported) {
           "params": {}
         }
       ])"_sv));
+  server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_TRUE(remote.messages[0].is_object())
@@ -145,6 +147,7 @@ TEST(test_lsp_endpoint, successful_response) {
         "id": 3,
         "result": {"key": 42}
       })"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.response_handled);
@@ -180,6 +183,7 @@ TEST(test_lsp_endpoint, successful_response_v2) {
         "id": 3,
         "result": {"key": 42}
       })"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.response_handled);
@@ -211,6 +215,7 @@ TEST(test_lsp_endpoint, error_response) {
           "message": "test error message"
         }
       })"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_TRUE(handler.error_response_handled);
@@ -236,6 +241,7 @@ TEST(test_lsp_endpoint, batched_responses_are_not_supported) {
           }
         }
       ])"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_TRUE(remote.messages[0].is_object())
       << "server should not respond with a batch response (array)";
@@ -264,6 +270,7 @@ TEST(test_lsp_endpoint, single_notification_with_no_reply) {
         "method": "testmethod",
         "params": {}
       })"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
   EXPECT_EQ(handle_notification_count, 1);
@@ -296,6 +303,7 @@ TEST(test_lsp_endpoint, single_notification_with_reply) {
         "method": "testmethod",
         "params": {}
       })"_sv));
+  server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
   ASSERT_EQ(handler.pending_notifications.size(), 1);
@@ -314,6 +322,7 @@ TEST(test_lsp_endpoint, batched_notification_is_not_supported) {
         "method": "testmethod",
         "params": {}
       }])"_sv));
+  server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_TRUE(remote.messages[0].is_object())
@@ -328,6 +337,7 @@ TEST(test_lsp_endpoint, malformed_json) {
   lsp_endpoint server(&handler, &remote);
 
   server.append(make_message(u8"{ malformed json! }"_sv));
+  server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_EQ(look_up(remote.messages[0], "id"), ::boost::json::value());
@@ -383,6 +393,7 @@ TEST(test_lsp_endpoint, invalid_message) {
     lsp_endpoint server(&handler, &remote);
 
     server.append(make_message(message));
+    server.flush_error_responses(remote);
 
     ASSERT_EQ(remote.messages.size(), 1);
     EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");

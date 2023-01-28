@@ -31,6 +31,18 @@ class lsp_endpoint_remote {
   virtual void send_message(byte_buffer&& message) = 0;
 };
 
+// List of asynchronous LSP messages (requests and notifications) to send to the
+// client.
+class outgoing_lsp_message_queue {
+ public:
+  byte_buffer& new_message();
+
+  void send(lsp_endpoint_remote&);
+
+ private:
+  std::vector<byte_buffer> messages_;
+};
+
 class lsp_endpoint_handler {
  public:
   // The type of IDs used for requests sent by this handler (thus responses
@@ -42,7 +54,8 @@ class lsp_endpoint_handler {
   // It is the responsibility of the lsp_endpoint_handler to create and send a
   // response back to the peer.
   virtual void handle_request(::simdjson::ondemand::object& request,
-                              std::string_view method, string8_view id_json) = 0;
+                              std::string_view method,
+                              string8_view id_json) = 0;
 
   virtual void handle_response(request_id_type request_id,
                                ::simdjson::ondemand::value& result) = 0;
@@ -127,6 +140,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   void message_parsed(string8_view message);
 
+  void flush_error_responses(lsp_endpoint_remote&);
+
  private:
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
@@ -135,11 +150,12 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   void write_json_batch_messages_not_supported_error(
       byte_buffer& response_json);
 
-  static void write_invalid_request_error_response(byte_buffer& response_json);
+  void write_invalid_request_error_response(byte_buffer& response_json);
 
   lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
   std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
+  outgoing_lsp_message_queue error_responses_;
 
   friend message_parser;
 };
