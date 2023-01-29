@@ -1252,6 +1252,15 @@ next_parameter:
     break;
   }
 
+  // <T: U> //Invalid.
+  if (this->peek().type == token_type::colon) {
+    this->diag_reporter_->report(
+        diag_unexpected_semicolon_after_generic_definition{
+            .colon = this->peek().span(),
+        });
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+  }
   if (this->peek().type == token_type::kw_extends) {
     // <T extends U>
     this->skip();
@@ -1272,7 +1281,7 @@ next_parameter:
   switch (this->peek().type) {
   case token_type::greater:
     break;
-
+  
   case token_type::comma:
     this->skip();
     while (this->peek().type == token_type::comma) {

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 403;
-constexpr std::size_t translation_table_string_table_size = 74622;
+constexpr std::uint16_t translation_table_mapping_table_size = 404;
+constexpr std::size_t translation_table_string_table_size = 74654;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -41,6 +41,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'...' belongs before the tuple element name, not before the type"sv,
           "'...' belongs only before the tuple element name, not also before the type"sv,
           "'...' goes here"sv,
+          "':' should be 'extends' instead"sv,
           "'=' changes variables; to compare, use '===' instead"sv,
           "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"sv,
           "'?' belongs after the tuple element name, not after the type"sv,
