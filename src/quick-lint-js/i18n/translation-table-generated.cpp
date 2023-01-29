@@ -24,7 +24,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
-        {143, 15, 0, 112, 0, 16},            //
+        {0, 0, 0, 0, 0, 16},                 //
+        {143, 15, 0, 112, 0, 32},            //
         {70, 23, 0, 48, 0, 53},              //
         {0, 0, 0, 0, 0, 70},                 //
         {0, 0, 0, 0, 0, 61},                 //
@@ -1708,6 +1709,7 @@ const translation_table translation_data = {
         u8"'...' belongs before the tuple element name, not before the type\0"
         u8"'...' belongs only before the tuple element name, not also before the type\0"
         u8"'...' goes here\0"
+        u8"':' should be 'extends' instead\0"
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
         u8"'?' belongs after the tuple element name, not after the type\0"

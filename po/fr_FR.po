@@ -1873,6 +1873,10 @@ msgstr ""
 msgid "',' should be ';' instead"
 msgstr ""
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "':' should be 'extends' instead"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

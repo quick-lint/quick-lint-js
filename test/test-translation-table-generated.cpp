@@ -154,6 +154,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "':' should be 'extends' instead"_translatable,
+        {
+            u8"':' should be 'extends' instead",
+            u8"':' should be 'extends' instead",
+            u8"':' should be 'extends' instead",
+            u8"':' should be 'extends' instead",
+            u8"':' should be 'extends' instead",
+            u8"':' should be 'extends' instead",
+        },
+    },
+    {
         "'=' changes variables; to compare, use '===' instead"_translatable,
         {
             u8"'=' changes variables; to compare, use '===' instead",
