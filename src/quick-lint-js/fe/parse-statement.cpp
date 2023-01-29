@@ -1255,7 +1255,7 @@ next_parameter:
   // <T: U> //Invalid.
   if (this->peek().type == token_type::colon) {
     this->diag_reporter_->report(
-        diag_unexpected_semicolon_after_generic_definition{
+        diag_unexpected_colon_after_generic_definition{
             .colon = this->peek().span(),
         });
     this->skip();

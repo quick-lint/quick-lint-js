@@ -2666,7 +2666,7 @@
       MESSAGE(QLJS_TRANSLATABLE("',' should be ';' instead"), comma))           \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_unexpected_semicolon_after_generic_definition, "E0331",              \
+      diag_unexpected_colon_after_generic_definition, "E0331",              \
       diagnostic_severity::error, { source_code_span colon; },                  \
       MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"),             \
           colon))                                                               \

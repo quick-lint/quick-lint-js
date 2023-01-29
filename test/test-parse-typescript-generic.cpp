@@ -252,7 +252,7 @@ TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_unexpected_semicolon_after_generic_definition,
+                p.code, diag_unexpected_colon_after_generic_definition,
                 colon, strlen(u8"<T"), u8":"_sv),
         }));
   }
@@ -275,7 +275,7 @@ TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends_with
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_unexpected_semicolon_after_generic_definition,
+                p.code, diag_unexpected_colon_after_generic_definition,
                 colon, strlen(u8"<T"), u8":"_sv),
         }));
   }
