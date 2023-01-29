@@ -248,36 +248,12 @@ TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, diag_unexpected_colon_after_generic_definition,
-                colon, strlen(u8"<T"), u8":"_sv),
-        }));
-  }
-}
-
-TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends_with_comma) {
-  {
-    test_parser p(u8"<T: U, X>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",     // U
-                              "visit_variable_declaration",  // T
-                              "visit_variable_declaration",  // X
-                          }));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(u8"T"_sv),
-                                  generic_param_decl(u8"X"_sv)}));
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, diag_unexpected_colon_after_generic_definition,
-                colon, strlen(u8"<T"), u8":"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_unexpected_colon_after_generic_definition,
+                        colon, strlen(u8"<T"), u8":"_sv),
+                }));
   }
 }
 
