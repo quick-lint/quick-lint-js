@@ -87,9 +87,8 @@ remove_backslash:
     return ".";
   }
 
-  std::string result_with_backslashes = std::filesystem::path(*wpath).string();
-
   // Convert '\' back into '/' if necessary.
+  std::string result_with_backslashes = std::filesystem::path(*wpath).string();
 #if !(defined(NDEBUG) && NDEBUG)
   {
     std::string path_with_backslashes = path;
@@ -102,6 +101,7 @@ remove_backslash:
         path_with_backslashes.starts_with(result_with_backslashes));
   }
 #endif
+
   return path.substr(0, result_with_backslashes.size());
 #endif
 }
