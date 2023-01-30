@@ -183,6 +183,7 @@ class parser {
 
   struct typescript_type_parse_options {
     bool parse_question_as_invalid = true;
+    bool allow_parenthesized_type = true;
   };
 
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);

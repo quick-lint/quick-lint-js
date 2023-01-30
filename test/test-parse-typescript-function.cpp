@@ -282,6 +282,41 @@ TEST_F(test_parse_typescript_function,
 }
 
 TEST_F(test_parse_typescript_function,
+       arrow_with_complex_return_type_annotation_including_arrow) {
+  {
+    test_parser p(u8"((): (() => ReturnType) | Other => {})"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ReturnType
+                              "visit_exit_function_scope",        //
+                              "visit_variable_type_use",          // Other
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType", u8"Other"}));
+  }
+
+  {
+    test_parser p(u8"((): (() => ReturnType)[] => {})"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ReturnType
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
        arrow_cannot_have_parenthesized_return_type_annotation) {
   {
     test_parser p(u8"((param): (number) => {})"_sv, typescript_options,
