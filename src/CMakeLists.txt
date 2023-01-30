@@ -159,7 +159,8 @@ quick_lint_js_add_library(
   quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
-  quick-lint-js/io/file-handle.cpp
+  quick-lint-js/io/file-handle-posix.cpp
+  quick-lint-js/io/file-handle-win32.cpp
   quick-lint-js/io/file-handle.h
   quick-lint-js/io/file-path.cpp
   quick-lint-js/io/file-path.h
