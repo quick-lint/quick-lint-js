@@ -32,15 +32,12 @@ pipe_fds make_pipe() {
                  std::strerror(errno));
     std::abort();
   }
-  rc = ::fcntl(fds[0], F_SETFD, FD_CLOEXEC);
-  if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to make pipe reader CLOEXEC: %s\n",
-                 std::strerror(errno));
-  }
-  rc = ::fcntl(fds[1], F_SETFD, FD_CLOEXEC);
-  if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to make pipe writer CLOEXEC: %s\n",
-                 std::strerror(errno));
+  for (int fd : fds) {
+    rc = ::fcntl(fd, F_SETFD, FD_CLOEXEC);
+    if (rc == -1) {
+      std::fprintf(stderr, "warning: failed to make pipe CLOEXEC: %s\n",
+                   std::strerror(errno));
+    }
   }
   return pipe_fds{
       .reader = posix_fd_file(fds[0]),
