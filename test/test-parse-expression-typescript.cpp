@@ -203,6 +203,16 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
   }
+
+  {
+    test_parser p(u8"x as T ? y : z"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "cond(as(var x), var y, var z)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
+  }
 }
 
 TEST_F(test_parse_expression_typescript,

@@ -139,6 +139,19 @@ TEST_F(test_parse_typescript_angle_type_assertion,
 }
 
 TEST_F(test_parse_typescript_angle_type_assertion,
+       angle_type_assertion_in_complex_expression) {
+  {
+    test_parser p(u8"<Type>x ? y : z"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(typeassert(var x), var y, var z)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"}));
+  }
+}
+
+TEST_F(test_parse_typescript_angle_type_assertion,
        angle_bracketed_type_assertion_is_jsx_tag_in_typescript_jsx_mode) {
   {
     test_parser p(u8"<Component>text;\n// </Component>;"_sv,

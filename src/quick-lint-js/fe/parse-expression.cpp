@@ -2049,7 +2049,13 @@ next:
       this->skip();
     } else {
       // x as Type
-      this->parse_and_visit_typescript_type_expression(v);
+      this->parse_and_visit_typescript_type_expression(
+          v,
+          typescript_type_parse_options{
+              // A trailing '?' might be the start of a conditional expression:
+              // x as Type ? y : z
+              .parse_question_as_invalid = false,
+          });
     }
     const char8* type_end = this->lexer_.end_of_previous_token();
 
