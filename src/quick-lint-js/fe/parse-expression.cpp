@@ -685,8 +685,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     expression* arrow_function = this->parse_arrow_function_body(
         v, function_attributes::normal,
         /*parameter_list_begin=*/arrow_span.begin(),
-        /*allow_in_operator=*/prec.in_operator,
-        expression_arena::array_ptr<expression*>(),
+        /*prec=*/prec, expression_arena::array_ptr<expression*>(),
         /*return_type_visits=*/nullptr);
     return arrow_function;
   }
@@ -747,8 +746,8 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
 expression* parser::parse_async_expression(parse_visitor_base& v,
                                            const token& async_token,
                                            precedence prec) {
-  expression* ast = this->parse_async_expression_only(
-      v, async_token, /*allow_in_operator=*/prec.in_operator);
+  expression* ast =
+      this->parse_async_expression_only(v, async_token, /*prec=*/prec);
   if (!prec.binary_operators) {
     return ast;
   }
@@ -756,8 +755,7 @@ expression* parser::parse_async_expression(parse_visitor_base& v,
 }
 
 expression* parser::parse_async_expression_only(
-    parse_visitor_base& v, const token& async_or_await_token,
-    bool allow_in_operator) {
+    parse_visitor_base& v, const token& async_or_await_token, precedence prec) {
   bool is_async = async_or_await_token.type == token_type::kw_async;
   bool is_await = async_or_await_token.type == token_type::kw_await;
   QLJS_ASSERT(is_async || is_await);
@@ -786,8 +784,7 @@ expression* parser::parse_async_expression_only(
         }
         expression* ast = this->parse_arrow_function_body_no_scope(
             v, function_attributes::async, async_begin,
-            /*allow_in_operator=*/allow_in_operator,
-            this->expressions_.make_array(std::move(parameters)),
+            /*prec=*/prec, this->expressions_.make_array(std::move(parameters)),
             /*return_type_visits=*/return_type_visits);
         v.visit_exit_function_scope();
         return ast;
@@ -1251,8 +1248,7 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
     return this->make_expression<expression::variable>(
         await_token.identifier_name(), await_token.type);
   } else {
-    return this->parse_async_expression_only(
-        v, await_token, /*allow_in_operator=*/prec.in_operator);
+    return this->parse_async_expression_only(v, await_token, /*prec=*/prec);
   }
 }
 
@@ -1490,7 +1486,7 @@ next:
         expression* arrow_function = this->parse_arrow_function_body(
             v, /*attributes=*/function_attributes::async,
             /*parameter_list_begin=*/call->left_paren_span().begin(),
-            /*allow_in_operator=*/prec.in_operator,
+            /*prec=*/prec,
             /*parameters=*/
             expression_arena::array_ptr<expression*>(
                 call->children_.begin() + 1,  // Drop the callee.
@@ -1911,7 +1907,7 @@ next:
     binary_builder.replace_last(this->parse_arrow_function_expression_remainder(
         v, /*generic_parameter_visits=*/nullptr, lhs,
         /*return_type_visits=*/return_type_visits,
-        /*allow_in_operator=*/prec.in_operator));
+        /*prec=*/prec));
     goto next;
   }
 
@@ -1976,7 +1972,7 @@ next:
               /*generic_parameter_visits=*/nullptr,
               binary_builder.last_expression(),
               /*return_type_visits=*/nullptr,
-              /*allow_in_operator=*/prec.in_operator));
+              /*prec=*/prec));
     }
     break;
   }
@@ -2139,7 +2135,7 @@ next:
 expression* parser::parse_arrow_function_expression_remainder(
     parse_visitor_base& v, buffering_visitor* generic_parameter_visits,
     expression* parameters_expression, buffering_visitor* return_type_visits,
-    bool allow_in_operator) {
+    precedence prec) {
   const char8* parameter_list_begin = nullptr;
   if (parameters_expression->kind() == expression_kind::paren) {
     parameter_list_begin = parameters_expression->span().begin();
@@ -2312,8 +2308,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   expression* arrow_function = this->parse_arrow_function_body_no_scope(
       v, /*attributes=*/function_attributes::normal,
       /*parameter_list_begin=*/parameter_list_begin,
-      /*allow_in_operator=*/allow_in_operator,
-      this->expressions_.make_array(std::move(parameters)),
+      /*prec=*/prec, this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/return_type_visits);
   arrow_function = this->maybe_wrap_erroneous_arrow_function(
       arrow_function, /*parameters_expression=*/parameters_expression);
@@ -2430,20 +2425,20 @@ parser::parse_arrow_function_parameters_or_call_arguments(
 
 expression* parser::parse_arrow_function_body(
     parse_visitor_base& v, function_attributes attributes,
-    const char8* parameter_list_begin, bool allow_in_operator,
+    const char8* parameter_list_begin, precedence prec,
     expression_arena::array_ptr<expression*>&& parameters,
     buffering_visitor* return_type_visits) {
   v.visit_enter_function_scope();
   expression* arrow = this->parse_arrow_function_body_no_scope(
-      v, attributes, parameter_list_begin, allow_in_operator,
-      std::move(parameters), return_type_visits);
+      v, attributes, parameter_list_begin, prec, std::move(parameters),
+      return_type_visits);
   v.visit_exit_function_scope();
   return arrow;
 }
 
 expression* parser::parse_arrow_function_body_no_scope(
     parse_visitor_base& v, function_attributes attributes,
-    const char8* parameter_list_begin, bool allow_in_operator,
+    const char8* parameter_list_begin, precedence prec,
     expression_arena::array_ptr<expression*>&& parameters,
     buffering_visitor* return_type_visits) {
   function_guard guard = this->enter_function(attributes);
@@ -2466,9 +2461,10 @@ expression* parser::parse_arrow_function_body_no_scope(
     this->parse_and_visit_statement_block_no_scope(v);
   } else {
     this->parse_and_visit_expression(
+        // FIXME(strager): Should we inherit other things from prec?
         v, precedence{
                .commas = false,
-               .in_operator = allow_in_operator,
+               .in_operator = prec.in_operator,
                .colon_type_annotation = allow_type_annotations::never,
            });
   }
@@ -3189,9 +3185,8 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
       case token_type::equal:
       case token_type::kw_extends:
         this->lexer_.roll_back_transaction(std::move(transaction));
-        return this->parse_typescript_generic_arrow_expression(
-            v,
-            /*allow_in_operator=*/prec.in_operator);
+        return this->parse_typescript_generic_arrow_expression(v,
+                                                               /*prec=*/prec);
 
       // <T>() => {}  // Generic arrow function.
       // <T>expr      // Cast.
@@ -3634,7 +3629,7 @@ next:
 }
 
 expression* parser::parse_typescript_generic_arrow_expression(
-    parse_visitor_base& v, bool allow_in_operator) {
+    parse_visitor_base& v, precedence prec) {
   const char8* begin = this->peek().begin;
 
   v.visit_enter_function_scope();
@@ -3661,8 +3656,7 @@ expression* parser::parse_typescript_generic_arrow_expression(
 
   expression* ast = this->parse_arrow_function_body_no_scope(
       v, function_attributes::normal, begin,
-      /*allow_in_operator=*/allow_in_operator,
-      this->expressions_.make_array(std::move(parameters)),
+      /*prec=*/prec, this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/&return_type_visits);
 
   v.visit_exit_function_scope();
@@ -3750,7 +3744,7 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
               v,
               /*generic_parameter_visits=*/&generic_parameter_visits, ast,
               /*return_type_visits=*/&return_type_visits,
-              /*allow_in_operator=*/prec.in_operator);
+              /*prec=*/prec);
         }
       }
 

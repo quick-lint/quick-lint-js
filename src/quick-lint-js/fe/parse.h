@@ -573,7 +573,7 @@ class parser {
   //   a unary operator or a mistyped 'async'.
   expression *parse_async_expression_only(parse_visitor_base &,
                                           const token &async_or_await_token,
-                                          bool allow_in_operator);
+                                          precedence);
   expression *parse_await_expression(parse_visitor_base &,
                                      const token &await_token, precedence prec);
   expression *parse_expression_remainder(parse_visitor_base &, expression *,
@@ -581,7 +581,7 @@ class parser {
   expression *parse_arrow_function_expression_remainder(
       parse_visitor_base &, buffering_visitor *generic_parameter_visits,
       expression *parameters_expression, buffering_visitor *return_type_visits,
-      bool allow_in_operator);
+      precedence);
   expression::call *parse_call_expression_remainder(parse_visitor_base &,
                                                     expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,
@@ -590,12 +590,12 @@ class parser {
   parse_arrow_function_parameters_or_call_arguments(parse_visitor_base &v);
   expression *parse_arrow_function_body(
       parse_visitor_base &, function_attributes,
-      const char8 *parameter_list_begin, bool allow_in_operator,
+      const char8 *parameter_list_begin, precedence,
       expression_arena::array_ptr<expression *> &&parameters,
       buffering_visitor *return_type_visits);
   expression *parse_arrow_function_body_no_scope(
       parse_visitor_base &, function_attributes,
-      const char8 *parameter_list_begin, bool allow_in_operator,
+      const char8 *parameter_list_begin, precedence,
       expression_arena::array_ptr<expression *> &&parameters,
       buffering_visitor *return_type_visits);
   expression *parse_function_expression(parse_visitor_base &,
@@ -618,7 +618,7 @@ class parser {
                                             const char8 *less_begin);
   void check_jsx_attribute(const identifier &attribute_name);
   expression *parse_typescript_generic_arrow_expression(parse_visitor_base &,
-                                                        bool allow_in_operator);
+                                                        precedence);
   expression *parse_typescript_angle_type_assertion_expression(
       parse_visitor_base &, precedence, bool is_invalid_due_to_jsx_ambiguity);
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
