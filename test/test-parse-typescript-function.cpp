@@ -364,6 +364,27 @@ TEST_F(test_parse_typescript_function,
   }
 }
 
+TEST_F(test_parse_typescript_function, arrow_with_arrow_body) {
+  {
+    // This used to confuse the quick-lint-js parser.
+    test_parser p(u8"() => (): ReturnType => myVariable"_sv,
+                  typescript_options);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  //
+                              "visit_enter_function_scope",       //
+                              "visit_variable_type_use",          // ReturnType
+                              "visit_enter_function_scope_body",  //
+                              "visit_variable_use",               // myVariable
+                              "visit_exit_function_scope",        //
+                              "visit_exit_function_scope",        //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"ReturnType", u8"myVariable"}));
+  }
+}
+
 TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
     test_parser p(u8"({ method(param): C {} })"_sv, typescript_options);

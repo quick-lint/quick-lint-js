@@ -2465,7 +2465,7 @@ expression* parser::parse_arrow_function_body_no_scope(
         v, precedence{
                .commas = false,
                .in_operator = prec.in_operator,
-               .colon_type_annotation = allow_type_annotations::never,
+               .colon_type_annotation = prec.colon_type_annotation,
            });
   }
 
