@@ -39,7 +39,7 @@ def check_fragment(soup, fragment) -> bool:
 
 
 def is_mailto_link(link) -> bool:
-    return True if re.search(r"^mailto:*", link) else False
+    return True if re.search(r"^mailto:", link) else False
 
 
 class UrlPacket(object):
