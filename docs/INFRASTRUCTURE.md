@@ -59,7 +59,7 @@ Redirects to https://admin.quick-lint-js.com/
 
 <https://quick-lint-js.com/> is the main website for users.
 
-* Deploy script: [`website/deploy.sh`](../website/deploy.sh)
+* Deploy script: [`website/tools/deploy.sh`](../website/tools/deploy.sh)
 * Source: [`website`](../website)
 * TLS certificates: Let's Encrypt
 * Docker: [`quick-lint-js-web`][]

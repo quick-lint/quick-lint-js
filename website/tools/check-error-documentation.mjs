@@ -6,7 +6,7 @@ import {
   ProblemsError,
   documentationDirectoryPath,
   loadErrorDocumentationFilesAsync,
-} from "./src/error-documentation.mjs";
+} from "../src/error-documentation.mjs";
 
 async function mainAsync() {
   let files = process.argv.slice(2);

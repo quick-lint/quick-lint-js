@@ -249,7 +249,7 @@ var Steps []Step = []Step{
 			if ReleaseCommitHash == "" {
 				Stopf("missing -ReleaseCommitHash\n")
 			}
-			fmt.Printf("Publish the website: Run `./website/deploy.sh %s`.\n", ReleaseCommitHash)
+			fmt.Printf("Publish the website: Run `./website/tools/deploy.sh %s`.\n", ReleaseCommitHash)
 			WaitForDone()
 		},
 	},

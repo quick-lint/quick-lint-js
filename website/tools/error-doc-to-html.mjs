@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import { ErrorDocumentation } from "./src/error-documentation.mjs";
+import { ErrorDocumentation } from "../src/error-documentation.mjs";
 import process from "process";
 
 async function mainAsync() {

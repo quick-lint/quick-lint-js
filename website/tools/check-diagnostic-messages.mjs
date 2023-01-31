@@ -8,7 +8,7 @@ import {
   documentationDirectoryPath,
   loadErrorDocumentationFilesAsync,
   qljsProcessPromise,
-} from "./src/error-documentation.mjs";
+} from "../src/error-documentation.mjs";
 
 async function mainAsync() {
   let files = process.argv.slice(2);
