@@ -7,6 +7,10 @@
 #include <quick-lint-js/boost-json.h>
 
 namespace quick_lint_js {
+::boost::json::string_view to_boost_string_view(const string8& s) {
+  return to_boost_string_view(string8_view(s));
+}
+
 ::boost::json::string_view to_boost_string_view(string8_view sv) {
   std::string_view std_sv = to_string_view(sv);
   return ::boost::json::string_view(std_sv.data(), std_sv.size());

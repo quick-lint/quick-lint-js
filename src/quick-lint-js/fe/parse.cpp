@@ -211,7 +211,8 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
       c = tolower(c);
     }
 
-    if (auto alias_it = aliases.find(lowered_name); alias_it != aliases.end()) {
+    if (auto alias_it = aliases.find(string8_view(lowered_name));
+        alias_it != aliases.end()) {
       if (alias_it->second.expected != name) {
         this->diag_reporter_->report(
             diag_jsx_attribute_has_wrong_capitalization{

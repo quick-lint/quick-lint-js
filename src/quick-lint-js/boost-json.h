@@ -12,6 +12,7 @@
 
 namespace quick_lint_js {
 ::boost::json::string_view to_boost_string_view(string8_view sv);
+::boost::json::string_view to_boost_string_view(const string8 &sv);
 #if QLJS_HAVE_CHAR8_T
 ::boost::json::string_view to_boost_string_view(std::string_view sv);
 #endif
