@@ -45,7 +45,7 @@ class test_lsp_diag_reporter : public ::testing::Test {
 TEST_F(test_lsp_diag_reporter, big_int_literal_contains_decimal_point) {
   padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[0], &input[6]);
-  ASSERT_EQ(number_span.string_view(), u8"12.34n");
+  ASSERT_EQ(number_span.string_view(), u8"12.34n"_sv);
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_big_int_literal_contains_decimal_point{number_span});
@@ -69,9 +69,9 @@ TEST_F(test_lsp_diag_reporter, big_int_literal_contains_decimal_point) {
 TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[0], &input[1]);
-  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
   source_code_span declaration_span(&input[8], &input[9]);
-  ASSERT_EQ(declaration_span.string_view(), u8"x");
+  ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
@@ -98,7 +98,7 @@ TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
 TEST_F(test_lsp_diag_reporter, assignment_to_undeclared_variable) {
   padded_string input(u8"x=5;"_sv);
   source_code_span assignment_span(&input[0], &input[1]);
-  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_to_undeclared_variable{

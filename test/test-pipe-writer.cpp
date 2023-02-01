@@ -134,11 +134,11 @@ TEST_F(test_pipe_writer, large_write_with_no_reader_does_not_block) {
 
 TEST_F(test_pipe_writer,
        multiple_small_messages_with_no_reader_does_not_block) {
-  this->writer.write(byte_buffer_of(u8"hello"));  // Shouldn't block.
-  this->writer.write(byte_buffer_of(u8", "));     // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"hello"_sv));  // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8", "_sv));     // Shouldn't block.
   std::this_thread::sleep_for(1ms);  // Attempt to expose a race condition.
-  this->writer.write(byte_buffer_of(u8"world"));  // Shouldn't block.
-  this->writer.write(byte_buffer_of(u8"!"));      // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"world"_sv));  // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"!"_sv));      // Shouldn't block.
   string8 expected_data = u8"hello, world!";
 
   pipe_reader_thread read_thread;

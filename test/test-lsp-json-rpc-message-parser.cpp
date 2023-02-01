@@ -73,7 +73,7 @@ TEST(test_lsp_json_rpc_message_parser, single_request) {
                         string8_view id_json) override {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
       EXPECT_EQ(method, "testmethod");
-      EXPECT_EQ(id_json, u8"3");
+      EXPECT_EQ(id_json, u8"3"_sv);
 
       this->handle_request_called = true;
     }

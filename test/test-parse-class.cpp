@@ -1369,7 +1369,7 @@ TEST_F(test_parse_class, class_in_async_function_is_allowed) {
     test_parser p(
         u8"async function f() {"
         u8"  class C {}"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
   }
 }
@@ -1384,7 +1384,7 @@ TEST_F(test_parse_class, class_named_await_in_async_function) {
     test_parser p(
         u8"function f() {"
         u8"class await {}"
-        u8"}");
+        u8"}"_sv);
     p.parse_and_visit_statement();
   }
 

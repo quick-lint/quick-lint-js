@@ -1080,7 +1080,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
                             outgoing_json_rpc_message_queue&) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
-      EXPECT_EQ(version_json, u8"10");
+      EXPECT_EQ(version_json, u8"10"_sv);
       EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                  u8"test.js\""_sv));
       after_config_was_loaded = true;
@@ -1206,7 +1206,7 @@ TEST_F(test_linting_lsp_server,
   this->lint_callback = [&](configuration&, linter_options, padded_string_view,
                             string8_view, string8_view version_json,
                             outgoing_json_rpc_message_queue&) {
-    EXPECT_EQ(version_json, u8"11");
+    EXPECT_EQ(version_json, u8"11"_sv);
   };
   this->lint_calls.clear();
 
@@ -1537,7 +1537,7 @@ TEST_F(test_linting_lsp_server,
                             padded_string_view, string8_view,
                             string8_view version_json,
                             outgoing_json_rpc_message_queue&) {
-    EXPECT_EQ(version_json, u8"11");
+    EXPECT_EQ(version_json, u8"11"_sv);
     EXPECT_FALSE(config.globals().find(u8"before"_sv));
     EXPECT_TRUE(config.globals().find(u8"after"_sv));
   };
@@ -1573,7 +1573,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
                             outgoing_json_rpc_message_queue&) {
     if (config.globals().find(u8"after"_sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"_sv));
-      EXPECT_EQ(version_json, u8"10");
+      EXPECT_EQ(version_json, u8"10"_sv);
       EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                  u8"test.js\""_sv));
       after_config_was_loaded = true;
@@ -1643,7 +1643,7 @@ TEST_F(test_linting_lsp_server,
           outgoing_json_rpc_message_queue& outgoing_messages) {
         EXPECT_TRUE(config.globals().find(u8"after"_sv));
         EXPECT_FALSE(config.globals().find(u8"before"_sv));
-        EXPECT_EQ(version_json, u8"10");
+        EXPECT_EQ(version_json, u8"10"_sv);
         EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                    u8"test.js\""_sv));
         after_config_was_loaded = true;

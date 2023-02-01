@@ -15,6 +15,9 @@
 #define QUICK_LINT_JS_VERSION_STRING_U8 \
   QLJS_CPP_CONCAT(u8, QUICK_LINT_JS_VERSION_STRING)
 
+#define QUICK_LINT_JS_VERSION_STRING_U8_SV \
+  QLJS_CPP_CONCAT(QUICK_LINT_JS_VERSION_STRING_U8, _sv)
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

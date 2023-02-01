@@ -36,7 +36,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
     test_parser p(u8"<div />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div"_sv);
     EXPECT_TRUE(static_cast<expression::jsx_element*>(ast)->is_intrinsic());
   }
 
@@ -44,7 +44,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
     test_parser p(u8"<\\u{64}iv />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div"_sv);
     EXPECT_TRUE(static_cast<expression::jsx_element*>(ast)->is_intrinsic());
   }
 
@@ -53,7 +53,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(),
-              u8"My-Web-Component");
+              u8"My-Web-Component"_sv);
     EXPECT_TRUE(static_cast<expression::jsx_element*>(ast)->is_intrinsic());
   }
 }
@@ -63,7 +63,7 @@ TEST_F(test_parse_expression_jsx, user_element) {
     test_parser p(u8"<MyComponent />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent"_sv);
     EXPECT_FALSE(static_cast<expression::jsx_element*>(ast)->is_intrinsic());
   }
 
@@ -71,7 +71,7 @@ TEST_F(test_parse_expression_jsx, user_element) {
     test_parser p(u8"<\\u{4d}yComponent />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent"_sv);
     EXPECT_FALSE(static_cast<expression::jsx_element*>(ast)->is_intrinsic());
   }
 }

@@ -36,7 +36,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"x"_sv, capture_diags);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x"_sv);
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 1));
   }
@@ -95,7 +95,7 @@ TEST_F(test_parse_expression, keyword_variable_reference) {
     test_parser p(u8"async"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"async");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"async"_sv);
   }
 
   {
@@ -104,7 +104,7 @@ TEST_F(test_parse_expression, keyword_variable_reference) {
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(ast->child_0()->kind(), expression_kind::variable);
     EXPECT_EQ(ast->child_0()->variable_identifier().normalized_name(),
-              u8"async");
+              u8"async"_sv);
   }
 
   {
@@ -537,7 +537,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop"_sv);
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
   }
@@ -1126,8 +1126,8 @@ TEST_F(test_parse_expression,
       auto guard = p.enter_function(function_attributes::normal);
       expression* ast = p.parse_expression();
 
-      if (test.code == u8"await--x" || test.code == u8"await++x" ||
-          test.code == u8"await of") {
+      if (test.code == u8"await--x"_sv || test.code == u8"await++x"_sv ||
+          test.code == u8"await of"_sv) {
         // TODO(strager): Make these test cases pass.
       } else if (test.expected_normal_function) {
         // 'await' should look like an identifier.
@@ -1137,7 +1137,7 @@ TEST_F(test_parse_expression,
         // 'await' doesn't look like an identifier. We should report an error
         // and recover as if 'await' was an operator.
         EXPECT_EQ(summarize(ast), test.expected_async_function);
-        if (test.code == u8"await await x") {
+        if (test.code == u8"await await x"_sv) {
           EXPECT_THAT(
               p.errors,
               ::testing::IsSupersetOf(
@@ -1164,7 +1164,7 @@ TEST_F(test_parse_expression,
       auto guard = p.enter_function(function_attributes::async);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
-      if (test.code == u8"await await x") {
+      if (test.code == u8"await await x"_sv) {
         EXPECT_THAT(p.errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(p.code, diag_redundant_await,
@@ -1182,7 +1182,7 @@ TEST_F(test_parse_expression,
       EXPECT_EQ(summarize(ast), test.expected_async_function
                                     ? test.expected_async_function
                                     : test.expected_normal_function);
-      if (test.code == u8"await await x") {
+      if (test.code == u8"await await x"_sv) {
         EXPECT_THAT(p.errors,
                     ElementsAreArray({
                         DIAG_TYPE_OFFSETS(p.code, diag_redundant_await,
@@ -2980,7 +2980,7 @@ TEST_F(test_parse_expression, parse_function_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::named_function);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"f");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"f"_sv);
   }
 }
 
@@ -3768,16 +3768,16 @@ TEST_F(test_parse_expression, precedence) {
   };
 
   struct operator_type {
-    const char8* op;
+    string8_view op;
     const char* raw_kind;
 
     const char* kind() const noexcept {
       if (this->raw_kind) {
         return this->raw_kind;
-      } else if (this->op) {
-        return "binary";
-      } else {
+      } else if (this->op.empty()) {
         return "cond";
+      } else {
+        return "binary";
       }
     }
   };
@@ -3793,64 +3793,64 @@ TEST_F(test_parse_expression, precedence) {
   // In our table, lower index items have lower precedence.
   static const precedence_level precedence_levels[] = {
       // TODO(strager): Fix failures when testing e.g. "a,b+c".
-      // {level_type::binary, {{u8","}}},
+      // {level_type::binary, {{u8","_sv}}},
       {level_type::right,
        {
-           {u8"=", "assign"},
-           {u8"+=", "upassign"},
-           {u8"-=", "upassign"},
-           {u8"**=", "upassign"},
-           {u8"*=", "upassign"},
-           {u8"/=", "upassign"},
-           {u8"%=", "upassign"},
-           {u8"<<=", "upassign"},
-           {u8">>=", "upassign"},
-           {u8">>>=", "upassign"},
-           {u8"&=", "upassign"},
-           {u8"^=", "upassign"},
-           {u8"|=", "upassign"},
-           {u8"&&=", "condassign"},
-           {u8"||=", "condassign"},
-           {u8"?\x3f=", "condassign"},
+           {u8"="_sv, "assign"},
+           {u8"+="_sv, "upassign"},
+           {u8"-="_sv, "upassign"},
+           {u8"**="_sv, "upassign"},
+           {u8"*="_sv, "upassign"},
+           {u8"/="_sv, "upassign"},
+           {u8"%="_sv, "upassign"},
+           {u8"<<="_sv, "upassign"},
+           {u8">>="_sv, "upassign"},
+           {u8">>>="_sv, "upassign"},
+           {u8"&="_sv, "upassign"},
+           {u8"^="_sv, "upassign"},
+           {u8"|="_sv, "upassign"},
+           {u8"&&="_sv, "condassign"},
+           {u8"||="_sv, "condassign"},
+           {u8"?\x3f="_sv, "condassign"},
            // TODO(strager): yield and yield*
        }},
       {level_type::ternary_right, {{/* special-cased */}}},
-      {level_type::binary, {{u8"||"}, {u8"??"}}},
-      {level_type::binary, {{u8"&&"}}},
-      {level_type::binary, {{u8"|"}}},
-      {level_type::binary, {{u8"^"}}},
-      {level_type::binary, {{u8"&"}}},
+      {level_type::binary, {{u8"||"_sv}, {u8"??"_sv}}},
+      {level_type::binary, {{u8"&&"_sv}}},
+      {level_type::binary, {{u8"|"_sv}}},
+      {level_type::binary, {{u8"^"_sv}}},
+      {level_type::binary, {{u8"&"_sv}}},
       {level_type::binary,
        {
-           {u8"=="},
-           {u8"!="},
-           {u8"==="},
-           {u8"!=="},
+           {u8"=="_sv},
+           {u8"!="_sv},
+           {u8"==="_sv},
+           {u8"!=="_sv},
        }},
       {level_type::binary,
        {
-           {u8"<"},
-           {u8"<="},
-           {u8">"},
-           {u8">="},
+           {u8"<"_sv},
+           {u8"<="_sv},
+           {u8">"_sv},
+           {u8">="_sv},
            // TODO(strager): Fix failures when testing e.g. "a in b+c".
-           // {u8" in "},
-           {u8" instanceof "},
+           // {u8" in "_sv},
+           {u8" instanceof "_sv},
        }},
-      {level_type::binary, {{u8"<<"}, {u8">>"}, {u8">>>"}}},
-      {level_type::binary, {{u8"+"}, {u8"-"}}},
-      {level_type::binary, {{u8"*"}, {u8"/"}, {u8"%"}}},
-      {level_type::binary, {{u8"**"}}},
+      {level_type::binary, {{u8"<<"_sv}, {u8">>"_sv}, {u8">>>"_sv}}},
+      {level_type::binary, {{u8"+"_sv}, {u8"-"_sv}}},
+      {level_type::binary, {{u8"*"_sv}, {u8"/"_sv}, {u8"%"_sv}}},
+      {level_type::binary, {{u8"**"_sv}}},
       {level_type::prefix,
        {
-           {u8"!", "unary"},
-           {u8"+", "unary"},
-           {u8"-", "unary"},
-           {u8"++", "rwunary"},
-           {u8"--", "rwunary"},
-           {u8"typeof ", "typeof"},
-           {u8"void ", "unary"},
-           {u8"delete ", "delete"},
+           {u8"!"_sv, "unary"},
+           {u8"+"_sv, "unary"},
+           {u8"-"_sv, "unary"},
+           {u8"++"_sv, "rwunary"},
+           {u8"--"_sv, "rwunary"},
+           {u8"typeof "_sv, "typeof"},
+           {u8"void "_sv, "unary"},
+           {u8"delete "_sv, "delete"},
            // TODO(strager): await
        }},
       // TODO(strager): Unary suffix operators: ++ --
@@ -3873,7 +3873,7 @@ TEST_F(test_parse_expression, precedence) {
       case level_type::prefix:
         break;
       case level_type::ternary_right:
-        ASSERT_EQ(op.op, nullptr);
+        ASSERT_EQ(op.op, u8""_sv);
         ASSERT_STREQ(op.kind(), "cond");
         break;
       }

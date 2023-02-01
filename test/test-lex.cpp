@@ -1056,7 +1056,7 @@ TEST_F(test_lex, lex_strings) {
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello"_sv);
 
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
@@ -1422,7 +1422,7 @@ world`)"_sv,
     padded_string code(u8"`hello${42}`"_sv);
     lexer l(&code, &null_diag_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
-    EXPECT_EQ(l.peek().span().string_view(), u8"`hello${");
+    EXPECT_EQ(l.peek().span().string_view(), u8"`hello${"_sv);
     const char8* template_begin = l.peek().begin;
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::number);
@@ -1430,7 +1430,7 @@ world`)"_sv,
     EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
     EXPECT_EQ(l.peek().type, token_type::complete_template);
-    EXPECT_EQ(l.peek().span().string_view(), u8"`");
+    EXPECT_EQ(l.peek().span().string_view(), u8"`"_sv);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
@@ -1439,7 +1439,7 @@ world`)"_sv,
     padded_string code(u8"`${42}world`"_sv);
     lexer l(&code, &null_diag_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
-    EXPECT_EQ(l.peek().span().string_view(), u8"`${");
+    EXPECT_EQ(l.peek().span().string_view(), u8"`${"_sv);
     const char8* template_begin = l.peek().begin;
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::number);
@@ -1447,7 +1447,7 @@ world`)"_sv,
     EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
     EXPECT_EQ(l.peek().type, token_type::complete_template);
-    EXPECT_EQ(l.peek().span().string_view(), u8"world`");
+    EXPECT_EQ(l.peek().span().string_view(), u8"world`"_sv);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
@@ -1688,7 +1688,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second_line");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second_line"_sv);
   }
 
   for (string8_view line_terminator : line_terminators) {
@@ -1711,7 +1711,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second"_sv);
   }
 
   // TODO(#187): Report invalid escape sequences.
@@ -2773,7 +2773,7 @@ TEST_F(test_lex, lex_not_shebang) {
     padded_string input(u8"#\\u{21}\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::private_identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"#\\u{21}");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"#\\u{21}"_sv);
 
     EXPECT_THAT(
         v.errors,
@@ -2899,13 +2899,13 @@ TEST_F(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   lexer l(&code, &null_diag_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello"_sv);
   EXPECT_FALSE(l.peek().has_leading_newline);
   const char8* hello_end = l.peek().end;
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world"_sv);
   EXPECT_TRUE(l.peek().has_leading_newline);
   l.insert_semicolon();
   EXPECT_EQ(l.peek().type, token_type::semicolon);
@@ -2915,7 +2915,7 @@ TEST_F(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world"_sv);
   EXPECT_TRUE(l.peek().has_leading_newline);
   l.skip();
 
@@ -2934,11 +2934,11 @@ TEST_F(test_lex, insert_semicolon_at_beginning_of_input) {
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello"_sv);
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world"_sv);
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -2954,7 +2954,7 @@ TEST_F(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"x");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"x"_sv);
   EXPECT_FALSE(l.peek().has_leading_newline);
   const char8* x_end = l.peek().end;
   l.skip();
@@ -3372,7 +3372,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world"_sv);
 
     EXPECT_THAT(errors.errors, IsEmpty());
   }
@@ -3390,7 +3390,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
 
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"comment");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"comment"_sv);
 
     EXPECT_THAT(errors.errors, IsEmpty());
   }

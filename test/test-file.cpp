@@ -58,7 +58,7 @@ TEST_F(test_file, read_regular_file) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
+  EXPECT_EQ(*file_content, u8"hello\nworld!\n"_sv);
 }
 
 TEST_F(test_file, read_empty_regular_file) {
@@ -68,7 +68,7 @@ TEST_F(test_file, read_empty_regular_file) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8""));
+  EXPECT_EQ(*file_content, u8""_sv);
 }
 
 TEST_F(test_file, read_non_existing_file) {
@@ -117,7 +117,7 @@ TEST_F(test_file, read_fifo) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -132,7 +132,7 @@ TEST_F(test_file, read_empty_fifo) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8""));
+  EXPECT_EQ(*file_content, u8""_sv);
 
   writer_thread.join();
 }
@@ -165,7 +165,7 @@ TEST_F(test_file, read_fifo_multiple_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -192,7 +192,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -223,7 +223,7 @@ TEST_F(test_file, read_pipe_empty_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"helloworld"));
+  EXPECT_EQ(*file_content, u8"helloworld"_sv);
 
   writer_thread.join();
 }

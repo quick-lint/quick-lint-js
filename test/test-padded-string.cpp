@@ -66,7 +66,7 @@ TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
 }
 
 TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
-  EXPECT_TRUE(padded_string(string8(u8"hello")) == string8_view(u8"hello"));
+  EXPECT_TRUE(padded_string(string8(u8"hello")) == u8"hello"_sv);
 }
 
 TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
@@ -78,7 +78,7 @@ TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
 
 TEST(test_padded_string, std_string_view_excludes_padding_bytes) {
   padded_string s(string8(u8"hello"));
-  EXPECT_TRUE(s.string_view() == string8_view(u8"hello"));
+  EXPECT_TRUE(s.string_view() == u8"hello"_sv);
 }
 
 TEST(test_padded_string, shrinking_does_not_reallocate) {

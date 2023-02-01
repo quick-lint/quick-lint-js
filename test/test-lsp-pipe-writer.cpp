@@ -58,7 +58,7 @@ TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   result<padded_string, read_file_io_error> data =
       read_file("<pipe>", this->pipe.reader.ref());
   ASSERT_TRUE(data.ok()) << data.error().to_string();
-  EXPECT_EQ(*data, u8"Content-Length: 2\r\n\r\nhi");
+  EXPECT_EQ(*data, u8"Content-Length: 2\r\n\r\nhi"_sv);
 }
 }
 }
