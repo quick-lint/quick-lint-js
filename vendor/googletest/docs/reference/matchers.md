@@ -8,9 +8,13 @@ A **matcher** matches a *single* argument. You can use it inside `ON_CALL()` or
 | `EXPECT_THAT(actual_value, matcher)` | Asserts that `actual_value` matches `matcher`. |
 | `ASSERT_THAT(actual_value, matcher)` | The same as `EXPECT_THAT(actual_value, matcher)`, except that it generates a **fatal** failure. |
 
-{: .callout .note}
-**Note:** Although equality matching via `EXPECT_THAT(actual_value,
-expected_value)` is supported, prefer to make the comparison explicit via
+{: .callout .warning}
+**WARNING:** Equality matching via `EXPECT_THAT(actual_value, expected_value)`
+is supported, however note that implicit conversions can cause surprising
+results. For example, `EXPECT_THAT(some_bool, "some string")` will compile and
+may pass unintentionally.
+
+**BEST PRACTICE:** Prefer to make the comparison explicit via
 `EXPECT_THAT(actual_value, Eq(expected_value))` or `EXPECT_EQ(actual_value,
 expected_value)`.
 
@@ -88,16 +92,17 @@ The `argument` can be either a C string or a C++ string object:
 
 | Matcher                 | Description                                        |
 | :---------------------- | :------------------------------------------------- |
-| `ContainsRegex(string)` | `argument` matches the given regular expression.   |
-| `EndsWith(suffix)`      | `argument` ends with string `suffix`.              |
-| `HasSubstr(string)`     | `argument` contains `string` as a sub-string.      |
-| `IsEmpty()`             | `argument` is an empty string.                     |
-| `MatchesRegex(string)`  | `argument` matches the given regular expression with the match starting at the first character and ending at the last character. |
-| `StartsWith(prefix)`    | `argument` starts with string `prefix`.            |
-| `StrCaseEq(string)`     | `argument` is equal to `string`, ignoring case.    |
-| `StrCaseNe(string)`     | `argument` is not equal to `string`, ignoring case. |
-| `StrEq(string)`         | `argument` is equal to `string`.                   |
-| `StrNe(string)`         | `argument` is not equal to `string`.               |
+| `ContainsRegex(string)`  | `argument` matches the given regular expression.  |
+| `EndsWith(suffix)`       | `argument` ends with string `suffix`.             |
+| `HasSubstr(string)`      | `argument` contains `string` as a sub-string.     |
+| `IsEmpty()`              | `argument` is an empty string.                    |
+| `MatchesRegex(string)`   | `argument` matches the given regular expression with the match starting at the first character and ending at the last character. |
+| `StartsWith(prefix)`     | `argument` starts with string `prefix`.           |
+| `StrCaseEq(string)`      | `argument` is equal to `string`, ignoring case.   |
+| `StrCaseNe(string)`      | `argument` is not equal to `string`, ignoring case. |
+| `StrEq(string)`          | `argument` is equal to `string`.                  |
+| `StrNe(string)`          | `argument` is not equal to `string`.              |
+| `WhenBase64Unescaped(m)` | `argument` is a base-64 escaped string whose unescaped string matches `m`. |
 
 `ContainsRegex()` and `MatchesRegex()` take ownership of the `RE` object. They
 use the regular expression syntax defined
@@ -116,6 +121,7 @@ messages, you can use:
 | `BeginEndDistanceIs(m)` | `argument` is a container whose `begin()` and `end()` iterators are separated by a number of increments matching `m`. E.g. `BeginEndDistanceIs(2)` or `BeginEndDistanceIs(Lt(2))`. For containers that define a `size()` method, `SizeIs(m)` may be more efficient. |
 | `ContainerEq(container)` | The same as `Eq(container)` except that the failure message also includes which elements are in one container but not the other. |
 | `Contains(e)` | `argument` contains an element that matches `e`, which can be either a value or a matcher. |
+| `Contains(e).Times(n)` | `argument` contains elements that match `e`, which can be either a value or a matcher, and the number of matches is `n`, which can be either a value or a matcher. Unlike the plain `Contains` and `Each` this allows to check for arbitrary occurrences including testing for absence with `Contains(e).Times(0)`. |
 | `Each(e)` | `argument` is a container where *every* element matches `e`, which can be either a value or a matcher. |
 | `ElementsAre(e0, e1, ..., en)` | `argument` has `n + 1` elements, where the *i*-th element matches `ei`, which can be a value or a matcher. |
 | `ElementsAreArray({e0, e1, ..., en})`, `ElementsAreArray(a_container)`, `ElementsAreArray(begin, end)`, `ElementsAreArray(array)`, or `ElementsAreArray(array, count)` | The same as `ElementsAre()` except that the expected element values/matchers come from an initializer list, STL-style container, iterator range, or C-style array. |
@@ -146,7 +152,6 @@ messages, you can use:
     one might write:
 
     ```cpp
-    using ::std::get;
     MATCHER(FooEq, "") {
       return std::get<0>(arg).Equals(std::get<1>(arg));
     }
@@ -193,6 +198,7 @@ messages, you can use:
 | Matcher          | Description                                       |
 | :--------------- | :------------------------------------------------ |
 | `ResultOf(f, m)` | `f(argument)` matches matcher `m`, where `f` is a function or functor. |
+| `ResultOf(result_description, f, m)` | The same as the two-parameter version, but provides a better error message.
 
 ## Pointer Matchers
 
@@ -237,6 +243,7 @@ You can make a matcher from one or more other matchers:
 | `AnyOf(m1, m2, ..., mn)` | `argument` matches at least one of the matchers `m1` to `mn`. |
 | `AnyOfArray({m0, m1, ..., mn})`, `AnyOfArray(a_container)`, `AnyOfArray(begin, end)`, `AnyOfArray(array)`, or `AnyOfArray(array, count)` | The same as `AnyOf()` except that the matchers come from an initializer list, STL-style container, iterator range, or C-style array. |
 | `Not(m)` | `argument` doesn't match matcher `m`. |
+| `Conditional(cond, m1, m2)` | Matches matcher `m1` if `cond` evaluates to true, else matches `m2`.|
 
 ## Adapters for Matchers
 
@@ -259,7 +266,7 @@ which must be a permanent callback.
 
 ## Defining Matchers
 
-| Matcher                              | Description                           |
+| Macro                                | Description                           |
 | :----------------------------------- | :------------------------------------ |
 | `MATCHER(IsEven, "") { return (arg % 2) == 0; }` | Defines a matcher `IsEven()` to match an even number. |
 | `MATCHER_P(IsDivisibleBy, n, "") { *result_listener << "where the remainder is " << (arg % n); return (arg % n) == 0; }` | Defines a matcher `IsDivisibleBy(n)` to match a number divisible by `n`. |

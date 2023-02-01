@@ -6,7 +6,8 @@
 
 GoogleTest now follows the
 [Abseil Live at Head philosophy](https://abseil.io/about/philosophy#upgrade-support).
-We recommend using the latest commit in the `master` branch in your projects.
+We recommend
+[updating to the latest commit in the `main` branch as often as possible](https://github.com/abseil/abseil-cpp/blob/master/FAQ.md#what-is-live-at-head-and-how-do-i-do-it).
 
 #### Documentation Updates
 
@@ -14,10 +15,13 @@ Our documentation is now live on GitHub Pages at
 https://google.github.io/googletest/. We recommend browsing the documentation on
 GitHub Pages rather than directly in the repository.
 
-#### Release 1.10.x
+#### Release 1.12.1
 
-[Release 1.10.x](https://github.com/google/googletest/releases/tag/release-1.10.0)
+[Release 1.12.1](https://github.com/google/googletest/releases/tag/release-1.12.1)
 is now available.
+
+The 1.12.x branch will be the last to support C++11. Future releases will
+require at least C++14.
 
 #### Coming Soon
 
@@ -55,39 +59,12 @@ More information about building GoogleTest can be found at
 
 ## Supported Platforms
 
-GoogleTest requires a codebase and compiler compliant with the C++11 standard or
-newer.
-
-The GoogleTest code is officially supported on the following platforms.
-Operating systems or tools not listed below are community-supported. For
-community-supported platforms, patches that do not complicate the code may be
-considered.
-
-If you notice any problems on your platform, please file an issue on the
-[GoogleTest GitHub Issue Tracker](https://github.com/google/googletest/issues).
-Pull requests containing fixes are welcome!
-
-### Operating Systems
-
-*   Linux
-*   macOS
-*   Windows
-
-### Compilers
-
-*   gcc 5.0+
-*   clang 5.0+
-*   MSVC 2015+
-
-**macOS users:** Xcode 9.3+ provides clang 5.0+.
-
-### Build Systems
-
-*   [Bazel](https://bazel.build/)
-*   [CMake](https://cmake.org/)
-
-**Note:** Bazel is the build system used by the team internally and in tests.
-CMake is supported on a best-effort basis and by the community.
+GoogleTest follows Google's
+[Foundational C++ Support Policy](https://opensource.google/documentation/policies/cplusplus-support).
+See
+[this table](https://github.com/google/oss-policies-info/blob/main/foundational-cxx-support-matrix.md)
+for a list of currently supported versions compilers, platforms, and build
+tools.
 
 ## Who Is Using GoogleTest?
 
@@ -109,8 +86,8 @@ Windows and Linux platforms.
 
 [GoogleTest UI](https://github.com/ospector/gtest-gbar) is a test runner that
 runs your test binary, allows you to track its progress via a progress bar, and
-displays a list of test failures. Clicking on one shows failure text. Google
-Test UI is written in C#.
+displays a list of test failures. Clicking on one shows failure text. GoogleTest
+UI is written in C#.
 
 [GTest TAP Listener](https://github.com/kinow/gtest-tap-listener) is an event
 listener for GoogleTest that implements the
@@ -121,11 +98,11 @@ result output. If your test runner understands TAP, you may find it useful.
 runs tests from your binary in parallel to provide significant speed-up.
 
 [GoogleTest Adapter](https://marketplace.visualstudio.com/items?itemName=DavidSchuldenfrei.gtest-adapter)
-is a VS Code extension allowing to view GoogleTest in a tree view, and run/debug
+is a VS Code extension allowing to view GoogleTest in a tree view and run/debug
 your tests.
 
 [C++ TestMate](https://github.com/matepek/vscode-catch2-test-adapter) is a VS
-Code extension allowing to view GoogleTest in a tree view, and run/debug your
+Code extension allowing to view GoogleTest in a tree view and run/debug your
 tests.
 
 [Cornichon](https://pypi.org/project/cornichon/) is a small Gherkin DSL parser
@@ -134,7 +111,7 @@ that generates stub code for GoogleTest.
 ## Contributing Changes
 
 Please read
-[`CONTRIBUTING.md`](https://github.com/google/googletest/blob/master/CONTRIBUTING.md)
+[`CONTRIBUTING.md`](https://github.com/google/googletest/blob/main/CONTRIBUTING.md)
 for details on how to contribute to this project.
 
 Happy testing!
