@@ -132,12 +132,12 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
 
   std::string config_file_load_error_message(const char* js_path,
                                              const char* error_path) {
-    return concat("Failed to load configuration file for ",
+    return concat("Failed to load configuration file for "sv,
                   this->fs.rooted(js_path).path(),
                   ". "
                   "Using default configuration.\n"
-                  "Error details: failed to read from ",
-                  this->fs.rooted(error_path).path(), ": ",
+                  "Error details: failed to read from "sv,
+                  this->fs.rooted(error_path).path(), ": "sv,
                   generic_file_io_error.to_string());
   }
 };
@@ -1938,10 +1938,10 @@ TEST_F(test_linting_lsp_server,
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
   EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            to_boost_string_view(
-                concat("Problems found in the config file for ",
-                       this->fs.rooted("test.js").path(), " (",
-                       this->fs.rooted("quick-lint-js.config").path(), ").")));
+            to_boost_string_view(concat(
+                "Problems found in the config file for "sv,
+                this->fs.rooted("test.js").path(), " ("sv,
+                this->fs.rooted("quick-lint-js.config").path(), ")."sv)));
 }
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {

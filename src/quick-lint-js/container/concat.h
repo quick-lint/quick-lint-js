@@ -65,6 +65,42 @@ std::basic_string<Char> concat_impl(std::basic_string_view<Char> a,
   return concat_impl(a, b, c, d, e, f, g);
 }
 
+// Discourage using string literals.
+// clang-format off
+std::string concat(const char*, std::string_view) = delete;
+std::string concat(std::string_view, const char*) = delete;
+
+std::string concat(const char*, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, const char*, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, const char*) = delete;
+
+std::string concat(const char*, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, const char*, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, const char*, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, const char*) = delete;
+
+std::string concat(const char*, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, const char*, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, const char*, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, const char*, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, const char*) = delete;
+
+std::string concat(const char*, std::string_view, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, const char*, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, const char*, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, const char*, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, const char*, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, std::string_view, const char*) = delete;
+
+std::string concat(const char*, std::string_view, std::string_view, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, const char*, std::string_view, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, const char*, std::string_view, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, const char*, std::string_view, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, const char*, std::string_view, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, std::string_view, const char*, std::string_view) = delete;
+std::string concat(std::string_view, std::string_view, std::string_view, std::string_view, std::string_view, std::string_view, const char*) = delete;
+// clang-format on
+
 #if QLJS_HAVE_CHAR8_T
 [[gnu::always_inline]] inline string8 concat(string8_view a, string8_view b) {
   return concat_impl(a, b);
@@ -98,6 +134,42 @@ std::basic_string<Char> concat_impl(std::basic_string_view<Char> a,
                                              string8_view g) {
   return concat_impl(a, b, c, d, e, f, g);
 }
+
+// Discourage using string literals.
+// clang-format off
+string8 concat(const char8*, string8_view) = delete;
+string8 concat(string8_view, const char8*) = delete;
+
+string8 concat(const char8*, string8_view, string8_view) = delete;
+string8 concat(string8_view, const char8*, string8_view) = delete;
+string8 concat(string8_view, string8_view, const char8*) = delete;
+
+string8 concat(const char8*, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, const char8*, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, const char8*, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, const char8*) = delete;
+
+string8 concat(const char8*, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, const char8*, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, const char8*, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, const char8*, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, const char8*) = delete;
+
+string8 concat(const char8*, string8_view, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, const char8*, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, const char8*, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, const char8*, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, const char8*, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, string8_view, const char8*) = delete;
+
+string8 concat(const char8*, string8_view, string8_view, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, const char8*, string8_view, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, const char8*, string8_view, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, const char8*, string8_view, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, const char8*, string8_view, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, string8_view, const char8*, string8_view) = delete;
+string8 concat(string8_view, string8_view, string8_view, string8_view, string8_view, string8_view, const char8*) = delete;
+// clang-format on
 #endif
 }
 

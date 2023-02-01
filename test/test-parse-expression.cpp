@@ -3771,13 +3771,13 @@ TEST_F(test_parse_expression, precedence) {
     string8_view op;
     const char* raw_kind;
 
-    const char* kind() const noexcept {
+    std::string_view kind() const noexcept {
       if (this->raw_kind) {
-        return this->raw_kind;
+        return std::string_view(this->raw_kind);
       } else if (this->op.empty()) {
-        return "cond";
+        return "cond"sv;
       } else {
-        return "binary";
+        return "binary"sv;
       }
     }
   };
@@ -3865,16 +3865,16 @@ TEST_F(test_parse_expression, precedence) {
       switch (level.type) {
       case level_type::left:
       case level_type::right:
-        ASSERT_STRNE(op.kind(), "binary");
+        ASSERT_NE(op.kind(), "binary"sv);
         break;
       case level_type::binary:
-        ASSERT_STREQ(op.kind(), "binary");
+        ASSERT_EQ(op.kind(), "binary"sv);
         break;
       case level_type::prefix:
         break;
       case level_type::ternary_right:
         ASSERT_EQ(op.op, u8""_sv);
-        ASSERT_STREQ(op.kind(), "cond");
+        ASSERT_EQ(op.kind(), "cond"sv);
         break;
       }
     }
@@ -3907,22 +3907,24 @@ TEST_F(test_parse_expression, precedence) {
         // a=b+c
         check_expression(
             concat(u8"a"_sv, lo_op.op, u8"b"_sv, hi_op.op, u8"c"_sv),
-            concat(lo_op.kind(), "(var a, ", hi_op.kind(), "(var b, var c))"));
+            concat(lo_op.kind(), "(var a, "sv, hi_op.kind(),
+                   "(var b, var c))"sv));
       }
       if (!is_same_level || hi_type == level_type::left) {
         // a=b,c
         check_expression(
             concat(u8"a"_sv, hi_op.op, u8"b"_sv, lo_op.op, u8"c"_sv),
-            concat(lo_op.kind(), "(", hi_op.kind(), "(var a, var b), var c)"));
+            concat(lo_op.kind(), "("sv, hi_op.kind(),
+                   "(var a, var b), var c)"sv));
       }
     } else if (is_binary_level(lo_type) && hi_type == level_type::prefix) {
       // -a*b
       check_expression(
           concat(hi_op.op, u8"a"_sv, lo_op.op, u8"b"_sv),
-          concat(lo_op.kind(), "(", hi_op.kind(), "(var a), var b)"));
+          concat(lo_op.kind(), "("sv, hi_op.kind(), "(var a), var b)"sv));
     } else if (is_binary_level(lo_type) &&
                hi_type == level_type::ternary_right) {
-      ASSERT_STREQ(hi_op.kind(), "cond");
+      ASSERT_EQ(hi_op.kind(), "cond"sv);
       // a+b?c:d
       check_expression(
           concat(u8"a"_sv, lo_op.op, u8"b?c:d"_sv),
@@ -3930,32 +3932,33 @@ TEST_F(test_parse_expression, precedence) {
       // a?b+c:d
       check_expression(
           concat(u8"a?b"_sv, lo_op.op, u8"c:d"_sv),
-          concat("cond(var a, ", lo_op.kind(), "(var b, var c), var d)"));
+          concat("cond(var a, "sv, lo_op.kind(), "(var b, var c), var d)"sv));
       // a?b:c+d
       check_expression(
           concat(u8"a?b:c"_sv, lo_op.op, u8"d"_sv),
-          concat("cond(var a, var b, ", lo_op.kind(), "(var c, var d))"));
+          concat("cond(var a, var b, "sv, lo_op.kind(), "(var c, var d))"sv));
     } else if (is_binary_level(hi_type) &&
                lo_type == level_type::ternary_right) {
-      ASSERT_STREQ(lo_op.kind(), "cond");
+      ASSERT_EQ(lo_op.kind(), "cond"sv);
       // a=b?c:d
       check_expression(
           concat(u8"a"_sv, hi_op.op, u8"b?c:d"_sv),
-          concat("cond(", hi_op.kind(), "(var a, var b), var c, var d)"));
+          concat("cond("sv, hi_op.kind(), "(var a, var b), var c, var d)"sv));
       // a?b=c:d
       check_expression(
           concat(u8"a?b"_sv, hi_op.op, u8"c:d"_sv),
-          concat("cond(var a, ", hi_op.kind(), "(var b, var c), var d)"));
+          concat("cond(var a, "sv, hi_op.kind(), "(var b, var c), var d)"sv));
       // a?b:c=d
       check_expression(
           concat(u8"a?b:c"_sv, hi_op.op, u8"d"_sv),
-          concat("cond(var a, var b, ", hi_op.kind(), "(var c, var d))"));
+          concat("cond(var a, var b, "sv, hi_op.kind(), "(var c, var d))"sv));
     } else if (hi_type == level_type::prefix &&
                lo_type == level_type::ternary_right) {
-      ASSERT_STREQ(lo_op.kind(), "cond");
+      ASSERT_EQ(lo_op.kind(), "cond"sv);
       // -a?b:c
-      check_expression(concat(hi_op.op, u8"a?b:c"s),
-                       concat("cond(", hi_op.kind(), "(var a), var b, var c)"));
+      check_expression(
+          concat(hi_op.op, u8"a?b:c"s),
+          concat("cond("sv, hi_op.kind(), "(var a), var b, var c)"sv));
     } else {
       QLJS_UNREACHABLE();
     }
