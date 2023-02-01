@@ -14,17 +14,10 @@ class QuickLintJs < Formula
   depends_on "boost"
   depends_on "simdjson"
 
-  on_linux do
-    # Use Homebrew's C++ compiler in case the host's C++
-    # compiler is too old.
-    depends_on "gcc"
+  fails_with :gcc do
+    version "7"
+    cause "requires C++17"
   end
-
-  # quick-lint-js requires some C++17 features, thus
-  # requires GCC 8 or newer.
-  fails_with gcc: "5"
-  fails_with gcc: "6"
-  fails_with gcc: "7"
 
   def install
     system "cmake", "-S", ".", "-B", "build",
@@ -38,9 +31,7 @@ class QuickLintJs < Formula
                     "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF",
                     *std_cmake_args
     system "cmake", "--build", "build"
-    chdir "build" do
-      system "ctest", "-V"
-    end
+    system "ctest", "--verbose", "--parallel", ENV.make_jobs, "--test-dir", "build"
     system "cmake", "--install", "build"
   end
 
