@@ -1,8 +1,12 @@
 b:ale_javascript_quick_lint_js_executable	quick-lint-js.txt	/*b:ale_javascript_quick_lint_js_executable*
+b:ale_javascript_quick_lint_js_experimental_typescript	quick-lint-js.txt	/*b:ale_javascript_quick_lint_js_experimental_typescript*
 b:ale_javascript_quick_lint_js_use_global	quick-lint-js.txt	/*b:ale_javascript_quick_lint_js_use_global*
+b:coc_quick_lint_js_experimental_typescript	quick-lint-js.txt	/*b:coc_quick_lint_js_experimental_typescript*
 g:ale_javascript_quick_lint_js_executable	quick-lint-js.txt	/*g:ale_javascript_quick_lint_js_executable*
+g:ale_javascript_quick_lint_js_experimental_typescript	quick-lint-js.txt	/*g:ale_javascript_quick_lint_js_experimental_typescript*
 g:ale_javascript_quick_lint_js_tracing_directory	quick-lint-js.txt	/*g:ale_javascript_quick_lint_js_tracing_directory*
 g:ale_javascript_quick_lint_js_use_global	quick-lint-js.txt	/*g:ale_javascript_quick_lint_js_use_global*
+g:coc_quick_lint_js_experimental_typescript	quick-lint-js.txt	/*g:coc_quick_lint_js_experimental_typescript*
 quick-lint-js-app-install	quick-lint-js.txt	/*quick-lint-js-app-install*
 quick-lint-js-configure	quick-lint-js.txt	/*quick-lint-js-configure*
 quick-lint-js-configure-ale	quick-lint-js.txt	/*quick-lint-js-configure-ale*

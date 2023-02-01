@@ -1,3 +1,9 @@
+quick-lint-js (2.11.0-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Tue, 31 Jan 2023 16:27:10 -0800
+
 quick-lint-js (2.10.0-1) unstable; urgency=medium
 
   * New release.
