@@ -231,13 +231,11 @@ class raw_bump_vector {
     return *this;
   }
 
-#if QLJS_HAVE_CHAR8_T
   // Similar to std::basic_string::operator+=.
   raw_bump_vector &operator+=(string8_view values) {
     this->append(values.begin(), values.end());
     return *this;
   }
-#endif
 
   // Similar to std::basic_string::operator+=.
   raw_bump_vector &operator+=(T value) {

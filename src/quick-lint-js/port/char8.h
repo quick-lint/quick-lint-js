@@ -194,7 +194,6 @@ class string8_view {
 };
 
 // TODO(strager): Simplify this code.
-#if QLJS_HAVE_CHAR8_T
 class streamable_string8_view {
  public:
   friend std::ostream &operator<<(std::ostream &, streamable_string8_view);
@@ -210,15 +209,6 @@ class streamable_string8_view {
 streamable_string8_view out_string8(const char8 *) noexcept;
 streamable_string8_view out_string8(string8_view) noexcept;
 streamable_string8_view out_string8(const string8 &) noexcept;
-#else
-inline string8_view out_string8(const char8 *s) noexcept {
-  return string8_view(s);
-}
-inline string8_view out_string8(string8_view sv) noexcept { return sv; }
-inline string8_view out_string8(const string8 &s) noexcept {
-  return string8_view(s);
-}
-#endif
 
 string8 to_string8(const std::string &);
 string8 to_string8(std::string_view);
