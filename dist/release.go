@@ -69,7 +69,6 @@ var Steps []Step = []Step{
 				"dist/npm/package.json",
 				"dist/scoop/quick-lint-js.template.json",
 				"dist/sign-release.go",
-				"plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt",
 				"plugin/vscode-lsp/README.md",
 				"plugin/vscode/BUILDING.md",
 			})
@@ -86,6 +85,7 @@ var Steps []Step = []Step{
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
+			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
 			fmt.Printf("* version\n")
