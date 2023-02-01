@@ -35,7 +35,7 @@ namespace quick_lint_js {
   string8 message_json;
   message_json.resize(message.size());
   message.copy_to(message_json.data());
-  return parse_boost_json(message_json);
+  return parse_boost_json(string8_view(message_json));
 }
 
 ::boost::json::value simdjson_to_boost_json(

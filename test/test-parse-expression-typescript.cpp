@@ -319,8 +319,8 @@ TEST_F(test_parse_expression_typescript,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        diag_typescript_as_const_with_non_literal_typeable,  //
-                        expression, 0, expression,                           //
+                        diag_typescript_as_const_with_non_literal_typeable,   //
+                        expression, 0, string8_view::from_c_str(expression),  //
                         as_const, strlen(expression) + 1, u8"as const"_sv),
                 }));
   }

@@ -31,7 +31,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 
   void append(string8_view data) {
     std::unique_lock lock(this->mutex_);
-    this->read_data_.append(data);
+    this->read_data_ += data;
     this->new_data_.notify_all();
   }
 
@@ -179,8 +179,9 @@ TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
   // Make a pipe such that POLLOUT will not be signalled.
   pipe_fds full_pipe = make_pipe();
   full_pipe.writer.set_pipe_non_blocking();
-  write_full_message(full_pipe.writer.ref(),
-                     string8(full_pipe.writer.get_pipe_buffer_size(), 'x'));
+  write_full_message(
+      full_pipe.writer.ref(),
+      string8_view(string8(full_pipe.writer.get_pipe_buffer_size(), 'x')));
 
   this->loop.set_pipe_write(full_pipe.writer.ref(), [](const auto&) {
     ADD_FAILURE() << "on_pipe_write_event should not be called";

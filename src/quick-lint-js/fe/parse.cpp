@@ -200,7 +200,8 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(diag_jsx_event_attribute_should_be_camel_case{
         .attribute_name = attribute_name,
-        .expected_attribute_name = string8_view(fixed_name),
+        .expected_attribute_name =
+            string8_view(fixed_name.begin(), fixed_name.end()),
     });
     fixed_name.release();
   }

@@ -3557,7 +3557,8 @@ next:
         }
 
         const char8* closing_tag_end = this->lexer_.end_of_previous_token();
-        string8_view opening_tag_name_pretty_view(opening_tag_name_pretty);
+        string8_view opening_tag_name_pretty_view(
+            opening_tag_name_pretty.begin(), opening_tag_name_pretty.end());
         opening_tag_name_pretty.release();
         this->diag_reporter_->report(diag_mismatched_jsx_tags{
             .opening_tag_name =

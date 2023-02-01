@@ -72,7 +72,8 @@ void trace_flusher_directory_backend::trace_thread_write_data(
 result<trace_flusher_directory_backend, write_file_io_error>
 trace_flusher_directory_backend::init_directory(
     const std::string &trace_directory) {
-  auto write_result = write_file(trace_directory + "/metadata", trace_metadata);
+  auto write_result = write_file(trace_directory + "/metadata",
+                                 string8_view::from_c_str(trace_metadata));
   if (!write_result.ok()) {
     return write_result.propagate();
   }

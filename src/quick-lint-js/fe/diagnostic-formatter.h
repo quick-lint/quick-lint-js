@@ -102,7 +102,8 @@ inline void diagnostic_formatter<Derived>::format_message(
       get_argument_source_code_span(args, diagnostic, 0);
   self->write_before_message(code, severity, origin_span);
 
-  string8_view remaining_message(this->translator_.translate(message_format));
+  string8_view remaining_message =
+      string8_view::from_c_str(this->translator_.translate(message_format));
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
     QLJS_ASSERT(left_curly_index != remaining_message.size() &&

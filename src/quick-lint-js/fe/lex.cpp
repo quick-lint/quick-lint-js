@@ -1442,7 +1442,7 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
-    check_integer_precision_loss(make_string_view(number_begin, input));
+    check_integer_precision_loss(string8_view(number_begin, input));
   }
 
   switch (*input) {
@@ -1615,7 +1615,7 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input,
   } else {
     return parsed_identifier{
         .after = end,
-        .normalized = make_string_view(begin, end),
+        .normalized = string8_view(begin, end),
         .escape_sequences = {},
     };
   }
@@ -1822,7 +1822,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
     }
   }
 
-  string8_view normalized_view(normalized);
+  string8_view normalized_view(normalized.begin(), normalized.end());
   normalized.release();
 
   return parsed_identifier{

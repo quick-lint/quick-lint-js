@@ -92,7 +92,7 @@ class lsp_message_parser : private lsp_message_parser_base {
           break;
         }
         parsed_message_headers headers = this->parse_message_headers(
-            make_string_view(headers_begin, content_begin));
+            string8_view(headers_begin, content_begin));
         // If headers.content_length.has_value(), then switch to parsing the
         // body. Otherwise, we received invalid headers, so recover by parsing
         // headers again.

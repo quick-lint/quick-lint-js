@@ -24,7 +24,7 @@ class source_code_span {
   const char8* end() const noexcept { return this->end_; }
 
   string8_view string_view() const noexcept {
-    return make_string_view(this->begin(), this->end());
+    return string8_view(this->begin(), this->end());
   }
 
   int size() const noexcept {

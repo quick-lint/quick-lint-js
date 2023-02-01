@@ -15,8 +15,16 @@ namespace quick_lint_js {
 streamable_string8_view::streamable_string8_view(string8_view sv) noexcept
     : sv_(sv) {}
 
+streamable_string8_view out_string8(const char8 *s) noexcept {
+  return out_string8(string8_view::from_c_str(s));
+}
+
 streamable_string8_view out_string8(string8_view sv) noexcept {
   return streamable_string8_view(sv);
+}
+
+streamable_string8_view out_string8(const string8 &s) noexcept {
+  return out_string8(string8_view(s));
 }
 #endif
 

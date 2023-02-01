@@ -88,7 +88,7 @@ void c_api_diag_formatter<Diagnostic, Locator>::write_message_part(
     // Don't write notes. Only write the main message.
     return;
   }
-  this->current_message_.append(message);
+  this->current_message_ += message;
 }
 
 template <class Diagnostic, class Locator>
@@ -124,7 +124,7 @@ void c_api_diag_formatter<Diagnostic, Locator>::write_after_message(
   *code_end = '\0';
 
   diag.message = reinterpret_cast<const char *>(
-      this->reporter_->allocate_c_string(this->current_message_));
+      this->reporter_->allocate_c_string(string8_view(this->current_message_)));
   diag.severity = diag_severity;
 }
 

@@ -313,6 +313,15 @@ class instrumented_vector {
     return *this;
   }
 
+#if QLJS_HAVE_CHAR8_T
+  // NOTE(strager): This is a non-standard function.
+  instrumented_vector &operator+=(string8_view values) {
+    this->data_ += values;
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return *this;
+  }
+#endif
+
   // NOTE(strager): This is a non-standard function.
   explicit operator std::basic_string_view<value_type>() const noexcept {
     return std::basic_string_view<value_type>(this->data_);

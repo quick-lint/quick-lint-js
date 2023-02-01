@@ -34,7 +34,7 @@ void trace_writer::write_header(const trace_context& context) {
 }
 
 void trace_writer::write_event_init(const trace_event_init& event) {
-  QLJS_ASSERT(!contains(event.version, u8'\0'));
+  QLJS_ASSERT(!event.version.contains(u8'\0'));
   this->append_binary(8 + 1, [&](binary_writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);

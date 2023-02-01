@@ -92,7 +92,7 @@ TEST_F(test_parse_typescript_module,
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({import_type_decl(name)}));
+                  ElementsAreArray({import_type_decl(string8_view(name))}));
     }
   }
 }

@@ -128,8 +128,9 @@ string8_view diagnostic_formatter_base::expand_argument_headlinese(
     return headlinese_enum_kind(*reinterpret_cast<const enum_kind*>(arg_data));
 
   case diagnostic_arg_type::statement_kind:
-    return this->translator_.translate(headlinese_statement_kind(
-        *reinterpret_cast<const statement_kind*>(arg_data)));
+    return string8_view::from_c_str(
+        this->translator_.translate(headlinese_statement_kind(
+            *reinterpret_cast<const statement_kind*>(arg_data))));
 
   case diagnostic_arg_type::char8:
   case diagnostic_arg_type::identifier:
@@ -148,8 +149,9 @@ string8_view diagnostic_formatter_base::expand_argument_singular(
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
   case diagnostic_arg_type::statement_kind:
-    return this->translator_.translate(singular_statement_kind(
-        *reinterpret_cast<const statement_kind*>(arg_data)));
+    return string8_view::from_c_str(
+        this->translator_.translate(singular_statement_kind(
+            *reinterpret_cast<const statement_kind*>(arg_data))));
 
   case diagnostic_arg_type::enum_kind:
     QLJS_UNIMPLEMENTED();

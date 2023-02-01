@@ -52,7 +52,7 @@ bool configuration::add_global_group(string8_view group_name) {
     return true;
   }
   for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {
-    if (group_name == global_groups[i].name) {
+    if (group_name == string8_view::from_c_str(global_groups[i].name)) {
       this->enabled_global_groups_[i] = true;
       return true;
     }
@@ -310,7 +310,9 @@ string8_view configuration::save_string(std::string_view s) {
 }
 
 bool configuration::should_remove_global_variable(string8_view name) {
-  return contains(this->globals_to_remove_, name);
+  return any_of(this->globals_to_remove_, [&](const string8& global) {
+    return string8_view(global) == name;
+  });
 }
 
 [[gnu::noinline]] void configuration::build_globals_from_groups() {
@@ -322,7 +324,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
 
   auto iterate_globals = [](const char8* globals, auto&& func) -> void {
     for (const char8* it = globals; *it != '\0';) {
-      string8_view global(it);
+      string8_view global = string8_view::from_c_str(it);
       func(global);
       it += global.size() + 1;
     }

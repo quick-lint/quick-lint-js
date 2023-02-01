@@ -27,14 +27,20 @@ typename std::basic_string_view<Char>::size_type find_first_if(
   return string_view_type::npos;
 }
 
-template <class Char, class WriteFunc>
+template <class Predicate>
+typename string8_view::size_type find_first_if(string8_view string,
+                                               Predicate &&predicate) {
+  return string.find_first_if(std::forward<Predicate>(predicate));
+}
+
+template <class StringView, class WriteFunc>
 void write_json_escaped_string_impl(WriteFunc &&write_string,
-                                    std::basic_string_view<Char> string) {
+                                    StringView string) {
+  using Char = typename StringView::value_type;
   for (;;) {
-    auto special_character_index =
-        find_first_if<Char>(string, [](Char c) -> bool {
-          return (0x00 <= c && c < 0x20) || c == u8'\\' || c == u8'"';
-        });
+    auto special_character_index = find_first_if(string, [](Char c) -> bool {
+      return (0x00 <= c && c < 0x20) || c == u8'\\' || c == u8'"';
+    });
     if (special_character_index == string.npos) {
       break;
     }
@@ -80,8 +86,8 @@ void write_json_escaped_string(output_stream &output, string8_view string) {
 
 string8 to_json_escaped_string_with_quotes(string8_view string) {
   string8 output = u8"\"";
-  write_json_escaped_string_impl(
-      [&](const string8_view &s) { output.append(s); }, string);
+  write_json_escaped_string_impl([&](const string8_view &s) { output += s; },
+                                 string);
   output.push_back(u8'"');
   return output;
 }

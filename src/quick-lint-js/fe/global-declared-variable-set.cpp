@@ -20,8 +20,10 @@ variable_kind global_declared_variable::kind() const noexcept {
 
 void global_declared_variable_set::add_predefined_global_variable(
     const char8 *name, bool is_writable) {
-  this->add_global_variable(global_declared_variable{
-      .name = name, .is_writable = is_writable, .is_shadowable = true});
+  this->add_global_variable(
+      global_declared_variable{.name = string8_view::from_c_str(name),
+                               .is_writable = is_writable,
+                               .is_shadowable = true});
 }
 
 void global_declared_variable_set::add_global_variable(

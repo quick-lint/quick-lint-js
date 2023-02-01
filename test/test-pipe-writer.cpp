@@ -53,6 +53,10 @@ byte_buffer byte_buffer_of(string8_view data) {
   return bb;
 }
 
+byte_buffer byte_buffer_of(const string8& data) {
+  return byte_buffer_of(string8_view(data));
+}
+
 TEST_F(test_pipe_writer, large_write_sends_fully) {
   std::future<result<padded_string, read_file_io_error> > data_future =
       std::async(std::launch::async, [this] {
@@ -87,9 +91,9 @@ class pipe_reader_thread {
               return;
             } else {
               std::unique_lock<mutex> lock(this->mutex_);
-              this->received_data.append(string8_view(
+              this->received_data += string8_view(
                   buffer.data(),
-                  narrow_cast<std::size_t>(read_result.bytes_read())));
+                  narrow_cast<std::size_t>(read_result.bytes_read()));
               this->data_received_.notify_one();
             }
           }

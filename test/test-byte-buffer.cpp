@@ -241,7 +241,8 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
   string8 bb_1_expected;
   bb_1.append_copy(u8"hello"_sv);
   bb_1_expected.append(u8"hello");
-  bb_1.append_copy(string8(byte_buffer::default_chunk_size * 2, '-'));
+  bb_1.append_copy(
+      string8_view(string8(byte_buffer::default_chunk_size * 2, '-')));
   bb_1_expected.append(string8(byte_buffer::default_chunk_size * 2, '-'));
   bb_1.append_copy(u8"world"_sv);
   bb_1_expected.append(u8"world");
@@ -251,7 +252,8 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
   string8 bb_2_expected;
   bb_2.append_copy(u8"HELLO"_sv);
   bb_2_expected.append(u8"HELLO");
-  bb_2.append_copy(string8(byte_buffer::default_chunk_size * 2, '_'));
+  bb_2.append_copy(
+      string8_view(string8(byte_buffer::default_chunk_size * 2, '_')));
   bb_2_expected.append(string8(byte_buffer::default_chunk_size * 2, '_'));
   bb_2.append_copy(u8"WORLD"_sv);
   bb_2_expected.append(u8"WORLD");
@@ -347,7 +349,8 @@ TEST(test_byte_buffer,
   // large second chunk. The first (empty) chunk stuck around for the conversion
   // to byte_buffer_iovec.
   byte_buffer bb;
-  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'x'));
+  bb.append_copy(
+      string8_view(string8(byte_buffer::default_chunk_size * 3, 'x')));
   byte_buffer_iovec iovec = std::move(bb).to_iovec();
   assert_no_empty_iovec(iovec);
 }

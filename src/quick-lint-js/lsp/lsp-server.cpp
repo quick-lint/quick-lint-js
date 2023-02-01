@@ -359,7 +359,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   }
 
   this->apply_document_changes(doc.doc, notification.changes);
-  doc.version_json = notification.version_json;
+  doc.version_json = string8(notification.version_json);
 
   doc.on_text_changed(*this, notification.uri.json);
 }
@@ -462,7 +462,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     this->config_fs_.open_document(document_path, &doc.doc);
 
     doc.doc.set_text(notification.text);
-    doc.version_json = notification.version_json;
+    doc.version_json = string8(notification.version_json);
   };
 
   std::unique_ptr<document_base> doc_ptr;

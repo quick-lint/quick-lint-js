@@ -49,13 +49,13 @@ struct hasher<std::string_view> {
 template <>
 struct hasher<std::string> : hasher<std::string_view> {};
 
-#if QLJS_HAVE_CHAR8_T
 template <>
 struct hasher<string8_view> {
   std::size_t operator()(string8_view s) const noexcept {
-    return std::hash<string8_view>()(s);
+    return std::hash<std::string_view>()(to_string_view(s));
   }
 };
+#if QLJS_HAVE_CHAR8_T
 template <>
 struct hasher<string8> : hasher<string8_view> {};
 #endif

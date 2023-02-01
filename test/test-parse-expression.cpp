@@ -3881,7 +3881,7 @@ TEST_F(test_parse_expression, precedence) {
   }
 
   static auto check_expression =
-      [](string8_view code, std::string_view expected_ast_summary) -> void {
+      [](const string8& code, std::string_view expected_ast_summary) -> void {
     SCOPED_TRACE(out_string8(code));
     for (const parser_options& options :
          {javascript_options, typescript_options}) {

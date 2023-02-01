@@ -10,13 +10,12 @@
 
 namespace quick_lint_js {
 // Do not call directly.
-template <class Char, class... Rest>
-std::basic_string<Char> concat_impl(std::basic_string_view<Char> a,
-                                    Rest... rest) {
-  std::basic_string<Char> result;
+template <class StringView, class... Rest>
+std::basic_string<typename StringView::value_type> concat_impl(StringView a, Rest... rest) {
+  std::basic_string<typename StringView::value_type> result;
   result.reserve((a.size() + ... + rest.size()));
-  result.append(a);
-  (..., result.append(rest));
+  result += a;
+  (..., (result += rest));
   return result;
 }
 

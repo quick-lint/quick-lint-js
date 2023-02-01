@@ -694,7 +694,7 @@ class expression::jsx_element final : public jsx_base {
     string8_view name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());
     char8 first_char = name[0];
-    return islower(first_char) || contains(name, u8'-');
+    return islower(first_char) || name.contains(u8'-');
   }
 
   identifier tag;

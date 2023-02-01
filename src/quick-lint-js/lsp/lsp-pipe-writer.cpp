@@ -33,7 +33,7 @@ lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_writer(pipe) {}
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
   std::array<char8, max_header_size> header;
   char8* header_end = make_header(message.size(), header.data());
-  message.prepend_copy(make_string_view(header.data(), header_end));
+  message.prepend_copy(string8_view(header.data(), header_end));
   this->write(std::move(message));
 }
 }

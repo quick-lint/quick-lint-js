@@ -31,7 +31,7 @@ class basic_text_diag_formatter
 
   void write_message_part([[maybe_unused]] std::string_view code,
                           diagnostic_severity, string8_view part) {
-    this->current_message_.append(part);
+    this->current_message_ += part;
   }
 
   void write_after_message(std::string_view code, diagnostic_severity,
@@ -112,8 +112,10 @@ TEST_F(test_translation, full_translation_table) {
 
     for (const translated_string &test_case : test_translation_table) {
       ASSERT_TRUE(test_case.translatable.valid());
-      EXPECT_EQ(messages.translate(test_case.translatable),
-                string8_view(test_case.expected_per_locale[locale_index]));
+      EXPECT_EQ(
+          string8_view::from_c_str(messages.translate(test_case.translatable)),
+          string8_view::from_c_str(
+              test_case.expected_per_locale[locale_index]));
     }
   }
 }

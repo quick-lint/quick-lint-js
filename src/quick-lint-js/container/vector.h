@@ -12,6 +12,8 @@
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <type_traits>
@@ -228,6 +230,14 @@ class raw_bump_vector {
     this->append(values.data(), values.data() + values.size());
     return *this;
   }
+
+#if QLJS_HAVE_CHAR8_T
+  // Similar to std::basic_string::operator+=.
+  raw_bump_vector &operator+=(string8_view values) {
+    this->append(values.begin(), values.end());
+    return *this;
+  }
+#endif
 
   // Similar to std::basic_string::operator+=.
   raw_bump_vector &operator+=(T value) {

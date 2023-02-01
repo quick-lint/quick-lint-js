@@ -76,6 +76,10 @@ class padded_string {
   friend bool operator!=(string8_view, const padded_string &) noexcept;
   friend bool operator==(const padded_string &, string8_view) noexcept;
   friend bool operator!=(const padded_string &, string8_view) noexcept;
+  friend bool operator==(string8, const padded_string &) noexcept;
+  friend bool operator!=(string8, const padded_string &) noexcept;
+  friend bool operator==(const padded_string &, string8) noexcept;
+  friend bool operator!=(const padded_string &, string8) noexcept;
 
  private:
   void free_and_set_storage(char8 *new_data,

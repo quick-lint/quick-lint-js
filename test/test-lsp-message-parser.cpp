@@ -59,7 +59,7 @@ TEST(test_lsp_message_parser, small_message_one_byte_at_a_time) {
   spy_lsp_message_parser parser;
   string8 full_message = u8"Content-Length: 2\r\n\r\nhi";
   for (char8 c : full_message) {
-    parser.append(string8(1, c));
+    parser.append(string8_view(&c, 1));
   }
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hi"}));
 }

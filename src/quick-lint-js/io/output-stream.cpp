@@ -56,7 +56,7 @@ void output_stream::append_copy(char8 data) {
 QLJS_WARNING_POP
 
 void output_stream::flush() {
-  this->flush_impl(make_string_view(this->buffer_.get(), this->cursor_));
+  this->flush_impl(string8_view(this->buffer_.get(), this->cursor_));
   this->cursor_ = this->buffer_.get();
 }
 

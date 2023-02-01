@@ -23,7 +23,7 @@ std::string parse_file_from_lsp_uri(string8_view uri) {
 }
 
 std::string parse_file_from_lsp_uri_posix(string8_view uri) {
-  if (!starts_with(uri, u8"file://"_sv)) {
+  if (!uri.starts_with(u8"file://"_sv)) {
     return "";
   }
   if (uri.size() < strlen(u8"file://") + 1) {
