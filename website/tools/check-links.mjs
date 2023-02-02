@@ -185,10 +185,10 @@ export class Crawler {
   }
 
   async crawlAndReportAsync(parentURL, link) {
-    if (isMailtoLink(link)) {
-      this.checkMailLink(new URLPacket(parentURL, link));
+    let url = new URL(link, parentURL).toString();
+    if (isMailtoLink(url)) {
+      this.checkMailLink(new URLPacket(parentURL, url));
     } else {
-      let url = new URL(link, parentURL).toString();
       if (!this.visitedURLs.includes(url)) {
         this.visitedURLs.push(url);
         let defragedURL = new URL(url);
