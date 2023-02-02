@@ -190,32 +190,36 @@ export class Crawler {
 
       case "http:":
       case "https:":
-        if (!this.visitedURLs.includes(url)) {
-          this.visitedURLs.push(url);
-          let defragedURL = new URL(url);
-          let fragment = defragedURL.hash.replace(/^#/, "");
-          defragedURL.hash = "";
-          defragedURL = defragedURL.toString();
-          if (!this.visitedURLsSoup.has(defragedURL)) {
-            if (this.isExternalURL(defragedURL)) {
-              this.externalLinksToCheck.push(new URLPacket(parentURL, url));
-              this.visitedURLsSoup.set(defragedURL, null);
-            } else {
-              await this.checkInternalLinksAsync(
-                new URLPacket(parentURL, url, defragedURL, fragment)
-              );
-            }
-          } else {
-            let soup = this.visitedURLsSoup.get(defragedURL);
-            if (soup !== null && !checkFragment(soup, fragment)) {
-              this.reportError(
-                "fragment missing",
-                new URLPacket(parentURL, url, fragment)
-              );
-            }
-          }
-        }
+        await this.checkHTTPLinkAsync(parentURL, url);
         break;
+    }
+  }
+
+  async checkHTTPLinkAsync(parentURL, url) {
+    if (!this.visitedURLs.includes(url)) {
+      this.visitedURLs.push(url);
+      let defragedURL = new URL(url);
+      let fragment = defragedURL.hash.replace(/^#/, "");
+      defragedURL.hash = "";
+      defragedURL = defragedURL.toString();
+      if (!this.visitedURLsSoup.has(defragedURL)) {
+        if (this.isExternalURL(defragedURL)) {
+          this.externalLinksToCheck.push(new URLPacket(parentURL, url));
+          this.visitedURLsSoup.set(defragedURL, null);
+        } else {
+          await this.checkInternalLinksAsync(
+            new URLPacket(parentURL, url, defragedURL, fragment)
+          );
+        }
+      } else {
+        let soup = this.visitedURLsSoup.get(defragedURL);
+        if (soup !== null && !checkFragment(soup, fragment)) {
+          this.reportError(
+            "fragment missing",
+            new URLPacket(parentURL, url, fragment)
+          );
+        }
+      }
     }
   }
 }
