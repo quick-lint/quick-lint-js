@@ -125,17 +125,11 @@ describe("check-links", () => {
     let subpageHits = 0;
     let { url } = await makeServerAsync((req, res) => {
       if (req.url === "/") {
-        if (req.method === "GET") {
-          // FIXME(strager): Crawler shouldn't send us HEAD requests.
-          rootHits += 1;
-        }
+        rootHits += 1;
         res.writeHead(200, { "content-type": "text/html" });
         res.end("<!DOCTYPE html>\n<a href='/subpage'>link</a>");
       } else if (req.url === "/subpage") {
-        if (req.method === "GET") {
-          // FIXME(strager): Crawler shouldn't send us HEAD requests.
-          subpageHits += 1;
-        }
+        subpageHits += 1;
         res.writeHead(200, { "content-type": "text/html" });
         res.end("<!DOCTYPE html>\n<a href='/'>link</a>");
       } else {
@@ -162,10 +156,7 @@ describe("check-links", () => {
             "<a href='/subpage#frag2'>link</a>"
         );
       } else if (req.url === "/subpage") {
-        if (req.method === "GET") {
-          // FIXME(strager): Crawler shouldn't send us HEAD requests.
-          subpageHits += 1;
-        }
+        subpageHits += 1;
         res.writeHead(200, { "content-type": "text/html" });
         res.end("<!DOCTYPE html>\n");
       } else {

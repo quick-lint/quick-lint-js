@@ -125,12 +125,14 @@ export class Crawler {
 
   async checkInternalLinksAsync(packet) {
     try {
-      let response = await checkResponseAsync(packet.defragedURL);
+      let response = await httpRequestAsync(packet.defragedURL, {
+        method: "GET",
+      });
+      if (!response.ok) {
+        throw new URLNotFound(response.status);
+      }
       if (this.inAllowedFileSoup(response)) {
-        let result = await httpRequestAsync(packet.defragedURL, {
-          method: "GET",
-        });
-        let soup = await parseHTMLIntoSoupAsync(await result.text());
+        let soup = await parseHTMLIntoSoupAsync(await response.text());
         this.visitedURLsSoup.set(packet.defragedURL, soup);
         if (!checkFragment(soup, packet.fragment)) {
           this.reportError("fragment missing", packet);
