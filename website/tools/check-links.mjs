@@ -119,21 +119,12 @@ export class Crawler {
   async getURLsToCrawlAsync(packet) {
     let urlsFromPage = [];
     let result = await httpRequestAsync(packet.defragedURL, { method: "GET" });
-    this.visitedURLsSoup.set(
-      packet.defragedURL,
-      await parseHTMLIntoSoupAsync(await result.text())
-    );
-    if (
-      !checkFragment(
-        this.visitedURLsSoup.get(packet.defragedURL),
-        packet.fragment
-      )
-    ) {
+    let soup = await parseHTMLIntoSoupAsync(await result.text());
+    this.visitedURLsSoup.set(packet.defragedURL, soup);
+    if (!checkFragment(soup, packet.fragment)) {
       this.reportError("fragment missing", packet);
     }
-    urlsFromPage = this.getURLsFromPage(
-      this.visitedURLsSoup.get(packet.defragedURL)
-    );
+    urlsFromPage = this.getURLsFromPage(soup);
     return urlsFromPage;
   }
 
