@@ -84,7 +84,7 @@ describe("check-links", () => {
     expect(crawler.brokenLinks).toEqual([`${url}broken`]);
   });
 
-  it("reports broken <a> link once if linked on multiple pages", async () => {
+  it("reports broken <a> link for each linking page if linked from multiple pages", async () => {
     let { url } = await makeServerAsync((req, res) => {
       if (req.url === "/") {
         res.writeHead(200, { "content-type": "text/html" });
@@ -104,7 +104,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}broken`]);
+    expect(crawler.brokenLinks).toEqual([`${url}broken`, `${url}broken`]);
   });
 
   it("finds broken <script> link", async () => {

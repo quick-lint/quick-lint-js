@@ -69,7 +69,6 @@ async function checkResponseAsync(url) {
 export class Crawler {
   initialURL;
   checkExternal;
-  visitedURLs = [];
 
   // Map from URL without fragment (string) to Promise<Soup | null>.
   visitedURLsSoup = new Map();
@@ -140,6 +139,7 @@ export class Crawler {
   async checkInternalLinksAsync(soup, packet) {
     this.checkFragmentInSoup(soup, packet);
     let urlsFromPage = this.getURLsFromPage(soup);
+    urlsFromPage = removeDuplicates(urlsFromPage);
     await Promise.all(
       urlsFromPage.map(async (link) => {
         await this.crawlAndReportAsync(soup.url, link);
@@ -181,10 +181,6 @@ export class Crawler {
   }
 
   async checkHTTPLinkAsync(parentURL, url) {
-    if (this.visitedURLs.includes(url)) {
-      return;
-    }
-    this.visitedURLs.push(url);
     let defragedURL = new URL(url);
     let fragment = defragedURL.hash.replace(/^#/, "");
     defragedURL.hash = "";
@@ -377,6 +373,10 @@ function showHelp(log = console.log) {
 
 function zip(xs, ys) {
   return xs.slice(0, ys.length).map((x, index) => [x, ys[index]]);
+}
+
+function removeDuplicates(array) {
+  return [...new Set(array)];
 }
 
 // Poorly-implemented version of 'fetch' for older versions of Node.js.
