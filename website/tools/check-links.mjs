@@ -116,16 +116,6 @@ export class Crawler {
     }
   }
 
-  async getURLsToCrawlAsync(packet) {
-    let result = await httpRequestAsync(packet.defragedURL, { method: "GET" });
-    let soup = await parseHTMLIntoSoupAsync(await result.text());
-    this.visitedURLsSoup.set(packet.defragedURL, soup);
-    if (!checkFragment(soup, packet.fragment)) {
-      this.reportError("fragment missing", packet);
-    }
-    return this.getURLsFromPage(soup);
-  }
-
   checkMailLink(packet) {
     let mail = packet.url.split(":", 2)[1];
     if (!allowMails.includes(mail)) {
@@ -137,7 +127,15 @@ export class Crawler {
     try {
       let response = await checkResponseAsync(packet.defragedURL);
       if (this.inAllowedFileSoup(response)) {
-        let urlsFromPage = await this.getURLsToCrawlAsync(packet);
+        let result = await httpRequestAsync(packet.defragedURL, {
+          method: "GET",
+        });
+        let soup = await parseHTMLIntoSoupAsync(await result.text());
+        this.visitedURLsSoup.set(packet.defragedURL, soup);
+        if (!checkFragment(soup, packet.fragment)) {
+          this.reportError("fragment missing", packet);
+        }
+        let urlsFromPage = this.getURLsFromPage(soup);
         for (let link of urlsFromPage) {
           await this.crawlAndReportAsync(response.url, link);
         }
