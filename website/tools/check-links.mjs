@@ -107,8 +107,8 @@ export class Crawler {
     this.urls = this.getURLsFromPage(soup);
   }
 
-  inNamespace(url) {
-    return new URL(url).host === this.siteNamespace;
+  isExternalURL(url) {
+    return new URL(url).host !== this.siteNamespace;
   }
 
   getURLsFromPage(soup) {
@@ -214,7 +214,7 @@ export class Crawler {
           defragedURL.hash = "";
           defragedURL = defragedURL.toString();
           if (!this.vistedURLsSoup.has(defragedURL)) {
-            if (!this.inNamespace(defragedURL)) {
+            if (this.isExternalURL(defragedURL)) {
               this.externalLinksToCheck.push(new URLPacket(parentURL, url));
               this.vistedURLsSoup.set(defragedURL, null);
             } else {
