@@ -155,9 +155,7 @@ export class Crawler {
   }
 
   async checkInternalLinksAsync(soup, packet) {
-    if (!checkFragment(soup, packet.fragment)) {
-      this.reportError("fragment missing", packet);
-    }
+    this.checkFragmentInSoup(soup, packet);
     let urlsFromPage = this.getURLsFromPage(soup);
     await Promise.all(
       urlsFromPage.map(async (link) => {
@@ -230,12 +228,15 @@ export class Crawler {
       // Do not await above this comment.
       let soupPromise = this.visitedURLsSoup.get(defragedURL);
       let soup = await soupPromise;
-      if (soup !== null && !checkFragment(soup, fragment)) {
-        this.reportError(
-          "fragment missing",
-          new URLPacket(parentURL, url, fragment)
-        );
+      if (soup !== null) {
+        this.checkFragmentInSoup(soup, new URLPacket(parentURL, url, fragment));
       }
+    }
+  }
+
+  checkFragmentInSoup(soup, packet) {
+    if (!checkFragment(soup, packet.fragment)) {
+      this.reportError("fragment missing", packet);
     }
   }
 }
