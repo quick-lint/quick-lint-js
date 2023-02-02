@@ -90,21 +90,6 @@ export class Crawler {
     this.checkExternal = checkExternal;
   }
 
-  async initAsync() {
-    let response = await httpRequestAsync(this.initialURL, {
-      method: "GET",
-      redirect: "error",
-    });
-    if (!response.ok) {
-      console.error(`(error) failed to get ${this.initialURL}`);
-      process.exit(1);
-    }
-    let soup = await parseHTMLIntoSoupAsync(await response.text());
-    this.vistedURLs.push(this.initialURL);
-    this.vistedURLsSoup.set(this.initialURL, soup);
-    this.urls = this.getURLsFromPage(soup);
-  }
-
   isExternalURL(url) {
     return new URL(url).host !== new URL(this.initialURL).host;
   }
@@ -129,8 +114,7 @@ export class Crawler {
   }
 
   async startCrawlAsync() {
-    await this.initAsync();
-    await this.crawlAndReportAsync(this.initialURL, this.urls);
+    await this.crawlAndReportAsync(this.initialURL, [this.initialURL]);
     if (this.checkExternal) {
       await this.checkExternalLinksAsync(this.externalLinksToCheck);
     }
