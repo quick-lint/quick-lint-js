@@ -34,10 +34,6 @@ function checkFragment(soup, fragment) {
   return true;
 }
 
-function isMailtoLink(link) {
-  return link.startsWith("mailto:");
-}
-
 class URLPacket {
   parent;
   url;
@@ -185,8 +181,9 @@ export class Crawler {
   }
 
   async crawlAndReportAsync(parentURL, link) {
-    let url = new URL(link, parentURL).toString();
-    if (isMailtoLink(url)) {
+    let urlObject = new URL(link, parentURL);
+    let url = urlObject.toString();
+    if (urlObject.protocol === "mailto:") {
       this.checkMailLink(new URLPacket(parentURL, url));
     } else {
       if (!this.visitedURLs.includes(url)) {
