@@ -22,8 +22,6 @@ let allowMails = [
   "trademarks@archlinux.org",
 ];
 
-let allowedFileExtForSoup = ["text/html"];
-
 let headers = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3",
@@ -82,7 +80,6 @@ async function checkResponseAsync(url) {
 export class Crawler {
   site;
   checkExternal;
-  allowedFileExtForSoup = allowedFileExtForSoup;
   siteNamespace;
   vistedURLs = [];
   vistedURLsSoup = new Map();
@@ -93,7 +90,6 @@ export class Crawler {
     this.site = site;
     this.checkExternal = checkExternal;
     this.siteNamespace = new URL(this.site).host;
-    this.allowedFileExtForSoup = allowedFileExtForSoup;
   }
 
   async initAsync() {
@@ -126,7 +122,7 @@ export class Crawler {
       // https://quick-lint-js.com/blog/, should always serve HTML.
       return true;
     }
-    return this.allowedFileExtForSoup.includes(urlResponse.contentType);
+    return ["text/html"].includes(urlResponse.contentType);
   }
 
   reportError(error, packet) {
