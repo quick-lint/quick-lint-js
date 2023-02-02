@@ -80,7 +80,6 @@ async function checkResponseAsync(url) {
 export class Crawler {
   site;
   checkExternal;
-  siteNamespace;
   vistedURLs = [];
   vistedURLsSoup = new Map();
   externalLinksToCheck = [];
@@ -89,7 +88,6 @@ export class Crawler {
   constructor({ site, checkExternal }) {
     this.site = site;
     this.checkExternal = checkExternal;
-    this.siteNamespace = new URL(this.site).host;
   }
 
   async initAsync() {
@@ -108,7 +106,7 @@ export class Crawler {
   }
 
   isExternalURL(url) {
-    return new URL(url).host !== this.siteNamespace;
+    return new URL(url).host !== new URL(this.site).host;
   }
 
   getURLsFromPage(soup) {
