@@ -90,7 +90,7 @@ jobs:
           while server_process_is_alive && ! http_server_is_running; do
             sleep 0.1
           done
-          python3 ./tools/check-links http://localhost:9001/
+          ./website/tools/check-links.mjs http://localhost:9001/
           kill "${server_pid}"
         shell: bash
 
@@ -98,7 +98,7 @@ jobs:
         run: |
           rsync --archive --delete website/www/ /var/www/html/
           service apache2 start
-          python3 ./tools/check-links http://localhost/
+          ./website/tools/check-links.mjs http://localhost/
 
       - uses: actions/upload-artifact@v3
         if: failure()
