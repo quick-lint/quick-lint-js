@@ -71,7 +71,7 @@ export class Crawler {
   checkExternal;
   visitedURLs = [];
 
-  // Map from URL without fragment (string) to Promise<Soup>.
+  // Map from URL without fragment (string) to Promise<Soup | null>.
   visitedURLsSoup = new Map();
 
   externalLinksToCheck = [];
@@ -119,32 +119,22 @@ export class Crawler {
     }
   }
 
-  // Logs a message on certain errors (e.g. 404 Not Found).
+  // Throws on errors (e.g. 404 Not Found).
+  //
+  // Returns null if the link is not HTML.
   //
   // @return Promise<Soup | null>
   async fetchInternalSoup(packet) {
-    try {
-      let response = await httpRequestAsync(packet.defragedURL, {
-        method: "GET",
-      });
-      if (!response.ok) {
-        throw new URLNotFound(response.status);
-      }
-      if (this.inAllowedFileSoup(response)) {
-        return await parseHTMLIntoSoupAsync(
-          await response.text(),
-          response.url
-        );
-      }
-      return null;
-    } catch (e) {
-      if (e instanceof URLNotFound) {
-        this.reportError(`${e.responseCode} error`, packet);
-        return null;
-      } else {
-        throw e;
-      }
+    let response = await httpRequestAsync(packet.defragedURL, {
+      method: "GET",
+    });
+    if (!response.ok) {
+      throw new URLNotFound(response.status);
     }
+    if (this.inAllowedFileSoup(response)) {
+      return await parseHTMLIntoSoupAsync(await response.text(), response.url);
+    }
+    return null;
   }
 
   async checkInternalLinksAsync(soup, packet) {
@@ -211,7 +201,18 @@ export class Crawler {
         this.visitedURLsSoup.set(packet.defragedURL, soupPromise);
         // Do not await above this comment.
 
-        let soup = await soupPromise;
+        let soup;
+        try {
+          soup = await soupPromise;
+        } catch (e) {
+          if (e instanceof URLNotFound) {
+            this.reportError(`${e.responseCode} error`, packet);
+            return;
+          } else {
+            throw e;
+          }
+        }
+
         if (soup === null) {
           return;
         }
@@ -220,9 +221,20 @@ export class Crawler {
     } else {
       // Do not await above this comment.
       let soupPromise = this.visitedURLsSoup.get(defragedURL);
-      let soup = await soupPromise;
+      let packet = new URLPacket(parentURL, url, fragment);
+      let soup;
+      try {
+        soup = await soupPromise;
+      } catch (e) {
+        if (e instanceof URLNotFound) {
+          this.reportError(`${e.responseCode} error`, packet);
+          return;
+        } else {
+          throw e;
+        }
+      }
       if (soup !== null) {
-        this.checkFragmentInSoup(soup, new URLPacket(parentURL, url, fragment));
+        this.checkFragmentInSoup(soup, packet);
       }
     }
   }

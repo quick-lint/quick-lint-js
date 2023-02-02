@@ -213,6 +213,34 @@ describe("check-links", () => {
     expect(subpageHits).toEqual(1);
   });
 
+  it("finds broken <a> link with multiple fragments on same page", async () => {
+    let subpageHits = 0;
+    let { url } = await makeServerAsync((req, res) => {
+      if (req.url === "/") {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end(
+          "<!DOCTYPE html>\n" +
+            "<a href='/subpage#frag1'>link</a>\n" +
+            "<a href='/subpage#frag2'>link</a>"
+        );
+      } else if (req.url === "/subpage") {
+        subpageHits += 1;
+        notFound(res);
+      } else {
+        notFound(res);
+      }
+    });
+
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
+    await crawler.startCrawlAsync();
+
+    expect(subpageHits).toEqual(1);
+    expect(crawler.brokenLinks.sort()).toEqual([
+      `${url}subpage#frag1`,
+      `${url}subpage#frag2`,
+    ]);
+  });
+
   it("does not check external links if opted out", async () => {
     let { url } = await makeServerAsync((req, res) => {
       if (req.url === "/") {
