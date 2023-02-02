@@ -129,6 +129,7 @@ export class Crawler {
   }
 
   async startCrawlAsync() {
+    await this.initAsync();
     await this.crawlAndReportAsync(this.initialURL, this.urls);
     if (this.checkExternal) {
       await this.checkExternalLinksAsync(this.externalLinksToCheck);
@@ -346,7 +347,6 @@ async function mainAsync() {
   }
 
   let crawler = new Crawler({ initialURL: url, checkExternal: checkExternal });
-  await crawler.initAsync();
   await crawler.startCrawlAsync();
 
   if (crawler.brokenLinks.length > 0) {

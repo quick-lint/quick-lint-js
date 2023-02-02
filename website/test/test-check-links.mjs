@@ -40,7 +40,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
@@ -60,7 +59,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
@@ -77,7 +75,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
@@ -98,7 +95,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -119,7 +115,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([`${url}subpage#frag`]);
@@ -146,7 +141,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -177,7 +171,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(subpageHits).toEqual(1);
@@ -200,7 +193,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -229,7 +221,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -264,7 +255,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -289,7 +279,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([externalURL]);
@@ -322,7 +311,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([externalURL]);
@@ -343,7 +331,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(externalUserAgents).not.toEqual([]);
@@ -363,7 +350,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
@@ -382,7 +368,6 @@ describe("check-links", () => {
     });
 
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
-    await crawler.initAsync();
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual(["mailto:bademail@example.com"]);
