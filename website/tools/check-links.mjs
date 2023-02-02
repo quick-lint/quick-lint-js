@@ -77,7 +77,10 @@ export class Crawler {
   initialURL;
   checkExternal;
   visitedURLs = [];
+
+  // Map from URL without fragment (string) to Promise<Soup>.
   visitedURLsSoup = new Map();
+
   externalLinksToCheck = [];
   brokenLinks = [];
 
@@ -152,11 +155,12 @@ export class Crawler {
   }
 
   async checkInternalLinksAsync(packet) {
-    let soup = await this.fetchInternalSoup(packet);
+    let soupPromise = this.fetchInternalSoup(packet);
+    this.visitedURLsSoup.set(packet.defragedURL, soupPromise);
+    let soup = await soupPromise;
     if (soup === null) {
       return;
     }
-    this.visitedURLsSoup.set(packet.defragedURL, soup);
     if (!checkFragment(soup, packet.fragment)) {
       this.reportError("fragment missing", packet);
     }
@@ -211,14 +215,15 @@ export class Crawler {
     if (!this.visitedURLsSoup.has(defragedURL)) {
       if (this.isExternalURL(defragedURL)) {
         this.externalLinksToCheck.push(new URLPacket(parentURL, url));
-        this.visitedURLsSoup.set(defragedURL, null);
+        this.visitedURLsSoup.set(defragedURL, Promise.resolve(null));
       } else {
         await this.checkInternalLinksAsync(
           new URLPacket(parentURL, url, defragedURL, fragment)
         );
       }
     } else {
-      let soup = this.visitedURLsSoup.get(defragedURL);
+      let soupPromise = this.visitedURLsSoup.get(defragedURL);
+      let soup = await soupPromise;
       if (soup !== null && !checkFragment(soup, fragment)) {
         this.reportError(
           "fragment missing",
