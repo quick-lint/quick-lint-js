@@ -80,8 +80,8 @@ async function checkResponseAsync(url) {
 export class Crawler {
   initialURL;
   checkExternal;
-  vistedURLs = [];
-  vistedURLsSoup = new Map();
+  visitedURLs = [];
+  visitedURLsSoup = new Map();
   externalLinksToCheck = [];
   brokenLinks = [];
 
@@ -123,20 +123,20 @@ export class Crawler {
   async getURLsToCrawlAsync(packet) {
     let urlsFromPage = [];
     let result = await httpRequestAsync(packet.defragedURL, { method: "GET" });
-    this.vistedURLsSoup.set(
+    this.visitedURLsSoup.set(
       packet.defragedURL,
       await parseHTMLIntoSoupAsync(await result.text())
     );
     if (
       !checkFragment(
-        this.vistedURLsSoup.get(packet.defragedURL),
+        this.visitedURLsSoup.get(packet.defragedURL),
         packet.fragment
       )
     ) {
       this.reportError("fragment missing", packet);
     }
     urlsFromPage = this.getURLsFromPage(
-      this.vistedURLsSoup.get(packet.defragedURL)
+      this.visitedURLsSoup.get(packet.defragedURL)
     );
     return urlsFromPage;
   }
@@ -190,23 +190,23 @@ export class Crawler {
         this.checkMailLink(new URLPacket(parentURL, link));
       } else {
         let url = new URL(link, parentURL).toString();
-        if (!this.vistedURLs.includes(url)) {
-          this.vistedURLs.push(url);
+        if (!this.visitedURLs.includes(url)) {
+          this.visitedURLs.push(url);
           let defragedURL = new URL(url);
           let fragment = defragedURL.hash.replace(/^#/, "");
           defragedURL.hash = "";
           defragedURL = defragedURL.toString();
-          if (!this.vistedURLsSoup.has(defragedURL)) {
+          if (!this.visitedURLsSoup.has(defragedURL)) {
             if (this.isExternalURL(defragedURL)) {
               this.externalLinksToCheck.push(new URLPacket(parentURL, url));
-              this.vistedURLsSoup.set(defragedURL, null);
+              this.visitedURLsSoup.set(defragedURL, null);
             } else {
               await this.checkInternalLinksAsync(
                 new URLPacket(parentURL, url, defragedURL, fragment)
               );
             }
           } else {
-            let soup = this.vistedURLsSoup.get(defragedURL);
+            let soup = this.visitedURLsSoup.get(defragedURL);
             if (soup !== null && !checkFragment(soup, fragment)) {
               this.reportError(
                 "fragment missing",
