@@ -27,13 +27,6 @@ let headers = {
     "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3",
 };
 
-function checkFragment(soup, fragment) {
-  if (fragment) {
-    return soup.findAllWithID(fragment).length > 0;
-  }
-  return true;
-}
-
 class URLPacket {
   parent;
   url;
@@ -235,7 +228,7 @@ export class Crawler {
   }
 
   checkFragmentInSoup(soup, packet) {
-    if (!checkFragment(soup, packet.fragment)) {
+    if (packet.fragment && soup.findAllWithID(packet.fragment).length === 0) {
       this.reportError("fragment missing", packet);
     }
   }
