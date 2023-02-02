@@ -114,7 +114,7 @@ export class Crawler {
   }
 
   async startCrawlAsync() {
-    await this.crawlAndReportAsync(this.initialURL, [this.initialURL]);
+    await this.crawlAndReportAsync(this.initialURL, this.initialURL);
     if (this.checkExternal) {
       await this.checkExternalLinksAsync(this.externalLinksToCheck);
     }
@@ -153,8 +153,8 @@ export class Crawler {
       let response = await checkResponseAsync(packet.defragedURL);
       if (this.inAllowedFileSoup(response)) {
         let urlsFromPage = await this.getURLsToCrawlAsync(packet);
-        if (urlsFromPage.length !== 0) {
-          await this.crawlAndReportAsync(response.url, urlsFromPage);
+        for (let link of urlsFromPage) {
+          await this.crawlAndReportAsync(response.url, link);
         }
       }
     } catch (e) {
@@ -184,35 +184,33 @@ export class Crawler {
     );
   }
 
-  async crawlAndReportAsync(parentURL, urls) {
-    for (let link of urls) {
-      if (isMailtoLink(link)) {
-        this.checkMailLink(new URLPacket(parentURL, link));
-      } else {
-        let url = new URL(link, parentURL).toString();
-        if (!this.visitedURLs.includes(url)) {
-          this.visitedURLs.push(url);
-          let defragedURL = new URL(url);
-          let fragment = defragedURL.hash.replace(/^#/, "");
-          defragedURL.hash = "";
-          defragedURL = defragedURL.toString();
-          if (!this.visitedURLsSoup.has(defragedURL)) {
-            if (this.isExternalURL(defragedURL)) {
-              this.externalLinksToCheck.push(new URLPacket(parentURL, url));
-              this.visitedURLsSoup.set(defragedURL, null);
-            } else {
-              await this.checkInternalLinksAsync(
-                new URLPacket(parentURL, url, defragedURL, fragment)
-              );
-            }
+  async crawlAndReportAsync(parentURL, link) {
+    if (isMailtoLink(link)) {
+      this.checkMailLink(new URLPacket(parentURL, link));
+    } else {
+      let url = new URL(link, parentURL).toString();
+      if (!this.visitedURLs.includes(url)) {
+        this.visitedURLs.push(url);
+        let defragedURL = new URL(url);
+        let fragment = defragedURL.hash.replace(/^#/, "");
+        defragedURL.hash = "";
+        defragedURL = defragedURL.toString();
+        if (!this.visitedURLsSoup.has(defragedURL)) {
+          if (this.isExternalURL(defragedURL)) {
+            this.externalLinksToCheck.push(new URLPacket(parentURL, url));
+            this.visitedURLsSoup.set(defragedURL, null);
           } else {
-            let soup = this.visitedURLsSoup.get(defragedURL);
-            if (soup !== null && !checkFragment(soup, fragment)) {
-              this.reportError(
-                "fragment missing",
-                new URLPacket(parentURL, url, fragment)
-              );
-            }
+            await this.checkInternalLinksAsync(
+              new URLPacket(parentURL, url, defragedURL, fragment)
+            );
+          }
+        } else {
+          let soup = this.visitedURLsSoup.get(defragedURL);
+          if (soup !== null && !checkFragment(soup, fragment)) {
+            this.reportError(
+              "fragment missing",
+              new URLPacket(parentURL, url, fragment)
+            );
           }
         }
       }
