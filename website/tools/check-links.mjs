@@ -154,13 +154,7 @@ export class Crawler {
     }
   }
 
-  async checkInternalLinksAsync(packet) {
-    let soupPromise = this.fetchInternalSoup(packet);
-    this.visitedURLsSoup.set(packet.defragedURL, soupPromise);
-    let soup = await soupPromise;
-    if (soup === null) {
-      return;
-    }
+  async checkInternalLinksAsync(soup, packet) {
     if (!checkFragment(soup, packet.fragment)) {
       this.reportError("fragment missing", packet);
     }
@@ -217,9 +211,14 @@ export class Crawler {
         this.externalLinksToCheck.push(new URLPacket(parentURL, url));
         this.visitedURLsSoup.set(defragedURL, Promise.resolve(null));
       } else {
-        await this.checkInternalLinksAsync(
-          new URLPacket(parentURL, url, defragedURL, fragment)
-        );
+        let packet = new URLPacket(parentURL, url, defragedURL, fragment);
+        let soupPromise = this.fetchInternalSoup(packet);
+        this.visitedURLsSoup.set(packet.defragedURL, soupPromise);
+        let soup = await soupPromise;
+        if (soup === null) {
+          return;
+        }
+        await this.checkInternalLinksAsync(soup, packet);
       }
     } else {
       let soupPromise = this.visitedURLsSoup.get(defragedURL);
