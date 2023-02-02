@@ -39,7 +39,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -59,7 +59,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -76,7 +76,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -97,7 +97,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -118,7 +118,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -145,7 +145,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -176,7 +176,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -199,7 +199,7 @@ describe("check-links", () => {
       notFound(res);
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -228,7 +228,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: true });
+    let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -263,7 +263,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: true });
+    let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -288,7 +288,7 @@ describe("check-links", () => {
       notFound(res);
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: true });
+    let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -321,7 +321,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: true });
+    let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -342,7 +342,7 @@ describe("check-links", () => {
       res.end("<!DOCTYPE html>\n<h1>hello</h1>");
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: true });
+    let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -362,7 +362,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 
@@ -381,7 +381,7 @@ describe("check-links", () => {
       }
     });
 
-    let crawler = new Crawler({ site: url, checkExternal: false });
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.initAsync();
     await crawler.startCrawlAsync();
 

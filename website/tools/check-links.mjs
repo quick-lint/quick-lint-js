@@ -78,35 +78,35 @@ async function checkResponseAsync(url) {
 }
 
 export class Crawler {
-  site;
+  initialURL;
   checkExternal;
   vistedURLs = [];
   vistedURLsSoup = new Map();
   externalLinksToCheck = [];
   brokenLinks = [];
 
-  constructor({ site, checkExternal }) {
-    this.site = site;
+  constructor({ initialURL, checkExternal }) {
+    this.initialURL = initialURL;
     this.checkExternal = checkExternal;
   }
 
   async initAsync() {
-    let response = await httpRequestAsync(this.site, {
+    let response = await httpRequestAsync(this.initialURL, {
       method: "GET",
       redirect: "error",
     });
     if (!response.ok) {
-      console.error(`(error) failed to get ${this.site}`);
+      console.error(`(error) failed to get ${this.initialURL}`);
       process.exit(1);
     }
     let soup = await parseHTMLIntoSoupAsync(await response.text());
-    this.vistedURLs.push(this.site);
-    this.vistedURLsSoup.set(this.site, soup);
+    this.vistedURLs.push(this.initialURL);
+    this.vistedURLsSoup.set(this.initialURL, soup);
     this.urls = this.getURLsFromPage(soup);
   }
 
   isExternalURL(url) {
-    return new URL(url).host !== new URL(this.site).host;
+    return new URL(url).host !== new URL(this.initialURL).host;
   }
 
   getURLsFromPage(soup) {
@@ -129,7 +129,7 @@ export class Crawler {
   }
 
   async startCrawlAsync() {
-    await this.crawlAndReportAsync(this.site, this.urls);
+    await this.crawlAndReportAsync(this.initialURL, this.urls);
     if (this.checkExternal) {
       await this.checkExternalLinksAsync(this.externalLinksToCheck);
     }
@@ -345,7 +345,7 @@ async function mainAsync() {
     process.exit(1);
   }
 
-  let crawler = new Crawler({ site: url, checkExternal: checkExternal });
+  let crawler = new Crawler({ initialURL: url, checkExternal: checkExternal });
   await crawler.initAsync();
   await crawler.startCrawlAsync();
 
