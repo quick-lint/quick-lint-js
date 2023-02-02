@@ -159,9 +159,11 @@ export class Crawler {
       this.reportError("fragment missing", packet);
     }
     let urlsFromPage = this.getURLsFromPage(soup);
-    for (let link of urlsFromPage) {
-      await this.crawlAndReportAsync(soup.url, link);
-    }
+    await Promise.all(
+      urlsFromPage.map(async (link) => {
+        await this.crawlAndReportAsync(soup.url, link);
+      })
+    );
   }
 
   async checkExternalLinksAsync(urls) {
@@ -206,14 +208,18 @@ export class Crawler {
     let fragment = defragedURL.hash.replace(/^#/, "");
     defragedURL.hash = "";
     defragedURL = defragedURL.toString();
+    // Do not await below this comment.
     if (!this.visitedURLsSoup.has(defragedURL)) {
       if (this.isExternalURL(defragedURL)) {
         this.externalLinksToCheck.push(new URLPacket(parentURL, url));
         this.visitedURLsSoup.set(defragedURL, Promise.resolve(null));
+        // Do not await above this comment.
       } else {
         let packet = new URLPacket(parentURL, url, defragedURL, fragment);
         let soupPromise = this.fetchInternalSoup(packet);
         this.visitedURLsSoup.set(packet.defragedURL, soupPromise);
+        // Do not await above this comment.
+
         let soup = await soupPromise;
         if (soup === null) {
           return;
@@ -221,6 +227,7 @@ export class Crawler {
         await this.checkInternalLinksAsync(soup, packet);
       }
     } else {
+      // Do not await above this comment.
       let soupPromise = this.visitedURLsSoup.get(defragedURL);
       let soup = await soupPromise;
       if (soup !== null && !checkFragment(soup, fragment)) {
