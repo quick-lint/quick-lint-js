@@ -123,7 +123,10 @@ export class Crawler {
     }
   }
 
-  async checkInternalLinksAsync(packet) {
+  // Logs a message on certain errors (e.g. 404 Not Found).
+  //
+  // @return Promise<Soup | null>
+  async fetchInternalSoup(packet) {
     try {
       let response = await httpRequestAsync(packet.defragedURL, {
         method: "GET",
@@ -132,22 +135,34 @@ export class Crawler {
         throw new URLNotFound(response.status);
       }
       if (this.inAllowedFileSoup(response)) {
-        let soup = await parseHTMLIntoSoupAsync(await response.text());
-        this.visitedURLsSoup.set(packet.defragedURL, soup);
-        if (!checkFragment(soup, packet.fragment)) {
-          this.reportError("fragment missing", packet);
-        }
-        let urlsFromPage = this.getURLsFromPage(soup);
-        for (let link of urlsFromPage) {
-          await this.crawlAndReportAsync(response.url, link);
-        }
+        return await parseHTMLIntoSoupAsync(
+          await response.text(),
+          response.url
+        );
       }
+      return null;
     } catch (e) {
       if (e instanceof URLNotFound) {
         this.reportError(`${e.responseCode} error`, packet);
+        return null;
       } else {
         throw e;
       }
+    }
+  }
+
+  async checkInternalLinksAsync(packet) {
+    let soup = await this.fetchInternalSoup(packet);
+    if (soup === null) {
+      return;
+    }
+    this.visitedURLsSoup.set(packet.defragedURL, soup);
+    if (!checkFragment(soup, packet.fragment)) {
+      this.reportError("fragment missing", packet);
+    }
+    let urlsFromPage = this.getURLsFromPage(soup);
+    for (let link of urlsFromPage) {
+      await this.crawlAndReportAsync(soup.url, link);
     }
   }
 
@@ -214,9 +229,9 @@ export class Crawler {
   }
 }
 
-async function parseHTMLIntoSoupAsync(html) {
+async function parseHTMLIntoSoupAsync(html, url) {
   let parser = new parse5.SAXParser();
-  let soup = new Soup();
+  let soup = new Soup(url);
 
   await new Promise((resolve, reject) => {
     parser.on("startTag", (startTag) => {
@@ -274,9 +289,14 @@ async function parseHTMLIntoSoupAsync(html) {
 // library. We don't use Beautiful Soup anymore, and this class does not
 // implement its interface.
 class Soup {
+  url;
   _anchorHrefs = [];
   _scriptSrcs = [];
   _tagNamesByID = new Map();
+
+  constructor(url) {
+    this.url = url;
+  }
 
   findAllAnchorHrefs() {
     return [...this._anchorHrefs];
