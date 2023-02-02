@@ -64,6 +64,49 @@ describe("check-links", () => {
     expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
   });
 
+  it("reports broken <a> link once if repeated on page", async () => {
+    let { url } = await makeServerAsync((req, res) => {
+      if (req.url === "/") {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end(
+          "<!DOCTYPE html>\n" +
+            "<a href='/broken'>link 1</a>\n" +
+            "<a href='/broken'>link 2</a>"
+        );
+      } else {
+        notFound(res);
+      }
+    });
+
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
+    await crawler.startCrawlAsync();
+
+    expect(crawler.brokenLinks).toEqual([`${url}broken`]);
+  });
+
+  it("reports broken <a> link once if linked on multiple pages", async () => {
+    let { url } = await makeServerAsync((req, res) => {
+      if (req.url === "/") {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end(
+          "<!DOCTYPE html>\n" +
+            "<a href='/broken'>link 1</a>\n" +
+            "<a href='/subpage'>link 2</a>"
+        );
+      } else if (req.url === "/subpage") {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end("<!DOCTYPE html>\n<a href='/broken'>link</a>");
+      } else {
+        notFound(res);
+      }
+    });
+
+    let crawler = new Crawler({ initialURL: url, checkExternal: false });
+    await crawler.startCrawlAsync();
+
+    expect(crawler.brokenLinks).toEqual([`${url}broken`]);
+  });
+
   it("finds broken <script> link", async () => {
     let { url } = await makeServerAsync((req, res) => {
       if (req.url === "/") {
