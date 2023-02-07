@@ -78,5 +78,30 @@ To release to downstream Debian, we [ship a source package to Debian mentors][].
      (`./dist/debian/debian/`), not from the signed release tarball.
 3. Upload the package: `dput mentors debian-package/quick-lint-js_2.4.2-1_source.changes`
 
+## Signing
+
+### Update expired signing key
+
+    # Update the expiration date of the key.
+    $ gpg --edit-key AEB5AF8EC17B8516781C1572DF275514A27D9439
+    gpg> expire
+    Key is valid for? (0) 3y
+    gpg> key DF275514A27D9439
+    gpg> expire
+    Key is valid for? (0) 3y
+    gpg> save
+
+    # Publish the key to c.quick-lint-js.com.
+    $ gpg --armor --export AEB5AF8EC17B8516781C1572DF275514A27D9439 >quick-lint-js-release.key
+    $ # Replace '2022' with the year of the old key.
+    $ rsync --backup --suffix=.old-2022 quick-lint-js-release.key root@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/quick-lint-js-release.key
+
+    # Re-sign the apt repository.
+    $ ./dist/debian/sync-releases-to-apt
+
+    # Somehow let people know that they need to run the following command (from
+    # the Debian install instructions):
+    # $ curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -
+
 [appstream-generator]: https://github.com/ximion/appstream-generator
 [debian-mentors]: https://mentors.debian.net/intro-maintainers/

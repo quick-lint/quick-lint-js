@@ -12,6 +12,12 @@ Semantic Versioning.
 
 ### Changed
 
+* Debian: The apt repository signing key expired on (2023-01-21). This causes
+  `apt-get update` to fail. To fix this issue, add the latest signing key by
+  running the following command:
+
+      $ curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -
+
 * LSP: The quick-lint-js LSP server no longer accepts JSON-RPC 2.0 batch
   messages. In practice, LSP clients don't use this feature, so this breaking
   change should do no harm. The LSP specification recently started
