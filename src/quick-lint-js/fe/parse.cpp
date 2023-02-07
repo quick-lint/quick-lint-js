@@ -48,7 +48,6 @@ parser::parser(padded_string_view input, diag_reporter* diag_reporter,
                parser_options options)
     : lexer_(input, diag_reporter),
       diag_reporter_(diag_reporter),
-      original_diag_reporter_(diag_reporter),
       options_(options) {}
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
