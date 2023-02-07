@@ -8,9 +8,18 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/boost-json.h>
+#include <quick-lint-js/container/concat.h>
+#include <quick-lint-js/port/char8.h>
+#include <string>
 #include <string_view>
 
 namespace quick_lint_js {
+inline string8 make_message(string8_view content) {
+  return concat(u8"Content-Length: "_sv,
+                to_string8_view(std::to_string(content.size())),
+                u8"\r\n\r\n"_sv, content);
+}
+
 inline void expect_error(::boost::json::object& response, int error_code,
                          std::string_view error_message) {
   EXPECT_FALSE(response.contains("method"));

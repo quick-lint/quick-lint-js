@@ -55,12 +55,6 @@ windows_file_io_error generic_file_io_error = {ERROR_READ_FAULT};
 posix_file_io_error generic_file_io_error = {EIO};
 #endif
 
-string8 make_message(string8_view content) {
-  return concat(u8"Content-Length: "_sv,
-                to_string8_view(std::to_string(content.size())),
-                u8"\r\n\r\n"_sv, content);
-}
-
 class mock_lsp_linter final : public lsp_linter {
  public:
   using lint_and_get_diagnostics_notification_type =

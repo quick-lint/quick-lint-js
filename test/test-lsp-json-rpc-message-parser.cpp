@@ -48,12 +48,6 @@ struct test_json_rpc_message_handler : public json_rpc_message_handler {
   }
 };
 
-string8 make_message(string8_view content) {
-  return string8(u8"Content-Length: ") +
-         to_string8(std::to_string(content.size())) + u8"\r\n\r\n" +
-         string8(content);
-}
-
 std::string json_get_string(
     ::simdjson::simdjson_result< ::simdjson::ondemand::value>&& value) {
   std::string_view s = "<not found>";
