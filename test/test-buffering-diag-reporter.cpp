@@ -10,6 +10,7 @@
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/identifier-support.h>
 #include <type_traits>
 
 using ::testing::ElementsAre;
@@ -17,10 +18,6 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-source_code_span span_of(const padded_string& code) {
-  return source_code_span(code.data(), code.null_terminator());
-}
-
 TEST(test_buffering_diag_reporter, buffers_all_visits) {
   padded_string let_code(u8"let"_sv);
   padded_string expression_code(u8"2+2==5"_sv);

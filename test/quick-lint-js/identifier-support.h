@@ -13,6 +13,10 @@ inline source_code_span span_of(const char8 *code) {
   return source_code_span(&code[0], &code[strlen(code)]);
 }
 
+inline source_code_span span_of(const padded_string &code) {
+  return source_code_span(code.data(), code.null_terminator());
+}
+
 inline identifier identifier_of(const char8 *name) {
   return identifier(span_of(name));
 }
