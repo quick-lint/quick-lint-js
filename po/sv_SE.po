@@ -363,7 +363,6 @@ msgid "missing property name between '.' and '.'"
 msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-#, fuzzy
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
@@ -1019,6 +1018,11 @@ msgstr ""
 #, fuzzy
 msgid "initializer starts here"
 msgstr "funktionkallelse startar här"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "kommatecken är inte tillåtet efter sprid parameter"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

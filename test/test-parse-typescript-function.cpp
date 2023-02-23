@@ -485,7 +485,8 @@ TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
   }
 }
 
-TEST_F(test_parse_typescript_function, optional_parameter_followed_by_required) {
+TEST_F(test_parse_typescript_function,
+       optional_parameter_followed_by_required) {
   {
     test_parser p(u8"(param1?, param2) => ReturnType"_sv, typescript_options,
                   capture_diags);
