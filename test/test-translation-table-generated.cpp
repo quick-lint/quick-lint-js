@@ -3470,7 +3470,7 @@ const translated_string test_translation_table[] = {
             u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
+            u8"un param\u00e8tre optionnel ne peut \u00eatre suivi d'un param\u00e9tre requis",
             u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
         },

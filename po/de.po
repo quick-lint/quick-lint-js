@@ -1058,7 +1058,7 @@ msgstr "Funktionsaufruf beginnt hier"
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "optional parameter cannot be followed by a required parameter"
-msgstr "Ungültiges Komma nach Spread-Parameter"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

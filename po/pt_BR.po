@@ -983,7 +983,7 @@ msgstr "inicializador inicia aqui"
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "optional parameter cannot be followed by a required parameter"
-msgstr "vírgulas não são permitidas após parâmetro com spread"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

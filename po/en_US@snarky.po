@@ -1037,7 +1037,7 @@ msgstr "IIFE started here"
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "optional parameter cannot be followed by a required parameter"
-msgstr "a comma makes sense, but TC39 says no ⛔"
+msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
