@@ -120,6 +120,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/identifier.h
   quick-lint-js/fe/jsx.cpp
   quick-lint-js/fe/jsx.h
+  quick-lint-js/fe/keyword-list.h
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp

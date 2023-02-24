@@ -7,6 +7,7 @@
 #include <iosfwd>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector.h>
+#include <quick-lint-js/fe/keyword-list.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
 
@@ -241,91 +242,6 @@ enum class token_type {
   // parser's context, hence we distinguish them from token_type::identifier.
   reserved_keyword_with_escape_sequence,
 
-  // Reserved words, future reserved words, conditionally reserved words, and
-  // contextual keywords ('kw' stands for 'KeyWord'):
-  kw_as,
-  kw_async,
-  kw_await,
-  kw_break,
-  kw_case,
-  kw_catch,
-  kw_class,
-  kw_const,
-  kw_continue,
-  kw_debugger,
-  kw_default,
-  kw_delete,
-  kw_do,
-  kw_else,
-  kw_enum,
-  kw_export,
-  kw_extends,
-  kw_false,
-  kw_finally,
-  kw_for,
-  kw_from,
-  kw_function,
-  kw_get,
-  kw_if,
-  kw_implements,
-  kw_import,
-  kw_in,
-  kw_instanceof,
-  kw_interface,
-  kw_let,
-  kw_new,
-  kw_null,
-  kw_of,
-  kw_package,
-  kw_private,
-  kw_protected,
-  kw_public,
-  kw_return,
-  kw_set,
-  kw_static,
-  kw_super,
-  kw_switch,
-  kw_this,
-  kw_throw,
-  kw_true,
-  kw_try,
-  kw_typeof,
-  kw_var,
-  kw_void,
-  kw_while,
-  kw_with,
-  kw_yield,
-
-  // TypeScript-only keywords.
-  kw_abstract,
-  kw_any,
-  kw_assert,
-  kw_asserts,
-  kw_bigint,
-  kw_boolean,
-  kw_constructor,
-  kw_declare,
-  kw_global,
-  kw_infer,
-  kw_intrinsic,
-  kw_is,
-  kw_keyof,
-  kw_module,
-  kw_namespace,
-  kw_never,
-  kw_number,
-  kw_object,
-  kw_out,
-  kw_override,
-  kw_readonly,
-  kw_require,
-  kw_string,
-  kw_symbol,
-  kw_type,
-  kw_undefined,
-  kw_unique,
-  kw_unknown,
-
   // Symbols:
   ampersand_ampersand,            // &&
   ampersand_ampersand_equal,      // &&=
@@ -360,6 +276,12 @@ enum class token_type {
   star_equal,                     // *=
   star_star,                      // **
   star_star_equal,                // **=
+
+// Reserved words, future reserved words, conditionally reserved words, and
+// contextual keywords ('kw' stands for 'KeyWord'):
+#define QLJS_KEYWORD(k) kw_##k,
+  QLJS_X_KEYWORDS
+#undef QLJS_KEYWORD
 };
 
 const char* to_string(token_type);
