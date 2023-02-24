@@ -3465,6 +3465,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "optional parameter cannot be followed by a required parameter"_translatable,
+        {
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+        },
+    },
+    {
         "optional parameter cannot have both '?' and initializer; remove '?'"_translatable,
         {
             u8"optional parameter cannot have both '?' and initializer; remove '?'",

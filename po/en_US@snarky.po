@@ -1033,6 +1033,12 @@ msgstr ""
 msgid "initializer starts here"
 msgstr "IIFE started here"
 
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "a comma makes sense, but TC39 says no ⛔"
+
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr "this number's too thicc for JavaScript; '{1}' would be used instead"
