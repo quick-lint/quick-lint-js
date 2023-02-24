@@ -6,7 +6,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;
@@ -93,9 +92,7 @@ void arg_parser::parse_current_arg() noexcept {
     option o;
     o.arg_has_equal = equal != nullptr;
     if (o.arg_has_equal) {
-      o.arg_key = std::string_view(
-          this->current_arg(),
-          narrow_cast<std::size_t>(equal - this->current_arg()));
+      o.arg_key = make_string_view(this->current_arg(), equal);
       o.arg_value = equal + 1;
     } else {
       o.arg_key = this->current_arg();
