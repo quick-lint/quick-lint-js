@@ -21,7 +21,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 405;
-constexpr std::size_t translation_table_string_table_size = 74655;
+constexpr std::size_t translation_table_string_table_size = 74716;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
