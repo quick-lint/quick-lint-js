@@ -34,17 +34,34 @@ if (QUICK_LINT_JS_ENABLE_CLI)
   install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif ()
 
+# These files are needed by some helper tools in addition to the core.
 quick_lint_js_add_library(
-  quick-lint-js-lib
+  quick-lint-js-tool-lib
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
+  quick-lint-js/cli/arg-parser.cpp
+  quick-lint-js/cli/arg-parser.h
+  quick-lint-js/container/string-view.h
+  quick-lint-js/fe/keyword-lexer.h
+  quick-lint-js/fe/keyword-list.h
+  quick-lint-js/port/have.h
+  quick-lint-js/port/in-range.h
+  quick-lint-js/port/limits.h
+  quick-lint-js/port/math.h
+  quick-lint-js/port/source-location.h
+  quick-lint-js/port/type-traits.h
+  quick-lint-js/port/warning.h
+  quick-lint-js/util/narrow-cast.h
+)
+target_include_directories(quick-lint-js-tool-lib PUBLIC .)
+
+quick_lint_js_add_library(
+  quick-lint-js-lib
   quick-lint-js/boost.cpp
   quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
   quick-lint-js/c-api.h
-  quick-lint-js/cli/arg-parser.cpp
-  quick-lint-js/cli/arg-parser.h
   quick-lint-js/cli/cli-location.cpp
   quick-lint-js/cli/cli-location.h
   quick-lint-js/cli/emacs-lisp-diag-reporter.cpp
@@ -117,10 +134,10 @@ quick_lint_js_add_library(
   quick-lint-js/fe/global-variables-browser-generated.cpp
   quick-lint-js/fe/global-variables.cpp
   quick-lint-js/fe/global-variables.h
+  quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/identifier.h
   quick-lint-js/fe/jsx.cpp
   quick-lint-js/fe/jsx.h
-  quick-lint-js/fe/keyword-list.h
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp
@@ -213,24 +230,18 @@ quick_lint_js_add_library(
   quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h
-  quick-lint-js/port/have.h
-  quick-lint-js/port/in-range.h
   quick-lint-js/port/integer.cpp
   quick-lint-js/port/integer.h
-  quick-lint-js/port/limits.h
   quick-lint-js/port/max-align.h
   quick-lint-js/port/memory-resource.cpp
   quick-lint-js/port/memory-resource.h
   quick-lint-js/port/process.cpp
   quick-lint-js/port/process.h
   quick-lint-js/port/simd.h
-  quick-lint-js/port/source-location.h
   quick-lint-js/port/span.h
   quick-lint-js/port/thread.cpp
   quick-lint-js/port/thread.h
-  quick-lint-js/port/type-traits.h
   quick-lint-js/port/unreachable.h
-  quick-lint-js/port/warning.h
   quick-lint-js/port/windows-error.cpp
   quick-lint-js/port/windows-error.h
   quick-lint-js/port/windows.h
@@ -241,7 +252,6 @@ quick_lint_js_add_library(
   quick-lint-js/util/cpp.h
   quick-lint-js/util/instance-tracker.h
   quick-lint-js/util/math-overflow.h
-  quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h
   quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/type-traits.h
@@ -259,7 +269,13 @@ target_compile_definitions(
   "QUICK_LINT_JS_VERSION=${QUICK_LINT_JS_VERSION}"
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost simdjson)
+target_link_libraries(
+  quick-lint-js-lib
+  PUBLIC
+  boost
+  quick-lint-js-tool-lib
+  simdjson
+)
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC pathcch)
 endif ()

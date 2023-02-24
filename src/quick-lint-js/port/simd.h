@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_PORT_SIMD_H
 
 #include <cstdint>
+#include <cstring>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/char8.h>

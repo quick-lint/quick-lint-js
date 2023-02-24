@@ -475,6 +475,35 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_INT128)
+#if defined(__SIZEOF_INT128__) && __SIZEOF_INT128__
+#define QLJS_HAVE_INT128 1
+#else
+#define QLJS_HAVE_INT128 0
+#endif
+#endif
+
+// QLJS_HAVE_INTRIN_H is whether MSVC's <intrin.h> is supported.
+#if !defined(QLJS_HAVE_INTRIN_H)
+#if defined(_MSC_VER)
+#define QLJS_HAVE_INTRIN_H 1
+#else
+#define QLJS_HAVE_INTRIN_H 0
+#endif
+#endif
+
+// QLJS_HAVE_UMULH is whether MSVC's __umulh intrinsic from <intrin.h> is
+// supported.
+#if !defined(QLJS_HAVE_UMULH)
+#if QLJS_HAVE_INTRIN_H &&                                         \
+    (defined(_M_AMD64) || defined(_M_X64) || defined(_M_ARM64) || \
+     defined(__x86_64__) || defined(__aarch64__))
+#define QLJS_HAVE_UMULH 1
+#else
+#define QLJS_HAVE_UMULH 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

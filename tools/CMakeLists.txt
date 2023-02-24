@@ -11,6 +11,16 @@ if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
     PRIVATE
     quick-lint-js-lib
   )
+
+  quick_lint_js_add_executable(
+    quick-lint-js-generate-lex-keyword
+    generate-lex-keyword.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-generate-lex-keyword
+    PRIVATE
+    quick-lint-js-tool-lib
+  )
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
