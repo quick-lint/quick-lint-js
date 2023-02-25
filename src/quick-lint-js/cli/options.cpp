@@ -17,6 +17,7 @@
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
+QLJS_WARNING_IGNORE_GCC("-Wshadow=compatible-local")
 QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 
 using namespace std::literals::string_view_literals;

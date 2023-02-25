@@ -17,6 +17,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <random>
 #include <string>
@@ -225,6 +226,8 @@ void create_directory_or_exit(const std::string &path) {
   }
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wformat-nonliteral")
 result<std::string, platform_file_io_error> make_timestamped_directory(
     std::string_view parent_directory, const char *format) {
   std::time_t now = std::time(nullptr);
@@ -250,6 +253,7 @@ retry:
   }
   return directory;
 }
+QLJS_WARNING_POP
 }
 
 #endif
