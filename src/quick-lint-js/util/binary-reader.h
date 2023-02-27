@@ -11,6 +11,7 @@
 #include <quick-lint-js/port/function-ref.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/byte-order.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 
@@ -33,24 +34,12 @@ class checked_binary_reader {
 
   std::uint32_t u32_le() {
     const std::uint8_t* d = this->advance(4);
-    std::uint32_t result = (static_cast<std::uint32_t>(d[0]) << (8 * 0)) |
-                           (static_cast<std::uint32_t>(d[1]) << (8 * 1)) |
-                           (static_cast<std::uint32_t>(d[2]) << (8 * 2)) |
-                           (static_cast<std::uint32_t>(d[3]) << (8 * 3));
-    return result;
+    return load_u32_le(d);
   }
 
   std::uint64_t u64_le() {
     const std::uint8_t* d = this->advance(8);
-    std::uint64_t result = (static_cast<std::uint64_t>(d[0]) << (8 * 0)) |
-                           (static_cast<std::uint64_t>(d[1]) << (8 * 1)) |
-                           (static_cast<std::uint64_t>(d[2]) << (8 * 2)) |
-                           (static_cast<std::uint64_t>(d[3]) << (8 * 3)) |
-                           (static_cast<std::uint64_t>(d[4]) << (8 * 4)) |
-                           (static_cast<std::uint64_t>(d[5]) << (8 * 5)) |
-                           (static_cast<std::uint64_t>(d[6]) << (8 * 6)) |
-                           (static_cast<std::uint64_t>(d[7]) << (8 * 7));
-    return result;
+    return load_u64_le(d);
   }
 
   const std::uint8_t* advance(std::size_t size) {
