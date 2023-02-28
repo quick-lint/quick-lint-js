@@ -342,13 +342,14 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
 
       trace_writer *tw =
           trace_flusher::instance()->trace_writer_for_current_thread();
-      QLJS_ASSERT(tw);  // We registered this thread in run_on_current_thread.
-      tw->write_event_vector_max_size_histogram_by_owner(
-          trace_event_vector_max_size_histogram_by_owner{
-              .timestamp = 0,  // TODO(strager)
-              .histogram = &histogram,
-          });
-      tw->commit();
+      if (tw != nullptr) {
+        tw->write_event_vector_max_size_histogram_by_owner(
+            trace_event_vector_max_size_histogram_by_owner{
+                .timestamp = 0,  // TODO(strager)
+                .histogram = &histogram,
+            });
+        tw->commit();
+      }
       trace_flusher::instance()->flush_sync();
     }
 #endif
