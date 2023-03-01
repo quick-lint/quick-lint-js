@@ -208,7 +208,7 @@ string_table make_string_table(const std::vector<std::string_view>& keys) {
   std::vector<std::string_view> sorted_keys(keys);
   std::sort(
       sorted_keys.begin(), sorted_keys.end(),
-      [](std::string_view a, std::string_view b) -> bool { return !(a < b); });
+      [](std::string_view a, std::string_view b) -> bool { return a > b; });
 
   for (std::string_view key : sorted_keys) {
     if (strings.data.find(key) == strings.data.npos) {

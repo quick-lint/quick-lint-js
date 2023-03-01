@@ -34,6 +34,18 @@ if (QUICK_LINT_JS_ENABLE_CLI)
   install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif ()
 
+if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-keyword-generated.cpp"
+    COMMAND
+      $<TARGET_FILE:quick-lint-js-generate-lex-keyword>
+      --output
+      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-keyword-generated.cpp"
+    DEPENDS quick-lint-js-generate-lex-keyword 
+    COMMENT "Generating keyword hash table for lex-keyword-generated.cpp"
+  )
+endif ()
+
 # These files are needed by some helper tools in addition to the core.
 quick_lint_js_add_library(
   quick-lint-js-tool-lib

@@ -6,6 +6,19 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Changed
+
+* quick-lint-js' build system now optionally creates executes and runs them
+  during the build. This behavior is controlled by the
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` CMake variable.
+  * For most people, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is enabled by default
+    and should work without extra configuration. No action is needed.
+  * When cross-compiling, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is disabled.
+    Currently, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is optional, so this should
+    behave as before.
+
 ## 2.11.0 (2023-01-31)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.11.0/)

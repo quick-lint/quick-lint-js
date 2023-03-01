@@ -26,6 +26,16 @@ option(
   "${QUICK_LINT_JS_ENABLE_CLI_DEFAULT}"
 )
 
+set(QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT ON)
+if (EMSCRIPTEN OR CMAKE_CROSSCOMPILING)
+  set(QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT OFF)
+endif ()
+option(
+  QUICK_LINT_JS_ENABLE_BUILD_TOOLS
+  "Compile tools which generate quick-lint-js source code and use them during the build"
+  "${QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT}"
+)
+
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   option(QUICK_LINT_JS_PRECOMPILE_HEADERS "Use CMake's target_precompile_headers" ON)
 else ()

@@ -11,7 +11,9 @@ if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
     PRIVATE
     quick-lint-js-lib
   )
+endif ()
 
+if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   quick_lint_js_add_executable(
     quick-lint-js-generate-lex-keyword
     generate-lex-keyword.cpp
