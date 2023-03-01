@@ -108,7 +108,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: website-${{ github.sha }}

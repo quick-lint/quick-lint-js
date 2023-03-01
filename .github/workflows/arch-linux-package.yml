@@ -58,7 +58,7 @@ jobs:
         run: ./dist/arch/lint.sh
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-arch-${{ github.sha }}

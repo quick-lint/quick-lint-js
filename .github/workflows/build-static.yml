@@ -91,7 +91,7 @@ jobs:
           recursive: true
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
@@ -227,7 +227,7 @@ jobs:
         run: npm pack ./dist/npm
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-npm-${{ github.sha }}
@@ -307,7 +307,7 @@ jobs:
         run: go run ./dist/chocolatey/build.go -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.nupkg
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-chocolatey-${{ github.sha }}
@@ -356,7 +356,7 @@ jobs:
         run: go run ./dist/scoop/make-manifest.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.json
 
       - name: upload manifest to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-scoop-${{ github.sha }}
@@ -394,7 +394,7 @@ jobs:
         shell: bash
 
       - name: upload MSIX to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-msix-${{ github.sha }}

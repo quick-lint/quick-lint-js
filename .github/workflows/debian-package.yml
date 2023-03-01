@@ -30,7 +30,7 @@ jobs:
         run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh --bionic
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-deb-${{ github.sha }}

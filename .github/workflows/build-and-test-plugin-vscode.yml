@@ -83,7 +83,7 @@ jobs:
           yarn test --target ${{ matrix.os.platform_arch }}
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: vscode-dist-${{ matrix.os.platform_arch }}
@@ -163,7 +163,7 @@ jobs:
         run: cd plugin/vscode && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: plugin-vscode-${{ github.sha }}
