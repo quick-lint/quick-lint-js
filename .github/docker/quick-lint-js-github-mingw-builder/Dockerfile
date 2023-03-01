@@ -21,7 +21,6 @@ RUN curl --location https://github.com/llvm/llvm-project/archive/refs/tags/llvmo
     mv llvm-project-llvmorg-14.0.0 llvm-project
 
 ENV TOOLCHAIN_ARCHS="armv7 aarch64"
-ARG CORES=
 
 COPY llvm-mingw/build-llvm.sh ./
 RUN ./build-llvm.sh /opt/llvm-mingw
