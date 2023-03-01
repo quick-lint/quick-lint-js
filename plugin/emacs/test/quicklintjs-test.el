@@ -18,8 +18,11 @@
 (defun quicklintjs-test-main ()
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
+  ; NOTE(strager): MELPA (non-stable) only supports Emacs 25 and newer, causing
+  ; flycheck to fail to install. We choose MELPA Stable because it (as of
+  ; February 2023) supports Emacs version 24.
   (add-to-list 'package-archives
-               '("MELPA" . "https://melpa.org/packages/"))
+               '("MELPA Stable" . "https://stable.melpa.org/packages/"))
   (package-initialize)
 
   (unless package-archive-contents
