@@ -10,7 +10,7 @@ on:
 jobs:
   check_format:
     name: check error docs
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - uses: quick-lint/setup-emsdk@v7
