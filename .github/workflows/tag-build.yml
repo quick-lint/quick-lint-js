@@ -28,7 +28,7 @@ jobs:
 
       - name: get version
         id: getversion
-        run: printf '::set-output name=QLJS_VERSION::%s\n' "$(head -n1 version)"
+        run: printf 'QLJS_VERSION=%s\n' "$(head -n1 version)" >>"${GITHUB_OUTPUT}"
         shell: bash
 
       - name: create source archive
