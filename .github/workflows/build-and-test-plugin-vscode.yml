@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: update $PATH
         if: ${{ matrix.os.msys2_packages }}
@@ -98,7 +98,7 @@ jobs:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         with:

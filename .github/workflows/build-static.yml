@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: update $PATH
         if: ${{ matrix.toolchain.msys2_packages }}
@@ -161,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         with:
@@ -293,7 +293,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
@@ -342,7 +342,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
@@ -377,7 +377,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
@@ -416,7 +416,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-msix-${{ github.sha }}
