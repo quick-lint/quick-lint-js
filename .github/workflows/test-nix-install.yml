@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: install nix
-        uses: quick-lint/install-nix-action@v12
+        uses: quick-lint/install-nix-action@v20
         with:
           nix_path: nixpkgs=channel:nixpkgs-unstable
 
@@ -25,24 +25,7 @@ jobs:
         run: nix-env -f . -i
 
       - name: test executable
-        run: |
-          # HACK(strager): Prior to Nix 2.14, the
-          # /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh script
-          # (invoked by /etc/bashrc) always added /home/runner/.nix-profile/bin
-          # to $PATH. Since Nix 2.14, nix-daemon.sh prefers to add
-          # /home/runner/.local/state/nix/profile/bin to $PATH instead if
-          # /home/runner/.nix-profile/bin does not exist.
-          #
-          # I would expect this to not matter, because by the time this
-          # 'test executable' step runs, /home/runner/.nix-profile/bin should
-          # exist due to the 'nix-env' command above.
-          #
-          # Re-run nix-daemon.sh to pick up the presence of
-          # /home/runner/.nix-profile/bin, fixing $PATH.
-          unset __ETC_PROFILE_NIX_SOURCED
-          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-
-          cd / && quick-lint-js --help
+        run: cd / && quick-lint-js --help
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
