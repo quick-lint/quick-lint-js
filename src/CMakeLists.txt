@@ -34,7 +34,7 @@ if (QUICK_LINT_JS_ENABLE_CLI)
   install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif ()
 
-if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+if (TARGET quick-lint-js-generate-lex-keyword)
   add_custom_command(
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-keyword-generated.cpp"
     COMMAND

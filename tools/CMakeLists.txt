@@ -13,15 +13,41 @@ if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
   )
 endif ()
 
-if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+set(QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX "")
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  set(QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX .exe)
+endif ()
+
+if (QUICK_LINT_JS_USE_BUILD_TOOLS)
+  add_executable(quick-lint-js-generate-lex-keyword IMPORTED GLOBAL)
+  set_target_properties(
+    quick-lint-js-generate-lex-keyword
+    PROPERTIES
+    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-lex-keyword${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
+  )
+elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   quick_lint_js_add_executable(
     quick-lint-js-generate-lex-keyword
     generate-lex-keyword.cpp
+  )
+  set_target_properties(
+    quick-lint-js-generate-lex-keyword
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ..
   )
   target_link_libraries(
     quick-lint-js-generate-lex-keyword
     PRIVATE
     quick-lint-js-tool-lib
+  )
+endif ()
+
+if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  add_custom_target(
+    quick-lint-js-build-tools
+    COMMENT "Building all quick-lint-js build-time tools"
+    DEPENDS
+    quick-lint-js-generate-lex-keyword
   )
 endif ()
 

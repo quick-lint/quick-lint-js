@@ -12,12 +12,20 @@ Semantic Versioning.
 
 * quick-lint-js' build system now optionally creates executes and runs them
   during the build. This behavior is controlled by the
-  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` CMake variable.
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` and `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake
+  variables.
   * For most people, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is enabled by default
     and should work without extra configuration. No action is needed.
   * When cross-compiling, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is disabled.
     Currently, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is optional, so this should
-    behave as before.
+    behave as before. However, in the future, either
+    `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` or `QUICK_LINT_JS_USE_BUILD_TOOLS` will
+    be required.
+  * If you need to configure the build tools specially, or if you want to build
+    the build tools when cross-compiling, you must use the
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake variable. See the (cross-compiling
+    documentation)[cross-compiling-quick-lint-js] for instructions on using
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` correctly.
 
 ## 2.11.0 (2023-01-31)
 
@@ -757,6 +765,7 @@ Beta release.
 
 [Bun]: https://bun.sh/
 [cli-language]: ../cli/#language
+[cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
 
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
