@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-arch-${{ github.sha }}
 

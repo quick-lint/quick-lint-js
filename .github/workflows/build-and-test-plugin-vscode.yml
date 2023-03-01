@@ -100,39 +100,39 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-linux-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-linux-arm
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-linux-arm64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-darwin-arm64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-darwin-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-win32-ia32
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-win32-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-win32-arm
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: vscode-dist-win32-arm64
           path: ./plugin/vscode/dist/

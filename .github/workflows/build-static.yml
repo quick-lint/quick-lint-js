@@ -140,7 +140,7 @@ jobs:
           uname -a || :
         shell: bash
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
       - name: unpack .zip build
@@ -163,35 +163,35 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-armhf-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-macos-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-macos-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-arm64-${{ github.sha }}
           path: ./
@@ -260,7 +260,7 @@ jobs:
     runs-on: ${{ matrix.os.runs_on }}
 
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-npm-${{ github.sha }}
 
@@ -294,11 +294,11 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -327,7 +327,7 @@ jobs:
     needs: package-chocolatey
     runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-chocolatey-${{ github.sha }}
       - name: install
@@ -343,11 +343,11 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -378,7 +378,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
@@ -417,7 +417,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-msix-${{ github.sha }}
           path: ./
