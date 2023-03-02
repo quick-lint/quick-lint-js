@@ -98,7 +98,7 @@ jobs:
           path: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
@@ -234,7 +234,7 @@ jobs:
           path: quick-lint-js-*.tgz
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js-*.tgz
@@ -314,7 +314,7 @@ jobs:
           path: quick-lint-js.nupkg
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.nupkg
@@ -363,7 +363,7 @@ jobs:
           path: quick-lint-js.json
       - name: upload manifest to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.json
@@ -401,7 +401,7 @@ jobs:
           path: quick-lint-js.msix
       - name: upload MSIX to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.msix
@@ -433,7 +433,7 @@ jobs:
           path: winget-manifests/
       - name: upload manifests to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v2
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: winget-manifests/*
