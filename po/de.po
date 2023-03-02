@@ -470,6 +470,15 @@ msgstr ""
 "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "misleading use of ',' operator in index"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "index starts here"
+msgstr "Funktionsaufruf beginnt hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' zwischen '{1}' und '{2}' erwartet"
 
@@ -1954,6 +1963,12 @@ msgstr "{1:singular} erwartet"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "hier"
+
+#, fuzzy
+#~ msgid "',' is not expected between the mems in '['']'"
+#~ msgstr ""
+#~ "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind "
+#~ "ungültig"
 
 #, fuzzy
 #~ msgid "already spread here"

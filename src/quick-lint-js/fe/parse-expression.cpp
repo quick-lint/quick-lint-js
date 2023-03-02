@@ -131,6 +131,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::index:
     this->visit_expression(ast->child_0(), v, variable_context::rhs);
     this->visit_expression(ast->child_1(), v, variable_context::rhs);
+    this->warn_on_comma_operator_in_index(
+        ast->child_1(), static_cast<expression::index*>(ast)->left_square_span);
     break;
   case expression_kind::jsx_element: {
     auto* element = static_cast<expression::jsx_element*>(ast);
@@ -226,6 +228,26 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
       break;
     }
     break;
+  }
+}
+
+void parser::warn_on_comma_operator_in_index(
+    expression* ast, source_code_span left_square_span) {
+  if (ast->kind() != expression_kind::binary_operator) {
+    return;
+  }
+
+  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+
+  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
+  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    source_code_span op_span = binary_operator->operator_spans_[i];
+    if (is_comma(op_span.string_view())) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_index_operation{
+              .comma = op_span, .left_square = left_square_span});
+      return;
+    }
   }
 }
 
@@ -2388,7 +2410,8 @@ expression* parser::parse_index_expression_remainder(parse_visitor_base& v,
     end = this->lexer_.end_of_previous_token();
     break;
   }
-  return this->make_expression<expression::index>(lhs, subscript, end);
+  return this->make_expression<expression::index>(lhs, subscript,
+                                                  left_square_span, end);
 }
 
 expression_arena::vector<expression*>
