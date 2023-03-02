@@ -397,6 +397,15 @@ msgid "extra ',' is not allowed between enum members"
 msgstr "',' extra não é permitido entre membros de um enum"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "misleading use of ',' operator in index"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "index starts here"
+msgstr "função inicia aqui"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' esperado entre '{1}' e '{2}'"
 
@@ -1717,3 +1726,7 @@ msgstr "esperado {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "aqui"
+
+#, fuzzy
+#~ msgid "',' is not expected between the mems in '['']'"
+#~ msgstr "',' extra não é permitido entre membros de um enum"

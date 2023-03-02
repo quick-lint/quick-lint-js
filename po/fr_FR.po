@@ -445,6 +445,15 @@ msgstr ""
 "',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "misleading use of ',' operator in index"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "index starts here"
+msgstr "appel de fonction débuté ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' attendu entre '{1}' and '{2}'"
 
@@ -1917,6 +1926,11 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "',' is not expected between the mems in '['']'"
+#~ msgstr ""
+#~ "',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
 
 #, fuzzy
 #~ msgid "already spread here"

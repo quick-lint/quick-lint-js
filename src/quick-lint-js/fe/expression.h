@@ -657,12 +657,15 @@ class expression::index final : public expression {
   static constexpr expression_kind kind = expression_kind::index;
 
   explicit index(expression *container, expression *subscript,
+                 source_code_span left_square_span,
                  const char8 *subscript_end) noexcept
       : expression(kind),
         index_subscript_end_(subscript_end),
+        left_square_span(left_square_span),
         children_{container, subscript} {}
 
   const char8 *index_subscript_end_;
+  source_code_span left_square_span;
   std::array<expression *, 2> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::index>);

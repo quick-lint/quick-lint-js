@@ -343,6 +343,54 @@ TEST_F(test_parse_warning,
 }
 
 TEST_F(test_parse_warning,
+       warn_on_comma_between_member_array_subscript_operators) {
+  {
+    test_parser p(u8"a[1, 2, 3]"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[1, 2"), u8","_sv, left_square, strlen(u8"a"),
+                u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a[pow(1, 2), 2]"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[pow(1, 2)"), u8","_sv, left_square,
+                strlen(u8"a"), u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a[b[1967, 1975]]"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[b[1967"), u8","_sv, left_square,
+                strlen(u8"a[b"), u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a = [1, 2, 3]"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_warning,
        warn_on_pointless_string_compare_complex_expressions) {
   {
     test_parser p(u8"if(s.toLowerCase() === 'BANANA') {}"_sv, capture_diags);

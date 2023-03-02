@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 404;
-constexpr std::size_t translation_table_string_table_size = 74654;
+constexpr std::uint16_t translation_table_mapping_table_size = 406;
+constexpr std::size_t translation_table_string_table_size = 74712;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -237,6 +237,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"sv,
           "index signature must be a field, not a method"sv,
           "index signatures require a value type"sv,
+          "index starts here"sv,
           "indexing requires an expression"sv,
           "initializer starts here"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
@@ -259,6 +260,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "lower case letters compared with toUpperCase"sv,
           "methods cannot be readonly"sv,
           "methods should not use the 'function' keyword"sv,
+          "misleading use of ',' operator in index"sv,
           "mismatched JSX tags; expected '</{1}>'"sv,
           "missing ',' between variable declarations"sv,
           "missing ',', ';', or newline between object type entries"sv,

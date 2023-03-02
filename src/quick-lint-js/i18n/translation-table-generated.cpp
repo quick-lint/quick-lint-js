@@ -220,7 +220,8 @@ const translation_table translation_data = {
         {43, 18, 70, 35, 40, 32},            //
         {0, 0, 0, 147, 0, 147},              //
         {0, 0, 0, 54, 0, 46},                //
-        {175, 14, 144, 48, 175, 38},         //
+        {0, 0, 0, 0, 0, 38},                 //
+        {175, 14, 144, 48, 175, 18},         //
         {0, 0, 0, 30, 0, 32},                //
         {0, 30, 0, 26, 0, 24},               //
         {0, 0, 0, 68, 0, 59},                //
@@ -242,7 +243,8 @@ const translation_table translation_data = {
         {50, 22, 0, 63, 0, 51},              //
         {0, 0, 0, 46, 0, 45},                //
         {50, 47, 66, 33, 53, 27},            //
-        {68, 21, 0, 52, 0, 46},              //
+        {0, 0, 0, 0, 0, 46},                 //
+        {68, 21, 0, 52, 0, 40},              //
         {59, 43, 61, 49, 50, 39},            //
         {0, 0, 0, 44, 0, 42},                //
         {44, 2, 0, 64, 0, 57},               //
@@ -1905,6 +1907,7 @@ const translation_table translation_data = {
         u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
         u8"index signature must be a field, not a method\0"
         u8"index signatures require a value type\0"
+        u8"index starts here\0"
         u8"indexing requires an expression\0"
         u8"initializer starts here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
@@ -1927,6 +1930,7 @@ const translation_table translation_data = {
         u8"lower case letters compared with toUpperCase\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
+        u8"misleading use of ',' operator in index\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"
         u8"missing ',' between variable declarations\0"
         u8"missing ',', ';', or newline between object type entries\0"

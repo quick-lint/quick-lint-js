@@ -2310,6 +2310,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "index starts here"_translatable,
+        {
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+        },
+    },
+    {
         "indexing requires an expression"_translatable,
         {
             u8"indexing requires an expression",
@@ -2549,6 +2560,17 @@ const translated_string test_translation_table[] = {
             u8"les m\u00e9thodes ne doivent pas utiliser le mot-cl\u00e9 'function'",
             u8"m\u00e9todos n\u00e3o podem usar a palavra-chave 'function'",
             u8"metoder b\u00f6r inte anv\u00e4nda nyckelordet 'function'",
+        },
+    },
+    {
+        "misleading use of ',' operator in index"_translatable,
+        {
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
         },
     },
     {

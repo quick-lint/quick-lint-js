@@ -225,6 +225,8 @@ class parser {
                         variable_context context);
   void visit_assignment_expression(expression *lhs, expression *rhs,
                                    parse_visitor_base &v);
+  void warn_on_comma_operator_in_index(expression *ast,
+                                       source_code_span left_square_span);
   void visit_compound_or_conditional_assignment_expression(
       expression *lhs, expression *rhs, parse_visitor_base &v);
   void maybe_visit_assignment(expression *ast, parse_visitor_base &v);

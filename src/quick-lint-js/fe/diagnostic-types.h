@@ -559,6 +559,17 @@
           comma))                                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_misleading_comma_operator_in_index_operation, "E0450",               \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span comma;                                                 \
+        source_code_span left_square;                                           \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("misleading use of ',' operator in index"),     \
+              comma)                                                            \
+          MESSAGE(QLJS_TRANSLATABLE("index starts here"), left_square))         \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_expected_as_before_imported_namespace_alias, "E0126",                \
       diagnostic_severity::error,                                               \
       {                                                                         \
