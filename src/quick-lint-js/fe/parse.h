@@ -321,15 +321,18 @@ class parser {
   overload_signature_parse_result parse_end_of_typescript_overload_signature(
       const identifier &function_name);
 
+  struct parse_class_options {
+    name_requirement require_name;
+    std::optional<source_code_span> abstract_keyword_span;
+  };
+
   struct parse_class_body_options {
     source_code_span class_or_interface_keyword_span;
     bool is_abstract;
     bool is_interface;
   };
 
-  void parse_and_visit_class(
-      parse_visitor_base &v, name_requirement require_name,
-      std::optional<source_code_span> abstract_keyword_span);
+  void parse_and_visit_class(parse_visitor_base &v, parse_class_options);
   // Parse the 'class' keyword and the class's optional name.
   std::optional<identifier> parse_class_and_optional_name();
   // Parse any extends clauses after the class's name.

@@ -139,8 +139,10 @@ parse_statement:
       // abstract class C {}
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_class(
-          v, /*require_name=*/name_requirement::required_for_statement,
-          /*abstract_keyword_span=*/abstract_token);
+          v, parse_class_options{
+                 .require_name = name_requirement::required_for_statement,
+                 .abstract_keyword_span = abstract_token,
+             });
       break;
 
     // abstract:  // Label.
@@ -482,9 +484,10 @@ parse_statement:
     // class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
-        v,
-        /*require_name=*/name_requirement::required_for_statement,
-        /*abstract_keyword_span=*/std::nullopt);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = std::nullopt,
+           });
     break;
 
     // switch (x) { default: ; }
@@ -888,9 +891,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
 
     // export default class C {}
     case token_type::kw_class:
-      this->parse_and_visit_class(v,
-                                  /*require_name=*/name_requirement::optional,
-                                  /*abstract_keyword_span=*/std::nullopt);
+      this->parse_and_visit_class(
+          v, parse_class_options{
+                 .require_name = name_requirement::optional,
+                 .abstract_keyword_span = std::nullopt,
+             });
       break;
 
     // export default abstract class C {}
@@ -908,9 +913,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
         // export default abstract class C {}
         this->lexer_.commit_transaction(std::move(transaction));
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
-        this->parse_and_visit_class(v,
-                                    /*require_name=*/name_requirement::optional,
-                                    /*abstract_keyword_span=*/abstract_keyword);
+        this->parse_and_visit_class(
+            v, parse_class_options{
+                   .require_name = name_requirement::optional,
+                   .abstract_keyword_span = abstract_keyword,
+               });
       }
       break;
     }
@@ -1052,8 +1059,10 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   // export class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
-        v, /*require_name=*/name_requirement::required_for_export,
-        /*abstract_keyword_span=*/std::nullopt);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_export,
+               .abstract_keyword_span = std::nullopt,
+           });
     break;
 
   // export abstract class C {}
@@ -1068,8 +1077,10 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
           });
     }
     this->parse_and_visit_class(
-        v, /*require_name=*/name_requirement::required_for_export,
-        /*abstract_keyword_span=*/abstract_keyword);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_export,
+               .abstract_keyword_span = abstract_keyword,
+           });
     break;
   }
 

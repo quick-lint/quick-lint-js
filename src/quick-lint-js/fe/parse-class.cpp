@@ -22,16 +22,15 @@
 #include <utility>
 
 namespace quick_lint_js {
-void parser::parse_and_visit_class(
-    parse_visitor_base &v, parser::name_requirement require_name,
-    std::optional<source_code_span> abstract_keyword_span) {
+void parser::parse_and_visit_class(parse_visitor_base &v,
+                                   parse_class_options options) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   source_code_span class_keyword_span = this->peek().span();
 
-  if (abstract_keyword_span.has_value() && !this->options_.typescript) {
+  if (options.abstract_keyword_span.has_value() && !this->options_.typescript) {
     this->diag_reporter_->report(
         diag_typescript_abstract_class_not_allowed_in_javascript{
-            .abstract_keyword = *abstract_keyword_span,
+            .abstract_keyword = *options.abstract_keyword_span,
         });
   }
 
@@ -46,7 +45,7 @@ void parser::parse_and_visit_class(
     this->parse_and_visit_class_body(
         v, parse_class_body_options{
                .class_or_interface_keyword_span = class_keyword_span,
-               .is_abstract = abstract_keyword_span.has_value(),
+               .is_abstract = options.abstract_keyword_span.has_value(),
                .is_interface = false,
            });
     break;
@@ -60,7 +59,8 @@ void parser::parse_and_visit_class(
   }
   v.visit_exit_class_scope();
 
-  this->visit_class_name(v, class_name, class_keyword_span, require_name);
+  this->visit_class_name(v, class_name, class_keyword_span,
+                         options.require_name);
 }
 
 std::optional<identifier> parser::parse_class_and_optional_name() {
