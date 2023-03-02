@@ -135,6 +135,7 @@ quick_lint_js_add_executable(
   test-variable-analyzer-delete.cpp
   test-variable-analyzer-enum.cpp
   test-variable-analyzer-eval.cpp
+  test-variable-analyzer-globals.cpp
   test-variable-analyzer-interface.cpp
   test-variable-analyzer-namespace.cpp
   test-variable-analyzer-parse.cpp
