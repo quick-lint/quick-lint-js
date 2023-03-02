@@ -191,6 +191,7 @@ TEST(test_configuration, add_new_global_variable) {
       .name = u8"myGlobalVariable"_sv,
       .is_writable = true,
       .is_shadowable = true,
+      .is_type_only = false,
   });
 
   std::optional<global_declared_variable> found_var =
@@ -214,6 +215,7 @@ TEST(test_configuration, added_global_variable_shadows_default) {
       .name = u8"Array"_sv,
       .is_writable = false,
       .is_shadowable = false,
+      .is_type_only = false,
   });
 
   std::optional<global_declared_variable> found_var =
@@ -231,6 +233,7 @@ TEST(test_configuration,
       .name = u8"testGlobalVariable"_sv,
       .is_writable = true,
       .is_shadowable = true,
+      .is_type_only = false,
   });
 
   EXPECT_TRUE(c.globals().find(u8"Array"_sv));
@@ -326,11 +329,13 @@ TEST(test_configuration,
       .name = u8"testGlobalVariable"_sv,
       .is_writable = false,
       .is_shadowable = false,
+      .is_type_only = false,
   });
   c.add_global_variable(global_declared_variable{
       .name = u8"require"_sv,
       .is_writable = true,
       .is_shadowable = false,
+      .is_type_only = false,
   });
 
   std::optional<global_declared_variable> found_var;
@@ -371,6 +376,7 @@ TEST(test_configuration, overwrite_global_variable_from_group) {
           .name = var_name,
           .is_writable = is_writable,
           .is_shadowable = is_shadowable,
+          .is_type_only = false,
       });
       std::optional<global_declared_variable> var = c.globals().find(var_name);
       ASSERT_TRUE(var.has_value());
@@ -400,11 +406,13 @@ TEST(test_configuration, overwrite_global_variable) {
               .name = var_name,
               .is_writable = original_is_writable,
               .is_shadowable = original_is_shadowable,
+              .is_type_only = false,
           });
           c.add_global_variable(global_declared_variable{
               .name = var_name,
               .is_writable = override_is_writable,
               .is_shadowable = override_is_shadowable,
+              .is_type_only = false,
           });
           std::optional<global_declared_variable> var =
               c.globals().find(var_name);

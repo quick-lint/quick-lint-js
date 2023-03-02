@@ -252,6 +252,7 @@ bool configuration::load_globals_from_json(
             .name = global_name,
             .is_writable = true,
             .is_shadowable = true,
+            .is_type_only = false,
         });
       } else {
         remove_global_variable(global_name);
@@ -283,6 +284,7 @@ bool configuration::load_globals_from_json(
           .name = global_name,
           .is_writable = is_writable,
           .is_shadowable = is_shadowable,
+          .is_type_only = false,
       });
       if (!ok) {
         return false;
@@ -330,7 +332,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
 
   auto add_globals = [&]([[maybe_unused]] const global_group& group,
                          const char8* group_globals, bool shadowable,
-                         bool writable,
+                         bool writable, bool type_only,
                          std::int16_t expected_globals_count) -> void {
     if (!group_globals) {
       QLJS_ASSERT(expected_globals_count == 0);
@@ -347,6 +349,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
             .name = global,
             .is_writable = writable,
             .is_shadowable = shadowable,
+            .is_type_only = type_only,
         });
       }
     });
@@ -381,11 +384,13 @@ bool configuration::should_remove_global_variable(string8_view name) {
     bool enabled = this->enabled_global_groups_[i];
     if (enabled) {
       const global_group& group = global_groups[i];
-      add_globals(group, group.globals, true, true, group.globals_count);
-      add_globals(group, group.non_shadowable_globals, false, true,
+      add_globals(group, group.globals, true, true, false, group.globals_count);
+      add_globals(group, group.non_shadowable_globals, false, true, false,
                   group.non_shadowable_globals_count);
-      add_globals(group, group.non_writable_globals, true, false,
+      add_globals(group, group.non_writable_globals, true, false, false,
                   group.non_writable_globals_count);
+      add_globals(group, group.type_only_globals, true, false, true,
+                  group.type_only_globals_count);
     }
   }
 

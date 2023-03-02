@@ -3,6 +3,9 @@
 
 #include <quick-lint-js/fe/global-variables.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
+
+QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
 // Last updated: Bun v0.1.4
@@ -237,6 +240,126 @@ constexpr const char8 global_variables_quickjs[] =
     u8"console\0"
     u8"print\0";
 
+constexpr const char8 global_variables_typescript_types[] =
+    // Source:
+    // https://github.com/microsoft/TypeScript/tree/1da6d87a053746901a7eca6395a4bd15190b13c4/src/lib
+    //
+    // clang-format off
+    //
+    // sed -E -n -e 's/^(declare )?type ([a-zA-Z_$][a-zA-Z_$0-9]*).*/\2/p' src/lib/es*.d.ts >ts-types
+    // sed -E -n -e 's/^interface\s*([a-zA-Z_$][a-zA-Z_$0-9]*).*/\1/p' src/lib/es*.d.ts >ts-interfaces
+    // sed -E -n -e 's/^(declare )?var\s*([a-zA-Z_$][a-zA-Z_$0-9]*).*/\2/p' src/lib/es*.d.ts >ts-vars
+    // comm -2 -3 <(cat ts-interfaces ts-types | sort -u) <(sort ts-vars -u)
+    //
+    // clang-format on
+    u8"AggregateErrorConstructor\0"
+    u8"ArrayBufferConstructor\0"
+    u8"ArrayBufferLike\0"
+    u8"ArrayBufferTypes\0"
+    u8"ArrayBufferView\0"
+    u8"ArrayConstructor\0"
+    u8"ArrayLike\0"
+    u8"AsyncGenerator\0"
+    u8"AsyncGeneratorFunction\0"
+    u8"AsyncGeneratorFunctionConstructor\0"
+    u8"AsyncIterable\0"
+    u8"AsyncIterableIterator\0"
+    u8"AsyncIterator\0"
+    u8"Awaited\0"
+    u8"BigInt64ArrayConstructor\0"
+    u8"BigIntConstructor\0"
+    u8"BigIntToLocaleStringOptions\0"
+    u8"BigUint64ArrayConstructor\0"
+    u8"BooleanConstructor\0"
+    u8"CallableFunction\0"
+    u8"Capitalize\0"
+    u8"ConcatArray\0"
+    u8"ConstructorParameters\0"
+    u8"DataViewConstructor\0"
+    u8"DateConstructor\0"
+    u8"ErrorConstructor\0"
+    u8"ErrorOptions\0"
+    u8"EvalErrorConstructor\0"
+    u8"Exclude\0"
+    u8"Extract\0"
+    u8"FinalizationRegistryConstructor\0"
+    u8"FlatArray\0"
+    u8"Float32ArrayConstructor\0"
+    u8"Float64ArrayConstructor\0"
+    u8"FunctionConstructor\0"
+    u8"Generator\0"
+    u8"GeneratorFunction\0"
+    u8"GeneratorFunctionConstructor\0"
+    u8"IArguments\0"
+    u8"ImportAssertions\0"
+    u8"ImportCallOptions\0"
+    u8"ImportMeta\0"
+    u8"InstanceType\0"
+    u8"Int16ArrayConstructor\0"
+    u8"Int32ArrayConstructor\0"
+    u8"Int8ArrayConstructor\0"
+    u8"Iterable\0"
+    u8"IterableIterator\0"
+    u8"Iterator\0"
+    u8"IteratorResult\0"
+    u8"IteratorReturnResult\0"
+    u8"IteratorYieldResult\0"
+    u8"Lowercase\0"
+    u8"MapConstructor\0"
+    u8"NewableFunction\0"
+    u8"NonNullable\0"
+    u8"NumberConstructor\0"
+    u8"ObjectConstructor\0"
+    u8"Omit\0"
+    u8"OmitThisParameter\0"
+    u8"Parameters\0"
+    u8"Partial\0"
+    u8"Pick\0"
+    u8"PromiseConstructor\0"
+    u8"PromiseConstructorLike\0"
+    u8"PromiseFulfilledResult\0"
+    u8"PromiseLike\0"
+    u8"PromiseRejectedResult\0"
+    u8"PromiseSettledResult\0"
+    u8"PropertyDescriptor\0"
+    u8"PropertyDescriptorMap\0"
+    u8"PropertyKey\0"
+    u8"ProxyConstructor\0"
+    u8"ProxyHandler\0"
+    u8"RangeErrorConstructor\0"
+    u8"Readonly\0"
+    u8"ReadonlyArray\0"
+    u8"ReadonlyMap\0"
+    u8"ReadonlySet\0"
+    u8"Record\0"
+    u8"ReferenceErrorConstructor\0"
+    u8"RegExpConstructor\0"
+    u8"RegExpExecArray\0"
+    u8"RegExpIndicesArray\0"
+    u8"RegExpMatchArray\0"
+    u8"Required\0"
+    u8"ReturnType\0"
+    u8"SetConstructor\0"
+    u8"SharedArrayBufferConstructor\0"
+    u8"StringConstructor\0"
+    u8"SymbolConstructor\0"
+    u8"SyntaxErrorConstructor\0"
+    u8"TemplateStringsArray\0"
+    u8"ThisParameterType\0"
+    u8"ThisType\0"
+    u8"TypedPropertyDescriptor\0"
+    u8"TypeErrorConstructor\0"
+    u8"Uint16ArrayConstructor\0"
+    u8"Uint32ArrayConstructor\0"
+    u8"Uint8ArrayConstructor\0"
+    u8"Uint8ClampedArrayConstructor\0"
+    u8"Uncapitalize\0"
+    u8"Uppercase\0"
+    u8"URIErrorConstructor\0"
+    u8"WeakMapConstructor\0"
+    u8"WeakRefConstructor\0"
+    u8"WeakSetConstructor\0";
+
 const global_group global_groups[] = {
     {
         .name = u8"browser",
@@ -318,6 +441,17 @@ const global_group global_groups[] = {
         .globals_count = 3,
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
+    },
+    {
+        .name = u8"typescript",
+        .globals = nullptr,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+        .type_only_globals = global_variables_typescript_types,
+        .globals_count = 0,
+        .non_writable_globals_count = 0,
+        .non_shadowable_globals_count = 0,
+        .type_only_globals_count = 107,
     },
     {
         .name = u8"web-worker",

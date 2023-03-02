@@ -9,16 +9,18 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline constexpr std::size_t global_group_count = 10;
+inline constexpr std::size_t global_group_count = 11;
 
 struct global_group {
   const char8 *name;
   const char8 *globals;
   const char8 *non_writable_globals;
   const char8 *non_shadowable_globals;
+  const char8 *type_only_globals;
   std::int16_t globals_count;
   std::int16_t non_writable_globals_count;
   std::int16_t non_shadowable_globals_count;
+  std::int16_t type_only_globals_count;
 };
 extern const global_group global_groups[];
 

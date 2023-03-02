@@ -88,6 +88,30 @@ constexpr const char8 *non_writable_global_variables[] = {
     u8"undefined",
 };
 
+constexpr const char8 *type_only_global_variables[] = {
+    u8"Awaited",
+    u8"Capitalize",
+    u8"ConstructorParameters",
+    u8"Exclude",
+    u8"Extract",
+    u8"InstanceType",
+    u8"Lowercase",
+    u8"NonNullable",
+    u8"Omit",
+    u8"OmitThisParameter",
+    u8"Parameters",
+    u8"Partial",
+    u8"Pick",
+    u8"Readonly",
+    u8"Record",
+    u8"Required",
+    u8"ReturnType",
+    u8"ThisParameterType",
+    u8"ThisType",
+    u8"Uncapitalize",
+    u8"Uppercase",
+};
+
 constexpr const char8 *nodejs_global_variables[] = {
     u8"Array",
     u8"ArrayBuffer",
@@ -255,6 +279,51 @@ TEST(test_variable_analyzer_globals,
     }
     l.visit_end_of_module();
 
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_globals,
+     type_only_global_variables_are_not_usable_in_expressions) {
+  for (const char8 *global_variable : type_only_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+
+    // Awaited;
+    {
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_use(identifier_of(global_variable));
+      l.visit_end_of_module();
+      EXPECT_THAT(v.errors, ElementsAreArray({
+                                DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                               name, span_of(global_variable)),
+                            }));
+    }
+
+    // Awaited = null;
+    {
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_assignment(identifier_of(global_variable));
+      l.visit_end_of_module();
+      EXPECT_THAT(v.errors,
+                  ElementsAreArray({
+                      DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
+                                     assignment, span_of(global_variable)),
+                  }));
+    }
+  }
+}
+
+TEST(test_variable_analyzer_globals,
+     type_only_global_variables_are_usable_in_types) {
+  // null as Awaited;
+  for (const char8 *global_variable : type_only_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_type_use(identifier_of(global_variable));
+    l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }

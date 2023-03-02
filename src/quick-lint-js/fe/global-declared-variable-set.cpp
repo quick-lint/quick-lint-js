@@ -11,6 +11,11 @@
 
 namespace quick_lint_js {
 variable_kind global_declared_variable::kind() const noexcept {
+  if (this->is_type_only) {
+    // TODO(strager): What should we do here? Will this ever be called?
+    return variable_kind::_let;
+  }
+
   if (this->is_writable) {
     return variable_kind::_let;
   } else {
@@ -21,7 +26,11 @@ variable_kind global_declared_variable::kind() const noexcept {
 void global_declared_variable_set::add_predefined_global_variable(
     const char8 *name, bool is_writable) {
   this->add_global_variable(global_declared_variable{
-      .name = name, .is_writable = is_writable, .is_shadowable = true});
+      .name = name,
+      .is_writable = is_writable,
+      .is_shadowable = true,
+      .is_type_only = false,
+  });
 }
 
 void global_declared_variable_set::add_global_variable(
@@ -29,6 +38,7 @@ void global_declared_variable_set::add_global_variable(
   this->variables_[global_variable.name] = variable_options{
       .is_writable = global_variable.is_writable,
       .is_shadowable = global_variable.is_shadowable,
+      .is_type_only = global_variable.is_type_only,
   };
 }
 
@@ -55,6 +65,7 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
         .name = name,
         .is_writable = it->second.is_writable,
         .is_shadowable = it->second.is_shadowable,
+        .is_type_only = it->second.is_type_only,
     };
   }
   if (this->all_variables_declared_) {
@@ -62,6 +73,7 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
         .name = name,
         .is_writable = true,
         .is_shadowable = true,
+        .is_type_only = false,
     };
   }
   return std::nullopt;
@@ -69,9 +81,11 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
 
 std::optional<global_declared_variable>
 global_declared_variable_set::find_runtime(identifier name) const noexcept {
-  // global_declared_variable_set doesn't support type-only variables. All
-  // variables are accessible at run-time.
-  return this->find(name);
+  std::optional<global_declared_variable> var = this->find(name);
+  if (var.has_value() && var->is_type_only) {
+    return std::nullopt;
+  }
+  return var;
 }
 
 std::optional<global_declared_variable> global_declared_variable_set::find_type(

@@ -263,6 +263,7 @@ TEST(test_variable_analyzer_delete_javascript,
       .name = u8"myGlobalVariable"_sv,
       .is_writable = true,
       .is_shadowable = true,
+      .is_type_only = false,
   });
 
   {
@@ -420,6 +421,7 @@ TEST(test_variable_analyzer_delete_typescript,
         .name = u8"myGlobalVariable"_sv,
         .is_writable = true,
         .is_shadowable = true,
+        .is_type_only = false,
     });
     diag_collector v;
     variable_analyzer l(&v, &globals, typescript_var_options);

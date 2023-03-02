@@ -509,7 +509,7 @@ void variable_analyzer::visit_end_of_module() {
     case used_variable_kind::_typeof:
     case used_variable_kind::assignment:
     case used_variable_kind::use:
-      QLJS_ASSERT(!global_scope.declared_variables.find(var.name));
+      QLJS_ASSERT(!global_scope.declared_variables.find_runtime(var.name));
       break;
     case used_variable_kind::type:
       QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));

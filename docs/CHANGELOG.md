@@ -8,6 +8,11 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* TypeScript: Type variables such as `Readonly<T>` and `IArguments` are now
+  recognized by the new `typescript` global group which is enabled by default.
+
 ### Changed
 
 * quick-lint-js' build system now optionally creates executes and runs them
