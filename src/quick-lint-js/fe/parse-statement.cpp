@@ -1498,11 +1498,8 @@ void parser::parse_and_visit_function_declaration(
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
           attributes, source_code_span(function_token_begin, function_end));
-      expression *full_expression =
-          this->parse_expression_remainder(v, function, precedence{});
-      this->visit_expression(full_expression, v, variable_context::rhs);
 
-      if (full_expression == function) {
+      if (this->peek().type != token_type::left_paren) {
         this->diag_reporter_->report(diag_missing_name_in_function_statement{
             .where = source_code_span(function_token_begin, left_paren_end),
         });
@@ -1512,7 +1509,11 @@ void parser::parse_and_visit_function_declaration(
                 .where = source_code_span(function_token_begin, left_paren_end),
                 .function = source_code_span(begin, function->span().end()),
             });
+        expression *full_expression =
+            this->parse_expression_remainder(v, function, precedence{});
+        this->visit_expression(full_expression, v, variable_context::rhs);
       }
+
       break;
     }
 
