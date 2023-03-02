@@ -44,9 +44,11 @@ void parser::parse_and_visit_class(
   switch (this->peek().type) {
   case token_type::left_curly:
     this->parse_and_visit_class_body(
-        v,
-        /*class_keyword_span=*/class_keyword_span,
-        /*is_abstract=*/abstract_keyword_span.has_value());
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = class_keyword_span,
+               .is_abstract = abstract_keyword_span.has_value(),
+               .is_interface = false,
+           });
     break;
 
   default:
@@ -207,19 +209,15 @@ void parser::visit_class_name(parse_visitor_base &v,
 }
 
 void parser::parse_and_visit_class_body(parse_visitor_base &v,
-                                        source_code_span class_keyword_span,
-                                        bool is_abstract) {
+                                        parse_class_body_options options) {
+  QLJS_ASSERT(!options.is_interface);
   class_guard g = this->enter_class();
 
   source_code_span left_curly_span = this->peek().span();
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_class_or_interface_member(
-        v,
-        /*class_or_interface_keyword_span=*/class_keyword_span,
-        /*is_interface=*/false,
-        /*is_abstract=*/is_abstract);
+    this->parse_and_visit_class_or_interface_member(v, options);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_class_block{
           .block_open = left_curly_span,
@@ -233,8 +231,7 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v,
 }
 
 void parser::parse_and_visit_class_or_interface_member(
-    parse_visitor_base &v, source_code_span class_or_interface_keyword_span,
-    bool is_interface, bool is_abstract) {
+    parse_visitor_base &v, parse_class_body_options options) {
   struct class_parser {
     explicit class_parser(parser *p, parse_visitor_base &v,
                           source_code_span class_or_interface_keyword_span,
@@ -1159,8 +1156,8 @@ void parser::parse_and_visit_class_or_interface_member(
       return nullptr;
     }
   };
-  class_parser state(this, v, class_or_interface_keyword_span, is_interface,
-                     is_abstract);
+  class_parser state(this, v, options.class_or_interface_keyword_span,
+                     options.is_interface, options.is_abstract);
   state.parse_stuff();
 }
 
@@ -1283,10 +1280,11 @@ void parser::parse_and_visit_typescript_interface_body(
 
   while (this->peek().type != token_type::right_curly) {
     this->parse_and_visit_class_or_interface_member(
-        v,
-        /*class_or_interface_keyword_span=*/interface_keyword_span,
-        /*is_interface=*/true,
-        /*is_abstract=*/false);
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = interface_keyword_span,
+               .is_abstract = false,
+               .is_interface = true,
+           });
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_interface_block{
           .block_open = left_curly_span,

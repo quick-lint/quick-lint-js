@@ -3121,9 +3121,12 @@ expression* parser::parse_class_expression(parse_visitor_base& v) {
   v.visit_enter_class_scope_body(class_name);
 
   if (this->peek().type == token_type::left_curly) {
-    this->parse_and_visit_class_body(v,
-                                     /*class_keyword_span=*/class_keyword_span,
-                                     /*is_abstract=*/false);
+    this->parse_and_visit_class_body(
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = class_keyword_span,
+               .is_abstract = false,
+               .is_interface = false,
+           });
   } else {
     this->diag_reporter_->report(diag_missing_body_for_class{
         .class_keyword_and_name_and_heritage = source_code_span(
