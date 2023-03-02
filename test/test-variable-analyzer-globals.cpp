@@ -88,71 +88,6 @@ constexpr const char8 *non_writable_global_variables[] = {
     u8"undefined",
 };
 
-TEST(test_variable_analyzer_globals, global_variables_are_usable) {
-  // Array = null;
-  // Array;
-  for (const char8 *global_variable : writable_global_variables) {
-    SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_assignment(identifier_of(global_variable));
-    l.visit_variable_use(identifier_of(global_variable));
-    l.visit_end_of_module();
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  // NaN;
-  for (const char8 *global_variable : non_writable_global_variables) {
-    SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_use(identifier_of(global_variable));
-    l.visit_end_of_module();
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-}
-
-TEST(test_variable_analyzer_globals,
-     immutable_global_variables_are_not_assignable) {
-  for (const char8 *global_variable : non_writable_global_variables) {
-    SCOPED_TRACE(out_string8(global_variable));
-
-    // NaN = null;  // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_assignment(identifier_of(global_variable));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
-                                   assignment, span_of(global_variable)),
-                }));
-  }
-
-  for (const char8 *global_variable : non_writable_global_variables) {
-    SCOPED_TRACE(out_string8(global_variable));
-
-    // (() => {
-    //   NaN = null;  // ERROR
-    // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_assignment(identifier_of(global_variable));
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
-                                   assignment, span_of(global_variable)),
-                }));
-  }
-}
-
-namespace {
 constexpr const char8 *nodejs_global_variables[] = {
     u8"Array",
     u8"ArrayBuffer",
@@ -230,6 +165,69 @@ constexpr const char8 *nodejs_global_variables[] = {
     u8"undefined",
     u8"unescape",
 };
+
+TEST(test_variable_analyzer_globals, global_variables_are_usable) {
+  // Array = null;
+  // Array;
+  for (const char8 *global_variable : writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  // NaN;
+  for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_globals,
+     immutable_global_variables_are_not_assignable) {
+  for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+
+    // NaN = null;  // ERROR
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
+                                   assignment, span_of(global_variable)),
+                }));
+  }
+
+  for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+
+    // (() => {
+    //   NaN = null;  // ERROR
+    // });
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
+                                   assignment, span_of(global_variable)),
+                }));
+  }
 }
 
 TEST(test_variable_analyzer_globals, nodejs_global_variables_are_usable) {
