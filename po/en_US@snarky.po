@@ -195,6 +195,31 @@ msgstr "are you dyslexic or something?"
 msgid "'async export' is not allowed; write 'export async' instead"
 msgstr "are you dyslexic or something?"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' fields cannot be initalized"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked 'async'"
+msgstr "interfaces are allergic to async methods"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked as a generator"
+msgstr "interfaces are allergic to generator methods"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot contain a body"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare class' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
 # this is actually better than the OG one
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
@@ -889,6 +914,11 @@ msgid "missing semicolon after abstract method"
 msgstr "I know you hate semicolons, but you need one here"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after 'declare class' method"
+msgstr "I know you hate semicolons, but you need one here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr "I know you hate semicolons, but you need one here"
 
@@ -1148,6 +1178,11 @@ msgstr "what's this literal supposed to mean in an object?"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "assignment-asserted fields are not allowed in 'declare class'"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
@@ -1288,6 +1323,11 @@ msgstr ""
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "interfaces cannot contain static blocks"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' cannot contain static block"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/fe/diagnostic-types.h

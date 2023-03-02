@@ -228,6 +228,41 @@ msgstr "'async export' n'est pas autorisé ; utiliser plutôt 'export async'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'declare class' fields cannot be initalized"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked 'async'"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked as a generator"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot contain a body"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare class' is not allowed in JavaScript"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 "'function static' n'est pas autorisé ; utiliser plutôt 'async function'"
@@ -913,6 +948,11 @@ msgid "missing semicolon after abstract method"
 msgstr "point-virgule manquant après l'instruction"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after 'declare class' method"
+msgstr "point-virgule manquant après l'instruction"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr "point-virgule manquant après l'instruction"
 
@@ -1194,6 +1234,13 @@ msgstr "littéral isolé invalide dans un littéral objet"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "assignment-asserted fields are not allowed in 'declare class'"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
@@ -1355,6 +1402,13 @@ msgstr ""
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "interfaces cannot contain static blocks"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' cannot contain static block"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
 "quick-lint-js"

@@ -155,10 +155,12 @@ parse_statement:
     break;
   }
 
+  // declare class C {}  // TypeScript only.
   // declare enum E {}  // TypeScript only.
   // declare = 42;
   case token_type::kw_declare: {
     lexer_transaction transaction = this->lexer_.begin_transaction();
+    source_code_span declare_keyword_span = this->peek().span();
     this->skip();
     switch (this->peek().type) {
     // declare enum E {}
@@ -194,6 +196,27 @@ parse_statement:
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_enum);
       this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
+      break;
+
+    // declare class C {}
+    //
+    // declare  // ASI
+    // class C {}
+    case token_type::kw_class:
+      if (this->peek().has_leading_newline) {
+        // declare  // ASI
+        // class C {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+      this->lexer_.commit_transaction(std::move(transaction));
+
+      this->parse_and_visit_class(
+          v, parse_class_options{
+                 .require_name = name_requirement::required_for_statement,
+                 .abstract_keyword_span = std::nullopt,
+                 .declare_keyword_span = declare_keyword_span,
+             });
       break;
 
     // declare:  // Label.
@@ -1326,7 +1349,11 @@ void parser::parse_and_visit_statement_block_no_scope(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   source_code_span left_curly_span = this->peek().span();
   this->skip();
+  this->parse_and_visit_statement_block_after_left_curly(v, left_curly_span);
+}
 
+void parser::parse_and_visit_statement_block_after_left_curly(
+    parse_visitor_base &v, source_code_span left_curly_span) {
   for (;;) {
     bool parsed_statement = this->parse_and_visit_statement(
         v, parse_statement_type::any_statement_in_block);
@@ -1606,6 +1633,33 @@ void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
     this->parse_and_visit_statement_block_no_scope(v);
     break;
   }
+}
+
+void parser::parse_and_visit_declare_class_method_parameters_and_body(
+    parse_visitor_base &v, std::optional<source_code_span> name,
+    function_attributes attributes) {
+  v.visit_enter_function_scope();
+  function_guard guard = this->enter_function(attributes);
+  function_parameter_parse_result result =
+      this->parse_and_visit_function_parameters(v, name);
+  switch (result) {
+  case function_parameter_parse_result::missing_parameters_ignore_body:
+  case function_parameter_parse_result::parsed_parameters_missing_body:
+    this->consume_semicolon<
+        diag_missing_semicolon_after_declare_class_method>();
+    break;
+
+  case function_parameter_parse_result::parsed_parameters:
+  case function_parameter_parse_result::missing_parameters:
+    this->diag_reporter_->report(
+        diag_declare_class_methods_cannot_contain_bodies{
+            .body_start = this->peek().span(),
+        });
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    break;
+  }
+  v.visit_exit_function_scope();
 }
 
 void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(

@@ -12,6 +12,7 @@ Semantic Versioning.
 
 * TypeScript: Type variables such as `Readonly<T>` and `IArguments` are now
   recognized by the new `typescript` global group which is enabled by default.
+* TypeScript: `declare class` is now supported.
 
 ### Changed
 

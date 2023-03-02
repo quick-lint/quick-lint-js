@@ -198,6 +198,31 @@ msgstr "'async export' não é permitido; use 'export async'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'declare class' fields cannot be initalized"
+msgstr "interfaces não podem conter blocos estáticos"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked 'async'"
+msgstr "métodos abstratos não podem ser marcados como 'async'"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked as a generator"
+msgstr "métodos abstratos não podem ser marcados como generators"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot contain a body"
+msgstr "interfaces não podem conter blocos estáticos"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare class' is not allowed in JavaScript"
+msgstr "'implements' não é permitido em JavaScript"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr "'function async' não é permitido; use 'async function'"
 
@@ -843,6 +868,11 @@ msgid "missing semicolon after abstract method"
 msgstr "falta o ponto e vírgula após o método abstrato"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after 'declare class' method"
+msgstr "falta o ponto e vírgula após o método abstrato"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr "falta o ponto e vírgula após a instrução"
 
@@ -1091,6 +1121,11 @@ msgstr ""
 "use ':' em vez de 'as' para definir o tipo de um parâmetro de uma função"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "assignment-asserted fields are not allowed in 'declare class'"
+msgstr "campos com asserção de atribuição não são suportados em interfaces"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr "campos com asserção de atribuição não são suportados em interfaces"
 
@@ -1218,6 +1253,11 @@ msgstr "'type' não pode ser usado duas vezes na importação"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "interfaces cannot contain static blocks"
+msgstr "interfaces não podem conter blocos estáticos"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' cannot contain static block"
 msgstr "interfaces não podem conter blocos estáticos"
 
 #: src/quick-lint-js/fe/diagnostic-types.h

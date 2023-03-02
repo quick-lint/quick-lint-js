@@ -37,7 +37,12 @@ const translation_table translation_data = {
         {50, 77, 41, 27, 0, 60},             //
         {70, 31, 69, 53, 0, 60},             //
         {93, 15, 80, 68, 26, 69},            //
-        {71, 48, 0, 44, 0, 43},              //
+        {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 0, 0, 44},                 //
+        {0, 0, 0, 0, 0, 44},                 //
+        {0, 0, 0, 0, 0, 49},                 //
+        {0, 0, 0, 0, 0, 56},                 //
+        {71, 48, 0, 44, 0, 46},              //
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 39, 0, 33},                //
         {30, 39, 0, 46, 0, 38},              //
@@ -73,7 +78,8 @@ const translation_table translation_data = {
         {0, 0, 0, 50, 0, 44},                //
         {21, 38, 23, 58, 0, 52},             //
         {0, 0, 0, 64, 0, 52},                //
-        {0, 0, 0, 78, 0, 62},                //
+        {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 78, 0, 56},                //
         {0, 0, 0, 45, 0, 53},                //
         {0, 0, 0, 78, 0, 62},                //
         {0, 0, 0, 87, 0, 70},                //
@@ -126,7 +132,8 @@ const translation_table translation_data = {
         {48, 49, 0, 60, 0, 52},              //
         {34, 32, 60, 38, 51, 32},            //
         {0, 0, 0, 43, 0, 34},                //
-        {0, 0, 0, 72, 0, 54},                //
+        {0, 0, 0, 0, 0, 54},                 //
+        {0, 0, 0, 72, 0, 62},                //
         {0, 0, 0, 73, 0, 59},                //
         {40, 35, 0, 70, 0, 55},              //
         {80, 38, 43, 55, 49, 56},            //
@@ -296,7 +303,8 @@ const translation_table translation_data = {
         {46, 29, 49, 52, 36, 49},            //
         {45, 11, 52, 49, 0, 41},             //
         {0, 0, 0, 44, 0, 42},                //
-        {0, 0, 0, 47, 0, 40},                //
+        {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 47, 0, 47},                //
         {0, 0, 0, 50, 0, 40},                //
         {0, 0, 0, 39, 0, 30},                //
         {0, 0, 0, 44, 0, 40},                //
@@ -1722,6 +1730,11 @@ const translation_table translation_data = {
         u8"'async static' is not allowed; write 'static async' instead\0"
         u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
         u8"'await' is only allowed in async functions\0"
+        u8"'declare class' cannot contain static block\0"
+        u8"'declare class' fields cannot be initalized\0"
+        u8"'declare class' methods cannot be marked 'async'\0"
+        u8"'declare class' methods cannot be marked as a generator\0"
+        u8"'declare class' methods cannot contain a body\0"
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'extends' must be before 'implements'\0"
@@ -1758,6 +1771,7 @@ const translation_table translation_data = {
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
         u8"TypeScript 'as' type assertions are not allowed in JavaScript\0"
+        u8"TypeScript 'declare class' is not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
@@ -1811,6 +1825,7 @@ const translation_table translation_data = {
         u8"assignment to imported variable\0"
         u8"assignment to undeclared variable\0"
         u8"assignment-asserted field must have a type annotation\0"
+        u8"assignment-asserted fields are not allowed in 'declare class'\0"
         u8"assignment-asserted fields are not supported in interfaces\0"
         u8"assignment-assertion fields cannot have default values\0"
         u8"attribute has wrong capitalization; write '{1}' instead\0"
@@ -1981,6 +1996,7 @@ const translation_table translation_data = {
         u8"missing property name after '.' operator\0"
         u8"missing property name between '.' and '.'\0"
         u8"missing quotes around module name '{0}'\0"
+        u8"missing semicolon after 'declare class' method\0"
         u8"missing semicolon after abstract method\0"
         u8"missing semicolon after field\0"
         u8"missing semicolon after index signature\0"

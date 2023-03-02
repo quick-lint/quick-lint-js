@@ -33,6 +33,11 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
             .abstract_keyword = *options.abstract_keyword_span,
         });
   }
+  if (options.declare_keyword_span.has_value() && !this->options_.typescript) {
+    this->diag_reporter_->report(diag_declare_class_not_allowed_in_javascript{
+        .declare_keyword = *options.declare_keyword_span,
+    });
+  }
 
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
 
@@ -46,6 +51,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
         v, parse_class_body_options{
                .class_or_interface_keyword_span = class_keyword_span,
                .is_abstract = options.abstract_keyword_span.has_value(),
+               .is_declare = options.declare_keyword_span.has_value(),
                .is_interface = false,
            });
     break;
@@ -235,18 +241,21 @@ void parser::parse_and_visit_class_or_interface_member(
   struct class_parser {
     explicit class_parser(parser *p, parse_visitor_base &v,
                           source_code_span class_or_interface_keyword_span,
-                          bool is_interface, bool is_abstract)
+                          bool is_interface, bool is_abstract,
+                          const parse_class_body_options &options)
         : p(p),
           v(v),
           class_or_interface_keyword_span(class_or_interface_keyword_span),
           is_interface(is_interface),
-          is_abstract(is_abstract) {}
+          is_abstract(is_abstract),
+          is_declare(options.is_declare) {}
 
     parser *p;
     parse_visitor_base &v;
     source_code_span class_or_interface_keyword_span;
     bool is_interface;
     bool is_abstract;
+    bool is_declare;
 
     std::optional<identifier> last_ident;
 
@@ -528,9 +537,14 @@ void parser::parse_and_visit_class_or_interface_member(
         if (modifiers.size() == 1 &&
             modifiers[0].type == token_type::kw_static) {
           // class C { static { } }
-          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
           v.visit_enter_block_scope();
-          p->parse_and_visit_statement_block_no_scope(v);
+          source_code_span left_curly_span = p->peek().span();
+          p->skip();
+
+          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
+
+          p->parse_and_visit_statement_block_after_left_curly(v,
+                                                              left_curly_span);
           v.visit_exit_block_scope();
         } else {
           // class C { {  // Invalid.
@@ -716,7 +730,10 @@ void parser::parse_and_visit_class_or_interface_member(
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
-        if (is_abstract_method) {
+        if (is_declare) {
+          p->parse_and_visit_declare_class_method_parameters_and_body(
+              v, property_name_span, attributes);
+        } else if (is_abstract_method) {
           v.visit_enter_function_scope();
           p->parse_and_visit_abstract_function_parameters_and_body_no_scope(
               v, property_name_span, attributes);
@@ -848,7 +865,15 @@ void parser::parse_and_visit_class_or_interface_member(
                 .equal = p->peek().span(),
             });
       }
-      if (p->options_.typescript && !is_interface && bang) {
+      if (is_declare && !is_interface && !bang) {
+        // Don't report if we found a bang. We already reported
+        // diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class.
+        p->diag_reporter_->report(
+            diag_declare_class_fields_cannot_have_initializers{
+                .equal = p->peek().span(),
+            });
+      }
+      if (p->options_.typescript && !is_interface && !is_declare && bang) {
         p->diag_reporter_->report(
             diag_typescript_assignment_asserted_field_cannot_have_initializer{
                 .equal = p->peek().span(),
@@ -929,6 +954,18 @@ void parser::parse_and_visit_class_or_interface_member(
                 .static_token = static_modifier.span,
             });
       }
+      if (is_declare && !is_interface) {
+        if (p->peek().type == token_type::right_curly) {
+          // static { }
+          // An empty static block is legal.
+        } else {
+          // static { someStatement(); }
+          p->diag_reporter_->report(
+              diag_typescript_declare_class_cannot_contain_static_block_statement{
+                  .static_token = static_modifier.span,
+              });
+        }
+      }
     }
 
     void error_if_invalid_assignment_assertion() {
@@ -942,6 +979,11 @@ void parser::parse_and_visit_class_or_interface_member(
         } else if (is_interface) {
           p->diag_reporter_->report(
               diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
+                  .bang = assignment_assertion_modifier->span,
+              });
+        } else if (is_declare) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class{
                   .bang = assignment_assertion_modifier->span,
               });
         }
@@ -1118,6 +1160,20 @@ void parser::parse_and_visit_class_or_interface_member(
           });
         }
       }
+      if (is_declare) {
+        if (const modifier *async_modifier =
+                find_modifier(token_type::kw_async)) {
+          p->diag_reporter_->report(diag_declare_class_methods_cannot_be_async{
+              .async_keyword = async_modifier->span,
+          });
+        }
+        if (const modifier *star_modifier = find_modifier(token_type::star)) {
+          p->diag_reporter_->report(
+              diag_declare_class_methods_cannot_be_generators{
+                  .star = star_modifier->span,
+              });
+        }
+      }
 
       const modifier *abstract_modifier =
           find_modifier(token_type::kw_abstract);
@@ -1157,7 +1213,7 @@ void parser::parse_and_visit_class_or_interface_member(
     }
   };
   class_parser state(this, v, options.class_or_interface_keyword_span,
-                     options.is_interface, options.is_abstract);
+                     options.is_interface, options.is_abstract, options);
   state.parse_stuff();
 }
 
@@ -1283,6 +1339,7 @@ void parser::parse_and_visit_typescript_interface_body(
         v, parse_class_body_options{
                .class_or_interface_keyword_span = interface_keyword_span,
                .is_abstract = false,
+               .is_declare = false,
                .is_interface = true,
            });
     if (this->peek().type == token_type::end_of_file) {

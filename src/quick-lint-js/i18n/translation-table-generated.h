@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 404;
-constexpr std::size_t translation_table_string_table_size = 74654;
+constexpr std::uint16_t translation_table_mapping_table_size = 412;
+constexpr std::size_t translation_table_string_table_size = 75058;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -54,6 +54,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'async static' is not allowed; write 'static async' instead"sv,
           "'await' cannot be followed by an arrow function; use 'async' instead"sv,
           "'await' is only allowed in async functions"sv,
+          "'declare class' cannot contain static block"sv,
+          "'declare class' fields cannot be initalized"sv,
+          "'declare class' methods cannot be marked 'async'"sv,
+          "'declare class' methods cannot be marked as a generator"sv,
+          "'declare class' methods cannot contain a body"sv,
           "'do-while' loop"sv,
           "'else' has no corresponding 'if'"sv,
           "'extends' must be before 'implements'"sv,
@@ -90,6 +95,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "React/JSX is not allowed in vanilla JavaScript code"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,
           "TypeScript 'as' type assertions are not allowed in JavaScript"sv,
+          "TypeScript 'declare class' is not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
@@ -143,6 +149,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "assignment to imported variable"sv,
           "assignment to undeclared variable"sv,
           "assignment-asserted field must have a type annotation"sv,
+          "assignment-asserted fields are not allowed in 'declare class'"sv,
           "assignment-asserted fields are not supported in interfaces"sv,
           "assignment-assertion fields cannot have default values"sv,
           "attribute has wrong capitalization; write '{1}' instead"sv,
@@ -313,6 +320,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing property name after '.' operator"sv,
           "missing property name between '.' and '.'"sv,
           "missing quotes around module name '{0}'"sv,
+          "missing semicolon after 'declare class' method"sv,
           "missing semicolon after abstract method"sv,
           "missing semicolon after field"sv,
           "missing semicolon after index signature"sv,

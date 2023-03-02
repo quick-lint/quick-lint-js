@@ -297,6 +297,61 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare class' cannot contain static block"_translatable,
+        {
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+        },
+    },
+    {
+        "'declare class' fields cannot be initalized"_translatable,
+        {
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+        },
+    },
+    {
+        "'declare class' methods cannot be marked 'async'"_translatable,
+        {
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+        },
+    },
+    {
+        "'declare class' methods cannot be marked as a generator"_translatable,
+        {
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+        },
+    },
+    {
+        "'declare class' methods cannot contain a body"_translatable,
+        {
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+        },
+    },
+    {
         "'do-while' loop"_translatable,
         {
             u8"'do-while' loop",
@@ -690,6 +745,17 @@ const translated_string test_translation_table[] = {
             u8"TypeScript 'as' type assertions are not allowed in JavaScript",
             u8"asser\u00e7\u00f5es de tipo de TypeScript com 'as' n\u00e3o s\u00e3o permitidas em JavaScript",
             u8"TypeScript 'as' type assertions are not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare class' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
         },
     },
     {
@@ -1273,6 +1339,17 @@ const translated_string test_translation_table[] = {
             u8"assignment-asserted field must have a type annotation",
             u8"campo com asser\u00e7\u00e3o de atribui\u00e7\u00e3o precisa ter uma anota\u00e7\u00e3o de tipo",
             u8"assignment-asserted field must have a type annotation",
+        },
+    },
+    {
+        "assignment-asserted fields are not allowed in 'declare class'"_translatable,
+        {
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
         },
     },
     {
@@ -3143,6 +3220,17 @@ const translated_string test_translation_table[] = {
             u8"missing quotes around module name '{0}'",
             u8"faltam aspas em volta do nome do m\u00f3dulo '{0}'",
             u8"missing quotes around module name '{0}'",
+        },
+    },
+    {
+        "missing semicolon after 'declare class' method"_translatable,
+        {
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
         },
     },
     {

@@ -228,6 +228,41 @@
           async_export))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_class_fields_cannot_have_initializers, "E0335",              \
+      diagnostic_severity::error, { source_code_span equal; },                  \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("'declare class' fields cannot be initalized"),     \
+          equal))                                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_class_methods_cannot_be_async, "E0338",                      \
+      diagnostic_severity::error, { source_code_span async_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "'declare class' methods cannot be marked 'async'"),          \
+              async_keyword))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_class_methods_cannot_be_generators, "E0337",                 \
+      diagnostic_severity::error, { source_code_span star; },                   \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "'declare class' methods cannot be marked as a generator"),   \
+              star))                                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_class_methods_cannot_contain_bodies, "E0333",                \
+      diagnostic_severity::error, { source_code_span body_start; },             \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("'declare class' methods cannot contain a body"),   \
+          body_start))                                                          \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_class_not_allowed_in_javascript, "E0339",                    \
+      diagnostic_severity::error, { source_code_span declare_keyword; },        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "TypeScript 'declare class' is not allowed in JavaScript"),   \
+              declare_keyword))                                                 \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_function_async_function, "E0327", diagnostic_severity::error,        \
       { source_code_span function_async; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("'function async' is not allowed; write "       \
@@ -1338,6 +1373,13 @@
               expected_semicolon))                                              \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_missing_semicolon_after_declare_class_method, "E0334",               \
+      diagnostic_severity::error, { source_code_span expected_semicolon; },     \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("missing semicolon after 'declare class' method"),  \
+          expected_semicolon))                                                  \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_missing_semicolon_after_statement, "E0027",                          \
       diagnostic_severity::error, { source_code_span where; },                  \
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon after statement"), where))   \
@@ -1722,6 +1764,13 @@
               as_keyword))                                                      \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class,  \
+      "E0336", diagnostic_severity::error, { source_code_span bang; },          \
+      MESSAGE(QLJS_TRANSLATABLE("assignment-asserted fields are "               \
+                                "not allowed in 'declare class'"),              \
+              bang))                                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,     \
       "E0238", diagnostic_severity::error, { source_code_span bang; },          \
       MESSAGE(QLJS_TRANSLATABLE("assignment-asserted fields are "               \
@@ -1948,6 +1997,13 @@
       diagnostic_severity::error, { source_code_span static_token; },           \
       MESSAGE(QLJS_TRANSLATABLE("interfaces cannot contain static blocks"),     \
               static_token))                                                    \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_declare_class_cannot_contain_static_block_statement,      \
+      "E0332", diagnostic_severity::error, { source_code_span static_token; },  \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("'declare class' cannot contain static block"),     \
+          static_token))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_interfaces_not_allowed_in_javascript, "E0213",            \

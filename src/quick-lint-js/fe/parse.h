@@ -236,6 +236,9 @@ class parser {
 
  private:
   void parse_and_visit_statement_block_no_scope(parse_visitor_base &v);
+  // Parses the closing '}', if present.
+  void parse_and_visit_statement_block_after_left_curly(
+      parse_visitor_base &v, source_code_span left_curly_span);
 
   enum class name_requirement {
     optional,
@@ -261,6 +264,9 @@ class parser {
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_abstract_function_parameters_and_body_no_scope(
+      parse_visitor_base &v, std::optional<source_code_span> name,
+      function_attributes attributes);
+  void parse_and_visit_declare_class_method_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
@@ -324,11 +330,13 @@ class parser {
   struct parse_class_options {
     name_requirement require_name;
     std::optional<source_code_span> abstract_keyword_span;
+    std::optional<source_code_span> declare_keyword_span;
   };
 
   struct parse_class_body_options {
     source_code_span class_or_interface_keyword_span;
     bool is_abstract;
+    bool is_declare;
     bool is_interface;
   };
 
@@ -931,6 +939,8 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
 
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
+extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_declare_class_method>();
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_field>();
 extern template void

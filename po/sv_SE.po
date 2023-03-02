@@ -213,6 +213,31 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'declare class' fields cannot be initalized"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked 'async'"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot be marked as a generator"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' methods cannot contain a body"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare class' is not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
 
@@ -878,6 +903,11 @@ msgid "missing semicolon after abstract method"
 msgstr "saknar semikolon efter påstående"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after 'declare class' method"
+msgstr "saknar semikolon efter påstående"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr "saknar semikolon efter påstående"
 
@@ -1141,6 +1171,11 @@ msgstr "ogiltigt låneuttryck i objektliteral"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "assignment-asserted fields are not allowed in 'declare class'"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
@@ -1281,6 +1316,11 @@ msgstr ""
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "interfaces cannot contain static blocks"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare class' cannot contain static block"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h

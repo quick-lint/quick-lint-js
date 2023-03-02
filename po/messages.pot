@@ -198,6 +198,26 @@ msgid "'async export' is not allowed; write 'export async' instead"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare class' fields cannot be initalized"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare class' methods cannot be marked 'async'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare class' methods cannot be marked as a generator"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare class' methods cannot contain a body"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript 'declare class' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 
@@ -836,6 +856,10 @@ msgid "missing semicolon after abstract method"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "missing semicolon after 'declare class' method"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr ""
 
@@ -1070,6 +1094,10 @@ msgid "use ':' instead of 'as' to type a function parameter"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "assignment-asserted fields are not allowed in 'declare class'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr ""
 
@@ -1195,6 +1223,10 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "interfaces cannot contain static blocks"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare class' cannot contain static block"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
