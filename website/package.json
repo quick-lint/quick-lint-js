@@ -12,18 +12,19 @@
     "@asciidoctor/core": "2.2.6",
     "chokidar": "^3.5.3",
     "ejs": "3.1.8",
-    "esbuild-wasm": "0.15.10",
+    "esbuild-wasm": "0.17.10",
     "markdown-it": "13.0.1",
     "mime": "3.0.0",
     "parse5-sax-parser": "^7.0.0",
     "promise-limit": "^2.7.0",
     "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/",
-    "svg-sprite": "^2.0.0",
-    "vinyl": "^3.0.0"
+    "svg-sprite": "^2.0.2",
+    "vinyl": "^3.0.0",
+    "yargs": "link:./null-package"
   },
   "devDependencies": {
     "@colors/colors": "^1.5.0",
-    "prettier": "2.7.1"
+    "prettier": "2.8.4"
   },
   "resolutions": {
     "yargs": "link:./null-package"
