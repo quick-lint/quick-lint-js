@@ -66,6 +66,7 @@ authored portions of quick-lint-js:
 * Shivam Mehta; sm.cse17@gmail.com; signed CLA-v1.md
 * Tony Sathre; tony@ghostbit.org; signed CLA-v1.md
 * Youness Asserare; signed CLA-v1.md
+* Yunus; ynsmrycl2007@gmail.com; signed CLA-v1.md
 * alex-huff; alexanderhuff53@gmail.com; signed CLA-v1.md
 * catac; https://github.com/catac1; signed CLA-v1.md
 * clegoz; signed CLA-v1.md

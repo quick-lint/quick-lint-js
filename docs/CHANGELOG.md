@@ -13,6 +13,13 @@ Semantic Versioning.
 * TypeScript: Type variables such as `Readonly<T>` and `IArguments` are now
   recognized by the new `typescript` global group which is enabled by default.
 * TypeScript: `declare class` is now supported.
+* `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
+  index") (implemented by [Yunus][]).
+
+### Fixed
+
+* Fixed [E0062][] being reported when [E0061][] should be reported instead
+  (fixed by [Yunus][]).
 
 ### Changed
 
@@ -797,6 +804,7 @@ Beta release.
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tony Sathre]: https://github.com/tonysathre
+[Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
@@ -826,6 +834,8 @@ Beta release.
 [E0057]: https://quick-lint-js.com/errors/E0057/
 [E0059]: https://quick-lint-js.com/errors/E0059/
 [E0060]: https://quick-lint-js.com/errors/E0060/
+[E0061]: https://quick-lint-js.com/errors/E0061/
+[E0062]: https://quick-lint-js.com/errors/E0062/
 [E0069]: https://quick-lint-js.com/errors/E0069/
 [E0073]: https://quick-lint-js.com/errors/E0073/
 [E0086]: https://quick-lint-js.com/errors/E0086/
