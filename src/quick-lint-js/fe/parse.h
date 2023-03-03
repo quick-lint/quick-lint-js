@@ -427,15 +427,11 @@ class parser {
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
-  void parse_and_visit_let_bindings(
-      parse_visitor_base &v, const token &declaring_token,
-      bool allow_in_operator, bool allow_const_without_initializer = false,
-      bool is_in_for_initializer = false);
   struct parse_let_bindings_options {
     const token &declaring_token;
-    bool allow_in_operator;
-    bool allow_const_without_initializer;
-    bool is_in_for_initializer;
+    bool allow_in_operator = true;
+    bool allow_const_without_initializer = false;
+    bool is_in_for_initializer = false;
   };
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(parse_visitor_base &v,

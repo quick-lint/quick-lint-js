@@ -110,8 +110,9 @@ parse_statement:
     } else {
       // Variable declaration.
       this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_let_bindings(v, let_token,
-                                         /*allow_in_operator=*/true);
+      this->parse_and_visit_let_bindings(v, parse_let_bindings_options{
+                                                .declaring_token = let_token,
+                                            });
       this->consume_semicolon_after_statement();
     }
     break;
@@ -997,8 +998,10 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       this->diag_reporter_->report(diag_cannot_export_default_variable{
           .declaring_token = declaring_token.span(),
       });
-      this->parse_and_visit_let_bindings(v, declaring_token,
-                                         /*allow_in_operator=*/true);
+      this->parse_and_visit_let_bindings(v,
+                                         parse_let_bindings_options{
+                                             .declaring_token = declaring_token,
+                                         });
       break;
     }
 
@@ -2888,10 +2891,12 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->skip();  // Re-parse 'let'.
         this->parse_and_visit_let_bindings(
-            lhs.visitor(), declaring_token,
-            /*allow_in_operator=*/false,
-            /*allow_const_without_initializer=*/false,
-            /*is_in_for_initializer=*/true);
+            lhs.visitor(), parse_let_bindings_options{
+                               .declaring_token = declaring_token,
+                               .allow_in_operator = false,
+                               .allow_const_without_initializer = false,
+                               .is_in_for_initializer = true,
+                           });
         break;
       }
     } else {
@@ -2899,10 +2904,12 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       // for (let x of xs) {}
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_let_bindings(
-          lhs.visitor(), declaring_token,
-          /*allow_in_operator=*/false,
-          /*allow_const_without_initializer=*/true,
-          /*is_in_for_initializer=*/true);
+          lhs.visitor(), parse_let_bindings_options{
+                             .declaring_token = declaring_token,
+                             .allow_in_operator = false,
+                             .allow_const_without_initializer = true,
+                             .is_in_for_initializer = true,
+                         });
     }
     switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -3863,24 +3870,12 @@ void parser::parse_and_visit_variable_declaration_statement(
       declaring_token.type == token_type::kw_const) {
     this->parse_and_visit_typescript_enum(v, enum_kind::const_enum);
   } else {
-    this->parse_and_visit_let_bindings(v, declaring_token,
-                                       /*allow_in_operator=*/true);
+    this->parse_and_visit_let_bindings(v,
+                                       parse_let_bindings_options{
+                                           .declaring_token = declaring_token,
+                                       });
     this->consume_semicolon_after_statement();
   }
-}
-
-void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          const token &declaring_token,
-                                          bool allow_in_operator,
-                                          bool allow_const_without_initializer,
-                                          bool is_in_for_initializer) {
-  this->parse_and_visit_let_bindings(
-      v, parse_let_bindings_options{
-             .declaring_token = declaring_token,
-             .allow_in_operator = allow_in_operator,
-             .allow_const_without_initializer = allow_const_without_initializer,
-             .is_in_for_initializer = is_in_for_initializer,
-         });
 }
 
 QLJS_WARNING_PUSH
