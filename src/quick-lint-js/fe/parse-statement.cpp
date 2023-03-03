@@ -3874,8 +3874,21 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                                           bool allow_in_operator,
                                           bool allow_const_without_initializer,
                                           bool is_in_for_initializer) {
+  this->parse_and_visit_let_bindings(
+      v, parse_let_bindings_options{
+             .declaring_token = declaring_token,
+             .allow_in_operator = allow_in_operator,
+             .allow_const_without_initializer = allow_const_without_initializer,
+             .is_in_for_initializer = is_in_for_initializer,
+         });
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
+void parser::parse_and_visit_let_bindings(
+    parse_visitor_base &v, const parse_let_bindings_options &options) {
   variable_kind declaration_kind;
-  switch (declaring_token.type) {
+  switch (options.declaring_token.type) {
   case token_type::kw_const:
     declaration_kind = variable_kind::_const;
     break;
@@ -3890,20 +3903,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     declaration_kind = variable_kind::_let;
     break;
   }
-  this->parse_and_visit_let_bindings(
-      v, parse_let_bindings_options{
-             .declaring_token = declaring_token,
-             .declaration_kind = declaration_kind,
-             .allow_in_operator = allow_in_operator,
-             .allow_const_without_initializer = allow_const_without_initializer,
-             .is_in_for_initializer = is_in_for_initializer,
-         });
-}
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-void parser::parse_and_visit_let_bindings(
-    parse_visitor_base &v, const parse_let_bindings_options &options) {
   source_code_span let_span = options.declaring_token.span();
   bool first_binding = true;
   for (;;) {
@@ -4021,7 +4021,7 @@ void parser::parse_and_visit_let_bindings(
                 return true;
               },
               [&] {
-                if (options.declaration_kind == variable_kind::_var) {
+                if (declaration_kind == variable_kind::_var) {
                   // for (var x = "initial" in obj)
                 } else {
                   // for (let x = "prop" in obj)  // Invalid.
@@ -4041,7 +4041,7 @@ void parser::parse_and_visit_let_bindings(
         this->visit_binding_element(
             assignment_ast, v,
             binding_element_info{
-                .declaration_kind = options.declaration_kind,
+                .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::initialized_with_equals,
             });
@@ -4061,7 +4061,7 @@ void parser::parse_and_visit_let_bindings(
           this->visit_binding_element(
               variable, v,
               binding_element_info{
-                  .declaration_kind = options.declaration_kind,
+                  .declaration_kind = declaration_kind,
                   .declaring_token = options.declaring_token.span(),
                   .init_kind = variable_init_kind::normal,
               });
@@ -4079,7 +4079,7 @@ void parser::parse_and_visit_let_bindings(
         this->visit_binding_element(
             variable, v,
             binding_element_info{
-                .declaration_kind = options.declaration_kind,
+                .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
                 // TODO(strager): Would initialized_with_equals make more sense?
                 .init_kind = variable_init_kind::normal,
@@ -4090,7 +4090,7 @@ void parser::parse_and_visit_let_bindings(
         // let x;
         // let x, y;
       default:
-        if (options.declaration_kind == variable_kind::_const) {
+        if (declaration_kind == variable_kind::_const) {
           if (!options.allow_const_without_initializer) {
             this->diag_reporter_->report(
                 diag_missing_initializer_in_const_declaration{
@@ -4100,7 +4100,7 @@ void parser::parse_and_visit_let_bindings(
         this->visit_binding_element(
             variable, v,
             binding_element_info{
-                .declaration_kind = options.declaration_kind,
+                .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::normal,
             });
@@ -4127,7 +4127,7 @@ void parser::parse_and_visit_let_bindings(
       this->visit_binding_element(
           ast, v,
           binding_element_info{
-              .declaration_kind = options.declaration_kind,
+              .declaration_kind = declaration_kind,
               .declaring_token = options.declaring_token.span(),
               .init_kind = variable_init_kind::normal,
           });

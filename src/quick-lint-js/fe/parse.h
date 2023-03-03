@@ -433,7 +433,6 @@ class parser {
       bool is_in_for_initializer = false);
   struct parse_let_bindings_options {
     const token &declaring_token;
-    variable_kind declaration_kind;
     bool allow_in_operator;
     bool allow_const_without_initializer;
     bool is_in_for_initializer;
