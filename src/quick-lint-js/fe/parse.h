@@ -431,13 +431,16 @@ class parser {
       parse_visitor_base &v, const token &declaring_token,
       bool allow_in_operator, bool allow_const_without_initializer = false,
       bool is_in_for_initializer = false);
+  struct parse_let_bindings_options {
+    const token &declaring_token;
+    variable_kind declaration_kind;
+    bool allow_in_operator;
+    bool allow_const_without_initializer;
+    bool is_in_for_initializer;
+  };
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(parse_visitor_base &v,
-                                    const token &declaring_token,
-                                    variable_kind declaration_kind,
-                                    bool allow_in_operator,
-                                    bool allow_const_without_initializer,
-                                    bool is_in_for_initializer);
+                                    const parse_let_bindings_options &);
   bool is_let_token_a_variable_reference(const token &following_token,
                                          bool allow_declarations) noexcept;
 

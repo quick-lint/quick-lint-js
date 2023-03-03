@@ -3891,21 +3891,20 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     break;
   }
   this->parse_and_visit_let_bindings(
-      v, declaring_token, declaration_kind,
-      /*allow_in_operator=*/allow_in_operator,
-      /*allow_const_without_initializer=*/allow_const_without_initializer,
-      /*is_in_for_initializer=*/is_in_for_initializer);
+      v, parse_let_bindings_options{
+             .declaring_token = declaring_token,
+             .declaration_kind = declaration_kind,
+             .allow_in_operator = allow_in_operator,
+             .allow_const_without_initializer = allow_const_without_initializer,
+             .is_in_for_initializer = is_in_for_initializer,
+         });
 }
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          const token &declaring_token,
-                                          variable_kind declaration_kind,
-                                          bool allow_in_operator,
-                                          bool allow_const_without_initializer,
-                                          bool is_in_for_initializer) {
-  source_code_span let_span = declaring_token.span();
+void parser::parse_and_visit_let_bindings(
+    parse_visitor_base &v, const parse_let_bindings_options &options) {
+  source_code_span let_span = options.declaring_token.span();
   bool first_binding = true;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
@@ -3993,14 +3992,16 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         auto *assignment_ast = static_cast<expression::assignment *>(
             this->parse_expression_remainder(
                 v, variable,
-                precedence{.commas = false, .in_operator = allow_in_operator}));
+                precedence{.commas = false,
+                           .in_operator = options.allow_in_operator}));
 
-        if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
+        if (options.is_in_for_initializer &&
+            this->peek().type == token_type::kw_in) {
           // for (var x = "initial" in obj)
           // for (let x = "prop" in obj)  // Invalid.
           // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
           source_code_span in_token_span = this->peek().span();
-          QLJS_ASSERT(!allow_in_operator);
+          QLJS_ASSERT(!options.allow_in_operator);
 
           // FIXME(#831): v should not be used here. We should use a
           // buffering_visitor.
@@ -4020,7 +4021,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                 return true;
               },
               [&] {
-                if (declaration_kind == variable_kind::_var) {
+                if (options.declaration_kind == variable_kind::_var) {
                   // for (var x = "initial" in obj)
                 } else {
                   // for (let x = "prop" in obj)  // Invalid.
@@ -4029,7 +4030,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                           .equal_token = equal_token.span()});
                 }
               });
-        } else if (is_in_for_initializer &&
+        } else if (options.is_in_for_initializer &&
                    this->peek().type == token_type::kw_of) {
           // for (var x = "initial" of obj)  // Invalid.
           this->diag_reporter_->report(
@@ -4040,8 +4041,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         this->visit_binding_element(
             assignment_ast, v,
             binding_element_info{
-                .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaration_kind = options.declaration_kind,
+                .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::initialized_with_equals,
             });
         break;
@@ -4060,8 +4061,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           this->visit_binding_element(
               variable, v,
               binding_element_info{
-                  .declaration_kind = declaration_kind,
-                  .declaring_token = declaring_token.span(),
+                  .declaration_kind = options.declaration_kind,
+                  .declaring_token = options.declaring_token.span(),
                   .init_kind = variable_init_kind::normal,
               });
           this->lexer_.insert_semicolon();
@@ -4073,12 +4074,13 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                 source_code_span::unit(this->lexer_.end_of_previous_token()),
         });
         this->parse_and_visit_expression(
-            v, precedence{.commas = false, .in_operator = allow_in_operator});
+            v, precedence{.commas = false,
+                          .in_operator = options.allow_in_operator});
         this->visit_binding_element(
             variable, v,
             binding_element_info{
-                .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaration_kind = options.declaration_kind,
+                .declaring_token = options.declaring_token.span(),
                 // TODO(strager): Would initialized_with_equals make more sense?
                 .init_kind = variable_init_kind::normal,
             });
@@ -4088,8 +4090,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         // let x;
         // let x, y;
       default:
-        if (declaration_kind == variable_kind::_const) {
-          if (!allow_const_without_initializer) {
+        if (options.declaration_kind == variable_kind::_const) {
+          if (!options.allow_const_without_initializer) {
             this->diag_reporter_->report(
                 diag_missing_initializer_in_const_declaration{
                     .variable_name = variable->span()});
@@ -4098,8 +4100,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         this->visit_binding_element(
             variable, v,
             binding_element_info{
-                .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaration_kind = options.declaration_kind,
+                .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::normal,
             });
         break;
@@ -4119,14 +4121,16 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     case token_type::left_curly:
     case token_type::left_square: {
       expression *ast = this->parse_expression(
-          v, precedence{.commas = false, .in_operator = allow_in_operator});
+          v, precedence{.commas = false,
+                        .in_operator = options.allow_in_operator});
       // TODO(strager): Report error if initializer is missing.
-      this->visit_binding_element(ast, v,
-                                  binding_element_info{
-                                      .declaration_kind = declaration_kind,
-                                      .declaring_token = declaring_token.span(),
-                                      .init_kind = variable_init_kind::normal,
-                                  });
+      this->visit_binding_element(
+          ast, v,
+          binding_element_info{
+              .declaration_kind = options.declaration_kind,
+              .declaring_token = options.declaring_token.span(),
+              .init_kind = variable_init_kind::normal,
+          });
       break;
     }
 
@@ -4149,7 +4153,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
             });
         this->skip();
         this->parse_and_visit_expression(
-            v, precedence{.commas = false, .in_operator = allow_in_operator});
+            v, precedence{.commas = false,
+                          .in_operator = options.allow_in_operator});
         break;
 
         // let if (x) {}    // Invalid.
@@ -4205,7 +4210,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
       });
       this->skip();
       this->parse_and_visit_expression(
-          v, precedence{.commas = false, .in_operator = allow_in_operator});
+          v, precedence{.commas = false,
+                        .in_operator = options.allow_in_operator});
       break;
 
     case token_type::semicolon:
