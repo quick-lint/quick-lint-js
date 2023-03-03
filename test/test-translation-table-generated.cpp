@@ -352,6 +352,28 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare {1}' cannot have initializer"_translatable,
+        {
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+        },
+    },
+    {
+        "'declare {1}' started here"_translatable,
+        {
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+        },
+    },
+    {
         "'do-while' loop"_translatable,
         {
             u8"'do-while' loop",
@@ -767,6 +789,17 @@ const translated_string test_translation_table[] = {
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare {1}' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
         },
     },
     {

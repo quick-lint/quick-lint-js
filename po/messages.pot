@@ -222,6 +222,18 @@ msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare {1}' cannot have initializer"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare {1}' started here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript 'declare {1}' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 

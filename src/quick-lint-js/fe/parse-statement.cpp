@@ -182,10 +182,11 @@ parse_statement:
       break;
 
     // declare const enum E {}
+    // declare const myVariable: any;
     //
     // declare  // ASI
     // const enum E {}
-    case token_type::kw_const:
+    case token_type::kw_const: {
       if (this->peek().has_leading_newline) {
         // declare  // ASI
         // const enum E {}
@@ -194,10 +195,29 @@ parse_statement:
       }
       this->lexer_.commit_transaction(std::move(transaction));
 
+      token const_keyword = this->peek();
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_enum);
-      this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
+      if (this->peek().type == token_type::kw_enum) {
+        // declare const enum E {}
+        this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
+      } else {
+        // declare const myVariable: any;
+        if (!this->options_.typescript) {
+          this->diag_reporter_->report(
+              diag_declare_var_not_allowed_in_javascript{
+                  .declare_keyword = declare_keyword_span,
+                  .declaring_token = const_keyword.span(),
+              });
+        }
+        this->parse_and_visit_let_bindings(
+            v, parse_let_bindings_options{
+                   .declaring_token = const_keyword,
+                   .declare_keyword = declare_keyword_span,
+               });
+        this->consume_semicolon_after_statement();
+      }
       break;
+    }
 
     // declare class C {}
     //
@@ -251,6 +271,38 @@ parse_statement:
                  .abstract_keyword_span = abstract_token,
                  .declare_keyword_span = declare_keyword_span,
              });
+      break;
+    }
+
+    // declare var x;
+    // declare let y, z;
+    //
+    // declare  // ASI
+    // var x;
+    case token_type::kw_let:
+    case token_type::kw_var: {
+      if (this->peek().has_leading_newline) {
+        // declare  // ASI
+        // var x;
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+      this->lexer_.commit_transaction(std::move(transaction));
+
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
+            .declare_keyword = declare_keyword_span,
+            .declaring_token = this->peek().span(),
+        });
+      }
+      token declaring_token = this->peek();
+      this->skip();
+      this->parse_and_visit_let_bindings(
+          v, parse_let_bindings_options{
+                 .declaring_token = declaring_token,
+                 .declare_keyword = declare_keyword_span,
+             });
+      this->consume_semicolon_after_statement();
       break;
     }
 
@@ -3984,6 +4036,14 @@ void parser::parse_and_visit_let_bindings(
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::equal: {
         token equal_token = this->peek();
+        if (options.declare_keyword.has_value()) {
+          this->diag_reporter_->report(diag_declare_var_cannot_have_initializer{
+              .equal = equal_token.span(),
+              .declare_keyword = *options.declare_keyword,
+              .declaring_token = options.declaring_token.span(),
+          });
+        }
+
         auto *assignment_ast = static_cast<expression::assignment *>(
             this->parse_expression_remainder(
                 v, variable,
@@ -4086,7 +4146,8 @@ void parser::parse_and_visit_let_bindings(
         // let x, y;
       default:
         if (declaration_kind == variable_kind::_const) {
-          if (!options.allow_const_without_initializer) {
+          if (!options.allow_const_without_initializer &&
+              !options.is_declare()) {
             this->diag_reporter_->report(
                 diag_missing_initializer_in_const_declaration{
                     .variable_name = variable->span()});

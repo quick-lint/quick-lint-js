@@ -270,6 +270,25 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'declare {1}' cannot have initializer"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare {1}' started here"
+msgstr "tableau débuté ici"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare {1}' is not allowed in JavaScript"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 "'function static' n'est pas autorisé ; utiliser plutôt 'async function'"

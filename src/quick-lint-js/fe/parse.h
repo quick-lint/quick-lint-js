@@ -432,6 +432,12 @@ class parser {
     bool allow_in_operator = true;
     bool allow_const_without_initializer = false;
     bool is_in_for_initializer = false;
+
+    // If set, refers to the TypeScript 'declare' keyword in 'declare var x;'
+    // for example.
+    std::optional<source_code_span> declare_keyword;
+
+    bool is_declare() const { return this->declare_keyword.has_value(); }
   };
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(parse_visitor_base &v,

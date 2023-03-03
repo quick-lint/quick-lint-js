@@ -270,6 +270,30 @@
               declare_keyword))                                                 \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_var_cannot_have_initializer, "E0351",                        \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span equal;                                                 \
+        source_code_span declare_keyword;                                       \
+        source_code_span declaring_token;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'declare {1}' cannot have initializer"),       \
+              equal, declaring_token)                                           \
+          MESSAGE(QLJS_TRANSLATABLE("'declare {1}' started here"),              \
+                  declare_keyword, declaring_token))                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_var_not_allowed_in_javascript, "E0350",                      \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span declare_keyword;                                       \
+        source_code_span declaring_token;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript 'declare {1}' is not "              \
+                                "allowed in JavaScript"),                       \
+              declare_keyword, declaring_token))                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_function_async_function, "E0327", diagnostic_severity::error,        \
       { source_code_span function_async; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("'function async' is not allowed; write "       \

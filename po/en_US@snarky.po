@@ -225,6 +225,21 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare {1}' cannot have initializer"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare {1}' started here"
+msgstr "you opened Pandora's Box here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare {1}' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
 # this is actually better than the OG one
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy

@@ -42,7 +42,9 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 44},                 //
         {0, 0, 0, 0, 0, 49},                 //
         {0, 0, 0, 0, 0, 56},                 //
-        {71, 48, 0, 44, 0, 46},              //
+        {0, 0, 0, 0, 0, 46},                 //
+        {0, 0, 0, 0, 0, 38},                 //
+        {71, 48, 0, 44, 0, 27},              //
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 39, 0, 33},                //
         {30, 39, 0, 46, 0, 38},              //
@@ -80,7 +82,8 @@ const translation_table translation_data = {
         {0, 0, 0, 64, 0, 52},                //
         {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 0, 0, 65},                 //
-        {0, 0, 0, 78, 0, 56},                //
+        {0, 0, 0, 0, 0, 56},                 //
+        {0, 0, 0, 78, 0, 54},                //
         {0, 0, 0, 45, 0, 53},                //
         {0, 0, 0, 78, 0, 62},                //
         {0, 0, 0, 87, 0, 70},                //
@@ -1738,6 +1741,8 @@ const translation_table translation_data = {
         u8"'declare class' methods cannot be marked 'async'\0"
         u8"'declare class' methods cannot be marked as a generator\0"
         u8"'declare class' methods cannot contain a body\0"
+        u8"'declare {1}' cannot have initializer\0"
+        u8"'declare {1}' started here\0"
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'extends' must be before 'implements'\0"
@@ -1776,6 +1781,7 @@ const translation_table translation_data = {
         u8"TypeScript 'as' type assertions are not allowed in JavaScript\0"
         u8"TypeScript 'declare abstract class' is not allowed in JavaScript\0"
         u8"TypeScript 'declare class' is not allowed in JavaScript\0"
+        u8"TypeScript 'declare {1}' is not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
