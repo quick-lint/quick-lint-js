@@ -4575,6 +4575,15 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
     return parse_possible_declare_result::parsed;
   }
 
+  // declare interface I { }
+  case token_type::kw_interface: {
+    this->lexer_.commit_transaction(std::move(transaction));
+    source_code_span interface_keyword_span = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_interface(v, interface_keyword_span);
+    return parse_possible_declare_result::parsed;
+  }
+
   // declare:  // Label.
   // declare();
   case token_type::colon:
