@@ -4447,19 +4447,20 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   lexer_transaction transaction = this->lexer_.begin_transaction();
   source_code_span declare_keyword_span = this->peek().span();
   this->skip();
+
+  if (this->peek().has_leading_newline) {
+    // declare  // ASI
+    // enum E {}
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return parse_possible_declare_result::declare_is_expression_or_loop_label;
+  }
+
   switch (this->peek().type) {
   // declare enum E {}
   //
   // declare  // ASI
   // enum E {}
   case token_type::kw_enum:
-    if (this->peek().has_leading_newline) {
-      // declare  // ASI
-      // enum E {}
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_possible_declare_result::declare_is_expression_or_loop_label;
-    }
-
     // declare enum E {}
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
@@ -4471,12 +4472,6 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   // declare  // ASI
   // const enum E {}
   case token_type::kw_const: {
-    if (this->peek().has_leading_newline) {
-      // declare  // ASI
-      // const enum E {}
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_possible_declare_result::declare_is_expression_or_loop_label;
-    }
     this->lexer_.commit_transaction(std::move(transaction));
 
     token const_keyword = this->peek();
@@ -4507,12 +4502,6 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   // declare  // ASI
   // class C {}
   case token_type::kw_class:
-    if (this->peek().has_leading_newline) {
-      // declare  // ASI
-      // class C {}
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_possible_declare_result::declare_is_expression_or_loop_label;
-    }
     this->lexer_.commit_transaction(std::move(transaction));
 
     this->parse_and_visit_class(
@@ -4531,12 +4520,6 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   // declare abstract
   // class C {}        // Invalid.
   case token_type::kw_abstract: {
-    if (this->peek().has_leading_newline) {
-      // declare  // ASI
-      // abstract class C {}
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_possible_declare_result::declare_is_expression_or_loop_label;
-    }
     this->lexer_.commit_transaction(std::move(transaction));
 
     source_code_span abstract_token = this->peek().span();
@@ -4564,12 +4547,6 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   // var x;
   case token_type::kw_let:
   case token_type::kw_var: {
-    if (this->peek().has_leading_newline) {
-      // declare  // ASI
-      // var x;
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_possible_declare_result::declare_is_expression_or_loop_label;
-    }
     this->lexer_.commit_transaction(std::move(transaction));
 
     if (!this->options_.typescript) {
