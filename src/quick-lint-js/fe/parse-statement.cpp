@@ -4566,6 +4566,15 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
     return parse_possible_declare_result::parsed;
   }
 
+  // declare type T = U;
+  case token_type::kw_type: {
+    this->lexer_.commit_transaction(std::move(transaction));
+    source_code_span type_keyword_span = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_type_alias(v, type_keyword_span);
+    return parse_possible_declare_result::parsed;
+  }
+
   // declare:  // Label.
   // declare();
   case token_type::colon:
