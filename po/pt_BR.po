@@ -218,6 +218,11 @@ msgstr "interfaces não podem conter blocos estáticos"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript 'declare abstract class' is not allowed in JavaScript"
+msgstr "'implements' não é permitido em JavaScript"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr "'implements' não é permitido em JavaScript"
 

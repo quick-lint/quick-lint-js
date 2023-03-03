@@ -748,6 +748,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript 'declare abstract class' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript 'declare class' is not allowed in JavaScript"_translatable,
         {
             u8"TypeScript 'declare class' is not allowed in JavaScript",

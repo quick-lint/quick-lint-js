@@ -256,6 +256,13 @@
           body_start))                                                          \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_abstract_class_not_allowed_in_javascript, "E0340",           \
+      diagnostic_severity::error, { source_code_span declare_keyword; },        \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript 'declare abstract class' is not "   \
+                                "allowed in JavaScript"),                       \
+              declare_keyword))                                                 \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_declare_class_not_allowed_in_javascript, "E0339",                    \
       diagnostic_severity::error, { source_code_span declare_keyword; },        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

@@ -219,6 +219,40 @@ parse_statement:
              });
       break;
 
+    // declare abstract class C {}
+    //
+    // declare  // ASI
+    // abstract class C {}
+    //
+    // declare abstract
+    // class C {}        // Invalid.
+    case token_type::kw_abstract: {
+      if (this->peek().has_leading_newline) {
+        // declare  // ASI
+        // abstract class C {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+      this->lexer_.commit_transaction(std::move(transaction));
+
+      source_code_span abstract_token = this->peek().span();
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
+      if (this->peek().has_leading_newline) {
+        this->diag_reporter_->report(
+            diag_newline_not_allowed_after_abstract_keyword{
+                .abstract_keyword = abstract_token,
+            });
+      }
+      this->parse_and_visit_class(
+          v, parse_class_options{
+                 .require_name = name_requirement::required_for_statement,
+                 .abstract_keyword_span = abstract_token,
+                 .declare_keyword_span = declare_keyword_span,
+             });
+      break;
+    }
+
     // declare:  // Label.
     // declare();
     case token_type::colon:

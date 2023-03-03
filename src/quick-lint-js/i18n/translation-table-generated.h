@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 414;
-constexpr std::size_t translation_table_string_table_size = 75116;
+constexpr std::uint16_t translation_table_mapping_table_size = 415;
+constexpr std::size_t translation_table_string_table_size = 75181;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -95,6 +95,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "React/JSX is not allowed in vanilla JavaScript code"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,
           "TypeScript 'as' type assertions are not allowed in JavaScript"sv,
+          "TypeScript 'declare abstract class' is not allowed in JavaScript"sv,
           "TypeScript 'declare class' is not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,

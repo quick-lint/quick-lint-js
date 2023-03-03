@@ -27,13 +27,21 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   source_code_span class_keyword_span = this->peek().span();
 
-  if (options.abstract_keyword_span.has_value() && !this->options_.typescript) {
+  bool is_abstract_in_javascript =
+      options.abstract_keyword_span.has_value() && !this->options_.typescript;
+  bool is_declare_in_javascript =
+      options.declare_keyword_span.has_value() && !this->options_.typescript;
+  if (is_abstract_in_javascript && is_declare_in_javascript) {
+    this->diag_reporter_->report(
+        diag_declare_abstract_class_not_allowed_in_javascript{
+            .declare_keyword = *options.declare_keyword_span,
+        });
+  } else if (is_abstract_in_javascript) {
     this->diag_reporter_->report(
         diag_typescript_abstract_class_not_allowed_in_javascript{
             .abstract_keyword = *options.abstract_keyword_span,
         });
-  }
-  if (options.declare_keyword_span.has_value() && !this->options_.typescript) {
+  } else if (is_declare_in_javascript) {
     this->diag_reporter_->report(diag_declare_class_not_allowed_in_javascript{
         .declare_keyword = *options.declare_keyword_span,
     });

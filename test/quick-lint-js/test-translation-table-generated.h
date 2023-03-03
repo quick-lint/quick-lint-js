@@ -27,7 +27,7 @@ struct translated_string {
   const char8 *expected_per_locale[6];
 };
 
-extern const translated_string test_translation_table[413];
+extern const translated_string test_translation_table[414];
 }
 
 #endif

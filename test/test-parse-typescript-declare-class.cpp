@@ -47,8 +47,46 @@ TEST_F(test_parse_typescript_declare_class,
       }));
 }
 
+TEST_F(test_parse_typescript_declare_class,
+       declare_abstract_class_is_not_allowed_in_javascript) {
+  {
+    test_parser p(u8"declare abstract class C {}"_sv, javascript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_declare_abstract_class_not_allowed_in_javascript,  //
+                declare_keyword, strlen(u8""), u8"declare"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_declare_class, declare_empty_class) {
   test_parser p(u8"declare class C {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration",    // C
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({class_decl(u8"C"_sv)}));
+}
+
+TEST_F(test_parse_typescript_declare_class, declare_empty_abstract_class) {
+  test_parser p(u8"declare abstract class C {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -76,6 +114,47 @@ TEST_F(test_parse_typescript_declare_class,
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"declare"_sv}));
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({class_decl(u8"C"_sv)}));
+}
+
+TEST_F(test_parse_typescript_declare_class,
+       declare_before_abstract_keyword_triggers_asi) {
+  test_parser p(u8"declare\nabstract class C {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_use",            // declare
+                            "visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration",    // C
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"declare"_sv}));
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({class_decl(u8"C"_sv)}));
+}
+
+TEST_F(
+    test_parse_typescript_declare_class,
+    newline_is_not_allowed_between_abstract_and_class_keyword_in_declare_abstract_class) {
+  test_parser p(u8"declare abstract\nclass C {}"_sv, typescript_options,
+                capture_diags);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration",    // C
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({class_decl(u8"C"_sv)}));
+  EXPECT_THAT(p.errors,
+              ElementsAreArray({
+                  DIAG_TYPE_OFFSETS(
+                      p.code,
+                      diag_newline_not_allowed_after_abstract_keyword,  //
+                      abstract_keyword, strlen(u8"declare "), u8"abstract"_sv),
+              }));
 }
 
 TEST_F(test_parse_typescript_declare_class,
@@ -270,6 +349,21 @@ TEST_F(test_parse_typescript_declare_class,
                 u8"abstract"_sv, class_keyword, strlen(u8"declare "),
                 u8"class"_sv),
         }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_class,
+       abstract_declare_class_properties_can_be_abstract) {
+  {
+    test_parser p(u8"declare abstract class C { abstract myMethod(); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    test_parser p(u8"declare abstract class C { abstract myField: any; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
   }
 }
 

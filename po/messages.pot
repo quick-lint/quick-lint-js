@@ -214,6 +214,10 @@ msgid "'declare class' methods cannot contain a body"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript 'declare abstract class' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr ""
 

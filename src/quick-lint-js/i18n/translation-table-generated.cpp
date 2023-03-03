@@ -79,6 +79,7 @@ const translation_table translation_data = {
         {21, 38, 23, 58, 0, 52},             //
         {0, 0, 0, 64, 0, 52},                //
         {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 78, 0, 56},                //
         {0, 0, 0, 45, 0, 53},                //
         {0, 0, 0, 78, 0, 62},                //
@@ -1773,6 +1774,7 @@ const translation_table translation_data = {
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
         u8"TypeScript 'as' type assertions are not allowed in JavaScript\0"
+        u8"TypeScript 'declare abstract class' is not allowed in JavaScript\0"
         u8"TypeScript 'declare class' is not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
