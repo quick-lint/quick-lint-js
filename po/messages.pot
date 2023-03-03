@@ -458,6 +458,10 @@ msgid "index starts here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "misleading use of ',' operator in conditional statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr ""
 

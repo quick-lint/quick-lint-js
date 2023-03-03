@@ -1922,7 +1922,8 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_switch_condition,
         diag_expected_parenthesis_around_switch_condition,
-        /*CheckForSketchyConditions=*/false>(v);
+        /*CheckForSketchyConditions=*/false,
+        /*CheckForCommaOperator=*/true>(v);
   }
 
   switch (this->peek().type) {
@@ -2590,7 +2591,8 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   this->parse_and_visit_parenthesized_expression<
       diag_expected_parentheses_around_do_while_condition,
       diag_expected_parenthesis_around_do_while_condition,
-      /*CheckForSketchyConditions=*/true>(v);
+      /*CheckForSketchyConditions=*/true,
+      /*CheckForCommaOperator=*/true>(v);
 
   if (this->peek().type == token_type::semicolon) {
     this->skip();
@@ -2624,6 +2626,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
           expression *ast = this->parse_expression(v);
           this->visit_expression(ast, v, variable_context::rhs);
           this->error_on_sketchy_condition(ast);
+          this->warn_on_comma_operator_in_conditional_statement(ast);
         }
 
         switch (this->peek().type) {
@@ -3003,7 +3006,8 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_while_condition,
         diag_expected_parenthesis_around_while_condition,
-        /*CheckForSketchyConditions=*/true>(v);
+        /*CheckForSketchyConditions=*/true,
+        /*CheckForCommaOperator=*/true>(v);
   }
 
   this->error_on_class_statement(statement_kind::while_loop);
@@ -3026,7 +3030,8 @@ void parser::parse_and_visit_with(parse_visitor_base &v) {
   this->parse_and_visit_parenthesized_expression<
       diag_expected_parentheses_around_with_expression,
       diag_expected_parenthesis_around_with_expression,
-      /*CheckForSketchyConditions=*/false>(v);
+      /*CheckForSketchyConditions=*/false,
+      /*CheckForCommaOperator=*/false>(v);
 
   this->error_on_class_statement(statement_kind::with_statement);
   this->error_on_function_statement(statement_kind::with_statement);
@@ -3055,7 +3060,8 @@ void parser::parse_and_visit_if(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_if_condition,
         diag_expected_parenthesis_around_if_condition,
-        /*CheckForSketchyConditions=*/true>(v);
+        /*CheckForSketchyConditions=*/true,
+        /*CheckForCommaOperator=*/true>(v);
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {

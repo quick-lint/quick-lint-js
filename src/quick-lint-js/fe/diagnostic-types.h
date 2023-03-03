@@ -669,6 +669,13 @@
           MESSAGE(QLJS_TRANSLATABLE("index starts here"), left_square))         \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_misleading_comma_operator_in_conditional_statement, "E0451",         \
+      diagnostic_severity::warning, { source_code_span comma; },                \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "misleading use of ',' operator in conditional statement"),   \
+              comma))                                                           \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_expected_as_before_imported_namespace_alias, "E0126",                \
       diagnostic_severity::error,                                               \
       {                                                                         \

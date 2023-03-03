@@ -390,6 +390,68 @@ TEST_F(test_parse_warning,
   }
 }
 
+TEST_F(test_parse_warning, warn_on_comma_operator_in_conditional_statement) {
+  {
+    test_parser p(u8"if(false, true){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"if(false"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"do{i++}while((i < 0), true)"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"do{i++}while((i < 0)"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"do{i++}while(i < (0, true))"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"for(; i < 5, i < 3; ){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"for(; i < 5"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"for(let i = 0, j = 0;;){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"switch(cond1, cond2){case 1:break;}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"switch(cond1"), u8","_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_warning,
        warn_on_pointless_string_compare_complex_expressions) {
   {

@@ -399,10 +399,11 @@ class parser {
   void parse_and_visit_with(parse_visitor_base &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-            bool CheckForSketchyConditions>
+            bool CheckForSketchyConditions, bool CheckForCommaOperator>
   void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
 
   void error_on_sketchy_condition(expression *);
+  void warn_on_comma_operator_in_conditional_statement(expression *);
   void error_on_pointless_string_compare(expression::binary_operator *);
   void error_on_pointless_compare_against_literal(
       expression::binary_operator *);
@@ -914,7 +915,7 @@ class parser {
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-          bool CheckForSketchyConditions>
+          bool CheckForSketchyConditions, bool CheckForCommaOperator>
 void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
   bool have_expression_left_paren = this->peek().type == token_type::left_paren;
   if (have_expression_left_paren) {
@@ -924,8 +925,13 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
 
   expression *ast = this->parse_expression(v);
   this->visit_expression(ast, v, variable_context::rhs);
+
   if constexpr (CheckForSketchyConditions) {
     this->error_on_sketchy_condition(ast);
+  }
+
+  if constexpr (CheckForCommaOperator) {
+    this->warn_on_comma_operator_in_conditional_statement(ast);
   }
 
   const char8 *expression_end = this->lexer_.end_of_previous_token();
