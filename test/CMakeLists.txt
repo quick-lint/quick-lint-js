@@ -102,6 +102,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-angle-type-assertion.cpp
   test-parse-typescript-class.cpp
   test-parse-typescript-declare-class.cpp
+  test-parse-typescript-declare-function.cpp
   test-parse-typescript-declare-interface.cpp
   test-parse-typescript-declare-type.cpp
   test-parse-typescript-declare-var.cpp

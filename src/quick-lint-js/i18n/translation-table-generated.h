@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 418;
-constexpr std::size_t translation_table_string_table_size = 75300;
+constexpr std::uint16_t translation_table_mapping_table_size = 423;
+constexpr std::size_t translation_table_string_table_size = 75516;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -59,6 +59,10 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'declare class' methods cannot be marked 'async'"sv,
           "'declare class' methods cannot be marked as a generator"sv,
           "'declare class' methods cannot contain a body"sv,
+          "'declare function' cannot be marked 'async'"sv,
+          "'declare function' cannot be marked as a generator"sv,
+          "'declare function' cannot have a body"sv,
+          "'declare function' here"sv,
           "'declare {1}' cannot have initializer"sv,
           "'declare {1}' started here"sv,
           "'do-while' loop"sv,
@@ -99,6 +103,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript 'as' type assertions are not allowed in JavaScript"sv,
           "TypeScript 'declare abstract class' is not allowed in JavaScript"sv,
           "TypeScript 'declare class' is not allowed in JavaScript"sv,
+          "TypeScript 'declare function' is not allowed in JavaScript"sv,
           "TypeScript 'declare {1}' is not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,

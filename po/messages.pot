@@ -222,6 +222,26 @@ msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare function' cannot be marked 'async'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare function' cannot be marked as a generator"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare function' cannot have a body"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'declare function' here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript 'declare function' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
 

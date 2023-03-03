@@ -262,6 +262,39 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "'declare function' cannot be marked 'async'"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare function' cannot be marked as a generator"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare function' cannot have a body"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'declare function' here"
+msgstr "Funktionsaufruf beginnt hier"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'declare function' is not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

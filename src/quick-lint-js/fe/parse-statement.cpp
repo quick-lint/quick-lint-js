@@ -4448,6 +4448,8 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
   source_code_span declare_keyword_span = this->peek().span();
   this->skip();
 
+  function_attributes func_attributes = function_attributes::normal;
+
   if (this->peek().has_leading_newline) {
     // declare  // ASI
     // enum E {}
@@ -4581,6 +4583,86 @@ parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
     source_code_span interface_keyword_span = this->peek().span();
     this->skip();
     this->parse_and_visit_typescript_interface(v, interface_keyword_span);
+    return parse_possible_declare_result::parsed;
+  }
+
+  // declare async function f(); // Invalid.
+  case token_type::kw_async:
+    this->diag_reporter_->report(diag_declare_function_cannot_be_async{
+        .async_keyword = this->peek().span(),
+    });
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
+    func_attributes = function_attributes::async;
+    goto parse_declare_function;
+
+  // declare function f();
+  parse_declare_function:
+  case token_type::kw_function: {
+    this->lexer_.commit_transaction(std::move(transaction));
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_declare_function_not_allowed_in_javascript{
+              .declare_keyword = declare_keyword_span,
+          });
+    }
+    this->skip();
+
+    std::optional<source_code_span> generator_star =
+        this->parse_generator_star(&func_attributes);
+    if (generator_star.has_value()) {
+      this->diag_reporter_->report(diag_declare_function_cannot_be_generator{
+          .star = *generator_star,
+      });
+    }
+
+    std::optional<source_code_span> function_name_span;
+    switch (this->peek().type) {
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case token_type::kw_await:
+    case token_type::kw_yield:
+    case token_type::identifier: {
+      identifier function_name = this->peek().identifier_name();
+      v.visit_variable_declaration(function_name, variable_kind::_function,
+                                   variable_init_kind::normal);
+      function_name_span = function_name.span();
+      this->skip();
+      break;
+    }
+
+    default:
+      break;
+    }
+
+    if (!function_name_span.has_value()) {
+      this->diag_reporter_->report(diag_missing_name_in_function_statement{
+          .where = source_code_span::unit(this->peek().begin),
+      });
+    }
+
+    v.visit_enter_function_scope();
+    {
+      function_guard guard = this->enter_function(func_attributes);
+      function_parameter_parse_result result =
+          this->parse_and_visit_function_parameters(v, function_name_span);
+      switch (result) {
+      case function_parameter_parse_result::parsed_parameters:
+      case function_parameter_parse_result::missing_parameters:
+        this->diag_reporter_->report(diag_declare_function_cannot_have_body{
+            .body_start = this->peek().span(),
+            .declare_keyword = declare_keyword_span,
+        });
+        v.visit_enter_function_scope_body();
+        this->parse_and_visit_statement_block_no_scope(v);
+        break;
+
+      case function_parameter_parse_result::missing_parameters_ignore_body:
+      case function_parameter_parse_result::parsed_parameters_missing_body:
+        break;
+      }
+    }
+    v.visit_exit_function_scope();
+
     return parse_possible_declare_result::parsed;
   }
 

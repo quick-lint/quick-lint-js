@@ -352,6 +352,50 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare function' cannot be marked 'async'"_translatable,
+        {
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+        },
+    },
+    {
+        "'declare function' cannot be marked as a generator"_translatable,
+        {
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+        },
+    },
+    {
+        "'declare function' cannot have a body"_translatable,
+        {
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+        },
+    },
+    {
+        "'declare function' here"_translatable,
+        {
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+        },
+    },
+    {
         "'declare {1}' cannot have initializer"_translatable,
         {
             u8"'declare {1}' cannot have initializer",
@@ -789,6 +833,17 @@ const translated_string test_translation_table[] = {
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare function' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
         },
     },
     {

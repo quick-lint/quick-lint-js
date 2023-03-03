@@ -270,6 +270,39 @@
               declare_keyword))                                                 \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_function_cannot_be_async, "E0354",                           \
+      diagnostic_severity::error, { source_code_span async_keyword; },          \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("'declare function' cannot be marked 'async'"),     \
+          async_keyword))                                                       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_function_cannot_be_generator, "E0355",                       \
+      diagnostic_severity::error, { source_code_span star; },                   \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "'declare function' cannot be marked as a generator"),        \
+              star))                                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_function_cannot_have_body, "E0353",                          \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span body_start;                                            \
+        source_code_span declare_keyword;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'declare function' cannot have a body"),       \
+              body_start)                                                       \
+          MESSAGE(QLJS_TRANSLATABLE("'declare function' here"),                 \
+                  declare_keyword))                                             \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_function_not_allowed_in_javascript, "E0352",                 \
+      diagnostic_severity::error, { source_code_span declare_keyword; },        \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript 'declare function' is not "         \
+                                "allowed in JavaScript"),                       \
+              declare_keyword))                                                 \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_declare_var_cannot_have_initializer, "E0351",                        \
       diagnostic_severity::error,                                               \
       {                                                                         \
