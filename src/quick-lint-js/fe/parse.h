@@ -903,6 +903,14 @@ class parser {
   parse_possible_label_result
   parse_and_visit_typescript_interface_or_namespace_or_type_statement(
       parse_visitor_base &v);
+
+  enum class parse_possible_declare_result {
+    declare_is_expression_or_loop_label,
+    parsed,
+  };
+
+  parse_possible_declare_result parse_and_visit_declare_statement(
+      parse_visitor_base &v);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

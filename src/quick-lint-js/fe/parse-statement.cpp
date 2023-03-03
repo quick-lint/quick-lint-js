@@ -159,162 +159,14 @@ parse_statement:
   // declare class C {}  // TypeScript only.
   // declare enum E {}  // TypeScript only.
   // declare = 42;
-  case token_type::kw_declare: {
-    lexer_transaction transaction = this->lexer_.begin_transaction();
-    source_code_span declare_keyword_span = this->peek().span();
-    this->skip();
-    switch (this->peek().type) {
-    // declare enum E {}
-    //
-    // declare  // ASI
-    // enum E {}
-    case token_type::kw_enum:
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // enum E {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-
-      // declare enum E {}
-      this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
-      break;
-
-    // declare const enum E {}
-    // declare const myVariable: any;
-    //
-    // declare  // ASI
-    // const enum E {}
-    case token_type::kw_const: {
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // const enum E {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-      this->lexer_.commit_transaction(std::move(transaction));
-
-      token const_keyword = this->peek();
-      this->skip();
-      if (this->peek().type == token_type::kw_enum) {
-        // declare const enum E {}
-        this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
-      } else {
-        // declare const myVariable: any;
-        if (!this->options_.typescript) {
-          this->diag_reporter_->report(
-              diag_declare_var_not_allowed_in_javascript{
-                  .declare_keyword = declare_keyword_span,
-                  .declaring_token = const_keyword.span(),
-              });
-        }
-        this->parse_and_visit_let_bindings(
-            v, parse_let_bindings_options{
-                   .declaring_token = const_keyword,
-                   .declare_keyword = declare_keyword_span,
-               });
-        this->consume_semicolon_after_statement();
-      }
-      break;
-    }
-
-    // declare class C {}
-    //
-    // declare  // ASI
-    // class C {}
-    case token_type::kw_class:
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // class C {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-      this->lexer_.commit_transaction(std::move(transaction));
-
-      this->parse_and_visit_class(
-          v, parse_class_options{
-                 .require_name = name_requirement::required_for_statement,
-                 .abstract_keyword_span = std::nullopt,
-                 .declare_keyword_span = declare_keyword_span,
-             });
-      break;
-
-    // declare abstract class C {}
-    //
-    // declare  // ASI
-    // abstract class C {}
-    //
-    // declare abstract
-    // class C {}        // Invalid.
-    case token_type::kw_abstract: {
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // abstract class C {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-      this->lexer_.commit_transaction(std::move(transaction));
-
-      source_code_span abstract_token = this->peek().span();
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
-      if (this->peek().has_leading_newline) {
-        this->diag_reporter_->report(
-            diag_newline_not_allowed_after_abstract_keyword{
-                .abstract_keyword = abstract_token,
-            });
-      }
-      this->parse_and_visit_class(
-          v, parse_class_options{
-                 .require_name = name_requirement::required_for_statement,
-                 .abstract_keyword_span = abstract_token,
-                 .declare_keyword_span = declare_keyword_span,
-             });
-      break;
-    }
-
-    // declare var x;
-    // declare let y, z;
-    //
-    // declare  // ASI
-    // var x;
-    case token_type::kw_let:
-    case token_type::kw_var: {
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // var x;
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-      this->lexer_.commit_transaction(std::move(transaction));
-
-      if (!this->options_.typescript) {
-        this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
-            .declare_keyword = declare_keyword_span,
-            .declaring_token = this->peek().span(),
-        });
-      }
-      token declaring_token = this->peek();
-      this->skip();
-      this->parse_and_visit_let_bindings(
-          v, parse_let_bindings_options{
-                 .declaring_token = declaring_token,
-                 .declare_keyword = declare_keyword_span,
-             });
-      this->consume_semicolon_after_statement();
-      break;
-    }
-
-    // declare:  // Label.
-    // declare();
-    case token_type::colon:
-    default:
-      this->lexer_.roll_back_transaction(std::move(transaction));
+  case token_type::kw_declare:
+    switch (this->parse_and_visit_declare_statement(v)) {
+    case parse_possible_declare_result::declare_is_expression_or_loop_label:
       goto parse_loop_label_or_expression_starting_with_identifier;
+    case parse_possible_declare_result::parsed:
+      break;
     }
     break;
-  }
 
     // async function f() {}
     // async = 42;
@@ -4587,6 +4439,162 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     this->visit_binding_element(annotated->child_, v, info);
     break;
   }
+  }
+}
+
+parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
+    parse_visitor_base &v) {
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+  source_code_span declare_keyword_span = this->peek().span();
+  this->skip();
+  switch (this->peek().type) {
+  // declare enum E {}
+  //
+  // declare  // ASI
+  // enum E {}
+  case token_type::kw_enum:
+    if (this->peek().has_leading_newline) {
+      // declare  // ASI
+      // enum E {}
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    }
+
+    // declare enum E {}
+    this->lexer_.commit_transaction(std::move(transaction));
+    this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
+    return parse_possible_declare_result::parsed;
+
+  // declare const enum E {}
+  // declare const myVariable: any;
+  //
+  // declare  // ASI
+  // const enum E {}
+  case token_type::kw_const: {
+    if (this->peek().has_leading_newline) {
+      // declare  // ASI
+      // const enum E {}
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+
+    token const_keyword = this->peek();
+    this->skip();
+    if (this->peek().type == token_type::kw_enum) {
+      // declare const enum E {}
+      this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
+    } else {
+      // declare const myVariable: any;
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
+            .declare_keyword = declare_keyword_span,
+            .declaring_token = const_keyword.span(),
+        });
+      }
+      this->parse_and_visit_let_bindings(
+          v, parse_let_bindings_options{
+                 .declaring_token = const_keyword,
+                 .declare_keyword = declare_keyword_span,
+             });
+      this->consume_semicolon_after_statement();
+    }
+    return parse_possible_declare_result::parsed;
+  }
+
+  // declare class C {}
+  //
+  // declare  // ASI
+  // class C {}
+  case token_type::kw_class:
+    if (this->peek().has_leading_newline) {
+      // declare  // ASI
+      // class C {}
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+
+    this->parse_and_visit_class(
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = std::nullopt,
+               .declare_keyword_span = declare_keyword_span,
+           });
+    return parse_possible_declare_result::parsed;
+
+  // declare abstract class C {}
+  //
+  // declare  // ASI
+  // abstract class C {}
+  //
+  // declare abstract
+  // class C {}        // Invalid.
+  case token_type::kw_abstract: {
+    if (this->peek().has_leading_newline) {
+      // declare  // ASI
+      // abstract class C {}
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+
+    source_code_span abstract_token = this->peek().span();
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
+    if (this->peek().has_leading_newline) {
+      this->diag_reporter_->report(
+          diag_newline_not_allowed_after_abstract_keyword{
+              .abstract_keyword = abstract_token,
+          });
+    }
+    this->parse_and_visit_class(
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = abstract_token,
+               .declare_keyword_span = declare_keyword_span,
+           });
+    return parse_possible_declare_result::parsed;
+  }
+
+  // declare var x;
+  // declare let y, z;
+  //
+  // declare  // ASI
+  // var x;
+  case token_type::kw_let:
+  case token_type::kw_var: {
+    if (this->peek().has_leading_newline) {
+      // declare  // ASI
+      // var x;
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
+          .declare_keyword = declare_keyword_span,
+          .declaring_token = this->peek().span(),
+      });
+    }
+    token declaring_token = this->peek();
+    this->skip();
+    this->parse_and_visit_let_bindings(
+        v, parse_let_bindings_options{
+               .declaring_token = declaring_token,
+               .declare_keyword = declare_keyword_span,
+           });
+    this->consume_semicolon_after_statement();
+    return parse_possible_declare_result::parsed;
+  }
+
+  // declare:  // Label.
+  // declare();
+  case token_type::colon:
+  default:
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return parse_possible_declare_result::declare_is_expression_or_loop_label;
   }
 }
 }
