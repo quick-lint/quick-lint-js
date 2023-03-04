@@ -15,9 +15,9 @@
 #include <quick-lint-js/debug/debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/port/thread.h>
-#include <quick-lint-js/trace-stream-reader-mock.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/binary-reader.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -160,8 +160,7 @@ TEST_F(test_debug_server,
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  class test_delegate : public http_websocket_client_delegate,
-                        public trace_stream_event_visitor {
+  class test_delegate : public http_websocket_client_delegate {
    public:
     void on_message_binary(http_websocket_client *client, const void *message,
                            std::size_t message_size) override {
@@ -178,79 +177,60 @@ TEST_F(test_debug_server,
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
-      trace_stream_reader &stream_reader =
-          this->get_stream_reader(thread_index);
-      // This should eventually call
-      // visit_vector_max_size_histogram_by_owner_event.
-      stream_reader.append_bytes(reader.cursor(), reader.remaining());
+      trace_reader &r = this->get_trace_reader(thread_index);
+      r.append_bytes(reader.cursor(), reader.remaining());
+
+      for (const parsed_trace_event &event : r.pull_new_events()) {
+        switch (event.type) {
+        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+          // This should eventually be called.
+          this->current_client->stop();
+          using entry = parsed_vector_max_size_histogram_entry;
+          EXPECT_THAT(
+              event.vector_max_size_histogram_by_owner_event.entries,
+              ::testing::ElementsAre(::testing::AllOf(
+                  ::testing::Field(
+                      "owner",
+                      &parsed_vector_max_size_histogram_by_owner_entry::owner,
+                      u8"debug server test vector"sv),
+                  ::testing::Field(
+                      "max_size_entries",
+                      &parsed_vector_max_size_histogram_by_owner_entry::
+                          max_size_entries,
+                      ::testing::ElementsAreArray({
+                          entry{.max_size = 0, .count = 1},
+                      })))));
+          this->received_vector_max_size_histogram_by_owner_event = true;
+          break;
+
+        case parsed_trace_event_type::error_invalid_magic:
+        case parsed_trace_event_type::error_invalid_uuid:
+        case parsed_trace_event_type::error_unsupported_compression_mode:
+          ADD_FAILURE();
+          break;
+
+        case parsed_trace_event_type::init_event:
+        case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::packet_header:
+        case parsed_trace_event_type::process_id_event:
+        case parsed_trace_event_type::vscode_document_changed_event:
+        case parsed_trace_event_type::vscode_document_closed_event:
+        case parsed_trace_event_type::vscode_document_opened_event:
+        case parsed_trace_event_type::vscode_document_sync_event:
+          break;
+        }
+      }
 
       this->current_client = nullptr;
     }
 
-    void visit_error_invalid_magic() override {
-      ADD_FAILURE() << "invalid magic";
-    }
-
-    void visit_error_invalid_uuid() override {
-      ADD_FAILURE() << "invalid UUID";
-    }
-
-    void visit_error_unsupported_compression_mode(std::uint8_t) override {
-      ADD_FAILURE() << "unsupported compression mode";
-    }
-
-    void visit_packet_header(const packet_header &) override {}
-
-    void visit_init_event(const init_event &) override {}
-
-    void visit_vscode_document_opened_event(
-        const vscode_document_opened_event &) override {}
-
-    void visit_vscode_document_closed_event(
-        const vscode_document_closed_event &) override {}
-
-    void visit_vscode_document_changed_event(
-        const vscode_document_changed_event &) override {}
-
-    void visit_vscode_document_sync_event(
-        const vscode_document_sync_event &) override {}
-
-    void visit_lsp_client_to_server_message_event(
-        const lsp_client_to_server_message_event &) override {}
-
-    void visit_vector_max_size_histogram_by_owner_event(
-        const vector_max_size_histogram_by_owner_event &event) override {
-      this->current_client->stop();
-      using entry = trace_stream_event_visitor::vector_max_size_histogram_entry;
-      EXPECT_THAT(
-          event.entries,
-          ::testing::ElementsAre(::testing::AllOf(
-              ::testing::Field(
-                  "owner",
-                  &trace_stream_event_visitor::
-                      vector_max_size_histogram_by_owner_entry::owner,
-                  u8"debug server test vector"sv),
-              ::testing::Field("max_size_entries",
-                               &trace_stream_event_visitor::
-                                   vector_max_size_histogram_by_owner_entry::
-                                       max_size_entries,
-                               ::testing::ElementsAreArray({
-                                   entry{.max_size = 0, .count = 1},
-                               })))));
-      this->received_vector_max_size_histogram_by_owner_event = true;
-    }
-
-    void visit_process_id_event(const process_id_event &) override {}
-
-    trace_stream_reader &get_stream_reader(
-        trace_flusher_thread_index thread_index) {
-      auto [it, _inserted] =
-          this->stream_readers.try_emplace(thread_index, this);
+    trace_reader &get_trace_reader(trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] = this->trace_readers.try_emplace(thread_index);
       return it->second;
     }
 
     http_websocket_client *current_client = nullptr;
-    std::map<trace_flusher_thread_index, trace_stream_reader> stream_readers;
+    std::map<trace_flusher_thread_index, trace_reader> trace_readers;
     bool received_vector_max_size_histogram_by_owner_event = false;
   };
   test_delegate delegate;
@@ -268,8 +248,7 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  class test_delegate : public http_websocket_client_delegate,
-                        public trace_stream_event_visitor {
+  class test_delegate : public http_websocket_client_delegate {
    public:
     explicit test_delegate(debug_server *server) : server(server) {}
 
@@ -288,105 +267,87 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
-      trace_stream_reader &stream_reader =
-          this->get_stream_reader(thread_index);
-      // This should call visit_packet_header then eventually
-      // visit_vector_max_size_histogram_by_owner_event.
-      stream_reader.append_bytes(reader.cursor(), reader.remaining());
+      trace_reader &r = this->get_trace_reader(thread_index);
+      r.append_bytes(reader.cursor(), reader.remaining());
+
+      for (const parsed_trace_event &event : r.pull_new_events()) {
+        switch (event.type) {
+        case parsed_trace_event_type::packet_header: {
+          // This should eventually be called.
+          instrumented_vector<std::vector<int>> v1("debug server test vector",
+                                                   {});
+          v1.push_back(100);
+          v1.push_back(200);
+          ASSERT_EQ(v1.size(), 2);
+
+          instrumented_vector<std::vector<int>> v2("debug server test vector",
+                                                   {});
+          v2.push_back(100);
+          v2.push_back(200);
+          v2.push_back(300);
+          v2.push_back(400);
+          ASSERT_EQ(v2.size(), 4);
+
+          server->debug_probe_publish_vector_profile();
+          break;
+        }
+
+        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+          // This should eventually be called.
+          if (event.vector_max_size_histogram_by_owner_event.entries.empty()) {
+            // We will receive an initial vector_max_size_histogram_by_owner
+            // event. Ignore it.
+            return;
+          }
+
+          this->current_client->stop();
+          using entry = parsed_vector_max_size_histogram_entry;
+          EXPECT_THAT(
+              event.vector_max_size_histogram_by_owner_event.entries,
+              ::testing::ElementsAre(::testing::AllOf(
+                  ::testing::Field(
+                      "owner",
+                      &parsed_vector_max_size_histogram_by_owner_entry::owner,
+                      u8"debug server test vector"sv),
+                  ::testing::Field(
+                      "max_size_entries",
+                      &parsed_vector_max_size_histogram_by_owner_entry::
+                          max_size_entries,
+                      ::testing::ElementsAreArray({
+                          entry{.max_size = 2, .count = 1},
+                          entry{.max_size = 4, .count = 1},
+                      })))));
+          this->received_vector_max_size_histogram_by_owner_event = true;
+          break;
+
+        case parsed_trace_event_type::error_invalid_magic:
+        case parsed_trace_event_type::error_invalid_uuid:
+        case parsed_trace_event_type::error_unsupported_compression_mode:
+          ADD_FAILURE();
+          break;
+
+        case parsed_trace_event_type::init_event:
+        case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::process_id_event:
+        case parsed_trace_event_type::vscode_document_changed_event:
+        case parsed_trace_event_type::vscode_document_closed_event:
+        case parsed_trace_event_type::vscode_document_opened_event:
+        case parsed_trace_event_type::vscode_document_sync_event:
+          break;
+        }
+      }
 
       this->current_client = nullptr;
     }
 
-    void visit_error_invalid_magic() override {
-      ADD_FAILURE() << "invalid magic";
-    }
-
-    void visit_error_invalid_uuid() override {
-      ADD_FAILURE() << "invalid UUID";
-    }
-
-    void visit_error_unsupported_compression_mode(std::uint8_t) override {
-      ADD_FAILURE() << "unsupported compression mode";
-    }
-
-    void visit_packet_header(const packet_header &) override {
-      {
-        instrumented_vector<std::vector<int>> v1("debug server test vector",
-                                                 {});
-        v1.push_back(100);
-        v1.push_back(200);
-        ASSERT_EQ(v1.size(), 2);
-
-        instrumented_vector<std::vector<int>> v2("debug server test vector",
-                                                 {});
-        v2.push_back(100);
-        v2.push_back(200);
-        v2.push_back(300);
-        v2.push_back(400);
-        ASSERT_EQ(v2.size(), 4);
-      }
-
-      server->debug_probe_publish_vector_profile();
-    }
-
-    void visit_init_event(const init_event &) override {}
-
-    void visit_vscode_document_opened_event(
-        const vscode_document_opened_event &) override {}
-
-    void visit_vscode_document_closed_event(
-        const vscode_document_closed_event &) override {}
-
-    void visit_vscode_document_changed_event(
-        const vscode_document_changed_event &) override {}
-
-    void visit_vscode_document_sync_event(
-        const vscode_document_sync_event &) override {}
-
-    void visit_lsp_client_to_server_message_event(
-        const lsp_client_to_server_message_event &) override {}
-
-    void visit_vector_max_size_histogram_by_owner_event(
-        const vector_max_size_histogram_by_owner_event &event) override {
-      if (event.entries.empty()) {
-        // We will receive an initial vector_max_size_histogram_by_owner event.
-        // Ignore it.
-        return;
-      }
-
-      this->current_client->stop();
-      using entry = trace_stream_event_visitor::vector_max_size_histogram_entry;
-      EXPECT_THAT(
-          event.entries,
-          ::testing::ElementsAre(::testing::AllOf(
-              ::testing::Field(
-                  "owner",
-                  &trace_stream_event_visitor::
-                      vector_max_size_histogram_by_owner_entry::owner,
-                  u8"debug server test vector"sv),
-              ::testing::Field("max_size_entries",
-                               &trace_stream_event_visitor::
-                                   vector_max_size_histogram_by_owner_entry::
-                                       max_size_entries,
-                               ::testing::ElementsAreArray({
-                                   entry{.max_size = 2, .count = 1},
-                                   entry{.max_size = 4, .count = 1},
-                               })))));
-      this->received_vector_max_size_histogram_by_owner_event = true;
-    }
-
-    void visit_process_id_event(const process_id_event &) override {}
-
-    trace_stream_reader &get_stream_reader(
-        trace_flusher_thread_index thread_index) {
-      auto [it, _inserted] =
-          this->stream_readers.try_emplace(thread_index, this);
+    trace_reader &get_trace_reader(trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] = this->trace_readers.try_emplace(thread_index);
       return it->second;
     }
 
     debug_server *server;
     http_websocket_client *current_client = nullptr;
-    std::map<trace_flusher_thread_index, trace_stream_reader> stream_readers;
+    std::map<trace_flusher_thread_index, trace_reader> trace_readers;
     bool received_vector_max_size_histogram_by_owner_event = false;
   };
   test_delegate delegate(server.get());
@@ -456,13 +417,42 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
 
       // FIXME(strager): This test assumes that we receive both the header and
       // the init event in the same message, which is not guaranteed.
-      nice_mock_trace_stream_event_visitor v;
-      EXPECT_CALL(v, visit_packet_header(::testing::_));
-      EXPECT_CALL(v, visit_init_event(::testing::Field(
-                         &trace_stream_event_visitor::init_event::version,
-                         ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
-      trace_stream_reader trace_reader(&v);
-      trace_reader.append_bytes(reader.cursor(), reader.remaining());
+      trace_reader r;
+      r.append_bytes(reader.cursor(), reader.remaining());
+      bool got_packet_header = false;
+      bool got_init_event = false;
+      for (const parsed_trace_event &event : r.pull_new_events()) {
+        switch (event.type) {
+        case parsed_trace_event_type::packet_header:
+          EXPECT_FALSE(got_packet_header);
+          got_packet_header = true;
+          break;
+
+        case parsed_trace_event_type::init_event:
+          EXPECT_FALSE(got_init_event);
+          got_init_event = true;
+          EXPECT_EQ(event.init_event.version,
+                    QUICK_LINT_JS_VERSION_STRING_U8_SV);
+          break;
+
+        case parsed_trace_event_type::error_invalid_magic:
+        case parsed_trace_event_type::error_invalid_uuid:
+        case parsed_trace_event_type::error_unsupported_compression_mode:
+          ADD_FAILURE();
+          break;
+
+        case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::process_id_event:
+        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+        case parsed_trace_event_type::vscode_document_changed_event:
+        case parsed_trace_event_type::vscode_document_closed_event:
+        case parsed_trace_event_type::vscode_document_opened_event:
+        case parsed_trace_event_type::vscode_document_sync_event:
+          break;
+        }
+      }
+      EXPECT_TRUE(got_packet_header);
+      EXPECT_TRUE(got_init_event);
 
       // We expect messages for only three threads: main, other, and debug
       // server.
