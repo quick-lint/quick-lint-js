@@ -15,7 +15,7 @@ namespace {
 template <typename Locator>
 class test_document : public testing::Test {};
 
-using document_locator_types = ::testing::Types<lsp_locator, web_demo_locator>;
+using document_locator_types = ::testing::Types<lsp_locator>;
 TYPED_TEST_SUITE(test_document, document_locator_types,
                  ::testing::internal::DefaultNameGenerator);
 

@@ -44,7 +44,6 @@ class document {
 };
 
 extern template class document<lsp_locator>;
-extern template class document<web_demo_locator>;
 }
 
 #endif

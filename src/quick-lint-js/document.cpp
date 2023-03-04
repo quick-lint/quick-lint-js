@@ -91,7 +91,6 @@ const Locator& document<Locator>::locator() noexcept {
 }
 
 template class document<lsp_locator>;
-template class document<web_demo_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
