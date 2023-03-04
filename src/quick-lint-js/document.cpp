@@ -70,18 +70,11 @@ void document<Locator>::set_text(string8_view new_text) {
 template <class Locator>
 void document<Locator>::replace_text(typename Locator::range_type range,
                                      string8_view replacement_text) {
-  if constexpr (std::is_same_v<Locator, web_demo_locator>) {
-    static_cast<void>(range);
-    static_cast<void>(replacement_text);
-    QLJS_UNIMPLEMENTED();
-  } else {
-    this->buffers_.replace_text(
-        make_string_view(this->locator_.from_position(range.start),
-                         this->locator_.from_position(range.end)),
-        replacement_text);
-    this->locator_.replace_text(range, replacement_text,
-                                this->buffers_.string());
-  }
+  this->buffers_.replace_text(
+      make_string_view(this->locator_.from_position(range.start),
+                       this->locator_.from_position(range.end)),
+      replacement_text);
+  this->locator_.replace_text(range, replacement_text, this->buffers_.string());
 }
 
 template <class Locator>
