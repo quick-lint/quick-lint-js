@@ -12,13 +12,13 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
 namespace quick_lint_js {
 namespace {
-TEST(test_document, set_text) {
+TEST(test_lsp_document_text, set_text) {
   lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"content goes here"_sv);
 }
 
-TEST(test_document, set_text_multiple_times) {
+TEST(test_lsp_document_text, set_text_multiple_times) {
   lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.set_text(u8"newer content goes here"_sv);
@@ -27,7 +27,7 @@ TEST(test_document, set_text_multiple_times) {
   EXPECT_EQ(doc.string(), u8"finally"_sv);
 }
 
-TEST(test_document_lsp_locator,
+TEST(test_lsp_document_text,
      set_text_range_single_line_in_middle_of_document_same_length) {
   lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
@@ -40,7 +40,7 @@ TEST(test_document_lsp_locator,
   EXPECT_EQ(doc.string(), u8"content were here"_sv);
 }
 
-TEST(test_document_lsp_locator,
+TEST(test_lsp_document_text,
      set_text_range_single_line_in_middle_of_document_smaller_length) {
   lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
@@ -53,7 +53,7 @@ TEST(test_document_lsp_locator,
   EXPECT_EQ(doc.string(), u8"content was here"_sv);
 }
 
-TEST(test_document_lsp_locator,
+TEST(test_lsp_document_text,
      set_text_range_single_line_in_middle_of_document_larger_length) {
   lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
@@ -66,7 +66,7 @@ TEST(test_document_lsp_locator,
   EXPECT_EQ(doc.string(), u8"content might go somewhere here"_sv);
 }
 
-TEST(test_document_lsp_locator,
+TEST(test_lsp_document_text,
      set_text_range_delete_line_excluding_line_terminator) {
   lsp_document_text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
@@ -79,7 +79,7 @@ TEST(test_document_lsp_locator,
   EXPECT_EQ(doc.string(), u8"\nworld\n"_sv);
 }
 
-TEST(test_document_lsp_locator,
+TEST(test_lsp_document_text,
      set_text_range_delete_line_including_line_terminator) {
   lsp_document_text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
@@ -92,7 +92,7 @@ TEST(test_document_lsp_locator,
   EXPECT_EQ(doc.string(), u8"world\n"_sv);
 }
 
-TEST(test_document_lsp_locator, replace_text_multiple_times) {
+TEST(test_lsp_document_text, replace_text_multiple_times) {
   lsp_document_text doc;
   doc.set_text(u8"content\ngoes\nhere"_sv);
   doc.replace_text(
