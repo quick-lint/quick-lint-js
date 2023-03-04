@@ -7,7 +7,6 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
 class double_buffered_padded_string {
