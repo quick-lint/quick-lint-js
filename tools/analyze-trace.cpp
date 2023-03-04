@@ -168,7 +168,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
     return this->event_index <= this->end_event_index_;
   }
 
-  document doc_;
+  lsp_document_text doc_;
   std::uint64_t document_id_;
   std::uint64_t end_event_index_;
 };
@@ -276,7 +276,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
  private:
   struct document_info {
     std::uint64_t last_sync = 0;
-    document data;
+    lsp_document_text data;
   };
 
   hash_map<std::uint64_t, document_info> documents_;

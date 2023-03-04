@@ -13,13 +13,13 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 namespace quick_lint_js {
 namespace {
 TEST(test_document, set_text) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"content goes here"_sv);
 }
 
 TEST(test_document, set_text_multiple_times) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.set_text(u8"newer content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"newer content goes here"_sv);
@@ -29,7 +29,7 @@ TEST(test_document, set_text_multiple_times) {
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_same_length) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -42,7 +42,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_smaller_length) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -55,7 +55,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_larger_length) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -68,7 +68,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_delete_line_excluding_line_terminator) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
       lsp_range{
@@ -81,7 +81,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_delete_line_including_line_terminator) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
       lsp_range{
@@ -93,7 +93,7 @@ TEST(test_document_lsp_locator,
 }
 
 TEST(test_document_lsp_locator, replace_text_multiple_times) {
-  document doc;
+  lsp_document_text doc;
   doc.set_text(u8"content\ngoes\nhere"_sv);
   doc.replace_text(
       lsp_range{

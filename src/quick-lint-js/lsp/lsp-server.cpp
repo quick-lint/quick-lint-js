@@ -134,7 +134,7 @@ lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 }
 
 void lsp_overlay_configuration_filesystem::open_document(
-    const std::string& path, document* doc) {
+    const std::string& path, lsp_document_text* doc) {
   auto [_it, inserted] = this->overlaid_documents_.emplace(path, doc);
   QLJS_ASSERT(inserted);
 }
@@ -661,7 +661,7 @@ void linting_lsp_server_handler::write_configuration_errors_notification(
 }
 
 void linting_lsp_server_handler::apply_document_changes(
-    document& doc, ::simdjson::ondemand::array& changes) {
+    lsp_document_text& doc, ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
     ::simdjson::ondemand::object change_object;
@@ -674,7 +674,7 @@ void linting_lsp_server_handler::apply_document_changes(
 }
 
 void linting_lsp_server_handler::apply_document_change(
-    document& doc, ::simdjson::ondemand::object& raw_change) {
+    lsp_document_text& doc, ::simdjson::ondemand::object& raw_change) {
   lsp_document_change change;
   if (!get_string8(raw_change, "text", &change.text)) {
     // Ignore invalid change.
@@ -705,7 +705,7 @@ void linting_lsp_server_handler::apply_document_change(
 }
 
 void linting_lsp_server_handler::apply_document_change(
-    document& doc, const lsp_document_change& change) {
+    lsp_document_text& doc, const lsp_document_change& change) {
   if (change.range.has_value()) {
     doc.replace_text(*change.range, change.text);
   } else {

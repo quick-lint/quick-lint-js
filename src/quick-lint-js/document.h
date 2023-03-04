@@ -28,10 +28,9 @@ class double_buffered_padded_string {
   padded_string content_buffers_[2];
 };
 
-// TODO(strager): Rename.
-class document {
+class lsp_document_text {
  public:
-  explicit document();
+  explicit lsp_document_text();
 
   void set_text(string8_view new_text);
   void replace_text(lsp_range range, string8_view replacement_text);
