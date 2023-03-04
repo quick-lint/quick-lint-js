@@ -130,7 +130,6 @@ quick_lint_js_add_executable(
   test-thread.cpp
   test-trace-flusher.cpp
   test-trace-reader.cpp
-  test-trace-stream-reader.cpp
   test-trace-writer.cpp
   test-tracking-memory-resource.cpp
   test-translation-table-generated.cpp
