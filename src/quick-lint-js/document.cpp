@@ -17,12 +17,11 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
 namespace quick_lint_js {
 template <class Locator>
-document<Locator>::document()
-    : locator_(&this->content_buffers_[this->active_content_buffer_]) {}
+document<Locator>::document() : locator_(&this->active_buffer()) {}
 
 template <class Locator>
 void document<Locator>::set_text(string8_view new_text) {
-  padded_string& content = this->content_buffers_[this->active_content_buffer_];
+  padded_string& content = this->active_buffer();
   content.resize(narrow_cast<int>(new_text.size()));
   std::memcpy(content.data(), new_text.data(), new_text.size());
   this->locator_ = Locator(&content);
@@ -36,10 +35,8 @@ void document<Locator>::replace_text(typename Locator::range_type range,
     static_cast<void>(replacement_text);
     QLJS_UNIMPLEMENTED();
   } else {
-    padded_string& old_content =
-        this->content_buffers_[this->active_content_buffer_];
-    padded_string& new_content =
-        this->content_buffers_[1 - this->active_content_buffer_];
+    padded_string& old_content = this->active_buffer();
+    padded_string& new_content = this->inactive_buffer();
 
     const char8* start = this->locator_.from_position(range.start);
     const char8* end = this->locator_.from_position(range.end);
@@ -54,7 +51,7 @@ void document<Locator>::replace_text(typename Locator::range_type range,
     QLJS_ASSERT(out == new_content.end());
 
     this->locator_.replace_text(range, replacement_text, &new_content);
-    this->active_content_buffer_ = 1 - this->active_content_buffer_;
+    this->swap_buffers();
   }
 }
 
@@ -66,6 +63,21 @@ padded_string_view document<Locator>::string() noexcept {
 template <class Locator>
 const Locator& document<Locator>::locator() noexcept {
   return this->locator_;
+}
+
+template <class Locator>
+padded_string& document<Locator>::active_buffer() {
+  return this->content_buffers_[this->active_content_buffer_];
+}
+
+template <class Locator>
+padded_string& document<Locator>::inactive_buffer() {
+  return this->content_buffers_[1 - this->active_content_buffer_];
+}
+
+template <class Locator>
+void document<Locator>::swap_buffers() {
+  this->active_content_buffer_ = 1 - this->active_content_buffer_;
 }
 
 template class document<lsp_locator>;

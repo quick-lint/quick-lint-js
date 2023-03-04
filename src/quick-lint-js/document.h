@@ -23,6 +23,10 @@ class document {
   const Locator& locator() noexcept;
 
  private:
+  padded_string& active_buffer();
+  padded_string& inactive_buffer();
+  void swap_buffers();
+
   int active_content_buffer_ = 0;
   padded_string content_buffers_[2];
   Locator locator_;
