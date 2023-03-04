@@ -14,10 +14,10 @@
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>

@@ -10,9 +10,9 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/c-string-list.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/web-demo-location.h>

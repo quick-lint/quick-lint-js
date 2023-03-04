@@ -125,8 +125,6 @@ quick_lint_js_add_library(
   quick-lint-js/debug/debug-server.h
   quick-lint-js/debug/mongoose.cpp
   quick-lint-js/debug/mongoose.h
-  quick-lint-js/document.cpp
-  quick-lint-js/document.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
   quick-lint-js/fe/buffering-visitor.cpp
@@ -146,10 +144,10 @@ quick_lint_js_add_library(
   quick-lint-js/fe/global-variables-browser-generated.cpp
   quick-lint-js/fe/global-variables.cpp
   quick-lint-js/fe/global-variables.h
-  quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/identifier.h
   quick-lint-js/fe/jsx.cpp
   quick-lint-js/fe/jsx.h
+  quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp
@@ -220,6 +218,8 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-writer.h
   quick-lint-js/lsp/lsp-diag-reporter.cpp
   quick-lint-js/lsp/lsp-diag-reporter.h
+  quick-lint-js/lsp/lsp-document-text.cpp
+  quick-lint-js/lsp/lsp-document-text.h
   quick-lint-js/lsp/lsp-json-rpc-message-parser.cpp
   quick-lint-js/lsp/lsp-json-rpc-message-parser.h
   quick-lint-js/lsp/lsp-location.cpp

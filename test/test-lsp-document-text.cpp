@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/document.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>

@@ -9,11 +9,11 @@
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/trace-reader.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/integer.h>

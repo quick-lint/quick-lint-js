@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DOCUMENT_H
-#define QUICK_LINT_JS_DOCUMENT_H
+#ifndef QUICK_LINT_JS_LSP_LSP_DOCUMENT_TEXT_H
+#define QUICK_LINT_JS_LSP_LSP_DOCUMENT_TEXT_H
 
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/lsp/lsp-location.h>

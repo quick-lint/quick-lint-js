@@ -13,11 +13,11 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/lsp-uri.h>

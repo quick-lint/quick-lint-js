@@ -9,9 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/logging/log.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/vscode/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode/vscode.h>
