@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/fe/source-code-span.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -328,8 +329,9 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
-void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
-  if (ast->kind() != expression_kind::binary_operator) return;
+std::optional<source_code_span> parser::find_comma_operator(expression* ast) {
+  if (ast->kind() != expression_kind::binary_operator)
+    return std::optional<source_code_span>{};
 
   auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
 
@@ -337,12 +339,11 @@ void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
   for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
     source_code_span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
-      this->diag_reporter_->report(
-          diag_misleading_comma_operator_in_conditional_statement{.comma =
-                                                                      op_span});
-      return;
+      return std::optional<source_code_span>(op_span);
     }
   }
+
+  return std::optional<source_code_span>{};
 }
 
 void parser::error_on_pointless_string_compare(

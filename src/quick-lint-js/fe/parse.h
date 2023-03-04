@@ -225,8 +225,6 @@ class parser {
                         variable_context context);
   void visit_assignment_expression(expression *lhs, expression *rhs,
                                    parse_visitor_base &v);
-  void warn_on_comma_operator_in_index(expression *ast,
-                                       source_code_span left_square_span);
   void visit_compound_or_conditional_assignment_expression(
       expression *lhs, expression *rhs, parse_visitor_base &v);
   void maybe_visit_assignment(expression *ast, parse_visitor_base &v);
@@ -403,7 +401,7 @@ class parser {
   void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
 
   void error_on_sketchy_condition(expression *);
-  void warn_on_comma_operator_in_conditional_statement(expression *);
+  std::optional<source_code_span> find_comma_operator(expression *ast);
   void error_on_pointless_string_compare(expression::binary_operator *);
   void error_on_pointless_compare_against_literal(
       expression::binary_operator *);
@@ -931,7 +929,12 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
   }
 
   if constexpr (CheckForCommaOperator) {
-    this->warn_on_comma_operator_in_conditional_statement(ast);
+    std::optional<source_code_span> comma = this->find_comma_operator(ast);
+    if (comma.has_value()) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_conditional_statement{
+              .comma = comma.value()});
+    }
   }
 
   const char8 *expression_end = this->lexer_.end_of_previous_token();

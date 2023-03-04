@@ -2626,7 +2626,13 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
           expression *ast = this->parse_expression(v);
           this->visit_expression(ast, v, variable_context::rhs);
           this->error_on_sketchy_condition(ast);
-          this->warn_on_comma_operator_in_conditional_statement(ast);
+          std::optional<source_code_span> comma =
+              this->find_comma_operator(ast);
+          if (comma.has_value()) {
+            this->diag_reporter_->report(
+                diag_misleading_comma_operator_in_conditional_statement{
+                    .comma = comma.value()});
+          }
         }
 
         switch (this->peek().type) {
