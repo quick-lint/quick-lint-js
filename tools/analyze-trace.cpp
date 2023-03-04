@@ -536,25 +536,23 @@ int main(int argc, char** argv) {
     file.error().print_and_exit();
   }
 
+  trace_reader reader;
+  reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
+  std::vector<parsed_trace_event> events = reader.pull_new_events();
+
   if (o.check_document_consistency) {
-    trace_reader reader;
-    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
     document_content_checker checker;
-    visit_events(reader.pull_new_events(), checker);
+    visit_events(events, checker);
   }
 
   if (o.dump_document_content_document_id.has_value()) {
-    trace_reader reader;
-    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
     document_content_dumper dumper(*o.dump_document_content_document_id,
                                    o.end_event_index);
-    visit_events(reader.pull_new_events(), dumper);
+    visit_events(events, dumper);
     dumper.print_document_content();
   } else if (!o.check_document_consistency) {
-    trace_reader reader;
-    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
     event_dumper dumper(o.begin_event_index, o.end_event_index);
-    visit_events(reader.pull_new_events(), dumper);
+    visit_events(events, dumper);
   }
 
   return 0;
