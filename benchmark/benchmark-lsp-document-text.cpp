@@ -52,8 +52,8 @@ void benchmark_lsp_create_and_insert_single_characters(
   }
 }
 BENCHMARK(benchmark_lsp_create_and_insert_single_characters);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

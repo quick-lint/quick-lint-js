@@ -116,8 +116,8 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_undeclared_variable_references);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

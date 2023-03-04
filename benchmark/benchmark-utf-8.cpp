@@ -50,8 +50,8 @@ BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, small_japanese,
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, large_japanese,
                   repeat(u8"こんにちは"_sv, 1024));
 // TODO(strager): Mixed Japanese and ASCII.
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
