@@ -215,6 +215,8 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-metadata.cpp
   quick-lint-js/logging/trace-metadata.h
   quick-lint-js/logging/trace-stream-reader.cpp
+  quick-lint-js/logging/trace-reader.cpp
+  quick-lint-js/logging/trace-reader.h
   quick-lint-js/logging/trace-writer.cpp
   quick-lint-js/logging/trace-writer.h
   quick-lint-js/lsp/lsp-diag-reporter.cpp
