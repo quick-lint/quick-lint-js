@@ -58,18 +58,14 @@ void double_buffered_padded_string::swap_buffers() {
   this->active_content_buffer_ = 1 - this->active_content_buffer_;
 }
 
-template <class Locator>
-document<Locator>::document() : locator_(this->buffers_.string()) {}
+document::document() : locator_(this->buffers_.string()) {}
 
-template <class Locator>
-void document<Locator>::set_text(string8_view new_text) {
+void document::set_text(string8_view new_text) {
   this->buffers_.set_text(new_text);
-  this->locator_ = Locator(this->buffers_.string());
+  this->locator_ = lsp_locator(this->buffers_.string());
 }
 
-template <class Locator>
-void document<Locator>::replace_text(typename Locator::range_type range,
-                                     string8_view replacement_text) {
+void document::replace_text(lsp_range range, string8_view replacement_text) {
   this->buffers_.replace_text(
       make_string_view(this->locator_.from_position(range.start),
                        this->locator_.from_position(range.end)),
@@ -77,17 +73,11 @@ void document<Locator>::replace_text(typename Locator::range_type range,
   this->locator_.replace_text(range, replacement_text, this->buffers_.string());
 }
 
-template <class Locator>
-padded_string_view document<Locator>::string() noexcept {
+padded_string_view document::string() noexcept {
   return this->buffers_.string();
 }
 
-template <class Locator>
-const Locator& document<Locator>::locator() noexcept {
-  return this->locator_;
-}
-
-template class document<lsp_locator>;
+const lsp_locator& document::locator() noexcept { return this->locator_; }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

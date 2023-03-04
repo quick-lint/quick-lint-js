@@ -48,12 +48,12 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
-  void open_document(const std::string&, document<lsp_locator>*);
+  void open_document(const std::string&, document*);
   void close_document(const std::string&);
 
  private:
   configuration_filesystem* underlying_fs_;
-  hash_map<std::string, document<lsp_locator>*> overlaid_documents_;
+  hash_map<std::string, document*> overlaid_documents_;
 };
 
 struct linting_lsp_server_config {
@@ -102,7 +102,7 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
 
-    document<lsp_locator> doc;
+    document doc;
     string8 version_json;
   };
 
@@ -197,11 +197,11 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
     // If a range is not provided, the document's text is entirely replaced.
     std::optional<lsp_range> range;
   };
-  static void apply_document_changes(document<lsp_locator>& doc,
+  static void apply_document_changes(document& doc,
                                      ::simdjson::ondemand::array& changes);
-  static void apply_document_change(document<lsp_locator>& doc,
+  static void apply_document_change(document& doc,
                                     ::simdjson::ondemand::object& raw_change);
-  static void apply_document_change(document<lsp_locator>& doc,
+  static void apply_document_change(document& doc,
                                     const lsp_document_change& change);
 
   void write_method_not_found_error_response(string8_view request_id_json);

@@ -12,23 +12,14 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
 namespace quick_lint_js {
 namespace {
-template <typename Locator>
-class test_document : public testing::Test {};
-
-using document_locator_types = ::testing::Types<lsp_locator>;
-TYPED_TEST_SUITE(test_document, document_locator_types,
-                 ::testing::internal::DefaultNameGenerator);
-
-TYPED_TEST(test_document, set_text) {
-  using Locator = TypeParam;
-  document<Locator> doc;
+TEST(test_document, set_text) {
+  document doc;
   doc.set_text(u8"content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"content goes here"_sv);
 }
 
-TYPED_TEST(test_document, set_text_multiple_times) {
-  using Locator = TypeParam;
-  document<Locator> doc;
+TEST(test_document, set_text_multiple_times) {
+  document doc;
   doc.set_text(u8"content goes here"_sv);
   doc.set_text(u8"newer content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"newer content goes here"_sv);
@@ -38,7 +29,7 @@ TYPED_TEST(test_document, set_text_multiple_times) {
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_same_length) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -51,7 +42,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_smaller_length) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -64,7 +55,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_larger_length) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
       lsp_range{
@@ -77,7 +68,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_delete_line_excluding_line_terminator) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
       lsp_range{
@@ -90,7 +81,7 @@ TEST(test_document_lsp_locator,
 
 TEST(test_document_lsp_locator,
      set_text_range_delete_line_including_line_terminator) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
       lsp_range{
@@ -102,7 +93,7 @@ TEST(test_document_lsp_locator,
 }
 
 TEST(test_document_lsp_locator, replace_text_multiple_times) {
-  document<lsp_locator> doc;
+  document doc;
   doc.set_text(u8"content\ngoes\nhere"_sv);
   doc.replace_text(
       lsp_range{

@@ -35,7 +35,7 @@ void benchmark_lsp_create_and_insert_single_characters(
       line_lengths[narrow_cast<std::size_t>(insertion_line)] / 2;
 
   for (auto _ : state) {
-    document<lsp_locator> doc;
+    document doc;
     doc.set_text(base_code_view);
 
     for (int i = 0; i < narrow_cast<int>(sentence.size()); ++i) {

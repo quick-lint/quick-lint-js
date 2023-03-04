@@ -28,24 +28,21 @@ class double_buffered_padded_string {
   padded_string content_buffers_[2];
 };
 
-template <class Locator>
+// TODO(strager): Rename.
 class document {
  public:
   explicit document();
 
   void set_text(string8_view new_text);
-  void replace_text(typename Locator::range_type range,
-                    string8_view replacement_text);
+  void replace_text(lsp_range range, string8_view replacement_text);
 
   padded_string_view string() noexcept;
-  const Locator& locator() noexcept;
+  const lsp_locator& locator() noexcept;
 
  private:
   double_buffered_padded_string buffers_;
-  Locator locator_;
+  lsp_locator locator_;
 };
-
-extern template class document<lsp_locator>;
 }
 
 #endif
