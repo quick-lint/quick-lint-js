@@ -13,7 +13,7 @@
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
-#include <quick-lint-js/logging/trace-stream-reader.h>
+#include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/integer.h>
@@ -38,8 +38,7 @@ struct analyze_options {
   std::uint64_t end_event_index = (std::numeric_limits<std::uint64_t>::max)();
 };
 
-lsp_range to_lsp_range(
-    const trace_stream_event_visitor::vscode_document_range& range) {
+lsp_range to_lsp_range(const parsed_vscode_document_range& range) {
   return lsp_range{
       .start =
           {
@@ -54,44 +53,44 @@ lsp_range to_lsp_range(
   };
 }
 
-class counting_trace_stream_event_visitor : public trace_stream_event_visitor {
+class counting_trace_stream_event_visitor {
  public:
   // The first call to a visit_ function will set this to 0.
   std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
 
-  void visit_init_event(const init_event&) override { ++this->event_index; }
+  void visit_init_event(const parsed_init_event&) { ++this->event_index; }
 
   void visit_vscode_document_opened_event(
-      const vscode_document_opened_event&) override {
+      const parsed_vscode_document_opened_event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_closed_event(
-      const vscode_document_closed_event&) override {
+      const parsed_vscode_document_closed_event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_changed_event(
-      const vscode_document_changed_event&) override {
+      const parsed_vscode_document_changed_event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_sync_event(
-      const vscode_document_sync_event&) override {
+      const parsed_vscode_document_sync_event&) {
     ++this->event_index;
   }
 
   void visit_lsp_client_to_server_message_event(
-      const lsp_client_to_server_message_event&) override {
+      const parsed_lsp_client_to_server_message_event&) {
     ++this->event_index;
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const vector_max_size_histogram_by_owner_event&) override {
+      const parsed_vector_max_size_histogram_by_owner_event&) {
     ++this->event_index;
   }
 
-  void visit_process_id_event(const process_id_event&) override {
+  void visit_process_id_event(const parsed_process_id_event&) {
     ++this->event_index;
   }
 };
@@ -104,22 +103,22 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
                                    std::uint64_t end_event_index)
       : document_id_(document_id), end_event_index_(end_event_index) {}
 
-  void visit_error_invalid_magic() override {
+  void visit_error_invalid_magic() {
     std::fprintf(stderr, "error: invalid magic\n");
   }
 
-  void visit_error_invalid_uuid() override {
+  void visit_error_invalid_uuid() {
     std::fprintf(stderr, "error: invalid UUID\n");
   }
 
-  void visit_error_unsupported_compression_mode(std::uint8_t mode) override {
-    std::fprintf(stderr, "error: unsupported compression mode: %#02x\n", mode);
+  void visit_error_unsupported_compression_mode() {
+    std::fprintf(stderr, "error: unsupported compression mode\n");
   }
 
-  void visit_packet_header(const packet_header&) override {}
+  void visit_packet_header(const parsed_packet_header&) {}
 
   void visit_vscode_document_opened_event(
-      const vscode_document_opened_event& event) override {
+      const parsed_vscode_document_opened_event& event) {
     base::visit_vscode_document_opened_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -130,7 +129,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const vscode_document_closed_event& event) override {
+      const parsed_vscode_document_closed_event& event) {
     base::visit_vscode_document_closed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -141,7 +140,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const vscode_document_changed_event& event) override {
+      const parsed_vscode_document_changed_event& event) {
     base::visit_vscode_document_changed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -155,7 +154,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const vector_max_size_histogram_by_owner_event& event) override {
+      const parsed_vector_max_size_histogram_by_owner_event& event) {
     base::visit_vector_max_size_histogram_by_owner_event(event);
   }
 
@@ -178,22 +177,22 @@ class document_content_checker : public counting_trace_stream_event_visitor {
  public:
   using base = counting_trace_stream_event_visitor;
 
-  void visit_error_invalid_magic() override {
+  void visit_error_invalid_magic() {
     std::fprintf(stderr, "error: invalid magic\n");
   }
 
-  void visit_error_invalid_uuid() override {
+  void visit_error_invalid_uuid() {
     std::fprintf(stderr, "error: invalid UUID\n");
   }
 
-  void visit_error_unsupported_compression_mode(std::uint8_t mode) override {
-    std::fprintf(stderr, "error: unsupported compression mode: %#02x\n", mode);
+  void visit_error_unsupported_compression_mode() {
+    std::fprintf(stderr, "error: unsupported compression mode\n");
   }
 
-  void visit_packet_header(const packet_header&) override {}
+  void visit_packet_header(const parsed_packet_header&) {}
 
   void visit_vscode_document_opened_event(
-      const vscode_document_opened_event& event) override {
+      const parsed_vscode_document_opened_event& event) {
     base::visit_vscode_document_opened_event(event);
     if (event.document_id == 0) {
       return;
@@ -205,7 +204,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const vscode_document_closed_event& event) override {
+      const parsed_vscode_document_closed_event& event) {
     base::visit_vscode_document_closed_event(event);
     if (event.document_id == 0) {
       return;
@@ -214,7 +213,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const vscode_document_changed_event& event) override {
+      const parsed_vscode_document_changed_event& event) {
     base::visit_vscode_document_changed_event(event);
     if (event.document_id == 0) {
       return;
@@ -236,7 +235,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const vscode_document_sync_event& event) override {
+      const parsed_vscode_document_sync_event& event) {
     base::visit_vscode_document_sync_event(event);
     if (event.document_id == 0) {
       return;
@@ -295,30 +294,28 @@ class event_dumper : public counting_trace_stream_event_visitor {
       : begin_event_index_(begin_event_index),
         end_event_index_(end_event_index) {}
 
-  void visit_error_invalid_magic() override {
-    std::printf("error: invalid magic\n");
+  void visit_error_invalid_magic() { std::printf("error: invalid magic\n"); }
+
+  void visit_error_invalid_uuid() { std::printf("error: invalid UUID\n"); }
+
+  void visit_error_unsupported_compression_mode() {
+    std::printf("error: unsupported compression mode\n");
   }
 
-  void visit_error_invalid_uuid() override {
-    std::printf("error: invalid UUID\n");
-  }
+  void visit_packet_header(const parsed_packet_header&) {}
 
-  void visit_error_unsupported_compression_mode(std::uint8_t mode) override {
-    std::printf("error: unsupported compression mode: %#02x\n", mode);
-  }
-
-  void visit_packet_header(const packet_header&) override {}
-
-  void visit_init_event(const init_event& event) override {
+  void visit_init_event(const parsed_init_event& event) {
     base::visit_init_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
-    std::printf("init version='%s'\n", event.version);
+    std::printf("init version='");
+    this->print_utf8(event.version);
+    std::printf("'\n");
   }
 
   void visit_vscode_document_opened_event(
-      const vscode_document_opened_event& event) override {
+      const parsed_vscode_document_opened_event& event) {
     base::visit_vscode_document_opened_event(event);
     if (!this->should_dump()) return;
 
@@ -331,7 +328,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const vscode_document_closed_event& event) override {
+      const parsed_vscode_document_closed_event& event) {
     base::visit_vscode_document_closed_event(event);
     if (!this->should_dump()) return;
 
@@ -344,7 +341,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const vscode_document_changed_event& event) override {
+      const parsed_vscode_document_changed_event& event) {
     base::visit_vscode_document_changed_event(event);
     if (!this->should_dump()) return;
 
@@ -364,7 +361,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const vscode_document_sync_event& event) override {
+      const parsed_vscode_document_sync_event& event) {
     base::visit_vscode_document_sync_event(event);
     if (!this->should_dump()) return;
 
@@ -377,7 +374,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_lsp_client_to_server_message_event(
-      const lsp_client_to_server_message_event& event) override {
+      const parsed_lsp_client_to_server_message_event& event) {
     base::visit_lsp_client_to_server_message_event(event);
     if (!this->should_dump()) return;
 
@@ -388,7 +385,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const vector_max_size_histogram_by_owner_event& event) override {
+      const parsed_vector_max_size_histogram_by_owner_event& event) {
     base::visit_vector_max_size_histogram_by_owner_event(event);
     if (!this->should_dump()) return;
 
@@ -396,7 +393,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("vector max size histogram by owner\n");
   }
 
-  void visit_process_id_event(const process_id_event& event) override {
+  void visit_process_id_event(const parsed_process_id_event& event) {
     base::visit_process_id_event(event);
     if (!this->should_dump()) return;
 
@@ -434,6 +431,41 @@ class event_dumper : public counting_trace_stream_event_visitor {
   std::uint64_t begin_event_index_;
   std::uint64_t end_event_index_;
 };
+
+template <class EventVisitor>
+void visit_events(const std::vector<parsed_trace_event>& events,
+                  EventVisitor& v) {
+  for (const parsed_trace_event& event : events) {
+    switch (event.type) {
+    case parsed_trace_event_type::error_invalid_magic:
+      v.visit_error_invalid_magic();
+      break;
+    case parsed_trace_event_type::error_invalid_uuid:
+      v.visit_error_invalid_uuid();
+      break;
+    case parsed_trace_event_type::error_unsupported_compression_mode:
+      v.visit_error_unsupported_compression_mode();
+      break;
+
+#define VISIT(event_type)                   \
+  case parsed_trace_event_type::event_type: \
+    v.visit_##event_type(event.event_type); \
+    break;
+
+      VISIT(init_event)
+      VISIT(lsp_client_to_server_message_event)
+      VISIT(packet_header)
+      VISIT(process_id_event)
+      VISIT(vector_max_size_histogram_by_owner_event)
+      VISIT(vscode_document_changed_event)
+      VISIT(vscode_document_closed_event)
+      VISIT(vscode_document_opened_event)
+      VISIT(vscode_document_sync_event)
+
+#undef VISIT
+    }
+  }
+}
 
 analyze_options parse_analyze_options(int argc, char** argv) {
   analyze_options o;
@@ -505,21 +537,24 @@ int main(int argc, char** argv) {
   }
 
   if (o.check_document_consistency) {
-    document_content_checker checker;
-    trace_stream_reader reader(&checker);
+    trace_reader reader;
     reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
+    document_content_checker checker;
+    visit_events(reader.pull_new_events(), checker);
   }
 
   if (o.dump_document_content_document_id.has_value()) {
+    trace_reader reader;
+    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
     document_content_dumper dumper(*o.dump_document_content_document_id,
                                    o.end_event_index);
-    trace_stream_reader reader(&dumper);
-    reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
+    visit_events(reader.pull_new_events(), dumper);
     dumper.print_document_content();
   } else if (!o.check_document_consistency) {
-    event_dumper dumper(o.begin_event_index, o.end_event_index);
-    trace_stream_reader reader(&dumper);
+    trace_reader reader;
     reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
+    event_dumper dumper(o.begin_event_index, o.end_event_index);
+    visit_events(reader.pull_new_events(), dumper);
   }
 
   return 0;
