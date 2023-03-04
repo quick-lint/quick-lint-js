@@ -118,6 +118,16 @@ void trace_reader::parse_event(checked_binary_reader& r) {
     return string8(reinterpret_cast<const char8*>(bytes),
                    narrow_cast<std::size_t>(end - bytes));
   };
+  auto read_lsp_document_type = [&]() -> parsed_lsp_document_type {
+    std::uint8_t raw_type = r.u8();
+    if (raw_type > static_cast<std::uint8_t>(last_parsed_lsp_document_type)) {
+      this->parsed_events_.push_back(parsed_trace_event{
+          .type = parsed_trace_event_type::error_unsupported_lsp_document_type,
+      });
+      return parsed_lsp_document_type::unknown;
+    }
+    return static_cast<parsed_lsp_document_type>(raw_type);
+  };
 
   std::uint64_t timestamp = r.u64_le();
   std::uint8_t event_id = r.u8();
@@ -260,6 +270,27 @@ void trace_reader::parse_event(checked_binary_reader& r) {
             parsed_process_id_event{
                 .timestamp = timestamp,
                 .process_id = process_id,
+            },
+    });
+    break;
+  }
+
+  case 0x09: {
+    std::uint64_t entry_count = r.u64_le();
+    std::vector<parsed_lsp_document_state> documents;
+    for (std::uint64_t i = 0; i < entry_count; ++i) {
+      documents.push_back(parsed_lsp_document_state{
+          .type = read_lsp_document_type(),
+          .uri = read_utf8_string(),
+          .text = read_utf8_string(),
+      });
+    }
+    this->parsed_events_.push_back(parsed_trace_event{
+        .type = parsed_trace_event_type::lsp_documents_event,
+        .lsp_documents_event =
+            parsed_lsp_documents_event{
+                .timestamp = timestamp,
+                .documents = std::move(documents),
             },
     });
     break;

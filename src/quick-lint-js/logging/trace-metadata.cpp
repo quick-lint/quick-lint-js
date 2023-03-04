@@ -177,6 +177,29 @@ event {
   };
 };
 
+enum lsp_document_type : u8 {
+  unknown = 0,
+  config = 1,
+  lintable = 2,
+}
+
+typealias struct {
+  lsp_document_type type;
+  utf8_string uri;
+  utf8_string text;
+  // TODO(strager): utf8_string version_json;
+  // TODO(strager): Lint settings.
+} := lsp_document_state;
+
+event {
+  id = 9;
+  name = "lsp_documents";
+  fields := struct {
+    u64 document_count;
+    lsp_document_state documents[document_count];
+  };
+};
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

@@ -13,6 +13,7 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/debug/debug-probe.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
@@ -99,6 +100,8 @@ struct lsp_language {
   unsigned char language_id_size = 0;
   linter_options lint_options;
 };
+
+std::atomic<synchronized<lsp_documents>*> latest_lsp_server_documents{nullptr};
 }
 
 lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
@@ -147,6 +150,17 @@ void lsp_overlay_configuration_filesystem::close_document(
 
 lsp_documents::document_base::document_base(document_type type) : type(type) {}
 
+trace_lsp_document_type lsp_documents::document_base::trace_type() const {
+  switch (this->type) {
+  case document_type::config:
+    return trace_lsp_document_type::config;
+  case document_type::lintable:
+    return trace_lsp_document_type::lintable;
+  case document_type::unknown:
+    return trace_lsp_document_type::unknown;
+  }
+}
+
 lsp_documents::config_document::config_document()
     : document_base(document_type::config) {}
 
@@ -159,6 +173,8 @@ lsp_documents::unknown_document::unknown_document()
 linting_lsp_server_handler::linting_lsp_server_handler(
     configuration_filesystem* fs, lsp_linter* linter)
     : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {
+  set_lsp_server_documents(&this->documents_);
+
   this->workspace_configuration_.add_item(
       u8"quick-lint-js.tracing-directory"_sv,
       [this](std::string_view new_value) {
@@ -349,12 +365,14 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
     return;
   }
 
-  return this->handle_text_document_did_change_notification(
+  this->handle_text_document_did_change_notification(
       lsp_text_document_did_change_notification{
           .uri = *uri,
           .version_json = get_raw_json(version),
           .changes = changes,
       });
+
+  debug_probe_publish_lsp_documents();
 }
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
@@ -405,6 +423,8 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
       lsp_text_document_did_close_notification{
           .uri = uri,
       });
+
+  debug_probe_publish_lsp_documents();
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
@@ -461,6 +481,8 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
           .version_json = get_raw_json(version),
           .text = text,
       });
+
+  debug_probe_publish_lsp_documents();
 }
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
@@ -786,6 +808,14 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   lsp_diag_reporter diag_reporter(qljs_messages, diagnostics_json, code);
   parse_and_lint(code, diag_reporter, config.globals(), lint_options);
   diag_reporter.finish();
+}
+
+synchronized<lsp_documents>* get_lsp_server_documents() {
+  return latest_lsp_server_documents.load();
+}
+
+void set_lsp_server_documents(synchronized<lsp_documents>* documents) {
+  latest_lsp_server_documents.store(documents);
 }
 
 namespace {

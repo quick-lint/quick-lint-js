@@ -454,6 +454,76 @@ TEST(test_trace_reader, process_id_event) {
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.process_id, 0x0123);
 }
+
+TEST(test_trace_reader, lsp_documents_event) {
+  auto stream = concat(example_packet_header,
+                       make_array_explicit<std::uint8_t>(
+                           // Timestamp
+                           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Event ID
+                           0x09,
+
+                           // Document count
+                           0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Document 0: type
+                           0x02,
+
+                           // Document 0: URI
+                           0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                           'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
+
+                           // Document 0: text
+                           0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                           'h', 'e', 'l', 'l', 'o'));
+  trace_reader reader;
+  reader.append_bytes(stream.data(), stream.size());
+
+  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
+  EXPECT_EQ(events[1].type, parsed_trace_event_type::lsp_documents_event);
+  parsed_lsp_documents_event& event = events[1].lsp_documents_event;
+  EXPECT_EQ(event.timestamp, 0x5678);
+  ASSERT_EQ(event.documents.size(), 1);
+  EXPECT_EQ(event.documents[0].type, parsed_lsp_document_type::lintable);
+  EXPECT_EQ(event.documents[0].uri, u8"file:///f"_sv);
+  EXPECT_EQ(event.documents[0].text, u8"hello"_sv);
+}
+
+TEST(test_trace_reader, invalid_lsp_document_type) {
+  auto stream = concat(example_packet_header,
+                       make_array_explicit<std::uint8_t>(
+                           // Timestamp
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Event ID
+                           0x09,
+
+                           // Document count
+                           0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Document 0: type (invalid)
+                           0x69,
+
+                           // Document 0: URI
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Document 0: text
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
+  trace_reader reader;
+  reader.append_bytes(stream.data(), stream.size());
+
+  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  ASSERT_EQ(events.size(), 3)
+      << "expected packet header, error event, and lsp event";
+  EXPECT_EQ(events[1].type,
+            parsed_trace_event_type::error_unsupported_lsp_document_type);
+  EXPECT_EQ(events[2].type, parsed_trace_event_type::lsp_documents_event);
+  parsed_lsp_documents_event& event = events[2].lsp_documents_event;
+  ASSERT_EQ(event.documents.size(), 1);
+  EXPECT_EQ(event.documents[0].type, parsed_lsp_document_type::unknown);
+}
 }
 }
 

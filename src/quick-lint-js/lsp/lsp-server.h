@@ -17,6 +17,7 @@
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-location.h>
@@ -79,6 +80,8 @@ struct lsp_documents {
     virtual void on_config_file_changed(linting_lsp_server_handler&,
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
+
+    trace_lsp_document_type trace_type() const;
 
     document_type type;
 
@@ -279,6 +282,17 @@ class lsp_javascript_linter final : public lsp_linter {
                                 padded_string_view code,
                                 byte_buffer& diagnostics_json);
 };
+
+// Returns the lsp_documents for the last-created linting_lsp_server_handler.
+//
+// Might return nullptr.
+//
+// In tests, the returned pointer might change. In production, once the returned
+// pointer returns non-null, it will not change.
+synchronized<lsp_documents>* get_lsp_server_documents();
+
+// For testing only.
+void set_lsp_server_documents(synchronized<lsp_documents>*);
 }
 
 #endif
