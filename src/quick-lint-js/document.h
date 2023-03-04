@@ -17,11 +17,13 @@ class double_buffered_padded_string {
   // to_replace must be a substring of active_buffer.
   void replace_text(string8_view to_replace, string8_view replacement_text);
 
+  padded_string_view string() const;
+
+ private:
   padded_string& active_buffer();
   padded_string& inactive_buffer();
   void swap_buffers();
 
- private:
   int active_content_buffer_ = 0;
   padded_string content_buffers_[2];
 };

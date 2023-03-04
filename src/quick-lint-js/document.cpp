@@ -42,6 +42,10 @@ void double_buffered_padded_string::replace_text(
   this->swap_buffers();
 }
 
+padded_string_view double_buffered_padded_string::string() const {
+  return &const_cast<double_buffered_padded_string*>(this)->active_buffer();
+}
+
 padded_string& double_buffered_padded_string::active_buffer() {
   return this->content_buffers_[this->active_content_buffer_];
 }
@@ -55,12 +59,12 @@ void double_buffered_padded_string::swap_buffers() {
 }
 
 template <class Locator>
-document<Locator>::document() : locator_(&this->buffers_.active_buffer()) {}
+document<Locator>::document() : locator_(this->buffers_.string()) {}
 
 template <class Locator>
 void document<Locator>::set_text(string8_view new_text) {
   this->buffers_.set_text(new_text);
-  this->locator_ = Locator(&this->buffers_.active_buffer());
+  this->locator_ = Locator(this->buffers_.string());
 }
 
 template <class Locator>
@@ -76,13 +80,13 @@ void document<Locator>::replace_text(typename Locator::range_type range,
                          this->locator_.from_position(range.end)),
         replacement_text);
     this->locator_.replace_text(range, replacement_text,
-                                &this->buffers_.active_buffer());
+                                this->buffers_.string());
   }
 }
 
 template <class Locator>
 padded_string_view document<Locator>::string() noexcept {
-  return &this->buffers_.active_buffer();
+  return this->buffers_.string();
 }
 
 template <class Locator>
