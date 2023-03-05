@@ -17,6 +17,8 @@ Semantic Versioning.
   `declare function` are now supported.
 * `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
   index") (implemented by [Yunus][]).
+* `while (x > 0, y > 0)` now reports [E0451][] ("misleading use of ',' operator
+  in conditional statement") (implemented by [Yunus][]).
 
 ### Fixed
 
@@ -907,4 +909,5 @@ Beta release.
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
 [E0450]: https://quick-lint-js.com/errors/E0450/
+[E0451]: https://quick-lint-js.com/errors/E0451/
 [E0707]: https://quick-lint-js.com/errors/E0707/
