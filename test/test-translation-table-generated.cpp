@@ -2739,6 +2739,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "misleading use of ',' operator in conditional statement"_translatable,
+        {
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+        },
+    },
+    {
         "misleading use of ',' operator in index"_translatable,
         {
             u8"misleading use of ',' operator in index",

@@ -493,6 +493,11 @@ msgid "index starts here"
 msgstr "funktionkallelse startar här"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "misleading use of ',' operator in conditional statement"
+msgstr "saknar semikolon efter påstående"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "förväntade 'as' mellan '{1}' och '{2}'"
 

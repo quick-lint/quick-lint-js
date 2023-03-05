@@ -260,6 +260,7 @@ const translation_table translation_data = {
         {0, 0, 0, 46, 0, 45},                //
         {50, 47, 66, 33, 53, 27},            //
         {0, 0, 0, 0, 0, 46},                 //
+        {0, 0, 0, 0, 0, 56},                 //
         {68, 21, 0, 52, 0, 40},              //
         {59, 43, 61, 49, 50, 39},            //
         {0, 0, 0, 44, 0, 42},                //
@@ -1963,6 +1964,7 @@ const translation_table translation_data = {
         u8"lower case letters compared with toUpperCase\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
+        u8"misleading use of ',' operator in conditional statement\0"
         u8"misleading use of ',' operator in index\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"
         u8"missing ',' between variable declarations\0"

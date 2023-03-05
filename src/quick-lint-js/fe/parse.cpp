@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/fe/source-code-span.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -324,6 +325,41 @@ void parser::error_on_sketchy_condition(expression* ast) {
           .or_operator = right_operator,
           .equals_operator = left_operator,
       });
+    }
+  }
+}
+
+void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
+  if (ast->kind() != expression_kind::binary_operator) return;
+
+  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+
+  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
+  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    source_code_span op_span = binary_operator->operator_spans_[i];
+    if (is_comma(op_span.string_view())) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_conditional_statement{.comma =
+                                                                      op_span});
+      return;
+    }
+  }
+}
+
+void parser::warn_on_comma_operator_in_index(expression* ast,
+                                             source_code_span left_square) {
+  if (ast->kind() != expression_kind::binary_operator) return;
+
+  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+
+  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
+  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    source_code_span op_span = binary_operator->operator_spans_[i];
+    if (is_comma(op_span.string_view())) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_index_operation{
+              .comma = op_span, .left_square = left_square});
+      return;
     }
   }
 }

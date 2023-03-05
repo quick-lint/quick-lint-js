@@ -492,6 +492,11 @@ msgid "index starts here"
 msgstr "IIFE started here"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "misleading use of ',' operator in conditional statement"
+msgstr "I know you hate semicolons, but you need one here"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "you forgot 'as' between '{1}' and '{2}'"
 

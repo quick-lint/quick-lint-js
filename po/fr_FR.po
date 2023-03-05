@@ -548,6 +548,11 @@ msgid "index starts here"
 msgstr "appel de fonction débuté ici"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "misleading use of ',' operator in conditional statement"
+msgstr "point-virgule manquant après l'instruction"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' attendu entre '{1}' and '{2}'"
 
