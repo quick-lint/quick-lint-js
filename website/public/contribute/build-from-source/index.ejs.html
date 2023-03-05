@@ -67,6 +67,100 @@
 <kbd>./quick-lint-js <var>path/to/my-file.js</var></kbd></code></pre>
         </blockquote>
       </section>
+
+      <section id="requirements">
+        <h3>Build requirements</h3>
+
+        <p>All of the following are required:</p>
+        <dl>
+          <dt>CMake</dt>
+          <dd>Version 3.10.2 or newer (per Ubuntu 18.04 LTS Bionic)</dd>
+          <dt>C++ compiler</dt>
+          <dd>See below</dd>
+        </dl>
+
+        <h4>Supported compilers</h4>
+        <p>
+          quick-lint-js is written in C++17/C++20 and thus requires a compatible
+          compiler. One of the following is required:
+        </p>
+        <dl>
+          <dt>GCC</dt>
+          <dd>Version 8.3.0 or newer (per Debian 10 Buster)</dd>
+          <dt>Clang</dt>
+          <dd>Version 9 or newer</dd>
+          <dt>MSVC</dt>
+          <dd>Version 14.30 (Visual Studio 2022) or newer</dd>
+          <dt>Emscripten</dt>
+          <dd>emsdk version 2.0.4 or newer</dd>
+        </dl>
+        <p>(Older versions may work.)</p>
+
+        <h4>Supported operating systems</h4>
+        <p>One of the following is required:</p>
+        <ul>
+          <li>Linux: Arch Linux</li>
+          <li>Linux: Debian 10 Buster (and newer)</li>
+          <li>Linux: Fedora 35 (and newer)</li>
+          <li>Linux: Ubuntu 18.04 LTS Bionic (and newer)</li>
+          <li>macOS: macOS Big Sur 11.7.4</li>
+          <li>Windows: Windows 10</li>
+        </ul>
+        <p>(Older versions may work.)</p>
+
+        <h4>Optional dependencies</h4>
+        <p>Each of the following are optional:</p>
+        <dl>
+          <dt>Boost Container</dt>
+          <dd>
+            Vendored by default; use your own version by setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake variable to
+            <code>NO</code>
+          </dd>
+          <dt>Boost JSON</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Boost JSON</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Google Benchmark</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Google Test</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>simdjson</dt>
+          <dd>
+            Vendored by default; use your own version by setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_SIMDJSON</code> CMake variable to
+            <code>NO</code>
+          </dd>
+          <dt>Python</dt>
+          <dd>Version 3.7 or newer</dd>
+          <dt>clang-format</dt>
+          <dd>
+            Used only during development; see the
+            <a href="../coding-standards/">coding standards and style guide</a>
+          </dd>
+          <dt>GNU gettext</dt>
+          <dd>Used only during development</dd>
+          <dt>Go</dt>
+          <dd>Version 1.16 or newer; used only during development</dd>
+        </dl>
+      </section>
     </main>
 
     <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
