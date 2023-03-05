@@ -74,7 +74,8 @@ const translation_table translation_data = {
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
         {69, 48, 0, 36, 0, 32},              //
-        {68, 25, 0, 65, 0, 62},              //
+        {0, 0, 0, 0, 0, 62},                 //
+        {68, 25, 0, 65, 0, 26},              //
         {83, 55, 66, 62, 49, 62},            //
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
@@ -292,7 +293,8 @@ const translation_table translation_data = {
         {76, 28, 56, 73, 48, 69},            //
         {33, 10, 42, 37, 31, 35},            //
         {38, 14, 46, 41, 38, 39},            //
-        {35, 13, 45, 40, 37, 38},            //
+        {0, 0, 0, 0, 0, 38},                 //
+        {35, 13, 45, 40, 37, 37},            //
         {36, 34, 39, 35, 40, 35},            //
         {33, 7, 40, 40, 33, 39},             //
         {24, 11, 33, 22, 23, 24},            //
@@ -1779,6 +1781,7 @@ const translation_table translation_data = {
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
+        u8"'{1}' statement ends here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
         u8"BigInt literal contains decimal point\0"
         u8"BigInt literal contains exponent\0"
@@ -1997,6 +2000,7 @@ const translation_table translation_data = {
         u8"missing condition for if statement\0"
         u8"missing condition for switch statement\0"
         u8"missing condition for while statement\0"
+        u8"missing condition in '{1}' statement\0"
         u8"missing end of array; expected ']'\0"
         u8"missing expression between parentheses\0"
         u8"missing for loop header\0"

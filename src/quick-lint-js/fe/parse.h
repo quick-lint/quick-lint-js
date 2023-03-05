@@ -398,7 +398,8 @@ class parser {
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
             bool CheckForSketchyConditions, bool CheckForCommaOperator>
-  void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
+  void parse_and_visit_parenthesized_expression(source_code_span token,
+                                                parse_visitor_base &v);
 
   void error_on_sketchy_condition(expression *);
   void warn_on_comma_operator_in_conditional_statement(expression *);
@@ -915,10 +916,20 @@ class parser {
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
           bool CheckForSketchyConditions, bool CheckForCommaOperator>
-void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
+void parser::parse_and_visit_parenthesized_expression(
+    source_code_span token_span, parse_visitor_base &v) {
   bool have_expression_left_paren = this->peek().type == token_type::left_paren;
+  source_code_span left_paren_span = this->peek().span();
   if (have_expression_left_paren) {
     this->skip();
+  }
+
+  if (this->peek().type == token_type::right_paren) {
+    source_code_span right_paren_span = this->peek().span();
+    this->diag_reporter_->report(diag_empty_paren_after_control_statement{
+        .token = token_span,
+        .left_paren = left_paren_span,
+        .right_paren = right_paren_span});
   }
   const char8 *expression_begin = this->peek().begin;
 

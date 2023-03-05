@@ -676,6 +676,19 @@
               comma))                                                           \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_empty_paren_after_control_statement, "E0452",                        \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span token;                                                 \
+        source_code_span left_paren;                                            \
+        source_code_span right_paren;                                           \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("missing condition in '{1}' statement"),        \
+              left_paren, token)                                                \
+          MESSAGE(QLJS_TRANSLATABLE("'{1}' statement ends here"), right_paren,  \
+                  token))                                                       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_expected_as_before_imported_namespace_alias, "E0126",                \
       diagnostic_severity::error,                                               \
       {                                                                         \

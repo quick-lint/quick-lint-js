@@ -497,6 +497,16 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr "I know you hate semicolons, but you need one here"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing condition in '{1}' statement"
+msgstr "if WHAT?!"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'{1}' statement ends here"
+msgstr "at least you tried"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "you forgot 'as' between '{1}' and '{2}'"
 
@@ -527,8 +537,7 @@ msgstr "be polite and say 'from'"
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
 msgstr ""
-"what are you trying to do? This is a Unicode escape sequence, not a Wendy's "
-"🍔"
+"what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected '{{'"
@@ -831,8 +840,7 @@ msgstr "how did the grammar Nazi die? colon cancer."
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'?' creates a conditional expression"
-msgstr ""
-"do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
+msgstr "do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing condition for if statement"
@@ -1882,6 +1890,14 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "empty condition statement in if"
+#~ msgstr "if WHAT?!"
+
+#, fuzzy
+#~ msgid "if ends here"
+#~ msgstr "🚸🚫⛔"
 
 #, fuzzy
 #~ msgid "',' is not expected between the mems in '['']'"

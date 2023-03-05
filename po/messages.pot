@@ -462,6 +462,14 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "missing condition in '{1}' statement"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'{1}' statement ends here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr ""
 

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 424;
-constexpr std::size_t translation_table_string_table_size = 75572;
+constexpr std::uint16_t translation_table_mapping_table_size = 426;
+constexpr std::size_t translation_table_string_table_size = 75635;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -91,6 +91,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'{0}' is not allowed for strings; use {1} instead"sv,
           "'{0}' is not allowed on methods"sv,
           "'{0}' operator cannot be used before '**' without parentheses"sv,
+          "'{1}' statement ends here"sv,
           "'}' is not allowed directly in JSX text; write {{'}'} instead"sv,
           "BigInt literal contains decimal point"sv,
           "BigInt literal contains exponent"sv,
@@ -309,6 +310,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing condition for if statement"sv,
           "missing condition for switch statement"sv,
           "missing condition for while statement"sv,
+          "missing condition in '{1}' statement"sv,
           "missing end of array; expected ']'"sv,
           "missing expression between parentheses"sv,
           "missing for loop header"sv,

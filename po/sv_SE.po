@@ -498,6 +498,16 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr "saknar semikolon efter påstående"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing condition in '{1}' statement"
+msgstr "saknar vilkor i if påstående"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "'{1}' statement ends here"
+msgstr "try sats startar här"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "förväntade 'as' mellan '{1}' och '{2}'"
 
@@ -1888,6 +1898,14 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "empty condition statement in if"
+#~ msgstr "saknar vilkor i if påstående"
+
+#, fuzzy
+#~ msgid "if ends here"
+#~ msgstr "funktionkallelse startar här"
 
 #, fuzzy
 #~ msgid "',' is not expected between the mems in '['']'"
