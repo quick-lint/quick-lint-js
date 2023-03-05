@@ -1,37 +1,42 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_DIAG_REPORTER_H
-#define QUICK_LINT_JS_FE_DIAG_REPORTER_H
+#ifndef QUICK_LINT_JS_DIAG_BUFFERING_DIAG_REPORTER_H
+#define QUICK_LINT_JS_DIAG_BUFFERING_DIAG_REPORTER_H
 
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <memory>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/token.h>
+#include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
-class diag_reporter {
+class buffering_diag_reporter final : public diag_reporter {
  public:
-  diag_reporter() noexcept = default;
+  explicit buffering_diag_reporter(memory_resource *);
 
-  diag_reporter(const diag_reporter &) noexcept = default;
-  diag_reporter &operator=(const diag_reporter &) noexcept = default;
+  buffering_diag_reporter(buffering_diag_reporter &&);
+  buffering_diag_reporter &operator=(buffering_diag_reporter &&);
 
-  diag_reporter(diag_reporter &&) noexcept = default;
-  diag_reporter &operator=(diag_reporter &&) noexcept = default;
+  ~buffering_diag_reporter() override;
 
-  virtual ~diag_reporter() = default;
+  void report_impl(diag_type type, void *diag) override;
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void report(name diag);
-  QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+  void copy_into(diag_reporter *other) const;
+  void move_into(diag_reporter *other);
 
-  virtual void report_impl(diag_type type, void *diag) = 0;
-};
+  bool empty() const noexcept;
 
-class null_diag_reporter : public diag_reporter {
- public:
-  static null_diag_reporter instance;
+  void clear() noexcept;
 
-  void report_impl(diag_type, void *) override {}
+ private:
+  struct impl;
+
+  struct impl_deleter {
+    void operator()(impl *) noexcept;
+  };
+
+  std::unique_ptr<impl, impl_deleter> impl_;
 };
 }
 

@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>

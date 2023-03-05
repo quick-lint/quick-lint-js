@@ -1,21 +1,18 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <ostream>
-#include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, diag_type type) {
-  switch (type) {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  case diag_type::name:                                                \
-    return out << #name;
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
+  void diag_reporter::report(name diag) {                         \
+    this->report_impl(diag_type_from_type<name>, &diag);          \
   }
-  QLJS_UNREACHABLE();
-}
+QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
+
+null_diag_reporter null_diag_reporter::instance;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

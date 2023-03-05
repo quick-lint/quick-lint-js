@@ -1,12 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_DIAG_CODE_LIST_H
-#define QUICK_LINT_JS_FE_DIAG_CODE_LIST_H
+#ifndef QUICK_LINT_JS_DIAG_DIAG_CODE_LIST_H
+#define QUICK_LINT_JS_DIAG_DIAG_CODE_LIST_H
 
 #include <array>
 #include <bitset>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <string>
 #include <string_view>
 #include <vector>

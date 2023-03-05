@@ -1,14 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_REPORTED_DIAG_STATISTICS_H
-#define QUICK_LINT_JS_FE_REPORTED_DIAG_STATISTICS_H
+#ifndef QUICK_LINT_JS_DIAG_REPORTED_DIAG_STATISTICS_H
+#define QUICK_LINT_JS_DIAG_REPORTED_DIAG_STATISTICS_H
 
 #include <quick-lint-js/cli/text-diag-reporter.h>
 #include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
-#include <quick-lint-js/fe/diag-code-list.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/token.h>
 
 namespace quick_lint_js {

@@ -6,8 +6,8 @@
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/cli/options.h>
-#include <quick-lint-js/fe/diag-code-list.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>

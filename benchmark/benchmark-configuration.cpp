@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 
 using namespace std::literals::string_view_literals;
 

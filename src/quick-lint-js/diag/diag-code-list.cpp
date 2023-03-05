@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <quick-lint-js/fe/diag-code-list.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <string>
 #include <string_view>

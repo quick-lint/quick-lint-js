@@ -1,24 +1,20 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <cstddef>
-#include <cstdint>
-#include <quick-lint-js/diag/diag-reporter.h>
-#include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
-#include <quick-lint-js/port/char8.h>
+#include <ostream>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/port/unreachable.h>
 
-extern "C" {
-int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
-  quick_lint_js::padded_string source(quick_lint_js::string8(
-      reinterpret_cast<const quick_lint_js::char8 *>(data), size));
-  quick_lint_js::parser p(&source,
-                          &quick_lint_js::null_diag_reporter::instance);
-  quick_lint_js::variable_analyzer l;
-  [[maybe_unused]] bool ok =
-      p.parse_and_visit_module_catching_fatal_parse_errors(l);
-
-  return 0;
+namespace quick_lint_js {
+std::ostream& operator<<(std::ostream& out, diag_type type) {
+  switch (type) {
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
+  case diag_type::name:                                                \
+    return out << #name;
+    QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
+  }
+  QLJS_UNREACHABLE();
 }
 }
 

@@ -9,9 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/hash-map.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/jsx.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse.h>

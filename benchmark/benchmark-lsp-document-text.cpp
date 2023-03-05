@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/lsp/lsp-document-text.h>

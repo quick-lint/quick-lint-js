@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/global-variables.h>
 #include <quick-lint-js/fe/variable-analyzer.h>

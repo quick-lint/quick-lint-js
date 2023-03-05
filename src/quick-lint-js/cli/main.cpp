@@ -21,10 +21,10 @@
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/fe/diag-code-list.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/reported-diag-statistics.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/linter.h>
-#include <quick-lint-js/fe/reported-diag-statistics.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/event-loop.h>

@@ -125,19 +125,20 @@ quick_lint_js_add_library(
   quick-lint-js/debug/debug-server.h
   quick-lint-js/debug/mongoose.cpp
   quick-lint-js/debug/mongoose.h
-  quick-lint-js/fe/buffering-diag-reporter.cpp
-  quick-lint-js/fe/buffering-diag-reporter.h
+  quick-lint-js/diag/buffering-diag-reporter.cpp
+  quick-lint-js/diag/buffering-diag-reporter.h
+  quick-lint-js/diag/diag-code-list.cpp
+  quick-lint-js/diag/diag-code-list.h
+  quick-lint-js/diag/diag-reporter.cpp
+  quick-lint-js/diag/diag-reporter.h
+  quick-lint-js/diag/diagnostic-formatter.cpp
+  quick-lint-js/diag/diagnostic-formatter.h
+  quick-lint-js/diag/diagnostic-types.h
+  quick-lint-js/diag/diagnostic.cpp
+  quick-lint-js/diag/diagnostic.h
+  quick-lint-js/diag/reported-diag-statistics.h
   quick-lint-js/fe/buffering-visitor.cpp
   quick-lint-js/fe/buffering-visitor.h
-  quick-lint-js/fe/diag-code-list.cpp
-  quick-lint-js/fe/diag-code-list.h
-  quick-lint-js/fe/diag-reporter.cpp
-  quick-lint-js/fe/diag-reporter.h
-  quick-lint-js/fe/diagnostic-formatter.cpp
-  quick-lint-js/fe/diagnostic-formatter.h
-  quick-lint-js/fe/diagnostic-types.h
-  quick-lint-js/fe/diagnostic.cpp
-  quick-lint-js/fe/diagnostic.h
   quick-lint-js/fe/expression.h
   quick-lint-js/fe/global-declared-variable-set.cpp
   quick-lint-js/fe/global-declared-variable-set.h
@@ -165,7 +166,6 @@ quick_lint_js_add_library(
   quick-lint-js/fe/parse-visitor.h
   quick-lint-js/fe/parse.cpp
   quick-lint-js/fe/parse.h
-  quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
   quick-lint-js/fe/token.cpp
@@ -362,7 +362,7 @@ quick_lint_js_add_library(
   quick-lint-js/cli/vim-location-debug.cpp
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
-  quick-lint-js/fe/diag-debug.cpp
+  quick-lint-js/diag/diag-debug.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp

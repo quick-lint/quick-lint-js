@@ -4,7 +4,7 @@
 #include <memory>
 #include <quick-lint-js/container/allocator.h>
 #include <quick-lint-js/container/linked-vector.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>

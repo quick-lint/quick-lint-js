@@ -1,19 +1,41 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#ifndef QUICK_LINT_JS_DIAG_DIAG_REPORTER_H
+#define QUICK_LINT_JS_DIAG_DIAG_REPORTER_H
+
+#include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
+class diag_reporter {
+ public:
+  diag_reporter() noexcept = default;
+
+  diag_reporter(const diag_reporter &) noexcept = default;
+  diag_reporter &operator=(const diag_reporter &) noexcept = default;
+
+  diag_reporter(diag_reporter &&) noexcept = default;
+  diag_reporter &operator=(diag_reporter &&) noexcept = default;
+
+  virtual ~diag_reporter() = default;
+
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void diag_reporter::report(name diag) {                         \
-    this->report_impl(diag_type_from_type<name>, &diag);          \
-  }
-QLJS_X_DIAG_TYPES
+  void report(name diag);
+  QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-null_diag_reporter null_diag_reporter::instance;
+  virtual void report_impl(diag_type type, void *diag) = 0;
+};
+
+class null_diag_reporter : public diag_reporter {
+ public:
+  static null_diag_reporter instance;
+
+  void report_impl(diag_type, void *) override {}
+};
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

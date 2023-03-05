@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_VSCODE_VSCODE_DIAG_REPORTER_H
 
 #include <napi.h>
-#include <quick-lint-js/fe/diagnostic-formatter.h>
+#include <quick-lint-js/diag/diagnostic-formatter.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>

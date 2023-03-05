@@ -5,7 +5,7 @@
 #include <quick-lint-js/cli/vim-location.h>
 #include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/port/char8.h>

@@ -1,14 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_DIAGNOSTIC_FORMATTER_H
-#define QUICK_LINT_JS_FE_DIAGNOSTIC_FORMATTER_H
+#ifndef QUICK_LINT_JS_DIAG_DIAGNOSTIC_FORMATTER_H
+#define QUICK_LINT_JS_DIAG_DIAGNOSTIC_FORMATTER_H
 
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/source-code-span.h>

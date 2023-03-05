@@ -5,7 +5,7 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>
