@@ -128,20 +128,12 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::dot:
     this->visit_expression(ast->child_0(), v, variable_context::rhs);
     break;
-  case expression_kind::index: {
+  case expression_kind::index:
     this->visit_expression(ast->child_0(), v, variable_context::rhs);
     this->visit_expression(ast->child_1(), v, variable_context::rhs);
-    std::optional<source_code_span> comma =
-        this->find_comma_operator(ast->child_1());
-    if (comma.has_value()) {
-      this->diag_reporter_->report(
-          diag_misleading_comma_operator_in_index_operation{
-              .comma = comma.value(),
-              .left_square =
-                  static_cast<expression::index*>(ast)->left_square_span});
-    }
+    this->warn_on_comma_operator_in_index(
+        ast->child_1(), static_cast<expression::index*>(ast)->left_square_span);
     break;
-  }
 
   case expression_kind::jsx_element: {
     auto* element = static_cast<expression::jsx_element*>(ast);
