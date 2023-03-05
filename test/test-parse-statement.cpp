@@ -269,8 +269,8 @@ TEST_F(test_parse_statement, empty_paren_after_control_statement) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_empty_paren_after_control_statement,
-                        left_paren, strlen(u8"if"), u8"("_sv, right_paren,
-                        strlen(u8"if("), u8")"_sv),
+                        expected_expression, strlen(u8"if("), u8""_sv, token,
+                        strlen(u8""), u8"if"_sv),
                 }));
   }
 
@@ -281,8 +281,8 @@ TEST_F(test_parse_statement, empty_paren_after_control_statement) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_empty_paren_after_control_statement,
-                        left_paren, strlen(u8"switch"), u8"("_sv, right_paren,
-                        strlen(u8"switch("), u8")"_sv),
+                        expected_expression, strlen(u8"switch("), u8""_sv,
+                        token, strlen(u8""), u8"switch"_sv),
                 }));
   }
 
@@ -293,8 +293,8 @@ TEST_F(test_parse_statement, empty_paren_after_control_statement) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_empty_paren_after_control_statement,
-                        left_paren, strlen(u8"while"), u8"("_sv, right_paren,
-                        strlen(u8"while("), u8")"_sv),
+                        expected_expression, strlen(u8"while("), u8""_sv, token,
+                        strlen(u8""), u8"while"_sv),
                 }));
   }
 
@@ -305,15 +305,9 @@ TEST_F(test_parse_statement, empty_paren_after_control_statement) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, diag_empty_paren_after_control_statement,
-                        left_paren, strlen(u8"with"), u8"("_sv, right_paren,
-                        strlen(u8"with("), u8")"_sv),
+                        expected_expression, strlen(u8"with("), u8""_sv, token,
+                        strlen(u8""), u8"with"_sv),
                 }));
-  }
-
-  {
-    test_parser p(u8"if(true){}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

@@ -75,7 +75,7 @@ const translation_table translation_data = {
         {0, 0, 0, 46, 0, 50},                //
         {69, 48, 0, 36, 0, 32},              //
         {0, 0, 0, 0, 0, 62},                 //
-        {68, 25, 0, 65, 0, 26},              //
+        {68, 25, 0, 65, 0, 28},              //
         {83, 55, 66, 62, 49, 62},            //
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
@@ -195,7 +195,8 @@ const translation_table translation_data = {
         {37, 29, 36, 37, 41, 37},            //
         {39, 25, 49, 41, 44, 40},            //
         {0, 0, 0, 14, 0, 14},                //
-        {14, 24, 13, 67, 18, 58},            //
+        {0, 0, 0, 0, 0, 58},                 //
+        {14, 24, 13, 67, 18, 30},            //
         {30, 28, 35, 37, 38, 33},            //
         {36, 18, 44, 49, 37, 35},            //
         {32, 39, 44, 50, 41, 37},            //
@@ -293,8 +294,7 @@ const translation_table translation_data = {
         {76, 28, 56, 73, 48, 69},            //
         {33, 10, 42, 37, 31, 35},            //
         {38, 14, 46, 41, 38, 39},            //
-        {0, 0, 0, 0, 0, 38},                 //
-        {35, 13, 45, 40, 37, 37},            //
+        {35, 13, 45, 40, 37, 38},            //
         {36, 34, 39, 35, 40, 35},            //
         {33, 7, 40, 40, 33, 39},             //
         {24, 11, 33, 22, 23, 24},            //
@@ -1781,7 +1781,7 @@ const translation_table translation_data = {
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
-        u8"'{1}' statement ends here\0"
+        u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
         u8"BigInt literal contains decimal point\0"
         u8"BigInt literal contains exponent\0"
@@ -1902,6 +1902,7 @@ const translation_table translation_data = {
         u8"expected 'from' before module specifier\0"
         u8"expected '{{'\0"
         u8"expected at least one parameter in generic parameter list\0"
+        u8"expected expression after '('\0"
         u8"expected expression after 'case'\0"
         u8"expected expression before newline\0"
         u8"expected expression before semicolon\0"
@@ -2000,7 +2001,6 @@ const translation_table translation_data = {
         u8"missing condition for if statement\0"
         u8"missing condition for switch statement\0"
         u8"missing condition for while statement\0"
-        u8"missing condition in '{1}' statement\0"
         u8"missing end of array; expected ']'\0"
         u8"missing expression between parentheses\0"
         u8"missing for loop header\0"

@@ -680,12 +680,11 @@
       diagnostic_severity::error,                                               \
       {                                                                         \
         source_code_span token;                                                 \
-        source_code_span left_paren;                                            \
-        source_code_span right_paren;                                           \
+        source_code_span expected_expression;                                   \
       },                                                                        \
-      MESSAGE(QLJS_TRANSLATABLE("missing condition in '{1}' statement"),        \
-              left_paren, token)                                                \
-          MESSAGE(QLJS_TRANSLATABLE("'{1}' statement ends here"), right_paren,  \
+      MESSAGE(QLJS_TRANSLATABLE("expected expression after '('"),               \
+              expected_expression)                                              \
+          MESSAGE(QLJS_TRANSLATABLE("'{1}' statement starts here"), token,      \
                   token))                                                       \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \

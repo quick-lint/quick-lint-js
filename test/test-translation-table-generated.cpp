@@ -704,14 +704,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "'{1}' statement ends here"_translatable,
+        "'{1}' statement starts here"_translatable,
         {
-            u8"'{1}' statement ends here",
-            u8"'{1}' statement ends here",
-            u8"'{1}' statement ends here",
-            u8"'{1}' statement ends here",
-            u8"'{1}' statement ends here",
-            u8"'{1}' statement ends here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
         },
     },
     {
@@ -2035,6 +2035,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "expected expression after '('"_translatable,
+        {
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+        },
+    },
+    {
         "expected expression after 'case'"_translatable,
         {
             u8"expected expression after 'case'",
@@ -3110,17 +3121,6 @@ const translated_string test_translation_table[] = {
             u8"condition manquante pour l'instruction while",
             u8"falta a condi\u00e7\u00e3o da instru\u00e7\u00e3o while",
             u8"saknar vilkor f\u00f6r while p\u00e5st\u00e5ende",
-        },
-    },
-    {
-        "missing condition in '{1}' statement"_translatable,
-        {
-            u8"missing condition in '{1}' statement",
-            u8"missing condition in '{1}' statement",
-            u8"missing condition in '{1}' statement",
-            u8"missing condition in '{1}' statement",
-            u8"missing condition in '{1}' statement",
-            u8"missing condition in '{1}' statement",
         },
     },
     {

@@ -482,12 +482,12 @@ msgstr "falta o ponto e vírgula após a instrução"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "missing condition in '{1}' statement"
-msgstr "falta a condição da instrução if"
+msgid "expected expression after '('"
+msgstr "esperada uma expressão após 'case'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "'{1}' statement ends here"
+msgid "'{1}' statement starts here"
 msgstr "instrução try iniciou aqui"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
@@ -1826,6 +1826,14 @@ msgstr "esperado {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "aqui"
+
+#, fuzzy
+#~ msgid "missing condition in '{1}' statement"
+#~ msgstr "falta a condição da instrução if"
+
+#, fuzzy
+#~ msgid "'{1}' statement ends here"
+#~ msgstr "instrução try iniciou aqui"
 
 #, fuzzy
 #~ msgid "empty condition statement in if"
