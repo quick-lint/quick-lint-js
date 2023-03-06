@@ -345,12 +345,13 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
     const lsp_text_document_did_change_notification& notification) {
-  auto document_it = this->documents_.find(string8(notification.uri.data));
-  bool url_is_tracked = document_it != this->documents_.end();
+  auto document_it =
+      this->documents_.documents.find(string8(notification.uri.data));
+  bool url_is_tracked = document_it != this->documents_.documents.end();
   if (!url_is_tracked) {
     return;
   }
-  document_base& doc = *document_it->second;
+  lsp_documents::document_base& doc = *document_it->second;
 
   std::string document_path = parse_file_from_lsp_uri(notification.uri.data);
   if (document_path.empty()) {
@@ -364,19 +365,19 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   doc.on_text_changed(*this, notification.uri.json);
 }
 
-void linting_lsp_server_handler::config_document::on_text_changed(
+void lsp_documents::config_document::on_text_changed(
     linting_lsp_server_handler& handler, string8_view) {
   std::vector<configuration_change> config_changes =
       handler.config_loader_.refresh();
   handler.handle_config_file_changes(config_changes);
 }
 
-void linting_lsp_server_handler::lintable_document::on_text_changed(
+void lsp_documents::lintable_document::on_text_changed(
     linting_lsp_server_handler& handler, string8_view document_uri_json) {
   handler.linter_.lint(*this, document_uri_json, handler.outgoing_messages_);
 }
 
-void linting_lsp_server_handler::unknown_document::on_text_changed(
+void lsp_documents::unknown_document::on_text_changed(
     linting_lsp_server_handler&, string8_view) {
   // Do nothing.
 }
@@ -404,7 +405,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.erase(string8(notification.uri));
+  this->documents_.documents.erase(string8(notification.uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -458,16 +459,16 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     QLJS_UNIMPLEMENTED();
   }
 
-  auto init_document = [&](document_base& doc) {
+  auto init_document = [&](lsp_documents::document_base& doc) {
     this->config_fs_.open_document(document_path, &doc.doc);
 
     doc.doc.set_text(notification.text);
     doc.version_json = notification.version_json;
   };
 
-  std::unique_ptr<document_base> doc_ptr;
+  std::unique_ptr<lsp_documents::document_base> doc_ptr;
   if (const lsp_language* lang = lsp_language::find(notification.language_id)) {
-    auto doc = std::make_unique<lintable_document>();
+    auto doc = std::make_unique<lsp_documents::lintable_document>();
     init_document(*doc);
     doc->lint_options = lang->lint_options;
 
@@ -495,7 +496,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
     doc_ptr = std::move(doc);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
-    auto doc = std::make_unique<config_document>();
+    auto doc = std::make_unique<lsp_documents::config_document>();
     init_document(*doc);
 
     auto config_file =
@@ -514,13 +515,14 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
     doc_ptr = std::move(doc);
   } else {
-    doc_ptr = std::make_unique<unknown_document>();
+    doc_ptr = std::make_unique<lsp_documents::unknown_document>();
     init_document(*doc_ptr);
   }
 
   // If the document already exists, deallocate that document_base and use ours.
   // TODO(strager): Should we report a warning if a document already existed?
-  this->documents_[string8(notification.uri.data)] = std::move(doc_ptr);
+  this->documents_.documents[string8(notification.uri.data)] =
+      std::move(doc_ptr);
 }
 
 void linting_lsp_server_handler::
@@ -543,9 +545,9 @@ void linting_lsp_server_handler::
 
 void linting_lsp_server_handler::handle_config_file_changes(
     const std::vector<configuration_change>& config_changes) {
-  for (auto& entry : this->documents_) {
+  for (auto& entry : this->documents_.documents) {
     const string8& document_uri = entry.first;
-    document_base& doc = *entry.second;
+    lsp_documents::document_base& doc = *entry.second;
 
     auto change_it =
         find_unique_if(config_changes, [&](const configuration_change& change) {
@@ -559,7 +561,7 @@ void linting_lsp_server_handler::handle_config_file_changes(
   }
 }
 
-void linting_lsp_server_handler::config_document::on_config_file_changed(
+void lsp_documents::config_document::on_config_file_changed(
     linting_lsp_server_handler& handler, string8_view document_uri,
     const configuration_change& change) {
   QLJS_ASSERT(change.config_file);
@@ -572,7 +574,7 @@ void linting_lsp_server_handler::config_document::on_config_file_changed(
   }
 }
 
-void linting_lsp_server_handler::lintable_document::on_config_file_changed(
+void lsp_documents::lintable_document::on_config_file_changed(
     linting_lsp_server_handler& handler, string8_view document_uri,
     const configuration_change& change) {
   std::string document_path = parse_file_from_lsp_uri(document_uri);
@@ -595,7 +597,7 @@ void linting_lsp_server_handler::lintable_document::on_config_file_changed(
                        handler.outgoing_messages_);
 }
 
-void linting_lsp_server_handler::unknown_document::on_config_file_changed(
+void lsp_documents::unknown_document::on_config_file_changed(
     linting_lsp_server_handler&, string8_view, const configuration_change&) {
   // Do nothing.
 }
@@ -732,7 +734,7 @@ void linting_lsp_server_handler::write_method_not_found_error_response(
 
 lsp_linter::~lsp_linter() = default;
 
-void lsp_linter::lint(linting_lsp_server_handler::lintable_document& doc,
+void lsp_linter::lint(lsp_documents::lintable_document& doc,
                       string8_view uri_json,
                       outgoing_json_rpc_message_queue& outgoing_messages) {
   this->lint(*doc.config, doc.lint_options, doc.doc.string(), uri_json,

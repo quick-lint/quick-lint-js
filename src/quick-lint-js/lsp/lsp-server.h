@@ -32,6 +32,7 @@
 
 namespace quick_lint_js {
 class byte_buffer;
+class linting_lsp_server_handler;
 class lsp_linter;
 class trace_flusher_directory_backend;
 struct watch_io_error;
@@ -60,39 +61,7 @@ struct linting_lsp_server_config {
   std::string tracing_directory;
 };
 
-// A linting_lsp_server_handler listens for JavaScript code changes and notifies
-// the client of diagnostics.
-class linting_lsp_server_handler final : public json_rpc_message_handler {
- public:
-  explicit linting_lsp_server_handler(configuration_filesystem* fs,
-                                      lsp_linter* linter);
-  ~linting_lsp_server_handler() override;
-
-  linting_lsp_server_config& server_config() noexcept {
-    return this->server_config_;
-  }
-
-  void handle_request(::simdjson::ondemand::object& request,
-                      std::string_view method, string8_view id_json) override;
-  void handle_response(json_rpc_message_handler::request_id_type request_id,
-                       ::simdjson::ondemand::value& result) override;
-  void handle_error_response(
-      json_rpc_message_handler::request_id_type request_id, std::int64_t code,
-      std::string_view message) override;
-  void handle_notification(::simdjson::ondemand::object& request,
-                           std::string_view method) override;
-
-  void filesystem_changed();
-
-  // Sends notifications and requests to the client.
-  // TODO(strager): Rename.
-  void flush_pending_notifications(lsp_endpoint_remote& remote) {
-    this->outgoing_messages_.send(remote);
-  }
-
-  void add_watch_io_errors(const std::vector<watch_io_error>&);
-
- private:
+struct lsp_documents {
   struct document_base {
     virtual ~document_base() = default;
 
@@ -135,6 +104,43 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
                                 const configuration_change&) override;
   };
 
+  // Key: URI
+  hash_map<string8, std::unique_ptr<document_base> > documents;
+};
+
+// A linting_lsp_server_handler listens for JavaScript code changes and notifies
+// the client of diagnostics.
+class linting_lsp_server_handler final : public json_rpc_message_handler {
+ public:
+  explicit linting_lsp_server_handler(configuration_filesystem* fs,
+                                      lsp_linter* linter);
+  ~linting_lsp_server_handler() override;
+
+  linting_lsp_server_config& server_config() noexcept {
+    return this->server_config_;
+  }
+
+  void handle_request(::simdjson::ondemand::object& request,
+                      std::string_view method, string8_view id_json) override;
+  void handle_response(json_rpc_message_handler::request_id_type request_id,
+                       ::simdjson::ondemand::value& result) override;
+  void handle_error_response(
+      json_rpc_message_handler::request_id_type request_id, std::int64_t code,
+      std::string_view message) override;
+  void handle_notification(::simdjson::ondemand::object& request,
+                           std::string_view method) override;
+
+  void filesystem_changed();
+
+  // Sends notifications and requests to the client.
+  // TODO(strager): Rename.
+  void flush_pending_notifications(lsp_endpoint_remote& remote) {
+    this->outgoing_messages_.send(remote);
+  }
+
+  void add_watch_io_errors(const std::vector<watch_io_error>&);
+
+ private:
   void handle_initialize_request(::simdjson::ondemand::object& request,
                                  string8_view id_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
@@ -210,7 +216,7 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   configuration_loader config_loader_;
   configuration default_config_;
   lsp_linter& linter_;
-  hash_map<string8, std::unique_ptr<document_base> > documents_;
+  lsp_documents documents_;
   outgoing_json_rpc_message_queue outgoing_messages_;
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
@@ -219,6 +225,8 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   bool shutdown_requested_ = false;
 
   friend class lsp_linter;
+  friend struct lsp_documents::config_document;
+  friend struct lsp_documents::lintable_document;
 };
 
 class lsp_linter {
@@ -237,8 +245,8 @@ class lsp_linter {
                     string8_view version_json,
                     outgoing_json_rpc_message_queue&) = 0;
 
-  void lint(linting_lsp_server_handler::lintable_document&,
-            string8_view uri_json, outgoing_json_rpc_message_queue&);
+  void lint(lsp_documents::lintable_document&, string8_view uri_json,
+            outgoing_json_rpc_message_queue&);
 };
 
 class lsp_javascript_linter final : public lsp_linter {
