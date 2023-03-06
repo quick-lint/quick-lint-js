@@ -164,14 +164,14 @@ class trace_flusher {
     std::vector<std::unique_ptr<registered_thread> > registered_threads;
     trace_flusher_thread_index next_thread_index = 1;
     bool stop_flushing_thread = false;
+
+    bool is_enabled();
   };
 
   void flush_sync(lock_ptr<shared_state>&);
 
   void enable_backend(lock_ptr<shared_state>&, trace_flusher_backend*);
   void disable_backend(lock_ptr<shared_state>&, trace_flusher_backend*);
-
-  bool is_enabled(lock_ptr<shared_state>&);
 
   void flush_one_thread_sync(lock_ptr<shared_state>&, registered_thread&);
 

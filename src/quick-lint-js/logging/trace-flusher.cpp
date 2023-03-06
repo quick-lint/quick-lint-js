@@ -116,13 +116,10 @@ void trace_flusher::disable_all_backends() {
   }
 }
 
-bool trace_flusher::is_enabled() {
-  lock_ptr<shared_state> state = this->state_.lock();
-  return this->is_enabled(state);
-}
+bool trace_flusher::is_enabled() { return this->state_.lock()->is_enabled(); }
 
-bool trace_flusher::is_enabled(lock_ptr<shared_state>& state) {
-  return !state->backends.empty();
+bool trace_flusher::shared_state::is_enabled() {
+  return !this->backends.empty();
 }
 
 trace_flusher_thread_index trace_flusher::register_current_thread() {
@@ -147,7 +144,7 @@ void trace_flusher::unregister_current_thread() {
       state->registered_threads,
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
   registered_thread& t = **registered_thread_it;
-  if (this->is_enabled(state)) {
+  if (state->is_enabled()) {
     this->flush_one_thread_sync(state, t);
   }
   for (trace_flusher_backend* backend : state->backends) {
@@ -161,7 +158,7 @@ void trace_flusher::unregister_all_threads() {
   lock_ptr<shared_state> state = this->state_.lock();
   for (auto& t : state->registered_threads) {
     t->thread_writer->store(nullptr);
-    if (this->is_enabled(state)) {
+    if (state->is_enabled()) {
       this->flush_one_thread_sync(state, *t);
     }
     for (trace_flusher_backend* backend : state->backends) {
