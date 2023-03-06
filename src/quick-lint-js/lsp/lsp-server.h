@@ -73,8 +73,6 @@ struct lsp_documents {
 
     virtual ~document_base() = default;
 
-    virtual void on_text_changed(linting_lsp_server_handler&,
-                                 string8_view document_uri_json) = 0;
     virtual void on_config_file_changed(linting_lsp_server_handler&,
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
@@ -89,8 +87,6 @@ struct lsp_documents {
   struct config_document final : document_base {
     explicit config_document();
 
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;
@@ -100,8 +96,6 @@ struct lsp_documents {
   struct lintable_document final : document_base {
     explicit lintable_document();
 
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;
@@ -113,8 +107,6 @@ struct lsp_documents {
   struct unknown_document final : document_base {
     explicit unknown_document();
 
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
                                 string8_view document_uri,
                                 const configuration_change&) override;

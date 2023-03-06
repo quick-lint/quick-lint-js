@@ -373,24 +373,22 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   this->apply_document_changes(doc.doc, notification.changes);
   doc.version_json = notification.version_json;
 
-  doc.on_text_changed(*this, notification.uri.json);
-}
+  switch (doc.type) {
+  case lsp_documents::document_type::config: {
+    std::vector<configuration_change> config_changes =
+        this->config_loader_.refresh();
+    this->handle_config_file_changes(config_changes);
+    break;
+  }
 
-void lsp_documents::config_document::on_text_changed(
-    linting_lsp_server_handler& handler, string8_view) {
-  std::vector<configuration_change> config_changes =
-      handler.config_loader_.refresh();
-  handler.handle_config_file_changes(config_changes);
-}
+  case lsp_documents::document_type::lintable:
+    this->linter_.lint(static_cast<lsp_documents::lintable_document&>(doc),
+                       notification.uri.json, this->outgoing_messages_);
+    break;
 
-void lsp_documents::lintable_document::on_text_changed(
-    linting_lsp_server_handler& handler, string8_view document_uri_json) {
-  handler.linter_.lint(*this, document_uri_json, handler.outgoing_messages_);
-}
-
-void lsp_documents::unknown_document::on_text_changed(
-    linting_lsp_server_handler&, string8_view) {
-  // Do nothing.
+  case lsp_documents::document_type::unknown:
+    break;
+  }
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
