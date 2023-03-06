@@ -27,6 +27,7 @@
 #include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/instance-tracker.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <string_view>
 
@@ -45,9 +46,9 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
 
   void trace_thread_write_data(trace_flusher_thread_index thread_index,
                                span<const std::byte> data) override {
-    std::lock_guard<mutex> lock(this->mutex_);
+    lock_ptr thread_queues = this->thread_queues_.lock();
 
-    async_byte_queue &queue = this->thread_queues_[thread_index];
+    async_byte_queue &queue = (*thread_queues)[thread_index];
     queue.append_copy(data.data(), narrow_cast<std::size_t>(data.size()));
     queue.commit();
     server_->wake_up_server_thread();
@@ -55,9 +56,9 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
 
   // Called on the server thread.
   void flush_if_needed() {
-    std::lock_guard<mutex> lock(this->mutex_);
+    lock_ptr thread_queues = this->thread_queues_.lock();
 
-    for (auto &[thread_index, queue] : this->thread_queues_) {
+    for (auto &[thread_index, queue] : *thread_queues) {
       std::size_t total_message_size = 0;
 
       {
@@ -92,10 +93,8 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
   ::mg_connection *const connection_;
   debug_server *const server_;
 
-  // Protected by mutex_:
-  hash_map<trace_flusher_thread_index, async_byte_queue> thread_queues_;
-
-  mutex mutex_;
+  synchronized<hash_map<trace_flusher_thread_index, async_byte_queue>>
+      thread_queues_;
 
   friend class debug_server;
 };

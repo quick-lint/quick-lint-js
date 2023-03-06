@@ -59,24 +59,16 @@ std::ostream &operator<<(std::ostream &out,
 vector_instrumentation vector_instrumentation::instance;
 #endif
 
-void vector_instrumentation::clear() {
-  std::lock_guard lock(this->mutex_);
-  this->entries_.clear();
-}
+void vector_instrumentation::clear() { this->entries_.lock()->clear(); }
 
-std::vector<vector_instrumentation::entry> vector_instrumentation::entries()
-    const {
-  std::lock_guard lock(this->mutex_);
-  return this->entries_;
+std::vector<vector_instrumentation::entry> vector_instrumentation::entries() {
+  return *this->entries_.lock();
 }
 
 std::vector<vector_instrumentation::entry>
 vector_instrumentation::take_entries() {
   std::vector<vector_instrumentation::entry> result;
-  {
-    std::lock_guard lock(this->mutex_);
-    swap(result, this->entries_);
-  }
+  swap(result, *this->entries_.lock());
   return result;
 }
 
@@ -85,8 +77,7 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        vector_instrumentation::event event,
                                        std::uintptr_t data_pointer,
                                        std::size_t size, std::size_t capacity) {
-  std::lock_guard lock(this->mutex_);
-  this->entries_.emplace_back(entry{
+  this->entries_.lock()->emplace_back(entry{
       .object_id = object_id,
       .owner = owner,
       .event = event,

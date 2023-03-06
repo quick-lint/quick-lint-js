@@ -14,9 +14,9 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
-#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -54,7 +54,7 @@ class vector_instrumentation {
   void clear();
 
   // TODO(strager): Delete.
-  std::vector<entry> entries() const;
+  std::vector<entry> entries();
 
   std::vector<entry> take_entries();
 
@@ -68,8 +68,7 @@ class vector_instrumentation {
 #endif
 
  private:
-  std::vector<entry> entries_;
-  mutable mutex mutex_;
+  synchronized<std::vector<entry>> entries_;
 };
 
 // vector_max_size_histogram_by_owner is *not* thread-safe.
