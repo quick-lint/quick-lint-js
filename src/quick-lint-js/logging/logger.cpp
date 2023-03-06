@@ -12,10 +12,10 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>
 #include <quick-lint-js/port/process.h>
-#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string.h>
 #include <vector>
 
@@ -30,20 +30,23 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 
 namespace quick_lint_js {
 namespace {
-mutex global_loggers_mutex;
-std::vector<logger*> global_loggers;
-bool global_loggers_initialized = false;
+struct global_loggers {
+  std::vector<logger*> loggers;
+  bool initialized = false;
 
-void initialize_global_loggers_if_needed(std::lock_guard<mutex>&) {
-  if (global_loggers_initialized) {
-    return;
-  }
+  void initialize_if_needed() {
+    if (this->initialized) {
+      return;
+    }
 #if defined(QLJS_DEBUG_LOGGING_FILE)
-  static file_logger default_logger(QLJS_DEBUG_LOGGING_FILE);
-  global_loggers.push_back(&default_logger);
+    static file_logger default_logger(QLJS_DEBUG_LOGGING_FILE);
+    this->loggers.push_back(&default_logger);
 #endif
-  global_loggers_initialized = true;
-}
+    this->initialized = true;
+  }
+};
+
+synchronized<global_loggers> loggers;
 }
 
 logger::~logger() = default;
@@ -75,31 +78,32 @@ void file_logger::file_deleter::operator()(FILE* file) {
 }
 
 void enable_logger(logger* l) {
-  std::lock_guard lock(global_loggers_mutex);
-  initialize_global_loggers_if_needed(lock);
+  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  locked_loggers->initialize_if_needed();
 
-  QLJS_ASSERT(!contains(global_loggers, l));
-  global_loggers.push_back(l);
+  QLJS_ASSERT(!contains(locked_loggers->loggers, l));
+  locked_loggers->loggers.push_back(l);
 }
 
 void disable_logger(logger* l) {
-  std::lock_guard lock(global_loggers_mutex);
-  initialize_global_loggers_if_needed(lock);
+  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  locked_loggers->initialize_if_needed();
 
-  global_loggers.erase(find_unique_existing(global_loggers, l));
+  locked_loggers->loggers.erase(
+      find_unique_existing(locked_loggers->loggers, l));
 }
 
 bool is_logging_enabled() noexcept {
-  std::lock_guard lock(global_loggers_mutex);
-  initialize_global_loggers_if_needed(lock);
-  return !global_loggers.empty();
+  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  locked_loggers->initialize_if_needed();
+  return !locked_loggers->loggers.empty();
 }
 
 namespace {
 void debug_log_v(const char* format, std::va_list args) {
-  std::lock_guard lock(global_loggers_mutex);
-  initialize_global_loggers_if_needed(lock);
-  if (global_loggers.empty()) {
+  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  locked_loggers->initialize_if_needed();
+  if (locked_loggers->loggers.empty()) {
     return;
   }
 
@@ -111,7 +115,7 @@ void debug_log_v(const char* format, std::va_list args) {
       narrow_cast<std::size_t>(full_message_length), message.size() - 1);
   std::string_view message_view(message.data(), message_length);
 
-  for (logger* l : global_loggers) {
+  for (logger* l : locked_loggers->loggers) {
     l->log(message_view);
   }
 }
