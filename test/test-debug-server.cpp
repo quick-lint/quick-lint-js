@@ -182,26 +182,24 @@ TEST_F(test_debug_server,
 
       for (const parsed_trace_event &event : r.pull_new_events()) {
         switch (event.type) {
-        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+        case parsed_trace_event_type::
+            vector_max_size_histogram_by_owner_event: {
           // This should eventually be called.
           this->current_client->stop();
-          using entry = parsed_vector_max_size_histogram_entry;
-          EXPECT_THAT(
-              event.vector_max_size_histogram_by_owner_event.entries,
-              ::testing::ElementsAre(::testing::AllOf(
-                  ::testing::Field(
-                      "owner",
-                      &parsed_vector_max_size_histogram_by_owner_entry::owner,
-                      u8"debug server test vector"sv),
-                  ::testing::Field(
-                      "max_size_entries",
-                      &parsed_vector_max_size_histogram_by_owner_entry::
-                          max_size_entries,
+
+          const std::vector<parsed_vector_max_size_histogram_by_owner_entry>
+              &entries = event.vector_max_size_histogram_by_owner_event.entries;
+          ASSERT_EQ(entries.size(), 1);
+          EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
+          EXPECT_THAT(entries[0].max_size_entries,
                       ::testing::ElementsAreArray({
-                          entry{.max_size = 0, .count = 1},
-                      })))));
+                          parsed_vector_max_size_histogram_entry{.max_size = 0,
+                                                                 .count = 1},
+                      }));
+
           this->received_vector_max_size_histogram_by_owner_event = true;
           break;
+        }
 
         case parsed_trace_event_type::error_invalid_magic:
         case parsed_trace_event_type::error_invalid_uuid:
@@ -292,7 +290,8 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
           break;
         }
 
-        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+        case parsed_trace_event_type::
+            vector_max_size_histogram_by_owner_event: {
           // This should eventually be called.
           if (event.vector_max_size_histogram_by_owner_event.entries.empty()) {
             // We will receive an initial vector_max_size_histogram_by_owner
@@ -301,24 +300,22 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
           }
 
           this->current_client->stop();
-          using entry = parsed_vector_max_size_histogram_entry;
-          EXPECT_THAT(
-              event.vector_max_size_histogram_by_owner_event.entries,
-              ::testing::ElementsAre(::testing::AllOf(
-                  ::testing::Field(
-                      "owner",
-                      &parsed_vector_max_size_histogram_by_owner_entry::owner,
-                      u8"debug server test vector"sv),
-                  ::testing::Field(
-                      "max_size_entries",
-                      &parsed_vector_max_size_histogram_by_owner_entry::
-                          max_size_entries,
+
+          const std::vector<parsed_vector_max_size_histogram_by_owner_entry>
+              &entries = event.vector_max_size_histogram_by_owner_event.entries;
+          ASSERT_EQ(entries.size(), 1);
+          EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
+          EXPECT_THAT(entries[0].max_size_entries,
                       ::testing::ElementsAreArray({
-                          entry{.max_size = 2, .count = 1},
-                          entry{.max_size = 4, .count = 1},
-                      })))));
+                          parsed_vector_max_size_histogram_entry{.max_size = 2,
+                                                                 .count = 1},
+                          parsed_vector_max_size_histogram_entry{.max_size = 4,
+                                                                 .count = 1},
+                      }));
+
           this->received_vector_max_size_histogram_by_owner_event = true;
           break;
+        }
 
         case parsed_trace_event_type::error_invalid_magic:
         case parsed_trace_event_type::error_invalid_uuid:
