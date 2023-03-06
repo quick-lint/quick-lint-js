@@ -145,6 +145,17 @@ void lsp_overlay_configuration_filesystem::close_document(
   QLJS_ASSERT(erased > 0);
 }
 
+lsp_documents::document_base::document_base(document_type type) : type(type) {}
+
+lsp_documents::config_document::config_document()
+    : document_base(document_type::config) {}
+
+lsp_documents::lintable_document::lintable_document()
+    : document_base(document_type::lintable) {}
+
+lsp_documents::unknown_document::unknown_document()
+    : document_base(document_type::unknown) {}
+
 linting_lsp_server_handler::linting_lsp_server_handler(
     configuration_filesystem* fs, lsp_linter* linter)
     : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {

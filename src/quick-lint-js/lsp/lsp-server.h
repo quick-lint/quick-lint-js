@@ -62,7 +62,15 @@ struct linting_lsp_server_config {
 };
 
 struct lsp_documents {
+  enum class document_type {
+    config,    // config_document
+    lintable,  // lintable_document
+    unknown,   // unknown_document
+  };
+
   struct document_base {
+    explicit document_base(document_type type);
+
     virtual ~document_base() = default;
 
     virtual void on_text_changed(linting_lsp_server_handler&,
@@ -71,12 +79,16 @@ struct lsp_documents {
                                         string8_view document_uri,
                                         const configuration_change&) = 0;
 
+    document_type type;
+
     lsp_document_text doc;
     string8 version_json;
   };
 
   // quick-lint-js.config
   struct config_document final : document_base {
+    explicit config_document();
+
     void on_text_changed(linting_lsp_server_handler&,
                          string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
@@ -86,6 +98,8 @@ struct lsp_documents {
 
   // .js file
   struct lintable_document final : document_base {
+    explicit lintable_document();
+
     void on_text_changed(linting_lsp_server_handler&,
                          string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
@@ -97,6 +111,8 @@ struct lsp_documents {
   };
 
   struct unknown_document final : document_base {
+    explicit unknown_document();
+
     void on_text_changed(linting_lsp_server_handler&,
                          string8_view document_uri_json) override;
     void on_config_file_changed(linting_lsp_server_handler&,
