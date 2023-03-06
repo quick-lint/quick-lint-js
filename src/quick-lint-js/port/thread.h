@@ -35,6 +35,9 @@
 #endif
 
 namespace quick_lint_js {
+template <class Data>
+class lock_ptr;
+
 #if QLJS_HAVE_THREADS
 // A reimplementation of std::thread.
 class thread {
@@ -151,14 +154,21 @@ class condition_variable {
   condition_variable(const condition_variable &) = delete;
   condition_variable(condition_variable &&) = delete;
 
-  template <class Predicate>
-  void wait(std::unique_lock<mutex> &lock, Predicate stop_waiting) {
+  template <class Lock, class Predicate>
+  void wait(Lock &lock, Predicate stop_waiting) {
     while (!stop_waiting()) {
       this->wait(lock);
     }
   }
 
   void wait(std::unique_lock<mutex> &);
+
+  template <class Data>
+  void wait(lock_ptr<Data> &locked) {
+    this->wait_raw(locked.get_mutex_unsafe());
+  }
+
+  void wait_raw(mutex *);
 
   void notify_one();
   void notify_all();

@@ -20,6 +20,9 @@ class synchronized {
   // released.
   lock_ptr<Data> lock();
 
+  // get_unsafe does not acquire the mutex.
+  Data* get_without_lock_unsafe() { return &this->data_; }
+
  private:
   mutex mutex_;
   Data data_;
@@ -49,6 +52,8 @@ class lock_ptr {
   // Gives access to the lock-protected data.
   Data& operator*() { return this->synchronized_->data_; }
   Data* operator->() { return &this->synchronized_->data_; }
+
+  mutex* get_mutex_unsafe() { return &this->synchronized_->mutex_; }
 
  private:
   void lock() { return this->synchronized_->mutex_.lock(); }

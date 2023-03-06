@@ -16,7 +16,7 @@
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/span.h>
-#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <vector>
 
@@ -133,7 +133,7 @@ class trace_flusher {
   void disable_all_backends();
   void unregister_all_threads();
 
-  bool is_enabled() const;
+  bool is_enabled();
 
   trace_flusher_thread_index register_current_thread();
   void unregister_current_thread();
@@ -159,19 +159,26 @@ class trace_flusher {
  private:
   struct registered_thread;
 
-  void flush_sync(std::unique_lock<mutex>&);
+  struct shared_state {
+    std::vector<trace_flusher_backend*> backends;
+    std::vector<std::unique_ptr<registered_thread> > registered_threads;
+    trace_flusher_thread_index next_thread_index = 1;
+    bool stop_flushing_thread = false;
+  };
 
-  void enable_backend(std::unique_lock<mutex>&, trace_flusher_backend*);
-  void disable_backend(std::unique_lock<mutex>&, trace_flusher_backend*);
+  void flush_sync(lock_ptr<shared_state>&);
 
-  bool is_enabled(std::unique_lock<mutex>&) const;
+  void enable_backend(lock_ptr<shared_state>&, trace_flusher_backend*);
+  void disable_backend(lock_ptr<shared_state>&, trace_flusher_backend*);
 
-  void flush_one_thread_sync(std::unique_lock<mutex>&, registered_thread&);
+  bool is_enabled(lock_ptr<shared_state>&);
 
-  void enable_thread_writer(std::unique_lock<mutex>&, registered_thread&,
+  void flush_one_thread_sync(lock_ptr<shared_state>&, registered_thread&);
+
+  void enable_thread_writer(lock_ptr<shared_state>&, registered_thread&,
                             trace_flusher_backend*);
 
-  void write_thread_header_to_backend(std::unique_lock<mutex>&,
+  void write_thread_header_to_backend(lock_ptr<shared_state>&,
                                       registered_thread&,
                                       trace_flusher_backend*);
 
@@ -181,13 +188,7 @@ class trace_flusher {
   // If tracing is disabled, this points to nullptr.
   static thread_local std::atomic<trace_writer*> thread_stream_writer_;
 
-  // Protected by mutex_:
-  std::vector<trace_flusher_backend*> backends_;
-  std::vector<std::unique_ptr<registered_thread> > registered_threads_;
-  trace_flusher_thread_index next_thread_index_ = 1;
-  bool stop_flushing_thread_ = false;
-
-  mutable mutex mutex_;
+  synchronized<shared_state> state_;
   condition_variable flush_requested_cond_;
 
   thread flushing_thread_;
