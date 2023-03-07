@@ -4491,9 +4491,6 @@ void parser::parse_and_visit_declare_statement(
 
   switch (this->peek().type) {
   // declare enum E {}
-  //
-  // declare  // ASI
-  // enum E {}
   case token_type::kw_enum:
     // declare enum E {}
     this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
@@ -4501,9 +4498,6 @@ void parser::parse_and_visit_declare_statement(
 
   // declare const enum E {}
   // declare const myVariable: any;
-  //
-  // declare  // ASI
-  // const enum E {}
   case token_type::kw_const: {
     token const_keyword = this->peek();
     this->skip();
@@ -4529,9 +4523,6 @@ void parser::parse_and_visit_declare_statement(
   }
 
   // declare class C {}
-  //
-  // declare  // ASI
-  // class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
         v, parse_class_options{
@@ -4542,9 +4533,6 @@ void parser::parse_and_visit_declare_statement(
     break;
 
   // declare abstract class C {}
-  //
-  // declare  // ASI
-  // abstract class C {}
   //
   // declare abstract
   // class C {}        // Invalid.
@@ -4569,9 +4557,6 @@ void parser::parse_and_visit_declare_statement(
 
   // declare var x;
   // declare let y, z;
-  //
-  // declare  // ASI
-  // var x;
   case token_type::kw_let:
   case token_type::kw_var: {
     if (!this->options_.typescript) {
