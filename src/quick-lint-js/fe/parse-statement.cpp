@@ -4454,8 +4454,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   source_code_span declare_keyword_span = this->peek().span();
   this->skip();
 
-  function_attributes func_attributes = function_attributes::normal;
-
   if (this->peek().has_leading_newline) {
     // declare  // ASI
     // enum E {}
@@ -4464,15 +4462,42 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   }
 
   switch (this->peek().type) {
+  case token_type::kw_abstract:
+  case token_type::kw_async:
+  case token_type::kw_class:
+  case token_type::kw_const:
+  case token_type::kw_enum:
+  case token_type::kw_interface:
+  case token_type::kw_let:
+  case token_type::kw_type:
+  case token_type::kw_var:
+  case token_type::kw_function:
+    this->lexer_.commit_transaction(std::move(transaction));
+    this->parse_and_visit_declare_statement(v, declare_keyword_span);
+    return parse_possible_declare_result::parsed;
+
+  // declare:  // Label.
+  // declare();
+  case token_type::colon:
+  default:
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return parse_possible_declare_result::declare_is_expression_or_loop_label;
+  }
+}
+
+void parser::parse_and_visit_declare_statement(
+    parse_visitor_base &v, source_code_span declare_keyword_span) {
+  function_attributes func_attributes = function_attributes::normal;
+
+  switch (this->peek().type) {
   // declare enum E {}
   //
   // declare  // ASI
   // enum E {}
   case token_type::kw_enum:
     // declare enum E {}
-    this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
-    return parse_possible_declare_result::parsed;
+    break;
 
   // declare const enum E {}
   // declare const myVariable: any;
@@ -4480,8 +4505,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // declare  // ASI
   // const enum E {}
   case token_type::kw_const: {
-    this->lexer_.commit_transaction(std::move(transaction));
-
     token const_keyword = this->peek();
     this->skip();
     if (this->peek().type == token_type::kw_enum) {
@@ -4502,7 +4525,7 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
              });
       this->consume_semicolon_after_statement();
     }
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare class C {}
@@ -4510,15 +4533,13 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // declare  // ASI
   // class C {}
   case token_type::kw_class:
-    this->lexer_.commit_transaction(std::move(transaction));
-
     this->parse_and_visit_class(
         v, parse_class_options{
                .require_name = name_requirement::required_for_statement,
                .abstract_keyword_span = std::nullopt,
                .declare_keyword_span = declare_keyword_span,
            });
-    return parse_possible_declare_result::parsed;
+    break;
 
   // declare abstract class C {}
   //
@@ -4528,8 +4549,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // declare abstract
   // class C {}        // Invalid.
   case token_type::kw_abstract: {
-    this->lexer_.commit_transaction(std::move(transaction));
-
     source_code_span abstract_token = this->peek().span();
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
@@ -4545,7 +4564,7 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
                .abstract_keyword_span = abstract_token,
                .declare_keyword_span = declare_keyword_span,
            });
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare var x;
@@ -4555,8 +4574,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // var x;
   case token_type::kw_let:
   case token_type::kw_var: {
-    this->lexer_.commit_transaction(std::move(transaction));
-
     if (!this->options_.typescript) {
       this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
           .declare_keyword = declare_keyword_span,
@@ -4571,25 +4588,23 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
                .declare_keyword = declare_keyword_span,
            });
     this->consume_semicolon_after_statement();
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare type T = U;
   case token_type::kw_type: {
-    this->lexer_.commit_transaction(std::move(transaction));
     source_code_span type_keyword_span = this->peek().span();
     this->skip();
     this->parse_and_visit_typescript_type_alias(v, type_keyword_span);
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare interface I { }
   case token_type::kw_interface: {
-    this->lexer_.commit_transaction(std::move(transaction));
     source_code_span interface_keyword_span = this->peek().span();
     this->skip();
     this->parse_and_visit_typescript_interface(v, interface_keyword_span);
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare async function f(); // Invalid.
@@ -4605,7 +4620,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // declare function f();
   parse_declare_function:
   case token_type::kw_function: {
-    this->lexer_.commit_transaction(std::move(transaction));
     if (!this->options_.typescript) {
       this->diag_reporter_->report(
           diag_declare_function_not_allowed_in_javascript{
@@ -4669,15 +4683,15 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
     }
     v.visit_exit_function_scope();
 
-    return parse_possible_declare_result::parsed;
+    break;
   }
 
   // declare:  // Label.
   // declare();
   case token_type::colon:
   default:
-    this->lexer_.roll_back_transaction(std::move(transaction));
-    return parse_possible_declare_result::declare_is_expression_or_loop_label;
+    QLJS_ASSERT(false);
+    break;
   }
 }
 }

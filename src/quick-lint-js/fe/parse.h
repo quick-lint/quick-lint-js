@@ -911,6 +911,9 @@ class parser {
 
   parse_possible_declare_result parse_and_visit_possible_declare_statement(
       parse_visitor_base &v);
+
+  void parse_and_visit_declare_statement(parse_visitor_base &v,
+                                         source_code_span declare_keyword_span);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
