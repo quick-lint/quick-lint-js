@@ -11,7 +11,6 @@
 #include <cstring>
 #include <map>
 #include <mongoose.h>
-#include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/byte-buffer.h>
@@ -134,7 +133,7 @@ void debug_server::start_server_thread() {
 
   {
     lock_ptr<shared_state> state = this->state_.lock();
-    state->init_data_.reset();
+    state->initialized = false;
     state->init_error.clear();
   }
 
@@ -151,9 +150,8 @@ void debug_server::stop_server_thread() {
 
 result<void, debug_server_io_error> debug_server::wait_for_server_start() {
   lock_ptr<shared_state> state = this->state_.lock();
-  this->initialized_.wait(state, [&] {
-    return state->init_data_.has_value() || !state->init_error.empty();
-  });
+  this->initialized_.wait(
+      state, [&] { return state->initialized || !state->init_error.empty(); });
 
   if (!state->init_error.empty()) {
     return failed_result(debug_server_io_error{
@@ -173,7 +171,7 @@ std::string debug_server::url(std::string_view path) {
   std::string result;
   result.reserve(path.size() + 100);
   result += "http://"sv;
-  result += this->state_.lock()->init_data_->actual_listen_address;
+  result += this->state_.lock()->actual_listen_address;
   result += path;
   return result;
 }
@@ -184,7 +182,7 @@ std::string debug_server::websocket_url(std::string_view path) {
   std::string result;
   result.reserve(path.size() + 100);
   result += "ws://"sv;
-  result += this->state_.lock()->init_data_->actual_listen_address;
+  result += this->state_.lock()->actual_listen_address;
   result += path;
   return result;
 }
@@ -200,9 +198,9 @@ void debug_server::wake_up_server_thread() {
 }
 
 void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
-  if (state->init_data_.has_value()) {
+  if (state->initialized) {
     char wakeup_signal[] = {0};
-    ::ssize_t rc = ::send(state->init_data_->wakeup_pipe, wakeup_signal,
+    ::ssize_t rc = ::send(state->wakeup_pipe, wakeup_signal,
                           sizeof(wakeup_signal), /*flags=*/0);
     QLJS_ALWAYS_ASSERT(rc == 1);
   }
@@ -234,22 +232,22 @@ void debug_server::run_on_current_thread() {
       return;
     }
 
-    QLJS_ASSERT(!state->init_data_.has_value());
-    state->init_data_.emplace();
+    QLJS_ASSERT(!state->initialized);
 
     // server_connection->loc is initialized synchronously, so we should be able
     // to use c->loc now.
-    std::string &address = state->init_data_->actual_listen_address;
+    std::string &address = state->actual_listen_address;
     address.resize(100);
     ::mg_straddr(&server_connection->loc, address.data(), address.size());
     address.resize(std::strlen(address.c_str()));
 
-    state->init_data_->wakeup_pipe = ::mg_mkpipe(
+    state->wakeup_pipe = ::mg_mkpipe(
         mgr.get(), mongoose_callback<&debug_server::wakeup_pipe_callback>(),
         this,
         /*udp=*/false);
-    QLJS_ALWAYS_ASSERT(state->init_data_->wakeup_pipe != -1);
+    QLJS_ALWAYS_ASSERT(state->wakeup_pipe != -1);
 
+    state->initialized = true;
     this->initialized_.notify_all();
   }
 
