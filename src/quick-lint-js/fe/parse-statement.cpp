@@ -4671,6 +4671,7 @@ void parser::parse_and_visit_declare_statement(
 
       case function_parameter_parse_result::missing_parameters_ignore_body:
       case function_parameter_parse_result::parsed_parameters_missing_body:
+        this->consume_semicolon_after_statement();
         break;
       }
     }

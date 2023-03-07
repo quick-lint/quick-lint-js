@@ -82,6 +82,24 @@ TEST_F(test_parse_typescript_declare_function,
                                 declare_keyword, strlen(u8""), u8"declare"_sv),
         }));
   }
+
+  {
+    test_parser p(u8"declare function f() { } foo"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // f
+                              "visit_enter_function_scope",       // f
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // foo
+                              "visit_end_of_module",              //
+                          }));
+    EXPECT_THAT(p.errors, ElementsAreArray({
+                              DIAG_TYPE(diag_declare_function_cannot_have_body),
+                          }))
+        << "should not receive a diag_missing_semicolon_after_statement";
+  }
 }
 
 TEST_F(test_parse_typescript_declare_function,
@@ -207,6 +225,43 @@ TEST_F(test_parse_typescript_declare_function,
                               "visit_end_of_module",              //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"declare"_sv}));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_function,
+       declare_function_requires_semicolon) {
+  {
+    test_parser p(u8"declare function f() foo"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // f
+                              "visit_enter_function_scope",  // f
+                              "visit_exit_function_scope",   // f
+                              "visit_variable_use",          // foo
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_missing_semicolon_after_statement,  //
+                              where, strlen(u8"declare function f()"), u8""_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_function, declare_function_performs_asi) {
+  {
+    test_parser p(u8"declare function f()\nfoo"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // f
+                              "visit_enter_function_scope",  // f
+                              "visit_exit_function_scope",   // f
+                              "visit_variable_use",          // foo
+                              "visit_end_of_module",         //
+                          }));
   }
 }
 }
