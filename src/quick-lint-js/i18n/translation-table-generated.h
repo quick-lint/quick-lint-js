@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 425;
-constexpr std::size_t translation_table_string_table_size = 75610;
+constexpr std::uint16_t translation_table_mapping_table_size = 429;
+constexpr std::size_t translation_table_string_table_size = 75794;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -63,8 +63,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'declare function' cannot be marked as a generator"sv,
           "'declare function' cannot have a body"sv,
           "'declare function' here"sv,
+          "'declare namespace' cannot contain statements, only declarations"sv,
           "'declare {1}' cannot have initializer"sv,
           "'declare {1}' started here"sv,
+          "'declare' here"sv,
+          "'declare' should not be written inside a 'declare namespace'"sv,
           "'do-while' loop"sv,
           "'else' has no corresponding 'if'"sv,
           "'extends' must be before 'implements'"sv,
@@ -191,6 +194,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "computed value disables enum autoincrement"sv,
           "const fields within classes are only allowed in TypeScript, not JavaScript"sv,
           "const variable declared here"sv,
+          "containing 'declare namespace' starts here"sv,
           "continue can only be used inside of a loop"sv,
           "depth limit exceeded"sv,
           "do-while loop is missing '{1}' around condition"sv,

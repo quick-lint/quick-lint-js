@@ -396,6 +396,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare namespace' cannot contain statements, only declarations"_translatable,
+        {
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+        },
+    },
+    {
         "'declare {1}' cannot have initializer"_translatable,
         {
             u8"'declare {1}' cannot have initializer",
@@ -415,6 +426,28 @@ const translated_string test_translation_table[] = {
             u8"'declare {1}' started here",
             u8"'declare {1}' started here",
             u8"'declare {1}' started here",
+        },
+    },
+    {
+        "'declare' here"_translatable,
+        {
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+        },
+    },
+    {
+        "'declare' should not be written inside a 'declare namespace'"_translatable,
+        {
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
         },
     },
     {
@@ -1801,6 +1834,17 @@ const translated_string test_translation_table[] = {
             u8"variable constante d\u00e9clar\u00e9e ici",
             u8"vari\u00e1vel constante declarada aqui",
             u8"konstant variabel deklarerad h\u00e4r",
+        },
+    },
+    {
+        "containing 'declare namespace' starts here"_translatable,
+        {
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
         },
     },
     {

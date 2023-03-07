@@ -269,6 +269,25 @@ msgid "TypeScript 'declare function' is not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare' should not be written inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "containing 'declare namespace' starts here"
+msgstr "lista startar här"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' cannot contain statements, only declarations"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare' here"
+msgstr "funktionkallelse startar här"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"

@@ -47,8 +47,11 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 38},                 //
         {0, 0, 0, 0, 0, 24},                 //
+        {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 38},                 //
-        {71, 48, 0, 44, 0, 27},              //
+        {0, 0, 0, 0, 0, 27},                 //
+        {0, 0, 0, 0, 0, 15},                 //
+        {71, 48, 0, 44, 0, 61},              //
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 39, 0, 33},                //
         {30, 39, 0, 46, 0, 38},              //
@@ -174,7 +177,8 @@ const translation_table translation_data = {
         {0, 0, 0, 64, 0, 50},                //
         {58, 31, 67, 69, 0, 43},             //
         {90, 38, 91, 90, 53, 75},            //
-        {41, 16, 34, 35, 34, 29},            //
+        {0, 0, 0, 0, 0, 29},                 //
+        {41, 16, 34, 35, 34, 43},            //
         {49, 11, 64, 46, 39, 43},            //
         {46, 20, 32, 32, 31, 21},            //
         {47, 58, 59, 52, 39, 48},            //
@@ -1752,8 +1756,11 @@ const translation_table translation_data = {
         u8"'declare function' cannot be marked as a generator\0"
         u8"'declare function' cannot have a body\0"
         u8"'declare function' here\0"
+        u8"'declare namespace' cannot contain statements, only declarations\0"
         u8"'declare {1}' cannot have initializer\0"
         u8"'declare {1}' started here\0"
+        u8"'declare' here\0"
+        u8"'declare' should not be written inside a 'declare namespace'\0"
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'extends' must be before 'implements'\0"
@@ -1880,6 +1887,7 @@ const translation_table translation_data = {
         u8"computed value disables enum autoincrement\0"
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
         u8"const variable declared here\0"
+        u8"containing 'declare namespace' starts here\0"
         u8"continue can only be used inside of a loop\0"
         u8"depth limit exceeded\0"
         u8"do-while loop is missing '{1}' around condition\0"

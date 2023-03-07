@@ -368,6 +368,10 @@ class parser {
 
   void parse_and_visit_typescript_namespace(
       parse_visitor_base &v, source_code_span namespace_keyword_span);
+  void parse_and_visit_typescript_namespace_head(
+      parse_visitor_base &v, source_code_span namespace_keyword_span);
+  void parse_and_visit_typescript_declare_namespace(
+      parse_visitor_base &v, source_code_span declare_keyword_span);
 
   void parse_and_visit_typescript_type_alias(parse_visitor_base &v,
                                              source_code_span type_token);

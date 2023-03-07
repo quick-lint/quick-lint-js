@@ -253,6 +253,25 @@ msgid "TypeScript 'declare function' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare' should not be written inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "containing 'declare namespace' starts here"
+msgstr "you opened Pandora's Box here"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' cannot contain statements, only declarations"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare' here"
+msgstr "IIFE started here"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"

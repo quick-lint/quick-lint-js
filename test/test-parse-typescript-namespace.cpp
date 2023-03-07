@@ -93,6 +93,27 @@ TEST_F(test_parse_typescript_namespace, missing_body) {
   }
 }
 
+TEST_F(test_parse_typescript_namespace, incomplete_body) {
+  {
+    test_parser p(u8"namespace ns { "_sv, typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            // TODO(strager): Report a namespace-specific diagnostic.
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_unclosed_code_block,  //
+                              block_open, strlen(u8"namespace ns "), u8"{"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_namespace,
        namespace_cannot_have_newline_after_namespace_keyword) {
   {

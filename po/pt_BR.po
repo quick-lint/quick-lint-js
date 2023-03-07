@@ -254,6 +254,25 @@ msgid "TypeScript 'declare function' is not allowed in JavaScript"
 msgstr "'implements' não é permitido em JavaScript"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare' should not be written inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "containing 'declare namespace' starts here"
+msgstr "array iniciou aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' cannot contain statements, only declarations"
+msgstr "interfaces não podem conter blocos estáticos"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare' here"
+msgstr "'function' está aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr "interfaces não podem conter blocos estáticos"

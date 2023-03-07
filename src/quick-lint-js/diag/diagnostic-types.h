@@ -303,6 +303,33 @@
               declare_keyword))                                                 \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_keyword_is_not_allowed_inside_declare_namespace, "E0358",    \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span declare_keyword;                                       \
+        source_code_span declare_namespace_declare_keyword;                     \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "'declare' should not be written inside a 'declare namespace'"),  \
+          declare_keyword)                                                      \
+          MESSAGE(                                                              \
+              QLJS_TRANSLATABLE("containing 'declare namespace' starts here"),  \
+              declare_namespace_declare_keyword))                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_declare_namespace_cannot_contain_statement, "E0357",                 \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span first_statement_token;                                 \
+        source_code_span declare_keyword;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'declare namespace' cannot contain "           \
+                                "statements, only declarations"),               \
+              first_statement_token)                                            \
+          MESSAGE(QLJS_TRANSLATABLE("'declare' here"), declare_keyword))        \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_declare_var_cannot_have_initializer, "E0351",                        \
       diagnostic_severity::error,                                               \
       {                                                                         \

@@ -244,6 +244,22 @@ msgid "TypeScript 'declare function' is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare' should not be written inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "containing 'declare namespace' starts here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare namespace' cannot contain statements, only declarations"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
 

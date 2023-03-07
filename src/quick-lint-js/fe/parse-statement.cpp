@@ -2017,6 +2017,23 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 
 void parser::parse_and_visit_typescript_namespace(
     parse_visitor_base &v, source_code_span namespace_keyword_span) {
+  this->parse_and_visit_typescript_namespace_head(v, namespace_keyword_span);
+
+  if (this->peek().type != token_type::left_curly) {
+    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
+    });
+    return;
+  }
+
+  v.visit_enter_namespace_scope();
+  this->parse_and_visit_statement_block_no_scope(v);
+  v.visit_exit_namespace_scope();
+}
+
+void parser::parse_and_visit_typescript_namespace_head(
+    parse_visitor_base &v, source_code_span namespace_keyword_span) {
   if (this->peek().has_leading_newline) {
     this->diag_reporter_->report(
         diag_newline_not_allowed_after_namespace_keyword{
@@ -2043,6 +2060,14 @@ void parser::parse_and_visit_typescript_namespace(
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+}
+
+void parser::parse_and_visit_typescript_declare_namespace(
+    parse_visitor_base &v, source_code_span declare_keyword_span) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_namespace);
+  source_code_span namespace_keyword_span = this->peek().span();
+  this->skip();
+  this->parse_and_visit_typescript_namespace_head(v, namespace_keyword_span);
 
   if (this->peek().type != token_type::left_curly) {
     this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
@@ -2051,9 +2076,62 @@ void parser::parse_and_visit_typescript_namespace(
     });
     return;
   }
+  source_code_span left_curly_span = this->peek().span();
+  this->skip();
 
   v.visit_enter_namespace_scope();
-  this->parse_and_visit_statement_block_no_scope(v);
+  for (;;) {
+    switch (this->peek().type) {
+    // TODO(strager): Deduplicate list with
+    // parse_and_visit_possible_declare_statement.
+    case token_type::kw_abstract:
+    case token_type::kw_async:
+    case token_type::kw_class:
+    case token_type::kw_const:
+    case token_type::kw_enum:
+    case token_type::kw_function:
+    case token_type::kw_let:
+    case token_type::kw_namespace:
+    case token_type::kw_var:
+      this->parse_and_visit_declare_statement(v, declare_keyword_span);
+      break;
+
+    case token_type::right_curly:
+      this->skip();
+      goto done;
+
+    case token_type::end_of_file:
+      this->diag_reporter_->report(diag_unclosed_code_block{
+          .block_open = left_curly_span,
+      });
+      goto done;
+
+    case token_type::kw_declare: {
+      this->diag_reporter_->report(
+          diag_declare_keyword_is_not_allowed_inside_declare_namespace{
+              .declare_keyword = this->peek().span(),
+              .declare_namespace_declare_keyword = declare_keyword_span,
+          });
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
+      QLJS_ASSERT(parsed_statement);
+      break;
+    }
+
+    default: {
+      this->diag_reporter_->report(
+          diag_declare_namespace_cannot_contain_statement{
+              .first_statement_token = this->peek().span(),
+              .declare_keyword = declare_keyword_span,
+          });
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
+      QLJS_ASSERT(parsed_statement);
+      break;
+    }
+    }
+  }
+done:
   v.visit_exit_namespace_scope();
 }
 
@@ -4480,6 +4558,7 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_type:
   case token_type::kw_var:
   case token_type::kw_function:
+  case token_type::kw_namespace:
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(v, declare_keyword_span);
     return parse_possible_declare_result::parsed;
@@ -4679,6 +4758,11 @@ void parser::parse_and_visit_declare_statement(
 
     break;
   }
+
+  // declare namespace ns {}
+  case token_type::kw_namespace:
+    this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
+    break;
 
   // declare:  // Label.
   // declare();
