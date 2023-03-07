@@ -2044,6 +2044,14 @@ void parser::parse_and_visit_typescript_namespace(
     break;
   }
 
+  if (this->peek().type != token_type::left_curly) {
+    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
+    });
+    return;
+  }
+
   v.visit_enter_namespace_scope();
   this->parse_and_visit_statement_block_no_scope(v);
   v.visit_exit_namespace_scope();

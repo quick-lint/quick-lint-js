@@ -31,11 +31,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable assigned before its declaration"
 msgstr ""
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable declared here"
 msgstr ""
 
@@ -733,6 +735,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "missing body for TypeScript interface"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "missing body for TypeScript namespace"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h

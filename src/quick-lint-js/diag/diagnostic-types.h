@@ -1167,6 +1167,12 @@
               interface_keyword_and_name_and_heritage))                         \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_missing_body_for_typescript_namespace, "E0356",                      \
+      diagnostic_severity::error, { source_code_span expected_body; },          \
+      MESSAGE(QLJS_TRANSLATABLE("missing body for TypeScript namespace"),       \
+              expected_body))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_missing_body_for_while_statement, "E0104",                           \
       diagnostic_severity::error, { source_code_span while_and_condition; },    \
       MESSAGE(QLJS_TRANSLATABLE("missing body for while loop"),                 \

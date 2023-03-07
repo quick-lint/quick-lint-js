@@ -14,11 +14,13 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable assigned before its declaration"
 msgstr "why are you assignin' before you be makin'? 🤏"
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable declared here"
 msgstr "👆 it's right here, doofus"
 
@@ -793,6 +795,11 @@ msgstr "you're trying too hard"
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "missing body for TypeScript interface"
+msgstr "missing body for function"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "missing body for TypeScript namespace"
 msgstr "missing body for function"
 
 #: src/quick-lint-js/diag/diagnostic-types.h

@@ -276,6 +276,7 @@ const translation_table translation_data = {
         {31, 22, 36, 32, 30, 28},            //
         {31, 11, 39, 38, 36, 32},            //
         {0, 0, 0, 42, 0, 36},                //
+        {0, 0, 0, 0, 0, 38},                 //
         {36, 31, 43, 45, 40, 38},            //
         {33, 29, 36, 37, 31, 30},            //
         {21, 47, 30, 28, 25, 23},            //
@@ -1981,6 +1982,7 @@ const translation_table translation_data = {
         u8"missing body for 'if' statement\0"
         u8"missing body for 'switch' statement\0"
         u8"missing body for TypeScript interface\0"
+        u8"missing body for TypeScript namespace\0"
         u8"missing body for catch clause\0"
         u8"missing body for class\0"
         u8"missing body for do-while loop\0"

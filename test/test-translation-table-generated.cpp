@@ -2926,6 +2926,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "missing body for TypeScript namespace"_translatable,
+        {
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+        },
+    },
+    {
         "missing body for catch clause"_translatable,
         {
             u8"missing body for catch clause",

@@ -29,11 +29,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable assigned before its declaration"
 msgstr "variável atribuída antes de ser declarada"
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diag/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable declared here"
 msgstr "variável declarada aqui"
 
@@ -755,6 +757,11 @@ msgstr "falta o conteúdo da instrução try"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "missing body for TypeScript interface"
+msgstr "falta o conteúdo da interface de TypeScript"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "missing body for TypeScript namespace"
 msgstr "falta o conteúdo da interface de TypeScript"
 
 #: src/quick-lint-js/diag/diagnostic-types.h

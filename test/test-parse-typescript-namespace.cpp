@@ -57,6 +57,42 @@ TEST_F(test_parse_typescript_namespace, empty_namespace) {
               ElementsAreArray({namespace_decl(u8"ns"_sv)}));
 }
 
+TEST_F(test_parse_typescript_namespace, missing_body) {
+  {
+    test_parser p(u8"namespace ns "_sv, typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // ns
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_missing_body_for_typescript_namespace,  //
+                              expected_body, strlen(u8"namespace ns"), u8""_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"namespace ns\nconsole.log('hello');"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // ns
+                              "visit_variable_use",          // console
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_missing_body_for_typescript_namespace,  //
+                              expected_body, strlen(u8"namespace ns"), u8""_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_namespace,
        namespace_cannot_have_newline_after_namespace_keyword) {
   {

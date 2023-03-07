@@ -24,6 +24,8 @@ Semantic Versioning.
 
 * Fixed [E0062][] being reported when [E0061][] should be reported instead
   (fixed by [Yunus][]).
+* TypeScript `namespace` without a body now reports [E0356][] instead of
+  crashing with an assertion failure.
 
 ### Changed
 
@@ -908,6 +910,7 @@ Beta release.
 [E0347]: https://quick-lint-js.com/errors/E0347/
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
+[E0356]: https://quick-lint-js.com/errors/E0356/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0707]: https://quick-lint-js.com/errors/E0707/
