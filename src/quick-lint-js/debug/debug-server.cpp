@@ -126,35 +126,38 @@ debug_server::~debug_server() {
 void debug_server::set_listen_address(std::string_view address) {
   QLJS_ASSERT(!this->server_thread_.joinable());
 
-  this->requested_listen_address_ = address;
+  this->state_.lock()->requested_listen_address = address;
 }
 
 void debug_server::start_server_thread() {
   QLJS_ASSERT(!this->server_thread_.joinable());
 
-  this->init_data_.reset();
-  this->init_error_.clear();
+  {
+    lock_ptr<shared_state> state = this->state_.lock();
+    state->init_data_.reset();
+    state->init_error.clear();
+  }
 
   this->server_thread_ = thread([this] { this->run_on_current_thread(); });
 }
 
 void debug_server::stop_server_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
+  lock_ptr<shared_state> state = this->state_.lock();
   this->stop_server_thread_ = true;
-  this->wake_up_server_thread(lock);
+  this->wake_up_server_thread(state);
 
   this->did_wait_for_server_start_ = false;
 }
 
 result<void, debug_server_io_error> debug_server::wait_for_server_start() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->initialized_.wait(lock, [&] {
-    return this->init_data_.has_value() || !this->init_error_.empty();
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->initialized_.wait(state, [&] {
+    return state->init_data_.has_value() || !state->init_error.empty();
   });
 
-  if (!this->init_error_.empty()) {
+  if (!state->init_error.empty()) {
     return failed_result(debug_server_io_error{
-        .error_message = this->init_error_,
+        .error_message = state->init_error,
     });
   }
 
@@ -162,32 +165,26 @@ result<void, debug_server_io_error> debug_server::wait_for_server_start() {
   return {};
 }
 
-std::string debug_server::url() const { return this->url("/"sv); }
+std::string debug_server::url() { return this->url("/"sv); }
 
-std::string debug_server::url(std::string_view path) const {
+std::string debug_server::url(std::string_view path) {
   QLJS_ASSERT(this->did_wait_for_server_start_);
 
   std::string result;
   result.reserve(path.size() + 100);
   result += "http://"sv;
-  {
-    std::lock_guard<mutex> lock(this->mutex_);
-    result += this->init_data_->actual_listen_address;
-  }
+  result += this->state_.lock()->init_data_->actual_listen_address;
   result += path;
   return result;
 }
 
-std::string debug_server::websocket_url(std::string_view path) const {
+std::string debug_server::websocket_url(std::string_view path) {
   QLJS_ASSERT(this->did_wait_for_server_start_);
 
   std::string result;
   result.reserve(path.size() + 100);
   result += "ws://"sv;
-  {
-    std::lock_guard<mutex> lock(this->mutex_);
-    result += this->init_data_->actual_listen_address;
-  }
+  result += this->state_.lock()->init_data_->actual_listen_address;
   result += path;
   return result;
 }
@@ -198,14 +195,14 @@ void debug_server::debug_probe_publish_vector_profile() {
 }
 
 void debug_server::wake_up_server_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->wake_up_server_thread(lock);
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->wake_up_server_thread(state);
 }
 
-void debug_server::wake_up_server_thread(std::unique_lock<mutex> &) {
-  if (this->init_data_.has_value()) {
+void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
+  if (state->init_data_.has_value()) {
     char wakeup_signal[] = {0};
-    ::ssize_t rc = ::send(this->init_data_->wakeup_pipe, wakeup_signal,
+    ::ssize_t rc = ::send(state->init_data_->wakeup_pipe, wakeup_signal,
                           sizeof(wakeup_signal), /*flags=*/0);
     QLJS_ALWAYS_ASSERT(rc == 1);
   }
@@ -216,42 +213,42 @@ void debug_server::run_on_current_thread() {
 
   mongoose_mgr mgr;
 
-  std::string connect_logs;
-  mongoose_begin_capturing_logs_on_current_thread(&connect_logs);
-  ::mg_connection *server_connection = ::mg_http_listen(
-      mgr.get(), this->requested_listen_address_.c_str(),
-      mongoose_callback<&debug_server::http_server_callback>(), this);
-  mongoose_stop_capturing_logs_on_current_thread();
-  if (!server_connection) {
-    std::lock_guard<mutex> lock(this->mutex_);
-    if (connect_logs.empty()) {
-      this->init_error_ = "unknown error in mg_http_listen";
-    } else {
-      this->init_error_ = std::move(connect_logs);
-    }
-    this->initialized_.notify_all();
-
-    trace_flusher::instance()->unregister_current_thread();
-    return;
-  }
-
   {
-    std::lock_guard<mutex> lock(this->mutex_);
-    QLJS_ASSERT(!this->init_data_.has_value());
-    this->init_data_.emplace();
+    lock_ptr<shared_state> state = this->state_.lock();
+
+    std::string connect_logs;
+    mongoose_begin_capturing_logs_on_current_thread(&connect_logs);
+    ::mg_connection *server_connection = ::mg_http_listen(
+        mgr.get(), state->requested_listen_address.c_str(),
+        mongoose_callback<&debug_server::http_server_callback>(), this);
+    mongoose_stop_capturing_logs_on_current_thread();
+    if (!server_connection) {
+      if (connect_logs.empty()) {
+        state->init_error = "unknown error in mg_http_listen";
+      } else {
+        state->init_error = std::move(connect_logs);
+      }
+      this->initialized_.notify_all();
+
+      trace_flusher::instance()->unregister_current_thread();
+      return;
+    }
+
+    QLJS_ASSERT(!state->init_data_.has_value());
+    state->init_data_.emplace();
 
     // server_connection->loc is initialized synchronously, so we should be able
     // to use c->loc now.
-    std::string &address = this->init_data_->actual_listen_address;
+    std::string &address = state->init_data_->actual_listen_address;
     address.resize(100);
     ::mg_straddr(&server_connection->loc, address.data(), address.size());
     address.resize(std::strlen(address.c_str()));
 
-    this->init_data_->wakeup_pipe = ::mg_mkpipe(
+    state->init_data_->wakeup_pipe = ::mg_mkpipe(
         mgr.get(), mongoose_callback<&debug_server::wakeup_pipe_callback>(),
         this,
         /*udp=*/false);
-    QLJS_ALWAYS_ASSERT(this->init_data_->wakeup_pipe != -1);
+    QLJS_ALWAYS_ASSERT(state->init_data_->wakeup_pipe != -1);
 
     this->initialized_.notify_all();
   }

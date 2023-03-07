@@ -15,6 +15,7 @@
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -56,16 +57,18 @@ class debug_server {
   result<void, debug_server_io_error> wait_for_server_start();
 
   // Precondition: wait_for_server_start was called and it succeeded.
-  std::string url() const;
-  std::string url(std::string_view path) const;
-  std::string websocket_url(std::string_view path) const;
+  std::string url();
+  std::string url(std::string_view path);
+  std::string websocket_url(std::string_view path);
 
   void debug_probe_publish_vector_profile();
 
  private:
+  struct shared_state;
+
   // Run on any thread:
   void wake_up_server_thread();
-  void wake_up_server_thread(std::unique_lock<mutex> &);
+  void wake_up_server_thread(lock_ptr<shared_state> &);
 
   // Run on the server thread:
   void run_on_current_thread();
@@ -84,15 +87,15 @@ class debug_server {
     int wakeup_pipe = -1;
   };
 
-  mutable mutex mutex_;
+  struct shared_state {
+    std::string requested_listen_address = "http://localhost:0";
 
-  // Protected by mutex_.
-  std::string requested_listen_address_ = "http://localhost:0";
+    // Written to by the server thread. Read by other threads.
+    std::optional<init_data> init_data_;
+    std::string init_error;
+  };
 
-  // Protected by mutex_. Written to by the server thread. Read by other
-  // threads.
-  std::optional<init_data> init_data_;
-  std::string init_error_;
+  synchronized<shared_state> state_;
 
   // Signalled by the server thread after init_data_ or init_error_ is set.
   mutable condition_variable initialized_;
