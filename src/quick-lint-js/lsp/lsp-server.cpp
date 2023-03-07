@@ -254,7 +254,10 @@ void linting_lsp_server_handler::handle_notification(
 void linting_lsp_server_handler::filesystem_changed() {
   std::vector<configuration_change> config_changes =
       this->config_loader_.refresh();
-  this->handle_config_file_changes(config_changes);
+  {
+    lock_ptr<lsp_documents> documents = this->documents_.lock();
+    this->handle_config_file_changes(documents, config_changes);
+  }
 }
 
 void linting_lsp_server_handler::add_watch_io_errors(
@@ -356,9 +359,9 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
     const lsp_text_document_did_change_notification& notification) {
-  auto document_it =
-      this->documents_.documents.find(string8(notification.uri.data));
-  bool url_is_tracked = document_it != this->documents_.documents.end();
+  lock_ptr<lsp_documents> documents = this->documents_.lock();
+  auto document_it = documents->documents.find(string8(notification.uri.data));
+  bool url_is_tracked = document_it != documents->documents.end();
   if (!url_is_tracked) {
     return;
   }
@@ -377,7 +380,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   case lsp_documents::document_type::config: {
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes);
+    this->handle_config_file_changes(documents, config_changes);
     break;
   }
 
@@ -414,7 +417,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.documents.erase(string8(notification.uri));
+  this->documents_.lock()->documents.erase(string8(notification.uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -520,7 +523,10 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes);
+    {
+      lock_ptr<lsp_documents> documents = this->documents_.lock();
+      this->handle_config_file_changes(documents, config_changes);
+    }
 
     doc_ptr = std::move(doc);
   } else {
@@ -530,7 +536,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
   // If the document already exists, deallocate that document_base and use ours.
   // TODO(strager): Should we report a warning if a document already existed?
-  this->documents_.documents[string8(notification.uri.data)] =
+  this->documents_.lock()->documents[string8(notification.uri.data)] =
       std::move(doc_ptr);
 }
 
@@ -553,8 +559,9 @@ void linting_lsp_server_handler::
 }
 
 void linting_lsp_server_handler::handle_config_file_changes(
+    lock_ptr<lsp_documents>& documents,
     const std::vector<configuration_change>& config_changes) {
-  for (auto& entry : this->documents_.documents) {
+  for (auto& entry : documents->documents) {
     const string8& document_uri = entry.first;
     lsp_documents::document_base& doc = *entry.second;
 
