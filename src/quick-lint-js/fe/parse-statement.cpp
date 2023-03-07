@@ -160,7 +160,7 @@ parse_statement:
   // declare enum E {}  // TypeScript only.
   // declare = 42;
   case token_type::kw_declare:
-    switch (this->parse_and_visit_declare_statement(v)) {
+    switch (this->parse_and_visit_possible_declare_statement(v)) {
     case parse_possible_declare_result::declare_is_expression_or_loop_label:
       goto parse_loop_label_or_expression_starting_with_identifier;
     case parse_possible_declare_result::parsed:
@@ -4448,8 +4448,8 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   }
 }
 
-parser::parse_possible_declare_result parser::parse_and_visit_declare_statement(
-    parse_visitor_base &v) {
+parser::parse_possible_declare_result
+parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   lexer_transaction transaction = this->lexer_.begin_transaction();
   source_code_span declare_keyword_span = this->peek().span();
   this->skip();

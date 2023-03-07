@@ -909,7 +909,7 @@ class parser {
     parsed,
   };
 
-  parse_possible_declare_result parse_and_visit_declare_statement(
+  parse_possible_declare_result parse_and_visit_possible_declare_statement(
       parse_visitor_base &v);
 };
 
