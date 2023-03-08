@@ -46,15 +46,29 @@ TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
 }
 
 TEST_F(test_parse_typescript_namespace, empty_namespace) {
-  test_parser p(u8"namespace ns {}"_sv, typescript_options);
-  p.parse_and_visit_statement();
-  EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_variable_declaration",   // ns
-                            "visit_enter_namespace_scope",  // {
-                            "visit_exit_namespace_scope",   // }
-                        }));
-  EXPECT_THAT(p.variable_declarations,
-              ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  {
+    test_parser p(u8"namespace ns {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"module ns {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
 }
 
 TEST_F(test_parse_typescript_namespace, missing_body) {
@@ -114,8 +128,48 @@ TEST_F(test_parse_typescript_namespace, incomplete_body) {
   }
 }
 
+TEST_F(test_parse_typescript_namespace, namespace_cannot_have_string_name) {
+  {
+    test_parser p(u8"namespace 'my name space' {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"namespace "), u8"'my name space'"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"module 'my name space' {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"module "), u8"'my name space'"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_namespace,
-       namespace_cannot_have_newline_after_namespace_keyword) {
+       namespace_cannot_have_newline_after_keyword) {
   {
     test_parser p(u8"namespace\nns {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
@@ -134,10 +188,29 @@ TEST_F(test_parse_typescript_namespace,
                         namespace_keyword, 0, u8"namespace"_sv),
                 }));
   }
+
+  {
+    test_parser p(u8"module\nns {}"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_newline_not_allowed_after_namespace_keyword,  //
+                        namespace_keyword, 0, u8"module"_sv),
+                }));
+  }
 }
 
 TEST_F(test_parse_typescript_namespace,
-       namespace_keyword_with_following_newline_is_variable_name) {
+       keyword_with_following_newline_is_variable_name) {
   {
     test_parser p(u8"namespace\nns\n{}"_sv, typescript_options);
     p.parse_and_visit_module();
@@ -149,6 +222,19 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"namespace", u8"ns"}));
+  }
+
+  {
+    test_parser p(u8"module\nns\n{}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",       // module
+                              "visit_variable_use",       // ns
+                              "visit_enter_block_scope",  // {
+                              "visit_exit_block_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"module", u8"ns"}));
   }
 }
 

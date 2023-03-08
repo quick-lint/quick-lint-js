@@ -372,7 +372,6 @@ parse_statement:
   case token_type::kw_intrinsic:
   case token_type::kw_is:
   case token_type::kw_keyof:
-  case token_type::kw_module:
   case token_type::kw_never:
   case token_type::kw_number:
   case token_type::kw_object:
@@ -423,6 +422,7 @@ parse_statement:
   // interface * x;
   // interface I {}   // TypeScript only.
   case token_type::kw_interface:
+  case token_type::kw_module:
   case token_type::kw_namespace:
   case token_type::kw_type:
     switch (
@@ -622,11 +622,14 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
 
   // type T = number;  // TypeScript only.
   //
+  // namespace 'my namespace name' {}  // Invalid.
+  //
   // type  // ASI
   // f();
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::kw_await:
   case token_type::identifier:
+  case token_type::string:
     if (this->peek().has_leading_newline) {
       bool is_expression = true;
       if (initial_keyword.type == token_type::kw_interface) {
@@ -657,7 +660,8 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
               });
         }
       }
-      if (initial_keyword.type == token_type::kw_namespace) {
+      if (initial_keyword.type == token_type::kw_module ||
+          initial_keyword.type == token_type::kw_namespace) {
         lexer_transaction inner_transaction = this->lexer_.begin_transaction();
         this->skip();
         if (this->peek().type == token_type::left_curly &&
@@ -679,8 +683,11 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
     case token_type::kw_interface:
       this->parse_and_visit_typescript_interface(v, initial_keyword.span());
       break;
+    case token_type::kw_module:
     case token_type::kw_namespace:
-      this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
+      this->parse_and_visit_typescript_namespace(
+          v,
+          /*export_keyword_span=*/std::nullopt, initial_keyword.span());
       break;
     case token_type::kw_type:
       this->parse_and_visit_typescript_type_alias(v, initial_keyword.span());
@@ -1100,10 +1107,13 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     break;
 
   // export namespace ns {}  // TypeScript only.
+  case token_type::kw_module:
   case token_type::kw_namespace: {
     source_code_span namespace_keyword = this->peek().span();
     this->skip();
-    this->parse_and_visit_typescript_namespace(v, namespace_keyword);
+    this->parse_and_visit_typescript_namespace(
+        v,
+        /*export_keyword_span=*/export_token_span, namespace_keyword);
     break;
   }
 
@@ -2016,8 +2026,14 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_typescript_namespace(
-    parse_visitor_base &v, source_code_span namespace_keyword_span) {
-  this->parse_and_visit_typescript_namespace_head(v, namespace_keyword_span);
+    parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
+    source_code_span namespace_keyword_span) {
+  this->parse_and_visit_typescript_namespace_head(
+      v,
+      /*export_keyword_span=*/export_keyword_span,
+      /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
+
+  typescript_namespace_guard g = this->enter_typescript_namespace();
 
   if (this->peek().type != token_type::left_curly) {
     this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
@@ -2033,7 +2049,9 @@ void parser::parse_and_visit_typescript_namespace(
 }
 
 void parser::parse_and_visit_typescript_namespace_head(
-    parse_visitor_base &v, source_code_span namespace_keyword_span) {
+    parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
+    std::optional<source_code_span> declare_keyword_span,
+    source_code_span namespace_keyword_span) {
   if (this->peek().has_leading_newline) {
     this->diag_reporter_->report(
         diag_newline_not_allowed_after_namespace_keyword{
@@ -2048,6 +2066,7 @@ void parser::parse_and_visit_typescript_namespace_head(
   }
 
   switch (this->peek().type) {
+  // namespace ns { }
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
     v.visit_variable_declaration(this->peek().identifier_name(),
@@ -2055,6 +2074,27 @@ void parser::parse_and_visit_typescript_namespace_head(
                                  variable_init_kind::normal);
     this->skip();
     break;
+
+  // module 'my namespace' { }
+  // namespace 'ns' { }         // Invalid.
+  case token_type::string: {
+    bool namespace_keyword_is_module =
+        namespace_keyword_span.string_view()[0] == u8'm';
+    if (!namespace_keyword_is_module || !declare_keyword_span.has_value() ||
+        export_keyword_span.has_value()) {
+      this->diag_reporter_->report(
+          diag_string_namespace_name_is_only_allowed_with_declare_module{
+              .module_name = this->peek().span(),
+          });
+    } else if (this->in_typescript_namespace_) {
+      this->diag_reporter_->report(
+          diag_string_namespace_name_is_only_allowed_at_top_level{
+              .module_name = this->peek().span(),
+          });
+    }
+    this->skip();
+    break;
+  }
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
@@ -2064,10 +2104,16 @@ void parser::parse_and_visit_typescript_namespace_head(
 
 void parser::parse_and_visit_typescript_declare_namespace(
     parse_visitor_base &v, source_code_span declare_keyword_span) {
-  QLJS_ASSERT(this->peek().type == token_type::kw_namespace);
+  QLJS_ASSERT(this->peek().type == token_type::kw_module ||
+              this->peek().type == token_type::kw_namespace);
   source_code_span namespace_keyword_span = this->peek().span();
   this->skip();
-  this->parse_and_visit_typescript_namespace_head(v, namespace_keyword_span);
+  this->parse_and_visit_typescript_namespace_head(
+      v,
+      /*export_keyword_span=*/std::nullopt,
+      /*declare_keyword_span=*/declare_keyword_span, namespace_keyword_span);
+
+  typescript_namespace_guard g = this->enter_typescript_namespace();
 
   if (this->peek().type != token_type::left_curly) {
     this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
@@ -2091,6 +2137,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
     case token_type::kw_enum:
     case token_type::kw_function:
     case token_type::kw_let:
+    case token_type::kw_module:
     case token_type::kw_namespace:
     case token_type::kw_var:
       this->parse_and_visit_declare_statement(v, declare_keyword_span);
@@ -4558,6 +4605,7 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_type:
   case token_type::kw_var:
   case token_type::kw_function:
+  case token_type::kw_module:
   case token_type::kw_namespace:
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(v, declare_keyword_span);
@@ -4760,6 +4808,7 @@ void parser::parse_and_visit_declare_statement(
   }
 
   // declare namespace ns {}
+  case token_type::kw_module:
   case token_type::kw_namespace:
     this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
     break;

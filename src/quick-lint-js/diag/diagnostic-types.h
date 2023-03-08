@@ -1619,7 +1619,7 @@
   QLJS_DIAG_TYPE(                                                               \
       diag_newline_not_allowed_after_namespace_keyword, "E0276",                \
       diagnostic_severity::error, { source_code_span namespace_keyword; },      \
-      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'namespace'"),    \
+      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after '{0}'"),          \
               namespace_keyword))                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
@@ -1798,6 +1798,20 @@
       diag_stray_comma_in_parameter, "E0180", diagnostic_severity::error,       \
       { source_code_span comma; },                                              \
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_string_namespace_name_is_only_allowed_with_declare_module, "E0359",  \
+      diagnostic_severity::error, { source_code_span module_name; },            \
+      MESSAGE(QLJS_TRANSLATABLE("string module name is only allowed with "      \
+                                "'declare module'"),                            \
+              module_name))                                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_string_namespace_name_is_only_allowed_at_top_level, "E0361",         \
+      diagnostic_severity::error, { source_code_span module_name; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "module with string name is only allowed at the top level"),  \
+              module_name))                                                     \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_this_parameter_must_be_first, "E0303", diagnostic_severity::error,   \

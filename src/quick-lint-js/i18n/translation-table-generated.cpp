@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11672, 20759, 31424, 0, 57432},  //
+        {1, 11672, 20759, 31424, 0, 57380},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -20,7 +20,7 @@ const translation_table translation_data = {
         {31, 56, 0, 32, 0, 28},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
-        {79, 25, 30, 63, 49857, 66},         //
+        {79, 25, 30, 63, 49805, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
@@ -332,13 +332,14 @@ const translation_table translation_data = {
         {72, 55, 79, 36, 61, 37},            //
         {33, 41, 45, 43, 34, 34},            //
         {20, 29, 0, 26, 0, 22},              //
-        {0, 0, 0, 52, 0, 48},                //
+        {0, 0, 0, 0, 0, 48},                 //
+        {0, 0, 0, 52, 0, 57},                //
         {69, 26, 0, 59, 0, 51},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 51, 0, 40},                //
         {0, 0, 0, 52, 0, 41},                //
-        {0, 0, 0, 52, 0, 41},                //
-        {0, 0, 0, 47, 0, 36},                //
+        {0, 0, 0, 0, 0, 36},                 //
+        {0, 0, 0, 47, 0, 35},                //
         {52, 31, 25, 61, 21, 54},            //
         {0, 0, 0, 89, 0, 73},                //
         {63, 34, 103, 64, 73, 50},           //
@@ -368,7 +369,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 19},                 //
         {14, 26, 53, 15, 0, 41},             //
         {41, 63, 47, 41, 57, 34},            //
-        {36, 33, 41, 34, 31, 29},            //
+        {0, 0, 0, 0, 0, 29},                 //
+        {36, 33, 41, 34, 31, 57},            //
         {46, 25, 63, 57, 39, 51},            //
         {0, 0, 0, 0, 0, 52},                 //
         {0, 0, 0, 61, 0, 27},                //
@@ -1448,7 +1450,6 @@ const translation_table translation_data = {
         u8"nova vari\u00e1vel oculta uma vari\u00e1vel existente\0"
         u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'abstract'\0"
         u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'interface'\0"
-        u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'namespace'\0"
         u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'type'\0"
         u8"quebra de linha n\u00e3o \u00e9 permitida entre 'async' e 'function'\0"
         u8"quebra de linha n\u00e3o \u00e9 permitida entre 'async' e lista de par\u00e2metros da arrow function\0"
@@ -2042,12 +2043,13 @@ const translation_table translation_data = {
         u8"missing value for object property\0"
         u8"missing variable name\0"
         u8"misspelled React attribute; write '{1}' instead\0"
+        u8"module with string name is only allowed at the top level\0"
         u8"move the 'extends' clause before 'implements' here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
         u8"newline is not allowed after 'interface'\0"
-        u8"newline is not allowed after 'namespace'\0"
         u8"newline is not allowed after 'type'\0"
+        u8"newline is not allowed after '{0}'\0"
         u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"newline is not allowed between field name and '!'\0"
@@ -2078,6 +2080,7 @@ const translation_table translation_data = {
         u8"spread tuple elements cannot be optional\0"
         u8"stray comma in function parameter\0"
         u8"stray comma in let statement\0"
+        u8"string module name is only allowed with 'declare module'\0"
         u8"switch statement is missing '{1}' around condition\0"
         u8"switch statement needs parentheses around condition\0"
         u8"this case will run instead\0"

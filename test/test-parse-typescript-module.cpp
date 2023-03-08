@@ -649,13 +649,69 @@ TEST_F(test_parse_typescript_module, export_namespace) {
     test_parser p(u8"export namespace ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",   // I
+                              "visit_variable_declaration",   // ns
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"export module ns {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_module,
+       exported_namespace_cannot_have_string_name) {
+  {
+    test_parser p(u8"export namespace 'my name space' {}"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"export namespace "),
+                u8"'my name space'"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"export module 'my name space' {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"export module "),
+                u8"'my name space'"_sv),
+        }));
   }
 }
 

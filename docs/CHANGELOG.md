@@ -15,6 +15,7 @@ Semantic Versioning.
 * TypeScript: `declare class`, `declare abstract class`, `declare const`,
   `declare let`, `declare var`, `declare type`, `declare interface`,
   `declare function`, and `declare namespace` are now supported.
+* TypeScript: The old-style `module` syntax for namespaces is now supported.
 * `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
   index") (implemented by [Yunus][]).
 * `while (x > 0, y > 0)` now reports [E0451][] ("misleading use of ',' operator

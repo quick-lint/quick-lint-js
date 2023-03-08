@@ -1151,8 +1151,10 @@ msgid "newline is not allowed after 'interface'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "newline is not allowed after 'namespace'"
+#, fuzzy
+msgid "newline is not allowed after '{0}'"
 msgstr ""
+"',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'type'"
@@ -1267,6 +1269,14 @@ msgstr "virgule isolée dans une instruction let"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "stray comma in function parameter"
 msgstr "virgule isolée dans un paramètre de fonction"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "string module name is only allowed with 'declare module'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "module with string name is only allowed at the top level"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'this' must be the first parameter"

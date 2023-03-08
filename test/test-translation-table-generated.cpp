@@ -3542,6 +3542,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "module with string name is only allowed at the top level"_translatable,
+        {
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+        },
+    },
+    {
         "move the 'extends' clause before 'implements' here"_translatable,
         {
             u8"move the 'extends' clause before 'implements' here",
@@ -3586,17 +3597,6 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "newline is not allowed after 'namespace'"_translatable,
-        {
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-        },
-    },
-    {
         "newline is not allowed after 'type'"_translatable,
         {
             u8"newline is not allowed after 'type'",
@@ -3605,6 +3605,17 @@ const translated_string test_translation_table[] = {
             u8"newline is not allowed after 'type'",
             u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'type'",
             u8"newline is not allowed after 'type'",
+        },
+    },
+    {
+        "newline is not allowed after '{0}'"_translatable,
+        {
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
         },
     },
     {
@@ -3935,6 +3946,17 @@ const translated_string test_translation_table[] = {
             u8"virgule isol\u00e9e dans une instruction let",
             u8"v\u00edrgula extra em instru\u00e7\u00e3o let",
             u8"vilset komma i let p\u00e5st\u00e5ende",
+        },
+    },
+    {
+        "string module name is only allowed with 'declare module'"_translatable,
+        {
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
         },
     },
     {

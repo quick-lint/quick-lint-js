@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 429;
-constexpr std::size_t translation_table_string_table_size = 75794;
+constexpr std::uint16_t translation_table_mapping_table_size = 431;
+constexpr std::size_t translation_table_string_table_size = 75850;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -349,12 +349,13 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing value for object property"sv,
           "missing variable name"sv,
           "misspelled React attribute; write '{1}' instead"sv,
+          "module with string name is only allowed at the top level"sv,
           "move the 'extends' clause before 'implements' here"sv,
           "new variable shadows existing variable"sv,
           "newline is not allowed after 'abstract'"sv,
           "newline is not allowed after 'interface'"sv,
-          "newline is not allowed after 'namespace'"sv,
           "newline is not allowed after 'type'"sv,
+          "newline is not allowed after '{0}'"sv,
           "newline is not allowed between 'async' and 'function'"sv,
           "newline is not allowed between 'async' and arrow function parameter list"sv,
           "newline is not allowed between field name and '!'"sv,
@@ -385,6 +386,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "spread tuple elements cannot be optional"sv,
           "stray comma in function parameter"sv,
           "stray comma in let statement"sv,
+          "string module name is only allowed with 'declare module'"sv,
           "switch statement is missing '{1}' around condition"sv,
           "switch statement needs parentheses around condition"sv,
           "this case will run instead"sv,

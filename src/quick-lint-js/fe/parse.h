@@ -367,9 +367,14 @@ class parser {
   void parse_and_visit_typescript_interface_reference(parse_visitor_base &v);
 
   void parse_and_visit_typescript_namespace(
-      parse_visitor_base &v, source_code_span namespace_keyword_span);
+      parse_visitor_base &v,
+      std::optional<source_code_span> export_keyword_span,
+      source_code_span namespace_keyword_span);
   void parse_and_visit_typescript_namespace_head(
-      parse_visitor_base &v, source_code_span namespace_keyword_span);
+      parse_visitor_base &v,
+      std::optional<source_code_span> export_keyword_span,
+      std::optional<source_code_span> declare_keyword_span,
+      source_code_span namespace_keyword_span);
   void parse_and_visit_typescript_declare_namespace(
       parse_visitor_base &v, source_code_span declare_keyword_span);
 
@@ -843,6 +848,7 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
+  bool in_typescript_namespace_ = false;
 
   bool in_typescript_only_construct_ = false;
 
@@ -876,6 +882,8 @@ class parser {
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
+  using typescript_namespace_guard =
+      bool_guard<&parser::in_typescript_namespace_>;
 
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
@@ -892,6 +900,7 @@ class parser {
   [[nodiscard]] typescript_only_construct_guard
   enter_typescript_only_construct();
   [[nodiscard]] switch_guard enter_switch();
+  [[nodiscard]] typescript_namespace_guard enter_typescript_namespace();
 
   void parse_end_of_expression_statement();
   void parse_and_visit_return_statement(

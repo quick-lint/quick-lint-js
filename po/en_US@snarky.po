@@ -1091,8 +1091,9 @@ msgid "newline is not allowed after 'interface'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "newline is not allowed after 'namespace'"
-msgstr ""
+#, fuzzy
+msgid "newline is not allowed after '{0}'"
+msgstr "that's way too many commas 🚮"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'type'"
@@ -1201,6 +1202,14 @@ msgstr "throw that comma in the bin 🚮"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "stray comma in function parameter"
 msgstr "take that stray comma out back and have it meet its maker 🔫"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "string module name is only allowed with 'declare module'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "module with string name is only allowed at the top level"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'this' must be the first parameter"

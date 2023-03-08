@@ -1043,8 +1043,9 @@ msgid "newline is not allowed after 'interface'"
 msgstr "quebra de linha não é permitida após 'interface'"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "newline is not allowed after 'namespace'"
-msgstr "quebra de linha não é permitida após 'namespace'"
+#, fuzzy
+msgid "newline is not allowed after '{0}'"
+msgstr "quebra de linha não é permitida após 'type'"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'type'"
@@ -1149,6 +1150,14 @@ msgstr "vírgula extra em instrução let"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "stray comma in function parameter"
 msgstr "vírgula extra em parâmetro da função"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "string module name is only allowed with 'declare module'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "module with string name is only allowed at the top level"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'this' must be the first parameter"
@@ -1842,6 +1851,9 @@ msgstr "esperado {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "aqui"
+
+#~ msgid "newline is not allowed after 'namespace'"
+#~ msgstr "quebra de linha não é permitida após 'namespace'"
 
 #, fuzzy
 #~ msgid "',' is not expected between the mems in '['']'"
