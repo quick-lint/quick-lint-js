@@ -481,6 +481,23 @@ TEST_F(test_parse_typescript_declare_namespace,
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_allows_namespace_alias) {
+  {
+    test_parser p(u8"declare namespace ns { import a = b; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // ns
+                              "visit_enter_namespace_scope",   // {
+                              "visit_variable_declaration",    // a
+                              "visit_variable_namespace_use",  // b
+                              "visit_exit_namespace_scope",    // }
+                              "visit_end_of_module",           //
+                          }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
   {
     test_parser p(u8"declare namespace ns { enum E { A = f() } }"_sv,

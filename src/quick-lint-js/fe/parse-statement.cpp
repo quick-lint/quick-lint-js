@@ -2136,6 +2136,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
     case token_type::kw_const:
     case token_type::kw_enum:
     case token_type::kw_function:
+    case token_type::kw_import:
     case token_type::kw_let:
     case token_type::kw_module:
     case token_type::kw_namespace:
@@ -4811,6 +4812,11 @@ void parser::parse_and_visit_declare_statement(
   case token_type::kw_module:
   case token_type::kw_namespace:
     this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
+    break;
+
+  // declare namespace ns { import a = b; }
+  case token_type::kw_import:
+    this->parse_and_visit_import(v);
     break;
 
   // declare:  // Label.
