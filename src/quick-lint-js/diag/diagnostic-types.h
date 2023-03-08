@@ -330,6 +330,19 @@
           MESSAGE(QLJS_TRANSLATABLE("'declare' here"), declare_keyword))        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_namespace_cannot_import_module, "E0362",                     \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span import_keyword;                                        \
+        source_code_span declare_keyword;                                       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "cannot import a module from inside a 'declare namespace'"),  \
+              import_keyword)                                                   \
+          MESSAGE(QLJS_TRANSLATABLE("'declare namespace' starts here"),         \
+                  declare_keyword))                                             \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_declare_var_cannot_have_initializer, "E0351",                        \
       diagnostic_severity::error,                                               \
       {                                                                         \

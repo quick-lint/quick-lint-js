@@ -3260,6 +3260,13 @@ parse_maybe_else:
 }
 
 void parser::parse_and_visit_import(parse_visitor_base &v) {
+  this->parse_and_visit_import(
+      v, /*declare_namespace_declare_keyword=*/std::nullopt);
+}
+
+void parser::parse_and_visit_import(
+    parse_visitor_base &v,
+    std::optional<source_code_span> declare_namespace_declare_keyword) {
   QLJS_ASSERT(this->peek().type == token_type::kw_import);
   source_code_span import_span = this->peek().span();
   this->skip();
@@ -3477,6 +3484,14 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
         if (this->peek().type == token_type::left_paren &&
             namespace_name.normalized_name() == u8"require"_sv) {
           // import fs = require("fs");
+          if (declare_namespace_declare_keyword.has_value()) {
+            this->diag_reporter_->report(
+                diag_declare_namespace_cannot_import_module{
+                    .import_keyword = import_span,
+                    .declare_keyword = *declare_namespace_declare_keyword,
+                });
+          }
+
           this->skip();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
           this->skip();
@@ -3522,6 +3537,12 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   switch (this->peek().type) {
   // import fs from 'fs';
   case token_type::string:
+    if (declare_namespace_declare_keyword.has_value()) {
+      this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
+          .import_keyword = import_span,
+          .declare_keyword = *declare_namespace_declare_keyword,
+      });
+    }
     this->skip();
     break;
 
@@ -4612,16 +4633,20 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_type:
   case token_type::kw_var:
   case token_type::kw_namespace:
-  parse_as_declare_statement:
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(v, declare_keyword_span);
     return parse_possible_declare_result::parsed;
 
+  // declare import fs from 'fs';  // Invalid.
+  // declare import ns = otherns;  // Invalid.
   case token_type::kw_import:
+    this->lexer_.commit_transaction(std::move(transaction));
     this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
         .declare_keyword = declare_keyword_span,
     });
-    goto parse_as_declare_statement;
+    this->parse_and_visit_import(
+        v, /*declare_namespace_declare_keyword=*/std::nullopt);
+    return parse_possible_declare_result::parsed;
 
   // declare:  // Label.
   // declare();
@@ -4826,8 +4851,12 @@ void parser::parse_and_visit_declare_statement(
     break;
 
   // declare namespace ns { import a = b; }
+  // declare namespace ns { import a from "b"; }  // Invalid.
   case token_type::kw_import:
-    this->parse_and_visit_import(v);
+    // NOTE(strager): 'declare import a from "b";' is handled by
+    // parse_and_visit_possible_declare_statement.
+    this->parse_and_visit_import(
+        v, /*declare_namespace_declare_keyword=*/declare_keyword_span);
     break;
 
   // declare:  // Label.

@@ -842,6 +842,16 @@ TEST_F(test_parse_typescript_module,
                               declare_keyword, 0, u8"declare"_sv),
         }));
   }
+
+  {
+    test_parser p(u8"namespace ns { declare import fs from 'fs'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_import_cannot_have_declare_keyword),
+                }));
+  }
 }
 }
 }

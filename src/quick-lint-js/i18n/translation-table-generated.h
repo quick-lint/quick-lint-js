@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 432;
-constexpr std::size_t translation_table_string_table_size = 75893;
+constexpr std::uint16_t translation_table_mapping_table_size = 434;
+constexpr std::size_t translation_table_string_table_size = 75982;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -64,6 +64,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'declare function' cannot have a body"sv,
           "'declare function' here"sv,
           "'declare namespace' cannot contain statements, only declarations"sv,
+          "'declare namespace' starts here"sv,
           "'declare {1}' cannot have initializer"sv,
           "'declare {1}' started here"sv,
           "'declare' here"sv,
@@ -177,6 +178,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "cannot export variable named 'let'"sv,
           "cannot export variable named keyword '{0}'"sv,
           "cannot import 'let'"sv,
+          "cannot import a module from inside a 'declare namespace'"sv,
           "cannot import variable named keyword '{0}'"sv,
           "cannot reference private variables without object; use 'this.'"sv,
           "cannot update variable with '{0}' while declaring it"sv,

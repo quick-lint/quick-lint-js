@@ -273,6 +273,15 @@ msgid "'declare' here"
 msgstr "'function' está aqui"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' starts here"
+msgstr "array iniciou aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr "interfaces não podem conter blocos estáticos"
@@ -1290,11 +1299,6 @@ msgid "move the 'extends' clause before 'implements' here"
 msgstr "mova a cláusula 'extends' para antes do 'implements' aqui"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
-msgid "cannot use 'declare' keyword with 'import'"
-msgstr "não é possível declarar e exportar variável com 'export default'"
-
-#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr "apelidos de importação do TypeScript não são permitidos em JavaScript"
 
@@ -1721,6 +1725,11 @@ msgstr "função chamada antes de ser declarada: {0}"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function declared here"
 msgstr "função declarada aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr "não é possível declarar e exportar variável com 'export default'"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript interface fields cannot be initalized"

@@ -498,6 +498,53 @@ TEST_F(test_parse_typescript_declare_namespace,
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_disallows_import_from_module) {
+  {
+    test_parser p(u8"declare namespace ns { import fs from 'fs'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // fs
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_declare_namespace_cannot_import_module,  //
+                        import_keyword, strlen(u8"declare namespace ns { "),
+                        u8"import"_sv,  //
+                        declare_keyword, 0, u8"declare"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { import fs = require('fs'); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // fs
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_declare_namespace_cannot_import_module,  //
+                        import_keyword, strlen(u8"declare namespace ns { "),
+                        u8"import"_sv,  //
+                        declare_keyword, 0, u8"declare"_sv),
+                }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
   {
     test_parser p(u8"declare namespace ns { enum E { A = f() } }"_sv,

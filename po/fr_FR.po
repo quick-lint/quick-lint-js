@@ -325,6 +325,15 @@ msgid "'declare' here"
 msgstr "appel de fonction débuté ici"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' starts here"
+msgstr "tableau débuté ici"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
@@ -1442,12 +1451,6 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "cannot use 'declare' keyword with 'import'"
-msgstr ""
-"impossible de déclarer et d'exporter une variable avec 'export default'"
-
-#: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
@@ -1932,6 +1935,12 @@ msgstr "fonction appelée avant sa déclaration dans la portée de bloc : {0}"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function declared here"
 msgstr "fonction déclarée ici"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr ""
+"impossible de déclarer et d'exporter une variable avec 'export default'"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

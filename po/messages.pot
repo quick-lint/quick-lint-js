@@ -260,6 +260,14 @@ msgid "'declare' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'declare namespace' starts here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
 
@@ -1244,10 +1252,6 @@ msgid "move the 'extends' clause before 'implements' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot use 'declare' keyword with 'import'"
-msgstr ""
-
-#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr ""
 
@@ -1648,6 +1652,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function declared here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot use 'declare' keyword with 'import'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h

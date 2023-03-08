@@ -317,6 +317,15 @@ msgid "'declare' here"
 msgstr "Funktionsaufruf beginnt hier"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' starts here"
+msgstr "Array beginnt hier"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
@@ -1426,11 +1435,6 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "cannot use 'declare' keyword with 'import'"
-msgstr "Kann keine Variable namens 'let' deklarieren und exportieren"
-
-#: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
@@ -1915,6 +1919,11 @@ msgstr "Funktion '{0}' wird im Block-Scope vor ihrer Deklaration aufgerufen"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function declared here"
 msgstr "Funktion wird hier deklariert"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr "Kann keine Variable namens 'let' deklarieren und exportieren"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

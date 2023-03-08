@@ -48,6 +48,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 38},                 //
         {0, 0, 0, 0, 0, 24},                 //
         {0, 0, 0, 0, 0, 65},                 //
+        {0, 0, 0, 0, 0, 32},                 //
         {0, 0, 0, 0, 0, 38},                 //
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 15},                 //
@@ -160,7 +161,8 @@ const translation_table translation_data = {
         {45, 26, 69, 51, 48, 38},            //
         {45, 35, 49, 51, 43, 35},            //
         {76, 25, 67, 54, 48, 43},            //
-        {35, 37, 28, 33, 25, 20},            //
+        {0, 0, 0, 0, 0, 20},                 //
+        {35, 37, 28, 33, 25, 57},            //
         {45, 67, 67, 54, 58, 43},            //
         {74, 45, 80, 74, 69, 63},            //
         {0, 0, 0, 67, 0, 53},                //
@@ -1759,6 +1761,7 @@ const translation_table translation_data = {
         u8"'declare function' cannot have a body\0"
         u8"'declare function' here\0"
         u8"'declare namespace' cannot contain statements, only declarations\0"
+        u8"'declare namespace' starts here\0"
         u8"'declare {1}' cannot have initializer\0"
         u8"'declare {1}' started here\0"
         u8"'declare' here\0"
@@ -1872,6 +1875,7 @@ const translation_table translation_data = {
         u8"cannot export variable named 'let'\0"
         u8"cannot export variable named keyword '{0}'\0"
         u8"cannot import 'let'\0"
+        u8"cannot import a module from inside a 'declare namespace'\0"
         u8"cannot import variable named keyword '{0}'\0"
         u8"cannot reference private variables without object; use 'this.'\0"
         u8"cannot update variable with '{0}' while declaring it\0"

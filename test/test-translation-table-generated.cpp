@@ -407,6 +407,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare namespace' starts here"_translatable,
+        {
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+        },
+    },
+    {
         "'declare {1}' cannot have initializer"_translatable,
         {
             u8"'declare {1}' cannot have initializer",
@@ -1647,6 +1658,17 @@ const translated_string test_translation_table[] = {
             u8"impossible d'importer 'let'",
             u8"n\u00e3o \u00e9 poss\u00edvel importar 'let'",
             u8"kan inte importera 'let'",
+        },
+    },
+    {
+        "cannot import a module from inside a 'declare namespace'"_translatable,
+        {
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
         },
     },
     {

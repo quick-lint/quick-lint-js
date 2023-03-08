@@ -272,6 +272,15 @@ msgid "'declare' here"
 msgstr "IIFE started here"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'declare namespace' starts here"
+msgstr "you opened Pandora's Box here"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare {1}' cannot have initializer"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
@@ -1353,11 +1362,6 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "cannot use 'declare' keyword with 'import'"
-msgstr "variables don't belong here"
-
-#: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
@@ -1791,6 +1795,11 @@ msgstr "this code freaks Safari out"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function declared here"
 msgstr "Safari hates this"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr "variables don't belong here"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript interface fields cannot be initalized"
