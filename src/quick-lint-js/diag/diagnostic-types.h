@@ -330,15 +330,30 @@
           MESSAGE(QLJS_TRANSLATABLE("'declare' here"), declare_keyword))        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_declare_namespace_cannot_export_default, "E0363",                    \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span default_keyword;                                       \
+        source_code_span declare_keyword;                                       \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE(                                                    \
+              "cannot 'export default' from inside a 'declare namespace'"),     \
+          default_keyword)                                                      \
+          MESSAGE(QLJS_TRANSLATABLE("'declare namespace' starts here"),         \
+                  declare_keyword))                                             \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_declare_namespace_cannot_import_module, "E0362",                     \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        source_code_span import_keyword;                                        \
+        /* importing_keyword is either 'import', 'from', or 'require'. */       \
+        source_code_span importing_keyword;                                     \
         source_code_span declare_keyword;                                       \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "cannot import a module from inside a 'declare namespace'"),  \
-              import_keyword)                                                   \
+              importing_keyword)                                                \
           MESSAGE(QLJS_TRANSLATABLE("'declare namespace' starts here"),         \
                   declare_keyword))                                             \
                                                                                 \

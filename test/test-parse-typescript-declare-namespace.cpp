@@ -459,6 +459,21 @@ TEST_F(test_parse_typescript_declare_namespace,
                               "visit_end_of_module",          //
                           }));
   }
+
+  {
+    test_parser p(u8"declare namespace ns { export interface I { } }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_exit_interface_scope",   // }
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
@@ -478,12 +493,42 @@ TEST_F(test_parse_typescript_declare_namespace,
                               "visit_end_of_module",           //
                           }));
   }
+
+  {
+    test_parser p(u8"declare namespace ns { export type T = U; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // ns
+                              "visit_enter_namespace_scope",   // {
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // {
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // }
+                              "visit_exit_namespace_scope",    // }
+                              "visit_end_of_module",           //
+                          }));
+  }
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
        declare_namespace_allows_namespace_alias) {
   {
     test_parser p(u8"declare namespace ns { import a = b; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // ns
+                              "visit_enter_namespace_scope",   // {
+                              "visit_variable_declaration",    // a
+                              "visit_variable_namespace_use",  // b
+                              "visit_exit_namespace_scope",    // }
+                              "visit_end_of_module",           //
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export import a = b; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -515,7 +560,7 @@ TEST_F(test_parse_typescript_declare_namespace,
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         diag_declare_namespace_cannot_import_module,  //
-                        import_keyword, strlen(u8"declare namespace ns { "),
+                        importing_keyword, strlen(u8"declare namespace ns { "),
                         u8"import"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
@@ -537,7 +582,7 @@ TEST_F(test_parse_typescript_declare_namespace,
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         diag_declare_namespace_cannot_import_module,  //
-                        import_keyword, strlen(u8"declare namespace ns { "),
+                        importing_keyword, strlen(u8"declare namespace ns { "),
                         u8"import"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
@@ -545,9 +590,128 @@ TEST_F(test_parse_typescript_declare_namespace,
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_disallows_import_from_module_with_export_keyword) {
+  {
+    test_parser p(u8"declare namespace ns { export * from 'module'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                diag_declare_namespace_cannot_import_module,  //
+                                importing_keyword,
+                                strlen(u8"declare namespace ns { export * "),
+                                u8"from"_sv,  //
+                                declare_keyword, 0, u8"declare"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export {Z} from 'module'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                diag_declare_namespace_cannot_import_module,  //
+                                importing_keyword,
+                                strlen(u8"declare namespace ns { export {Z} "),
+                                u8"from"_sv,  //
+                                declare_keyword, 0, u8"declare"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_allows_exporting_variables) {
+  {
+    test_parser p(u8"declare namespace ns { export {Z}; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_export_use",    // Z
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export type {T}; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_type_use",      // T
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export {Z as default}; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_export_use",    // Z
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }))
+        << "'default' is treated as the exported name, not as a keyword (see "
+           "declare_namespace_disallows_exporting_default)";
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_disallows_exporting_default) {
+  {
+    test_parser p(u8"declare namespace ns { export default Z; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_use",           // Z
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_declare_namespace_cannot_export_default,  //
+                default_keyword, strlen(u8"declare namespace ns { export "),
+                u8"default"_sv,  //
+                declare_keyword, 0, u8"declare"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
   {
     test_parser p(u8"declare namespace ns { enum E { A = f() } }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(diag_typescript_enum_value_must_be_constant,
+                            declared_enum_kind, enum_kind::declare_enum),
+        }))
+        << "diag_typescript_enum_value_must_be_constant is not reported for "
+           "normal enums but is reported for declare enums";
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export enum E { A = f() } }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -571,6 +735,19 @@ TEST_F(test_parse_typescript_declare_namespace,
                             declared_enum_kind, enum_kind::declare_const_enum),
         }));
   }
+
+  {
+    test_parser p(
+        u8"declare namespace ns { export const enum E { A = f() } }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_FIELD(diag_typescript_enum_value_must_be_constant,
+                            declared_enum_kind, enum_kind::declare_const_enum),
+        }));
+  }
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
@@ -579,6 +756,14 @@ TEST_F(test_parse_typescript_declare_namespace,
     // diag_missing_initializer_in_const_declaration is not reported for declare
     // consts.
     test_parser p(u8"declare namespace ns { const myVariable; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    // diag_missing_initializer_in_const_declaration is not reported for declare
+    // consts.
+    test_parser p(u8"declare namespace ns { export const myVariable; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
@@ -594,7 +779,27 @@ TEST_F(test_parse_typescript_declare_namespace,
   }
 
   {
+    test_parser p(u8"declare namespace ns { export let myVariable = null; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_declare_var_cannot_have_initializer),
+                }));
+  }
+
+  {
     test_parser p(u8"declare namespace ns { var myVariable = null; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_declare_var_cannot_have_initializer),
+                }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export var myVariable = null; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
@@ -615,6 +820,14 @@ TEST_F(test_parse_typescript_declare_namespace,
   }
 
   {
+    // diag_declare_function_cannot_have_body or diag_missing_function_body is
+    // not reported for declare functions.
+    test_parser p(u8"declare namespace ns { export function f(); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
     test_parser p(u8"declare namespace ns { async function f(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
@@ -627,6 +840,22 @@ TEST_F(test_parse_typescript_declare_namespace,
                                       strlen(u8"declare namespace ns { "),
                                       u8"async"_sv),
                 }));
+  }
+
+  {
+    test_parser p(u8"declare namespace ns { export async function f(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            // TODO(strager): Also link to the 'declare' keyword.
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_declare_function_cannot_be_async,  //
+                              async_keyword,
+                              strlen(u8"declare namespace ns { export "),
+                              u8"async"_sv),
+        }));
   }
 }
 
@@ -642,7 +871,23 @@ TEST_F(test_parse_typescript_declare_namespace,
   {
     // diag_missing_function_body is not reported in declare classes.
     test_parser p(
+        u8"declare namespace ns { export class C { myMethod(); } }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    // diag_missing_function_body is not reported in declare classes.
+    test_parser p(
         u8"declare namespace ns { abstract class C { myMethod(); } }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    // diag_missing_function_body is not reported in declare classes.
+    test_parser p(
+        u8"declare namespace ns { export abstract class C { myMethod(); } }"_sv,
         typescript_options);
     p.parse_and_visit_module();
   }
@@ -665,6 +910,24 @@ TEST_F(test_parse_typescript_declare_namespace,
                         u8"if"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
+  }
+
+  {
+    test_parser p(
+        u8"declare namespace ns1 { export namespace ns2 { if (true) {} } }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_declare_namespace_cannot_contain_statement,  //
+                first_statement_token,
+                strlen(u8"declare namespace ns1 { export namespace ns2 { "),
+                u8"if"_sv,  //
+                declare_keyword, 0, u8"declare"_sv),
+        }));
   }
 
   {

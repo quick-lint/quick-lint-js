@@ -288,13 +288,17 @@ msgid "'declare' here"
 msgstr "funktionkallelse startar här"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot import a module from inside a 'declare namespace'"
+msgid "cannot 'export default' from inside a 'declare namespace'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare namespace' starts here"
 msgstr "lista startar här"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot import a module from inside a 'declare namespace'"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

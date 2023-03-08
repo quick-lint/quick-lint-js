@@ -151,7 +151,8 @@ const translation_table translation_data = {
         {40, 35, 0, 70, 0, 55},              //
         {80, 38, 43, 55, 49, 56},            //
         {36, 32, 52, 35, 42, 36},            //
-        {73, 51, 90, 53, 0, 50},             //
+        {0, 0, 0, 0, 0, 50},                 //
+        {73, 51, 90, 53, 0, 58},             //
         {54, 29, 70, 63, 0, 47},             //
         {66, 38, 70, 71, 49, 49},            //
         {62, 81, 69, 64, 48, 45},            //
@@ -1865,6 +1866,7 @@ const translation_table translation_data = {
         u8"attribute has wrong capitalization; write '{1}' instead\0"
         u8"binary number literal has no digits\0"
         u8"break can only be used inside of a loop or switch\0"
+        u8"cannot 'export default' from inside a 'declare namespace'\0"
         u8"cannot access private identifier outside class\0"
         u8"cannot assign to loop variable in for of/in loop\0"
         u8"cannot declare 'await' inside async function\0"

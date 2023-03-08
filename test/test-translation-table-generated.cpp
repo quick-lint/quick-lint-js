@@ -1551,6 +1551,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot 'export default' from inside a 'declare namespace'"_translatable,
+        {
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+        },
+    },
+    {
         "cannot access private identifier outside class"_translatable,
         {
             u8"cannot access private identifier outside class",

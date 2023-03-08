@@ -433,6 +433,9 @@ class parser {
       parse_visitor_base &v, source_code_span type_keyword);
 
   void parse_and_visit_export(parse_visitor_base &v);
+  void parse_and_visit_export(
+      parse_visitor_base &v,
+      std::optional<source_code_span> declare_namespace_declare_keyword);
   void parse_and_visit_named_exports(
       parse_visitor_base &v,
       std::optional<source_code_span> typescript_type_only_keyword,
