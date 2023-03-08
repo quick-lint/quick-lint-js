@@ -1346,6 +1346,11 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr "kan inte deklarera och exportera variabel med 'export default'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

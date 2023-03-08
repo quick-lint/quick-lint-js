@@ -1694,6 +1694,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot use 'declare' keyword with 'import'"_translatable,
+        {
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+        },
+    },
+    {
         "catch variable can only be typed as '*', 'any', or 'unknown'"_translatable,
         {
             u8"catch variable can only be typed as '*', 'any', or 'unknown'",

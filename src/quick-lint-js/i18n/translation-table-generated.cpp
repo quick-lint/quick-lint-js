@@ -164,7 +164,8 @@ const translation_table translation_data = {
         {45, 67, 67, 54, 58, 43},            //
         {74, 45, 80, 74, 69, 63},            //
         {0, 0, 0, 67, 0, 53},                //
-        {0, 0, 0, 50, 0, 37},                //
+        {0, 0, 0, 0, 0, 37},                 //
+        {0, 0, 0, 50, 0, 43},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
         {0, 0, 0, 20, 0, 18},                //
@@ -1875,6 +1876,7 @@ const translation_table translation_data = {
         u8"cannot reference private variables without object; use 'this.'\0"
         u8"cannot update variable with '{0}' while declaring it\0"
         u8"cannot use '...' on 'this' parameter\0"
+        u8"cannot use 'declare' keyword with 'import'\0"
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"

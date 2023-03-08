@@ -823,6 +823,26 @@ TEST_F(test_parse_typescript_module, export_import_alias) {
 
 // TODO(#795): Report an error for other kinds of 'export import', such as
 // 'export import fs from "fs";'.
+
+TEST_F(test_parse_typescript_module,
+       import_cannot_be_used_with_declare_keyword) {
+  {
+    test_parser p(u8"declare import fs from 'fs';"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // fs
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_import_cannot_have_declare_keyword,  //
+                              declare_keyword, 0, u8"declare"_sv),
+        }));
+  }
+}
 }
 }
 

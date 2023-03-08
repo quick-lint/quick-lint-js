@@ -304,8 +304,29 @@ TEST_F(test_parse_typescript_namespace,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 diag_typescript_import_alias_not_allowed_in_javascript,  //
-                import_keyword, 0, u8"import"_sv, equal, strlen(u8"import A "),
-                u8"="_sv),
+                import_keyword, 0, u8"import"_sv,                        //
+                equal, strlen(u8"import A "), u8"="_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_namespace,
+       namespace_alias_cannot_be_used_with_declare_keyword) {
+  {
+    test_parser p(u8"declare import A = ns;"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_end_of_module",           //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_import_cannot_have_declare_keyword,  //
+                              declare_keyword, 0, u8"declare"_sv),
         }));
   }
 }

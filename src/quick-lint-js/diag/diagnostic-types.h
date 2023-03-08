@@ -2691,6 +2691,12 @@
           MESSAGE(QLJS_TRANSLATABLE("function declared here"), declaration))    \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_import_cannot_have_declare_keyword, "E0360",                         \
+      diagnostic_severity::error, { source_code_span declare_keyword; },        \
+      MESSAGE(QLJS_TRANSLATABLE("cannot use 'declare' keyword with 'import'"),  \
+              declare_keyword))                                                 \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_interface_fields_cannot_have_initializers, "E0221",                  \
       diagnostic_severity::error, { source_code_span equal; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                                \

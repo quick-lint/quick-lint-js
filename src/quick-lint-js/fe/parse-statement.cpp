@@ -4602,15 +4602,22 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_const:
   case token_type::kw_enum:
   case token_type::kw_interface:
+  case token_type::kw_function:
   case token_type::kw_let:
+  case token_type::kw_module:
   case token_type::kw_type:
   case token_type::kw_var:
-  case token_type::kw_function:
-  case token_type::kw_module:
   case token_type::kw_namespace:
+  parse_as_declare_statement:
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(v, declare_keyword_span);
     return parse_possible_declare_result::parsed;
+
+  case token_type::kw_import:
+    this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
+        .declare_keyword = declare_keyword_span,
+    });
+    goto parse_as_declare_statement;
 
   // declare:  // Label.
   // declare();

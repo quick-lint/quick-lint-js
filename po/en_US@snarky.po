@@ -1353,6 +1353,11 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "cannot use 'declare' keyword with 'import'"
+msgstr "variables don't belong here"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
