@@ -444,6 +444,43 @@ TEST_F(test_parse_typescript_declare_namespace,
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
+       interface_inside_declare_namespace_is_supported) {
+  {
+    test_parser p(u8"declare namespace ns { interface I { } }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // {
+                              "visit_exit_interface_scope",   // }
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       type_alias_inside_declare_namespace_is_supported) {
+  {
+    test_parser p(u8"declare namespace ns { type T = U; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // ns
+                              "visit_enter_namespace_scope",   // {
+                              "visit_variable_declaration",    // T
+                              "visit_enter_type_alias_scope",  // {
+                              "visit_variable_type_use",       // U
+                              "visit_exit_type_alias_scope",   // }
+                              "visit_exit_namespace_scope",    // }
+                              "visit_end_of_module",           //
+                          }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
   {
     test_parser p(u8"declare namespace ns { enum E { A = f() } }"_sv,
