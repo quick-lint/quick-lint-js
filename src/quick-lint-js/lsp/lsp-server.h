@@ -27,6 +27,7 @@
 #include <quick-lint-js/simdjson-fwd.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,8 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 
  private:
   configuration_filesystem* underlying_fs_;
+
+  // See NOTE[lsp_documents thread safety].
   hash_map<std::string, lsp_document_text*> overlaid_documents_;
 };
 
@@ -192,6 +195,7 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
       ::simdjson::ondemand::object& request);
 
   void handle_config_file_changes(
+      lock_ptr<lsp_documents>& documents,
       const std::vector<configuration_change>& config_changes);
 
   void get_config_file_diagnostics_notification(loaded_config_file*,
@@ -224,7 +228,12 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   configuration_loader config_loader_;
   configuration default_config_;
   lsp_linter& linter_;
-  lsp_documents documents_;
+
+  // NOTE[lsp_documents thread safety]: lsp_documents can only be modified on
+  // the LSP server thread. Therefore, it is safe to read without taking the
+  // lock. lsp_overlay_configuration_filesystem reads without taking the lock.
+  synchronized<lsp_documents> documents_;
+
   outgoing_json_rpc_message_queue outgoing_messages_;
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
