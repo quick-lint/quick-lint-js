@@ -149,17 +149,17 @@ const (
 )
 
 var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              RelicWindows,
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              RelicWindows,
-	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicPGP,
-	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  RelicPGP,
-	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicPGP,
-	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicApple,
-	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicApple,
-	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             RelicWindows,
-	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
-	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
-	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   RelicWindows,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):               RelicWindows,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):               RelicWindows,
+	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                 RelicPGP,
+	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                   RelicPGP,
+	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                         RelicPGP,
+	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                 RelicApple,
+	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                         RelicApple,
+	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                              RelicWindows,
+	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                                RelicWindows,
+	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                                RelicWindows,
+	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                    RelicWindows,
 	NewDeepPath2("npm/quick-lint-js-2.12.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
 	NewDeepPath2("npm/quick-lint-js-2.12.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
 	NewDeepPath2("npm/quick-lint-js-2.12.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            RelicPGP,
@@ -177,8 +177,8 @@ var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransform
 	NewDeepPath2("vscode/quick-lint-js-2.12.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.12.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.12.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
-	NewDeepPath("windows/quick-lint-js.msix"):                                                                     RelicWindows,
-	NewDeepPath2("windows/quick-lint-js.msix", "quick-lint-js.exe"):                                               RelicWindows,
+	NewDeepPath("windows/quick-lint-js.msix"):                                                                      RelicWindows,
+	NewDeepPath2("windows/quick-lint-js.msix", "quick-lint-js.exe"):                                                RelicWindows,
 }
 
 func CheckUnsignedFiles() error {
