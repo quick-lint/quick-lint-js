@@ -198,35 +198,95 @@ class diag_reporter;
 class identifier;
 class source_code_span;
 
-enum class token_type {
-  // Single-character symbols (see NOTE[one-byte-symbols]):
-  colon = ':',
-  comma = ',',
-  left_curly = '{',
-  left_paren = '(',
-  left_square = '[',
-  right_curly = '}',
-  right_paren = ')',
-  right_square = ']',
-  semicolon = ';',
-  tilde = '~',
-
-  complete_template,  // `text` or }text`
-  end_of_file,
-  identifier,
-  incomplete_template,  // `text${
-  number,
-  private_identifier,  // #name
-  regexp,
-  string,
-
-  // An identifier which contains escape sequences and which, if unescaped,
-  // matches a reserved keyword. For example, the token `\u{69}\u{66}` unescaped
-  // is `if`.
-  //
-  // Such identifiers are sometimes legal and sometimes illegal depending on the
-  // parser's context, hence we distinguish them from token_type::identifier.
-  reserved_keyword_with_escape_sequence,
+enum class token_type : unsigned char {
+  // Reserved words, future reserved words, conditionally reserved words, and
+  // contextual keywords ('kw' stands for 'KeyWord').
+  // (Some symbols are interleaved. See NOTE[one-byte-symbols].)
+  kw_abstract,     //
+  kw_any,          //
+  kw_as,           //
+  kw_assert,       //
+  kw_asserts,      //
+  kw_async,        //
+  kw_await,        //
+  kw_bigint,       //
+  kw_boolean,      //
+  kw_break,        //
+  kw_case,         //
+  kw_catch,        //
+  kw_class,        //
+  kw_const,        //
+  kw_constructor,  //
+  kw_continue,     //
+  kw_debugger,     //
+  kw_declare,      //
+  kw_default,      //
+  kw_delete,       //
+  kw_do,           //
+  kw_else,         //
+  kw_enum,         //
+  kw_export,       //
+  kw_extends,      //
+  kw_false,        //
+  kw_finally,      //
+  kw_for,          //
+  kw_from,         //
+  kw_function,     //
+  kw_get,          //
+  kw_global,       //
+  kw_if,           //
+  kw_implements,   //
+  kw_import,       //
+  kw_in,           //
+  kw_infer,        //
+  kw_instanceof,   //
+  kw_interface,    //
+  kw_intrinsic,    //
+  left_paren,      // ( (must be 0x28; see NOTE[one-byte-symbols])
+  right_paren,     // ) (must be 0x29; see NOTE[one-byte-symbols])
+  kw_is,           //
+  kw_keyof,        //
+  comma,           // , (must be 0x2c; see NOTE[one-byte-symbols])
+  kw_let,          //
+  kw_module,       //
+  kw_namespace,    //
+  kw_never,        //
+  kw_new,          //
+  kw_null,         //
+  kw_number,       //
+  kw_object,       //
+  kw_of,           //
+  kw_out,          //
+  kw_override,     //
+  kw_package,      //
+  kw_private,      //
+  colon,           // : (must be 0x3a; see NOTE[one-byte-symbols])
+  semicolon,       // ; (must be 0x3b; see NOTE[one-byte-symbols])
+  kw_protected,    //
+  kw_public,       //
+  kw_readonly,     //
+  kw_require,      //
+  kw_return,       //
+  kw_set,          //
+  kw_static,       //
+  kw_string,       //
+  kw_super,        //
+  kw_switch,       //
+  kw_symbol,       //
+  kw_this,         //
+  kw_throw,        //
+  kw_true,         //
+  kw_try,          //
+  kw_type,         //
+  kw_typeof,       //
+  kw_undefined,    //
+  kw_unique,       //
+  kw_unknown,      //
+  kw_var,          //
+  kw_void,         //
+  kw_while,        //
+  kw_with,         //
+  kw_yield,        //
 
   // Symbols:
   ampersand,                      // &
@@ -235,7 +295,9 @@ enum class token_type {
   ampersand_equal,                // &=
   bang,                           // !
   bang_equal,                     // !=
+  left_square,                    // [ (must be 0x5b; NOTE[one-byte-symbols])
   bang_equal_equal,               // !==
+  right_square,                   // ] (must be 0x5d; NOTE[one-byte-symbols])
   circumflex,                     // ^
   circumflex_equal,               // ^=
   dot,                            // .
@@ -265,7 +327,10 @@ enum class token_type {
   pipe_pipe_equal,                // ||=
   plus,                           // +
   plus_equal,                     // +=
+  left_curly,                     // { (must be 0x7b; NOTE[one-byte-symbols])
   plus_plus,                      // ++
+  right_curly,                    // } (must be 0x7d; NOTE[one-byte-symbols])
+  tilde,                          // ~ (must be 0x7e; NOTE[one-byte-symbols])
   question,                       // ?
   question_dot,                   // ?.
   question_question,              // ??
@@ -277,11 +342,22 @@ enum class token_type {
   star_star,                      // **
   star_star_equal,                // **=
 
-// Reserved words, future reserved words, conditionally reserved words, and
-// contextual keywords ('kw' stands for 'KeyWord'):
-#define QLJS_KEYWORD(k) kw_##k,
-  QLJS_X_KEYWORDS
-#undef QLJS_KEYWORD
+  complete_template,  // `text` or }text`
+  end_of_file,
+  identifier,
+  incomplete_template,  // `text${
+  number,
+  private_identifier,  // #name
+  regexp,
+  string,
+
+  // An identifier which contains escape sequences and which, if unescaped,
+  // matches a reserved keyword. For example, the token `\u{69}\u{66}` unescaped
+  // is `if`.
+  //
+  // Such identifiers are sometimes legal and sometimes illegal depending on the
+  // parser's context, hence we distinguish them from token_type::identifier.
+  reserved_keyword_with_escape_sequence,
 };
 
 const char* to_string(token_type);
