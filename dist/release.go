@@ -15,6 +15,7 @@ import "path/filepath"
 import "regexp"
 import "runtime"
 import "strings"
+import "time"
 
 // Path to the 'dist' directory containing this file (sign-release.go).
 var DistPath string
@@ -27,6 +28,7 @@ type Step struct {
 var OldReleaseVersion string
 var ReleaseCommitHash string
 var ReleaseVersion string
+var ReleaseDate time.Time
 
 var ThreePartVersionRegexp *regexp.Regexp = regexp.MustCompile("\\b\\d+\\.\\d+\\.\\d+\\b")
 
@@ -76,6 +78,18 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Update 'version' file",
+		Run: func() {
+			versionText := fmt.Sprintf("%s\n%s\n", ReleaseVersion, ReleaseDate.Format("2006-01-02"))
+			versionFilePath := filepath.Join(DistPath, "..", "version")
+			fileMode := fs.FileMode(0644)
+			if err := os.WriteFile(versionFilePath, []byte(versionText), fileMode); err != nil {
+				Stopf("failed to write version file: %v", err)
+			}
+		},
+	},
+
+	Step{
 		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
@@ -88,7 +102,6 @@ var Steps []Step = []Step{
 			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
-			fmt.Printf("* version\n")
 			WaitForDone()
 		},
 	},
@@ -358,11 +371,13 @@ func main() {
 	DistPath = filepath.Dir(scriptPath)
 
 	startAtStepNumber := 0
+	releaseDateString := ""
 	listSteps := false
 	flag.BoolVar(&listSteps, "ListSteps", false, "")
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
 	flag.StringVar(&OldReleaseVersion, "OldReleaseVersion", "", "")
+	flag.StringVar(&releaseDateString, "ReleaseDate", "", "")
 	flag.Parse()
 	if listSteps {
 		ListSteps()
@@ -374,6 +389,16 @@ func main() {
 	}
 	ReleaseVersion = flag.Arg(0)
 	CurrentStepIndex = startAtStepNumber - 1
+
+	if releaseDateString == "" {
+		ReleaseDate = time.Now()
+	} else {
+		var err error
+		ReleaseDate, err = time.Parse(time.RFC3339, releaseDateString)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	if OldReleaseVersion == "" {
 		version := ReadVersionFile()
@@ -422,7 +447,7 @@ func Stopf(format string, a ...interface{}) {
 func Stop() {
 	fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
 	fmt.Printf("To resume, run:\n")
-	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
+	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s -ReleaseDate=%s", CurrentStepIndex+1, OldReleaseVersion, ReleaseDate.Format(time.RFC3339))
 	if ReleaseCommitHash != "" {
 		fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
 	}
