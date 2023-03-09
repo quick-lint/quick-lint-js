@@ -36,8 +36,10 @@ func TestWriteVersionFile(t *testing.T) {
 		Check(t, os.Chdir(dir))
 		Check(t, os.WriteFile("version", []byte{}, fs.FileMode(0644)))
 
-		releaseDate := time.Date(2022, 2, 8, 16, 56, 37, 0, time.Local)
-		Check(t, WriteVersionFile("2.0.0", releaseDate))
+		Check(t, WriteVersionFile(VersionFileInfo{
+			VersionNumber: "2.0.0",
+			ReleaseDate:   time.Date(2022, 2, 8, 16, 56, 37, 0, time.Local),
+		}))
 
 		versionData, err := os.ReadFile("version")
 		Check(t, err)

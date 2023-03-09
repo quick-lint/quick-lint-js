@@ -77,7 +77,10 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Update 'version' file",
 		Run: func() {
-			if err := WriteVersionFile(ReleaseVersion, ReleaseDate); err != nil {
+			if err := WriteVersionFile(VersionFileInfo{
+				VersionNumber: ReleaseVersion,
+				ReleaseDate:   ReleaseDate,
+			}); err != nil {
 				Stopf("failed to write version file: %v", err)
 			}
 		},
@@ -550,8 +553,8 @@ func ReadVersionFileData(data []byte) VersionFileInfo {
 	}
 }
 
-func WriteVersionFile(releaseVersion string, releaseDate time.Time) error {
-	versionText := fmt.Sprintf("%s\n%s\n", releaseVersion, releaseDate.Format("2006-01-02"))
+func WriteVersionFile(versionInfo VersionFileInfo) error {
+	versionText := fmt.Sprintf("%s\n%s\n", versionInfo.VersionNumber, versionInfo.ReleaseDate.Format("2006-01-02"))
 	fileMode := fs.FileMode(0644)
 	if err := os.WriteFile("version", []byte(versionText), fileMode); err != nil {
 		return err
