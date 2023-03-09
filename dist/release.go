@@ -17,9 +17,6 @@ import "runtime"
 import "strings"
 import "time"
 
-// Path to the 'dist' directory containing this file (sign-release.go).
-var DistPath string
-
 type Step struct {
 	Title string
 	Run   func()
@@ -81,9 +78,8 @@ var Steps []Step = []Step{
 		Title: "Update 'version' file",
 		Run: func() {
 			versionText := fmt.Sprintf("%s\n%s\n", ReleaseVersion, ReleaseDate.Format("2006-01-02"))
-			versionFilePath := filepath.Join(DistPath, "..", "version")
 			fileMode := fs.FileMode(0644)
-			if err := os.WriteFile(versionFilePath, []byte(versionText), fileMode); err != nil {
+			if err := os.WriteFile("version", []byte(versionText), fileMode); err != nil {
 				Stopf("failed to write version file: %v", err)
 			}
 		},
@@ -368,9 +364,10 @@ func main() {
 	if !ok {
 		panic("could not determine path of .go file")
 	}
-	DistPath = filepath.Dir(scriptPath)
+	// Path to the 'dist' directory containing this file (release.go).
+	distPath := filepath.Dir(scriptPath)
 
-	err := os.Chdir(filepath.Join(DistPath, ".."))
+	err := os.Chdir(filepath.Join(distPath, ".."))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -464,7 +461,6 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	fileContents := make(map[string][]byte)
 
 	for _, path := range paths {
-		path = filepath.Join(DistPath, "..", path)
 		data, err := os.ReadFile(path)
 		if err != nil {
 			Stopf("failed to read file: %v", err)
@@ -537,7 +533,7 @@ type VersionFileInfo struct {
 }
 
 func ReadVersionFile() VersionFileInfo {
-	data, err := os.ReadFile(filepath.Join(DistPath, "..", "version"))
+	data, err := os.ReadFile("version")
 	if err != nil {
 		Stopf("failed to read version file: %v", err)
 	}
