@@ -370,6 +370,11 @@ func main() {
 	}
 	DistPath = filepath.Dir(scriptPath)
 
+	err := os.Chdir(filepath.Join(DistPath, ".."))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	startAtStepNumber := 0
 	releaseDateString := ""
 	listSteps := false
