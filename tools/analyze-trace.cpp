@@ -85,6 +85,10 @@ class counting_trace_stream_event_visitor {
     ++this->event_index;
   }
 
+  void visit_lsp_documents_event(const parsed_lsp_documents_event&) {
+    ++this->event_index;
+  }
+
   void visit_vector_max_size_histogram_by_owner_event(
       const parsed_vector_max_size_histogram_by_owner_event&) {
     ++this->event_index;
@@ -113,6 +117,10 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
 
   void visit_error_unsupported_compression_mode() {
     std::fprintf(stderr, "error: unsupported compression mode\n");
+  }
+
+  void visit_error_unsupported_lsp_document_type() {
+    std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
   void visit_packet_header(const parsed_packet_header&) {}
@@ -187,6 +195,10 @@ class document_content_checker : public counting_trace_stream_event_visitor {
 
   void visit_error_unsupported_compression_mode() {
     std::fprintf(stderr, "error: unsupported compression mode\n");
+  }
+
+  void visit_error_unsupported_lsp_document_type() {
+    std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
   void visit_packet_header(const parsed_packet_header&) {}
@@ -302,6 +314,10 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("error: unsupported compression mode\n");
   }
 
+  void visit_error_unsupported_lsp_document_type() {
+    std::fprintf(stderr, "error: unsupported LSP document type\n");
+  }
+
   void visit_packet_header(const parsed_packet_header&) {}
 
   void visit_init_event(const parsed_init_event& event) {
@@ -384,6 +400,19 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("\n");
   }
 
+  void visit_lsp_documents_event(const parsed_lsp_documents_event& event) {
+    base::visit_lsp_documents_event(event);
+    if (!this->should_dump()) return;
+
+    this->print_event_header(event);
+    std::printf("LSP documents:\n");
+    for (const parsed_lsp_document_state& doc : event.documents) {
+      std::printf("* ");
+      this->print_utf8(doc.uri);
+      std::printf("\n");
+    }
+  }
+
   void visit_vector_max_size_histogram_by_owner_event(
       const parsed_vector_max_size_histogram_by_owner_event& event) {
     base::visit_vector_max_size_histogram_by_owner_event(event);
@@ -446,6 +475,9 @@ void visit_events(const std::vector<parsed_trace_event>& events,
     case parsed_trace_event_type::error_unsupported_compression_mode:
       v.visit_error_unsupported_compression_mode();
       break;
+    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+      v.visit_error_unsupported_lsp_document_type();
+      break;
 
 #define VISIT(event_type)                   \
   case parsed_trace_event_type::event_type: \
@@ -454,6 +486,7 @@ void visit_events(const std::vector<parsed_trace_event>& events,
 
       VISIT(init_event)
       VISIT(lsp_client_to_server_message_event)
+      VISIT(lsp_documents_event)
       VISIT(packet_header)
       VISIT(process_id_event)
       VISIT(vector_max_size_histogram_by_owner_event)

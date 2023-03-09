@@ -16,6 +16,7 @@
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-reader.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -81,7 +82,10 @@ class http_websocket_client {
   ::mg_connection *current_connection_;
 };
 
-class test_debug_server : public ::testing::Test {};
+class test_debug_server : public ::testing::Test {
+ public:
+  ~test_debug_server() { set_lsp_server_documents(nullptr); }
+};
 
 TEST_F(test_debug_server, start_thread_then_immediately_stop) {
   std::shared_ptr<debug_server> server = debug_server::create();
@@ -204,11 +208,13 @@ TEST_F(test_debug_server,
         case parsed_trace_event_type::error_invalid_magic:
         case parsed_trace_event_type::error_invalid_uuid:
         case parsed_trace_event_type::error_unsupported_compression_mode:
+        case parsed_trace_event_type::error_unsupported_lsp_document_type:
           ADD_FAILURE();
           break;
 
         case parsed_trace_event_type::init_event:
         case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::lsp_documents_event:
         case parsed_trace_event_type::packet_header:
         case parsed_trace_event_type::process_id_event:
         case parsed_trace_event_type::vscode_document_changed_event:
@@ -320,11 +326,13 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
         case parsed_trace_event_type::error_invalid_magic:
         case parsed_trace_event_type::error_invalid_uuid:
         case parsed_trace_event_type::error_unsupported_compression_mode:
+        case parsed_trace_event_type::error_unsupported_lsp_document_type:
           ADD_FAILURE();
           break;
 
         case parsed_trace_event_type::init_event:
         case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::lsp_documents_event:
         case parsed_trace_event_type::process_id_event:
         case parsed_trace_event_type::vscode_document_changed_event:
         case parsed_trace_event_type::vscode_document_closed_event:
@@ -435,10 +443,12 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
         case parsed_trace_event_type::error_invalid_magic:
         case parsed_trace_event_type::error_invalid_uuid:
         case parsed_trace_event_type::error_unsupported_compression_mode:
+        case parsed_trace_event_type::error_unsupported_lsp_document_type:
           ADD_FAILURE();
           break;
 
         case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::lsp_documents_event:
         case parsed_trace_event_type::process_id_event:
         case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
         case parsed_trace_event_type::vscode_document_changed_event:
@@ -476,6 +486,202 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   other_thread.join();
 
   tracer.unregister_current_thread();
+}
+
+TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
+  synchronized<lsp_documents> documents;
+  std::unique_ptr<lsp_documents::lintable_document> example_doc =
+      std::make_unique<lsp_documents::lintable_document>();
+  example_doc->doc.set_text(u8"hello"_sv);
+  example_doc->version_json = u8"123"_sv;
+  documents.lock()->documents[u8"file:///example.js"] = std::move(example_doc);
+  set_lsp_server_documents(&documents);
+
+  std::shared_ptr<debug_server> server = debug_server::create();
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  class test_delegate : public http_websocket_client_delegate {
+   public:
+    void on_message_binary(http_websocket_client *client, const void *message,
+                           std::size_t message_size) override {
+      this->current_client = client;
+      if (message_size < 8) {
+        ADD_FAILURE() << "unexpected tiny message (size=" << message_size
+                      << ")";
+        client->stop();
+        return;
+      }
+
+      checked_binary_reader reader(
+          reinterpret_cast<const std::uint8_t *>(message), message_size,
+          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
+      std::uint64_t thread_index = reader.u64_le();
+
+      trace_reader &r = this->get_trace_reader(thread_index);
+      r.append_bytes(reader.cursor(), reader.remaining());
+
+      for (const parsed_trace_event &event : r.pull_new_events()) {
+        switch (event.type) {
+        case parsed_trace_event_type::lsp_documents_event: {
+          // This should eventually be called.
+          this->current_client->stop();
+
+          const std::vector<parsed_lsp_document_state> &documents =
+              event.lsp_documents_event.documents;
+          ASSERT_EQ(documents.size(), 1);
+          EXPECT_EQ(documents[0].uri, u8"file:///example.js"_sv);
+          EXPECT_EQ(documents[0].text, u8"hello"_sv);
+
+          this->received_lsp_documents_event = true;
+          break;
+        }
+
+        case parsed_trace_event_type::error_invalid_magic:
+        case parsed_trace_event_type::error_invalid_uuid:
+        case parsed_trace_event_type::error_unsupported_compression_mode:
+        case parsed_trace_event_type::error_unsupported_lsp_document_type:
+          ADD_FAILURE();
+          break;
+
+        case parsed_trace_event_type::init_event:
+        case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::packet_header:
+        case parsed_trace_event_type::process_id_event:
+        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+        case parsed_trace_event_type::vscode_document_changed_event:
+        case parsed_trace_event_type::vscode_document_closed_event:
+        case parsed_trace_event_type::vscode_document_opened_event:
+        case parsed_trace_event_type::vscode_document_sync_event:
+          break;
+        }
+      }
+
+      this->current_client = nullptr;
+    }
+
+    trace_reader &get_trace_reader(trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] = this->trace_readers.try_emplace(thread_index);
+      return it->second;
+    }
+
+    http_websocket_client *current_client = nullptr;
+    std::map<trace_flusher_thread_index, trace_reader> trace_readers;
+    bool received_lsp_documents_event = false;
+  };
+  test_delegate delegate;
+  http_websocket_client::connect_and_run(
+      server->websocket_url("/api/trace").c_str(), &delegate);
+
+  EXPECT_TRUE(delegate.received_lsp_documents_event);
+}
+
+TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
+  synchronized<lsp_documents> documents;
+  set_lsp_server_documents(&documents);
+
+  std::shared_ptr<debug_server> server = debug_server::create();
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+
+  class test_delegate : public http_websocket_client_delegate {
+   public:
+    explicit test_delegate(debug_server *server,
+                           synchronized<lsp_documents> *documents)
+        : server(server), documents(documents) {}
+
+    void on_message_binary(http_websocket_client *client, const void *message,
+                           std::size_t message_size) override {
+      this->current_client = client;
+      if (message_size < 8) {
+        ADD_FAILURE() << "unexpected tiny message (size=" << message_size
+                      << ")";
+        client->stop();
+        return;
+      }
+
+      checked_binary_reader reader(
+          reinterpret_cast<const std::uint8_t *>(message), message_size,
+          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
+      std::uint64_t thread_index = reader.u64_le();
+
+      trace_reader &r = this->get_trace_reader(thread_index);
+      r.append_bytes(reader.cursor(), reader.remaining());
+
+      for (const parsed_trace_event &event : r.pull_new_events()) {
+        switch (event.type) {
+        case parsed_trace_event_type::packet_header: {
+          // This should eventually be called.
+          std::unique_ptr<lsp_documents::lintable_document> example_doc =
+              std::make_unique<lsp_documents::lintable_document>();
+          example_doc->doc.set_text(u8"hello"_sv);
+          example_doc->version_json = u8"123"_sv;
+          this->documents->lock()->documents[u8"file:///example.js"] =
+              std::move(example_doc);
+
+          server->debug_probe_publish_lsp_documents();
+          break;
+        }
+
+        case parsed_trace_event_type::lsp_documents_event: {
+          // This should eventually be called.
+          if (event.lsp_documents_event.documents.empty()) {
+            // We will receive an initial lsp_documents event. Ignore it.
+            return;
+          }
+
+          this->current_client->stop();
+
+          const std::vector<parsed_lsp_document_state> &documents =
+              event.lsp_documents_event.documents;
+          ASSERT_EQ(documents.size(), 1);
+          EXPECT_EQ(documents[0].uri, u8"file:///example.js"_sv);
+          EXPECT_EQ(documents[0].text, u8"hello"_sv);
+
+          this->received_lsp_documents_event = true;
+          break;
+        }
+
+        case parsed_trace_event_type::error_invalid_magic:
+        case parsed_trace_event_type::error_invalid_uuid:
+        case parsed_trace_event_type::error_unsupported_compression_mode:
+        case parsed_trace_event_type::error_unsupported_lsp_document_type:
+          ADD_FAILURE();
+          break;
+
+        case parsed_trace_event_type::init_event:
+        case parsed_trace_event_type::lsp_client_to_server_message_event:
+        case parsed_trace_event_type::process_id_event:
+        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+        case parsed_trace_event_type::vscode_document_changed_event:
+        case parsed_trace_event_type::vscode_document_closed_event:
+        case parsed_trace_event_type::vscode_document_opened_event:
+        case parsed_trace_event_type::vscode_document_sync_event:
+          break;
+        }
+      }
+
+      this->current_client = nullptr;
+    }
+
+    trace_reader &get_trace_reader(trace_flusher_thread_index thread_index) {
+      auto [it, _inserted] = this->trace_readers.try_emplace(thread_index);
+      return it->second;
+    }
+
+    debug_server *server;
+    synchronized<lsp_documents> *documents;
+    http_websocket_client *current_client = nullptr;
+    std::map<trace_flusher_thread_index, trace_reader> trace_readers;
+    bool received_lsp_documents_event = false;
+  };
+  test_delegate delegate(server.get(), &documents);
+  http_websocket_client::connect_and_run(
+      server->websocket_url("/api/trace").c_str(), &delegate);
+
+  EXPECT_TRUE(delegate.received_lsp_documents_event);
 }
 
 TEST_F(test_debug_server, instances_shows_new_instance) {

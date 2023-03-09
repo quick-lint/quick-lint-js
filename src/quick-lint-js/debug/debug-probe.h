@@ -5,6 +5,16 @@
 #define QUICK_LINT_JS_DEBUG_DEBUG_PROBE_H
 
 namespace quick_lint_js {
+template <class Data>
+class synchronized;
+struct lsp_documents;
+
+// Call this occasionally after modifying lsp_documents.
+//
+// If the debug server is enabled, this function will push document data to
+// opened browsers.
+void debug_probe_publish_lsp_documents();
+
 // Call this occasionally after using quick_lint_js::vector.
 //
 // If the debug server is enabled, this function will push vector profiling

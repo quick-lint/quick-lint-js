@@ -21,6 +21,7 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
@@ -187,6 +188,11 @@ std::string debug_server::websocket_url(std::string_view path) {
   return result;
 }
 
+void debug_server::debug_probe_publish_lsp_documents() {
+  this->need_publish_lsp_documents_ = true;
+  this->wake_up_server_thread();
+}
+
 void debug_server::debug_probe_publish_vector_profile() {
   this->need_publish_vector_profile_ = true;
   this->wake_up_server_thread();
@@ -295,8 +301,9 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
         this->tracer_backends_.back().get();
     trace_flusher::instance()->enable_backend(backend);
 
-    // Publish vector stats to the new client. (As a side effect, this also
-    // publishes vector stats to other connected clients, but that's okay.)
+    // Publish initial state to the new client. (As a side effect, this also
+    // publishes to other connected clients, but that's okay.)
+    this->debug_probe_publish_lsp_documents();
     this->debug_probe_publish_vector_profile();
     break;
   }
@@ -348,6 +355,8 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
     }
 #endif
 
+    this->publish_lsp_documents_if_needed();
+
     for (auto &backend : this->tracer_backends_) {
       backend->flush_if_needed();
     }
@@ -356,6 +365,44 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
   default:
     break;
   }
+}
+
+void debug_server::publish_lsp_documents_if_needed() {
+  if (!this->need_publish_lsp_documents_.load()) {
+    return;
+  }
+  this->need_publish_lsp_documents_.store(false);
+
+  synchronized<lsp_documents> *documents_raw = get_lsp_server_documents();
+  if (documents_raw == nullptr) {
+    return;
+  }
+
+  trace_writer *tw =
+      trace_flusher::instance()->trace_writer_for_current_thread();
+  if (tw == nullptr) {
+    return;
+  }
+
+  std::vector<trace_lsp_document_state> document_states;
+  {
+    lock_ptr<lsp_documents> documents = documents_raw->lock();
+    document_states.reserve(documents->documents.size());
+    for (auto &[uri, doc] : documents->documents) {
+      document_states.push_back(trace_lsp_document_state{
+          .type = doc->trace_type(),
+          .uri = uri,
+          .text = doc->doc.string().string_view(),
+      });
+    }
+
+    tw->write_event_lsp_documents(trace_event_lsp_documents{
+        .timestamp = 0,  // TODO(strager)
+        .documents = span<const trace_lsp_document_state>(document_states),
+    });
+  }
+  tw->commit();
+  trace_flusher::instance()->flush_sync();
 }
 }
 

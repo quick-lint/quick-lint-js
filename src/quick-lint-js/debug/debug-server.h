@@ -60,6 +60,7 @@ class debug_server {
   std::string url(std::string_view path);
   std::string websocket_url(std::string_view path);
 
+  void debug_probe_publish_lsp_documents();
   void debug_probe_publish_vector_profile();
 
  private:
@@ -74,6 +75,7 @@ class debug_server {
   void begin_closing_all_connections(::mg_mgr *);
   void http_server_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
+  void publish_lsp_documents_if_needed();
 
   struct shared_state {
     std::string requested_listen_address = "http://localhost:0";
@@ -93,6 +95,7 @@ class debug_server {
 
   // Written to by other threads. Read by the server thread.
   std::atomic<bool> stop_server_thread_{false};
+  std::atomic<bool> need_publish_lsp_documents_{false};
   std::atomic<bool> need_publish_vector_profile_{false};
 
   // Used by other threads only:

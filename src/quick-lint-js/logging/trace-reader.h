@@ -43,6 +43,7 @@ enum class parsed_trace_event_type {
   error_invalid_magic,
   error_invalid_uuid,
   error_unsupported_compression_mode,
+  error_unsupported_lsp_document_type,
 
   packet_header,
 
@@ -54,6 +55,7 @@ enum class parsed_trace_event_type {
   lsp_client_to_server_message_event,
   vector_max_size_histogram_by_owner_event,
   process_id_event,
+  lsp_documents_event,
 };
 
 struct parsed_packet_header {
@@ -152,6 +154,25 @@ struct parsed_process_id_event {
   std::uint64_t process_id;
 };
 
+enum class parsed_lsp_document_type : std::uint8_t {
+  unknown = 0,
+  config = 1,
+  lintable = 2,
+};
+inline constexpr parsed_lsp_document_type last_parsed_lsp_document_type =
+    parsed_lsp_document_type::lintable;
+
+struct parsed_lsp_document_state {
+  parsed_lsp_document_type type;
+  string8 uri;
+  string8 text;
+};
+
+struct parsed_lsp_documents_event {
+  std::uint64_t timestamp;
+  std::vector<parsed_lsp_document_state> documents;
+};
+
 struct parsed_trace_event {
   parsed_trace_event_type type;
 
@@ -170,6 +191,7 @@ struct parsed_trace_event {
   parsed_vector_max_size_histogram_by_owner_event
       vector_max_size_histogram_by_owner_event = {};
   parsed_process_id_event process_id_event = {};
+  parsed_lsp_documents_event lsp_documents_event = {};
 };
 }
 
