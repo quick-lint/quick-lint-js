@@ -10,14 +10,15 @@ Semantic Versioning.
 
 ### Added
 
-* TypeScript: Type variables such as `Readonly<T>` and `IArguments` are now
-  recognized by the new `typescript` global group which is enabled by default.
-* TypeScript: `declare` is now supported.
-* TypeScript: The old-style `module` syntax for namespaces is now supported.
 * `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
   index") (implemented by [Yunus][]).
 * `while (x > 0, y > 0)` now reports [E0451][] ("misleading use of ',' operator
   in conditional statement") (implemented by [Yunus][]).
+* Improvements to experimental TypeScript support:
+  * Type variables such as `Readonly<T>` and `IArguments` are now recognized by
+    the new `typescript` global group which is enabled by default.
+  * `declare` is now supported.
+  * The old-style `module` syntax for namespaces is now supported.
 
 ### Fixed
 
