@@ -5,6 +5,7 @@ package main
 
 import "io/fs"
 import "os"
+import "path/filepath"
 import "testing"
 import "time"
 
@@ -44,6 +45,60 @@ func TestWriteVersionFile(t *testing.T) {
 		versionData, err := os.ReadFile("version")
 		Check(t, err)
 		AssertStringsEqual(t, string(versionData), "2.0.0\n2022-02-08\n")
+	})
+}
+
+func TestDebianChangelogEntry(t *testing.T) {
+	t.Run("example", func(t *testing.T) {
+		losAngeles, err := time.LoadLocation("America/Los_Angeles")
+		Check(t, err)
+
+		entry := DebianChangelogEntry(VersionFileInfo{
+			VersionNumber: "2.0.0",
+			ReleaseDate:   time.Date(2022, 2, 8, 16, 56, 37, 0, losAngeles),
+		})
+		AssertStringsEqual(t, entry,
+			"quick-lint-js (2.0.0-1) unstable; urgency=medium\n"+
+				"\n"+
+				"  * New release.\n"+
+				"\n"+
+				" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  Tue, 08 Feb 2022 16:56:37 -0800\n"+
+				"\n")
+	})
+}
+
+func TestUpdateDebianChangelog(t *testing.T) {
+	t.Run("example", func(t *testing.T) {
+		dir := t.TempDir()
+		changelogFilePath := filepath.Join(dir, "changelog")
+		Check(t, os.WriteFile(changelogFilePath, []byte(
+			"quick-lint-js (0.1.0-1) unstable; urgency=medium\n"+
+				"\n"+
+				"  * Initial release.\n"+
+				"\n"+
+				" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  Thu, 14 Jan 2021 19:25:47 -0800\n"), fs.FileMode(0644)))
+		losAngeles, err := time.LoadLocation("America/Los_Angeles")
+		Check(t, err)
+
+		Check(t, UpdateDebianChangelog(changelogFilePath, VersionFileInfo{
+			VersionNumber: "0.2.0",
+			ReleaseDate:   time.Date(2021, 4, 5, 19, 28, 8, 0, losAngeles),
+		}))
+
+		data, err := os.ReadFile(changelogFilePath)
+		Check(t, err)
+		AssertStringsEqual(t, string(data),
+			"quick-lint-js (0.2.0-1) unstable; urgency=medium\n"+
+				"\n"+
+				"  * New release.\n"+
+				"\n"+
+				" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  Mon, 05 Apr 2021 19:28:08 -0700\n"+
+				"\n"+
+				"quick-lint-js (0.1.0-1) unstable; urgency=medium\n"+
+				"\n"+
+				"  * Initial release.\n"+
+				"\n"+
+				" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  Thu, 14 Jan 2021 19:25:47 -0800\n")
 	})
 }
 

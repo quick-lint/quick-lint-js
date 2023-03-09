@@ -17,6 +17,8 @@ import "runtime"
 import "strings"
 import "time"
 
+const RFC5322 string = time.RFC1123Z
+
 type Step struct {
 	Title string
 	Run   func()
@@ -87,11 +89,26 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Update Debian changelogs",
+		Run: func() {
+			for _, changelogFilePath := range []string{
+				"dist/debian/debian/changelog-bionic",
+				"dist/debian/debian/changelog",
+			} {
+				if err := UpdateDebianChangelog(changelogFilePath, VersionFileInfo{
+					VersionNumber: ReleaseVersion,
+					ReleaseDate:   ReleaseDate,
+				}); err != nil {
+					Stopf("failed to update Debian changelog %s: %v", changelogFilePath, err)
+				}
+			}
+		},
+	},
+
+	Step{
 		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* dist/debian/debian/changelog-bionic\n")
-			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
@@ -559,6 +576,32 @@ func WriteVersionFile(versionInfo VersionFileInfo) error {
 	if err := os.WriteFile("version", []byte(versionText), fileMode); err != nil {
 		return err
 	}
+	return nil
+}
+
+func DebianChangelogEntry(versionInfo VersionFileInfo) string {
+	return fmt.Sprintf(
+		"quick-lint-js (%s-1) unstable; urgency=medium\n"+
+			"\n"+
+			"  * New release.\n"+
+			"\n"+
+			" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  %s\n"+
+			"\n", versionInfo.VersionNumber, versionInfo.ReleaseDate.Format(RFC5322))
+}
+
+func UpdateDebianChangelog(changelogFilePath string, versionInfo VersionFileInfo) error {
+	originalData, err := os.ReadFile(changelogFilePath)
+	if err != nil {
+		return err
+	}
+
+	newData := append([]byte(DebianChangelogEntry(versionInfo)), originalData...)
+
+	fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+	if err := os.WriteFile(changelogFilePath, newData, fileMode); err != nil {
+		return err
+	}
+
 	return nil
 }
 
