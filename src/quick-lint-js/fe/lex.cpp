@@ -252,20 +252,29 @@ bool lexer::try_parse_current_token() {
   // NOTE[one-byte-symbols]: These symbols consume one byte. Because I think
   // it's cute, their corresponding token_type-s have the same value as the
   // symbol.
-  case '(':
-  case ')':
-  case ',':
-  case ':':
-  case ';':
-  case '[':
-  case ']':
-  case '{':
-  case '}':
-  case '~':
+#define QLJS_CASE_SINGLE_CHARACTER_TOKEN(c, type)                           \
+  static_assert(static_cast<char8>(::quick_lint_js::token_type::type) == c, \
+                #type " mismatch");                                         \
+  case (c)
+
+    // clang-format off
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN('(', left_paren):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN(')', right_paren):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN(',', comma):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN(':', colon):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN(';', semicolon):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN('[', left_square):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN(']', right_square):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN('{', left_curly):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN('}', right_curly):
+  QLJS_CASE_SINGLE_CHARACTER_TOKEN('~', tilde):
     this->last_token_.type = static_cast<token_type>(*this->input_);
     this->input_ += 1;
     this->last_token_.end = this->input_;
     break;
+    // clang-format on
+
+#undef QLJS_CASE_SINGLE_CHARACTER_TOKEN
 
   case '?':
     if (this->input_[1] == '?') {
