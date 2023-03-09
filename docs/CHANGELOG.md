@@ -12,9 +12,7 @@ Semantic Versioning.
 
 * TypeScript: Type variables such as `Readonly<T>` and `IArguments` are now
   recognized by the new `typescript` global group which is enabled by default.
-* TypeScript: `declare class`, `declare abstract class`, `declare const`,
-  `declare let`, `declare var`, `declare type`, `declare interface`,
-  `declare function`, and `declare namespace` are now supported.
+* TypeScript: `declare` is now supported.
 * TypeScript: The old-style `module` syntax for namespaces is now supported.
 * `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
   index") (implemented by [Yunus][]).
