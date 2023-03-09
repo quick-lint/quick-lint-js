@@ -44,8 +44,8 @@ Semantic Versioning.
     be required.
   * If you need to configure the build tools specially, or if you want to build
     the build tools when cross-compiling, you must use the
-    `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake variable. See the (cross-compiling
-    documentation)[cross-compiling-quick-lint-js] for instructions on using
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake variable. See the [cross-compiling
+    documentation][cross-compiling-quick-lint-js] for instructions on using
     `QUICK_LINT_JS_USE_BUILD_TOOLS` correctly.
 
 ## 2.11.0 (2023-01-31)
