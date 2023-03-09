@@ -249,6 +249,9 @@ bool lexer::try_parse_current_token() {
     break;
   }
 
+  // NOTE[one-byte-symbols]: These symbols consume one byte. Because I think
+  // it's cute, their corresponding token_type-s have the same value as the
+  // symbol.
   case '(':
   case ')':
   case ',':

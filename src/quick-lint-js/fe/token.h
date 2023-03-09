@@ -203,27 +203,27 @@ enum class token_type {
   ampersand = '&',
   bang = '!',
   circumflex = '^',
-  colon = ':',
-  comma = ',',
+  colon = ':',  // See NOTE[one-byte-symbols].
+  comma = ',',  // See NOTE[one-byte-symbols].
   slash = '/',
   dot = '.',
   equal = '=',
   greater = '>',
-  left_curly = '{',
-  left_paren = '(',
-  left_square = '[',
+  left_curly = '{',   // See NOTE[one-byte-symbols].
+  left_paren = '(',   // See NOTE[one-byte-symbols].
+  left_square = '[',  // See NOTE[one-byte-symbols].
   less = '<',
   minus = '-',
   percent = '%',
   pipe = '|',
   plus = '+',
   question = '?',
-  right_curly = '}',
-  right_paren = ')',
-  right_square = ']',
-  semicolon = ';',
+  right_curly = '}',   // See NOTE[one-byte-symbols].
+  right_paren = ')',   // See NOTE[one-byte-symbols].
+  right_square = ']',  // See NOTE[one-byte-symbols].
+  semicolon = ';',     // See NOTE[one-byte-symbols].
   star = '*',
-  tilde = '~',
+  tilde = '~',  // See NOTE[one-byte-symbols].
 
   complete_template,  // `text` or }text`
   end_of_file,
