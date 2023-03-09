@@ -527,7 +527,7 @@ func GetGitUncommittedChanges() []string {
 
 type VersionFileInfo struct {
 	VersionNumber string
-	ReleaseDate   string
+	ReleaseDate   time.Time
 }
 
 func ReadVersionFile() VersionFileInfo {
@@ -540,9 +540,13 @@ func ReadVersionFile() VersionFileInfo {
 
 func ReadVersionFileData(data []byte) VersionFileInfo {
 	lines := StringLines(string(data))
+	releaseDate, err := time.ParseInLocation("2006-01-02", lines[1], time.Local)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return VersionFileInfo{
 		VersionNumber: lines[0],
-		ReleaseDate:   lines[1],
+		ReleaseDate:   releaseDate,
 	}
 }
 

@@ -24,7 +24,9 @@ func TestReadVersionFileData(t *testing.T) {
 	t.Run("1.0.0", func(t *testing.T) {
 		version := ReadVersionFileData([]byte("1.0.0\n2021-12-13\n"))
 		AssertStringsEqual(t, version.VersionNumber, "1.0.0")
-		AssertStringsEqual(t, version.ReleaseDate, "2021-12-13")
+		if version.ReleaseDate.Year() != 2021 || version.ReleaseDate.Month() != 12 || version.ReleaseDate.Day() != 13 {
+			t.Errorf("expected 2021-12-13, but got %#v", version.ReleaseDate)
+		}
 	})
 }
 
