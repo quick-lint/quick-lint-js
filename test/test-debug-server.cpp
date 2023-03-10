@@ -323,91 +323,69 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
     cond.wait(lock, [&] { return registered_other_thread; });
   }
 
-  std::shared_ptr<debug_server> server = debug_server::create();
-  server->start_server_thread();
-  auto wait_result = server->wait_for_server_start();
-  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+  struct thread_state {
+    bool got_packet_header = false;
+    bool got_init_event = false;
+  };
+  std::unordered_map<trace_flusher_thread_index, thread_state> thread_states;
 
-  class test_delegate : public http_websocket_client_delegate {
-   public:
-    void on_message_binary(http_websocket_client *client, const void *message,
-                           std::size_t message_size) override {
-      if (message_size < 8) {
-        ADD_FAILURE() << "unexpected tiny message (size=" << message_size
-                      << ")";
-        client->stop();
-        return;
-      }
+  auto on_trace_event = [&](debug_server &, const parsed_trace_event &event,
+                            std::uint64_t thread_index) -> bool {
+    thread_state &state = thread_states[thread_index];
+    switch (event.type) {
+    case parsed_trace_event_type::packet_header:
+      EXPECT_FALSE(state.got_packet_header);
+      state.got_packet_header = true;
+      break;
 
-      // FIXME(strager): Sometimes, we receive empty messages. Ignore these for
-      // now. We expect another message later.
-      if (message_size == 8) {
-        return;
-      }
+    case parsed_trace_event_type::init_event:
+      EXPECT_FALSE(state.got_init_event);
+      state.got_init_event = true;
+      EXPECT_EQ(event.init_event.version, QUICK_LINT_JS_VERSION_STRING_U8_SV);
+      break;
 
-      checked_binary_reader reader(
-          reinterpret_cast<const std::uint8_t *>(message), message_size,
-          []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
-      std::uint64_t thread_index = reader.u64_le();
-      this->received_thread_indexes.push_back(thread_index);
+    case parsed_trace_event_type::error_invalid_magic:
+    case parsed_trace_event_type::error_invalid_uuid:
+    case parsed_trace_event_type::error_unsupported_compression_mode:
+    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+      ADD_FAILURE();
+      return false;
 
-      // FIXME(strager): This test assumes that we receive both the header and
-      // the init event in the same message, which is not guaranteed.
-      trace_reader r;
-      r.append_bytes(reader.cursor(), reader.remaining());
-      bool got_packet_header = false;
-      bool got_init_event = false;
-      for (const parsed_trace_event &event : r.pull_new_events()) {
-        switch (event.type) {
-        case parsed_trace_event_type::packet_header:
-          EXPECT_FALSE(got_packet_header);
-          got_packet_header = true;
-          break;
-
-        case parsed_trace_event_type::init_event:
-          EXPECT_FALSE(got_init_event);
-          got_init_event = true;
-          EXPECT_EQ(event.init_event.version,
-                    QUICK_LINT_JS_VERSION_STRING_U8_SV);
-          break;
-
-        case parsed_trace_event_type::error_invalid_magic:
-        case parsed_trace_event_type::error_invalid_uuid:
-        case parsed_trace_event_type::error_unsupported_compression_mode:
-        case parsed_trace_event_type::error_unsupported_lsp_document_type:
-          ADD_FAILURE();
-          break;
-
-        case parsed_trace_event_type::lsp_client_to_server_message_event:
-        case parsed_trace_event_type::lsp_documents_event:
-        case parsed_trace_event_type::process_id_event:
-        case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
-        case parsed_trace_event_type::vscode_document_changed_event:
-        case parsed_trace_event_type::vscode_document_closed_event:
-        case parsed_trace_event_type::vscode_document_opened_event:
-        case parsed_trace_event_type::vscode_document_sync_event:
-          break;
-        }
-      }
-      EXPECT_TRUE(got_packet_header);
-      EXPECT_TRUE(got_init_event);
-
-      // We expect messages for only three threads: main, other, and debug
-      // server.
-      if (this->received_thread_indexes.size() >= 2) {
-        client->stop();
-      }
+    case parsed_trace_event_type::lsp_client_to_server_message_event:
+    case parsed_trace_event_type::lsp_documents_event:
+    case parsed_trace_event_type::process_id_event:
+    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
+    case parsed_trace_event_type::vscode_document_changed_event:
+    case parsed_trace_event_type::vscode_document_closed_event:
+    case parsed_trace_event_type::vscode_document_opened_event:
+    case parsed_trace_event_type::vscode_document_sync_event:
+      return true;
     }
 
-    std::vector<trace_flusher_thread_index> received_thread_indexes;
+    // We expect messages for only three threads: main, other, and debug server.
+    if (thread_states.size() < 3) {
+      // Wait for messages for new threads.
+      return true;
+    }
+    for (auto &[_thread_index, s] : thread_states) {
+      if (!s.got_packet_header || !s.got_init_event) {
+        // Wait for more messages for this thread.
+        return true;
+      }
+    }
+    // We are done.
+    return false;
   };
-  test_delegate delegate;
-  http_websocket_client::connect_and_run(
-      server->websocket_url("/api/trace").c_str(), &delegate);
+  test_web_socket(on_trace_event);
 
-  EXPECT_EQ(delegate.received_thread_indexes.size(), 3)
+  EXPECT_EQ(thread_states.size(), 3)
       << "expected three streams: main thread, other thread, debug server "
          "thread";
+  for (auto &[thread_index, state] : thread_states) {
+    SCOPED_TRACE(thread_index);
+    EXPECT_TRUE(state.got_packet_header);
+    EXPECT_TRUE(state.got_init_event);
+  }
 
   {
     std::lock_guard<mutex> lock(test_mutex);
