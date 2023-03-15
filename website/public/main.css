@@ -296,15 +296,18 @@ nav.breadcrumbs ol > li {
   background-color: #ffeecc;
 }
 @media (prefers-color-scheme: dark) {
-  .comparison td.bad {
+  .comparison td.bad,
+  .comparison-mobile td.bad {
     color: rgb(255, 255, 255);
     background-color: #661919;
   }
-  .comparison td.meh {
+  .comparison td.meh,
+  .comparison-mobile td.meh {
     color: rgb(255, 255, 255);
     background-color: #665519;
   }
-  .comparison td.good {
+  .comparison td.good,
+  .comparison-mobile td.good {
     color: rgb(255, 255, 255);
     background-color: #195519;
   }
@@ -718,7 +721,48 @@ kbd.keystroke {
     bottom: 0;
   }
 }
-
+.comparison-mobile {
+  display: none;
+}
+#editors-support {
+  display: none;
+}
+@media only screen and (max-width: 684px) {
+  .comparison {
+    display: none;
+  }
+  .comparison-mobile {
+    display: initial;
+  }
+  .comparison-mobile table {
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+    border: 1px solid gray;
+  }
+  .comparison-mobile table th,
+  td {
+    padding: 0.5em 0em;
+    border: 1px solid gray;
+  }
+  #editors-support {
+    display: initial;
+  }
+  #supported-editors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 5em;
+    text-align: center;
+    padding: 2em;
+  }
+  #supported-editors a {
+    text-decoration: none;
+  }
+  #supported-editors .logo {
+    width: 2rem;
+    height: 2rem;
+  }
+}
 /*
  * quick-lint-js finds bugs in JavaScript programs.
  * Copyright (C) 2020  Matthew "strager" Glazar
