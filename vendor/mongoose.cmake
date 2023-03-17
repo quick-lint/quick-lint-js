@@ -93,6 +93,10 @@ target_include_directories(
   "${CMAKE_CURRENT_LIST_DIR}"
 )
 
+if (WIN32)
+  target_link_libraries(mongoose PRIVATE wsock32 ws2_32)
+endif ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

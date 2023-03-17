@@ -106,6 +106,7 @@ function (quick_lint_js_set_cxx_standard)
   set(CMAKE_CXX_STANDARD_REQUIRED "${CMAKE_CXX_STANDARD_REQUIRED}" PARENT_SCOPE)
 
   quick_lint_js_use_new_msvc_preprocessor()
+  quick_lint_js_fix_cpluplus_macro()
 endfunction ()
 
 function (quick_lint_js_use_new_msvc_preprocessor)
@@ -120,6 +121,11 @@ function (quick_lint_js_use_new_msvc_preprocessor)
   quick_lint_js_get_supported_warning_options(/wd5105 WARNING_OPTIONS_TO_ADD)
   add_compile_options(${WARNING_OPTIONS_TO_ADD})
   add_definitions(-DWIN32_LEAN_AND_MEAN)
+endfunction ()
+
+function (quick_lint_js_fix_cpluplus_macro)
+  # https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=msvc-170
+  quick_lint_js_add_c_cxx_flag_if_supported(/Zc:__cplusplus QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR)
 endfunction ()
 
 function (quick_lint_js_add_warning_options_if_supported)

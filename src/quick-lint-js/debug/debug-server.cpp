@@ -206,8 +206,8 @@ void debug_server::wake_up_server_thread() {
 void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
   if (state->initialized) {
     char wakeup_signal[] = {0};
-    ::ssize_t rc = ::send(state->wakeup_pipe, wakeup_signal,
-                          sizeof(wakeup_signal), /*flags=*/0);
+    long rc = ::send(state->wakeup_pipe, wakeup_signal, sizeof(wakeup_signal),
+                     /*flags=*/0);
     QLJS_ALWAYS_ASSERT(rc == 1);
   }
 }
