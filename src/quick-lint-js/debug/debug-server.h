@@ -59,6 +59,7 @@ class debug_server {
   std::string url();
   std::string url(std::string_view path);
   std::string websocket_url(std::string_view path);
+  std::uint16_t tcp_port_number();
 
   void debug_probe_publish_lsp_documents();
   void debug_probe_publish_vector_profile();
@@ -89,6 +90,8 @@ class debug_server {
     bool initialized = false;  // When true, actual_listen_address and
                                // wakeup_pipe are valid.
     std::string init_error;
+
+    std::uint16_t port_number() const;
   };
 
   synchronized<shared_state> state_;

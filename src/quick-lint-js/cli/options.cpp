@@ -146,6 +146,8 @@ options parse_options(int argc, char** argv) {
     } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
                parser.match_flag_shorthand('h')) {
       o.help = true;
+    } else if (parser.match_flag_option("--debug-apps"sv, "--debug-apps"sv)) {
+      o.list_debug_apps = true;
     } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
                parser.match_flag_shorthand('v')) {
       o.version = true;

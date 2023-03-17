@@ -29,6 +29,10 @@ inline bool ends_with(std::string_view haystack,
          haystack.substr(haystack.size() - needle.size()) == needle;
 }
 
+inline bool ends_with(std::string_view haystack, char needle) noexcept {
+  return haystack.size() >= 1 && haystack[haystack.size() - 1] == needle;
+}
+
 inline std::string_view remove_suffix_if_present(
     std::string_view s, std::string_view suffix) noexcept {
   if (ends_with(s, suffix)) {

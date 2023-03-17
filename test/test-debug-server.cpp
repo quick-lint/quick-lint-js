@@ -13,11 +13,13 @@
 #include <optional>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server.h>
+#include <quick-lint-js/debug/find-debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/parse-json.h>
+#include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -526,6 +528,24 @@ TEST_F(test_debug_server, destroying_debug_server_removes_from_instances) {
   for (std::shared_ptr<debug_server> &instance : debug_server::instances()) {
     EXPECT_NE(instance.get(), s_raw);
   }
+}
+
+TEST_F(test_debug_server, find_debug_servers_finds_running_instance_SLOW) {
+  std::shared_ptr<debug_server> server = debug_server::create();
+  server->start_server_thread();
+  auto wait_result = server->wait_for_server_start();
+  ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
+  std::uint16_t server_port = server->tcp_port_number();
+
+  std::vector<found_debug_server> servers = find_debug_servers();
+  auto found_server_it =
+      find_first_if(servers, [&](const found_debug_server &s) -> bool {
+        return s.port_number == server_port;
+      });
+  ASSERT_NE(found_server_it, servers.end()) << "should find our server";
+  ASSERT_EQ(found_server_it->port_number, server_port);
+
+  EXPECT_EQ(found_server_it->process_id, get_current_process_id());
 }
 
 bool strings_equal_case_insensitive(std::string_view a, std::string_view b) {

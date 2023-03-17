@@ -48,6 +48,7 @@ input_file_language get_language(
 
 struct options {
   bool help = false;
+  bool list_debug_apps = false;
   bool version = false;
   bool print_parser_visits = false;
   bool lsp_server = false;

@@ -18,6 +18,7 @@ quick-lint-js - find bugs in JavaScript programs
 
 *quick-lint-js* [*--output-format*=_format_] [<options>] _file_ [_file_...] +
 *quick-lint-js* *--lsp-server* [<options>] +
+*quick-lint-js* *--debug-apps* +
 *quick-lint-js* *--help* +
 *quick-lint-js* *--version*
 
@@ -43,6 +44,7 @@ ifndef::backend-html5[]
   *quick-lint-js-lsp*(8).
 endif::[]
 
+*quick-lint-js* --debug-apps::
 *quick-lint-js* --help::
 *quick-lint-js* --version::
   Information mode.
@@ -205,6 +207,13 @@ Added in quick-lint-js version 2.5.0.
   Print a help message and exit.
 +
 The output format is not intended to be machine-parsable and may change in the future.
+
+*--debug-apps*::
+  Print a list of running quick-lint-js instances which have the debug app enabled.
++
+The output format is not intended to be machine-parsable and may change in the future.
++
+*--debug-apps* is only supported on Linux, macOS, and Windows.
 
 *-v*::
 *--version*::

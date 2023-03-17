@@ -504,6 +504,16 @@
 #endif
 #endif
 
+// GetThreadDescription is available in newer Windows SDKs
+// but not in MinGW (at the time of writing).
+#if !defined(QLJS_HAVE_GETTHREADDESCRIPTION)
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define QLJS_HAVE_GETTHREADDESCRIPTION 1
+#else
+#define QLJS_HAVE_GETTHREADDESCRIPTION 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
