@@ -43,6 +43,8 @@ quick-lint-js \- find bugs in JavaScript programs
 .br
 \fBquick\-lint\-js\fP \fB\-\-lsp\-server\fP [<options>]
 .br
+\fBquick\-lint\-js\fP \fB\-\-debug\-apps\fP
+.br
 \fBquick\-lint\-js\fP \fB\-\-help\fP
 .br
 \fBquick\-lint\-js\fP \fB\-\-version\fP
@@ -67,7 +69,7 @@ For more information, see
 \fBquick\-lint\-js\-lsp\fP(8).
 .RE
 .sp
-\fBquick\-lint\-js\fP \-\-help, \fBquick\-lint\-js\fP \-\-version
+\fBquick\-lint\-js\fP \-\-debug\-apps, \fBquick\-lint\-js\fP \-\-help, \fBquick\-lint\-js\fP \-\-version
 .RS 4
 Information mode.
 Prints information about quick\-lint\-js then exits.
@@ -352,6 +354,15 @@ Added in quick\-lint\-js version 2.5.0.
 Print a help message and exit.
 .sp
 The output format is not intended to be machine\-parsable and may change in the future.
+.RE
+.sp
+\fB\-\-debug\-apps\fP
+.RS 4
+Print a list of running quick\-lint\-js instances which have the debug app enabled.
+.sp
+The output format is not intended to be machine\-parsable and may change in the future.
+.sp
+\fB\-\-debug\-apps\fP is only supported on Linux, macOS, and Windows.
 .RE
 .sp
 \fB\-v\fP, \fB\-\-version\fP

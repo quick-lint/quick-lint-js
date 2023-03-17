@@ -123,6 +123,8 @@ quick_lint_js_add_library(
   quick-lint-js/debug/debug-server-fs.h
   quick-lint-js/debug/debug-server.cpp
   quick-lint-js/debug/debug-server.h
+  quick-lint-js/debug/find-debug-server.cpp
+  quick-lint-js/debug/find-debug-server.h
   quick-lint-js/debug/mongoose.cpp
   quick-lint-js/debug/mongoose.h
   quick-lint-js/diag/buffering-diag-reporter.cpp

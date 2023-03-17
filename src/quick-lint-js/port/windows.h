@@ -4,6 +4,8 @@
 #ifndef QUICK_LINT_JS_PORT_WINDOWS_H
 #define QUICK_LINT_JS_PORT_WINDOWS_H
 
+#include <quick-lint-js/port/have.h>
+
 #ifndef QUICK_LINT_JS_PORT_WINDOWS_H
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -51,6 +53,17 @@
 #define OEMRESOURCE
 
 #include <windows.h>
+
+#if !QLJS_HAVE_GETTHREADDESCRIPTION
+extern "C" {
+// MinGW is missing some functions. Define them ourselves.
+WINBASEAPI
+HRESULT WINAPI GetThreadDescription(HANDLE hThread,
+                                    PWSTR *ppszThreadDescription);
+WINBASEAPI
+HRESULT WINAPI SetThreadDescription(HANDLE hThread, PCWSTR lpThreadDescription);
+}
+#endif
 
 #endif
 

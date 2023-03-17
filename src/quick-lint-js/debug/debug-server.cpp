@@ -17,11 +17,13 @@
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server-fs.h>
 #include <quick-lint-js/debug/debug-server.h>
+#include <quick-lint-js/debug/find-debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
@@ -188,6 +190,11 @@ std::string debug_server::websocket_url(std::string_view path) {
   return result;
 }
 
+std::uint16_t debug_server::tcp_port_number() {
+  QLJS_ASSERT(this->did_wait_for_server_start_);
+  return this->state_.lock()->port_number();
+}
+
 void debug_server::debug_probe_publish_lsp_documents() {
   this->need_publish_lsp_documents_ = true;
   this->wake_up_server_thread();
@@ -252,6 +259,8 @@ void debug_server::run_on_current_thread() {
     // server_connection->loc is initialized synchronously, so we should be able
     // to use it now.
     state->actual_listen_address = server_connection->loc;
+
+    register_current_thread_as_debug_server_thread(state->port_number());
 
     state->wakeup_pipe = ::mg_mkpipe(
         mgr.get(), mongoose_callback<&debug_server::wakeup_pipe_callback>(),
@@ -409,6 +418,10 @@ void debug_server::publish_lsp_documents_if_needed() {
   }
   tw->commit();
   trace_flusher::instance()->flush_sync();
+}
+
+std::uint16_t debug_server::shared_state::port_number() const {
+  return ::mg_ntohs(this->actual_listen_address.port);
 }
 }
 
