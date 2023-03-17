@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cinttypes>
 #include <cstdint>
@@ -50,12 +52,11 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
 }
 
 template <class T>
-char8 *write_integer(T value, char8 *out) {
-  char *buffer = reinterpret_cast<char *>(out);
+char *write_integer(T value, char *out) {
   std::to_chars_result result =
-      std::to_chars(buffer, &buffer[integer_string_length<T>], value);
+      std::to_chars(out, &out[integer_string_length<T>], value);
   QLJS_ASSERT(result.ec == std::errc{});
-  return out + (result.ptr - buffer);
+  return result.ptr;
 }
 #else
 namespace {
@@ -104,7 +105,7 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
 
     T result = 0;
     for (; is_decimal_digit(*c) && c != end; ++c) {
-      T new_result = result * 10 + (*c - '0');
+      T new_result = static_cast<T>(result * 10 + static_cast<T>(*c - '0'));
       if (new_result < result) {
         return out_of_range();
       }
@@ -152,8 +153,7 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
 }
 
 template <class T>
-char8 *write_integer(T value, char8 *out) {
-  char *buffer = reinterpret_cast<char *>(out);
+char *write_integer(T value, char *out) {
   constexpr std::size_t buffer_size = integer_string_length<T>;
   constexpr const char *format =
       std::is_same_v<T, int>
@@ -162,7 +162,8 @@ char8 *write_integer(T value, char8 *out) {
                 ? "%ld"
                 : std::is_same_v<T, long long>
                       ? "%lld"
-                      : std::is_same_v<T, unsigned>
+                      : (std::is_same_v<T, unsigned> ||
+                         std::is_same_v<T, unsigned short>)
                             ? "%u"
                             : std::is_same_v<T, unsigned long>
                                   ? "%lu"
@@ -171,7 +172,7 @@ char8 *write_integer(T value, char8 *out) {
                                         : "";
   static_assert(*format != '\0', "Unsupported integer type");
 
-  int rc = std::snprintf(buffer, buffer_size, format, value);
+  int rc = std::snprintf(out, buffer_size, format, value);
   QLJS_ASSERT(rc >= 0);
   if (rc == buffer_size) {
     int digit;
@@ -180,11 +181,28 @@ char8 *write_integer(T value, char8 *out) {
     } else {
       digit = std::abs(narrow_cast<int>(value % 10));
     }
-    buffer[buffer_size - 1] = narrow_cast<char>(u8'0' + digit);
+    out[buffer_size - 1] = narrow_cast<char>('0' + digit);
   }
   return out + rc;
 }
 #endif
+
+#if QLJS_HAVE_CHAR8_T
+template <class T>
+char8 *write_integer(T value, char8 *out) {
+  char *buffer = reinterpret_cast<char *>(out);
+  buffer = write_integer(value, buffer);
+  return reinterpret_cast<char8 *>(buffer);
+}
+#endif
+
+template <class T>
+wchar_t *write_integer(T value, wchar_t *out) {
+  // TODO(strager): Write the output in-place.
+  std::array<char, integer_string_length<T>> buffer;
+  char *end = write_integer(value, buffer.data());
+  return std::copy(buffer.data(), end, out);
+}
 
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
                                std::size_t &value) {
@@ -193,6 +211,29 @@ from_char8s_result from_char8s(const char8 *begin, const char8 *end,
                  reinterpret_cast<const char *>(end), value);
   return from_char8s_result{
       .ptr = reinterpret_cast<const char8 *>(result.ptr),
+      .ec = result.ec,
+  };
+}
+
+template <class T>
+from_wchars_result from_chars(const wchar_t *begin, const wchar_t *end,
+                              T &value) {
+  // TODO(strager): Parse the string without copying.
+  std::array<char, integer_string_length<T> + 1> buffer;
+  char *out = buffer.data();
+  char *out_end =
+      out + std::min(narrow_cast<std::ptrdiff_t>(buffer.size()), end - begin);
+  for (const wchar_t *in = begin; out != out_end; ++in) {
+    if ((L'0' <= *in && *in <= L'9') || *in == L'-') {
+      *out++ = static_cast<char>(*in);
+    } else {
+      *out++ = '_';  // Invalid character.
+    }
+  }
+
+  from_chars_result result = from_chars(buffer.data(), out_end, value);
+  return from_wchars_result{
+      .ptr = &begin[result.ptr - buffer.data()],
       .ec = result.ec,
   };
 }
@@ -221,6 +262,9 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
 
 template from_chars_result from_chars<int>(const char *begin, const char *end,
                                            int &value);
+template from_chars_result from_chars<unsigned short>(const char *begin,
+                                                      const char *end,
+                                                      unsigned short &value);
 template from_chars_result from_chars<unsigned>(const char *begin,
                                                 const char *end,
                                                 unsigned &value);
@@ -230,6 +274,11 @@ template from_chars_result from_chars<unsigned long>(const char *begin,
 template from_chars_result from_chars<unsigned long long>(
     const char *begin, const char *end, unsigned long long &value);
 
+template from_wchars_result from_chars<unsigned short>(const wchar_t *begin,
+                                                       const wchar_t *end,
+                                                       unsigned short &value);
+
+template char8 *write_integer<unsigned short>(unsigned short, char8 *out);
 template char8 *write_integer<int>(int, char8 *out);
 template char8 *write_integer<long>(long, char8 *out);
 template char8 *write_integer<long long>(long long, char8 *out);
@@ -237,6 +286,12 @@ template char8 *write_integer<unsigned>(unsigned, char8 *out);
 template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
 template char8 *write_integer<unsigned long long>(unsigned long long,
                                                   char8 *out);
+
+#if QLJS_HAVE_CHAR8_T
+template char *write_integer<unsigned short>(unsigned short, char *out);
+#endif
+
+template wchar_t *write_integer<unsigned short>(unsigned short, wchar_t *out);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -20,10 +20,17 @@ struct from_char8s_result {
   std::errc ec;
 };
 
+struct from_wchars_result {
+  const wchar_t *ptr;
+  std::errc ec;
+};
+
 template <class T>
 from_chars_result from_chars(const char *begin, const char *end, T &value);
 extern template from_chars_result from_chars<int>(const char *begin,
                                                   const char *end, int &value);
+extern template from_chars_result from_chars<unsigned short>(
+    const char *begin, const char *end, unsigned short &value);
 extern template from_chars_result from_chars<unsigned>(const char *begin,
                                                        const char *end,
                                                        unsigned &value);
@@ -34,6 +41,12 @@ extern template from_chars_result from_chars<unsigned long long>(
 
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
                                std::size_t &value);
+
+template <class T>
+from_wchars_result from_chars(const wchar_t *begin, const wchar_t *end,
+                              T &value);
+extern template from_wchars_result from_chars<unsigned short>(
+    const wchar_t *begin, const wchar_t *end, unsigned short &value);
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value);
@@ -53,6 +66,8 @@ inline constexpr int integer_string_length =
 template <class T>
 char8 *write_integer(T, char8 *out);
 
+extern template char8 *write_integer<unsigned short>(unsigned short,
+                                                     char8 *out);
 extern template char8 *write_integer<int>(int, char8 *out);
 extern template char8 *write_integer<long>(long, char8 *out);
 extern template char8 *write_integer<long long>(long long, char8 *out);
@@ -60,6 +75,19 @@ extern template char8 *write_integer<unsigned>(unsigned, char8 *out);
 extern template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
 extern template char8 *write_integer<unsigned long long>(unsigned long long,
                                                          char8 *out);
+
+#if QLJS_HAVE_CHAR8_T
+template <class T>
+char *write_integer(T, char *out);
+
+extern template char *write_integer<unsigned short>(unsigned short, char *out);
+#endif
+
+template <class T>
+wchar_t *write_integer(T, wchar_t *out);
+
+extern template wchar_t *write_integer<unsigned short>(unsigned short,
+                                                       wchar_t *out);
 }
 
 #endif
