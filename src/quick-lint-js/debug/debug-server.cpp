@@ -214,17 +214,11 @@ void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
 
 void debug_server::get_host_and_port(std::string &out) {
   ::mg_addr address = this->state_.lock()->actual_listen_address;
-
-  std::size_t existing_size = out.size();
-  out.resize(existing_size + 100);
-  if (address.is_ip6) {
-    ::mg_snprintf(out.data() + existing_size, out.size() - existing_size,
-                  "[%I]:%d", 6, address.ip6, ::mg_ntohs(address.port));
-  } else {
-    ::mg_snprintf(out.data() + existing_size, out.size() - existing_size,
-                  "%I:%d", 4, &address.ip, ::mg_ntohs(address.port));
-  }
-  out.resize(std::strlen(out.c_str() + existing_size) + existing_size);
+  ::mg_xprintf(
+      [](char c, void *user_data) -> void {
+        static_cast<std::string *>(user_data)->push_back(c);
+      },
+      &out, "%M", ::mg_print_ip_port, &address);
 }
 
 void debug_server::run_on_current_thread() {
