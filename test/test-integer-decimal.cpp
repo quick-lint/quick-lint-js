@@ -14,7 +14,7 @@ QLJS_WARNING_IGNORE_GCC("-Wtype-limits")
 namespace quick_lint_js {
 namespace {
 using test_integer_from_chars_decimal_types =
-    ::testing::Types<int, std::size_t>;
+    ::testing::Types<unsigned short, int, std::size_t>;
 template <class T>
 class test_integer_from_chars_decimal : public ::testing::Test {};
 TYPED_TEST_SUITE(test_integer_from_chars_decimal,
@@ -43,6 +43,18 @@ TYPED_TEST(test_integer_from_chars_decimal, common_non_negative_integers) {
   }
 }
 
+TEST(test_integer_from_wchars_decimal_unsigned_short, common_integers) {
+  {
+    unsigned short number;
+    const wchar_t *input = L"1234";
+    from_wchars_result result =
+        from_chars(input, input + std::wcslen(input), number);
+    EXPECT_EQ(number, 1234);
+    EXPECT_EQ(result.ptr, input + std::wcslen(input));
+    EXPECT_EQ(result.ec, std::errc{0});
+  }
+}
+
 TEST(test_integer_from_chars_decimal_int, common_negative_integers) {
   {
     int number;
@@ -62,6 +74,17 @@ TEST(test_integer_from_chars_decimal_int, minimum_integer) {
   from_chars_result result =
       from_chars(input, input + std::strlen(input), number);
   EXPECT_EQ(number, -2147483648LL);
+  EXPECT_EQ(result.ptr, input + std::strlen(input));
+  EXPECT_EQ(result.ec, std::errc{0});
+}
+
+TEST(test_integer_from_chars_decimal_unsigned_short, maximum_integer) {
+  static_assert(std::numeric_limits<unsigned short>::max() == 65535);
+  unsigned short number;
+  const char *input = "65535";
+  from_chars_result result =
+      from_chars(input, input + std::strlen(input), number);
+  EXPECT_EQ(number, 65535);
   EXPECT_EQ(result.ptr, input + std::strlen(input));
   EXPECT_EQ(result.ec, std::errc{0});
 }
@@ -100,6 +123,30 @@ TEST(test_integer_from_chars_decimal_size_t, maximum_integer) {
     EXPECT_EQ(number, 18446744073709551615ULL);
     EXPECT_EQ(result.ptr, input + std::strlen(input));
     EXPECT_EQ(result.ec, std::errc{0});
+  }
+}
+
+TEST(test_integer_from_chars_decimal_unsigned_short, over_maximum_integer) {
+  static_assert(std::numeric_limits<unsigned short>::max() < 65536);
+
+  {
+    unsigned short number = 42;
+    const char *input = "65536";
+    from_chars_result result =
+        from_chars(input, input + std::strlen(input), number);
+    EXPECT_EQ(result.ptr, input + std::strlen(input));
+    EXPECT_EQ(result.ec, std::errc::result_out_of_range);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  {
+    unsigned short number = 42;
+    const char *input = "9999999999999999999";
+    from_chars_result result =
+        from_chars(input, input + std::strlen(input), number);
+    EXPECT_EQ(result.ptr, input + std::strlen(input));
+    EXPECT_EQ(result.ec, std::errc::result_out_of_range);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
