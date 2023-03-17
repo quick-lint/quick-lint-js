@@ -60,6 +60,22 @@ typedef enum { false = 0, true = 1 } bool;
 #endif
 #endif
 
+#define MG_INVALID_SOCKET INVALID_SOCKET
+#define MG_SOCKET_TYPE SOCKET
+typedef unsigned long nfds_t;
+#define MG_SOCKET_ERRNO WSAGetLastError()
+#if defined(_MSC_VER)
+#pragma comment(lib, "ws2_32.lib")
+#ifndef alloca
+#define alloca(a) _alloca(a)
+#endif
+#endif
+#define poll(a, b, c) WSAPoll((a), (b), (c))
+#ifndef SO_EXCLUSIVEADDRUSE
+#define SO_EXCLUSIVEADDRUSE ((int) (~SO_REUSEADDR))
+#endif
+#define closesocket(x) closesocket(x)
+
 typedef int socklen_t;
 #define MG_DIRSEP '\\'
 
@@ -78,13 +94,6 @@ typedef int socklen_t;
 #define sleep(x) Sleep(x)
 #define mkdir(a, b) _mkdir(a)
 
-#ifndef va_copy
-#ifdef __va_copy
-#define va_copy __va_copy
-#else
-#define va_copy(x, y) (x) = (y)
-#endif
-#endif
 #ifndef S_ISDIR
 #define S_ISDIR(x) (((x) &_S_IFMT) == _S_IFDIR)
 #endif

@@ -1,6 +1,6 @@
-#include "json.h"
 #include "base64.h"
 #include "fmt.h"
+#include "json.h"
 
 static const char *escapeseq(int esc) {
   return esc ? "\b\f\n\r\t\\\"" : "bfnrt\\\"";
@@ -79,26 +79,18 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
   int len = (int) json.len;
   enum { S_VALUE, S_KEY, S_COLON, S_COMMA_OR_EOO } expecting = S_VALUE;
   unsigned char nesting[MG_JSON_MAX_DEPTH];
-  int i, j = 0, depth = 0;
-  int pos = 1;           // Current position in path
+  int i = 0;             // Current offset in `s`
+  int j = 0;             // Offset in `s` we're looking for (return value)
+  int depth = 0;         // Current depth (nesting level)
   int ed = 0;            // Expected depth
+  int pos = 1;           // Current position in `path`
   int ci = -1, ei = -1;  // Current and expected index in array
 
+  if (toklen) *toklen = 0;
   if (path[0] != '$') return MG_JSON_INVALID;
-
-#if 0
-#define MG_DBGP(x)                                                             \
-  do {                                                                         \
-    printf("%c %.*s j=%d i=%d pos=%d depth=%d ed=%d ci=%d ei=%d\n", x, len, s, \
-           j, i, pos, depth, ed, ci, ei);                                      \
-  } while (0)
-#else
-#define MG_DBGP(x)
-#endif
 
 #define MG_CHECKRET(x)                                  \
   do {                                                  \
-    MG_DBGP(x);                                         \
     if (depth == ed && path[pos] == '\0' && ci == ei) { \
       if (toklen) *toklen = i - j + 1;                  \
       return j;                                         \
@@ -107,24 +99,27 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
 
 // In the ascii table, the distance between `[` and `]` is 2.
 // Ditto for `{` and `}`. Hence +2 in the code below.
-#define MG_EOO(x)                                                      \
-  do {                                                                 \
-    if (depth == ed && (ci != ei || ci < 0)) return MG_JSON_NOT_FOUND; \
-    if (c != nesting[depth - 1] + 2) return MG_JSON_INVALID;           \
-    depth--;                                                           \
-    MG_CHECKRET(x);                                                    \
+#define MG_EOO(x)                                            \
+  do {                                                       \
+    if (depth == ed && ci != ei) return MG_JSON_NOT_FOUND;   \
+    if (c != nesting[depth - 1] + 2) return MG_JSON_INVALID; \
+    depth--;                                                 \
+    MG_CHECKRET(x);                                          \
   } while (0)
 
   for (i = 0; i < len; i++) {
     unsigned char c = ((unsigned char *) s)[i];
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r') continue;
-    MG_DBGP('-');
     switch (expecting) {
       case S_VALUE:
+        // p("V %s [%.*s] %d %d %d %d\n", path, pos, path, depth, ed, ci, ei);
         if (depth == ed) j = i;
         if (c == '{') {
           if (depth >= (int) sizeof(nesting)) return MG_JSON_TOO_DEEP;
-          if (depth == ed && path[pos] == '.') ed++, pos++;
+          if (depth == ed && path[pos] == '.' && ci == ei) {
+            // If we start the object, reset array indices
+            ed++, pos++, ci = ei = -1;
+          }
           nesting[depth++] = c;
           expecting = S_KEY;
           break;
@@ -167,10 +162,12 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
       case S_KEY:
         if (c == '"') {
           int n = mg_pass_string(&s[i + 1], len - i - 1);
-          // printf("K %s %d %d %d [%.*s]\n", path, pos, n, i, n + 2, s + i);
           if (n < 0) return n;
           if (i + 1 + n >= len) return MG_JSON_NOT_FOUND;
-          // printf("K %s [%.*s] %d %d %d\n", path, n, &s[i + 1], n, depth, ed);
+          if (depth < ed) return MG_JSON_NOT_FOUND;
+          if (depth == ed && path[pos - 1] != '.') return MG_JSON_NOT_FOUND;
+          // printf("K %s [%.*s] [%.*s] %d %d %d\n", path, pos, path, n,
+          //  &s[i + 1], n, depth, ed);
           // NOTE(cpq): in the check sequence below is important.
           // strncmp() must go first: it fails fast if the remaining length of
           // the path is smaller than `n`.
@@ -203,7 +200,6 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
           return MG_JSON_INVALID;
         } else if (c == ',') {
           expecting = (nesting[depth - 1] == '{') ? S_KEY : S_VALUE;
-          // MG_CHECKRET('C');
         } else if (c == ']' || c == '}') {
           MG_EOO('O');
           if (depth == ed && ei >= 0) ci++;
@@ -212,7 +208,6 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
         }
         break;
     }
-    MG_DBGP('E');
   }
   return MG_JSON_NOT_FOUND;
 }
