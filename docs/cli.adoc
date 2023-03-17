@@ -17,13 +17,15 @@ quick-lint-js - find bugs in JavaScript programs
 == Synopsis
 
 *quick-lint-js* [*--output-format*=_format_] [<options>] _file_ [_file_...] +
-*quick-lint-js* *--lsp-server* [<options>]
+*quick-lint-js* *--lsp-server* [<options>] +
+*quick-lint-js* *--help* +
+*quick-lint-js* *--version*
 
 == Description
 
 *quick-lint-js* reads JavaScript files and reports syntax errors and other bugs.
 
-This command has two modes:
+This command has three modes:
 
 *quick-lint-js* [<options>] _file_ [_file_...]::
   Batch mode (default).
@@ -40,6 +42,11 @@ endif::[]
 ifndef::backend-html5[]
   *quick-lint-js-lsp*(8).
 endif::[]
+
+*quick-lint-js* --help::
+*quick-lint-js* --version::
+  Information mode.
+  Prints information about quick-lint-js then exits.
 
 == Options
 
