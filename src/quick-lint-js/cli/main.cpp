@@ -383,7 +383,8 @@ void run_lsp_server() {
       tracer->start_flushing_thread();
 
 #if QLJS_FEATURE_DEBUG_SERVER
-      this->debugger_->set_listen_address("http://localhost:8098");
+      // NOTE(strager): The debug server will run on a random port. You can
+      // query the port using the CLI: 'quick-lint-js --debug-apps'
       this->debugger_->start_server_thread();
       result<void, debug_server_io_error> start_result =
           this->debugger_->wait_for_server_start();
