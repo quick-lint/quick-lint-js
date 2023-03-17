@@ -70,6 +70,9 @@ class debug_server {
   void wake_up_server_thread();
   void wake_up_server_thread(lock_ptr<shared_state> &);
 
+  // Appends the host:port part of a URL to the given string.
+  void get_host_and_port(std::string &out);
+
   // Run on the server thread:
   void run_on_current_thread();
   void begin_closing_all_connections(::mg_mgr *);
@@ -81,7 +84,7 @@ class debug_server {
     std::string requested_listen_address = "http://localhost:0";
 
     // Written to by the server thread. Read by other threads.
-    std::string actual_listen_address;
+    ::mg_addr actual_listen_address;
     int wakeup_pipe = -1;
     bool initialized = false;  // When true, actual_listen_address and
                                // wakeup_pipe are valid.
