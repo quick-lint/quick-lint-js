@@ -172,7 +172,7 @@ std::string debug_server::url(std::string_view path) {
   std::string result;
   result.reserve(path.size() + 100);
   result += "http://"sv;
-  result += this->state_.lock()->actual_listen_address;
+  this->get_host_and_port(result);
   result += path;
   return result;
 }
@@ -183,7 +183,7 @@ std::string debug_server::websocket_url(std::string_view path) {
   std::string result;
   result.reserve(path.size() + 100);
   result += "ws://"sv;
-  result += this->state_.lock()->actual_listen_address;
+  this->get_host_and_port(result);
   result += path;
   return result;
 }
@@ -210,6 +210,21 @@ void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
                           sizeof(wakeup_signal), /*flags=*/0);
     QLJS_ALWAYS_ASSERT(rc == 1);
   }
+}
+
+void debug_server::get_host_and_port(std::string &out) {
+  ::mg_addr address = this->state_.lock()->actual_listen_address;
+
+  std::size_t existing_size = out.size();
+  out.resize(existing_size + 100);
+  if (address.is_ip6) {
+    ::mg_snprintf(out.data() + existing_size, out.size() - existing_size,
+                  "[%I]:%d", 6, address.ip6, ::mg_ntohs(address.port));
+  } else {
+    ::mg_snprintf(out.data() + existing_size, out.size() - existing_size,
+                  "%I:%d", 4, &address.ip, ::mg_ntohs(address.port));
+  }
+  out.resize(std::strlen(out.c_str() + existing_size) + existing_size);
 }
 
 void debug_server::run_on_current_thread() {
@@ -241,20 +256,8 @@ void debug_server::run_on_current_thread() {
     QLJS_ASSERT(!state->initialized);
 
     // server_connection->loc is initialized synchronously, so we should be able
-    // to use c->loc now.
-    std::string &address = state->actual_listen_address;
-    address.resize(100);
-    // TODO(strager): Move this logic into url and websocket_url.
-    if (server_connection->loc.is_ip6) {
-      ::mg_snprintf(address.data(), address.size(), "[%I]:%d", 6,
-                    server_connection->loc.ip6,
-                    ::mg_ntohs(server_connection->loc.port));
-    } else {
-      ::mg_snprintf(address.data(), address.size(), "%I:%d", 4,
-                    &server_connection->loc.ip,
-                    ::mg_ntohs(server_connection->loc.port));
-    }
-    address.resize(std::strlen(address.c_str()));
+    // to use it now.
+    state->actual_listen_address = server_connection->loc;
 
     state->wakeup_pipe = ::mg_mkpipe(
         mgr.get(), mongoose_callback<&debug_server::wakeup_pipe_callback>(),
