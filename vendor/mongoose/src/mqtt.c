@@ -172,8 +172,8 @@ int mg_mqtt_parse(const uint8_t *buf, size_t len, uint8_t version,
         m->id = (uint16_t) ((((uint16_t) p[0]) << 8) | p[1]);
         p += 2;
       }
-      if (p >= end) return MQTT_MALFORMED;
-      if (version == 5) p += 1 + p[0];  // Skip options
+      if (p > end) return MQTT_MALFORMED;
+      if (version == 5 && p + 2 < end) p += 1 + p[0];  // Skip options
       if (p > end) return MQTT_MALFORMED;
       m->data.ptr = (char *) p;
       m->data.len = (size_t) (end - p);
@@ -197,7 +197,7 @@ static void mqtt_cb(struct mg_connection *c, int ev, void *ev_data,
         c->is_closing = 1;
         break;
       } else if (rc == MQTT_OK) {
-        MG_VERBOSE(("%p MQTT CMD %d len %d [%.*s]", c->fd, mm.cmd,
+        MG_VERBOSE(("%lu MQTT CMD %d len %d [%.*s]", c->id, mm.cmd,
                     (int) mm.dgram.len, (int) mm.data.len, mm.data.ptr));
         switch (mm.cmd) {
           case MQTT_CMD_CONNACK:

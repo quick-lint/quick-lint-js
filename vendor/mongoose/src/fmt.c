@@ -1,5 +1,6 @@
 #include "fmt.h"
 #include "iobuf.h"
+#include "util.h"
 
 static void mg_pfn_iobuf_private(char ch, void *param, bool expand) {
   struct mg_iobuf *io = (struct mg_iobuf *) param;
@@ -148,7 +149,9 @@ static size_t mg_dtoa(char *dst, size_t dstlen, double d, int width) {
   }
   while (n > 0 && buf[s + n - 1] == '0') n--;  // Trim trailing zeros
   if (n > 0 && buf[s + n - 1] == '.') n--;     // Trim trailing dot
-  buf[s + n] = '\0';
+  n += s;
+  if (n >= (int) sizeof(buf)) n = (int) sizeof(buf) - 1;
+  buf[n] = '\0';
   return mg_snprintf(dst, dstlen, "%s", buf);
 }
 
@@ -262,7 +265,7 @@ size_t mg_vxprintf(void (*out)(char, void *), void *param, const char *fmt,
       }
       if (c == 'p') x = 1, is_long = 1;
       if (c == 'd' || c == 'u' || c == 'x' || c == 'X' || c == 'p' ||
-          c == 'g') {
+          c == 'g' || c == 'f') {
         bool s = (c == 'd'), h = (c == 'x' || c == 'X' || c == 'p');
         char tmp[40];
         size_t xl = x ? 2 : 0;
@@ -307,6 +310,26 @@ size_t mg_vxprintf(void (*out)(char, void *), void *param, const char *fmt,
           n += scpy(out, param, (char *) &hex[p[j] & 15], 1);
         }
         n += scpy(out, param, (char *) &dquote, 1);
+      } else if (c == 'I') {
+        // Print IPv4 or IPv6 address
+        size_t len = (size_t) va_arg(*ap, int);  // Length 16 means IPv6 address
+        uint8_t *buf = va_arg(*ap, uint8_t *);   // Pointer to the IP address
+        if (len == 6) {
+          uint16_t *p = (uint16_t *) buf;
+          n += mg_xprintf(out, param, "%x:%x:%x:%x:%x:%x:%x:%x", mg_htons(p[0]),
+                          mg_htons(p[1]), mg_htons(p[2]), mg_htons(p[3]),
+                          mg_htons(p[4]), mg_htons(p[5]), mg_htons(p[6]),
+                          mg_htons(p[7]));
+        } else {
+          n += mg_xprintf(out, param, "%d.%d.%d.%d", (int) buf[0], (int) buf[1],
+                          (int) buf[2], (int) buf[3]);
+        }
+      } else if (c == 'A') {
+        // Print hardware addresses (currently Ethernet MAC)
+        uint8_t *buf = va_arg(*ap, uint8_t *);  // Pointer to the hw address
+        n += mg_xprintf(out, param, "%02x:%02x:%02x:%02x:%02x:%02x",
+                        (int) buf[0], (int) buf[1], (int) buf[2], (int) buf[3],
+                        (int) buf[4], (int) buf[5]);
       } else if (c == 'V') {
         // Print base64-encoded double-quoted string
         size_t len = (size_t) va_arg(*ap, int);

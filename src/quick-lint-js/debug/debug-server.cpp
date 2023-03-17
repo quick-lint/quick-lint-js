@@ -244,7 +244,16 @@ void debug_server::run_on_current_thread() {
     // to use c->loc now.
     std::string &address = state->actual_listen_address;
     address.resize(100);
-    ::mg_straddr(&server_connection->loc, address.data(), address.size());
+    // TODO(strager): Move this logic into url and websocket_url.
+    if (server_connection->loc.is_ip6) {
+      ::mg_snprintf(address.data(), address.size(), "[%I]:%d", 6,
+                    server_connection->loc.ip6,
+                    ::mg_ntohs(server_connection->loc.port));
+    } else {
+      ::mg_snprintf(address.data(), address.size(), "%I:%d", 4,
+                    &server_connection->loc.ip,
+                    ::mg_ntohs(server_connection->loc.port));
+    }
     address.resize(std::strlen(address.c_str()));
 
     state->wakeup_pipe = ::mg_mkpipe(

@@ -1,15 +1,13 @@
-#include "net.h"
 #include "dns.h"
 #include "fmt.h"
 #include "log.h"
+#include "net.h"
 #include "timer.h"
 #include "tls.h"
 
-size_t mg_vprintf(struct mg_connection *c, const char *fmt, va_list ap) {
+size_t mg_vprintf(struct mg_connection *c, const char *fmt, va_list *ap) {
   size_t old = c->send.len;
-  va_list tmp;
-  va_copy(tmp, ap);
-  mg_vxprintf(mg_pfn_iobuf, &c->send, fmt, &tmp);
+  mg_vxprintf(mg_pfn_iobuf, &c->send, fmt, ap);
   return c->send.len - old;
 }
 
@@ -17,32 +15,9 @@ size_t mg_printf(struct mg_connection *c, const char *fmt, ...) {
   size_t len = 0;
   va_list ap;
   va_start(ap, fmt);
-  len = mg_vprintf(c, fmt, ap);
+  len = mg_vprintf(c, fmt, &ap);
   va_end(ap);
   return len;
-}
-
-char *mg_straddr(struct mg_addr *a, char *buf, size_t len) {
-  char tmp[30];
-  const char *fmt = a->is_ip6 ? "[%s]:%d" : "%s:%d";
-  mg_ntoa(a, tmp, sizeof(tmp));
-  mg_snprintf(buf, len, fmt, tmp, (int) mg_ntohs(a->port));
-  return buf;
-}
-
-char *mg_ntoa(const struct mg_addr *addr, char *buf, size_t len) {
-  if (addr->is_ip6) {
-    uint16_t *p = (uint16_t *) addr->ip6;
-    mg_snprintf(buf, len, "%x:%x:%x:%x:%x:%x:%x:%x", mg_htons(p[0]),
-                mg_htons(p[1]), mg_htons(p[2]), mg_htons(p[3]), mg_htons(p[4]),
-                mg_htons(p[5]), mg_htons(p[6]), mg_htons(p[7]));
-  } else {
-    uint8_t p[4];
-    memcpy(p, &addr->ip, sizeof(p));
-    mg_snprintf(buf, len, "%d.%d.%d.%d", (int) p[0], (int) p[1], (int) p[2],
-                (int) p[3]);
-  }
-  return buf;
 }
 
 static bool mg_atonl(struct mg_str str, struct mg_addr *addr) {
@@ -176,11 +151,11 @@ struct mg_connection *mg_connect(struct mg_mgr *mgr, const char *url,
   } else {
     LIST_ADD_HEAD(struct mg_connection, &mgr->conns, c);
     c->is_udp = (strncmp(url, "udp:", 4) == 0);
+    c->fd = (void *) (size_t) MG_INVALID_SOCKET;
     c->fn = fn;
     c->is_client = true;
-    c->fd = (void *) (size_t) -1;  // Set to invalid socket
     c->fn_data = fn_data;
-    MG_DEBUG(("%lu -1 %s", c->id, url));
+    MG_DEBUG(("%lu %p %s", c->id, c->fd, url));
     mg_call(c, MG_EV_OPEN, NULL);
     mg_resolve(c, url);
   }
@@ -225,8 +200,10 @@ struct mg_connection *mg_wrapfd(struct mg_mgr *mgr, int fd,
 struct mg_timer *mg_timer_add(struct mg_mgr *mgr, uint64_t milliseconds,
                               unsigned flags, void (*fn)(void *), void *arg) {
   struct mg_timer *t = (struct mg_timer *) calloc(1, sizeof(*t));
-  mg_timer_init(&mgr->timers, t, milliseconds, flags, fn, arg);
-  t->id = mgr->timerid++;
+  if (t != NULL) {
+    mg_timer_init(&mgr->timers, t, milliseconds, flags, fn, arg);
+    t->id = mgr->timerid++;
+  }
   return t;
 }
 
@@ -237,7 +214,7 @@ void mg_mgr_free(struct mg_mgr *mgr) {
   mgr->timers = NULL;  // Important. Next call to poll won't touch timers
   for (c = mgr->conns; c != NULL; c = c->next) c->is_closing = 1;
   mg_mgr_poll(mgr, 0);
-#if MG_ARCH == MG_ARCH_FREERTOS_TCP
+#if MG_ENABLE_FREERTOS_TCP
   FreeRTOS_DeleteSocketSet(mgr->ss);
 #endif
   MG_DEBUG(("All connections closed"));
@@ -257,7 +234,7 @@ void mg_mgr_init(struct mg_mgr *mgr) {
   // clang-format off
   { WSADATA data; WSAStartup(MAKEWORD(2, 2), &data); }
   // clang-format on
-#elif MG_ARCH == MG_ARCH_FREERTOS_TCP
+#elif MG_ENABLE_FREERTOS_TCP
   mgr->ss = FreeRTOS_CreateSocketSet();
 #elif defined(__unix) || defined(__unix__) || defined(__APPLE__)
   // Ignore SIGPIPE signal, so if client cancels the request, it
