@@ -103,6 +103,9 @@ consumption:
 Additionally, the following patches have been manually applied:
 
 * mongoose-mg_print_ip_port.patch
+* mongoose-error-handling.patch
+* mongoose-windows-SO_EXCLUSIVEADDRUSE.patch
+* mongoose-windows-timeout.patch
 
 Copyright: Copyright (c) 2004-2013 Sergey Lyubka; Copyright (c) 2013-2023 Cesanta Software Limited; All rights reserved
 Download URL: https://github.com/cesanta/mongoose/archive/refs/tags/7.9.tar.gz
