@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <limits>
 #include <quick-lint-js/port/char8.h>
+#include <string_view>
 #include <system_error>
 
 namespace quick_lint_js {
@@ -25,6 +26,58 @@ struct from_wchars_result {
   std::errc ec;
 };
 
+enum class parse_number_exact_error {
+  ok,
+  out_of_range,
+  invalid,
+};
+
+template <class T>
+parse_number_exact_error parse_number_exact(std::string_view, T &value);
+extern template parse_number_exact_error parse_number_exact(std::string_view,
+                                                            int &value);
+extern template parse_number_exact_error parse_number_exact(
+    std::string_view, unsigned short &value);
+extern template parse_number_exact_error parse_number_exact(std::string_view,
+                                                            unsigned &value);
+extern template parse_number_exact_error parse_number_exact(
+    std::string_view, unsigned long &value);
+extern template parse_number_exact_error parse_number_exact(
+    std::string_view, unsigned long long &value);
+
+template <class T>
+parse_number_exact_error parse_number_exact(std::wstring_view, T &value);
+extern template parse_number_exact_error parse_number_exact(
+    std::wstring_view, unsigned short &value);
+
+#if QLJS_HAVE_CHAR8_T
+template <class T>
+parse_number_exact_error parse_number_exact(string8_view, T &value);
+extern template parse_number_exact_error parse_number_exact(string8_view,
+                                                            unsigned &value);
+extern template parse_number_exact_error parse_number_exact(
+    string8_view, unsigned long &value);
+extern template parse_number_exact_error parse_number_exact(
+    string8_view, unsigned long long &value);
+#endif
+
+template <class T>
+parse_number_exact_error parse_number_exact_hex(std::string_view, T &value);
+extern template parse_number_exact_error parse_number_exact_hex(
+    std::string_view, unsigned char &value);
+extern template parse_number_exact_error parse_number_exact_hex(
+    std::string_view, char32_t &value);
+
+#if QLJS_HAVE_CHAR8_T
+template <class T>
+parse_number_exact_error parse_number_exact_hex(string8_view, T &value);
+extern template parse_number_exact_error parse_number_exact_hex(
+    string8_view, unsigned char &value);
+extern template parse_number_exact_error parse_number_exact_hex(
+    string8_view, char32_t &value);
+#endif
+
+// TODO(strager): Delete.
 template <class T>
 from_chars_result from_chars(const char *begin, const char *end, T &value);
 extern template from_chars_result from_chars<int>(const char *begin,
@@ -39,20 +92,24 @@ extern template from_chars_result from_chars<unsigned long>(
 extern template from_chars_result from_chars<unsigned long long>(
     const char *begin, const char *end, unsigned long long &value);
 
+// TODO(strager): Delete.
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
                                std::size_t &value);
 
+// TODO(strager): Delete.
 template <class T>
 from_wchars_result from_chars(const wchar_t *begin, const wchar_t *end,
                               T &value);
 extern template from_wchars_result from_chars<unsigned short>(
     const wchar_t *begin, const wchar_t *end, unsigned short &value);
 
+// TODO(strager): Delete.
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value);
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  unsigned char &value);
 
+// TODO(strager): Delete.
 from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
                                    char32_t &value);
 from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
