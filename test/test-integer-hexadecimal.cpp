@@ -245,7 +245,8 @@ TYPED_TEST(test_integer_from_chars_hexadecimal,
            minus_sign_without_digits_is_unrecognized) {
   TypeParam number = 42;
   const char *input = "- 1";
-  from_chars_result result = from_chars_hex(input, input, number);
+  from_chars_result result =
+      from_chars_hex(input, input + std::strlen(input), number);
   EXPECT_EQ(result.ptr, input);
   EXPECT_EQ(result.ec, std::errc::invalid_argument);
   EXPECT_EQ(number, 42) << "number should be unmodified";
