@@ -1590,11 +1590,16 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
   }
   char32_t code_point;
-  from_char8s_result parse_result =
-      from_char8s_hex(code_point_hex_begin, code_point_hex_end, code_point);
-  QLJS_ALWAYS_ASSERT(parse_result.ptr == code_point_hex_end);
-  if (parse_result.ec == std::errc::result_out_of_range) {
+  switch (parse_number_exact_hex(
+      make_string_view(code_point_hex_begin, code_point_hex_end), code_point)) {
+  case parse_number_exact_error::ok:
+    break;
+  case parse_number_exact_error::out_of_range:
     code_point = 0x110000;
+    break;
+  case parse_number_exact_error::invalid:
+    QLJS_UNREACHABLE();
+    break;
   }
   if (code_point >= 0x110000) {
     reporter->report(diag_escaped_code_point_in_unicode_out_of_range{
