@@ -296,18 +296,15 @@ nav.breadcrumbs ol > li {
   background-color: #ffeecc;
 }
 @media (prefers-color-scheme: dark) {
-  .comparison td.bad,
-  .comparison-mobile td.bad {
+  .comparison td.bad {
     color: rgb(255, 255, 255);
     background-color: #661919;
   }
-  .comparison td.meh,
-  .comparison-mobile td.meh {
+  .comparison td.meh {
     color: rgb(255, 255, 255);
     background-color: #665519;
   }
-  .comparison td.good,
-  .comparison-mobile td.good {
+  .comparison td.good {
     color: rgb(255, 255, 255);
     background-color: #195519;
   }
@@ -721,18 +718,21 @@ kbd.keystroke {
     bottom: 0;
   }
 }
-.comparison-mobile {
-  display: none;
-}
+.comparison-mobile,
 #editors-support {
   display: none;
 }
-@media only screen and (max-width: 684px) {
-  .comparison {
+
+@media only screen and (max-width: 43em) {
+  .comparison-mobile,
+  #editors-support {
+    display: initial;
+  }
+  .feature-comparison {
     display: none;
   }
-  .comparison-mobile {
-    display: initial;
+  .comparison-mobile td a:only-child {
+    text-decoration: none;
   }
   .comparison-mobile table {
     width: 100%;
@@ -741,19 +741,20 @@ kbd.keystroke {
     border: 1px solid gray;
   }
   .comparison-mobile table th,
-  td {
+  .comparison-mobile table td {
     padding: 0.5em 0em;
     border: 1px solid gray;
-  }
-  #editors-support {
-    display: initial;
   }
   #supported-editors {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    row-gap: 5em;
+    row-gap: 2em;
     text-align: center;
     padding: 2em;
+  }
+  .comparison-mobile figcaption p {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
   }
   #supported-editors a {
     text-decoration: none;
@@ -761,6 +762,22 @@ kbd.keystroke {
   #supported-editors .logo {
     width: 2rem;
     height: 2rem;
+  }
+  .editors-support-buttons {
+    background-color: rgb(240, 219, 79);
+    font-weight: bold;
+    border-radius: 0.5rem;
+    margin: 0 0.5rem 0 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  .editors-support-buttons span {
+    color: rgb(50, 51, 48);
+  }
+}
+@media only screen and (max-width: 37em) {
+  .editors-support-buttons {
+    font-size: x-small;
   }
 }
 /*
