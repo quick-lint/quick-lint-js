@@ -199,31 +199,17 @@ class identifier;
 class source_code_span;
 
 enum class token_type {
-  // Single-character symbols:
-  ampersand = '&',
-  bang = '!',
-  circumflex = '^',
-  colon = ':',  // See NOTE[one-byte-symbols].
-  comma = ',',  // See NOTE[one-byte-symbols].
-  slash = '/',
-  dot = '.',
-  equal = '=',
-  greater = '>',
-  left_curly = '{',   // See NOTE[one-byte-symbols].
-  left_paren = '(',   // See NOTE[one-byte-symbols].
-  left_square = '[',  // See NOTE[one-byte-symbols].
-  less = '<',
-  minus = '-',
-  percent = '%',
-  pipe = '|',
-  plus = '+',
-  question = '?',
-  right_curly = '}',   // See NOTE[one-byte-symbols].
-  right_paren = ')',   // See NOTE[one-byte-symbols].
-  right_square = ']',  // See NOTE[one-byte-symbols].
-  semicolon = ';',     // See NOTE[one-byte-symbols].
-  star = '*',
-  tilde = '~',  // See NOTE[one-byte-symbols].
+  // Single-character symbols (see NOTE[one-byte-symbols]):
+  colon = ':',
+  comma = ',',
+  left_curly = '{',
+  left_paren = '(',
+  left_square = '[',
+  right_curly = '}',
+  right_paren = ')',
+  right_square = ']',
+  semicolon = ';',
+  tilde = '~',
 
   complete_template,  // `text` or }text`
   end_of_file,
@@ -243,36 +229,50 @@ enum class token_type {
   reserved_keyword_with_escape_sequence,
 
   // Symbols:
+  ampersand,                      // &
   ampersand_ampersand,            // &&
   ampersand_ampersand_equal,      // &&=
   ampersand_equal,                // &=
+  bang,                           // !
   bang_equal,                     // !=
   bang_equal_equal,               // !==
+  circumflex,                     // ^
   circumflex_equal,               // ^=
+  dot,                            // .
   dot_dot_dot,                    // ...
+  equal,                          // =
   equal_equal,                    // ==
   equal_equal_equal,              // ===
   equal_greater,                  // =>
+  greater,                        // >
   greater_equal,                  // >=
   greater_greater,                // >>
   greater_greater_equal,          // >>=
   greater_greater_greater,        // >>>
   greater_greater_greater_equal,  // >>>=
+  less,                           // <
   less_equal,                     // <=
   less_less,                      // <<
   less_less_equal,                // <<=
+  minus,                          // -
   minus_equal,                    // -=
   minus_minus,                    // --
+  percent,                        // %
   percent_equal,                  // %=
+  pipe,                           // |
   pipe_equal,                     // |=
   pipe_pipe,                      // ||
   pipe_pipe_equal,                // ||=
+  plus,                           // +
   plus_equal,                     // +=
   plus_plus,                      // ++
+  question,                       // ?
   question_dot,                   // ?.
   question_question,              // ??
   question_question_equal,        // ??=
+  slash,                          // /
   slash_equal,                    // /=
+  star,                           // *
   star_equal,                     // *=
   star_star,                      // **
   star_star_equal,                // **=
