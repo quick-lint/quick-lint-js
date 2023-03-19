@@ -278,98 +278,99 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
 }
 
 template <class T>
-parse_number_exact_error parse_number_exact(std::string_view s, T &value) {
+parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
   const char *s_end = s.data() + s.size();
   T temp;
   from_chars_result result = from_chars(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
-    return parse_number_exact_error::invalid;
+    return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_number_exact_error::out_of_range;
+    return parse_integer_exact_error::out_of_range;
   } else {
     QLJS_ASSERT(result.ec == std::errc());
     value = temp;
-    return parse_number_exact_error::ok;
+    return parse_integer_exact_error::ok;
   }
 }
 
-template parse_number_exact_error parse_number_exact(std::string_view,
-                                                     int &value);
-template parse_number_exact_error parse_number_exact(std::string_view,
-                                                     unsigned short &value);
-template parse_number_exact_error parse_number_exact(std::string_view,
-                                                     unsigned &value);
-template parse_number_exact_error parse_number_exact(std::string_view,
-                                                     unsigned long &value);
-template parse_number_exact_error parse_number_exact(std::string_view,
-                                                     unsigned long long &value);
+template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                       int &value);
+template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                       unsigned short &value);
+template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                       unsigned &value);
+template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                       unsigned long &value);
+template parse_integer_exact_error parse_integer_exact(
+    std::string_view, unsigned long long &value);
 
 template <class T>
-parse_number_exact_error parse_number_exact(std::wstring_view s, T &value) {
+parse_integer_exact_error parse_integer_exact(std::wstring_view s, T &value) {
   // TODO(strager): Deduplicate with the std::string_view overload.
   const wchar_t *s_end = s.data() + s.size();
   T temp;
   from_wchars_result result = from_chars(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
-    return parse_number_exact_error::invalid;
+    return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_number_exact_error::out_of_range;
+    return parse_integer_exact_error::out_of_range;
   } else {
     QLJS_ASSERT(result.ec == std::errc());
     value = temp;
-    return parse_number_exact_error::ok;
+    return parse_integer_exact_error::ok;
   }
 }
 
-template parse_number_exact_error parse_number_exact(std::wstring_view,
-                                                     unsigned short &value);
+template parse_integer_exact_error parse_integer_exact(std::wstring_view,
+                                                       unsigned short &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_number_exact_error parse_number_exact(string8_view s, T &value) {
-  return parse_number_exact(to_string_view(s), value);
+parse_integer_exact_error parse_integer_exact(string8_view s, T &value) {
+  return parse_integer_exact(to_string_view(s), value);
 }
 
-template parse_number_exact_error parse_number_exact(string8_view,
-                                                     unsigned &value);
-template parse_number_exact_error parse_number_exact(string8_view,
-                                                     unsigned long &value);
-template parse_number_exact_error parse_number_exact(string8_view,
-                                                     unsigned long long &value);
+template parse_integer_exact_error parse_integer_exact(string8_view,
+                                                       unsigned &value);
+template parse_integer_exact_error parse_integer_exact(string8_view,
+                                                       unsigned long &value);
+template parse_integer_exact_error parse_integer_exact(
+    string8_view, unsigned long long &value);
 #endif
 
 template <class T>
-parse_number_exact_error parse_number_exact_hex(std::string_view s, T &value) {
-  // TODO(strager): Deduplicate with parse_number_exact.
+parse_integer_exact_error parse_integer_exact_hex(std::string_view s,
+                                                  T &value) {
+  // TODO(strager): Deduplicate with parse_integer_exact.
   const char *s_end = s.data() + s.size();
   T temp;
   from_chars_result result = from_chars_hex(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
-    return parse_number_exact_error::invalid;
+    return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_number_exact_error::out_of_range;
+    return parse_integer_exact_error::out_of_range;
   } else {
     QLJS_ASSERT(result.ec == std::errc());
     value = temp;
-    return parse_number_exact_error::ok;
+    return parse_integer_exact_error::ok;
   }
 }
 
-template parse_number_exact_error parse_number_exact_hex(std::string_view,
-                                                         unsigned char &value);
-template parse_number_exact_error parse_number_exact_hex(std::string_view,
-                                                         char32_t &value);
+template parse_integer_exact_error parse_integer_exact_hex(
+    std::string_view, unsigned char &value);
+template parse_integer_exact_error parse_integer_exact_hex(std::string_view,
+                                                           char32_t &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_number_exact_error parse_number_exact_hex(string8_view s, T &value) {
-  return parse_number_exact_hex(to_string_view(s), value);
+parse_integer_exact_error parse_integer_exact_hex(string8_view s, T &value) {
+  return parse_integer_exact_hex(to_string_view(s), value);
 }
 
-template parse_number_exact_error parse_number_exact_hex(string8_view,
-                                                         unsigned char &value);
-template parse_number_exact_error parse_number_exact_hex(string8_view,
-                                                         char32_t &value);
+template parse_integer_exact_error parse_integer_exact_hex(
+    string8_view, unsigned char &value);
+template parse_integer_exact_error parse_integer_exact_hex(string8_view,
+                                                           char32_t &value);
 #endif
 
 template char8 *write_integer<unsigned short>(unsigned short, char8 *out);

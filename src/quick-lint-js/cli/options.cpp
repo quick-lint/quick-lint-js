@@ -128,8 +128,8 @@ options parse_options(int argc, char** argv) {
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
       o.has_vim_file_bufnr = true;
       int bufnr;
-      if (parse_number_exact(std::string_view(arg_value), bufnr) !=
-          parse_number_exact_error::ok) {
+      if (parse_integer_exact(std::string_view(arg_value), bufnr) !=
+          parse_integer_exact_error::ok) {
         o.error_unrecognized_options.emplace_back(arg_value);
         continue;
       }

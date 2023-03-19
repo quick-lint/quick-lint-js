@@ -10,54 +10,54 @@
 #include <string_view>
 
 namespace quick_lint_js {
-enum class parse_number_exact_error {
+enum class parse_integer_exact_error {
   ok,
   out_of_range,
   invalid,
 };
 
 template <class T>
-parse_number_exact_error parse_number_exact(std::string_view, T &value);
-extern template parse_number_exact_error parse_number_exact(std::string_view,
-                                                            int &value);
-extern template parse_number_exact_error parse_number_exact(
+parse_integer_exact_error parse_integer_exact(std::string_view, T &value);
+extern template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                              int &value);
+extern template parse_integer_exact_error parse_integer_exact(
     std::string_view, unsigned short &value);
-extern template parse_number_exact_error parse_number_exact(std::string_view,
-                                                            unsigned &value);
-extern template parse_number_exact_error parse_number_exact(
+extern template parse_integer_exact_error parse_integer_exact(std::string_view,
+                                                              unsigned &value);
+extern template parse_integer_exact_error parse_integer_exact(
     std::string_view, unsigned long &value);
-extern template parse_number_exact_error parse_number_exact(
+extern template parse_integer_exact_error parse_integer_exact(
     std::string_view, unsigned long long &value);
 
 template <class T>
-parse_number_exact_error parse_number_exact(std::wstring_view, T &value);
-extern template parse_number_exact_error parse_number_exact(
+parse_integer_exact_error parse_integer_exact(std::wstring_view, T &value);
+extern template parse_integer_exact_error parse_integer_exact(
     std::wstring_view, unsigned short &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_number_exact_error parse_number_exact(string8_view, T &value);
-extern template parse_number_exact_error parse_number_exact(string8_view,
-                                                            unsigned &value);
-extern template parse_number_exact_error parse_number_exact(
+parse_integer_exact_error parse_integer_exact(string8_view, T &value);
+extern template parse_integer_exact_error parse_integer_exact(string8_view,
+                                                              unsigned &value);
+extern template parse_integer_exact_error parse_integer_exact(
     string8_view, unsigned long &value);
-extern template parse_number_exact_error parse_number_exact(
+extern template parse_integer_exact_error parse_integer_exact(
     string8_view, unsigned long long &value);
 #endif
 
 template <class T>
-parse_number_exact_error parse_number_exact_hex(std::string_view, T &value);
-extern template parse_number_exact_error parse_number_exact_hex(
+parse_integer_exact_error parse_integer_exact_hex(std::string_view, T &value);
+extern template parse_integer_exact_error parse_integer_exact_hex(
     std::string_view, unsigned char &value);
-extern template parse_number_exact_error parse_number_exact_hex(
+extern template parse_integer_exact_error parse_integer_exact_hex(
     std::string_view, char32_t &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_number_exact_error parse_number_exact_hex(string8_view, T &value);
-extern template parse_number_exact_error parse_number_exact_hex(
+parse_integer_exact_error parse_integer_exact_hex(string8_view, T &value);
+extern template parse_integer_exact_error parse_integer_exact_hex(
     string8_view, unsigned char &value);
-extern template parse_number_exact_error parse_number_exact_hex(
+extern template parse_integer_exact_error parse_integer_exact_hex(
     string8_view, char32_t &value);
 #endif
 

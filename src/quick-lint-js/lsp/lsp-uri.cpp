@@ -55,7 +55,7 @@ std::string parse_file_from_lsp_uri_posix(string8_view uri) {
     }
     string8_view digits = uri.substr(0, 2);
     unsigned char c;
-    if (parse_number_exact_hex(digits, c) != parse_number_exact_error::ok) {
+    if (parse_integer_exact_hex(digits, c) != parse_integer_exact_error::ok) {
       return "";
     }
     result.push_back(static_cast<char>(c));
