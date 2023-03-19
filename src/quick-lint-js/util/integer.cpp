@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
@@ -171,36 +172,37 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
 
 template <class T>
 char *write_integer(T value, char *out) {
-  constexpr std::size_t buffer_size = integer_string_length<T>;
-  constexpr const char *format =
-      std::is_same_v<T, int>
-          ? "%d"
-          : std::is_same_v<T, long>
-                ? "%ld"
-                : std::is_same_v<T, long long>
-                      ? "%lld"
-                      : (std::is_same_v<T, unsigned> ||
-                         std::is_same_v<T, unsigned short>)
-                            ? "%u"
-                            : std::is_same_v<T, unsigned long>
-                                  ? "%lu"
-                                  : std::is_same_v<T, unsigned long long>
-                                        ? "%llu"
-                                        : "";
-  static_assert(*format != '\0', "Unsupported integer type");
-
-  int rc = std::snprintf(out, buffer_size, format, value);
-  QLJS_ASSERT(rc >= 0);
-  if (rc == buffer_size) {
-    int digit;
-    if constexpr (std::is_unsigned_v<T>) {
-      digit = value % 10;
-    } else {
-      digit = std::abs(narrow_cast<int>(value % 10));
+  if constexpr (std::is_signed_v<T>) {
+    std::make_unsigned_t<T> unsigned_value;
+    std::memcpy(&unsigned_value, &value, sizeof(T));
+    if (value < 0) {
+      *out++ = '-';
+      unsigned_value = -unsigned_value;
     }
-    out[buffer_size - 1] = narrow_cast<char>('0' + digit);
+    return write_integer(unsigned_value, out);
+  } else {
+    constexpr std::size_t buffer_size = integer_string_length<T>;
+    constexpr const char *format =
+        (std::is_same_v<T, unsigned> || std::is_same_v<T, unsigned short>)
+            ? "%u"
+            : std::is_same_v<T, unsigned long>
+                  ? "%lu"
+                  : std::is_same_v<T, unsigned long long> ? "%llu" : "";
+    static_assert(*format != '\0', "Unsupported integer type");
+
+    int rc = std::snprintf(out, buffer_size, format, value);
+    QLJS_ASSERT(rc >= 0);
+    if (rc == buffer_size) {
+      int digit;
+      if constexpr (std::is_unsigned_v<T>) {
+        digit = value % 10;
+      } else {
+        digit = std::abs(narrow_cast<int>(value % 10));
+      }
+      out[buffer_size - 1] = narrow_cast<char>('0' + digit);
+    }
+    return out + rc;
   }
-  return out + rc;
 }
 #endif
 
