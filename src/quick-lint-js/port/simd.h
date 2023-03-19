@@ -219,13 +219,7 @@ class alignas(::uint8x16_t) bool_vector_16_neon {
       : data_(data) {}
 
   // data must point to at least 16 elements.
-  QLJS_FORCE_INLINE static bool_vector_16_neon load_slow(const char8* data) {
-    ::uint8x16_t vector;
-    for (int i = 0; i < 16; ++i) {
-      vector[i] = data[i] == 0 ? 0x00 : 0xff;
-    }
-    return bool_vector_16_neon(vector);
-  }
+  static bool_vector_16_neon load_slow(const char8* data);
 
   QLJS_FORCE_INLINE friend bool_vector_16_neon operator|(
       bool_vector_16_neon x, bool_vector_16_neon y) noexcept {
@@ -235,6 +229,11 @@ class alignas(::uint8x16_t) bool_vector_16_neon {
   QLJS_FORCE_INLINE friend bool_vector_16_neon operator&(
       bool_vector_16_neon x, bool_vector_16_neon y) noexcept {
     return bool_vector_16_neon(::vandq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator!(
+      bool_vector_16_neon x) noexcept {
+    return bool_vector_16_neon(::vmvnq_u8(x.data_));
   }
 
   QLJS_FORCE_INLINE int find_first_false() const noexcept;
@@ -278,6 +277,11 @@ class alignas(::uint8x16_t) char_vector_16_neon {
     return bool_vector_16_neon(::vceqq_u8(x.data_, y.data_));
   }
 
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator!=(
+      char_vector_16_neon x, char_vector_16_neon y) noexcept {
+    return !(x == y);
+  }
+
   QLJS_FORCE_INLINE friend bool_vector_16_neon operator<(
       char_vector_16_neon x, char_vector_16_neon y) noexcept {
     return bool_vector_16_neon(::vcltq_u8(x.data_, y.data_));
@@ -295,6 +299,10 @@ class alignas(::uint8x16_t) char_vector_16_neon {
  private:
   ::uint8x16_t data_;
 };
+
+inline bool_vector_16_neon bool_vector_16_neon::load_slow(const char8* data) {
+  return char_vector_16_neon::load(data) != char_vector_16_neon::repeated(0);
+}
 #endif
 
 class bool_vector_1 {
