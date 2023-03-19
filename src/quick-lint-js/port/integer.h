@@ -8,24 +8,8 @@
 #include <limits>
 #include <quick-lint-js/port/char8.h>
 #include <string_view>
-#include <system_error>
 
 namespace quick_lint_js {
-struct from_chars_result {
-  const char *ptr;
-  std::errc ec;
-};
-
-struct from_char8s_result {
-  const char8 *ptr;
-  std::errc ec;
-};
-
-struct from_wchars_result {
-  const wchar_t *ptr;
-  std::errc ec;
-};
-
 enum class parse_number_exact_error {
   ok,
   out_of_range,
@@ -76,44 +60,6 @@ extern template parse_number_exact_error parse_number_exact_hex(
 extern template parse_number_exact_error parse_number_exact_hex(
     string8_view, char32_t &value);
 #endif
-
-// TODO(strager): Delete.
-template <class T>
-from_chars_result from_chars(const char *begin, const char *end, T &value);
-extern template from_chars_result from_chars<int>(const char *begin,
-                                                  const char *end, int &value);
-extern template from_chars_result from_chars<unsigned short>(
-    const char *begin, const char *end, unsigned short &value);
-extern template from_chars_result from_chars<unsigned>(const char *begin,
-                                                       const char *end,
-                                                       unsigned &value);
-extern template from_chars_result from_chars<unsigned long>(
-    const char *begin, const char *end, unsigned long &value);
-extern template from_chars_result from_chars<unsigned long long>(
-    const char *begin, const char *end, unsigned long long &value);
-
-// TODO(strager): Delete.
-from_char8s_result from_char8s(const char8 *begin, const char8 *end,
-                               std::size_t &value);
-
-// TODO(strager): Delete.
-template <class T>
-from_wchars_result from_chars(const wchar_t *begin, const wchar_t *end,
-                              T &value);
-extern template from_wchars_result from_chars<unsigned short>(
-    const wchar_t *begin, const wchar_t *end, unsigned short &value);
-
-// TODO(strager): Delete.
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 char32_t &value);
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 unsigned char &value);
-
-// TODO(strager): Delete.
-from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
-                                   char32_t &value);
-from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
-                                   unsigned char &value);
 
 template <class T>
 inline constexpr int integer_string_length =

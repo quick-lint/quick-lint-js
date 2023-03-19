@@ -17,6 +17,8 @@
 #include <string>
 #include <type_traits>
 
+QLJS_WARNING_IGNORE_CLANG("-Wmissing-prototypes")  // TODO(strager): Fix.
+QLJS_WARNING_IGNORE_GCC("-Wmissing-declarations")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 #if QLJS_HAVE_CHARCONV_HEADER
@@ -24,6 +26,21 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 #endif
 
 namespace quick_lint_js {
+struct from_chars_result {
+  const char *ptr;
+  std::errc ec;
+};
+
+struct from_char8s_result {
+  const char8 *ptr;
+  std::errc ec;
+};
+
+struct from_wchars_result {
+  const wchar_t *ptr;
+  std::errc ec;
+};
+
 #if QLJS_HAVE_CHARCONV_HEADER
 template <class T>
 from_chars_result from_chars(const char *begin, const char *end, T &value) {
@@ -259,24 +276,6 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
       .ec = result.ec,
   };
 }
-
-template from_chars_result from_chars<int>(const char *begin, const char *end,
-                                           int &value);
-template from_chars_result from_chars<unsigned short>(const char *begin,
-                                                      const char *end,
-                                                      unsigned short &value);
-template from_chars_result from_chars<unsigned>(const char *begin,
-                                                const char *end,
-                                                unsigned &value);
-template from_chars_result from_chars<unsigned long>(const char *begin,
-                                                     const char *end,
-                                                     unsigned long &value);
-template from_chars_result from_chars<unsigned long long>(
-    const char *begin, const char *end, unsigned long long &value);
-
-template from_wchars_result from_chars<unsigned short>(const wchar_t *begin,
-                                                       const wchar_t *end,
-                                                       unsigned short &value);
 
 template <class T>
 parse_number_exact_error parse_number_exact(std::string_view s, T &value) {
