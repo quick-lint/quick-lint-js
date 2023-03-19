@@ -1590,14 +1590,14 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
   }
   char32_t code_point;
-  switch (parse_number_exact_hex(
+  switch (parse_integer_exact_hex(
       make_string_view(code_point_hex_begin, code_point_hex_end), code_point)) {
-  case parse_number_exact_error::ok:
+  case parse_integer_exact_error::ok:
     break;
-  case parse_number_exact_error::out_of_range:
+  case parse_integer_exact_error::out_of_range:
     code_point = 0x110000;
     break;
-  case parse_number_exact_error::invalid:
+  case parse_integer_exact_error::invalid:
     QLJS_UNREACHABLE();
     break;
   }

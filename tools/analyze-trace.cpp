@@ -524,16 +524,16 @@ analyze_options parse_analyze_options(int argc, char** argv) {
           narrow_cast<std::uint64_t>(document_id);
     } else if (const char* arg_value =
                    parser.match_option_with_value("--begin"sv)) {
-      if (parse_number_exact(std::string_view(arg_value),
-                             o.begin_event_index) !=
-          parse_number_exact_error::ok) {
+      if (parse_integer_exact(std::string_view(arg_value),
+                              o.begin_event_index) !=
+          parse_integer_exact_error::ok) {
         std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
         std::exit(2);
       }
     } else if (const char* arg_value =
                    parser.match_option_with_value("--end"sv)) {
-      if (parse_number_exact(std::string_view(arg_value), o.end_event_index) !=
-          parse_number_exact_error::ok) {
+      if (parse_integer_exact(std::string_view(arg_value), o.end_event_index) !=
+          parse_integer_exact_error::ok) {
         std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
         std::exit(2);
       }

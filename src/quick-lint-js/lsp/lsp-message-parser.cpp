@@ -41,8 +41,8 @@ lsp_message_parser_base::parse_message_headers(string8_view headers) {
 
     if (header_is(header.name, u8"content-length"_sv)) {
       content_length.emplace();
-      if (parse_number_exact(header.value, *content_length) ==
-          parse_number_exact_error::ok) {
+      if (parse_integer_exact(header.value, *content_length) ==
+          parse_integer_exact_error::ok) {
         // We found the content-type header. No need to look at other headers;
         // we'd ignore them anyway.
         break;

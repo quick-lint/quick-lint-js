@@ -155,7 +155,7 @@ std::optional<std::uint16_t> parse_port_number_from_thread_name(
   std::basic_string_view<thread_name_char_type> port_string =
       thread_name.substr(thread_name_prefix.size());
   std::uint16_t port;
-  if (parse_number_exact(port_string, port) != parse_number_exact_error::ok) {
+  if (parse_integer_exact(port_string, port) != parse_integer_exact_error::ok) {
     return std::nullopt;
   }
   return port;
@@ -313,10 +313,10 @@ std::vector<found_debug_server> find_debug_servers() {
         if (std::optional<std::uint16_t> port_number =
                 parse_port_number_from_thread_name(thread_name)) {
           std::uint64_t process_id;
-          parse_number_exact_error parse_error =
-              parse_number_exact(process_id_string, process_id);
-          QLJS_ASSERT(parse_error == parse_number_exact_error::ok);
-          if (parse_error == parse_number_exact_error::ok) {
+          parse_integer_exact_error parse_error =
+              parse_integer_exact(process_id_string, process_id);
+          QLJS_ASSERT(parse_error == parse_integer_exact_error::ok);
+          if (parse_error == parse_integer_exact_error::ok) {
             debug_servers.push_back(found_debug_server{
                 .process_id = process_id,
                 .port_number = *port_number,
