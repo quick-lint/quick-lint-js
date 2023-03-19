@@ -4,8 +4,8 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/gtest.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/integer.h>
 #include <string_view>
 #include <system_error>
 

@@ -18,11 +18,11 @@
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string>

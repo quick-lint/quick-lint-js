@@ -14,8 +14,8 @@
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
 #if QLJS_HAVE_WRITEV

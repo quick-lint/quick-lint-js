@@ -4,8 +4,8 @@
 #include <array>
 #include <gtest/gtest.h>
 #include <limits>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 
 namespace quick_lint_js {
 namespace {

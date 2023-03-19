@@ -9,9 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 

@@ -12,7 +12,7 @@
 #include <optional>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 

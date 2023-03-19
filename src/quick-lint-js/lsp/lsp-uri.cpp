@@ -6,7 +6,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/lsp/lsp-uri.h>
-#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/util/integer.h>
 #include <string>
 #include <string_view>
 
