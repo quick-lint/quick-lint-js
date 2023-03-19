@@ -181,27 +181,18 @@ char *write_integer(T value, char *out) {
     }
     return write_integer(unsigned_value, out);
   } else {
-    constexpr std::size_t buffer_size = integer_string_length<T>;
-    constexpr const char *format =
-        (std::is_same_v<T, unsigned> || std::is_same_v<T, unsigned short>)
-            ? "%u"
-            : std::is_same_v<T, unsigned long>
-                  ? "%lu"
-                  : std::is_same_v<T, unsigned long long> ? "%llu" : "";
-    static_assert(*format != '\0', "Unsupported integer type");
-
-    int rc = std::snprintf(out, buffer_size, format, value);
-    QLJS_ASSERT(rc >= 0);
-    if (rc == buffer_size) {
-      int digit;
-      if constexpr (std::is_unsigned_v<T>) {
-        digit = value % 10;
-      } else {
-        digit = std::abs(narrow_cast<int>(value % 10));
+    if (value == 0) {
+      *out++ = '0';
+    } else {
+      char *begin = out;
+      while (value > 0) {
+        T digit = narrow_cast<T>(value % 10);
+        value = narrow_cast<T>(value / 10);
+        *out++ = narrow_cast<char>('0' + digit);
       }
-      out[buffer_size - 1] = narrow_cast<char>('0' + digit);
+      std::reverse(begin, out);
     }
-    return out + rc;
+    return out;
   }
 }
 #endif
