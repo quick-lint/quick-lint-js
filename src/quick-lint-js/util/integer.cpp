@@ -68,14 +68,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
       std::from_chars(begin, end, value, /*base=*/16);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
-
-template <class T>
-char *write_integer(T value, char *out) {
-  std::to_chars_result result =
-      std::to_chars(out, &out[integer_string_length<T>], value);
-  QLJS_ASSERT(result.ec == std::errc{});
-  return result.ptr;
-}
 #else
 namespace {
 bool is_decimal_digit(char c) noexcept { return '0' <= c && c <= '9'; }
@@ -169,6 +161,7 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   value = static_cast<std::uint8_t>(long_value);
   return result;
 }
+#endif
 
 template <class T>
 char *write_integer(T value, char *out) {
@@ -195,7 +188,6 @@ char *write_integer(T value, char *out) {
     return out;
   }
 }
-#endif
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
