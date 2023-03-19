@@ -14,8 +14,8 @@
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/logging/log.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>

@@ -245,8 +245,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h
-  quick-lint-js/port/integer.cpp
-  quick-lint-js/port/integer.h
+  quick-lint-js/util/integer.cpp
+  quick-lint-js/util/integer.h
   quick-lint-js/port/max-align.h
   quick-lint-js/port/memory-resource.cpp
   quick-lint-js/port/memory-resource.h
