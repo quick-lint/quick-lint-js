@@ -30,11 +30,11 @@ struct from_chars_result {
   std::errc ec;
 };
 
-template <class Base, class T>
-from_chars_result<char> from_chars_generic(const char *begin, const char *end,
+template <class Char, class Base, class T>
+from_chars_result<Char> from_chars_generic(const Char *begin, const Char *end,
                                            T &value) {
   if (end == begin) {
-    return from_chars_result<char>{.ptr = begin,
+    return from_chars_result<Char>{.ptr = begin,
                                    .ec = std::errc::invalid_argument};
   }
 
@@ -48,13 +48,13 @@ from_chars_result<char> from_chars_generic(const char *begin, const char *end,
     bool is_negative = *begin == '-';
     if (is_negative) {
       unsigned_t unsigned_value;
-      from_chars_result<char> result =
-          from_chars_generic<Base>(begin + 1, end, unsigned_value);
+      from_chars_result<Char> result =
+          from_chars_generic<Char, Base>(begin + 1, end, unsigned_value);
       if (result.ec != std::errc()) {
         return result;
       }
       if (unsigned_value > abs_result_min) {
-        return from_chars_result<char>{.ptr = result.ptr,
+        return from_chars_result<Char>{.ptr = result.ptr,
                                        .ec = std::errc::result_out_of_range};
       }
       unsigned_value = -unsigned_value;
@@ -62,13 +62,13 @@ from_chars_result<char> from_chars_generic(const char *begin, const char *end,
       return result;
     } else {
       unsigned_t unsigned_value;
-      from_chars_result<char> result =
-          from_chars_generic<Base>(begin, end, unsigned_value);
+      from_chars_result<Char> result =
+          from_chars_generic<Char, Base>(begin, end, unsigned_value);
       if (result.ec != std::errc()) {
         return result;
       }
       if (unsigned_value > static_cast<unsigned_t>(result_max)) {
-        return from_chars_result<char>{.ptr = result.ptr,
+        return from_chars_result<Char>{.ptr = result.ptr,
                                        .ec = std::errc::result_out_of_range};
       }
       value = static_cast<T>(unsigned_value);
@@ -78,15 +78,15 @@ from_chars_result<char> from_chars_generic(const char *begin, const char *end,
     static constexpr T result_max = std::numeric_limits<T>::max();
 
     if (!Base::is_digit(*begin)) {
-      return from_chars_result<char>{.ptr = begin,
+      return from_chars_result<Char>{.ptr = begin,
                                      .ec = std::errc::invalid_argument};
     }
-    const char *c = begin;
-    auto out_of_range = [&c, end]() -> from_chars_result<char> {
+    const Char *c = begin;
+    auto out_of_range = [&c, end]() -> from_chars_result<Char> {
       for (; Base::is_digit(*c) && c != end; ++c) {
         // Skip digits.
       }
-      return from_chars_result<char>{.ptr = c,
+      return from_chars_result<Char>{.ptr = c,
                                      .ec = std::errc::result_out_of_range};
     };
 
@@ -103,33 +103,33 @@ from_chars_result<char> from_chars_generic(const char *begin, const char *end,
       result = new_result;
     }
     value = result;
-    return from_chars_result<char>{.ptr = c, .ec = std::errc{0}};
+    return from_chars_result<Char>{.ptr = c, .ec = std::errc{0}};
   }
 }
 
-template <class T>
-from_chars_result<char> from_chars(const char *begin, const char *end,
-                                   T &value) {
+template <class Char, class T>
+from_chars_result<Char> from_chars_decimal_generic(const Char *begin,
+                                                   const Char *end, T &value) {
   struct decimal {
-    static bool is_digit(char c) { return '0' <= c && c <= '9'; }
-    static int parse_digit(char c) {
+    static bool is_digit(Char c) { return '0' <= c && c <= '9'; }
+    static int parse_digit(Char c) {
       QLJS_ASSERT(is_digit(c));
       return c - '0';
     }
     static constexpr int radix() { return 10; }
   };
-  return from_chars_generic<decimal>(begin, end, value);
+  return from_chars_generic<Char, decimal>(begin, end, value);
 }
 
-template <class T>
-from_chars_result<char> from_chars_hex(const char *begin, const char *end,
-                                       T &value) {
+template <class Char, class T>
+from_chars_result<Char> from_chars_hex_generic(const Char *begin,
+                                               const Char *end, T &value) {
   struct hexadecimal {
-    static bool is_digit(char c) {
+    static bool is_digit(Char c) {
       return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
              ('A' <= c && c <= 'F');
     }
-    static int parse_digit(char c) {
+    static int parse_digit(Char c) {
       QLJS_ASSERT(is_digit(c));
       if ('0' <= c && c <= '9') return c - '0';
       if ('a' <= c && c <= 'f') return c - 'a' + 10;
@@ -138,7 +138,7 @@ from_chars_result<char> from_chars_hex(const char *begin, const char *end,
     }
     static constexpr int radix() { return 16; }
   };
-  return from_chars_generic<hexadecimal>(begin, end, value);
+  return from_chars_generic<Char, hexadecimal>(begin, end, value);
 }
 
 namespace {
@@ -186,67 +186,12 @@ wchar_t *write_integer(T value, wchar_t *out) {
   return write_integer_generic(value, out, L'0');
 }
 
-from_chars_result<char8> from_char8s(const char8 *begin, const char8 *end,
-                                     std::size_t &value) {
-  from_chars_result<char> result =
-      from_chars(reinterpret_cast<const char *>(begin),
-                 reinterpret_cast<const char *>(end), value);
-  return from_chars_result<char8>{
-      .ptr = reinterpret_cast<const char8 *>(result.ptr),
-      .ec = result.ec,
-  };
-}
-
-template <class T>
-from_chars_result<wchar_t> from_chars(const wchar_t *begin, const wchar_t *end,
-                                      T &value) {
-  // TODO(strager): Parse the string without copying.
-  std::array<char, integer_string_length<T> + 1> buffer;
-  char *out = buffer.data();
-  char *out_end =
-      out + std::min(narrow_cast<std::ptrdiff_t>(buffer.size()), end - begin);
-  for (const wchar_t *in = begin; out != out_end; ++in) {
-    if ((L'0' <= *in && *in <= L'9') || *in == L'-') {
-      *out++ = static_cast<char>(*in);
-    } else {
-      *out++ = '_';  // Invalid character.
-    }
-  }
-
-  from_chars_result<char> result = from_chars(buffer.data(), out_end, value);
-  return from_chars_result<wchar_t>{
-      .ptr = &begin[result.ptr - buffer.data()],
-      .ec = result.ec,
-  };
-}
-
-from_chars_result<char8> from_char8s_hex(const char8 *begin, const char8 *end,
-                                         char32_t &value) {
-  from_chars_result<char> result =
-      from_chars_hex(reinterpret_cast<const char *>(begin),
-                     reinterpret_cast<const char *>(end), value);
-  return from_chars_result<char8>{
-      .ptr = reinterpret_cast<const char8 *>(result.ptr),
-      .ec = result.ec,
-  };
-}
-
-from_chars_result<char8> from_char8s_hex(const char8 *begin, const char8 *end,
-                                         unsigned char &value) {
-  from_chars_result<char> result =
-      from_chars_hex(reinterpret_cast<const char *>(begin),
-                     reinterpret_cast<const char *>(end), value);
-  return from_chars_result<char8>{
-      .ptr = reinterpret_cast<const char8 *>(result.ptr),
-      .ec = result.ec,
-  };
-}
-
 template <class T>
 parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
   const char *s_end = s.data() + s.size();
   T temp;
-  from_chars_result<char> result = from_chars(s.data(), s_end, temp);
+  from_chars_result<char> result =
+      from_chars_decimal_generic(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
     return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
@@ -274,7 +219,8 @@ parse_integer_exact_error parse_integer_exact(std::wstring_view s, T &value) {
   // TODO(strager): Deduplicate with the std::string_view overload.
   const wchar_t *s_end = s.data() + s.size();
   T temp;
-  from_chars_result<wchar_t> result = from_chars(s.data(), s_end, temp);
+  from_chars_result<wchar_t> result =
+      from_chars_decimal_generic(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
     return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
@@ -309,7 +255,8 @@ parse_integer_exact_error parse_integer_exact_hex(std::string_view s,
   // TODO(strager): Deduplicate with parse_integer_exact.
   const char *s_end = s.data() + s.size();
   T temp;
-  from_chars_result<char> result = from_chars_hex(s.data(), s_end, temp);
+  from_chars_result<char> result =
+      from_chars_hex_generic(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
     return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
