@@ -147,7 +147,10 @@ parse_integer_exact_error parse_integer_exact_generic(
     const Char *end = s.data() + s.size();
 
     T result = 0;
-    for (; Base::is_digit(*c) && c != end; ++c) {
+    for (; c != end; ++c) {
+      if (!Base::is_digit(*c)) {
+        return parse_integer_exact_error::invalid;
+      }
       if (result > result_max / Base::radix()) {
         return parse_integer_exact_error::out_of_range;
       }
@@ -157,9 +160,6 @@ parse_integer_exact_error parse_integer_exact_generic(
         return parse_integer_exact_error::out_of_range;
       }
       result = new_result;
-    }
-    if (c != end) {
-      return parse_integer_exact_error::invalid;
     }
     value = result;
     return parse_integer_exact_error::ok;
