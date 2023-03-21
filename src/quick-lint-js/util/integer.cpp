@@ -152,22 +152,39 @@ wchar_t *write_integer(T value, wchar_t *out) {
   return write_integer_generic(value, out, L'0');
 }
 
-template <class Char, class T>
+template <class Char>
+struct decimal {
+  static bool is_digit(Char c) { return '0' <= c && c <= '9'; }
+  static int parse_digit(Char c) {
+    QLJS_ASSERT(is_digit(c));
+    return c - '0';
+  }
+  static constexpr int radix() { return 10; }
+};
+
+template <class Char>
+struct hexadecimal {
+  static bool is_digit(Char c) {
+    return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
+           ('A' <= c && c <= 'F');
+  }
+  static int parse_digit(Char c) {
+    QLJS_ASSERT(is_digit(c));
+    if ('0' <= c && c <= '9') return c - '0';
+    if ('a' <= c && c <= 'f') return c - 'a' + 10;
+    if ('A' <= c && c <= 'F') return c - 'A' + 10;
+    QLJS_UNREACHABLE();
+  }
+  static constexpr int radix() { return 16; }
+};
+
+template <class Char, class Base, class T>
 parse_integer_exact_error parse_integer_exact_generic(
     std::basic_string_view<Char> s, T &value) {
-  struct decimal {
-    static bool is_digit(Char c) { return '0' <= c && c <= '9'; }
-    static int parse_digit(Char c) {
-      QLJS_ASSERT(is_digit(c));
-      return c - '0';
-    }
-    static constexpr int radix() { return 10; }
-  };
-
   const Char *s_end = s.data() + s.size();
   T temp;
   from_chars_result<Char> result =
-      from_chars_generic<Char, decimal>(s.data(), s_end, temp);
+      from_chars_generic<Char, Base>(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
     return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
@@ -181,7 +198,7 @@ parse_integer_exact_error parse_integer_exact_generic(
 
 template <class T>
 parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
-  return parse_integer_exact_generic<char, T>(s, value);
+  return parse_integer_exact_generic<char, decimal<char>, T>(s, value);
 }
 
 template parse_integer_exact_error parse_integer_exact(std::string_view,
@@ -197,7 +214,7 @@ template parse_integer_exact_error parse_integer_exact(
 
 template <class T>
 parse_integer_exact_error parse_integer_exact(std::wstring_view s, T &value) {
-  return parse_integer_exact_generic<wchar_t, T>(s, value);
+  return parse_integer_exact_generic<wchar_t, decimal<wchar_t>, T>(s, value);
 }
 
 template parse_integer_exact_error parse_integer_exact(std::wstring_view,
@@ -220,36 +237,7 @@ template parse_integer_exact_error parse_integer_exact(
 template <class T>
 parse_integer_exact_error parse_integer_exact_hex(std::string_view s,
                                                   T &value) {
-  using Char = char;
-  struct hexadecimal {
-    static bool is_digit(Char c) {
-      return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
-             ('A' <= c && c <= 'F');
-    }
-    static int parse_digit(Char c) {
-      QLJS_ASSERT(is_digit(c));
-      if ('0' <= c && c <= '9') return c - '0';
-      if ('a' <= c && c <= 'f') return c - 'a' + 10;
-      if ('A' <= c && c <= 'F') return c - 'A' + 10;
-      QLJS_UNREACHABLE();
-    }
-    static constexpr int radix() { return 16; }
-  };
-
-  // TODO(strager): Deduplicate with parse_integer_exact.
-  const Char *s_end = s.data() + s.size();
-  T temp;
-  from_chars_result<Char> result =
-      from_chars_generic<Char, hexadecimal>(s.data(), s_end, temp);
-  if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
-    return parse_integer_exact_error::invalid;
-  } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_integer_exact_error::out_of_range;
-  } else {
-    QLJS_ASSERT(result.ec == std::errc());
-    value = temp;
-    return parse_integer_exact_error::ok;
-  }
+  return parse_integer_exact_generic<char, hexadecimal<char>, T>(s, value);
 }
 
 template parse_integer_exact_error parse_integer_exact_hex(
