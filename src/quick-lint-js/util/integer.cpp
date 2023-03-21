@@ -145,10 +145,7 @@ parse_integer_exact_error parse_integer_exact_generic(
     }
     const Char *c = s.data();
     const Char *end = s.data() + s.size();
-    auto out_of_range = [&c, end]() -> parse_integer_exact_error {
-      for (; Base::is_digit(*c) && c != end; ++c) {
-        // Skip digits.
-      }
+    auto out_of_range = []() -> parse_integer_exact_error {
       return parse_integer_exact_error::out_of_range;
     };
 
