@@ -343,15 +343,6 @@ if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_link_libraries(quick-lint-js-lib PRIVATE quick-lint-js-lib-debug)
 endif ()
 
-quick_lint_js_have_charconv(QUICK_LINT_JS_HAVE_CHARCONV)
-if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_HAVE_CHARCONV_HEADER=0
-  )
-endif ()
-
 # quick-lint-js-lib-debug should be dead-code stripped from production builds.
 # It is a separate library from quick-lint-js-lib to increase the chance that
 # the linker drops the code entirely.
