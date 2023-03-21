@@ -22,8 +22,6 @@ endfunction ()
 function (quick_lint_js_enable_char8_t_if_supported)
   check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
   if (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
-    set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE CACHE BOOL "Whether the -fchar8_t C++ flag works reliably")
-
     check_cxx_source_compiles(
       "#include <cstdio>
       #include <typeinfo>
@@ -42,6 +40,8 @@ function (quick_lint_js_enable_char8_t_if_supported)
           std::puts(typeid(char8_t).name());
           return 0;
         }" QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
+    else ()
+      set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE CACHE BOOL "Whether the -fchar8_t C++ flag works reliably")
     endif ()
 
     if (QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
