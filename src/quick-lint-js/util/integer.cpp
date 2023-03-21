@@ -23,10 +23,6 @@ QLJS_WARNING_IGNORE_CLANG("-Wmissing-prototypes")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wmissing-declarations")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-#if QLJS_HAVE_CHARCONV_HEADER
-#include <charconv>
-#endif
-
 namespace quick_lint_js {
 struct from_chars_result {
   const char *ptr;
@@ -43,33 +39,6 @@ struct from_wchars_result {
   std::errc ec;
 };
 
-#if QLJS_HAVE_CHARCONV_HEADER
-template <class T>
-from_chars_result from_chars(const char *begin, const char *end, T &value) {
-  std::from_chars_result result = std::from_chars(begin, end, value);
-  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
-}
-
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 char32_t &value) {
-  using underlying_type = std::uint_least32_t;
-  static_assert(sizeof(char32_t) == sizeof(underlying_type));
-  underlying_type parsed_value;
-  std::from_chars_result result =
-      std::from_chars(begin, end, parsed_value, /*base=*/16);
-  if (result.ec == std::errc{}) {
-    value = static_cast<char32_t>(parsed_value);
-  }
-  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
-}
-
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 std::uint8_t &value) {
-  std::from_chars_result result =
-      std::from_chars(begin, end, value, /*base=*/16);
-  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
-}
-#else
 template <class Base, class T>
 from_chars_result from_chars_generic(const char *begin, const char *end,
                                      T &value) {
@@ -175,7 +144,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end, T &value) {
   };
   return from_chars_generic<hexadecimal>(begin, end, value);
 }
-#endif
 
 namespace {
 template <class Char, class T>
