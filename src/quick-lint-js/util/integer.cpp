@@ -119,8 +119,6 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
       return result;
     }
   } else {
-    static_assert(std::is_unsigned_v<T>,
-                  "signed from_chars not yet implemented");
     static constexpr T result_max = std::numeric_limits<T>::max();
 
     if (!is_decimal_digit(*begin)) {
