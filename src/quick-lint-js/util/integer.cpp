@@ -70,25 +70,9 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
 #else
-namespace {
-bool is_decimal_digit(char c) noexcept { return '0' <= c && c <= '9'; }
-
-bool is_hexadecimal_digit(char c) noexcept {
-  return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
-         ('A' <= c && c <= 'F');
-}
-
-int parse_hexadecimal_digit(char c) noexcept {
-  QLJS_ASSERT(is_hexadecimal_digit(c));
-  if ('0' <= c && c <= '9') return c - '0';
-  if ('a' <= c && c <= 'f') return c - 'a' + 10;
-  if ('A' <= c && c <= 'F') return c - 'A' + 10;
-  QLJS_UNREACHABLE();
-}
-}
-
-template <class T>
-from_chars_result from_chars(const char *begin, const char *end, T &value) {
+template <class Base, class T>
+from_chars_result from_chars_generic(const char *begin, const char *end,
+                                     T &value) {
   if (end == begin) {
     return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
   }
@@ -103,7 +87,8 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
     bool is_negative = *begin == '-';
     if (is_negative) {
       unsigned_t unsigned_value;
-      from_chars_result result = from_chars(begin + 1, end, unsigned_value);
+      from_chars_result result =
+          from_chars_generic<Base>(begin + 1, end, unsigned_value);
       if (result.ec != std::errc()) {
         return result;
       }
@@ -116,7 +101,8 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
       return result;
     } else {
       unsigned_t unsigned_value;
-      from_chars_result result = from_chars(begin, end, unsigned_value);
+      from_chars_result result =
+          from_chars_generic<Base>(begin, end, unsigned_value);
       if (result.ec != std::errc()) {
         return result;
       }
@@ -130,26 +116,24 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
   } else {
     static constexpr T result_max = std::numeric_limits<T>::max();
 
-    if (!is_decimal_digit(*begin)) {
+    if (!Base::is_digit(*begin)) {
       return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
     }
     const char *c = begin;
     auto out_of_range = [&c, end]() -> from_chars_result {
-      for (; is_decimal_digit(*c) && c != end; ++c) {
+      for (; Base::is_digit(*c) && c != end; ++c) {
         // Skip digits.
       }
       return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
     };
 
     T result = 0;
-    for (; is_decimal_digit(*c) && c != end; ++c) {
-      if (c - begin >= integer_string_length<T>) {
+    for (; Base::is_digit(*c) && c != end; ++c) {
+      if (result > result_max / Base::radix()) {
         return out_of_range();
       }
-      if (result > result_max / 10) {
-        return out_of_range();
-      }
-      T new_result = static_cast<T>(result * 10 + static_cast<T>(*c - '0'));
+      T new_result = static_cast<T>(result * Base::radix() +
+                                    static_cast<T>(Base::parse_digit(*c)));
       if (new_result < result) {
         return out_of_range();
       }
@@ -160,42 +144,36 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
   }
 }
 
+template <class T>
+from_chars_result from_chars(const char *begin, const char *end, T &value) {
+  struct decimal {
+    static bool is_digit(char c) { return '0' <= c && c <= '9'; }
+    static int parse_digit(char c) {
+      QLJS_ASSERT(is_digit(c));
+      return c - '0';
+    }
+    static constexpr int radix() { return 10; }
+  };
+  return from_chars_generic<decimal>(begin, end, value);
+}
+
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value) {
-  using T = char32_t;
-  static_assert(std::is_unsigned_v<T>,
-                "signed from_chars_hex not yet implemented");
-  static constexpr T result_max = std::numeric_limits<T>::max();
-
-  if (begin == end) {
-    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
-  }
-
-  if (!is_hexadecimal_digit(*begin)) {
-    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
-  }
-  const char *c = begin;
-  auto out_of_range = [&c, end]() -> from_chars_result {
-    for (; is_hexadecimal_digit(*c) && c != end; ++c) {
-      // Skip digits.
+  struct hexadecimal {
+    static bool is_digit(char c) {
+      return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
+             ('A' <= c && c <= 'F');
     }
-    return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
+    static int parse_digit(char c) {
+      QLJS_ASSERT(is_digit(c));
+      if ('0' <= c && c <= '9') return c - '0';
+      if ('a' <= c && c <= 'f') return c - 'a' + 10;
+      if ('A' <= c && c <= 'F') return c - 'A' + 10;
+      QLJS_UNREACHABLE();
+    }
+    static constexpr int radix() { return 16; }
   };
-
-  T result = 0;
-  for (; is_hexadecimal_digit(*c) && c != end; ++c) {
-    if (result > result_max / 16) {
-      return out_of_range();
-    }
-    T new_result = static_cast<T>(result * 16 +
-                                  static_cast<T>(parse_hexadecimal_digit(*c)));
-    if (new_result < result) {
-      return out_of_range();
-    }
-    result = new_result;
-  }
-  value = result;
-  return from_chars_result{.ptr = c, .ec = std::errc{0}};
+  return from_chars_generic<hexadecimal>(begin, end, value);
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
