@@ -11,6 +11,7 @@
 #include <cstring>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/math-overflow.h>
@@ -75,6 +76,14 @@ bool is_decimal_digit(char c) noexcept { return '0' <= c && c <= '9'; }
 bool is_hexadecimal_digit(char c) noexcept {
   return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
          ('A' <= c && c <= 'F');
+}
+
+int parse_hexadecimal_digit(char c) noexcept {
+  QLJS_ASSERT(is_hexadecimal_digit(c));
+  if ('0' <= c && c <= '9') return c - '0';
+  if ('a' <= c && c <= 'f') return c - 'a' + 10;
+  if ('A' <= c && c <= 'F') return c - 'A' + 10;
+  QLJS_UNREACHABLE();
 }
 }
 
@@ -153,23 +162,40 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value) {
-  std::string buffer(begin, end);
-  if (!(buffer.size() >= 1 && is_hexadecimal_digit(buffer[0]))) {
+  using T = char32_t;
+  static_assert(std::is_unsigned_v<T>,
+                "signed from_chars_hex not yet implemented");
+  static constexpr T result_max = std::numeric_limits<T>::max();
+
+  if (begin == end) {
     return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
   }
-  if (buffer.size() >= 1 && (buffer[1] == 'x' || buffer[1] == 'X')) {
-    // Prevent strtol from parsing '0x' prefixes.
-    buffer[1] = '\0';
+
+  if (!is_hexadecimal_digit(*begin)) {
+    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
   }
-  char *endptr;
-  errno = 0;
-  long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/16);
-  const char *ptr = (endptr - buffer.c_str()) + begin;
-  if (errno == ERANGE || !in_range<char32_t>(long_value)) {
-    return from_chars_result{.ptr = ptr, .ec = std::errc::result_out_of_range};
+  const char *c = begin;
+  auto out_of_range = [&c, end]() -> from_chars_result {
+    for (; is_hexadecimal_digit(*c) && c != end; ++c) {
+      // Skip digits.
+    }
+    return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
+  };
+
+  T result = 0;
+  for (; is_hexadecimal_digit(*c) && c != end; ++c) {
+    if (result > result_max / 16) {
+      return out_of_range();
+    }
+    T new_result = static_cast<T>(result * 16 +
+                                  static_cast<T>(parse_hexadecimal_digit(*c)));
+    if (new_result < result) {
+      return out_of_range();
+    }
+    result = new_result;
   }
-  value = static_cast<char32_t>(long_value);
-  return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
+  value = result;
+  return from_chars_result{.ptr = c, .ec = std::errc{0}};
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
