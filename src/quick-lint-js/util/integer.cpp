@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -24,89 +25,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-declarations")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-template <class Char>
-struct from_chars_result {
-  const Char *ptr;
-  std::errc ec;
-};
-
-template <class Char, class Base, class T>
-from_chars_result<Char> from_chars_generic(const Char *begin, const Char *end,
-                                           T &value) {
-  if (end == begin) {
-    return from_chars_result<Char>{.ptr = begin,
-                                   .ec = std::errc::invalid_argument};
-  }
-
-  if constexpr (std::is_same_v<T, int>) {
-    using unsigned_t = std::make_unsigned_t<T>;
-    static constexpr T result_min = std::numeric_limits<T>::min();
-    static constexpr T result_max = std::numeric_limits<T>::max();
-    static constexpr unsigned_t abs_result_min =
-        static_cast<unsigned_t>(result_min);
-
-    bool is_negative = *begin == '-';
-    if (is_negative) {
-      unsigned_t unsigned_value;
-      from_chars_result<Char> result =
-          from_chars_generic<Char, Base>(begin + 1, end, unsigned_value);
-      if (result.ec != std::errc()) {
-        return result;
-      }
-      if (unsigned_value > abs_result_min) {
-        return from_chars_result<Char>{.ptr = result.ptr,
-                                       .ec = std::errc::result_out_of_range};
-      }
-      unsigned_value = -unsigned_value;
-      std::memcpy(&value, &unsigned_value, sizeof(T));
-      return result;
-    } else {
-      unsigned_t unsigned_value;
-      from_chars_result<Char> result =
-          from_chars_generic<Char, Base>(begin, end, unsigned_value);
-      if (result.ec != std::errc()) {
-        return result;
-      }
-      if (unsigned_value > static_cast<unsigned_t>(result_max)) {
-        return from_chars_result<Char>{.ptr = result.ptr,
-                                       .ec = std::errc::result_out_of_range};
-      }
-      value = static_cast<T>(unsigned_value);
-      return result;
-    }
-  } else {
-    static constexpr T result_max = std::numeric_limits<T>::max();
-
-    if (!Base::is_digit(*begin)) {
-      return from_chars_result<Char>{.ptr = begin,
-                                     .ec = std::errc::invalid_argument};
-    }
-    const Char *c = begin;
-    auto out_of_range = [&c, end]() -> from_chars_result<Char> {
-      for (; Base::is_digit(*c) && c != end; ++c) {
-        // Skip digits.
-      }
-      return from_chars_result<Char>{.ptr = c,
-                                     .ec = std::errc::result_out_of_range};
-    };
-
-    T result = 0;
-    for (; Base::is_digit(*c) && c != end; ++c) {
-      if (result > result_max / Base::radix()) {
-        return out_of_range();
-      }
-      T new_result = static_cast<T>(result * Base::radix() +
-                                    static_cast<T>(Base::parse_digit(*c)));
-      if (new_result < result) {
-        return out_of_range();
-      }
-      result = new_result;
-    }
-    value = result;
-    return from_chars_result<Char>{.ptr = c, .ec = std::errc{0}};
-  }
-}
-
 namespace {
 template <class Char, class T>
 Char *write_integer_generic(T value, Char *out, Char zero_digit) {
@@ -181,17 +99,78 @@ struct hexadecimal {
 template <class Char, class Base, class T>
 parse_integer_exact_error parse_integer_exact_generic(
     std::basic_string_view<Char> s, T &value) {
-  const Char *s_end = s.data() + s.size();
-  T temp;
-  from_chars_result<Char> result =
-      from_chars_generic<Char, Base>(s.data(), s_end, temp);
-  if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
+  const Char *begin = s.data();
+  const Char *end = s.data() + s.size();
+  if (end == begin) {
     return parse_integer_exact_error::invalid;
-  } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_integer_exact_error::out_of_range;
+  }
+
+  if constexpr (std::is_same_v<T, int>) {
+    using unsigned_t = std::make_unsigned_t<T>;
+    static constexpr T result_min = std::numeric_limits<T>::min();
+    static constexpr T result_max = std::numeric_limits<T>::max();
+    static constexpr unsigned_t abs_result_min =
+        static_cast<unsigned_t>(result_min);
+
+    bool is_negative = *begin == '-';
+    if (is_negative) {
+      unsigned_t unsigned_value;
+      parse_integer_exact_error parse_error =
+          parse_integer_exact_generic<Char, Base>(
+              make_string_view(begin + 1, end), unsigned_value);
+      if (parse_error != parse_integer_exact_error::ok) {
+        return parse_error;
+      }
+      if (unsigned_value > abs_result_min) {
+        return parse_integer_exact_error::out_of_range;
+      }
+      unsigned_value = -unsigned_value;
+      std::memcpy(&value, &unsigned_value, sizeof(T));
+      return parse_integer_exact_error::ok;
+    } else {
+      unsigned_t unsigned_value;
+      parse_integer_exact_error parse_error =
+          parse_integer_exact_generic<Char, Base>(make_string_view(begin, end),
+                                                  unsigned_value);
+      if (parse_error != parse_integer_exact_error::ok) {
+        return parse_error;
+      }
+      if (unsigned_value > static_cast<unsigned_t>(result_max)) {
+        return parse_integer_exact_error::out_of_range;
+      }
+      value = static_cast<T>(unsigned_value);
+      return parse_integer_exact_error::ok;
+    }
   } else {
-    QLJS_ASSERT(result.ec == std::errc());
-    value = temp;
+    static constexpr T result_max = std::numeric_limits<T>::max();
+
+    if (!Base::is_digit(*begin)) {
+      return parse_integer_exact_error::invalid;
+    }
+    const Char *c = begin;
+    auto out_of_range = [&c, end]() -> parse_integer_exact_error {
+      for (; Base::is_digit(*c) && c != end; ++c) {
+        // Skip digits.
+      }
+      return parse_integer_exact_error::out_of_range;
+    };
+
+    T result = 0;
+    for (; Base::is_digit(*c) && c != end; ++c) {
+      if (result > result_max / Base::radix()) {
+        return out_of_range();
+      }
+      T new_result = static_cast<T>(result * Base::radix() +
+                                    static_cast<T>(Base::parse_digit(*c)));
+      if (new_result < result) {
+        return out_of_range();
+      }
+      result = new_result;
+    }
+    if (c != end) {
+      return parse_integer_exact_error::invalid;
+    }
+    value = result;
     return parse_integer_exact_error::ok;
   }
 }
