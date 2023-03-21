@@ -99,9 +99,7 @@ struct hexadecimal {
 template <class Char, class Base, class T>
 parse_integer_exact_error parse_integer_exact_generic(
     std::basic_string_view<Char> s, T &value) {
-  const Char *begin = s.data();
-  const Char *end = s.data() + s.size();
-  if (end == begin) {
+  if (s.empty()) {
     return parse_integer_exact_error::invalid;
   }
 
@@ -112,12 +110,11 @@ parse_integer_exact_error parse_integer_exact_generic(
     static constexpr unsigned_t abs_result_min =
         static_cast<unsigned_t>(result_min);
 
-    bool is_negative = *begin == '-';
+    bool is_negative = s[0] == '-';
     if (is_negative) {
       unsigned_t unsigned_value;
       parse_integer_exact_error parse_error =
-          parse_integer_exact_generic<Char, Base>(
-              make_string_view(begin + 1, end), unsigned_value);
+          parse_integer_exact_generic<Char, Base>(s.substr(1), unsigned_value);
       if (parse_error != parse_integer_exact_error::ok) {
         return parse_error;
       }
@@ -130,8 +127,7 @@ parse_integer_exact_error parse_integer_exact_generic(
     } else {
       unsigned_t unsigned_value;
       parse_integer_exact_error parse_error =
-          parse_integer_exact_generic<Char, Base>(make_string_view(begin, end),
-                                                  unsigned_value);
+          parse_integer_exact_generic<Char, Base>(s, unsigned_value);
       if (parse_error != parse_integer_exact_error::ok) {
         return parse_error;
       }
@@ -144,10 +140,11 @@ parse_integer_exact_error parse_integer_exact_generic(
   } else {
     static constexpr T result_max = std::numeric_limits<T>::max();
 
-    if (!Base::is_digit(*begin)) {
+    if (!Base::is_digit(s[0])) {
       return parse_integer_exact_error::invalid;
     }
-    const Char *c = begin;
+    const Char *c = s.data();
+    const Char *end = s.data() + s.size();
     auto out_of_range = [&c, end]() -> parse_integer_exact_error {
       for (; Base::is_digit(*c) && c != end; ++c) {
         // Skip digits.
