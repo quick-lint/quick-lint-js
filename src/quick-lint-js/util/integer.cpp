@@ -157,8 +157,8 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
   return from_chars_generic<decimal>(begin, end, value);
 }
 
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 char32_t &value) {
+template <class T>
+from_chars_result from_chars_hex(const char *begin, const char *end, T &value) {
   struct hexadecimal {
     static bool is_digit(char c) {
       return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
@@ -174,21 +174,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
     static constexpr int radix() { return 16; }
   };
   return from_chars_generic<hexadecimal>(begin, end, value);
-}
-
-from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 std::uint8_t &value) {
-  char32_t long_value;
-  from_chars_result result = from_chars_hex(begin, end, long_value);
-  if (result.ec != std::errc()) {
-    return result;
-  }
-  if (!in_range<std::uint8_t>(long_value)) {
-    return from_chars_result{.ptr = result.ptr,
-                             .ec = std::errc::result_out_of_range};
-  }
-  value = static_cast<std::uint8_t>(long_value);
-  return result;
 }
 #endif
 
