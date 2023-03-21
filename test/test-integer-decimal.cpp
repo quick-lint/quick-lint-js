@@ -1,9 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/integer.h>
 #include <string_view>
@@ -70,42 +72,6 @@ TEST(test_parse_integer_exact_decimal_int, minimum_integer) {
   EXPECT_EQ(number, -2147483648LL);
 }
 
-TEST(test_parse_integer_exact_decimal_unsigned_short, near_maximum_integer) {
-  static_assert(std::numeric_limits<unsigned short>::max() == 65535);
-
-  {
-    unsigned short number;
-    parse_integer_exact_error parse_error =
-        parse_integer_exact("65534"sv, number);
-    EXPECT_EQ(number, 65534);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
-  }
-
-  {
-    unsigned short number;
-    parse_integer_exact_error parse_error =
-        parse_integer_exact("65530"sv, number);
-    EXPECT_EQ(number, 65530);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
-  }
-
-  {
-    unsigned short number;
-    parse_integer_exact_error parse_error =
-        parse_integer_exact("65526"sv, number);
-    EXPECT_EQ(number, 65526);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
-  }
-
-  {
-    unsigned short number;
-    parse_integer_exact_error parse_error =
-        parse_integer_exact("65525"sv, number);
-    EXPECT_EQ(number, 65525);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
-  }
-}
-
 TEST(test_parse_integer_exact_decimal_unsigned_short, maximum_integer) {
   static_assert(std::numeric_limits<unsigned short>::max() == 65535);
   unsigned short number;
@@ -142,6 +108,24 @@ TEST(test_parse_integer_exact_decimal_size_t, maximum_integer) {
     parse_integer_exact_error parse_error =
         parse_integer_exact("18446744073709551615"sv, number);
     EXPECT_EQ(number, 18446744073709551615ULL);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  }
+}
+
+TEST(test_parse_integer_exact_decimal_unsigned_short, exhausive_ok_SLOW) {
+  static constexpr unsigned short max_ushort =
+      std::numeric_limits<unsigned short>::max();
+  static_assert(max_ushort < std::numeric_limits<unsigned>::max());
+  for (unsigned i = 0; i <= max_ushort; ++i) {
+    std::array<char, integer_string_length<unsigned short>> buffer;
+    char* end = write_integer(i, buffer.data());
+    std::string_view string = make_string_view(buffer.data(), end);
+    SCOPED_TRACE(string);
+
+    unsigned short parsed_number;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact(string, parsed_number);
+    EXPECT_EQ(parsed_number, i);
     EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 }
