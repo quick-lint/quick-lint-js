@@ -186,12 +186,13 @@ wchar_t *write_integer(T value, wchar_t *out) {
   return write_integer_generic(value, out, L'0');
 }
 
-template <class T>
-parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
-  const char *s_end = s.data() + s.size();
+template <class Char, class T>
+parse_integer_exact_error parse_integer_exact_generic(
+    std::basic_string_view<Char> s, T &value) {
+  const Char *s_end = s.data() + s.size();
   T temp;
-  from_chars_result<char> result =
-      from_chars_decimal_generic(s.data(), s_end, temp);
+  from_chars_result<Char> result =
+      from_chars_decimal_generic<Char>(s.data(), s_end, temp);
   if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
     return parse_integer_exact_error::invalid;
   } else if (result.ec == std::errc::result_out_of_range) {
@@ -201,6 +202,11 @@ parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
     value = temp;
     return parse_integer_exact_error::ok;
   }
+}
+
+template <class T>
+parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
+  return parse_integer_exact_generic<char, T>(s, value);
 }
 
 template parse_integer_exact_error parse_integer_exact(std::string_view,
@@ -216,20 +222,7 @@ template parse_integer_exact_error parse_integer_exact(
 
 template <class T>
 parse_integer_exact_error parse_integer_exact(std::wstring_view s, T &value) {
-  // TODO(strager): Deduplicate with the std::string_view overload.
-  const wchar_t *s_end = s.data() + s.size();
-  T temp;
-  from_chars_result<wchar_t> result =
-      from_chars_decimal_generic(s.data(), s_end, temp);
-  if (result.ec == std::errc::invalid_argument || result.ptr != s_end) {
-    return parse_integer_exact_error::invalid;
-  } else if (result.ec == std::errc::result_out_of_range) {
-    return parse_integer_exact_error::out_of_range;
-  } else {
-    QLJS_ASSERT(result.ec == std::errc());
-    value = temp;
-    return parse_integer_exact_error::ok;
-  }
+  return parse_integer_exact_generic<wchar_t, T>(s, value);
 }
 
 template parse_integer_exact_error parse_integer_exact(std::wstring_view,
