@@ -121,6 +121,7 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
   } else {
     static_assert(std::is_unsigned_v<T>,
                   "signed from_chars not yet implemented");
+    static constexpr T result_max = std::numeric_limits<T>::max();
 
     if (!is_decimal_digit(*begin)) {
       return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
@@ -135,6 +136,12 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
 
     T result = 0;
     for (; is_decimal_digit(*c) && c != end; ++c) {
+      if (c - begin >= integer_string_length<T>) {
+        return out_of_range();
+      }
+      if (result > result_max / 10) {
+        return out_of_range();
+      }
       T new_result = static_cast<T>(result * 10 + static_cast<T>(*c - '0'));
       if (new_result < result) {
         return out_of_range();

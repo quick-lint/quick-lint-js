@@ -70,6 +70,42 @@ TEST(test_parse_integer_exact_decimal_int, minimum_integer) {
   EXPECT_EQ(number, -2147483648LL);
 }
 
+TEST(test_parse_integer_exact_decimal_unsigned_short, near_maximum_integer) {
+  static_assert(std::numeric_limits<unsigned short>::max() == 65535);
+
+  {
+    unsigned short number;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact("65534"sv, number);
+    EXPECT_EQ(number, 65534);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  }
+
+  {
+    unsigned short number;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact("65530"sv, number);
+    EXPECT_EQ(number, 65530);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  }
+
+  {
+    unsigned short number;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact("65526"sv, number);
+    EXPECT_EQ(number, 65526);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  }
+
+  {
+    unsigned short number;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact("65525"sv, number);
+    EXPECT_EQ(number, 65525);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  }
+}
+
 TEST(test_parse_integer_exact_decimal_unsigned_short, maximum_integer) {
   static_assert(std::numeric_limits<unsigned short>::max() == 65535);
   unsigned short number;
@@ -125,6 +161,26 @@ TEST(test_parse_integer_exact_decimal_unsigned_short, over_maximum_integer) {
     unsigned short number = 42;
     parse_integer_exact_error parse_error =
         parse_integer_exact("9999999999999999999"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  // These out-of-range examples might trick a naive overflow check. For
+  // example: (7281*10 + 7)%(1<<16) > 7281
+  for (std::string_view input : {"72817"sv, "72820"sv}) {
+    SCOPED_TRACE(input);
+    unsigned short number = 42;
+    parse_integer_exact_error parse_error = parse_integer_exact(input, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  // These out-of-range examples might trick a naive overflow check. For
+  // example: (43822*10 + 3)%(1<<16) > 43822
+  for (std::string_view input : {"100000"sv, "438223"sv, "655369"sv}) {
+    SCOPED_TRACE(input);
+    unsigned short number = 42;
+    parse_integer_exact_error parse_error = parse_integer_exact(input, number);
     EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
