@@ -118,8 +118,7 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
     static_assert(std::is_unsigned_v<T>,
                   "signed from_chars not yet implemented");
 
-    std::string buffer(begin, end);
-    if (!(buffer.size() >= 1 && is_decimal_digit(buffer[0]))) {
+    if (!(end > begin && is_decimal_digit(*begin))) {
       return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
     }
     const char *c = begin;
