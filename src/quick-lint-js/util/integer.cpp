@@ -163,8 +163,9 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
 }
 #endif
 
-template <class T>
-char *write_integer(T value, char *out) {
+namespace {
+template <class Char, class T>
+Char *write_integer_generic(T value, Char *out, Char zero_digit) {
   if constexpr (std::is_signed_v<T>) {
     std::make_unsigned_t<T> unsigned_value;
     std::memcpy(&unsigned_value, &value, sizeof(T));
@@ -172,38 +173,39 @@ char *write_integer(T value, char *out) {
       *out++ = '-';
       unsigned_value = -unsigned_value;
     }
-    return write_integer(unsigned_value, out);
+    return write_integer_generic(unsigned_value, out, zero_digit);
   } else {
     if (value == 0) {
       *out++ = '0';
     } else {
-      char *begin = out;
+      Char *begin = out;
       while (value > 0) {
         T digit = narrow_cast<T>(value % 10);
         value = narrow_cast<T>(value / 10);
-        *out++ = narrow_cast<char>('0' + digit);
+        *out++ = narrow_cast<Char>(static_cast<T>(zero_digit) + digit);
       }
       std::reverse(begin, out);
     }
     return out;
   }
 }
+}
+
+template <class T>
+char *write_integer(T value, char *out) {
+  return write_integer_generic(value, out, '0');
+}
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
 char8 *write_integer(T value, char8 *out) {
-  char *buffer = reinterpret_cast<char *>(out);
-  buffer = write_integer(value, buffer);
-  return reinterpret_cast<char8 *>(buffer);
+  return write_integer_generic(value, out, u8'0');
 }
 #endif
 
 template <class T>
 wchar_t *write_integer(T value, wchar_t *out) {
-  // TODO(strager): Write the output in-place.
-  std::array<char, integer_string_length<T>> buffer;
-  char *end = write_integer(value, buffer.data());
-  return std::copy(buffer.data(), end, out);
+  return write_integer_generic(value, out, L'0');
 }
 
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
