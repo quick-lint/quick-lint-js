@@ -396,6 +396,7 @@ template char8 *write_integer<unsigned long long>(unsigned long long,
 
 #if QLJS_HAVE_CHAR8_T
 template char *write_integer<unsigned short>(unsigned short, char *out);
+template char *write_integer<unsigned>(unsigned, char *out);
 #endif
 
 template wchar_t *write_integer<unsigned short>(unsigned short, wchar_t *out);

@@ -84,6 +84,7 @@ template <class T>
 char *write_integer(T, char *out);
 
 extern template char *write_integer<unsigned short>(unsigned short, char *out);
+extern template char *write_integer<unsigned>(unsigned, char *out);
 #endif
 
 template <class T>
