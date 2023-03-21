@@ -81,22 +81,39 @@ bool is_hexadecimal_digit(char c) noexcept {
 template <class T>
 from_chars_result from_chars(const char *begin, const char *end, T &value) {
   if constexpr (std::is_same_v<T, int>) {
-    std::string buffer(begin, end);
-    if (!((buffer.size() >= 1 && is_decimal_digit(buffer[0])) ||
-          (buffer.size() >= 2 && buffer[0] == '-' &&
-           is_decimal_digit(buffer[1])))) {
-      return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
+    using unsigned_t = std::make_unsigned_t<T>;
+    static constexpr T result_min = std::numeric_limits<T>::min();
+    static constexpr T result_max = std::numeric_limits<T>::max();
+    static constexpr unsigned_t abs_result_min =
+        static_cast<unsigned_t>(result_min);
+
+    bool is_negative = end > begin && *begin == '-';
+    if (is_negative) {
+      unsigned_t unsigned_value;
+      from_chars_result result = from_chars(begin + 1, end, unsigned_value);
+      if (result.ec != std::errc()) {
+        return result;
+      }
+      if (unsigned_value > abs_result_min) {
+        return from_chars_result{.ptr = result.ptr,
+                                 .ec = std::errc::result_out_of_range};
+      }
+      unsigned_value = -unsigned_value;
+      std::memcpy(&value, &unsigned_value, sizeof(T));
+      return result;
+    } else {
+      unsigned_t unsigned_value;
+      from_chars_result result = from_chars(begin, end, unsigned_value);
+      if (result.ec != std::errc()) {
+        return result;
+      }
+      if (unsigned_value > static_cast<unsigned_t>(result_max)) {
+        return from_chars_result{.ptr = result.ptr,
+                                 .ec = std::errc::result_out_of_range};
+      }
+      value = static_cast<T>(unsigned_value);
+      return result;
     }
-    char *endptr;
-    errno = 0;
-    long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/10);
-    const char *ptr = (endptr - buffer.c_str()) + begin;
-    if (errno == ERANGE || !in_range<int>(long_value)) {
-      return from_chars_result{.ptr = ptr,
-                               .ec = std::errc::result_out_of_range};
-    }
-    value = static_cast<int>(long_value);
-    return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
   } else {
     static_assert(std::is_unsigned_v<T>,
                   "signed from_chars not yet implemented");
