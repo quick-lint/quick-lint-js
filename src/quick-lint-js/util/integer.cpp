@@ -140,9 +140,6 @@ parse_integer_exact_error parse_integer_exact_generic(
   } else {
     static constexpr T result_max = std::numeric_limits<T>::max();
 
-    if (!Base::is_digit(s[0])) {
-      return parse_integer_exact_error::invalid;
-    }
     T result = 0;
     for (Char c : s) {
       if (!Base::is_digit(c)) {
