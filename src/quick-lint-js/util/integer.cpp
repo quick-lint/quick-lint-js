@@ -143,19 +143,16 @@ parse_integer_exact_error parse_integer_exact_generic(
     if (!Base::is_digit(s[0])) {
       return parse_integer_exact_error::invalid;
     }
-    const Char *c = s.data();
-    const Char *end = s.data() + s.size();
-
     T result = 0;
-    for (; c != end; ++c) {
-      if (!Base::is_digit(*c)) {
+    for (Char c : s) {
+      if (!Base::is_digit(c)) {
         return parse_integer_exact_error::invalid;
       }
       if (result > result_max / Base::radix()) {
         return parse_integer_exact_error::out_of_range;
       }
       T new_result = static_cast<T>(result * Base::radix() +
-                                    static_cast<T>(Base::parse_digit(*c)));
+                                    static_cast<T>(Base::parse_digit(c)));
       if (new_result < result) {
         return parse_integer_exact_error::out_of_range;
       }
