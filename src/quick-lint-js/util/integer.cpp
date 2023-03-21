@@ -80,6 +80,10 @@ bool is_hexadecimal_digit(char c) noexcept {
 
 template <class T>
 from_chars_result from_chars(const char *begin, const char *end, T &value) {
+  if (end == begin) {
+    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
+  }
+
   if constexpr (std::is_same_v<T, int>) {
     using unsigned_t = std::make_unsigned_t<T>;
     static constexpr T result_min = std::numeric_limits<T>::min();
@@ -87,7 +91,7 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
     static constexpr unsigned_t abs_result_min =
         static_cast<unsigned_t>(result_min);
 
-    bool is_negative = end > begin && *begin == '-';
+    bool is_negative = *begin == '-';
     if (is_negative) {
       unsigned_t unsigned_value;
       from_chars_result result = from_chars(begin + 1, end, unsigned_value);
@@ -118,7 +122,7 @@ from_chars_result from_chars(const char *begin, const char *end, T &value) {
     static_assert(std::is_unsigned_v<T>,
                   "signed from_chars not yet implemented");
 
-    if (!(end > begin && is_decimal_digit(*begin))) {
+    if (!is_decimal_digit(*begin)) {
       return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
     }
     const char *c = begin;
