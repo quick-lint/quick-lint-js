@@ -583,7 +583,8 @@ const language = "JavaScript";
             <tr>
               <th>JSX</th>
               <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+                <span aria-label="yes">✅</span
+                ><span class="show-mobile"><br />jsx</span>
               </td>
               <td class="meh">
                 <span aria-label="yes">✅</span
@@ -592,10 +593,13 @@ const language = "JavaScript";
                   title="with plugin"
                   class="footnote-marker"
                   >&nbsp;†</span
-                >
+                ><span class="show-mobile"><br />jsx</span>
               </td>
               <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good">
+                <span aria-label="yes">✅</span
+                ><span class="show-mobile"><br />jsx</span>
+              </td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
@@ -607,7 +611,7 @@ const language = "JavaScript";
                   title="planned"
                   class="footnote-marker"
                   >&nbsp;*</span
-                >
+                ><span class="show-mobile"><br />typescript</span>
               </td>
               <td class="meh">
                 <span aria-label="yes">✅</span
@@ -616,24 +620,32 @@ const language = "JavaScript";
                   title="with plugin"
                   class="footnote-marker"
                   >&nbsp;<a href="https://typescript-eslint.io/">†</a></span
-                >
+                ><span class="show-mobile"><br />typescript</span>
               </td>
               <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good">
+                <span aria-label="yes">✅</span
+                ><span class="show-mobile"><br />typescript</span>
+              </td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
 
             <tr>
               <th>lint rules</th>
-              <td class="meh quick-lint-js"><a href="errors/">minimal</a></td>
+              <td class="meh quick-lint-js">
+                <a href="errors/">minimal</a
+                ><span class="show-mobile"><br />lint rules</span>
+              </td>
               <td class="good">
-                <a href="https://eslint.org/docs/rules/">zillions</a>
+                <a href="https://eslint.org/docs/rules/">zillions</a
+                ><span class="show-mobile"><br />of lint rules</span>
               </td>
               <td class="meh">
                 <a href="https://jshint.com/docs/options/">some</a>
               </td>
               <td class="meh">
-                <a href="https://rome.tools/docs/lint/rules/">some</a>
+                <a href="https://rome.tools/docs/lint/rules/">some</a
+                ><span class="show-mobile"><br />lint rules</span>
               </td>
               <td class="meh"><a href="https://lint.deno.land/">some</a></td>
             </tr>
@@ -649,7 +661,7 @@ const language = "JavaScript";
             </tr>
           </tbody>
 
-          <tbody class="editors">
+          <tbody class="editors hide-in-mobile">
             <tr class="header">
               <th>feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
@@ -801,6 +813,38 @@ const language = "JavaScript";
             plugin
           </p>
         </figcaption>
+      </figure>
+      <figure id="editors-support" class="show-in-mobile">
+        <h2>Editor support</h2>
+        <div id="supported-editors">
+          <a href="install/vscode/" class="editors-support-buttons"
+            ><qljs-icon name="vscode" size="19" /><br /><br /><span
+              >VS code</span
+            ></a
+          >
+
+          <a href="install/vim/" class="editors-support-buttons"
+            ><qljs-icon name="vim" size="19" /><br /><br /><span>Vim</span></a
+          >
+          <a href="install/neovim/" class="editors-support-buttons"
+            ><qljs-icon name="neovim" size="19" /><br /><br /><span
+              >Neovim</span
+            ></a
+          >
+          <a href="install/sublime/" class="editors-support-buttons"
+            ><qljs-icon name="sublime-text" size="19" /><br /><br /><span
+              >Sublime Text</span
+            ></a
+          >
+          <a href="install/emacs/" class="editors-support-buttons"
+            ><qljs-icon name="emacs" size="19" /><br /><br /><span
+              >Emacs</span
+            ></a
+          >
+          <a href="install/kate/" class="editors-support-buttons"
+            ><qljs-icon name="kate" size="19" /><br /><br /><span>Kate</span></a
+          >
+        </div>
       </figure>
     </main>
 
