@@ -342,6 +342,9 @@ void compute_states(lex_tables& t) {
                 // unique_terminal states.
                 return a.kind != lex_state_kind::unique_terminal;
               }
+              if (a.history.size() != b.history.size()) {
+                return a.history.size() < b.history.size();
+              }
               return a.history < b.history;
             });
 

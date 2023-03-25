@@ -35,35 +35,35 @@ struct lex_tables {
   enum state {
     initial,
     bang,
-    bang_equal,
     percent,
     ampersand,
-    ampersand_ampersand,
     plus,
     equal,
-    equal_equal,
     greater,
-    greater_greater,
-    greater_greater_greater,
     circumflex,
     pipe,
+    bang_equal,
+    ampersand_ampersand,
+    equal_equal,
+    greater_greater,
     pipe_pipe,
+    greater_greater_greater,
 
     // Complete/terminal states:
-    done_bang_equal_equal,
     done_percent_equal,
-    done_ampersand_ampersand_equal,
     done_ampersand_equal,
     done_plus_plus,
     done_plus_equal,
-    done_equal_equal_equal,
     done_equal_greater,
     done_greater_equal,
-    done_greater_greater_equal,
-    done_greater_greater_greater_equal,
     done_circumflex_equal,
     done_pipe_equal,
+    done_bang_equal_equal,
+    done_ampersand_ampersand_equal,
+    done_equal_equal_equal,
+    done_greater_greater_equal,
     done_pipe_pipe_equal,
+    done_greater_greater_greater_equal,
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
@@ -77,7 +77,7 @@ struct lex_tables {
 
   // Returns true if there are no transitions from this state to any other
   // state.
-  static bool is_terminal_state(state s) { return s >= done_bang_equal_equal; }
+  static bool is_terminal_state(state s) { return s >= done_percent_equal; }
 
   static constexpr state
       transition_table[character_class_count][input_state_count] = {
@@ -85,163 +85,163 @@ struct lex_tables {
           {
               table_broken,  // (initial)(other) (invalid)
               retract,       // !(other)         (invalid)
-              retract,       // !=(other)        (invalid)
               retract,       // %(other)         (invalid)
               retract,       // &(other)         (invalid)
-              retract,       // &&(other)        (invalid)
               retract,       // +(other)         (invalid)
               retract,       // =(other)         (invalid)
-              retract,       // ==(other)        (invalid)
               retract,       // >(other)         (invalid)
-              retract,       // >>(other)        (invalid)
-              retract,       // >>>(other)       (invalid)
               retract,       // ^(other)         (invalid)
               retract,       // |(other)         (invalid)
+              retract,       // !=(other)        (invalid)
+              retract,       // &&(other)        (invalid)
+              retract,       // ==(other)        (invalid)
+              retract,       // >>(other)        (invalid)
               retract,       // ||(other)        (invalid)
+              retract,       // >>>(other)       (invalid)
           },
           // !
           {
               bang,     // (initial)!
               retract,  // !!               (invalid)
-              retract,  // !=!              (invalid)
               retract,  // %!               (invalid)
               retract,  // &!               (invalid)
-              retract,  // &&!              (invalid)
               retract,  // +!               (invalid)
               retract,  // =!               (invalid)
-              retract,  // ==!              (invalid)
               retract,  // >!               (invalid)
-              retract,  // >>!              (invalid)
-              retract,  // >>>!             (invalid)
               retract,  // ^!               (invalid)
               retract,  // |!               (invalid)
+              retract,  // !=!              (invalid)
+              retract,  // &&!              (invalid)
+              retract,  // ==!              (invalid)
+              retract,  // >>!              (invalid)
               retract,  // ||!              (invalid)
+              retract,  // >>>!             (invalid)
           },
           // %
           {
               percent,  // (initial)%
               retract,  // !%               (invalid)
-              retract,  // !=%              (invalid)
               retract,  // %%               (invalid)
               retract,  // &%               (invalid)
-              retract,  // &&%              (invalid)
               retract,  // +%               (invalid)
               retract,  // =%               (invalid)
-              retract,  // ==%              (invalid)
               retract,  // >%               (invalid)
-              retract,  // >>%              (invalid)
-              retract,  // >>>%             (invalid)
               retract,  // ^%               (invalid)
               retract,  // |%               (invalid)
+              retract,  // !=%              (invalid)
+              retract,  // &&%              (invalid)
+              retract,  // ==%              (invalid)
+              retract,  // >>%              (invalid)
               retract,  // ||%              (invalid)
+              retract,  // >>>%             (invalid)
           },
           // &
           {
               ampersand,            // (initial)&
               retract,              // !&               (invalid)
-              retract,              // !=&              (invalid)
               retract,              // %&               (invalid)
               ampersand_ampersand,  // & -> &&
-              retract,              // &&&              (invalid)
               retract,              // +&               (invalid)
               retract,              // =&               (invalid)
-              retract,              // ==&              (invalid)
               retract,              // >&               (invalid)
-              retract,              // >>&              (invalid)
-              retract,              // >>>&             (invalid)
               retract,              // ^&               (invalid)
               retract,              // |&               (invalid)
+              retract,              // !=&              (invalid)
+              retract,              // &&&              (invalid)
+              retract,              // ==&              (invalid)
+              retract,              // >>&              (invalid)
               retract,              // ||&              (invalid)
+              retract,              // >>>&             (invalid)
           },
           // +
           {
               plus,            // (initial)+
               retract,         // !+               (invalid)
-              retract,         // !=+              (invalid)
               retract,         // %+               (invalid)
               retract,         // &+               (invalid)
-              retract,         // &&+              (invalid)
               done_plus_plus,  // + -> ++
               retract,         // =+               (invalid)
-              retract,         // ==+              (invalid)
               retract,         // >+               (invalid)
-              retract,         // >>+              (invalid)
-              retract,         // >>>+             (invalid)
               retract,         // ^+               (invalid)
               retract,         // |+               (invalid)
+              retract,         // !=+              (invalid)
+              retract,         // &&+              (invalid)
+              retract,         // ==+              (invalid)
+              retract,         // >>+              (invalid)
               retract,         // ||+              (invalid)
+              retract,         // >>>+             (invalid)
           },
           // =
           {
               equal,                               // (initial)=
               bang_equal,                          // ! -> !=
-              done_bang_equal_equal,               // != -> !==
               done_percent_equal,                  // % -> %=
               done_ampersand_equal,                // & -> &=
-              done_ampersand_ampersand_equal,      // && -> &&=
               done_plus_equal,                     // + -> +=
               equal_equal,                         // = -> ==
-              done_equal_equal_equal,              // == -> ===
               done_greater_equal,                  // > -> >=
-              done_greater_greater_equal,          // >> -> >>=
-              done_greater_greater_greater_equal,  // >>> -> >>>=
               done_circumflex_equal,               // ^ -> ^=
               done_pipe_equal,                     // | -> |=
+              done_bang_equal_equal,               // != -> !==
+              done_ampersand_ampersand_equal,      // && -> &&=
+              done_equal_equal_equal,              // == -> ===
+              done_greater_greater_equal,          // >> -> >>=
               done_pipe_pipe_equal,                // || -> ||=
+              done_greater_greater_greater_equal,  // >>> -> >>>=
           },
           // >
           {
               greater,                  // (initial)>
               retract,                  // !>               (invalid)
-              retract,                  // !=>              (invalid)
               retract,                  // %>               (invalid)
               retract,                  // &>               (invalid)
-              retract,                  // &&>              (invalid)
               retract,                  // +>               (invalid)
               done_equal_greater,       // = -> =>
-              retract,                  // ==>              (invalid)
               greater_greater,          // > -> >>
-              greater_greater_greater,  // >> -> >>>
-              retract,                  // >>>>             (invalid)
               retract,                  // ^>               (invalid)
               retract,                  // |>               (invalid)
+              retract,                  // !=>              (invalid)
+              retract,                  // &&>              (invalid)
+              retract,                  // ==>              (invalid)
+              greater_greater_greater,  // >> -> >>>
               retract,                  // ||>              (invalid)
+              retract,                  // >>>>             (invalid)
           },
           // ^
           {
               circumflex,  // (initial)^
               retract,     // !^               (invalid)
-              retract,     // !=^              (invalid)
               retract,     // %^               (invalid)
               retract,     // &^               (invalid)
-              retract,     // &&^              (invalid)
               retract,     // +^               (invalid)
               retract,     // =^               (invalid)
-              retract,     // ==^              (invalid)
               retract,     // >^               (invalid)
-              retract,     // >>^              (invalid)
-              retract,     // >>>^             (invalid)
               retract,     // ^^               (invalid)
               retract,     // |^               (invalid)
+              retract,     // !=^              (invalid)
+              retract,     // &&^              (invalid)
+              retract,     // ==^              (invalid)
+              retract,     // >>^              (invalid)
               retract,     // ||^              (invalid)
+              retract,     // >>>^             (invalid)
           },
           // |
           {
               pipe,       // (initial)|
               retract,    // !|               (invalid)
-              retract,    // !=|              (invalid)
               retract,    // %|               (invalid)
               retract,    // &|               (invalid)
-              retract,    // &&|              (invalid)
               retract,    // +|               (invalid)
               retract,    // =|               (invalid)
-              retract,    // ==|              (invalid)
               retract,    // >|               (invalid)
-              retract,    // >>|              (invalid)
-              retract,    // >>>|             (invalid)
               retract,    // ^|               (invalid)
               pipe_pipe,  // | -> ||
+              retract,    // !=|              (invalid)
+              retract,    // &&|              (invalid)
+              retract,    // ==|              (invalid)
+              retract,    // >>|              (invalid)
               retract,    // |||              (invalid)
+              retract,    // >>>|             (invalid)
           },
   };
 
@@ -250,33 +250,33 @@ struct lex_tables {
   static constexpr token_type state_to_token[] = {
       invalid_token_type,                         // (initial)
       token_type::bang,                           // !
-      token_type::bang_equal,                     // !=
       token_type::percent,                        // %
       token_type::ampersand,                      // &
-      token_type::ampersand_ampersand,            // &&
       token_type::plus,                           // +
       token_type::equal,                          // =
-      token_type::equal_equal,                    // ==
       token_type::greater,                        // >
-      token_type::greater_greater,                // >>
-      token_type::greater_greater_greater,        // >>>
       token_type::circumflex,                     // ^
       token_type::pipe,                           // |
+      token_type::bang_equal,                     // !=
+      token_type::ampersand_ampersand,            // &&
+      token_type::equal_equal,                    // ==
+      token_type::greater_greater,                // >>
       token_type::pipe_pipe,                      // ||
-      token_type::bang_equal_equal,               // !==
+      token_type::greater_greater_greater,        // >>>
       token_type::percent_equal,                  // %=
-      token_type::ampersand_ampersand_equal,      // &&=
       token_type::ampersand_equal,                // &=
       token_type::plus_plus,                      // ++
       token_type::plus_equal,                     // +=
-      token_type::equal_equal_equal,              // ===
       token_type::equal_greater,                  // =>
       token_type::greater_equal,                  // >=
-      token_type::greater_greater_equal,          // >>=
-      token_type::greater_greater_greater_equal,  // >>>=
       token_type::circumflex_equal,               // ^=
       token_type::pipe_equal,                     // |=
+      token_type::bang_equal_equal,               // !==
+      token_type::ampersand_ampersand_equal,      // &&=
+      token_type::equal_equal_equal,              // ===
+      token_type::greater_greater_equal,          // >>=
       token_type::pipe_pipe_equal,                // ||=
+      token_type::greater_greater_greater_equal,  // >>>=
   };
 };
 }
