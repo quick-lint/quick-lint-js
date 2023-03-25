@@ -652,25 +652,23 @@ struct lex_tables {
 
     // Unrolling seems to improves performance slightly, at least on Arm
     // (Apple M1).
-    // GCC won't unroll even if given a #pragma, so unroll using the C
-    // preprocessor.
-    for (;;) {
-#define ONE_ITERATION                                                          \
-  do {                                                                         \
-    old_state = new_state;                                                     \
-    const lex_tables::state* transitions =                                     \
-        lex_tables::transition_table[lex_tables::character_class_table         \
-                                         [static_cast<std::uint8_t>(*input)]]; \
-    new_state = transitions[new_state];                                        \
-    input += 1;                                                                \
-    if (lex_tables::is_terminal_state(new_state)) {                            \
-      goto done_with_state_machine;                                            \
-    }                                                                          \
-  } while (false)
-      ONE_ITERATION;
-      ONE_ITERATION;
-      ONE_ITERATION;
-#undef ONE_ITERATION
+    for (;;) {)");
+  // GCC won't unroll even if given a #pragma, so unroll the loop ourselves.
+  for (int i = 0; i < 3; ++i) {
+    std::fprintf(f, "%s", R"(
+      {
+        old_state = new_state;
+        const lex_tables::state* transitions = lex_tables::transition_table
+            [lex_tables::character_class_table[static_cast<std::uint8_t>(
+                *input)]];
+        new_state = transitions[new_state];
+        input += 1;
+        if (lex_tables::is_terminal_state(new_state)) {
+          goto done_with_state_machine;
+        }
+      })");
+  }
+  std::fprintf(f, "%s", R"(
     }
   done_with_state_machine:
 
