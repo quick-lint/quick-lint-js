@@ -42,12 +42,37 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   )
 endif ()
 
+if (QUICK_LINT_JS_USE_BUILD_TOOLS)
+  add_executable(quick-lint-js-generate-lex-tables IMPORTED GLOBAL)
+  set_target_properties(
+    quick-lint-js-generate-lex-tables
+    PROPERTIES
+    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-lex-tables${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
+  )
+elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  quick_lint_js_add_executable(
+    quick-lint-js-generate-lex-tables
+    generate-lex-tables.cpp
+  )
+  set_target_properties(
+    quick-lint-js-generate-lex-tables
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ..
+  )
+  target_link_libraries(
+    quick-lint-js-generate-lex-tables
+    PRIVATE
+    quick-lint-js-tool-lib
+  )
+endif ()
+
 if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   add_custom_target(
     quick-lint-js-build-tools
     COMMENT "Building all quick-lint-js build-time tools"
     DEPENDS
     quick-lint-js-generate-lex-keyword
+    quick-lint-js-generate-lex-tables
   )
 endif ()
 

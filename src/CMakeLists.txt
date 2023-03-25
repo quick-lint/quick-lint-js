@@ -41,8 +41,20 @@ if (TARGET quick-lint-js-generate-lex-keyword)
       $<TARGET_FILE:quick-lint-js-generate-lex-keyword>
       --output
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-keyword-generated.cpp"
-    DEPENDS quick-lint-js-generate-lex-keyword 
+    DEPENDS quick-lint-js-generate-lex-keyword
     COMMENT "Generating keyword hash table for lex-keyword-generated.cpp"
+  )
+endif ()
+
+if (TARGET quick-lint-js-generate-lex-tables)
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-tables-generated.h"
+    COMMAND
+      $<TARGET_FILE:quick-lint-js-generate-lex-tables>
+      --output
+      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-tables-generated.h"
+    DEPENDS quick-lint-js-generate-lex-tables
+    COMMENT "Generating lexer tables for lex-tables-generated.h"
   )
 endif ()
 
@@ -56,6 +68,8 @@ quick_lint_js_add_library(
   quick-lint-js/container/string-view.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
+  quick-lint-js/port/char8.cpp
+  quick-lint-js/port/char8.h
   quick-lint-js/port/have.h
   quick-lint-js/port/in-range.h
   quick-lint-js/port/limits.h
@@ -153,7 +167,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
-  quick-lint-js/fe/lex-tables.h
+  quick-lint-js/fe/lex-tables-generated.h
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
@@ -241,8 +255,6 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/outgoing-json-rpc-message-queue.h
   quick-lint-js/port/attribute.h
   quick-lint-js/port/bit.h
-  quick-lint-js/port/char8.cpp
-  quick-lint-js/port/char8.h
   quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h

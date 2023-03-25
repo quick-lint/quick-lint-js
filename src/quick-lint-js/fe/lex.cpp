@@ -13,7 +13,7 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
-#include <quick-lint-js/fe/lex-tables.h>
+#include <quick-lint-js/fe/lex-tables-generated.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/bit.h>
@@ -305,6 +305,7 @@ bool lexer::try_parse_current_token() {
     break;
 
 #if QLJS_FEATURE_LEX_TABLES
+  // NOTE[lex-table-lookup]:
   case '!':
   case '%':
   case '&':
