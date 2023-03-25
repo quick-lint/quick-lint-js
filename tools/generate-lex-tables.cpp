@@ -456,7 +456,7 @@ struct lex_tables {
                t.input_character_class_count);
 
   std::fprintf(f, "%s", R"(
-  enum state {
+  enum state : std::uint8_t {
 )");
   for (std::size_t i = 0; i < t.states.size(); ++i) {
     const lex_state& state = t.states[i];

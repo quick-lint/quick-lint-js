@@ -32,7 +32,7 @@ struct lex_tables {
   };
   static constexpr int character_class_count = 8;
 
-  enum state {
+  enum state : std::uint8_t {
     // Initial states:
     bang,
     percent,
