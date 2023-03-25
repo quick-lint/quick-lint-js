@@ -68,6 +68,7 @@ quick_lint_js_add_executable(
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp
+  test-lex-tables.cpp
   test-lex.cpp
   test-linked-bump-allocator.cpp
   test-linked-vector.cpp
