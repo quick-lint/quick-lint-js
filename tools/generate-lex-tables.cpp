@@ -208,7 +208,7 @@ struct character_class_table {
 
 struct single_state_transition_table {
   // Key: character class
-  // Value: new state index, or retract or table_broken
+  // Value: new state index, or retract
   std::vector<std::size_t> transitions;
 
   std::size_t& operator[](character_class c_class) {
@@ -220,7 +220,6 @@ struct single_state_transition_table {
   }
 
   static constexpr std::size_t retract = 0xffffffffU;
-  static constexpr std::size_t table_broken = 0xfffffffeU;
 };
 
 struct state_to_token_entry {
@@ -255,7 +254,7 @@ struct lex_tables {
       return narrow_cast<std::size_t>(it - this->states.begin());
     }
     QLJS_ASSERT(false);
-    return single_state_transition_table::table_broken;
+    return single_state_transition_table::retract;
   }
 
   // Returns a string for this character class suitable for a C++ comment.
@@ -476,10 +475,6 @@ struct lex_tables {
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
     retract,
-
-    // Indicates a bug in the table. The state machine should never enter this
-    // state.
-    table_broken,
   };
 )");
 
@@ -539,9 +534,6 @@ struct lex_tables {
       tr.old_state = &t.states[old_state_index];
       if (new_state_index == single_state_transition_table::retract) {
         tr.new_state_name = "retract";
-      } else if (new_state_index ==
-                 single_state_transition_table::table_broken) {
-        tr.new_state_name = "table_broken";
       } else {
         const lex_state& new_state = t.states[new_state_index];
         tr.new_state_comment = new_state.comment();

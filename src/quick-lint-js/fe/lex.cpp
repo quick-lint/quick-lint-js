@@ -326,7 +326,6 @@ bool lexer::try_parse_current_token() {
     // NOTE[lex-table-initial].
     lex_tables::state new_state = static_cast<lex_tables::state>(
         lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
-    QLJS_ASSERT(new_state != lex_tables::state::table_broken);
     QLJS_ASSERT(new_state != lex_tables::state::retract);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
@@ -345,7 +344,6 @@ bool lexer::try_parse_current_token() {
         lex_tables::transition_table[lex_tables::character_class_table         \
                                          [static_cast<std::uint8_t>(*input)]]; \
     new_state = transitions[new_state];                                        \
-    QLJS_ASSERT(new_state != lex_tables::state::table_broken);                 \
     input += 1;                                                                \
     if (lex_tables::is_terminal_state(new_state)) {                            \
       goto done_with_state_machine;                                            \

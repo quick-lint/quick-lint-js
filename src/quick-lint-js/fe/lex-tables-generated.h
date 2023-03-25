@@ -70,10 +70,6 @@ struct lex_tables {
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
     retract,
-
-    // Indicates a bug in the table. The state machine should never enter this
-    // state.
-    table_broken,
   };
   static constexpr int input_state_count = 14;
 
