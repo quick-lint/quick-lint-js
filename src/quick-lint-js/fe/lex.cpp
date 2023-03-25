@@ -13,6 +13,7 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/lex-tables.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/bit.h>
@@ -303,6 +304,54 @@ bool lexer::try_parse_current_token() {
     this->last_token_.end = this->input_;
     break;
 
+#if QLJS_FEATURE_LEX_TABLES
+  case '!':
+  case '%':
+  case '&':
+  case '+':
+  case '=':
+  case '>':
+  case '^':
+  case '|': {
+    const char8* input = this->input_;
+    lex_tables::state old_state;
+    lex_tables::state new_state = lex_tables::state::initial;
+
+    // Unrolling seems to improves performance slightly, at least on Arm
+    // (Apple M1).
+    // GCC won't unroll even if given a #pragma, so unroll using the C
+    // preprocessor.
+    for (;;) {
+#define ONE_ITERATION                                                          \
+  do {                                                                         \
+    old_state = new_state;                                                     \
+    const lex_tables::state* transitions =                                     \
+        lex_tables::transition_table[lex_tables::character_class_table         \
+                                         [static_cast<std::uint8_t>(*input)]]; \
+    new_state = transitions[new_state];                                        \
+    QLJS_ASSERT(new_state != lex_tables::state::table_broken);                 \
+    input += 1;                                                                \
+    if (lex_tables::is_terminal_state(new_state)) {                            \
+      goto done_with_state_machine;                                            \
+    }                                                                          \
+  } while (false)
+      ONE_ITERATION;
+      ONE_ITERATION;
+      ONE_ITERATION;
+      ONE_ITERATION;
+#undef ONE_ITERATION
+    }
+  done_with_state_machine:
+
+    bool retract = new_state == lex_tables::state::retract;
+    this->last_token_.type =
+        lex_tables::state_to_token[retract ? old_state : new_state];
+    input -= retract ? 1 : 0;
+    this->input_ = input;
+    this->last_token_.end = input;
+    break;
+  }
+#else
   case '=':
     if (this->input_[1] == '=') {
       if (this->input_[2] == '=') {
@@ -333,30 +382,6 @@ bool lexer::try_parse_current_token() {
       }
     } else {
       this->last_token_.type = token_type::bang;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '<':
-    if (this->input_[1] == '!' && this->input_[2] == '-' &&
-        this->input_[3] == '-') {
-      this->input_ += 4;
-      this->skip_line_comment_body();
-      return false;
-    } else if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::less_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '<') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::less_less_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::less_less;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::less;
       this->input_ += 1;
     }
     this->last_token_.end = this->input_;
@@ -398,6 +423,91 @@ bool lexer::try_parse_current_token() {
       this->input_ += 2;
     } else {
       this->last_token_.type = token_type::plus;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '^':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::circumflex_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::circumflex;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '%':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::percent_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::percent;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '&':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::ampersand_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '&') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::ampersand_ampersand_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::ampersand_ampersand;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::ampersand;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '|':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::pipe_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '|') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::pipe_pipe_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::pipe_pipe;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::pipe;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+#endif
+
+  case '<':
+    if (this->input_[1] == '!' && this->input_[2] == '-' &&
+        this->input_[3] == '-') {
+      this->input_ += 4;
+      this->skip_line_comment_body();
+      return false;
+    } else if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::less_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '<') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::less_less_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::less_less;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::less;
       this->input_ += 1;
     }
     this->last_token_.end = this->input_;
@@ -480,66 +590,6 @@ bool lexer::try_parse_current_token() {
       return false;
     } else {
       this->last_token_.type = token_type::slash;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '^':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::circumflex_equal;
-      this->input_ += 2;
-    } else {
-      this->last_token_.type = token_type::circumflex;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '%':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::percent_equal;
-      this->input_ += 2;
-    } else {
-      this->last_token_.type = token_type::percent;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '&':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::ampersand_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '&') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::ampersand_ampersand_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::ampersand_ampersand;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::ampersand;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '|':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::pipe_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '|') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::pipe_pipe_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::pipe_pipe;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::pipe;
       this->input_ += 1;
     }
     this->last_token_.end = this->input_;

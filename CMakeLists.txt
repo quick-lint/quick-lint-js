@@ -120,6 +120,13 @@ option(
   FALSE
 )
 
+# TODO(strager): Delete this option.
+option(
+  QUICK_LINT_JS_FEATURE_LEX_TABLES
+  "(internal development only) Use new (slower) table-based lexer"
+  FALSE
+)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
