@@ -804,19 +804,19 @@ struct lex_tables {
   }
 
   done_retract : {
+    input -= 1;
     QLJS_WARNING_PUSH
     // Clang thinks that old_state is uninitialized if we goto done_retract
     // before assigning to it. However, if we didn't assign to old_state, we
     // also asserted that new_state != lex_tables::state::retract, thus we
     // shouldn't reach here anyway.
     QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
-    l->last_token_.type =
-        lex_tables::state_to_token[old_state & state_data_mask];
+    new_state = old_state;
     QLJS_WARNING_POP
-    input -= 1;
-    l->input_ = input;
-    l->last_token_.end = input;
-    return true;
+    auto new_dispatcher = (new_state >> state_data_bits);
+    QLJS_ASSERT(new_dispatcher == 2 /*state_dispatcher_done_unique_terminal*/
+                || new_dispatcher == 0 /*state_dispatcher_transition*/);
+    goto done_unique_terminal;
   }
   }
 )");
