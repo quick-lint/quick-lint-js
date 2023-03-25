@@ -22,6 +22,7 @@
 
 namespace quick_lint_js {
 class diag_reporter;
+struct lex_tables;
 struct lexer_transaction;
 
 // A lexer reads JavaScript source code one token at a time.
@@ -334,6 +335,8 @@ class lexer {
   monotonic_allocator allocator_{"lexer::allocator_"};
   linked_bump_allocator<alignof(void*)> transaction_allocator_{
       "lexer::transaction_allocator_"};
+
+  friend struct lex_tables;
 };
 
 struct lexer_transaction {

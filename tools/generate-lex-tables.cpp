@@ -11,8 +11,8 @@
 //
 // == State machine lookup algorithm ==
 //
-// The code currently lives inside lexer::try_parse_current_token. See
-// NOTE[lex-table-lookup].
+// The lookup algorithm code lives in the generated code as
+// lex_tables::try_parse_current_token. See NOTE[lex-table-lookup].
 //
 // The algorithm requires three tables which are accessed in the following
 // order:
@@ -465,7 +465,11 @@ void dump_table_code(const lex_tables& t, ::FILE* f) {
 #define QUICK_LINT_JS_FE_LEX_TABLES_GENERATED_H
 
 #include <cstdint>
+#include <quick-lint-js/assert.h>
+#include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 
 namespace quick_lint_js {
 struct lex_tables {
@@ -625,6 +629,67 @@ struct lex_tables {
         entry.comment.c_str());
   }
   std::fprintf(f, "  };\n");
+
+  std::fprintf(f, "%s", R"(
+  // NOTE[lex-table-lookup]:
+  static bool try_parse_current_token(lexer* l) {
+    const char8* input = l->input_;
+
+    lex_tables::state old_state;
+
+    // The first lookup is special. In normal DFA tables, there is on initial
+    // state. In our table, there are many initial states. The character class
+    // of the first character corresponds to the initial state. Therefore, for
+    // the first character, do not use lex_tables::transition_table. See
+    // NOTE[lex-table-initial].
+    lex_tables::state new_state = static_cast<lex_tables::state>(
+        lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
+    QLJS_ASSERT(new_state != lex_tables::state::retract);
+    input += 1;
+    if (lex_tables::is_initial_state_terminal(new_state)) {
+      goto done_with_state_machine;
+    }
+
+    // Unrolling seems to improves performance slightly, at least on Arm
+    // (Apple M1).
+    // GCC won't unroll even if given a #pragma, so unroll using the C
+    // preprocessor.
+    for (;;) {
+#define ONE_ITERATION                                                          \
+  do {                                                                         \
+    old_state = new_state;                                                     \
+    const lex_tables::state* transitions =                                     \
+        lex_tables::transition_table[lex_tables::character_class_table         \
+                                         [static_cast<std::uint8_t>(*input)]]; \
+    new_state = transitions[new_state];                                        \
+    input += 1;                                                                \
+    if (lex_tables::is_terminal_state(new_state)) {                            \
+      goto done_with_state_machine;                                            \
+    }                                                                          \
+  } while (false)
+      ONE_ITERATION;
+      ONE_ITERATION;
+      ONE_ITERATION;
+#undef ONE_ITERATION
+    }
+  done_with_state_machine:
+
+    bool retract = new_state == lex_tables::state::retract;
+    QLJS_WARNING_PUSH
+    // Clang thinks that old_state is uninitialized if we goto
+    // done_with_state_machine before assigning to it. However, if we didn't
+    // assign to old_state, we also asserted that
+    // new_state != lex_tables::state::retract, thus retract is false.
+    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+    l->last_token_.type =
+        lex_tables::state_to_token[retract ? old_state : new_state];
+    QLJS_WARNING_POP
+    input -= retract ? 1 : 0;
+    l->input_ = input;
+    l->last_token_.end = input;
+    return true;
+  }
+)");
 
   std::fprintf(f, "%s", R"(};
 }
