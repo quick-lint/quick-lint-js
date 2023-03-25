@@ -13,27 +13,27 @@ namespace quick_lint_js {
 struct lex_tables {
   // See NOTE[lex-table-class].
   static constexpr std::uint8_t character_class_table[256] = {
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 1, 0, 0, 0, 2, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 0, 8, 8, 8, 1, 2, 8, 8, 8, 8, 3, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 5, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
   };
-  static constexpr int character_class_count = 9;
+  static constexpr int character_class_count = 8;
 
   enum state {
-    initial,
+    // Initial states:
     bang,
     percent,
     ampersand,
@@ -42,6 +42,8 @@ struct lex_tables {
     greater,
     circumflex,
     pipe,
+
+    // Possibly-incomplete states:
     bang_equal,
     ampersand_ampersand,
     equal_equal,
@@ -73,35 +75,33 @@ struct lex_tables {
     // state.
     table_broken,
   };
-  static constexpr int input_state_count = 15;
+  static constexpr int input_state_count = 14;
+
+  // clang-format off
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == state::bang);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == state::percent);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'&')] == state::ampersand);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'+')] == state::plus);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'=')] == state::equal);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'>')] == state::greater);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'^')] == state::circumflex);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == state::pipe);
+  // clang-format on
 
   // Returns true if there are no transitions from this state to any other
   // state.
   static bool is_terminal_state(state s) { return s >= done_percent_equal; }
 
+  // Returns true if there are no transitions from this state to any other
+  // state.
+  //
+  // Precondition: s is an initial state.
+  static bool is_initial_state_terminal(state s) { return s >= bang_equal; }
+
   static constexpr state
-      transition_table[character_class_count][input_state_count] = {
-          // (other)
-          {
-              table_broken,  // (initial)(other) (invalid)
-              retract,       // !(other)         (invalid)
-              retract,       // %(other)         (invalid)
-              retract,       // &(other)         (invalid)
-              retract,       // +(other)         (invalid)
-              retract,       // =(other)         (invalid)
-              retract,       // >(other)         (invalid)
-              retract,       // ^(other)         (invalid)
-              retract,       // |(other)         (invalid)
-              retract,       // !=(other)        (invalid)
-              retract,       // &&(other)        (invalid)
-              retract,       // ==(other)        (invalid)
-              retract,       // >>(other)        (invalid)
-              retract,       // ||(other)        (invalid)
-              retract,       // >>>(other)       (invalid)
-          },
+      transition_table[character_class_count + 1][input_state_count] = {
           // !
           {
-              bang,     // (initial)!
               retract,  // !!               (invalid)
               retract,  // %!               (invalid)
               retract,  // &!               (invalid)
@@ -119,7 +119,6 @@ struct lex_tables {
           },
           // %
           {
-              percent,  // (initial)%
               retract,  // !%               (invalid)
               retract,  // %%               (invalid)
               retract,  // &%               (invalid)
@@ -137,7 +136,6 @@ struct lex_tables {
           },
           // &
           {
-              ampersand,            // (initial)&
               retract,              // !&               (invalid)
               retract,              // %&               (invalid)
               ampersand_ampersand,  // & -> &&
@@ -155,7 +153,6 @@ struct lex_tables {
           },
           // +
           {
-              plus,            // (initial)+
               retract,         // !+               (invalid)
               retract,         // %+               (invalid)
               retract,         // &+               (invalid)
@@ -173,7 +170,6 @@ struct lex_tables {
           },
           // =
           {
-              equal,                               // (initial)=
               bang_equal,                          // ! -> !=
               done_percent_equal,                  // % -> %=
               done_ampersand_equal,                // & -> &=
@@ -191,7 +187,6 @@ struct lex_tables {
           },
           // >
           {
-              greater,                  // (initial)>
               retract,                  // !>               (invalid)
               retract,                  // %>               (invalid)
               retract,                  // &>               (invalid)
@@ -209,25 +204,23 @@ struct lex_tables {
           },
           // ^
           {
-              circumflex,  // (initial)^
-              retract,     // !^               (invalid)
-              retract,     // %^               (invalid)
-              retract,     // &^               (invalid)
-              retract,     // +^               (invalid)
-              retract,     // =^               (invalid)
-              retract,     // >^               (invalid)
-              retract,     // ^^               (invalid)
-              retract,     // |^               (invalid)
-              retract,     // !=^              (invalid)
-              retract,     // &&^              (invalid)
-              retract,     // ==^              (invalid)
-              retract,     // >>^              (invalid)
-              retract,     // ||^              (invalid)
-              retract,     // >>>^             (invalid)
+              retract,  // !^               (invalid)
+              retract,  // %^               (invalid)
+              retract,  // &^               (invalid)
+              retract,  // +^               (invalid)
+              retract,  // =^               (invalid)
+              retract,  // >^               (invalid)
+              retract,  // ^^               (invalid)
+              retract,  // |^               (invalid)
+              retract,  // !=^              (invalid)
+              retract,  // &&^              (invalid)
+              retract,  // ==^              (invalid)
+              retract,  // >>^              (invalid)
+              retract,  // ||^              (invalid)
+              retract,  // >>>^             (invalid)
           },
           // |
           {
-              pipe,       // (initial)|
               retract,    // !|               (invalid)
               retract,    // %|               (invalid)
               retract,    // &|               (invalid)
@@ -243,12 +236,28 @@ struct lex_tables {
               retract,    // |||              (invalid)
               retract,    // >>>|             (invalid)
           },
+          // (other)
+          {
+              retract,  // !(other)         (invalid)
+              retract,  // %(other)         (invalid)
+              retract,  // &(other)         (invalid)
+              retract,  // +(other)         (invalid)
+              retract,  // =(other)         (invalid)
+              retract,  // >(other)         (invalid)
+              retract,  // ^(other)         (invalid)
+              retract,  // |(other)         (invalid)
+              retract,  // !=(other)        (invalid)
+              retract,  // &&(other)        (invalid)
+              retract,  // ==(other)        (invalid)
+              retract,  // >>(other)        (invalid)
+              retract,  // ||(other)        (invalid)
+              retract,  // >>>(other)       (invalid)
+          },
   };
 
   static constexpr token_type invalid_token_type = token_type::identifier;
   // See NOTE[lex-table-token-type].
   static constexpr token_type state_to_token[] = {
-      invalid_token_type,                         // (initial)
       token_type::bang,                           // !
       token_type::percent,                        // %
       token_type::ampersand,                      // &

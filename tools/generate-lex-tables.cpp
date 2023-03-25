@@ -34,19 +34,24 @@
 // NOTE[lex-table-class]: To reduce the size of the transition table, input
 // bytes are first classified into a small number of equivalence classes via
 // character_class_table. Currently, bytes not part of symbols (i.e. almost all
-// bytes) are classified to equivalence class #0, and all transitions for
-// equivalence class #0 lead to the 'retract' state.
+// bytes) are classified to a special equivalence class, and all transitions for
+// that special equivalence class lead to the 'retract' state.
+//
+// NOTE[lex-table-initial]: In normal DFA tables, there is on initial state.
+// In our table, there are many initial states. The numbers used for character
+// classifications are identical to the numbers used for these initial states.
+// A normal DFA table would do the following to determine the first transition:
+//     transition_table[character_class_table[input[0]]][state::initial]
+// However, because of our initial state optimization, we need fewer lookups to
+// get the same answer:
+//     /*            */ character_class_table[input[0]]
+// This removes one table lookup. It also shrinks the transition table slightly.
 //
 // == Improvements ==
 //
 // NOTE[lex-table-token-type]: For now, classification only returns a valid
 // token type. This should be changed in the future if non-trivial cases which
 // require further processing need to be supported.
-//
-// I think we can get rid of the 'initial' state by using the character
-// equivalence class number as the state number. This would reduce one dependent
-// memory load for every lookup, possibly improving performance. It would also
-// shrink the transition table slightly.
 
 #include <algorithm>
 #include <cerrno>
@@ -74,6 +79,7 @@ std::vector<string8_view> symbols = {
 };
 
 const char* identifier_for_character(char8 symbol);
+std::string make_cpp_string(string8_view);
 std::string make_comment(string8_view);
 
 struct generate_lex_tables_options {
@@ -99,13 +105,8 @@ struct lex_state {
            this->kind == lex_state_kind::non_unique_terminal;
   }
 
-  bool is_initial() const { return this->history.empty(); }
-
   // Returns the C++ source code for this state's lex_tables::state.
   std::string name() const {
-    if (is_initial()) {
-      return "initial";
-    }
     std::string name;
     if (this->kind == lex_state_kind::unique_terminal) {
       name += "done_";
@@ -139,12 +140,7 @@ struct lex_state {
   }
 
   // Returns a string for this state's history suitable for a C++ comment.
-  std::string comment() const {
-    if (this->is_initial()) {
-      return "(initial)";
-    }
-    return make_comment(this->history);
-  }
+  std::string comment() const { return make_comment(this->history); }
 };
 
 generate_lex_tables_options parse_generate_lex_tables_options(int argc,
@@ -170,9 +166,12 @@ generate_lex_tables_options parse_generate_lex_tables_options(int argc,
 }
 
 struct character_class {
-  std::uint8_t number = 0;
+  explicit character_class() {}
 
-  bool is_other() const { return this->number == 0; }
+  explicit character_class(std::size_t number)
+      : number(narrow_cast<std::uint8_t>(number)) {}
+
+  std::uint8_t number;
 
   friend bool operator==(character_class lhs, character_class rhs) {
     return lhs.number == rhs.number;
@@ -184,7 +183,7 @@ struct character_class {
 };
 
 struct character_class_table {
-  character_class byte_to_class[256] = {};
+  character_class byte_to_class[256];
 
   std::size_t size() const { return std::size(this->byte_to_class); }
 
@@ -196,7 +195,7 @@ struct character_class_table {
     return this->byte_to_class[static_cast<std::uint8_t>(c)];
   }
 
-  character_class& operator[](std::size_t c) {
+  [[maybe_unused]] character_class& operator[](std::size_t c) {
     QLJS_ASSERT(c < this->size());
     return this->byte_to_class[c];
   }
@@ -231,7 +230,7 @@ struct state_to_token_entry {
 
 struct lex_tables {
   character_class_table character_classes;
-  character_class max_character_class = character_class();
+  std::size_t input_character_class_count;
 
   // states is partitioned by lex_state::kind: All states with
   // lex_state_kind::intermediate or lex_state_kind::non_unique_terminal come
@@ -261,7 +260,7 @@ struct lex_tables {
 
   // Returns a string for this character class suitable for a C++ comment.
   std::string character_class_comment(character_class c_class) const {
-    if (c_class.is_other()) {
+    if (c_class.number == this->input_character_class_count) {
       return "(other)";
     }
     for (std::size_t i = 0; i < this->character_classes.size(); ++i) {
@@ -276,13 +275,29 @@ struct lex_tables {
 };
 
 void classify_characters(lex_tables& t) {
-  for (std::size_t c = 0; c < t.character_classes.size(); ++c) {
-    for (string8_view symbol : symbols) {
-      if (symbol.find(static_cast<char8>(c)) != symbol.npos) {
-        ++t.max_character_class.number;
-        t.character_classes[c] = t.max_character_class;
-        break;
+  character_class unallocated(0xff);
+  std::fill(std::begin(t.character_classes.byte_to_class),
+            std::end(t.character_classes.byte_to_class), unallocated);
+
+  t.input_character_class_count = 0;
+  for (std::size_t i = 0; i < t.states.size(); ++i) {
+    const lex_state& state = t.states[i];
+    if (state.history.size() == 1) {
+      character_class c_class(i);
+      t.character_classes[state.history[0]] = c_class;
+      if (state.kind != lex_state_kind::unique_terminal) {
+        t.input_character_class_count = i + 1;
       }
+    }
+  }
+  QLJS_ASSERT(t.input_character_class_count <= unallocated.number);
+
+  // The catch-all character class is numbered one higher than any other
+  // character class. Fill in unallocated slots with this number.
+  character_class other_c_class(t.input_character_class_count);
+  for (character_class& c_class : t.character_classes.byte_to_class) {
+    if (c_class == unallocated) {
+      c_class = other_c_class;
     }
   }
 }
@@ -297,23 +312,33 @@ bool is_strict_prefix_of_any_symbol(string8_view s) {
 }
 
 void compute_states(lex_tables& t) {
-  // Initial state.
-  t.states.push_back(lex_state{
-      .kind = lex_state_kind::intermediate,
-      .history = u8""_sv,
-  });
-
   // Find all terminal (unique_terminal and non_unique_terminal) states.
   for (string8_view symbol : symbols) {
+    bool is_unique = true;
+    if (is_strict_prefix_of_any_symbol(symbol)) {
+      is_unique = false;
+    }
+    if (symbol.size() == 1) {
+      // Because of our initial state optimization
+      // (see NOTE[lex-table-initial]), we must treat 1-character unique
+      // terminal symbols as non-unique. If we don't, then the character class
+      // will be a high number, and a high number will make our tables big. We
+      // force 1-character unique terminal symbols to transition to the
+      // 'retract' state.
+      //
+      // This actually doesn't matter right because we currently use a different
+      // code path for 1-character unique terminal symbols (see
+      // NOTE[one-byte-symbols]).
+      is_unique = false;
+    }
     t.states.push_back(lex_state{
-        .kind = is_strict_prefix_of_any_symbol(symbol)
-                    ? lex_state_kind::non_unique_terminal
-                    : lex_state_kind::unique_terminal,
+        .kind = is_unique ? lex_state_kind::unique_terminal
+                          : lex_state_kind::non_unique_terminal,
         .history = symbol,
     });
   }
 
-  // Find all intermediate states (except the initial state).
+  // Find all intermediate states.
   auto add_intermediate_state = [&](string8_view history) -> void {
     for (const lex_state& existing_state : t.states) {
       if (existing_state.history == history) {
@@ -334,8 +359,11 @@ void compute_states(lex_tables& t) {
   }
 
   // Place all intermediate_or_non_unique_terminal states before all
-  // unique_terminal states. (The initial state remains first.)
-  std::sort(t.states.begin() + 1, t.states.end(),
+  // unique_terminal states.
+  //
+  // Also, pack initial states (i.e. states with a history of size 1) at the
+  // front so that the character class numbers are as low as possible.
+  std::sort(t.states.begin(), t.states.end(),
             [](const lex_state& a, const lex_state& b) -> bool {
               if (a.kind != b.kind) {
                 // intermediate and non_unique_terminal states comes before
@@ -367,19 +395,21 @@ void compute_states(lex_tables& t) {
 void compute_transition_table(lex_tables& t) {
   t.transition_table.resize(t.intermediate_or_non_unique_terminal_state_count);
   for (single_state_transition_table& tt : t.transition_table) {
-    tt.transitions = std::vector<std::size_t>(
-        narrow_cast<std::size_t>(t.max_character_class.number + 1),
-        single_state_transition_table::retract);
+    tt.transitions =
+        std::vector<std::size_t>(t.input_character_class_count + 1,
+                                 single_state_transition_table::retract);
   }
-  t.transition_table[0][character_class()] =
-      single_state_transition_table::table_broken;
 
   for (string8_view symbol : symbols) {
-    std::size_t current_state_index = 0;  // Initial state.
-    for (std::size_t i = 0; i < symbol.size(); ++i) {
+    std::size_t current_state_index = t.find_state_index(symbol.substr(0, 1));
+    for (std::size_t i = 1; i < symbol.size(); ++i) {
       std::size_t new_state_index = t.find_state_index(symbol.substr(0, i + 1));
 
       character_class c_class = t.character_classes[symbol[i]];
+      if (c_class.number >= t.input_character_class_count) {
+        continue;
+      }
+
       std::size_t* new_state_index_pointer =
           &t.transition_table.at(current_state_index)[c_class];
       if (*new_state_index_pointer != single_state_transition_table::retract) {
@@ -422,23 +452,22 @@ struct lex_tables {
     std::fprintf(f, " //\n");
   }
   std::fprintf(f, "  };\n");
-  std::fprintf(f, "  static constexpr int character_class_count = %u;\n",
-               narrow_cast<unsigned>(t.max_character_class.number + 1));
+  std::fprintf(f, "  static constexpr int character_class_count = %zu;\n",
+               t.input_character_class_count);
 
   std::fprintf(f, "%s", R"(
   enum state {
 )");
-  bool saw_unique_terminal_state = false;
-  for (const lex_state& state : t.states) {
-    if (state.kind == lex_state_kind::unique_terminal &&
-        !saw_unique_terminal_state) {
-      std::fprintf(f, "\n    // Complete/terminal states:\n");
-      saw_unique_terminal_state = true;
+  for (std::size_t i = 0; i < t.states.size(); ++i) {
+    const lex_state& state = t.states[i];
+    if (i == 0) {
+      std::fprintf(f, "    // Initial states:\n");
     }
-    if (saw_unique_terminal_state) {
-      // All intermediate_or_nonunique_terminal states should come before all
-      // unique_terminal states.
-      QLJS_ASSERT(state.kind == lex_state_kind::unique_terminal);
+    if (i == t.input_character_class_count) {
+      std::fprintf(f, "\n    // Possibly-incomplete states:\n");
+    }
+    if (i == t.intermediate_or_non_unique_terminal_state_count) {
+      std::fprintf(f, "\n    // Complete/terminal states:\n");
     }
     std::fprintf(f, "    %s,\n", state.name().c_str());
   }
@@ -454,8 +483,19 @@ struct lex_tables {
   };
 )");
 
-  std::fprintf(f, "  static constexpr int input_state_count = %zu;\n",
+  std::fprintf(f, "  static constexpr int input_state_count = %zu;\n\n",
                t.intermediate_or_non_unique_terminal_state_count);
+
+  std::fprintf(f, "  // clang-format off\n");
+  for (std::size_t i = 0; i < t.input_character_class_count; ++i) {
+    std::fprintf(f,
+                 "  "
+                 "static_assert(character_class_table[static_cast<std::uint8_t>"
+                 "(u8'%s')] == state::%s);\n",
+                 make_cpp_string(t.states[i].history).c_str(),
+                 t.states[i].name().c_str());
+  }
+  std::fprintf(f, "  // clang-format on\n");
 
   QLJS_ASSERT(t.unique_terminal_state_count > 0);
   std::fprintf(f, R"(
@@ -467,13 +507,24 @@ struct lex_tables {
                    .name()
                    .c_str());
 
+  QLJS_ASSERT(t.unique_terminal_state_count > 0);
+  std::fprintf(f, R"(
+  // Returns true if there are no transitions from this state to any other
+  // state.
+  //
+  // Precondition: s is an initial state.
+  static bool is_initial_state_terminal(state s) { return s >= %s; }
+)",
+               t.states[t.input_character_class_count].name().c_str());
+
   std::fprintf(f, R"(
   static constexpr state
-      transition_table[character_class_count][input_state_count] = {
+      transition_table[character_class_count + 1][input_state_count] = {
 )");
+  // +1 to include the '(other)' catch-all character class.
   for (std::size_t c_class_number = 0;
-       c_class_number <= t.max_character_class.number; ++c_class_number) {
-    character_class c_class = {narrow_cast<std::uint8_t>(c_class_number)};
+       c_class_number < t.input_character_class_count + 1; ++c_class_number) {
+    character_class c_class(c_class_number);
     struct transition {
       const lex_state* old_state;     // Used for comments.
       std::string new_state_comment;  // Used for comments.
@@ -513,9 +564,7 @@ struct lex_tables {
                    narrow_cast<int>(max_new_state_name_length -
                                     tr.new_state_name.size()),
                    "");
-      if (tr.old_state->is_initial() && !tr.new_state_comment.empty()) {
-        std::fprintf(f, " (initial)%s", tr.new_state_comment.c_str());
-      } else if (tr.new_state_comment.empty()) {
+      if (tr.new_state_comment.empty()) {
         std::string invalid_state_source =
             tr.old_state->comment() + c_class_comment;
         std::fprintf(f, " %-*s (invalid)", 16, invalid_state_source.c_str());
@@ -616,7 +665,7 @@ const char* identifier_for_character(char8 c) {
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-std::string make_comment(string8_view s) {
+std::string make_cpp_string(string8_view s) {
   std::string result;
   for (char8 c : s) {
     if ((u8' ' <= c && c <= u8'~') && c != u8'\\') {
@@ -628,6 +677,8 @@ std::string make_comment(string8_view s) {
   return result;
 }
 QLJS_WARNING_POP
+
+std::string make_comment(string8_view s) { return make_cpp_string(s); }
 }
 }
 
@@ -641,8 +692,8 @@ int main(int argc, char** argv) {
   }
 
   lex_tables tables;
-  classify_characters(tables);
   compute_states(tables);
+  classify_characters(tables);
   compute_transition_table(tables);
   dump_table_code(tables, o.output_path);
 

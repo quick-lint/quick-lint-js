@@ -250,6 +250,7 @@ bool lexer::try_parse_current_token() {
     break;
   }
 
+  // NOTE[one-byte-symbols]:
   case '(':
   case ')':
   case ',':
@@ -315,8 +316,22 @@ bool lexer::try_parse_current_token() {
   case '^':
   case '|': {
     const char8* input = this->input_;
+
     lex_tables::state old_state;
-    lex_tables::state new_state = lex_tables::state::initial;
+
+    // The first lookup is special. In normal DFA tables, there is on initial
+    // state. In our table, there are many initial states. The character class
+    // of the first character corresponds to the initial state. Therefore, for
+    // the first character, do not use lex_tables::transition_table. See
+    // NOTE[lex-table-initial].
+    lex_tables::state new_state = static_cast<lex_tables::state>(
+        lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
+    QLJS_ASSERT(new_state != lex_tables::state::table_broken);
+    QLJS_ASSERT(new_state != lex_tables::state::retract);
+    input += 1;
+    if (lex_tables::is_initial_state_terminal(new_state)) {
+      goto done_with_state_machine;
+    }
 
     // Unrolling seems to improves performance slightly, at least on Arm
     // (Apple M1).
@@ -339,14 +354,20 @@ bool lexer::try_parse_current_token() {
       ONE_ITERATION;
       ONE_ITERATION;
       ONE_ITERATION;
-      ONE_ITERATION;
 #undef ONE_ITERATION
     }
   done_with_state_machine:
 
     bool retract = new_state == lex_tables::state::retract;
+    QLJS_WARNING_PUSH
+    // Clang thinks that old_state is uninitialized if we goto
+    // done_with_state_machine before assigning to it. However, if we didn't
+    // assign to old_state, we also asserted that
+    // new_state != lex_tables::state::retract, thus retract is false.
+    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
     this->last_token_.type =
         lex_tables::state_to_token[retract ? old_state : new_state];
+    QLJS_WARNING_POP
     input -= retract ? 1 : 0;
     this->input_ = input;
     this->last_token_.end = input;
