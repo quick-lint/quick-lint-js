@@ -86,13 +86,19 @@ struct lex_tables {
 
   // Returns true if there are no transitions from this state to any other
   // state.
-  static bool is_terminal_state(state s) { return s >= done_percent_equal; }
+  static bool is_terminal_state(state s) {
+    // See NOTE[lex-table-state-order].
+    return s >= done_percent_equal;
+  }
 
   // Returns true if there are no transitions from this state to any other
   // state.
   //
   // Precondition: s is an initial state.
-  static bool is_initial_state_terminal(state s) { return s >= bang_equal; }
+  static bool is_initial_state_terminal(state s) {
+    // See NOTE[lex-table-state-order].
+    return s >= bang_equal;
+  }
 
   static constexpr state
       transition_table[character_class_count + 1][input_state_count] = {

@@ -47,6 +47,31 @@
 //     /*            */ character_class_table[input[0]]
 // This removes one table lookup. It also shrinks the transition table slightly.
 //
+// NOTE[lex-table-state-order]: States are carefully ordered:
+//
+// A. Initial non-terminal states.
+// B. Initial terminal states. Currently, this set is empty, but if it wasn't,
+//    it'd be like A above except they have no transitions.
+// C. Intermediate and possibly-terminal states.
+// D. Complete states.
+// E. Misc states.
+//
+// The order of these groups is carefully chosen to keep the transition table
+// small:
+//
+// * The initial states (A and B) are indexes into the transition table, so
+//   their number must be low. They have numbers equal to some character classes
+//   (see NOTE[lex-table-initial]), so their number must be very low.
+// * Intermediate and possibly-terminal states are indexes into the transition
+//   table, so their table must be low.
+//
+// The order of these groups also makes certain queries more efficient:
+//
+// * is_terminal_state can check if a state is a complete state or a misc
+//   state (D or E) using a single >=.
+// * is_initial_state_terminal can check if a state is an initial terminal
+//   state (A) using a single >=.
+//
 // == Improvements ==
 //
 // NOTE[lex-table-token-type]: For now, classification only returns a valid
@@ -281,7 +306,10 @@ void classify_characters(lex_tables& t) {
   t.input_character_class_count = 0;
   for (std::size_t i = 0; i < t.states.size(); ++i) {
     const lex_state& state = t.states[i];
-    if (state.history.size() == 1) {
+    // Decide character class numbers based on indexes of the initial states.
+    // See NOTE[lex-table-initial].
+    bool is_initial_state = state.history.size() == 1;
+    if (is_initial_state) {
       character_class c_class(i);
       t.character_classes[state.history[0]] = c_class;
       if (state.kind != lex_state_kind::unique_terminal) {
@@ -321,9 +349,9 @@ void compute_states(lex_tables& t) {
       // Because of our initial state optimization
       // (see NOTE[lex-table-initial]), we must treat 1-character unique
       // terminal symbols as non-unique. If we don't, then the character class
-      // will be a high number, and a high number will make our tables big. We
-      // force 1-character unique terminal symbols to transition to the
-      // 'retract' state.
+      // will be a high number, and a high number will make our tables big (see
+      // NOTE[lex-table-state-order]). We force 1-character unique terminal
+      // symbols to transition to the 'retract' state.
       //
       // This actually doesn't matter right because we currently use a different
       // code path for 1-character unique terminal symbols (see
@@ -361,7 +389,10 @@ void compute_states(lex_tables& t) {
   // unique_terminal states.
   //
   // Also, pack initial states (i.e. states with a history of size 1) at the
-  // front so that the character class numbers are as low as possible.
+  // front so that the character class numbers are as low as possible. See
+  // NOTE[lex-tables-initial] for why this affects character class numbers, and
+  // see NOTE[lex-tables-state-order] for why we want very low numbers for the
+  // initial states.
   std::sort(t.states.begin(), t.states.end(),
             [](const lex_state& a, const lex_state& b) -> bool {
               if (a.kind != b.kind) {
@@ -496,7 +527,10 @@ struct lex_tables {
   std::fprintf(f, R"(
   // Returns true if there are no transitions from this state to any other
   // state.
-  static bool is_terminal_state(state s) { return s >= %s; }
+  static bool is_terminal_state(state s) {
+    // See NOTE[lex-table-state-order].
+    return s >= %s;
+  }
 )",
                t.states[t.intermediate_or_non_unique_terminal_state_count]
                    .name()
@@ -508,7 +542,10 @@ struct lex_tables {
   // state.
   //
   // Precondition: s is an initial state.
-  static bool is_initial_state_terminal(state s) { return s >= %s; }
+  static bool is_initial_state_terminal(state s) {
+    // See NOTE[lex-table-state-order].
+    return s >= %s;
+  }
 )",
                t.states[t.input_character_class_count].name().c_str());
 
