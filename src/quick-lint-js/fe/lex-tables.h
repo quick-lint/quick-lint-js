@@ -100,12 +100,6 @@ namespace quick_lint_js {
 //   state (D or E) using a single >=.
 // * is_initial_state_terminal can check if a state is an initial terminal
 //   state (A) using a single >=.
-//
-// == Improvements ==
-//
-// NOTE[lex-table-token-type]: For now, classification only returns a valid
-// token type. This should be changed in the future if non-trivial cases which
-// require further processing need to be supported.
 struct lex_tables {
   // See NOTE[lex-table-class].
   enum character_class : std::uint8_t {
