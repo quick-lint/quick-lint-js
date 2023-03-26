@@ -186,7 +186,6 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
-#endif
 
   QLJS_CASE_IDENTIFIER_START : {
     parsed_identifier ident =
@@ -229,6 +228,7 @@ bool lexer::try_parse_current_token() {
     }
     break;
   }
+#endif
 
   // Non-ASCII or control character.
   default: {
@@ -270,6 +270,7 @@ bool lexer::try_parse_current_token() {
 
 #if QLJS_FEATURE_LEX_TABLES
   QLJS_CASE_DECIMAL_DIGIT:
+  QLJS_CASE_IDENTIFIER_START:
   case '!':
   case '%':
   case '&':
