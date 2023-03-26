@@ -286,6 +286,7 @@ bool lexer::try_parse_current_token() {
   case '?':
   case '\'':
   case '^':
+  case '`':
   case '|':
     return lex_tables::try_parse_current_token(this);
 #else
@@ -576,7 +577,6 @@ bool lexer::try_parse_current_token() {
     this->last_token_.type = token_type::string;
     this->last_token_.end = this->input_;
     break;
-#endif
 
   case '`': {
     this->input_ += 1;
@@ -589,6 +589,7 @@ bool lexer::try_parse_current_token() {
     this->last_token_.end = this->input_;
     break;
   }
+#endif
 
   case '#':
     if (this->input_[1] == '!' &&

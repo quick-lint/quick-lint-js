@@ -127,6 +127,7 @@ struct lex_tables {
     // Character classes used only for the initial byte:
     ident = character_class_count,  // Initial identifier character.
     quote,                          // " or '
+    tick,                           // `
 
     initial_character_class_count,
   };
@@ -147,7 +148,7 @@ struct lex_tables {
       digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,    less,  equal, greater,    question,  // 0123456789:;<=>?
       _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
       ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
-      _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // `abcdefghijklmno
+      tick,  ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // `abcdefghijklmno
       ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    pipe,  _,     _,          _,         // pqrstuvwxyz{|}~ (del)
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
@@ -211,6 +212,7 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'\\')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'^')] == character_class::circumflex);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'_')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'`')] == character_class::tick);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'a')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'z')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
@@ -927,6 +929,7 @@ struct lex_tables {
         /*[other_character_class] = */ &&done_table_broken,
         /*[ident] = */ &&done_identifier,
         /*[quote] = */ &&done_string_literal,
+        /*[tick] = */ &&done_template_literal,
     };
 
     static void* handler_table[] = {
@@ -988,6 +991,9 @@ struct lex_tables {
 
     case character_class::quote:
       goto done_string_literal;
+
+    case character_class::tick:
+      goto done_template_literal;
 
     case character_class::other_character_class:
     default:
@@ -1166,6 +1172,19 @@ struct lex_tables {
   done_string_literal : {
     l->input_ = l->parse_string_literal();
     l->last_token_.type = token_type::string;
+    l->last_token_.end = l->input_;
+    return true;
+  }
+
+  // `
+  done_template_literal : {
+    l->input_ += 1;
+    lexer::parsed_template_body body = l->parse_template_body(
+        l->input_, l->last_token_.begin, l->diag_reporter_);
+    l->last_token_.template_escape_sequence_diagnostics =
+        body.escape_sequence_diagnostics;
+    l->last_token_.type = body.type;
+    l->input_ = body.end;
     l->last_token_.end = l->input_;
     return true;
   }
