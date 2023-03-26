@@ -89,6 +89,11 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
           // '?.9' retracts two characters, not one.
           continue;
         }
+        if (symbol == u8"<"_sv &&
+            c_class == lex_tables::character_class_table[u8'!']) {
+          // '<!--' is parsed specially.
+          continue;
+        }
 
         const lex_tables::state* transitions =
             lex_tables::transition_table[c_class];

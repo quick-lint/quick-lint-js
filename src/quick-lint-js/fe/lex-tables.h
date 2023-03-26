@@ -213,6 +213,7 @@ struct lex_tables {
     // The state data is the index into unique_terminal_symbol_tokens.
     handler_done_unique_terminal_symbol,
 
+    handler_done_less_bang,
     handler_done_number,
     handler_done_question_dot_digit,
 
@@ -269,6 +270,7 @@ struct lex_tables {
     done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
     // clang-format on
 
+    done_less_bang = QLJS_STATE(handler_done_less_bang, 0),
     done_number = QLJS_STATE(handler_done_number, 0),
     done_question_dot_digit = QLJS_STATE(handler_done_question_dot_digit, 0),
 
@@ -311,7 +313,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %!               (invalid)
               done_retract_for_symbol,    // &!               (invalid)
               done_retract_for_symbol,    // +!               (invalid)
-              done_retract_for_symbol,    // <!               (invalid)
+              done_less_bang,             // < -> <! (possibly <!--)
               done_retract_for_symbol,    // =!               (invalid)
               done_retract_for_symbol,    // >!               (invalid)
               done_retract_for_symbol,    // ^!               (invalid)
@@ -695,6 +697,7 @@ struct lex_tables {
         /*[handler_done_retract_for_symbol] = */ &&done_retract_for_symbol,
         /*[handler_done_unique_terminal_symbol] = */
         &&done_unique_terminal_symbol,
+        /*[handler_done_less_bang] = */ &&done_less_bang,
         /*[handler_done_number] = */ &&done_number,
         /*[handler_done_question_dot_digit] = */ &&done_question_dot_digit,
         /*[handler_done_table_broken] = */ &&done_table_broken,
@@ -747,6 +750,8 @@ struct lex_tables {
       goto done_retract_for_symbol;
     case handler_done_unique_terminal_symbol:
       goto done_unique_terminal_symbol;
+    case handler_done_less_bang:
+      goto done_less_bang;
     case handler_done_number:
       goto done_number;
     case handler_done_question_dot_digit:
@@ -789,6 +794,25 @@ struct lex_tables {
     return true;
 
     QLJS_WARNING_POP
+  }
+
+  // <!
+  done_less_bang : {
+    QLJS_ASSERT(l->input_[0] == u8'<');
+    QLJS_ASSERT(l->input_[1] == u8'!');
+    if (l->input_[2] == u8'-' && l->input_[3] == u8'-') {
+      // <!--
+      l->input_ += 4;
+      l->skip_line_comment_body();
+      return false;
+    } else {
+      // <!(other)
+      // Only parse the '<'.
+      l->input_ += 1;
+      l->last_token_.type = token_type::less;
+      l->last_token_.end = l->input_;
+      return true;
+    }
   }
 
   done_number : {
