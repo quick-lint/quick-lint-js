@@ -215,10 +215,12 @@ struct lex_tables {
     // The state data is the index into unique_terminal_symbol_tokens.
     handler_done_unique_terminal_symbol,
 
-    handler_done_less_bang,
     handler_done_minus_minus,
     handler_done_number,
-    handler_done_question_dot_digit,
+
+    // State data 0: "?.9" was parsed; return "?".
+    // State data 1: "<!" was parsed; parse a "<!--" comment or return "<".
+    handler_done_special_slow,
 
     handler_done_table_broken,
 
@@ -274,10 +276,10 @@ struct lex_tables {
     done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
     // clang-format on
 
-    done_less_bang = QLJS_STATE(handler_done_less_bang, 0),
+    done_less_bang = QLJS_STATE(handler_done_special_slow, 1),
     done_minus_minus = QLJS_STATE(handler_done_minus_minus, 0),
     done_number = QLJS_STATE(handler_done_number, 0),
-    done_question_dot_digit = QLJS_STATE(handler_done_question_dot_digit, 0),
+    done_question_dot_digit = QLJS_STATE(handler_done_special_slow, 0),
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte then consult retract_for_symbol_tokens using the previous
@@ -743,10 +745,9 @@ struct lex_tables {
         /*[handler_done_retract_for_symbol] = */ &&done_retract_for_symbol,
         /*[handler_done_unique_terminal_symbol] = */
         &&done_unique_terminal_symbol,
-        /*[handler_done_less_bang] = */ &&done_less_bang,
         /*[handler_done_minus_minus] = */ &&done_minus_minus,
         /*[handler_done_number] = */ &&done_number,
-        /*[handler_done_question_dot_digit] = */ &&done_question_dot_digit,
+        /*[handler_done_special_slow] = */ &&done_special_slow,
         /*[handler_done_table_broken] = */ &&done_table_broken,
     };
 #endif
@@ -797,14 +798,12 @@ struct lex_tables {
       goto done_retract_for_symbol;
     case handler_done_unique_terminal_symbol:
       goto done_unique_terminal_symbol;
-    case handler_done_less_bang:
-      goto done_less_bang;
     case handler_done_minus_minus:
       goto done_minus_minus;
     case handler_done_number:
       goto done_number;
-    case handler_done_question_dot_digit:
-      goto done_question_dot_digit;
+    case handler_done_special_slow:
+      goto done_special_slow;
     case handler_done_table_broken:
       goto done_table_broken;
 
@@ -845,25 +844,6 @@ struct lex_tables {
     QLJS_WARNING_POP
   }
 
-  // <!
-  done_less_bang : {
-    QLJS_ASSERT(l->input_[0] == u8'<');
-    QLJS_ASSERT(l->input_[1] == u8'!');
-    if (l->input_[2] == u8'-' && l->input_[3] == u8'-') {
-      // <!--
-      l->input_ += 4;
-      l->skip_line_comment_body();
-      return false;
-    } else {
-      // <!(other)
-      // Only parse the '<'.
-      l->input_ += 1;
-      l->last_token_.type = token_type::less;
-      l->last_token_.end = l->input_;
-      return true;
-    }
-  }
-
   // -->
   // --
   done_minus_minus : {
@@ -892,14 +872,40 @@ struct lex_tables {
   }
 
   // ?.9
-  done_question_dot_digit : {
-    QLJS_ASSERT(l->input_[0] == u8'?');
-    QLJS_ASSERT(l->input_[1] == u8'.');
-    QLJS_ASSERT(l->is_digit(l->input_[2]));
-    l->last_token_.type = token_type::question;
-    l->input_ += 1;
-    l->last_token_.end = l->input_;
-    return true;
+  done_special_slow : {
+    switch (get_state_data(new_state)) {
+    // "?.9" was parsed; return "?".
+    case 0:
+      QLJS_ASSERT(l->input_[0] == u8'?');
+      QLJS_ASSERT(l->input_[1] == u8'.');
+      QLJS_ASSERT(l->is_digit(l->input_[2]));
+      l->last_token_.type = token_type::question;
+      l->input_ += 1;
+      l->last_token_.end = l->input_;
+      return true;
+
+    // "<!" was parsed; parse a "<!--" comment or return "<".
+    case 1:
+      QLJS_ASSERT(l->input_[0] == u8'<');
+      QLJS_ASSERT(l->input_[1] == u8'!');
+      if (l->input_[2] == u8'-' && l->input_[3] == u8'-') {
+        // <!--
+        l->input_ += 4;
+        l->skip_line_comment_body();
+        return false;
+      } else {
+        // <!(other)
+        // Only parse the '<'.
+        l->input_ += 1;
+        l->last_token_.type = token_type::less;
+        l->last_token_.end = l->input_;
+        return true;
+      }
+
+    default:
+      QLJS_UNREACHABLE();
+      return false;
+    }
   }
 
   done_table_broken : {
