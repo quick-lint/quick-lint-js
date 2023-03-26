@@ -8,6 +8,8 @@
 #include <quick-lint-js/fe/lex-tables.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <string>
+#include <vector>
 
 QLJS_WARNING_IGNORE_CLANG("-Wchar-subscripts")
 
@@ -22,6 +24,8 @@ std::vector<string8_view> symbols = {
     u8">>>="_sv, u8"?"_sv,   u8"?."_sv,  u8"??"_sv, u8"?\x3f="_sv, u8"^"_sv,
     u8"^="_sv,   u8"|"_sv,   u8"|="_sv,  u8"||"_sv, u8"||="_sv,
 };
+
+std::string pretty_character_class(std::uint8_t);
 
 TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
   hash_set<std::uint8_t> all_character_classes;
@@ -102,13 +106,28 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
         EXPECT_EQ(long{next_state},
                   long{lex_tables::state::done_retract_for_symbol})
             << "transition from state " << long{state}
-            << " with character class " << long{c_class}
+            << " with character class " << pretty_character_class(c_class)
             << " should arrive at the retract state";
       }
     }
 
   done:;
   }
+}
+
+std::string pretty_character_class(std::uint8_t c_class) {
+  std::string result = std::to_string(narrow_cast<unsigned>(c_class)) + " (";
+  if (c_class == lex_tables::character_class::other_character_class) {
+    return result + "other)";
+  }
+  for (std::size_t i = 0; i < std::size(lex_tables::character_class_table);
+       ++i) {
+    if (lex_tables::character_class_table[i] == c_class) {
+      result += static_cast<char>(i);
+    }
+  }
+  result += ')';
+  return result;
 }
 }
 }
