@@ -113,6 +113,12 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
           // '*/' and '**/' are parsed specially.
           continue;
         }
+        if (symbol == u8"/"_sv &&
+            (c_class == lex_tables::character_class_table[u8'*'] ||
+             c_class == lex_tables::character_class_table[u8'/'])) {
+          // '/*' and '//' are parsed specially.
+          continue;
+        }
 
         const lex_tables::state* transitions =
             lex_tables::transition_table[c_class];

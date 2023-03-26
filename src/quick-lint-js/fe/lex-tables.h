@@ -216,6 +216,8 @@ struct lex_tables {
     // The state data is the index into unique_terminal_symbol_tokens_b.
     handler_done_unique_terminal_symbol_b,
 
+    handler_done_block_comment,
+    handler_done_line_comment,
     handler_done_minus_minus,
     handler_done_number,
 
@@ -295,6 +297,9 @@ struct lex_tables {
     done_question_dot_digit = QLJS_STATE(handler_done_special_slow, 0),
     done_star_slash = QLJS_STATE(handler_done_special_slow, 4),
     done_star_star_slash = QLJS_STATE(handler_done_special_slow, 3),
+
+    done_block_comment = QLJS_STATE(handler_done_block_comment, 0),
+    done_line_comment = QLJS_STATE(handler_done_line_comment, 0),
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte then consult retract_for_symbol_tokens using the previous
@@ -422,7 +427,7 @@ struct lex_tables {
               star_star,                  // * -> **
               done_retract_for_symbol,    // +*               (invalid)
               done_retract_for_symbol,    // -*               (invalid)
-              done_retract_for_symbol,    // /*               (invalid)
+              done_block_comment,         // / -> /*
               done_retract_for_symbol,    // <*               (invalid)
               done_retract_for_symbol,    // =*               (invalid)
               done_retract_for_symbol,    // >*               (invalid)
@@ -506,7 +511,7 @@ struct lex_tables {
               done_star_slash,            // * -> */ (possibly * or */)
               done_retract_for_symbol,    // +/               (invalid)
               done_retract_for_symbol,    // -/               (invalid)
-              done_retract_for_symbol,    // //               (invalid)
+              done_line_comment,          // / -> //
               done_retract_for_symbol,    // </               (invalid)
               done_retract_for_symbol,    // =/               (invalid)
               done_retract_for_symbol,    // >/               (invalid)
@@ -858,6 +863,8 @@ struct lex_tables {
         &&done_unique_terminal_symbol_a,
         /*[handler_done_unique_terminal_symbol_b] = */
         &&done_unique_terminal_symbol_b,
+        /*[handler_done_block_comment] = */ &&done_block_comment,
+        /*[handler_done_line_comment] = */ &&done_line_comment,
         /*[handler_done_minus_minus] = */ &&done_minus_minus,
         /*[handler_done_number] = */ &&done_number,
         /*[handler_done_special_slow] = */ &&done_special_slow,
@@ -914,6 +921,10 @@ struct lex_tables {
       goto done_unique_terminal_symbol_a;
     case handler_done_unique_terminal_symbol_b:
       goto done_unique_terminal_symbol_b;
+    case handler_done_block_comment:
+      goto done_block_comment;
+    case handler_done_line_comment:
+      goto done_line_comment;
     case handler_done_minus_minus:
       goto done_minus_minus;
     case handler_done_number:
@@ -968,6 +979,23 @@ struct lex_tables {
     return true;
 
     QLJS_WARNING_POP
+  }
+
+  // /*
+  done_block_comment : {
+    QLJS_ASSERT(l->input_[0] == u8'/');
+    QLJS_ASSERT(l->input_[1] == u8'*');
+    l->skip_block_comment();
+    return false;
+  }
+
+  // //
+  done_line_comment : {
+    QLJS_ASSERT(l->input_[0] == u8'/');
+    QLJS_ASSERT(l->input_[1] == u8'/');
+    l->input_ += 2;
+    l->skip_line_comment_body();
+    return false;
   }
 
   // -->
