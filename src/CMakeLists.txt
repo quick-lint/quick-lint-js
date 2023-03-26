@@ -46,18 +46,6 @@ if (TARGET quick-lint-js-generate-lex-keyword)
   )
 endif ()
 
-if (TARGET quick-lint-js-generate-lex-tables)
-  add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-tables-generated.h"
-    COMMAND
-      $<TARGET_FILE:quick-lint-js-generate-lex-tables>
-      --output
-      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-tables-generated.h"
-    DEPENDS quick-lint-js-generate-lex-tables
-    COMMENT "Generating lexer tables for lex-tables-generated.h"
-  )
-endif ()
-
 # These files are needed by some helper tools in addition to the core.
 quick_lint_js_add_library(
   quick-lint-js-tool-lib
@@ -167,7 +155,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
-  quick-lint-js/fe/lex-tables-generated.h
+  quick-lint-js/fe/lex-tables.h
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h

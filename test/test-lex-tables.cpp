@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/fe/lex-tables-generated.h>
+#include <quick-lint-js/fe/lex-tables.h>
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
