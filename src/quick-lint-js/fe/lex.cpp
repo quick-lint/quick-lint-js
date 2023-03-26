@@ -286,9 +286,38 @@ bool lexer::try_parse_current_token() {
   case '>':
   case '?':
   case '\'':
+  case '\0':
   case '^':
   case '`':
   case '|':
+  case u8'@':
+  case u8'\x01':
+  case u8'\x02':
+  case u8'\x03':
+  case u8'\x04':
+  case u8'\x05':
+  case u8'\x06':
+  case u8'\x07':
+  case u8'\x08':
+  case u8'\x0e':
+  case u8'\x0f':
+  case u8'\x10':
+  case u8'\x11':
+  case u8'\x12':
+  case u8'\x13':
+  case u8'\x14':
+  case u8'\x15':
+  case u8'\x16':
+  case u8'\x17':
+  case u8'\x18':
+  case u8'\x19':
+  case u8'\x1a':
+  case u8'\x1b':
+  case u8'\x1c':
+  case u8'\x1d':
+  case u8'\x1e':
+  case u8'\x1f':
+  case u8'\x7f':
     return lex_tables::try_parse_current_token(this);
 #else
   case '?':
@@ -622,7 +651,6 @@ bool lexer::try_parse_current_token() {
       return false;
     }
     break;
-#endif
 
   case '\0':
     if (this->is_eof(this->input_)) {
@@ -675,6 +703,7 @@ bool lexer::try_parse_current_token() {
     this->skip_whitespace();
     return false;
   }
+#endif
   }
 
   return true;
