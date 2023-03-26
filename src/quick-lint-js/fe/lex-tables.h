@@ -236,8 +236,13 @@ struct lex_tables {
   // Returns true if there are no transitions from this state to any other
   // state.
   static bool is_terminal_state(state s) {
-    // See NOTE[lex-table-state-order].
-    return s > greater_greater_greater;
+    // Any state with a handler other than handler_transition is a terminal
+    // state.
+    static_assert(handler_transition == 0);
+    bool is_terminal = s >= (1 << state_data_bits);
+    QLJS_ASSERT(is_terminal == (s >= input_state_count));
+    QLJS_ASSERT(is_terminal == ((s >> state_data_bits) != handler_transition));
+    return is_terminal;
   }
 
   // Returns true if there are no transitions from this state to any other
@@ -246,7 +251,7 @@ struct lex_tables {
   // Precondition: s is an initial state.
   static bool is_initial_state_terminal(state s) {
     // See NOTE[lex-table-state-order].
-    return s >= bang_equal;
+    return static_cast<state_type>(s) >= other_character_class;
   }
 
   static constexpr state
