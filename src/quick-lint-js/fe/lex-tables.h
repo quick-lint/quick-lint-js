@@ -219,6 +219,9 @@ struct lex_tables {
     // State data 0: "?.9" was parsed; return "?".
     // State data 1: "<!" was parsed; parse a "<!--" comment or return "<".
     // State data 2: ">>>" was parsed; parse either ">>>" or ">>>=".
+    // State data 3: "**/" was parsed; parse either "**" or "*".
+    // State data 4: "*/" was parsed; parse either "*" or report
+    //               diag_unclosed_block_comment.
     handler_done_special_slow,
 
     handler_done_table_broken,
@@ -282,6 +285,8 @@ struct lex_tables {
     done_minus_minus = QLJS_STATE(handler_done_minus_minus, 0),
     done_number = QLJS_STATE(handler_done_number, 0),
     done_question_dot_digit = QLJS_STATE(handler_done_special_slow, 0),
+    done_star_slash = QLJS_STATE(handler_done_special_slow, 4),
+    done_star_star_slash = QLJS_STATE(handler_done_special_slow, 3),
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte then consult retract_for_symbol_tokens using the previous
@@ -489,7 +494,7 @@ struct lex_tables {
               done_retract_for_symbol,    // !/               (invalid)
               done_retract_for_symbol,    // %/               (invalid)
               done_retract_for_symbol,    // &/               (invalid)
-              done_retract_for_symbol,    // */               (invalid)
+              done_star_slash,            // * -> */ (possibly * or */)
               done_retract_for_symbol,    // +/               (invalid)
               done_retract_for_symbol,    // -/               (invalid)
               done_retract_for_symbol,    // //               (invalid)
@@ -510,7 +515,7 @@ struct lex_tables {
               done_retract_for_symbol,    // ??/              (invalid)
               done_retract_for_symbol,    // ?./              (invalid)
               done_retract_2_for_symbol,  // ../              (invalid)
-              done_retract_for_symbol,    // **/              (invalid)
+              done_star_star_slash,       // ** -> **/ (possibly * or **)
           },
           // <
           {
@@ -1012,6 +1017,46 @@ struct lex_tables {
       }
       l->last_token_.end = l->input_;
       return true;
+
+    // "**/" was parsed; parse either "**" or "*".
+    case 3: {
+      QLJS_ASSERT(l->input_[0] == u8'*');
+      QLJS_ASSERT(l->input_[1] == u8'*');
+      QLJS_ASSERT(l->input_[2] == u8'/');
+      bool parsed_ok = l->test_for_regexp(&l->input_[2]);
+      if (!parsed_ok) {
+        // We saw '**/'. Emit a '*' token now. Later, we will interpret the
+        // following '*/' as a comment.
+        l->last_token_.type = token_type::star;
+        l->input_ += 1;
+      } else {
+        l->last_token_.type = token_type::star_star;
+        l->input_ += 2;
+      }
+      l->last_token_.end = l->input_;
+      return true;
+    }
+
+    // "*/" was parsed; parse either "*" or report diag_unclosed_block_comment.
+    case 4: {
+      QLJS_ASSERT(l->input_[0] == u8'*');
+      QLJS_ASSERT(l->input_[1] == u8'/');
+      const char8* starpos = &l->input_[0];
+      bool parsed_ok = l->test_for_regexp(&l->input_[1]);
+
+      if (!parsed_ok) {
+        l->diag_reporter_->report(diag_unopened_block_comment{
+            source_code_span(starpos, &l->input_[2])});
+        l->input_ += 2;
+        l->skip_whitespace();
+        return false;
+      } else {
+        l->last_token_.type = token_type::star;
+        l->input_ += 1;
+      }
+      l->last_token_.end = l->input_;
+      return true;
+    }
 
     default:
       QLJS_UNREACHABLE();
