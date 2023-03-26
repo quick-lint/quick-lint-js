@@ -185,12 +185,12 @@ struct lex_tables {
   // How many bits in the state are reserved for the state number for
   // intermediate and non-unique terminal states, or for extra data for unique
   // terminal states and the retract terminal state.
-  static constexpr int state_data_bits = 5;
+  static constexpr int state_data_bits = 4;
   static constexpr state_type state_data_mask = (1 << state_data_bits) - 1;
 
   // How many bits in the state are reserved for selecting the handler.
   // See enum handler.
-  static constexpr int state_handler_bits = 3;
+  static constexpr int state_handler_bits = 4;
 
   static_assert(sizeof(state_type) >=
                     (state_data_bits + state_handler_bits) / CHAR_BIT,
@@ -206,7 +206,8 @@ struct lex_tables {
   }
 
   enum handler {
-    handler_transition = 0,
+    handler_transition_0 = 0,
+    handler_transition_1 = 1,
 
     // The state data is how many characters to retract.
     handler_done_retract_for_symbol,
@@ -231,20 +232,25 @@ struct lex_tables {
 
     handler_count,
   };
-  static_assert(handler_transition == 0,
-                "handler_transition must be 0 to keep states in the transition "
-                "table low-numbered");
+  static_assert(
+      handler_transition_0 == 0,
+      "handler_transition_* must be 0 to keep states in the transition "
+      "table low-numbered");
+  static_assert(
+      handler_transition_1 == 1,
+      "handler_transition_* must be 1 to keep states in the transition "
+      "table low-numbered");
   static_assert(handler_count <= (1 << state_handler_bits),
                 "state_handler_bits should be big enough to fit all handlers");
 
 #define QLJS_STATE(handler, data) (((handler) << state_data_bits) | (data))
   enum state : state_type {
     // Initial states.
-    // Handler must be handler_transition (0) for these states.
+    // Handler must be handler_transition_* (0 or 1) for these states.
     // See enum character_class and NOTE[lex-table-initial].
 
     // Possibly-incomplete states.
-    // Handler must be handler_transition (0) for these states.
+    // Handler must be handler_transition_* (0 or 1) for these states.
     bang_equal = other_character_class,
     ampersand_ampersand,
     less_less,
@@ -306,10 +312,11 @@ struct lex_tables {
   static bool is_terminal_state(state_type s) {
     // Any state with a handler other than handler_transition is a terminal
     // state.
-    static_assert(handler_transition == 0);
-    bool is_terminal = s >= (1 << state_data_bits);
+    static_assert(handler_transition_0 == 0 && handler_transition_1 == 1);
+    bool is_terminal = s >= ((handler_transition_1 + 1) << state_data_bits);
     QLJS_ASSERT(is_terminal == (s >= input_state_count));
-    QLJS_ASSERT(is_terminal == (get_state_handler(s) != handler_transition));
+    QLJS_ASSERT(is_terminal == (get_state_handler(s) != handler_transition_0 &&
+                                get_state_handler(s) != handler_transition_1));
     return is_terminal;
   }
 
@@ -845,7 +852,8 @@ struct lex_tables {
 
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
     static void* handler_table[] = {
-        /*[handler_transition] = */ &&transition,
+        /*[handler_transition_0] = */ &&transition,
+        /*[handler_transition_1] = */ &&transition,
         /*[handler_done_retract_for_symbol] = */ &&done_retract_for_symbol,
         /*[handler_done_unique_terminal_symbol_a] = */
         &&done_unique_terminal_symbol_a,
@@ -898,7 +906,8 @@ struct lex_tables {
 #if !QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
   dispatch_to_handler : {
     switch (new_state >> state_data_bits) {
-    case handler_transition:
+    case handler_transition_0:
+    case handler_transition_1:
       goto transition;
     case handler_done_retract_for_symbol:
       goto done_retract_for_symbol;
@@ -951,7 +960,8 @@ struct lex_tables {
     QLJS_ASSERT(get_state_data(new_state) > 0);
     input -= get_state_data(new_state);
     QLJS_ASSERT(old_state < input_state_count);
-    QLJS_ASSERT(get_state_handler(old_state) == handler_transition);
+    QLJS_ASSERT(get_state_handler(old_state) == handler_transition_0 ||
+                get_state_handler(old_state) == handler_transition_1);
     l->last_token_.type = lex_tables::retract_for_symbol_tokens[old_state];
     QLJS_ASSERT(l->last_token_.type != invalid_token_type);
     l->input_ = input;
