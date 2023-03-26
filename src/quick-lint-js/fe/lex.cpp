@@ -502,6 +502,39 @@ bool lexer::try_parse_current_token() {
 #endif
 
   case '*':
+#if QLJS_FEATURE_LEX_TABLES
+    // TODO(strager): Parse these using the lexer tables.
+    if (this->input_[1] == '*' && this->input_[2] == '/') {
+      bool parsed_ok = this->test_for_regexp(&this->input_[2]);
+      if (!parsed_ok) {
+        // We saw '**/'. Emit a '*' token now. Later, we will interpret the
+        // following '*/' as a comment.
+        this->last_token_.type = token_type::star;
+        this->input_ += 1;
+      } else {
+        this->last_token_.type = token_type::star_star;
+        this->input_ += 2;
+      }
+    } else if (this->input_[1] == '/') {
+      const char8* starpos = &this->input_[0];
+      bool parsed_ok = this->test_for_regexp(&this->input_[1]);
+
+      if (!parsed_ok) {
+        this->diag_reporter_->report(diag_unopened_block_comment{
+            source_code_span(starpos, &this->input_[2])});
+        this->input_ += 2;
+        this->skip_whitespace();
+        return false;
+      } else {
+        this->last_token_.type = token_type::star;
+        this->input_ += 1;
+      }
+    } else {
+      return lex_tables::try_parse_current_token(this);
+    }
+    this->last_token_.end = this->input_;
+    break;
+#else
     if (this->input_[1] == '*') {
       if (this->input_[2] == '=') {
         this->last_token_.type = token_type::star_star_equal;
@@ -544,6 +577,7 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
+#endif
 
   case '/':
     if (this->input_[1] == '=') {
