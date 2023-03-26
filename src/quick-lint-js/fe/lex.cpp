@@ -252,6 +252,7 @@ bool lexer::try_parse_current_token() {
     break;
   }
 
+#if !QLJS_FEATURE_LEX_TABLES
   // NOTE[one-byte-symbols]:
   case '(':
   case ')':
@@ -267,6 +268,7 @@ bool lexer::try_parse_current_token() {
     this->input_ += 1;
     this->last_token_.end = this->input_;
     break;
+#endif
 
 #if QLJS_FEATURE_LEX_TABLES
   QLJS_CASE_DECIMAL_DIGIT:
@@ -276,20 +278,30 @@ bool lexer::try_parse_current_token() {
   case '#':
   case '%':
   case '&':
+  case '(':
+  case ')':
   case '*':
   case '+':
+  case ',':
   case '-':
   case '.':
   case '/':
+  case ':':
+  case ';':
   case '<':
   case '=':
   case '>':
   case '?':
+  case '[':
   case '\'':
   case '\0':
+  case ']':
   case '^':
   case '`':
+  case '{':
   case '|':
+  case '}':
+  case '~':
   case u8'@':
   case u8'\x01':
   case u8'\x02':

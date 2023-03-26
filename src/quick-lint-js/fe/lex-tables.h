@@ -129,6 +129,7 @@ struct lex_tables {
     quote,                          // " or '
     tick,                           // `
     hash,
+    symbol,  // See NOTE[one-byte-symbols].
     error,
 
     initial_character_class_count,
@@ -144,41 +145,41 @@ struct lex_tables {
 #define _ other_character_class
   // clang-format off
   static constexpr std::uint8_t initial_character_class_table[256] = {
-      error, error, error, error, error, error,   error,     error, error, _,     _,     _,     _,     _,     error,      error,     //
-      error, error, error, error, error, error,   error,     error, error, error, error, error, error, error, error,      error,     //
-      _,     bang,  quote, hash,  ident, percent, ampersand, quote, _,     _,     star,  plus,  _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
-      digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,     less,  equal, greater,    question,  // 0123456789:;<=>?
-      error, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident, ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
-      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,     ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
-      tick,  ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident, ident, ident, ident,      ident,     // `abcdefghijklmno
-      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,     pipe,  _,     _,          error,     // pqrstuvwxyz{|}~ (del)
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
+      error, error, error, error, error, error,   error,     error, error,  _,      _,      _,      _,      _,      error,      error,     //
+      error, error, error, error, error, error,   error,     error, error,  error,  error,  error,  error,  error,  error,      error,     //
+      _,     bang,  quote, hash,  ident, percent, ampersand, quote, symbol, symbol, star,   plus,   symbol, minus,  dot,        slash,     // (sp) !"#$%&'()*+,-./
+      digit, digit, digit, digit, digit, digit,   digit,     digit, digit,  digit,  symbol, symbol, less,   equal,  greater,    question,  // 0123456789:;<=>?
+      error, ident, ident, ident, ident, ident,   ident,     ident, ident,  ident,  ident,  ident,  ident,  ident,  ident,      ident,     // @ABCDEFGHIJKLMNO
+      ident, ident, ident, ident, ident, ident,   ident,     ident, ident,  ident,  ident,  symbol, ident,  symbol, circumflex, ident,     // PQRSTUVWXYZ[\]^_
+      tick,  ident, ident, ident, ident, ident,   ident,     ident, ident,  ident,  ident,  ident,  ident,  ident,  ident,      ident,     // `abcdefghijklmno
+      ident, ident, ident, ident, ident, ident,   ident,     ident, ident,  ident,  ident,  symbol, pipe,   symbol, symbol,     error,     // pqrstuvwxyz{|}~ (del)
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
   };
 
   static constexpr std::uint8_t character_class_table[256] = {
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     bang,  _,     _,     _,     percent, ampersand, _,     _,     _,     star,  plus,  _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
-      digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,     less,  equal, greater,    question,  // 0123456789:;<=>?
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         // @ABCDEFGHIJKLMNO
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     circumflex, _,         // PQRSTUVWXYZ[\]^_
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         // `abcdefghijklmno
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     pipe,  _,     _,          _,         // pqrstuvwxyz{|}~ (del)
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
-      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,     _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     bang,  _,     _,     _,     percent, ampersand, _,     _,      _,      star,   plus,   _,      minus,  dot,        slash,     // (sp) !"#$%&'()*+,-./
+      digit, digit, digit, digit, digit, digit,   digit,     digit, digit,  digit,  _,      _,      less,   equal,  greater,    question,  // 0123456789:;<=>?
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         // @ABCDEFGHIJKLMNO
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      circumflex, _,         // PQRSTUVWXYZ[\]^_
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         // `abcdefghijklmno
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      pipe,   _,      _,          _,         // pqrstuvwxyz{|}~ (del)
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,      _,      _,      _,      _,      _,      _,          _,         //
   };
   // clang-format on
 #undef _
@@ -190,8 +191,11 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'(')] == character_class::symbol);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8')')] == character_class::symbol);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'*')] == character_class::star);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'+')] == character_class::plus);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8',')] == character_class::symbol);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'-')] == character_class::minus);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'.')] == character_class::dot);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'/')] == character_class::slash);
@@ -205,6 +209,8 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'7')] == character_class::digit);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'8')] == character_class::digit);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'9')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8':')] == character_class::symbol);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8';')] == character_class::symbol);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'<')] == character_class::less);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'=')] == character_class::equal);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'>')] == character_class::greater);
@@ -221,7 +227,10 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'`')] == character_class::tick);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'a')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'z')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'{')] == character_class::symbol);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'}')] == character_class::symbol);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'~')] == character_class::symbol);
 
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
@@ -937,6 +946,7 @@ struct lex_tables {
         /*[quote] = */ &&done_string_literal,
         /*[tick] = */ &&done_template_literal,
         /*[hash] = */ &&done_hash,
+        /*[symbol] = */ &&done_one_byte_symbol,
         /*[error] = */ &&done_invalid_character,
     };
 
@@ -1005,6 +1015,9 @@ struct lex_tables {
 
     case character_class::hash:
       goto done_hash;
+
+    case character_class::symbol:
+      goto done_one_byte_symbol;
 
     case character_class::error:
       goto done_invalid_character;
@@ -1370,6 +1383,14 @@ struct lex_tables {
       QLJS_UNREACHABLE();
       return false;
     }
+  }
+
+  // NOTE[one-byte-symbols]:
+  done_one_byte_symbol : {
+    l->last_token_.type = static_cast<token_type>(*l->input_);
+    l->input_ += 1;
+    l->last_token_.end = l->input_;
+    return true;
   }
 
   // (null byte)
