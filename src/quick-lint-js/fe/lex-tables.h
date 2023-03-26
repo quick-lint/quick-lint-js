@@ -126,6 +126,7 @@ struct lex_tables {
 
     // Character classes used only for the initial byte:
     ident = character_class_count,  // Initial identifier character.
+    quote,                          // " or '
 
     initial_character_class_count,
   };
@@ -142,7 +143,7 @@ struct lex_tables {
   static constexpr std::uint8_t initial_character_class_table[256] = {
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
-      _,     bang,  _,     _,     ident, percent, ampersand, _,     _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
+      _,     bang,  quote, _,     ident, percent, ampersand, quote, _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
       digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,    less,  equal, greater,    question,  // 0123456789:;<=>?
       _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
       ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
@@ -181,6 +182,7 @@ struct lex_tables {
 
   // clang-format off
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'"')] == character_class::quote);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
@@ -205,6 +207,7 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'?')] == character_class::question);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'A')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'Z')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'\'')] == character_class::quote);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'\\')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'^')] == character_class::circumflex);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'_')] == character_class::ident);
@@ -923,6 +926,7 @@ struct lex_tables {
         /*[digit] = */ &&done_number,
         /*[other_character_class] = */ &&done_table_broken,
         /*[ident] = */ &&done_identifier,
+        /*[quote] = */ &&done_string_literal,
     };
 
     static void* handler_table[] = {
@@ -981,6 +985,9 @@ struct lex_tables {
 
     case character_class::ident:
       goto done_identifier;
+
+    case character_class::quote:
+      goto done_string_literal;
 
     case character_class::other_character_class:
     default:
@@ -1151,6 +1158,15 @@ struct lex_tables {
         QLJS_UNREACHABLE();
       }
     }
+    return true;
+  }
+
+  // "
+  // '
+  done_string_literal : {
+    l->input_ = l->parse_string_literal();
+    l->last_token_.type = token_type::string;
+    l->last_token_.end = l->input_;
     return true;
   }
 

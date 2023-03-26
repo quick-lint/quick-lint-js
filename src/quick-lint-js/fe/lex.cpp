@@ -272,6 +272,7 @@ bool lexer::try_parse_current_token() {
   QLJS_CASE_DECIMAL_DIGIT:
   QLJS_CASE_IDENTIFIER_START:
   case '!':
+  case '"':
   case '%':
   case '&':
   case '*':
@@ -283,6 +284,7 @@ bool lexer::try_parse_current_token() {
   case '=':
   case '>':
   case '?':
+  case '\'':
   case '^':
   case '|':
     return lex_tables::try_parse_current_token(this);
@@ -567,7 +569,6 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
-#endif
 
   case '"':
   case '\'':
@@ -575,6 +576,7 @@ bool lexer::try_parse_current_token() {
     this->last_token_.type = token_type::string;
     this->last_token_.end = this->input_;
     break;
+#endif
 
   case '`': {
     this->input_ += 1;
