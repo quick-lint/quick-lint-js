@@ -11,11 +11,12 @@
 namespace quick_lint_js {
 namespace {
 std::vector<string8_view> symbols = {
-    u8"!"_sv,  u8"!="_sv,  u8"!=="_sv, u8"%"_sv,    u8"%="_sv, u8"&"_sv,
-    u8"&&"_sv, u8"&&="_sv, u8"&="_sv,  u8"+"_sv,    u8"++"_sv, u8"+="_sv,
-    u8"="_sv,  u8"=="_sv,  u8"==="_sv, u8"=>"_sv,   u8">"_sv,  u8">="_sv,
-    u8">>"_sv, u8">>="_sv, u8">>>"_sv, u8">>>="_sv, u8"^"_sv,  u8"^="_sv,
-    u8"|"_sv,  u8"|="_sv,  u8"||"_sv,  u8"||="_sv,
+    u8"!"_sv,      u8"!="_sv,  u8"!=="_sv, u8"%"_sv,    u8"%="_sv, u8"&"_sv,
+    u8"&&"_sv,     u8"&&="_sv, u8"&="_sv,  u8"+"_sv,    u8"++"_sv, u8"+="_sv,
+    u8"="_sv,      u8"=="_sv,  u8"==="_sv, u8"=>"_sv,   u8">"_sv,  u8">="_sv,
+    u8">>"_sv,     u8">>="_sv, u8">>>"_sv, u8">>>="_sv, u8"?"_sv,  u8"??"_sv,
+    u8"?\x3f="_sv, u8"^"_sv,   u8"^="_sv,  u8"|"_sv,    u8"|="_sv, u8"||"_sv,
+    u8"||="_sv,
 };
 
 TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
@@ -76,10 +77,13 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
       for (std::uint8_t c_class : expected_retracting_character_classes) {
         const lex_tables::state* transitions =
             lex_tables::transition_table[c_class];
+        // NOTE(strager): Casts to long improve Google Test failure output.
         lex_tables::state next_state = transitions[state];
-        EXPECT_EQ(next_state, lex_tables::state::done_retract_for_symbol)
-            << "transition from state " << state << " with character class "
-            << c_class << " should arrive at the retract state";
+        EXPECT_EQ(long{next_state},
+                  long{lex_tables::state::done_retract_for_symbol})
+            << "transition from state " << long{state}
+            << " with character class " << long{c_class}
+            << " should arrive at the retract state";
       }
     }
 
