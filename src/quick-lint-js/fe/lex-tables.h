@@ -98,8 +98,8 @@ namespace quick_lint_js {
 //
 // * is_terminal_state can check if a state is a complete state or a misc
 //   state (D or E) using a single >=.
-// * is_initial_state_terminal can check if a state is an initial terminal
-//   state (A) using a single >=.
+// * is_initial_state_terminal (which doesn't exist right now) can check if a
+//   state is an initial terminal state (A) using a single >=.
 struct lex_tables {
   // See NOTE[lex-table-class].
   enum character_class : std::uint8_t {
@@ -322,15 +322,6 @@ struct lex_tables {
     QLJS_ASSERT(is_terminal == (get_state_handler(s) != handler_transition_0 &&
                                 get_state_handler(s) != handler_transition_1));
     return is_terminal;
-  }
-
-  // Returns true if there are no transitions from this state to any other
-  // state.
-  //
-  // Precondition: s is an initial state.
-  static bool is_initial_state_terminal(state_type s) {
-    // See NOTE[lex-table-state-order].
-    return s >= other_character_class;
   }
 
   static constexpr state
@@ -882,15 +873,7 @@ struct lex_tables {
     QLJS_ASSERT(get_state_handler(new_state) !=
                 handler_done_retract_for_symbol);
     input += 1;
-    if (lex_tables::is_initial_state_terminal(new_state)) {
-#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
-      goto* handler_table[get_state_handler(new_state)];
-#else
-      goto dispatch_to_handler;
-#endif
-    } else {
-      goto transition;
-    }
+    goto transition;
 
   transition : {
     old_state = new_state;

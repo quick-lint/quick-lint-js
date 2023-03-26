@@ -45,16 +45,7 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
         lex_tables::character_class_table[static_cast<std::uint8_t>(
             symbol[0])]);
 
-    // Case A: Single-character unique terminal symbol such as '('.
-    {
-      if (lex_tables::is_initial_state_terminal(state)) {
-        EXPECT_EQ(symbol.size(), 1) << "initial terminal state should indicate "
-                                       "that the symbol has only one character";
-        goto done;
-      }
-    }
-
-    // Case B: Symbol with unique terminal state such as '++' (e.g. there is no
+    // Case A: Symbol with unique terminal state such as '++' (e.g. there is no
     // '+++' or '++=' symbol).
     {
       for (std::size_t i = 1; i < symbol.size(); ++i) {
@@ -71,7 +62,7 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
       }
     }
 
-    // Case C: Symbol with non-unique terminal state such as '>>' (e.g. there is
+    // Case B: Symbol with non-unique terminal state such as '>>' (e.g. there is
     // '>>>' and '>>='). Every next character in the symbol table should cause a
     // transition to the retract state.
     {
@@ -172,19 +163,17 @@ TEST(test_lex_tables, maximum_depth) {
   // other_character_class.
   for (lex_tables::state_type state = 0;
        state < lex_tables::character_class::other_character_class; ++state) {
-    if (!lex_tables::is_initial_state_terminal(state)) {
-      for (lex_tables::state_type c_class = 0;
-           c_class < lex_tables::character_class_count; ++c_class) {
-        queue.push_back(queue_entry{
-            .history =
-                state_history{
-                    .c_class_history = {state, c_class},
-                    .depth = 2,
-                },
-            .next_c_class = c_class,
-            .next_state = state,
-        });
-      }
+    for (lex_tables::state_type c_class = 0;
+         c_class < lex_tables::character_class_count; ++c_class) {
+      queue.push_back(queue_entry{
+          .history =
+              state_history{
+                  .c_class_history = {state, c_class},
+                  .depth = 2,
+              },
+          .next_c_class = c_class,
+          .next_state = state,
+      });
     }
   }
 
