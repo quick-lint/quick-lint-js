@@ -11,17 +11,18 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 
 #if QLJS_HAVE_GNU_COMPUTED_GOTO
-#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 1
+#define QLJS_LEX_HANDLER_USE_COMPUTED_GOTO 1
 #else
-#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 0
+#define QLJS_LEX_HANDLER_USE_COMPUTED_GOTO 0
 #endif
 
 QLJS_WARNING_PUSH
 
-#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
 QLJS_WARNING_IGNORE_CLANG("-Wgnu-label-as-value")
 // "taking the address of a label is non-standard"
 QLJS_WARNING_IGNORE_GCC("-Wpedantic")
@@ -47,7 +48,7 @@ namespace quick_lint_js {
 // 1. Character classification table (character_class_table).
 //    See NOTE[lex-table-class].
 // 2. State transition table (transition_table).
-// 3. Dispatch table.
+// 3. Handler table.
 // 4. Terminal state lookup table (state_to_token).
 //    See NOTE[lex-table-token-type].
 //
@@ -169,47 +170,66 @@ struct lex_tables {
   static constexpr int state_data_bits = 5;
   static constexpr state_type state_data_mask = (1 << state_data_bits) - 1;
 
-  // How many bits in the state are reserved for selecting the dispatcher.
-  // Dispatcher 0 is the keep-going dispatcher.
-  static constexpr int state_dispatcher_bits = 3;
+  // How many bits in the state are reserved for selecting the handler.
+  // See enum handler.
+  static constexpr int state_handler_bits = 3;
 
   static_assert(sizeof(state_type) >=
-                    (state_data_bits + state_dispatcher_bits) / CHAR_BIT,
+                    (state_data_bits + state_handler_bits) / CHAR_BIT,
                 "state_type should be big enough to fit all data bits and "
-                "dispatcher bits");
+                "handler bits");
 
+  enum handler {
+    handler_transition = 0,
+    handler_done_retract,
+    handler_done_unique_terminal,
+
+    handler_count,
+  };
+  static_assert(handler_transition == 0,
+                "handler_transition must be 0 to keep states in the transition "
+                "table low-numbered");
+  static_assert(handler_count < (1 << state_handler_bits),
+                "state_handler_bits should be big enough to fit all handlers");
+
+#define QLJS_STATE(handler, data) (((handler) << state_data_bits) | (data))
   enum state : state_type {
-    // Initial states:
+    // Initial states.
+    // Handler must be handler_transition (0) for these states.
     // See enum character_class and NOTE[lex-table-initial].
 
-    // Possibly-incomplete states:
-    bang_equal = 8 | (0 << state_data_bits),
-    ampersand_ampersand = 9 | (0 << state_data_bits),
-    equal_equal = 10 | (0 << state_data_bits),
-    greater_greater = 11 | (0 << state_data_bits),
-    pipe_pipe = 12 | (0 << state_data_bits),
-    greater_greater_greater = 13 | (0 << state_data_bits),
+    // Possibly-incomplete states.
+    // Handler must be handler_transition (0) for these states.
+    bang_equal = other_character_class,
+    ampersand_ampersand,
+    equal_equal,
+    greater_greater,
+    pipe_pipe,
+    greater_greater_greater,
 
     // Complete/terminal states:
-    done_percent_equal = 14 | (2 << state_data_bits),
-    done_ampersand_equal = 15 | (2 << state_data_bits),
-    done_plus_plus = 16 | (2 << state_data_bits),
-    done_plus_equal = 17 | (2 << state_data_bits),
-    done_equal_greater = 18 | (2 << state_data_bits),
-    done_greater_equal = 19 | (2 << state_data_bits),
-    done_circumflex_equal = 20 | (2 << state_data_bits),
-    done_pipe_equal = 21 | (2 << state_data_bits),
-    done_bang_equal_equal = 22 | (2 << state_data_bits),
-    done_ampersand_ampersand_equal = 23 | (2 << state_data_bits),
-    done_equal_equal_equal = 24 | (2 << state_data_bits),
-    done_greater_greater_equal = 25 | (2 << state_data_bits),
-    done_pipe_pipe_equal = 26 | (2 << state_data_bits),
-    done_greater_greater_greater_equal = 27 | (2 << state_data_bits),
+    // clang-format off
+    done_percent_equal                 = QLJS_STATE(handler_done_unique_terminal, 14),
+    done_ampersand_equal               = QLJS_STATE(handler_done_unique_terminal, 15),
+    done_plus_plus                     = QLJS_STATE(handler_done_unique_terminal, 16),
+    done_plus_equal                    = QLJS_STATE(handler_done_unique_terminal, 17),
+    done_equal_greater                 = QLJS_STATE(handler_done_unique_terminal, 18),
+    done_greater_equal                 = QLJS_STATE(handler_done_unique_terminal, 19),
+    done_circumflex_equal              = QLJS_STATE(handler_done_unique_terminal, 20),
+    done_pipe_equal                    = QLJS_STATE(handler_done_unique_terminal, 21),
+    done_bang_equal_equal              = QLJS_STATE(handler_done_unique_terminal, 22),
+    done_ampersand_ampersand_equal     = QLJS_STATE(handler_done_unique_terminal, 23),
+    done_equal_equal_equal             = QLJS_STATE(handler_done_unique_terminal, 24),
+    done_greater_greater_equal         = QLJS_STATE(handler_done_unique_terminal, 25),
+    done_pipe_pipe_equal               = QLJS_STATE(handler_done_unique_terminal, 26),
+    done_greater_greater_greater_equal = QLJS_STATE(handler_done_unique_terminal, 27),
+    // clang-format on
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
-    retract = (1 << state_data_bits),
+    retract = QLJS_STATE(handler_done_retract, 0),
   };
+#undef QLJS_STATE
   static constexpr int input_state_count = 14;
 
   // Returns true if there are no transitions from this state to any other
@@ -424,14 +444,11 @@ struct lex_tables {
 
     lex_tables::state old_state;
 
-#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
-    static void* dispatch_table[] = {
-        // TODO(strager): Assert that these match the
-        // state_dispatcher_transition, state_dispatcher_done_retract, and
-        // state_dispatcher_done_unique_terminal constants.
-        &&transition,
-        &&done_retract,
-        &&done_unique_terminal,
+#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+    static void* handler_table[] = {
+        /*[handler_transition] = */ &&transition,
+        /*[handler_done_retract] = */ &&done_retract,
+        /*[handler_done_unique_terminal] = */ &&done_unique_terminal,
     };
 #endif
 
@@ -445,10 +462,10 @@ struct lex_tables {
     QLJS_ASSERT(new_state != lex_tables::state::retract);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
-#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
-      goto* dispatch_table[new_state >> state_data_bits];
+#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+      goto* handler_table[new_state >> state_data_bits];
 #else
-      goto dispatch;
+      goto dispatch_to_handler;
 #endif
     } else {
       goto transition;
@@ -460,26 +477,30 @@ struct lex_tables {
         [lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]];
     new_state = transitions[new_state];
     input += 1;
-#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
-    goto* dispatch_table[new_state >> state_data_bits];
+#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+    goto* handler_table[new_state >> state_data_bits];
 #else
     if (lex_tables::is_terminal_state(new_state)) {
-      goto dispatch;
+      goto dispatch_to_handler;
     } else {
       goto transition;
     }
 #endif
   }
 
-#if !QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
-  dispatch : {
+#if !QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+  dispatch_to_handler : {
     switch (new_state >> state_data_bits) {
-    case 0:
+    case handler_transition:
       goto transition;
-    case 1:
+    case handler_done_retract:
       goto done_retract;
-    case 2:
+    case handler_done_unique_terminal:
       goto done_unique_terminal;
+
+    default:
+      QLJS_UNREACHABLE();
+      goto transition;
     }
   }
 #endif
@@ -502,9 +523,9 @@ struct lex_tables {
     QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
     new_state = old_state;
     QLJS_WARNING_POP
-    auto new_dispatcher = (new_state >> state_data_bits);
-    QLJS_ASSERT(new_dispatcher == 2 /*state_dispatcher_done_unique_terminal*/
-                || new_dispatcher == 0 /*state_dispatcher_transition*/);
+    auto new_handler = (new_state >> state_data_bits);
+    QLJS_ASSERT(new_handler == handler_done_unique_terminal ||
+                new_handler == handler_transition);
     goto done_unique_terminal;
   }
   }
