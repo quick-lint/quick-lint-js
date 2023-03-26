@@ -113,6 +113,7 @@ struct lex_tables {
     percent,
     ampersand,
     plus,
+    minus,
     less,
     equal,
     greater,
@@ -137,7 +138,7 @@ struct lex_tables {
   static constexpr std::uint8_t character_class_table[256] = {
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _, _,    _,    _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _, _,    _,    _,     _,          _,         //
-      _,     bang,  _,     _,     _,     percent, ampersand, _,     _,     _,     _, plus, _,    _,     dot,        _,         // (sp) !"#$%&'()*+,-./
+      _,     bang,  _,     _,     _,     percent, ampersand, _,     _,     _,     _, plus, _,    minus, dot,        _,         // (sp) !"#$%&'()*+,-./
       digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _, _,    less, equal, greater,    question,  // 0123456789:;<=>?
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _, _,    _,    _,     _,          _,         // @ABCDEFGHIJKLMNO
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _, _,    _,    _,     circumflex, _,         // PQRSTUVWXYZ[\]^_
@@ -160,6 +161,7 @@ struct lex_tables {
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'+')] == character_class::plus);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'-')] == character_class::minus);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'.')] == character_class::dot);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'0')] == character_class::digit);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'1')] == character_class::digit);
@@ -268,6 +270,8 @@ struct lex_tables {
     done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol, 15),
     done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 16),
     done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
+    done_minus_minus                   = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
+    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 19),
     // clang-format on
 
     done_less_bang = QLJS_STATE(handler_done_less_bang, 0),
@@ -313,6 +317,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %!               (invalid)
               done_retract_for_symbol,    // &!               (invalid)
               done_retract_for_symbol,    // +!               (invalid)
+              done_retract_for_symbol,    // -!               (invalid)
               done_less_bang,             // < -> <! (possibly <!--)
               done_retract_for_symbol,    // =!               (invalid)
               done_retract_for_symbol,    // >!               (invalid)
@@ -338,6 +343,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %%               (invalid)
               done_retract_for_symbol,    // &%               (invalid)
               done_retract_for_symbol,    // +%               (invalid)
+              done_retract_for_symbol,    // -%               (invalid)
               done_retract_for_symbol,    // <%               (invalid)
               done_retract_for_symbol,    // =%               (invalid)
               done_retract_for_symbol,    // >%               (invalid)
@@ -363,6 +369,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %&               (invalid)
               ampersand_ampersand,        // & -> &&
               done_retract_for_symbol,    // +&               (invalid)
+              done_retract_for_symbol,    // -&               (invalid)
               done_retract_for_symbol,    // <&               (invalid)
               done_retract_for_symbol,    // =&               (invalid)
               done_retract_for_symbol,    // >&               (invalid)
@@ -388,6 +395,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %+               (invalid)
               done_retract_for_symbol,    // &+               (invalid)
               done_plus_plus,             // + -> ++
+              done_retract_for_symbol,    // -+               (invalid)
               done_retract_for_symbol,    // <+               (invalid)
               done_retract_for_symbol,    // =+               (invalid)
               done_retract_for_symbol,    // >+               (invalid)
@@ -407,12 +415,39 @@ struct lex_tables {
               done_retract_for_symbol,    // ?.+              (invalid)
               done_retract_2_for_symbol,  // ..+              (invalid)
           },
+          // -
+          {
+              done_retract_for_symbol,    // !-               (invalid)
+              done_retract_for_symbol,    // %-               (invalid)
+              done_retract_for_symbol,    // &-               (invalid)
+              done_retract_for_symbol,    // +-               (invalid)
+              done_minus_minus,           // - -> --
+              done_retract_for_symbol,    // <-               (invalid)
+              done_retract_for_symbol,    // =-               (invalid)
+              done_retract_for_symbol,    // >-               (invalid)
+              done_retract_for_symbol,    // ^-               (invalid)
+              done_retract_for_symbol,    // |-               (invalid)
+              done_retract_for_symbol,    // ?-               (invalid)
+              done_retract_for_symbol,    // .-               (invalid)
+              done_table_broken,          // 9-               (invalid)
+              done_retract_for_symbol,    // !=-              (invalid)
+              done_retract_for_symbol,    // &&-              (invalid)
+              done_retract_for_symbol,    // <<-              (invalid)
+              done_retract_for_symbol,    // ==-              (invalid)
+              done_retract_for_symbol,    // >>-              (invalid)
+              done_retract_for_symbol,    // ||-              (invalid)
+              done_retract_for_symbol,    // >>>-             (invalid)
+              done_retract_for_symbol,    // ??-              (invalid)
+              done_retract_for_symbol,    // ?.-              (invalid)
+              done_retract_2_for_symbol,  // ..-              (invalid)
+          },
           // <
           {
               done_retract_for_symbol,    // !<               (invalid)
               done_retract_for_symbol,    // %<               (invalid)
               done_retract_for_symbol,    // &<               (invalid)
               done_retract_for_symbol,    // +<               (invalid)
+              done_retract_for_symbol,    // -<               (invalid)
               less_less,                  // < -> <<
               done_retract_for_symbol,    // =<               (invalid)
               done_retract_for_symbol,    // <>               (invalid)
@@ -438,6 +473,7 @@ struct lex_tables {
               done_percent_equal,                  // % -> %=
               done_ampersand_equal,                // & -> &=
               done_plus_equal,                     // + -> +=
+              done_minus_equal,                    // - -> -=
               done_less_equal,                     // < -> <=
               equal_equal,                         // = -> ==
               done_greater_equal,                  // > -> >=
@@ -463,6 +499,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %>               (invalid)
               done_retract_for_symbol,    // &>               (invalid)
               done_retract_for_symbol,    // +>               (invalid)
+              done_retract_for_symbol,    // ->               (invalid)
               done_retract_for_symbol,    // <>               (invalid)
               done_equal_greater,         // = -> =>
               greater_greater,            // > -> >>
@@ -488,6 +525,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %^               (invalid)
               done_retract_for_symbol,    // &^               (invalid)
               done_retract_for_symbol,    // +^               (invalid)
+              done_retract_for_symbol,    // -^               (invalid)
               done_retract_for_symbol,    // <^               (invalid)
               done_retract_for_symbol,    // =^               (invalid)
               done_retract_for_symbol,    // >^               (invalid)
@@ -513,6 +551,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %|               (invalid)
               done_retract_for_symbol,    // &|               (invalid)
               done_retract_for_symbol,    // +|               (invalid)
+              done_retract_for_symbol,    // -|               (invalid)
               done_retract_for_symbol,    // <|               (invalid)
               done_retract_for_symbol,    // =|               (invalid)
               done_retract_for_symbol,    // >|               (invalid)
@@ -538,6 +577,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %?               (invalid)
               done_retract_for_symbol,    // &?               (invalid)
               done_retract_for_symbol,    // +?               (invalid)
+              done_retract_for_symbol,    // -?               (invalid)
               done_retract_for_symbol,    // <?               (invalid)
               done_retract_for_symbol,    // =?               (invalid)
               done_retract_for_symbol,    // >?               (invalid)
@@ -563,6 +603,7 @@ struct lex_tables {
               done_retract_for_symbol,  // %.               (invalid)
               done_retract_for_symbol,  // &.               (invalid)
               done_retract_for_symbol,  // +.               (invalid)
+              done_retract_for_symbol,  // -.               (invalid)
               done_retract_for_symbol,  // <.               (invalid)
               done_retract_for_symbol,  // =.               (invalid)
               done_retract_for_symbol,  // >.               (invalid)
@@ -588,6 +629,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %9         (invalid)
               done_retract_for_symbol,    // &9         (invalid)
               done_retract_for_symbol,    // +9         (invalid)
+              done_retract_for_symbol,    // -9         (invalid)
               done_retract_for_symbol,    // <9         (invalid)
               done_retract_for_symbol,    // =9         (invalid)
               done_retract_for_symbol,    // >9         (invalid)
@@ -613,6 +655,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %(other)         (invalid)
               done_retract_for_symbol,    // &(other)         (invalid)
               done_retract_for_symbol,    // +(other)         (invalid)
+              done_retract_for_symbol,    // -(other)         (invalid)
               done_retract_for_symbol,    // <(other)         (invalid)
               done_retract_for_symbol,    // =(other)         (invalid)
               done_retract_for_symbol,    // >(other)         (invalid)
@@ -656,6 +699,8 @@ struct lex_tables {
       token_type::dot_dot_dot,                    // ...
       token_type::less_equal,                     // <=
       token_type::less_less_equal,                // <<=
+      token_type::minus_minus,                    // --
+      token_type::minus_equal,                    // -=
   };
 
   // Key: a state < input_state_count
@@ -665,6 +710,7 @@ struct lex_tables {
       token_type::percent,                  // %
       token_type::ampersand,                // &
       token_type::plus,                     // +
+      token_type::minus,                    // -
       token_type::less,                     // <
       token_type::equal,                    // =
       token_type::greater,                  // >
