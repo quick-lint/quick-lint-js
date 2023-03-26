@@ -1292,7 +1292,8 @@ next:
                   .colon_question_is_typescript_optional_with_type_annotation =
                       prec.colon_question_is_typescript_optional_with_type_annotation,
               }));
-      if (rhs->kind() == expression_kind::_invalid) {
+      if (rhs->kind() == expression_kind::_invalid ||
+          rhs->kind() == expression_kind::_missing) {
         this->diag_reporter_->report(
             diag_missing_operand_for_operator{comma_span});
       }

@@ -138,6 +138,14 @@ TEST_F(test_parse_function, parse_function_statement) {
                                   func_param_decl(u8"first"_sv),
                                   func_param_decl(u8"args"_sv)}));
   }
+
+  {
+    test_parser p(u8"function foo() { return x++,y }"_sv);
+    p.parse_and_visit_statement();
+    ASSERT_EQ(p.variable_declarations.size(), 1);
+    EXPECT_EQ(p.variable_declarations[0].name, u8"foo");
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"y"}));
+  }
 }
 
 TEST_F(test_parse_function, function_with_arrow_operator) {
@@ -2196,6 +2204,41 @@ TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"b"}));
     EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"a", u8"c"}));
+  }
+}
+
+TEST_F(test_parse_function, return_with_comma_operator_missing_arguments) {
+  {
+    test_parser p(u8"function f() { return 4, }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_operand_for_operator,  //
+                        where, strlen(u8"function f() { return 4"), u8","_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"function f() { return 1,2, }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_operand_for_operator,  //
+                        where, strlen(u8"function f() { return 1,2"), u8","_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"function f() { return ,-5 }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_operand_for_operator,  //
+                        where, strlen(u8"function f() { return "), u8","_sv),
+                }));
   }
 }
 }
