@@ -216,6 +216,7 @@ struct lex_tables {
     handler_done_unique_terminal_symbol,
 
     handler_done_less_bang,
+    handler_done_minus_minus,
     handler_done_number,
     handler_done_question_dot_digit,
 
@@ -226,7 +227,7 @@ struct lex_tables {
   static_assert(handler_transition == 0,
                 "handler_transition must be 0 to keep states in the transition "
                 "table low-numbered");
-  static_assert(handler_count < (1 << state_handler_bits),
+  static_assert(handler_count <= (1 << state_handler_bits),
                 "state_handler_bits should be big enough to fit all handlers");
 
 #define QLJS_STATE(handler, data) (((handler) << state_data_bits) | (data))
@@ -270,11 +271,11 @@ struct lex_tables {
     done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol, 15),
     done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 16),
     done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
-    done_minus_minus                   = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
-    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 19),
+    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
     // clang-format on
 
     done_less_bang = QLJS_STATE(handler_done_less_bang, 0),
+    done_minus_minus = QLJS_STATE(handler_done_minus_minus, 0),
     done_number = QLJS_STATE(handler_done_number, 0),
     done_question_dot_digit = QLJS_STATE(handler_done_question_dot_digit, 0),
 
@@ -421,7 +422,7 @@ struct lex_tables {
               done_retract_for_symbol,    // %-               (invalid)
               done_retract_for_symbol,    // &-               (invalid)
               done_retract_for_symbol,    // +-               (invalid)
-              done_minus_minus,           // - -> --
+              done_minus_minus,           // - -> -- (potentially -->)
               done_retract_for_symbol,    // <-               (invalid)
               done_retract_for_symbol,    // =-               (invalid)
               done_retract_for_symbol,    // >-               (invalid)
@@ -699,7 +700,6 @@ struct lex_tables {
       token_type::dot_dot_dot,                    // ...
       token_type::less_equal,                     // <=
       token_type::less_less_equal,                // <<=
-      token_type::minus_minus,                    // --
       token_type::minus_equal,                    // -=
   };
 
@@ -744,6 +744,7 @@ struct lex_tables {
         /*[handler_done_unique_terminal_symbol] = */
         &&done_unique_terminal_symbol,
         /*[handler_done_less_bang] = */ &&done_less_bang,
+        /*[handler_done_minus_minus] = */ &&done_minus_minus,
         /*[handler_done_number] = */ &&done_number,
         /*[handler_done_question_dot_digit] = */ &&done_question_dot_digit,
         /*[handler_done_table_broken] = */ &&done_table_broken,
@@ -798,6 +799,8 @@ struct lex_tables {
       goto done_unique_terminal_symbol;
     case handler_done_less_bang:
       goto done_less_bang;
+    case handler_done_minus_minus:
+      goto done_minus_minus;
     case handler_done_number:
       goto done_number;
     case handler_done_question_dot_digit:
@@ -856,6 +859,25 @@ struct lex_tables {
       // Only parse the '<'.
       l->input_ += 1;
       l->last_token_.type = token_type::less;
+      l->last_token_.end = l->input_;
+      return true;
+    }
+  }
+
+  // -->
+  // --
+  done_minus_minus : {
+    QLJS_ASSERT(l->input_[0] == u8'-');
+    QLJS_ASSERT(l->input_[1] == u8'-');
+    if (l->input_[2] == u8'>' && l->is_first_token_on_line()) {
+      // -->
+      l->input_ += 3;
+      l->skip_line_comment_body();
+      return false;
+    } else {
+      // --(other)
+      l->input_ = input;
+      l->last_token_.type = token_type::minus_minus;
       l->last_token_.end = l->input_;
       return true;
     }

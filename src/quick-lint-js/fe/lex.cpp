@@ -271,6 +271,7 @@ bool lexer::try_parse_current_token() {
   case '%':
   case '&':
   case '+':
+  case '-':
   case '.':
   case '<':
   case '=':
@@ -478,20 +479,8 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
-#endif
 
   case '-':
-#if QLJS_FEATURE_LEX_TABLES
-    if (this->input_[1] == '-' && this->input_[2] == '>' &&
-        this->is_first_token_on_line()) {
-      // TODO(strager): Parse these using the lexer tables.
-      this->input_ += 3;
-      this->skip_line_comment_body();
-      return false;
-    } else {
-      return lex_tables::try_parse_current_token(this);
-    }
-#else
     if (this->input_[1] == '-') {
       if (this->input_[2] == '>' && this->is_first_token_on_line()) {
         this->input_ += 3;
