@@ -181,7 +181,7 @@ struct lex_tables {
 
   enum handler {
     handler_transition = 0,
-    handler_done_retract,
+    handler_done_retract_for_symbol,
     handler_done_unique_terminal,
 
     handler_count,
@@ -228,8 +228,9 @@ struct lex_tables {
     // clang-format on
 
     // An unexpected character was detected. The lexer should retract the most
-    // recent byte.
-    retract = QLJS_STATE(handler_done_retract, 0),
+    // recent byte then consult retract_for_symbol_tokens using the previous
+    // state.
+    done_retract_for_symbol = QLJS_STATE(handler_done_retract_for_symbol, 0),
   };
 #undef QLJS_STATE
 
@@ -258,71 +259,71 @@ struct lex_tables {
       transition_table[character_class_count + 1][input_state_count] = {
           // !
           {
-              retract,  // !!               (invalid)
-              retract,  // %!               (invalid)
-              retract,  // &!               (invalid)
-              retract,  // +!               (invalid)
-              retract,  // =!               (invalid)
-              retract,  // >!               (invalid)
-              retract,  // ^!               (invalid)
-              retract,  // |!               (invalid)
-              retract,  // !=!              (invalid)
-              retract,  // &&!              (invalid)
-              retract,  // ==!              (invalid)
-              retract,  // >>!              (invalid)
-              retract,  // ||!              (invalid)
-              retract,  // >>>!             (invalid)
+              done_retract_for_symbol,  // !!               (invalid)
+              done_retract_for_symbol,  // %!               (invalid)
+              done_retract_for_symbol,  // &!               (invalid)
+              done_retract_for_symbol,  // +!               (invalid)
+              done_retract_for_symbol,  // =!               (invalid)
+              done_retract_for_symbol,  // >!               (invalid)
+              done_retract_for_symbol,  // ^!               (invalid)
+              done_retract_for_symbol,  // |!               (invalid)
+              done_retract_for_symbol,  // !=!              (invalid)
+              done_retract_for_symbol,  // &&!              (invalid)
+              done_retract_for_symbol,  // ==!              (invalid)
+              done_retract_for_symbol,  // >>!              (invalid)
+              done_retract_for_symbol,  // ||!              (invalid)
+              done_retract_for_symbol,  // >>>!             (invalid)
           },
           // %
           {
-              retract,  // !%               (invalid)
-              retract,  // %%               (invalid)
-              retract,  // &%               (invalid)
-              retract,  // +%               (invalid)
-              retract,  // =%               (invalid)
-              retract,  // >%               (invalid)
-              retract,  // ^%               (invalid)
-              retract,  // |%               (invalid)
-              retract,  // !=%              (invalid)
-              retract,  // &&%              (invalid)
-              retract,  // ==%              (invalid)
-              retract,  // >>%              (invalid)
-              retract,  // ||%              (invalid)
-              retract,  // >>>%             (invalid)
+              done_retract_for_symbol,  // !%               (invalid)
+              done_retract_for_symbol,  // %%               (invalid)
+              done_retract_for_symbol,  // &%               (invalid)
+              done_retract_for_symbol,  // +%               (invalid)
+              done_retract_for_symbol,  // =%               (invalid)
+              done_retract_for_symbol,  // >%               (invalid)
+              done_retract_for_symbol,  // ^%               (invalid)
+              done_retract_for_symbol,  // |%               (invalid)
+              done_retract_for_symbol,  // !=%              (invalid)
+              done_retract_for_symbol,  // &&%              (invalid)
+              done_retract_for_symbol,  // ==%              (invalid)
+              done_retract_for_symbol,  // >>%              (invalid)
+              done_retract_for_symbol,  // ||%              (invalid)
+              done_retract_for_symbol,  // >>>%             (invalid)
           },
           // &
           {
-              retract,              // !&               (invalid)
-              retract,              // %&               (invalid)
-              ampersand_ampersand,  // & -> &&
-              retract,              // +&               (invalid)
-              retract,              // =&               (invalid)
-              retract,              // >&               (invalid)
-              retract,              // ^&               (invalid)
-              retract,              // |&               (invalid)
-              retract,              // !=&              (invalid)
-              retract,              // &&&              (invalid)
-              retract,              // ==&              (invalid)
-              retract,              // >>&              (invalid)
-              retract,              // ||&              (invalid)
-              retract,              // >>>&             (invalid)
+              done_retract_for_symbol,  // !&               (invalid)
+              done_retract_for_symbol,  // %&               (invalid)
+              ampersand_ampersand,      // & -> &&
+              done_retract_for_symbol,  // +&               (invalid)
+              done_retract_for_symbol,  // =&               (invalid)
+              done_retract_for_symbol,  // >&               (invalid)
+              done_retract_for_symbol,  // ^&               (invalid)
+              done_retract_for_symbol,  // |&               (invalid)
+              done_retract_for_symbol,  // !=&              (invalid)
+              done_retract_for_symbol,  // &&&              (invalid)
+              done_retract_for_symbol,  // ==&              (invalid)
+              done_retract_for_symbol,  // >>&              (invalid)
+              done_retract_for_symbol,  // ||&              (invalid)
+              done_retract_for_symbol,  // >>>&             (invalid)
           },
           // +
           {
-              retract,         // !+               (invalid)
-              retract,         // %+               (invalid)
-              retract,         // &+               (invalid)
-              done_plus_plus,  // + -> ++
-              retract,         // =+               (invalid)
-              retract,         // >+               (invalid)
-              retract,         // ^+               (invalid)
-              retract,         // |+               (invalid)
-              retract,         // !=+              (invalid)
-              retract,         // &&+              (invalid)
-              retract,         // ==+              (invalid)
-              retract,         // >>+              (invalid)
-              retract,         // ||+              (invalid)
-              retract,         // >>>+             (invalid)
+              done_retract_for_symbol,  // !+               (invalid)
+              done_retract_for_symbol,  // %+               (invalid)
+              done_retract_for_symbol,  // &+               (invalid)
+              done_plus_plus,           // + -> ++
+              done_retract_for_symbol,  // =+               (invalid)
+              done_retract_for_symbol,  // >+               (invalid)
+              done_retract_for_symbol,  // ^+               (invalid)
+              done_retract_for_symbol,  // |+               (invalid)
+              done_retract_for_symbol,  // !=+              (invalid)
+              done_retract_for_symbol,  // &&+              (invalid)
+              done_retract_for_symbol,  // ==+              (invalid)
+              done_retract_for_symbol,  // >>+              (invalid)
+              done_retract_for_symbol,  // ||+              (invalid)
+              done_retract_for_symbol,  // >>>+             (invalid)
           },
           // =
           {
@@ -343,71 +344,71 @@ struct lex_tables {
           },
           // >
           {
-              retract,                  // !>               (invalid)
-              retract,                  // %>               (invalid)
-              retract,                  // &>               (invalid)
-              retract,                  // +>               (invalid)
+              done_retract_for_symbol,  // !>               (invalid)
+              done_retract_for_symbol,  // %>               (invalid)
+              done_retract_for_symbol,  // &>               (invalid)
+              done_retract_for_symbol,  // +>               (invalid)
               done_equal_greater,       // = -> =>
               greater_greater,          // > -> >>
-              retract,                  // ^>               (invalid)
-              retract,                  // |>               (invalid)
-              retract,                  // !=>              (invalid)
-              retract,                  // &&>              (invalid)
-              retract,                  // ==>              (invalid)
+              done_retract_for_symbol,  // ^>               (invalid)
+              done_retract_for_symbol,  // |>               (invalid)
+              done_retract_for_symbol,  // !=>              (invalid)
+              done_retract_for_symbol,  // &&>              (invalid)
+              done_retract_for_symbol,  // ==>              (invalid)
               greater_greater_greater,  // >> -> >>>
-              retract,                  // ||>              (invalid)
-              retract,                  // >>>>             (invalid)
+              done_retract_for_symbol,  // ||>              (invalid)
+              done_retract_for_symbol,  // >>>>             (invalid)
           },
           // ^
           {
-              retract,  // !^               (invalid)
-              retract,  // %^               (invalid)
-              retract,  // &^               (invalid)
-              retract,  // +^               (invalid)
-              retract,  // =^               (invalid)
-              retract,  // >^               (invalid)
-              retract,  // ^^               (invalid)
-              retract,  // |^               (invalid)
-              retract,  // !=^              (invalid)
-              retract,  // &&^              (invalid)
-              retract,  // ==^              (invalid)
-              retract,  // >>^              (invalid)
-              retract,  // ||^              (invalid)
-              retract,  // >>>^             (invalid)
+              done_retract_for_symbol,  // !^               (invalid)
+              done_retract_for_symbol,  // %^               (invalid)
+              done_retract_for_symbol,  // &^               (invalid)
+              done_retract_for_symbol,  // +^               (invalid)
+              done_retract_for_symbol,  // =^               (invalid)
+              done_retract_for_symbol,  // >^               (invalid)
+              done_retract_for_symbol,  // ^^               (invalid)
+              done_retract_for_symbol,  // |^               (invalid)
+              done_retract_for_symbol,  // !=^              (invalid)
+              done_retract_for_symbol,  // &&^              (invalid)
+              done_retract_for_symbol,  // ==^              (invalid)
+              done_retract_for_symbol,  // >>^              (invalid)
+              done_retract_for_symbol,  // ||^              (invalid)
+              done_retract_for_symbol,  // >>>^             (invalid)
           },
           // |
           {
-              retract,    // !|               (invalid)
-              retract,    // %|               (invalid)
-              retract,    // &|               (invalid)
-              retract,    // +|               (invalid)
-              retract,    // =|               (invalid)
-              retract,    // >|               (invalid)
-              retract,    // ^|               (invalid)
-              pipe_pipe,  // | -> ||
-              retract,    // !=|              (invalid)
-              retract,    // &&|              (invalid)
-              retract,    // ==|              (invalid)
-              retract,    // >>|              (invalid)
-              retract,    // |||              (invalid)
-              retract,    // >>>|             (invalid)
+              done_retract_for_symbol,  // !|               (invalid)
+              done_retract_for_symbol,  // %|               (invalid)
+              done_retract_for_symbol,  // &|               (invalid)
+              done_retract_for_symbol,  // +|               (invalid)
+              done_retract_for_symbol,  // =|               (invalid)
+              done_retract_for_symbol,  // >|               (invalid)
+              done_retract_for_symbol,  // ^|               (invalid)
+              pipe_pipe,                // | -> ||
+              done_retract_for_symbol,  // !=|              (invalid)
+              done_retract_for_symbol,  // &&|              (invalid)
+              done_retract_for_symbol,  // ==|              (invalid)
+              done_retract_for_symbol,  // >>|              (invalid)
+              done_retract_for_symbol,  // |||              (invalid)
+              done_retract_for_symbol,  // >>>|             (invalid)
           },
           // (other)
           {
-              retract,  // !(other)         (invalid)
-              retract,  // %(other)         (invalid)
-              retract,  // &(other)         (invalid)
-              retract,  // +(other)         (invalid)
-              retract,  // =(other)         (invalid)
-              retract,  // >(other)         (invalid)
-              retract,  // ^(other)         (invalid)
-              retract,  // |(other)         (invalid)
-              retract,  // !=(other)        (invalid)
-              retract,  // &&(other)        (invalid)
-              retract,  // ==(other)        (invalid)
-              retract,  // >>(other)        (invalid)
-              retract,  // ||(other)        (invalid)
-              retract,  // >>>(other)       (invalid)
+              done_retract_for_symbol,  // !(other)         (invalid)
+              done_retract_for_symbol,  // %(other)         (invalid)
+              done_retract_for_symbol,  // &(other)         (invalid)
+              done_retract_for_symbol,  // +(other)         (invalid)
+              done_retract_for_symbol,  // =(other)         (invalid)
+              done_retract_for_symbol,  // >(other)         (invalid)
+              done_retract_for_symbol,  // ^(other)         (invalid)
+              done_retract_for_symbol,  // |(other)         (invalid)
+              done_retract_for_symbol,  // !=(other)        (invalid)
+              done_retract_for_symbol,  // &&(other)        (invalid)
+              done_retract_for_symbol,  // ==(other)        (invalid)
+              done_retract_for_symbol,  // >>(other)        (invalid)
+              done_retract_for_symbol,  // ||(other)        (invalid)
+              done_retract_for_symbol,  // >>>(other)       (invalid)
           },
   };
 
@@ -444,6 +445,25 @@ struct lex_tables {
       token_type::greater_greater_greater_equal,  // >>>=
   };
 
+  // Key: a state < input_state_count
+  // Value: corresponding token_type
+  static constexpr token_type retract_for_symbol_tokens[] = {
+      token_type::bang,                     // !
+      token_type::percent,                  // %
+      token_type::ampersand,                // &
+      token_type::plus,                     // +
+      token_type::equal,                    // =
+      token_type::greater,                  // >
+      token_type::circumflex,               // ^
+      token_type::pipe,                     // |
+      token_type::bang_equal,               // !=
+      token_type::ampersand_ampersand,      // &&
+      token_type::equal_equal,              // ==
+      token_type::greater_greater,          // >>
+      token_type::pipe_pipe,                // ||
+      token_type::greater_greater_greater,  // >>>
+  };
+
   // NOTE[lex-table-lookup]:
   static bool try_parse_current_token(lexer* l) {
     const char8* input = l->input_;
@@ -453,7 +473,7 @@ struct lex_tables {
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
     static void* handler_table[] = {
         /*[handler_transition] = */ &&transition,
-        /*[handler_done_retract] = */ &&done_retract,
+        /*[handler_done_retract_for_symbol] = */ &&done_retract_for_symbol,
         /*[handler_done_unique_terminal] = */ &&done_unique_terminal,
     };
 #endif
@@ -465,7 +485,8 @@ struct lex_tables {
     // NOTE[lex-table-initial].
     lex_tables::state new_state = static_cast<lex_tables::state>(
         lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
-    QLJS_ASSERT(new_state != lex_tables::state::retract);
+    QLJS_ASSERT((new_state >> state_data_bits) !=
+                handler_done_retract_for_symbol);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
@@ -499,8 +520,8 @@ struct lex_tables {
     switch (new_state >> state_data_bits) {
     case handler_transition:
       goto transition;
-    case handler_done_retract:
-      goto done_retract;
+    case handler_done_retract_for_symbol:
+      goto done_retract_for_symbol;
     case handler_done_unique_terminal:
       goto done_unique_terminal;
 
@@ -519,20 +540,23 @@ struct lex_tables {
     return true;
   }
 
-  done_retract : {
-    input -= 1;
+  done_retract_for_symbol : {
     QLJS_WARNING_PUSH
     // Clang thinks that old_state is uninitialized if we goto done_retract
     // before assigning to it. However, if we didn't assign to old_state, we
     // also asserted that new_state != lex_tables::state::retract, thus we
     // shouldn't reach here anyway.
     QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
-    new_state = old_state;
+
+    input -= 1;
+    QLJS_ASSERT(old_state < input_state_count);
+    QLJS_ASSERT((old_state >> state_data_bits) == handler_transition);
+    l->last_token_.type = lex_tables::retract_for_symbol_tokens[old_state];
+    l->input_ = input;
+    l->last_token_.end = input;
+    return true;
+
     QLJS_WARNING_POP
-    auto new_handler = (new_state >> state_data_bits);
-    QLJS_ASSERT(new_handler == handler_done_unique_terminal ||
-                new_handler == handler_transition);
-    goto done_unique_terminal;
   }
   }
 };

@@ -77,7 +77,7 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
         const lex_tables::state* transitions =
             lex_tables::transition_table[c_class];
         lex_tables::state next_state = transitions[state];
-        EXPECT_EQ(next_state, lex_tables::state::retract)
+        EXPECT_EQ(next_state, lex_tables::state::done_retract_for_symbol)
             << "transition from state " << state << " with character class "
             << c_class << " should arrive at the retract state";
       }
