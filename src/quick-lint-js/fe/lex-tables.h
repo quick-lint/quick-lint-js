@@ -117,18 +117,17 @@ struct lex_tables {
     pipe,
     question,
     dot,
+    digit,
 
-    non_terminal_character_class_count,
-
-    digit = non_terminal_character_class_count,
-    ident,  // Initial identifier character.
-
-    initial_character_class_count,
-
-    // Must be last:
-    other_character_class = initial_character_class_count,
+    // Must be after normal character classes:
+    other_character_class,
 
     character_class_count,
+
+    // Character classes used only for the initial byte:
+    ident = character_class_count,  // Initial identifier character.
+
+    initial_character_class_count,
   };
 
   // Folds each character into a small set of equivalence classes. This makes
@@ -162,12 +161,12 @@ struct lex_tables {
   static constexpr std::uint8_t character_class_table[256] = {
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
-      _,     bang,  _,     _,     ident, percent, ampersand, _,     _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
+      _,     bang,  _,     _,     _,     percent, ampersand, _,     _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
       digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,    less,  equal, greater,    question,  // 0123456789:;<=>?
-      _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
-      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
-      _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // `abcdefghijklmno
-      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    pipe,  _,     _,          _,         // pqrstuvwxyz{|}~ (del)
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         // @ABCDEFGHIJKLMNO
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     circumflex, _,         // PQRSTUVWXYZ[\]^_
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         // `abcdefghijklmno
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    pipe,  _,     _,          _,         // pqrstuvwxyz{|}~ (del)
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
@@ -214,7 +213,6 @@ struct lex_tables {
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
 
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'*')] == character_class::star);
@@ -236,13 +234,7 @@ struct lex_tables {
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'=')] == character_class::equal);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'>')] == character_class::greater);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'?')] == character_class::question);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'A')] == character_class::ident);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'Z')] == character_class::ident);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'\\')] == character_class::ident);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'^')] == character_class::circumflex);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'_')] == character_class::ident);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'a')] == character_class::ident);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'z')] == character_class::ident);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
   // clang-format on
 
@@ -410,7 +402,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?!               (invalid)
               done_retract_for_symbol,    // .!               (invalid)
               done_table_broken,          // 9!               (invalid)
-              done_table_broken,          // a!               (invalid)
               done_retract_for_symbol,    // !=!              (invalid)
               done_retract_for_symbol,    // &&!              (invalid)
               done_retract_for_symbol,    // <<!              (invalid)
@@ -439,7 +430,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?%               (invalid)
               done_retract_for_symbol,    // .%               (invalid)
               done_table_broken,          // 9%               (invalid)
-              done_table_broken,          // a%               (invalid)
               done_retract_for_symbol,    // !=%              (invalid)
               done_retract_for_symbol,    // &&%              (invalid)
               done_retract_for_symbol,    // <<%              (invalid)
@@ -468,7 +458,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?&               (invalid)
               done_retract_for_symbol,    // .&               (invalid)
               done_table_broken,          // 9&               (invalid)
-              done_table_broken,          // a&               (invalid)
               done_retract_for_symbol,    // !=&              (invalid)
               done_retract_for_symbol,    // &&&              (invalid)
               done_retract_for_symbol,    // <<&              (invalid)
@@ -497,7 +486,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?*               (invalid)
               done_retract_for_symbol,    // .*               (invalid)
               done_table_broken,          // 9*               (invalid)
-              done_table_broken,          // a*               (invalid)
               done_retract_for_symbol,    // !=*              (invalid)
               done_retract_for_symbol,    // &&*              (invalid)
               done_retract_for_symbol,    // <<*              (invalid)
@@ -526,7 +514,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?+               (invalid)
               done_retract_for_symbol,    // .+               (invalid)
               done_table_broken,          // 9+               (invalid)
-              done_table_broken,          // a+               (invalid)
               done_retract_for_symbol,    // !=+              (invalid)
               done_retract_for_symbol,    // &&+              (invalid)
               done_retract_for_symbol,    // <<+              (invalid)
@@ -555,7 +542,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?-               (invalid)
               done_retract_for_symbol,    // .-               (invalid)
               done_table_broken,          // 9-               (invalid)
-              done_table_broken,          // a-               (invalid)
               done_retract_for_symbol,    // !=-              (invalid)
               done_retract_for_symbol,    // &&-              (invalid)
               done_retract_for_symbol,    // <<-              (invalid)
@@ -584,7 +570,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?/               (invalid)
               done_retract_for_symbol,    // ./               (invalid)
               done_table_broken,          // 9/               (invalid)
-              done_table_broken,          // a/               (invalid)
               done_retract_for_symbol,    // !=/              (invalid)
               done_retract_for_symbol,    // &&/              (invalid)
               done_retract_for_symbol,    // <</              (invalid)
@@ -613,7 +598,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?<               (invalid)
               done_retract_for_symbol,    // .<               (invalid)
               done_table_broken,          // 9<               (invalid)
-              done_table_broken,          // a<               (invalid)
               done_retract_for_symbol,    // !=<              (invalid)
               done_retract_for_symbol,    // &&<              (invalid)
               done_retract_for_symbol,    // <<<              (invalid)
@@ -642,7 +626,6 @@ struct lex_tables {
               done_retract_for_symbol,         // ?=           (invalid)
               done_retract_for_symbol,         // .=           (invalid)
               done_table_broken,               // 9=           (invalid)
-              done_table_broken,               // a=           (invalid)
               done_bang_equal_equal,           // != -> !==
               done_ampersand_ampersand_equal,  // && -> &&=
               done_less_less_equal,            // << -> <<=
@@ -671,7 +654,6 @@ struct lex_tables {
               done_retract_for_symbol,       // ?>               (invalid)
               done_retract_for_symbol,       // .>               (invalid)
               done_table_broken,             // 9>               (invalid)
-              done_table_broken,             // a>               (invalid)
               done_retract_for_symbol,       // !=>              (invalid)
               done_retract_for_symbol,       // &&>              (invalid)
               done_retract_for_symbol,       // <<>              (invalid)
@@ -700,7 +682,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?^               (invalid)
               done_retract_for_symbol,    // .^               (invalid)
               done_table_broken,          // 9^               (invalid)
-              done_table_broken,          // a^               (invalid)
               done_retract_for_symbol,    // !=^              (invalid)
               done_retract_for_symbol,    // &&^              (invalid)
               done_retract_for_symbol,    // <<^              (invalid)
@@ -729,7 +710,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?|               (invalid)
               done_retract_for_symbol,    // .|               (invalid)
               done_table_broken,          // 9|               (invalid)
-              done_table_broken,          // a|               (invalid)
               done_retract_for_symbol,    // !=|              (invalid)
               done_retract_for_symbol,    // &&|              (invalid)
               done_retract_for_symbol,    // <<|              (invalid)
@@ -758,7 +738,6 @@ struct lex_tables {
               question_question,          // ? -> ??
               done_retract_for_symbol,    // .?               (invalid)
               done_table_broken,          // 9?               (invalid)
-              done_table_broken,          // a?               (invalid)
               done_retract_for_symbol,    // !=?              (invalid)
               done_retract_for_symbol,    // &&?              (invalid)
               done_retract_for_symbol,    // <<?              (invalid)
@@ -787,7 +766,6 @@ struct lex_tables {
               question_dot,             // ? -> ?.
               dot_dot,                  // . -> ..
               done_table_broken,        // 9.               (invalid)
-              done_table_broken,        // a.               (invalid)
               done_retract_for_symbol,  // !=.              (invalid)
               done_retract_for_symbol,  // &&.              (invalid)
               done_retract_for_symbol,  // <<.              (invalid)
@@ -816,7 +794,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?9         (invalid)
               done_number,                // . -> .9
               done_table_broken,          // 99         (invalid)
-              done_table_broken,          // a9         (invalid)
               done_retract_for_symbol,    // !=9        (invalid)
               done_retract_for_symbol,    // &&9        (invalid)
               done_retract_for_symbol,    // <<9        (invalid)
@@ -827,35 +804,6 @@ struct lex_tables {
               done_question_dot_digit,    // ?.9        (invalid; remove '.9')
               done_retract_2_for_symbol,  // ..9        (invalid)
               done_retract_for_symbol,    // **9        (invalid)
-          },
-          // a
-          {
-              done_retract_for_symbol,    // !a         (invalid)
-              done_retract_for_symbol,    // %a         (invalid)
-              done_retract_for_symbol,    // &a         (invalid)
-              done_retract_for_symbol,    // *a         (invalid)
-              done_retract_for_symbol,    // +a         (invalid)
-              done_retract_for_symbol,    // -a         (invalid)
-              done_retract_for_symbol,    // /a         (invalid)
-              done_retract_for_symbol,    // <a         (invalid)
-              done_retract_for_symbol,    // =a         (invalid)
-              done_retract_for_symbol,    // >a         (invalid)
-              done_retract_for_symbol,    // ^a         (invalid)
-              done_retract_for_symbol,    // |a         (invalid)
-              done_retract_for_symbol,    // ?a         (invalid)
-              done_retract_for_symbol,    // .a         (invalid)
-              done_table_broken,          // 9a         (invalid)
-              done_table_broken,          // aa         (invalid)
-              done_retract_for_symbol,    // !=a        (invalid)
-              done_retract_for_symbol,    // &&a        (invalid)
-              done_retract_for_symbol,    // <<a        (invalid)
-              done_retract_for_symbol,    // ==a        (invalid)
-              done_retract_for_symbol,    // >>a        (invalid)
-              done_retract_for_symbol,    // ||a        (invalid)
-              done_retract_for_symbol,    // ??a        (invalid)
-              done_retract_for_symbol,    // ?.a        (invalid)
-              done_retract_2_for_symbol,  // ..a        (invalid)
-              done_retract_for_symbol,    // **a        (invalid)
           },
           // (other)
           {
@@ -874,7 +822,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ?(other)         (invalid)
               done_retract_for_symbol,    // .(other)         (invalid)
               done_retract_for_symbol,    // 9(other)         (invalid)
-              done_retract_for_symbol,    // a(other)         (invalid)
               done_retract_for_symbol,    // !=(other)        (invalid)
               done_retract_for_symbol,    // &&(other)        (invalid)
               done_retract_for_symbol,    // <<(other)        (invalid)
@@ -939,7 +886,6 @@ struct lex_tables {
       token_type::question,             // ?
       token_type::dot,                  // .
       invalid_token_type,               // 9    (invalid)
-      invalid_token_type,               // a    (invalid)
       token_type::bang_equal,           // !=
       token_type::ampersand_ampersand,  // &&
       token_type::less_less,            // <<
@@ -975,8 +921,8 @@ struct lex_tables {
         /*[question] = */ &&transition,
         /*[dot] = */ &&transition,
         /*[digit] = */ &&done_number,
-        /*[ident] = */ &&done_identifier,
         /*[other_character_class] = */ &&done_table_broken,
+        /*[ident] = */ &&done_identifier,
     };
 
     static void* handler_table[] = {
