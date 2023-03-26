@@ -11,7 +11,22 @@
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
+
+#if QLJS_HAVE_GNU_COMPUTED_GOTO
+#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 1
+#else
+#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 0
+#endif
+
+QLJS_WARNING_PUSH
+
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+QLJS_WARNING_IGNORE_CLANG("-Wgnu-label-as-value")
+// "taking the address of a label is non-standard"
+QLJS_WARNING_IGNORE_GCC("-Wpedantic")
+#endif
 
 namespace quick_lint_js {
 struct lex_tables {
@@ -36,44 +51,49 @@ struct lex_tables {
   };
   static constexpr int character_class_count = 8;
 
+  static constexpr int state_data_bits = 5;
+
+  static constexpr int state_data_mask = 31;
+  static constexpr int state_dispatcher_bits = 3;
+
   enum state : std::uint8_t {
     // Initial states:
-    bang,
-    percent,
-    ampersand,
-    plus,
-    equal,
-    greater,
-    circumflex,
-    pipe,
+    bang = 0 | (0 << state_data_bits),
+    percent = 1 | (0 << state_data_bits),
+    ampersand = 2 | (0 << state_data_bits),
+    plus = 3 | (0 << state_data_bits),
+    equal = 4 | (0 << state_data_bits),
+    greater = 5 | (0 << state_data_bits),
+    circumflex = 6 | (0 << state_data_bits),
+    pipe = 7 | (0 << state_data_bits),
 
     // Possibly-incomplete states:
-    bang_equal,
-    ampersand_ampersand,
-    equal_equal,
-    greater_greater,
-    pipe_pipe,
-    greater_greater_greater,
+    bang_equal = 8 | (0 << state_data_bits),
+    ampersand_ampersand = 9 | (0 << state_data_bits),
+    equal_equal = 10 | (0 << state_data_bits),
+    greater_greater = 11 | (0 << state_data_bits),
+    pipe_pipe = 12 | (0 << state_data_bits),
+    greater_greater_greater = 13 | (0 << state_data_bits),
 
     // Complete/terminal states:
-    done_percent_equal,
-    done_ampersand_equal,
-    done_plus_plus,
-    done_plus_equal,
-    done_equal_greater,
-    done_greater_equal,
-    done_circumflex_equal,
-    done_pipe_equal,
-    done_bang_equal_equal,
-    done_ampersand_ampersand_equal,
-    done_equal_equal_equal,
-    done_greater_greater_equal,
-    done_pipe_pipe_equal,
-    done_greater_greater_greater_equal,
+    done_percent_equal = 14 | (2 << state_data_bits),
+    done_ampersand_equal = 15 | (2 << state_data_bits),
+    done_plus_plus = 16 | (2 << state_data_bits),
+    done_plus_equal = 17 | (2 << state_data_bits),
+    done_equal_greater = 18 | (2 << state_data_bits),
+    done_greater_equal = 19 | (2 << state_data_bits),
+    done_circumflex_equal = 20 | (2 << state_data_bits),
+    done_pipe_equal = 21 | (2 << state_data_bits),
+    done_bang_equal_equal = 22 | (2 << state_data_bits),
+    done_ampersand_ampersand_equal = 23 | (2 << state_data_bits),
+    done_equal_equal_equal = 24 | (2 << state_data_bits),
+    done_greater_greater_equal = 25 | (2 << state_data_bits),
+    done_pipe_pipe_equal = 26 | (2 << state_data_bits),
+    done_greater_greater_greater_equal = 27 | (2 << state_data_bits),
 
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
-    retract,
+    retract = (1 << state_data_bits),
   };
   static constexpr int input_state_count = 14;
 
@@ -92,7 +112,7 @@ struct lex_tables {
   // state.
   static bool is_terminal_state(state s) {
     // See NOTE[lex-table-state-order].
-    return s >= done_percent_equal;
+    return s > greater_greater_greater;
   }
 
   // Returns true if there are no transitions from this state to any other
@@ -300,6 +320,17 @@ struct lex_tables {
 
     lex_tables::state old_state;
 
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+    static void* dispatch_table[] = {
+        // TODO(strager): Assert that these match the
+        // state_dispatcher_transition, state_dispatcher_done_retract, and
+        // state_dispatcher_done_unique_terminal constants.
+        &&transition,
+        &&done_retract,
+        &&done_unique_terminal,
+    };
+#endif
+
     // The first lookup is special. In normal DFA tables, there is on initial
     // state. In our table, there are many initial states. The character class
     // of the first character corresponds to the initial state. Therefore, for
@@ -310,65 +341,73 @@ struct lex_tables {
     QLJS_ASSERT(new_state != lex_tables::state::retract);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
-      goto done_with_state_machine;
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+      goto* dispatch_table[new_state >> state_data_bits];
+#else
+      goto dispatch;
+#endif
+    } else {
+      goto transition;
     }
 
-    // Unrolling seems to improves performance slightly, at least on Arm
-    // (Apple M1).
-    for (;;) {
-      {
-        old_state = new_state;
-        const lex_tables::state* transitions = lex_tables::transition_table
-            [lex_tables::character_class_table[static_cast<std::uint8_t>(
-                *input)]];
-        new_state = transitions[new_state];
-        input += 1;
-        if (lex_tables::is_terminal_state(new_state)) {
-          goto done_with_state_machine;
-        }
-      }
-      {
-        old_state = new_state;
-        const lex_tables::state* transitions = lex_tables::transition_table
-            [lex_tables::character_class_table[static_cast<std::uint8_t>(
-                *input)]];
-        new_state = transitions[new_state];
-        input += 1;
-        if (lex_tables::is_terminal_state(new_state)) {
-          goto done_with_state_machine;
-        }
-      }
-      {
-        old_state = new_state;
-        const lex_tables::state* transitions = lex_tables::transition_table
-            [lex_tables::character_class_table[static_cast<std::uint8_t>(
-                *input)]];
-        new_state = transitions[new_state];
-        input += 1;
-        if (lex_tables::is_terminal_state(new_state)) {
-          goto done_with_state_machine;
-        }
-      }
+  transition : {
+    old_state = new_state;
+    const lex_tables::state* transitions = lex_tables::transition_table
+        [lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]];
+    new_state = transitions[new_state];
+    input += 1;
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+    goto* dispatch_table[new_state >> state_data_bits];
+#else
+    if (lex_tables::is_terminal_state(new_state)) {
+      goto dispatch;
+    } else {
+      goto transition;
     }
-  done_with_state_machine:
+#endif
+  }
 
-    bool retract = new_state == lex_tables::state::retract;
-    QLJS_WARNING_PUSH
-    // Clang thinks that old_state is uninitialized if we goto
-    // done_with_state_machine before assigning to it. However, if we didn't
-    // assign to old_state, we also asserted that
-    // new_state != lex_tables::state::retract, thus retract is false.
-    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+#if !QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+  dispatch : {
+    switch (new_state >> state_data_bits) {
+    case 0:
+      goto transition;
+    case 1:
+      goto done_retract;
+    case 2:
+      goto done_unique_terminal;
+    }
+  }
+#endif
+
+  done_unique_terminal : {
     l->last_token_.type =
-        lex_tables::state_to_token[retract ? old_state : new_state];
-    QLJS_WARNING_POP
-    input -= retract ? 1 : 0;
+        lex_tables::state_to_token[new_state & state_data_mask];
     l->input_ = input;
     l->last_token_.end = input;
     return true;
   }
+
+  done_retract : {
+    QLJS_WARNING_PUSH
+    // Clang thinks that old_state is uninitialized if we goto done_retract
+    // before assigning to it. However, if we didn't assign to old_state, we
+    // also asserted that new_state != lex_tables::state::retract, thus we
+    // shouldn't reach here anyway.
+    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+    l->last_token_.type =
+        lex_tables::state_to_token[old_state & state_data_mask];
+    QLJS_WARNING_POP
+    input -= 1;
+    l->input_ = input;
+    l->last_token_.end = input;
+    return true;
+  }
+  }
 };
 }
+
+QLJS_WARNING_POP
 
 #endif
 

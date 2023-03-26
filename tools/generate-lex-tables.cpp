@@ -14,13 +14,13 @@
 // The lookup algorithm code lives in the generated code as
 // lex_tables::try_parse_current_token. See NOTE[lex-table-lookup].
 //
-// The algorithm requires three tables which are accessed in the following
-// order:
+// The algorithm requires four tables which are accessed in the following order:
 //
 // 1. Character classification table (character_class_table).
 //    See NOTE[lex-table-class].
 // 2. State transition table (transition_table).
-// 3. Terminal state lookup table (state_to_token).
+// 3. Dispatch table.
+// 4. Terminal state lookup table (state_to_token).
 //    See NOTE[lex-table-token-type].
 //
 // == Design choices ==
@@ -95,6 +95,32 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+// Index of different special state dispatchers.
+constexpr std::size_t state_dispatcher_transition = 0;
+constexpr std::size_t state_dispatcher_done_retract = 1;
+
+// Index of different state dispatchers.
+constexpr std::size_t state_dispatcher_done_unique_terminal = 2;
+
+// How many bits the state has in total.
+constexpr std::size_t state_total_bits = 8;
+
+// How many bits in the state are reserved for selecting the dispatcher.
+// Dispatcher 0 is the keep-going dispatcher.
+constexpr std::size_t state_dispatcher_bits = 3;
+using state_dispatcher_type = std::uint8_t;
+
+// How many bits in the state are reserved for the state number for intermediate
+// and non-unique terminal states, or for extra data for unique terminal states
+// and the retract terminal state.
+constexpr std::size_t state_data_bits =
+    state_total_bits - state_dispatcher_bits;
+constexpr std::size_t state_data_mask = (1ULL << state_data_bits) - 1;
+using state_data_type = std::uint8_t;
+
+// The maxiumum number of intermediate and non-unique terminal states.
+constexpr std::size_t max_state_data = (1 << state_data_bits) - 1;
+
 std::vector<string8_view> symbols = {
     u8"!"_sv,  u8"!="_sv,  u8"!=="_sv, u8"%"_sv,    u8"%="_sv, u8"&"_sv,
     u8"&&"_sv, u8"&&="_sv, u8"&="_sv,  u8"+"_sv,    u8"++"_sv, u8"+="_sv,
@@ -120,6 +146,22 @@ enum class lex_state_kind {
 // A specific state a lexer might enter.
 struct lex_state {
   lex_state_kind kind;
+
+  // Extra data attached to this state.
+  //
+  // If this is an intermediate state, we are using dispatcher 0, and the data
+  // corresponds to the state's character class.
+  //
+  // If this is a non-unique terminal state, we are using dispatcher 0, and the
+  // data must correspond to this state's index in the state table.
+  //
+  // If this is a unique terminal state, the data can be arbitrary.
+  state_data_type data;
+
+  // The dispatcher for this type.
+  //
+  // If this is an intermediate state, this must be state_dispatcher_transition.
+  state_dispatcher_type dispatcher;
 
   // All of the characters which needed to be visited in order to reach this
   // state.
@@ -361,6 +403,8 @@ void compute_states(lex_tables& t) {
     t.states.push_back(lex_state{
         .kind = is_unique ? lex_state_kind::unique_terminal
                           : lex_state_kind::non_unique_terminal,
+        .data = 0,        // Filled in later.
+        .dispatcher = 0,  // Filled in later.
         .history = symbol,
     });
   }
@@ -376,6 +420,8 @@ void compute_states(lex_tables& t) {
     }
     t.states.push_back(lex_state{
         .kind = lex_state_kind::intermediate,
+        .data = 0,        // Filled in later.
+        .dispatcher = 0,  // Filled in later.
         .history = history,
     });
   };
@@ -412,6 +458,30 @@ void compute_states(lex_tables& t) {
       }));
   t.intermediate_or_non_unique_terminal_state_count =
       t.states.size() - t.unique_terminal_state_count;
+
+  // Fill in lex_state::data.
+  for (std::size_t i = 0; i < t.intermediate_or_non_unique_terminal_state_count;
+       ++i) {
+    t.states[i].data = narrow_cast<state_data_type>(i);
+    t.states[i].dispatcher = state_dispatcher_transition;
+  }
+  for (std::size_t i = t.intermediate_or_non_unique_terminal_state_count;
+       i < t.states.size(); ++i) {
+    t.states[i].data = narrow_cast<state_data_type>(i);
+    t.states[i].dispatcher = state_dispatcher_done_unique_terminal;
+  }
+
+  // If we have too many states, the data bits will overflow causing the
+  // dispatcher bits to become non-zero. (Intermediate and non-unique terminal
+  // states must use dispatcher 0.) If the following assertions fail, do one of
+  // the following:
+  // * increase state_total_bits,
+  // * reduce the number of states, or
+  // * reduce the number of dispatchers (and decrease state_dispatcher_bits).
+  for (std::size_t i = 0; i < t.intermediate_or_non_unique_terminal_state_count;
+       ++i) {
+    QLJS_ALWAYS_ASSERT(t.states[i].data <= max_state_data);
+  }
 
   for (const lex_state& state : t.states) {
     t.state_to_token_table.push_back(state_to_token_entry{
@@ -469,7 +539,22 @@ void dump_table_code(const lex_tables& t, ::FILE* f) {
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
+
+#if QLJS_HAVE_GNU_COMPUTED_GOTO
+#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 1
+#else
+#define QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO 0
+#endif
+
+QLJS_WARNING_PUSH
+
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+QLJS_WARNING_IGNORE_CLANG("-Wgnu-label-as-value")
+// "taking the address of a label is non-standard"
+QLJS_WARNING_IGNORE_GCC("-Wpedantic")
+#endif
 
 namespace quick_lint_js {
 struct lex_tables {
@@ -489,9 +574,17 @@ struct lex_tables {
   std::fprintf(f, "  static constexpr int character_class_count = %zu;\n",
                t.input_character_class_count);
 
-  std::fprintf(f, "%s", R"(
-  enum state : std::uint8_t {
-)");
+  std::fprintf(f, "\n  static constexpr int state_data_bits = %zu;\n",
+               state_data_bits);
+  std::fprintf(f, "\n  static constexpr int state_data_mask = %zu;\n",
+               state_data_mask);
+  std::fprintf(f, "  static constexpr int state_dispatcher_bits = %zu;\n",
+               state_dispatcher_bits);
+
+  std::fprintf(f, R"(
+  enum state : std::uint%zu_t {
+)",
+               state_total_bits);
   for (std::size_t i = 0; i < t.states.size(); ++i) {
     const lex_state& state = t.states[i];
     if (i == 0) {
@@ -503,15 +596,20 @@ struct lex_tables {
     if (i == t.intermediate_or_non_unique_terminal_state_count) {
       std::fprintf(f, "\n    // Complete/terminal states:\n");
     }
-    std::fprintf(f, "    %s,\n", state.name().c_str());
+    std::size_t state_dispatcher = state.dispatcher;
+    // TODO(strager): Emit human-readable names.
+    std::fprintf(f, "    %s = %lu | (%zu << state_data_bits),\n",
+                 state.name().c_str(), narrow_cast<unsigned long>(state.data),
+                 state_dispatcher);
   }
 
-  std::fprintf(f, "%s", R"(
+  std::fprintf(f, R"(
     // An unexpected character was detected. The lexer should retract the most
     // recent byte.
-    retract,
+    retract = (%lu << state_data_bits),
   };
-)");
+)",
+               narrow_cast<unsigned long>(state_dispatcher_done_retract));
 
   std::fprintf(f, "  static constexpr int input_state_count = %zu;\n\n",
                t.intermediate_or_non_unique_terminal_state_count);
@@ -533,10 +631,10 @@ struct lex_tables {
   // state.
   static bool is_terminal_state(state s) {
     // See NOTE[lex-table-state-order].
-    return s >= %s;
+    return s > %s;
   }
 )",
-               t.states[t.intermediate_or_non_unique_terminal_state_count]
+               t.states[t.intermediate_or_non_unique_terminal_state_count - 1]
                    .name()
                    .c_str());
 
@@ -637,6 +735,17 @@ struct lex_tables {
 
     lex_tables::state old_state;
 
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+    static void* dispatch_table[] = {
+        // TODO(strager): Assert that these match the
+        // state_dispatcher_transition, state_dispatcher_done_retract, and
+        // state_dispatcher_done_unique_terminal constants.
+        &&transition,
+        &&done_retract,
+        &&done_unique_terminal,
+    };
+#endif
+
     // The first lookup is special. In normal DFA tables, there is on initial
     // state. In our table, there are many initial states. The character class
     // of the first character corresponds to the initial state. Therefore, for
@@ -647,50 +756,75 @@ struct lex_tables {
     QLJS_ASSERT(new_state != lex_tables::state::retract);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
-      goto done_with_state_machine;
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+      goto* dispatch_table[new_state >> state_data_bits];
+#else
+      goto dispatch;
+#endif
+    } else {
+      goto transition;
     }
 
-    // Unrolling seems to improves performance slightly, at least on Arm
-    // (Apple M1).
-    for (;;) {)");
-  // GCC won't unroll even if given a #pragma, so unroll the loop ourselves.
-  for (int i = 0; i < 3; ++i) {
-    std::fprintf(f, "%s", R"(
-      {
-        old_state = new_state;
-        const lex_tables::state* transitions = lex_tables::transition_table
-            [lex_tables::character_class_table[static_cast<std::uint8_t>(
-                *input)]];
-        new_state = transitions[new_state];
-        input += 1;
-        if (lex_tables::is_terminal_state(new_state)) {
-          goto done_with_state_machine;
-        }
-      })");
+  transition : {
+    old_state = new_state;
+    const lex_tables::state* transitions = lex_tables::transition_table
+        [lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]];
+    new_state = transitions[new_state];
+    input += 1;
+#if QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+    goto* dispatch_table[new_state >> state_data_bits];
+#else
+    if (lex_tables::is_terminal_state(new_state)) {
+      goto dispatch;
+    } else {
+      goto transition;
+    }
+#endif
   }
-  std::fprintf(f, "%s", R"(
-    }
-  done_with_state_machine:
 
-    bool retract = new_state == lex_tables::state::retract;
-    QLJS_WARNING_PUSH
-    // Clang thinks that old_state is uninitialized if we goto
-    // done_with_state_machine before assigning to it. However, if we didn't
-    // assign to old_state, we also asserted that
-    // new_state != lex_tables::state::retract, thus retract is false.
-    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+#if !QLJS_LEX_DISPATCH_USE_COMPUTED_GOTO
+  dispatch : {
+    switch (new_state >> state_data_bits) {
+    case 0:
+      goto transition;
+    case 1:
+      goto done_retract;
+    case 2:
+      goto done_unique_terminal;
+    }
+  }
+#endif
+
+  done_unique_terminal : {
     l->last_token_.type =
-        lex_tables::state_to_token[retract ? old_state : new_state];
-    QLJS_WARNING_POP
-    input -= retract ? 1 : 0;
+        lex_tables::state_to_token[new_state & state_data_mask];
     l->input_ = input;
     l->last_token_.end = input;
     return true;
+  }
+
+  done_retract : {
+    QLJS_WARNING_PUSH
+    // Clang thinks that old_state is uninitialized if we goto done_retract
+    // before assigning to it. However, if we didn't assign to old_state, we
+    // also asserted that new_state != lex_tables::state::retract, thus we
+    // shouldn't reach here anyway.
+    QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+    l->last_token_.type =
+        lex_tables::state_to_token[old_state & state_data_mask];
+    QLJS_WARNING_POP
+    input -= 1;
+    l->input_ = input;
+    l->last_token_.end = input;
+    return true;
+  }
   }
 )");
 
   std::fprintf(f, "%s", R"(};
 }
+
+QLJS_WARNING_POP
 
 #endif
 

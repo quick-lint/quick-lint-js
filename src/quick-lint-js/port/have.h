@@ -503,6 +503,16 @@
 #endif
 #endif
 
+// Whether GCC's labels as values and computed goto statement extensions are
+// supported.
+#if !defined(QLJS_HAVE_GNU_COMPUTED_GOTO)
+#if defined(__GNUC__)
+#define QLJS_HAVE_GNU_COMPUTED_GOTO 1
+#else
+#define QLJS_HAVE_GNU_COMPUTED_GOTO 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
