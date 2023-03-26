@@ -179,6 +179,14 @@ struct lex_tables {
                 "state_type should be big enough to fit all data bits and "
                 "handler bits");
 
+  static constexpr state_type get_state_data(state_type s) {
+    return s & state_data_mask;
+  }
+
+  static constexpr state_type get_state_handler(state_type s) {
+    return static_cast<state_type>(s >> state_data_bits);
+  }
+
   enum handler {
     handler_transition = 0,
     handler_done_retract_for_symbol,
@@ -244,7 +252,7 @@ struct lex_tables {
     static_assert(handler_transition == 0);
     bool is_terminal = s >= (1 << state_data_bits);
     QLJS_ASSERT(is_terminal == (s >= input_state_count));
-    QLJS_ASSERT(is_terminal == ((s >> state_data_bits) != handler_transition));
+    QLJS_ASSERT(is_terminal == (get_state_handler(s) != handler_transition));
     return is_terminal;
   }
 
@@ -474,12 +482,12 @@ struct lex_tables {
     // NOTE[lex-table-initial].
     lex_tables::state new_state = static_cast<lex_tables::state>(
         lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
-    QLJS_ASSERT((new_state >> state_data_bits) !=
+    QLJS_ASSERT(get_state_handler(new_state) !=
                 handler_done_retract_for_symbol);
     input += 1;
     if (lex_tables::is_initial_state_terminal(new_state)) {
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
-      goto* handler_table[new_state >> state_data_bits];
+      goto* handler_table[get_state_handler(new_state)];
 #else
       goto dispatch_to_handler;
 #endif
@@ -494,7 +502,7 @@ struct lex_tables {
     new_state = transitions[new_state];
     input += 1;
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
-    goto* handler_table[new_state >> state_data_bits];
+    goto* handler_table[get_state_handler(new_state)];
 #else
     if (lex_tables::is_terminal_state(new_state)) {
       goto dispatch_to_handler;
@@ -523,7 +531,7 @@ struct lex_tables {
 
   done_unique_terminal_symbol : {
     l->last_token_.type =
-        lex_tables::unique_terminal_symbol_tokens[new_state & state_data_mask];
+        lex_tables::unique_terminal_symbol_tokens[get_state_data(new_state)];
     l->input_ = input;
     l->last_token_.end = input;
     return true;
@@ -539,7 +547,7 @@ struct lex_tables {
 
     input -= 1;
     QLJS_ASSERT(old_state < input_state_count);
-    QLJS_ASSERT((old_state >> state_data_bits) == handler_transition);
+    QLJS_ASSERT(get_state_handler(old_state) == handler_transition);
     l->last_token_.type = lex_tables::retract_for_symbol_tokens[old_state];
     l->input_ = input;
     l->last_token_.end = input;
