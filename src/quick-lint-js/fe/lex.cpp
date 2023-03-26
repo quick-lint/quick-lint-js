@@ -309,18 +309,19 @@ bool lexer::try_parse_current_token() {
     break;
 #endif
 
-  case '.':
 #if QLJS_FEATURE_LEX_TABLES
-    if (!this->is_digit(this->input_[1])) {
-      return lex_tables::try_parse_current_token(this);
-    }
-
-    // TODO(strager): Parse this using the lexer tables.
-    this->last_token_.type = token_type::number;
-    this->parse_number();
-    this->last_token_.end = this->input_;
-    break;
+  case '!':
+  case '%':
+  case '&':
+  case '+':
+  case '.':
+  case '=':
+  case '>':
+  case '^':
+  case '|':
+    return lex_tables::try_parse_current_token(this);
 #else
+  case '.':
     if (this->input_[1] == '.' && this->input_[2] == '.') {
       this->last_token_.type = token_type::dot_dot_dot;
       this->input_ += 3;
@@ -333,19 +334,7 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
-#endif
 
-#if QLJS_FEATURE_LEX_TABLES
-  case '!':
-  case '%':
-  case '&':
-  case '+':
-  case '=':
-  case '>':
-  case '^':
-  case '|':
-    return lex_tables::try_parse_current_token(this);
-#else
   case '=':
     if (this->input_[1] == '=') {
       if (this->input_[2] == '=') {

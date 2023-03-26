@@ -7,6 +7,9 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/fe/lex-tables.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
+
+QLJS_WARNING_IGNORE_CLANG("-Wchar-subscripts")
 
 namespace quick_lint_js {
 namespace {
@@ -75,6 +78,12 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
       }
       ASSERT_FALSE(expected_retracting_character_classes.empty());
       for (std::uint8_t c_class : expected_retracting_character_classes) {
+        if (symbol == u8"."_sv &&
+            c_class == lex_tables::character_class_table[u8'0']) {
+          // '.9' does not retract.
+          continue;
+        }
+
         const lex_tables::state* transitions =
             lex_tables::transition_table[c_class];
         // NOTE(strager): Casts to long improve Google Test failure output.
