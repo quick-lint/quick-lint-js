@@ -153,6 +153,7 @@ void lexer::parse_bom_before_shebang() {
 bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
+#if !QLJS_FEATURE_LEX_TABLES
   QLJS_CASE_DECIMAL_DIGIT:
     this->last_token_.type = token_type::number;
     if (this->input_[0] == '0') {
@@ -185,6 +186,7 @@ bool lexer::try_parse_current_token() {
     }
     this->last_token_.end = this->input_;
     break;
+#endif
 
   QLJS_CASE_IDENTIFIER_START : {
     parsed_identifier ident =
@@ -267,6 +269,7 @@ bool lexer::try_parse_current_token() {
     break;
 
 #if QLJS_FEATURE_LEX_TABLES
+  QLJS_CASE_DECIMAL_DIGIT:
   case '!':
   case '%':
   case '&':

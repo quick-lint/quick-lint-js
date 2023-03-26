@@ -117,10 +117,15 @@ struct lex_tables {
     pipe,
     question,
     dot,
-    digit,
+
+    non_terminal_character_class_count,
+
+    digit = non_terminal_character_class_count,
+
+    initial_character_class_count,
 
     // Must be last:
-    other_character_class,
+    other_character_class = initial_character_class_count,
 
     character_class_count,
   };
@@ -733,7 +738,7 @@ struct lex_tables {
               done_retract_for_symbol,    // ^9         (invalid)
               done_retract_for_symbol,    // |9         (invalid)
               done_retract_for_symbol,    // ?9         (invalid)
-              done_number,                // .9         (invalid)
+              done_number,                // . -> .9
               done_table_broken,          // 99         (invalid)
               done_retract_for_symbol,    // !=9        (invalid)
               done_retract_for_symbol,    // &&9        (invalid)
@@ -846,6 +851,25 @@ struct lex_tables {
     lex_tables::state old_state;
 
 #if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+    static void* initial_handler_table[] = {
+        /*[bang] = */ &&transition,
+        /*[percent] = */ &&transition,
+        /*[ampersand] = */ &&transition,
+        /*[star] = */ &&transition,
+        /*[plus] = */ &&transition,
+        /*[minus] = */ &&transition,
+        /*[slash] = */ &&transition,
+        /*[less] = */ &&transition,
+        /*[equal] = */ &&transition,
+        /*[greater] = */ &&transition,
+        /*[circumflex] = */ &&transition,
+        /*[pipe] = */ &&transition,
+        /*[question] = */ &&transition,
+        /*[dot] = */ &&transition,
+        /*[digit] = */ &&done_number,
+        /*[other_character_class] = */ &&done_table_broken,
+    };
+
     static void* handler_table[] = {
         /*[handler_transition_0] = */ &&transition,
         /*[handler_transition_1] = */ &&transition,
@@ -868,12 +892,42 @@ struct lex_tables {
     // of the first character corresponds to the initial state. Therefore, for
     // the first character, do not use lex_tables::transition_table. See
     // NOTE[lex-table-initial].
-    lex_tables::state new_state = static_cast<lex_tables::state>(
-        lex_tables::character_class_table[static_cast<std::uint8_t>(*input)]);
+    std::uint8_t initial_character_class =
+        lex_tables::character_class_table[static_cast<std::uint8_t>(*input)];
+    lex_tables::state new_state =
+        static_cast<lex_tables::state>(initial_character_class);
     QLJS_ASSERT(get_state_handler(new_state) !=
                 handler_done_retract_for_symbol);
     input += 1;
-    goto transition;
+#if QLJS_LEX_HANDLER_USE_COMPUTED_GOTO
+    QLJS_ASSERT(new_state < std::size(initial_handler_table));
+    goto* initial_handler_table[initial_character_class];
+#else
+    switch (initial_character_class) {
+    case character_class::ampersand:
+    case character_class::bang:
+    case character_class::circumflex:
+    case character_class::dot:
+    case character_class::equal:
+    case character_class::greater:
+    case character_class::less:
+    case character_class::minus:
+    case character_class::percent:
+    case character_class::pipe:
+    case character_class::plus:
+    case character_class::question:
+    case character_class::slash:
+    case character_class::star:
+      goto transition;
+
+    case character_class::digit:
+      goto done_number;
+
+    case character_class::other_character_class:
+    default:
+      goto done_table_broken;
+    }
+#endif
 
   transition : {
     old_state = new_state;
@@ -1003,7 +1057,43 @@ struct lex_tables {
   done_number : {
     // Ignore the 'input' variable. l->parse_number() will re-parse.
     l->last_token_.type = token_type::number;
-    l->parse_number();
+    if (l->input_[0] == '0') {
+      switch (l->input_[1]) {
+      case 'b':
+      case 'B':
+        l->input_ += 2;
+        l->parse_binary_number();
+        break;
+      case 'o':
+      case 'O':
+        l->input_ += 2;
+        l->parse_modern_octal_number();
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        l->input_ += 1;
+        l->parse_legacy_octal_number();
+        break;
+      case 'x':
+      case 'X':
+        l->input_ += 2;
+        l->parse_hexadecimal_number();
+        break;
+      default:
+        l->parse_number();
+        break;
+      }
+    } else {
+      l->parse_number();
+    }
     l->last_token_.end = l->input_;
     return true;
   }
