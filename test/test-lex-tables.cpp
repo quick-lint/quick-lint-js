@@ -42,7 +42,7 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
     ASSERT_GT(symbol.size(), 0);
 
     lex_tables::state state = static_cast<lex_tables::state>(
-        lex_tables::character_class_table[static_cast<std::uint8_t>(
+        lex_tables::initial_character_class_table[static_cast<std::uint8_t>(
             symbol[0])]);
 
     // Case A: Symbol with unique terminal state such as '++' (e.g. there is no
@@ -239,7 +239,10 @@ std::string pretty_character_class(lex_tables::state_type c_class) {
   }
   for (std::size_t i = 0; i < std::size(lex_tables::character_class_table);
        ++i) {
-    if (lex_tables::character_class_table[i] == c_class) {
+    const std::uint8_t* table = i == 0
+                                    ? lex_tables::initial_character_class_table
+                                    : lex_tables::character_class_table;
+    if (table[i] == c_class) {
       result += static_cast<char>(i);
     }
   }

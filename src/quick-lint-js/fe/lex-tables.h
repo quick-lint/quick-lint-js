@@ -45,8 +45,8 @@ namespace quick_lint_js {
 // The algorithm requires four tables which are accessed in the following
 // order:
 //
-// 1. Character classification table (character_class_table).
-//    See NOTE[lex-table-class].
+// 1. Character classification tables (initial_character_class_table and
+//    character_class_table). See NOTE[lex-table-class].
 // 2. State transition table (transition_table).
 // 3. Handler table.
 // 4. Terminal state lookup table (state_to_token).
@@ -73,7 +73,7 @@ namespace quick_lint_js {
 //     transition_table[character_class_table[input[0]]][state::initial]
 // However, because of our initial state optimization, we need fewer lookups to
 // get the same answer:
-//     /*            */ character_class_table[input[0]]
+//     /*    */ initial_character_class_table[input[0]]
 // This removes one table lookup. It also shrinks the transition table slightly.
 //
 // NOTE[lex-table-state-order]: States are carefully ordered:
@@ -134,9 +134,31 @@ struct lex_tables {
   // Folds each character into a small set of equivalence classes. This makes
   // transition_table significantly smaller.
   //
+  // initial_character_class_count is used only for the first input byte.
+  // character_class_table is used for subsequent bytes.
+  //
   // See NOTE[lex-table-class].
 #define _ other_character_class
   // clang-format off
+  static constexpr std::uint8_t initial_character_class_table[256] = {
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     bang,  _,     _,     ident, percent, ampersand, _,     _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
+      digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,    less,  equal, greater,    question,  // 0123456789:;<=>?
+      _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
+      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
+      _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // `abcdefghijklmno
+      ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    pipe,  _,     _,          _,         // pqrstuvwxyz{|}~ (del)
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+      _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
+  };
+
   static constexpr std::uint8_t character_class_table[256] = {
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
@@ -159,6 +181,38 @@ struct lex_tables {
 #undef _
 
   // clang-format off
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'*')] == character_class::star);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'+')] == character_class::plus);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'-')] == character_class::minus);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'.')] == character_class::dot);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'/')] == character_class::slash);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'0')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'1')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'2')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'3')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'4')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'5')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'6')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'7')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'8')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'9')] == character_class::digit);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'<')] == character_class::less);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'=')] == character_class::equal);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'>')] == character_class::greater);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'?')] == character_class::question);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'A')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'Z')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'\\')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'^')] == character_class::circumflex);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'_')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'a')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'z')] == character_class::ident);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
+
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
@@ -948,7 +1002,8 @@ struct lex_tables {
     // the first character, do not use lex_tables::transition_table. See
     // NOTE[lex-table-initial].
     std::uint8_t initial_character_class =
-        lex_tables::character_class_table[static_cast<std::uint8_t>(*input)];
+        lex_tables::initial_character_class_table[static_cast<std::uint8_t>(
+            *input)];
     lex_tables::state new_state =
         static_cast<lex_tables::state>(initial_character_class);
     QLJS_ASSERT(get_state_handler(new_state) !=
