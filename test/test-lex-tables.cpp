@@ -18,13 +18,13 @@ QLJS_WARNING_IGNORE_CLANG("-Wchar-subscripts")
 namespace quick_lint_js {
 namespace {
 std::vector<string8_view> symbols = {
-    u8"!"_sv,    u8"!="_sv,  u8"!=="_sv, u8"%"_sv,  u8"%="_sv,     u8"&"_sv,
-    u8"&&"_sv,   u8"&&="_sv, u8"&="_sv,  u8"+"_sv,  u8"++"_sv,     u8"+="_sv,
-    u8"-"_sv,    u8"--"_sv,  u8"-="_sv,  u8"."_sv,  u8"..."_sv,    u8"<"_sv,
-    u8"<<"_sv,   u8"<<="_sv, u8"<="_sv,  u8"="_sv,  u8"=="_sv,     u8"==="_sv,
-    u8"=>"_sv,   u8">"_sv,   u8">="_sv,  u8">>"_sv, u8">>="_sv,    u8">>>"_sv,
-    u8">>>="_sv, u8"?"_sv,   u8"?."_sv,  u8"??"_sv, u8"?\x3f="_sv, u8"^"_sv,
-    u8"^="_sv,   u8"|"_sv,   u8"|="_sv,  u8"||"_sv, u8"||="_sv,
+    u8"!"_sv,  u8"!="_sv,  u8"!=="_sv, u8"%"_sv,      u8"%="_sv,  u8"&"_sv,
+    u8"&&"_sv, u8"&&="_sv, u8"&="_sv,  u8"+"_sv,      u8"++"_sv,  u8"+="_sv,
+    u8"-"_sv,  u8"--"_sv,  u8"-="_sv,  u8"."_sv,      u8"..."_sv, u8"<"_sv,
+    u8"<<"_sv, u8"<<="_sv, u8"<="_sv,  u8"="_sv,      u8"=="_sv,  u8"==="_sv,
+    u8"=>"_sv, u8">"_sv,   u8">="_sv,  u8">>"_sv,     u8">>="_sv, u8">>>"_sv,
+    u8"?"_sv,  u8"?."_sv,  u8"??"_sv,  u8"?\x3f="_sv, u8"^"_sv,   u8"^="_sv,
+    u8"|"_sv,  u8"|="_sv,  u8"||"_sv,  u8"||="_sv,
 };
 
 std::string pretty_character_class(std::uint8_t);
@@ -98,6 +98,11 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
         if (symbol == u8"<"_sv &&
             c_class == lex_tables::character_class_table[u8'!']) {
           // '<!--' is parsed specially.
+          continue;
+        }
+        if (symbol == u8">>"_sv &&
+            c_class == lex_tables::character_class_table[u8'>']) {
+          // '>>>' and '>>>=' are parsed specially.
           continue;
         }
 

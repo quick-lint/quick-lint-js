@@ -220,6 +220,7 @@ struct lex_tables {
 
     // State data 0: "?.9" was parsed; return "?".
     // State data 1: "<!" was parsed; parse a "<!--" comment or return "<".
+    // State data 2: ">>>" was parsed; parse either ">>>" or ">>>=".
     handler_done_special_slow,
 
     handler_done_table_broken,
@@ -246,7 +247,6 @@ struct lex_tables {
     equal_equal,
     greater_greater,
     pipe_pipe,
-    greater_greater_greater,
     question_question,
     question_dot,
     dot_dot,
@@ -268,14 +268,14 @@ struct lex_tables {
     done_equal_equal_equal             = QLJS_STATE(handler_done_unique_terminal_symbol, 10),
     done_greater_greater_equal         = QLJS_STATE(handler_done_unique_terminal_symbol, 11),
     done_pipe_pipe_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 12),
-    done_greater_greater_greater_equal = QLJS_STATE(handler_done_unique_terminal_symbol, 13),
-    done_question_question_equal       = QLJS_STATE(handler_done_unique_terminal_symbol, 14),
-    done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol, 15),
-    done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 16),
-    done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
-    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
+    done_question_question_equal       = QLJS_STATE(handler_done_unique_terminal_symbol, 13),
+    done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol, 14),
+    done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 15),
+    done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 16),
+    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
     // clang-format on
 
+    done_greater_greater_greater = QLJS_STATE(handler_done_special_slow, 2),
     done_less_bang = QLJS_STATE(handler_done_special_slow, 1),
     done_minus_minus = QLJS_STATE(handler_done_minus_minus, 0),
     done_number = QLJS_STATE(handler_done_number, 0),
@@ -335,7 +335,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==!              (invalid)
               done_retract_for_symbol,    // >>!              (invalid)
               done_retract_for_symbol,    // ||!              (invalid)
-              done_retract_for_symbol,    // >>>!             (invalid)
               done_retract_for_symbol,    // ??!              (invalid)
               done_retract_for_symbol,    // ?.!              (invalid)
               done_retract_2_for_symbol,  // ..!              (invalid)
@@ -361,7 +360,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==%              (invalid)
               done_retract_for_symbol,    // >>%              (invalid)
               done_retract_for_symbol,    // ||%              (invalid)
-              done_retract_for_symbol,    // >>>%             (invalid)
               done_retract_for_symbol,    // ??%              (invalid)
               done_retract_for_symbol,    // ?.%              (invalid)
               done_retract_2_for_symbol,  // ..%              (invalid)
@@ -387,7 +385,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==&              (invalid)
               done_retract_for_symbol,    // >>&              (invalid)
               done_retract_for_symbol,    // ||&              (invalid)
-              done_retract_for_symbol,    // >>>&             (invalid)
               done_retract_for_symbol,    // ??&              (invalid)
               done_retract_for_symbol,    // ?.&              (invalid)
               done_retract_2_for_symbol,  // ..&              (invalid)
@@ -413,7 +410,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==+              (invalid)
               done_retract_for_symbol,    // >>+              (invalid)
               done_retract_for_symbol,    // ||+              (invalid)
-              done_retract_for_symbol,    // >>>+             (invalid)
               done_retract_for_symbol,    // ??+              (invalid)
               done_retract_for_symbol,    // ?.+              (invalid)
               done_retract_2_for_symbol,  // ..+              (invalid)
@@ -439,7 +435,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==-              (invalid)
               done_retract_for_symbol,    // >>-              (invalid)
               done_retract_for_symbol,    // ||-              (invalid)
-              done_retract_for_symbol,    // >>>-             (invalid)
               done_retract_for_symbol,    // ??-              (invalid)
               done_retract_for_symbol,    // ?.-              (invalid)
               done_retract_2_for_symbol,  // ..-              (invalid)
@@ -465,62 +460,59 @@ struct lex_tables {
               done_retract_for_symbol,    // ==<              (invalid)
               done_retract_for_symbol,    // >><              (invalid
               done_retract_for_symbol,    // ||<              (invalid)
-              done_retract_for_symbol,    // >>><             (invalid)
               done_retract_for_symbol,    // ??<              (invalid)
               done_retract_for_symbol,    // ?.<              (invalid)
               done_retract_2_for_symbol,  // ..<              (invalid)
           },
           // =
           {
-              bang_equal,                          // ! -> !=
-              done_percent_equal,                  // % -> %=
-              done_ampersand_equal,                // & -> &=
-              done_plus_equal,                     // + -> +=
-              done_minus_equal,                    // - -> -=
-              done_less_equal,                     // < -> <=
-              equal_equal,                         // = -> ==
-              done_greater_equal,                  // > -> >=
-              done_circumflex_equal,               // ^ -> ^=
-              done_pipe_equal,                     // | -> |=
-              done_retract_for_symbol,             // ?=           (invalid)
-              done_retract_for_symbol,             // .=           (invalid)
-              done_table_broken,                   // 9=           (invalid)
-              done_bang_equal_equal,               // != -> !==
-              done_ampersand_ampersand_equal,      // && -> &&=
-              done_less_less_equal,                // << -> <<=
-              done_equal_equal_equal,              // == -> ===
-              done_greater_greater_equal,          // >> -> >>=
-              done_pipe_pipe_equal,                // || -> ||=
-              done_greater_greater_greater_equal,  // >>> -> >>>=
-              done_question_question_equal,        // ?? -> ??=
-              done_retract_for_symbol,             // ?.=          (invalid)
-              done_retract_2_for_symbol,           // ..=          (invalid)
+              bang_equal,                      // ! -> !=
+              done_percent_equal,              // % -> %=
+              done_ampersand_equal,            // & -> &=
+              done_plus_equal,                 // + -> +=
+              done_minus_equal,                // - -> -=
+              done_less_equal,                 // < -> <=
+              equal_equal,                     // = -> ==
+              done_greater_equal,              // > -> >=
+              done_circumflex_equal,           // ^ -> ^=
+              done_pipe_equal,                 // | -> |=
+              done_retract_for_symbol,         // ?=           (invalid)
+              done_retract_for_symbol,         // .=           (invalid)
+              done_table_broken,               // 9=           (invalid)
+              done_bang_equal_equal,           // != -> !==
+              done_ampersand_ampersand_equal,  // && -> &&=
+              done_less_less_equal,            // << -> <<=
+              done_equal_equal_equal,          // == -> ===
+              done_greater_greater_equal,      // >> -> >>=
+              done_pipe_pipe_equal,            // || -> ||=
+              done_question_question_equal,    // ?? -> ??=
+              done_retract_for_symbol,         // ?.=          (invalid)
+              done_retract_2_for_symbol,       // ..=          (invalid)
           },
           // >
           {
-              done_retract_for_symbol,    // !>               (invalid)
-              done_retract_for_symbol,    // %>               (invalid)
-              done_retract_for_symbol,    // &>               (invalid)
-              done_retract_for_symbol,    // +>               (invalid)
-              done_retract_for_symbol,    // ->               (invalid)
-              done_retract_for_symbol,    // <>               (invalid)
-              done_equal_greater,         // = -> =>
-              greater_greater,            // > -> >>
-              done_retract_for_symbol,    // ^>               (invalid)
-              done_retract_for_symbol,    // |>               (invalid)
-              done_retract_for_symbol,    // ?>               (invalid)
-              done_retract_for_symbol,    // .>               (invalid)
-              done_table_broken,          // 9>               (invalid)
-              done_retract_for_symbol,    // !=>              (invalid)
-              done_retract_for_symbol,    // &&>              (invalid)
-              done_retract_for_symbol,    // <<>              (invalid)
-              done_retract_for_symbol,    // ==>              (invalid)
-              greater_greater_greater,    // >> -> >>>
-              done_retract_for_symbol,    // ||>              (invalid)
-              done_retract_for_symbol,    // >>>>             (invalid)
-              done_retract_for_symbol,    // ??>              (invalid)
-              done_retract_for_symbol,    // ?.>              (invalid)
-              done_retract_2_for_symbol,  // ..>              (invalid)
+              done_retract_for_symbol,       // !>               (invalid)
+              done_retract_for_symbol,       // %>               (invalid)
+              done_retract_for_symbol,       // &>               (invalid)
+              done_retract_for_symbol,       // +>               (invalid)
+              done_retract_for_symbol,       // ->               (invalid)
+              done_retract_for_symbol,       // <>               (invalid)
+              done_equal_greater,            // = -> =>
+              greater_greater,               // > -> >>
+              done_retract_for_symbol,       // ^>               (invalid)
+              done_retract_for_symbol,       // |>               (invalid)
+              done_retract_for_symbol,       // ?>               (invalid)
+              done_retract_for_symbol,       // .>               (invalid)
+              done_table_broken,             // 9>               (invalid)
+              done_retract_for_symbol,       // !=>              (invalid)
+              done_retract_for_symbol,       // &&>              (invalid)
+              done_retract_for_symbol,       // <<>              (invalid)
+              done_retract_for_symbol,       // ==>              (invalid)
+              done_greater_greater_greater,  // >> -> >>> (possibly >>>=)
+              done_retract_for_symbol,       // ||>              (invalid)
+              done_retract_for_symbol,       // ??>              (invalid)
+              done_retract_for_symbol,       // ?.>              (invalid)
+              done_retract_2_for_symbol,     // ..>              (invalid)
           },
           // ^
           {
@@ -543,7 +535,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==^              (invalid)
               done_retract_for_symbol,    // >>^              (invalid)
               done_retract_for_symbol,    // ||^              (invalid)
-              done_retract_for_symbol,    // >>>^             (invalid)
               done_retract_for_symbol,    // ??^              (invalid)
               done_retract_for_symbol,    // ?.^              (invalid)
               done_retract_2_for_symbol,  // ..^              (invalid)
@@ -569,7 +560,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==|              (invalid)
               done_retract_for_symbol,    // >>|              (invalid)
               done_retract_for_symbol,    // |||              (invalid)
-              done_retract_for_symbol,    // >>>|             (invalid)
               done_retract_for_symbol,    // ??|              (invalid)
               done_retract_for_symbol,    // ?.|              (invalid)
               done_retract_2_for_symbol,  // ..|              (invalid)
@@ -595,7 +585,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==?              (invalid)
               done_retract_for_symbol,    // >>?              (invalid)
               done_retract_for_symbol,    // ||?              (invalid)
-              done_retract_for_symbol,    // >>>?             (invalid)
               done_retract_for_symbol,    // ???              (invalid)
               done_retract_for_symbol,    // ?.?              (invalid)
               done_retract_2_for_symbol,  // ..?              (invalid)
@@ -621,7 +610,6 @@ struct lex_tables {
               done_retract_for_symbol,  // ==.              (invalid)
               done_retract_for_symbol,  // >>.              (invalid)
               done_retract_for_symbol,  // ||.              (invalid)
-              done_retract_for_symbol,  // >>>.             (invalid)
               done_retract_for_symbol,  // ??.              (invalid)
               done_retract_for_symbol,  // ?..              (invalid)
               done_dot_dot_dot,         // .. -> ...
@@ -647,7 +635,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==9        (invalid)
               done_retract_for_symbol,    // >>9        (invalid)
               done_retract_for_symbol,    // ||9        (invalid)
-              done_retract_for_symbol,    // >>>9       (invalid)
               done_retract_for_symbol,    // ??9        (invalid)
               done_question_dot_digit,    // ?.9        (invalid; remove '.9')
               done_retract_2_for_symbol,  // ..9        (invalid)
@@ -673,7 +660,6 @@ struct lex_tables {
               done_retract_for_symbol,    // ==(other)        (invalid)
               done_retract_for_symbol,    // >>(other)        (invalid)
               done_retract_for_symbol,    // ||(other)        (invalid)
-              done_retract_for_symbol,    // >>>(other)       (invalid)
               done_retract_for_symbol,    // ??(other)        (invalid)
               done_retract_for_symbol,    // ?.(other)        (invalid)
               done_retract_2_for_symbol,  // ..(other)        (invalid)
@@ -682,58 +668,56 @@ struct lex_tables {
 
   // The maximum number of input bytes which can be processed by the lexer
   // tables before terminating.
-  static constexpr int maximum_state_depth = 4;
+  static constexpr int maximum_state_depth = 3;
 
   static constexpr token_type invalid_token_type = token_type::identifier;
 
   // See NOTE[lex-table-token-type].
   static constexpr token_type unique_terminal_symbol_tokens[] = {
-      token_type::percent_equal,                  // %=
-      token_type::ampersand_equal,                // &=
-      token_type::plus_plus,                      // ++
-      token_type::plus_equal,                     // +=
-      token_type::equal_greater,                  // =>
-      token_type::greater_equal,                  // >=
-      token_type::circumflex_equal,               // ^=
-      token_type::pipe_equal,                     // |=
-      token_type::bang_equal_equal,               // !==
-      token_type::ampersand_ampersand_equal,      // &&=
-      token_type::equal_equal_equal,              // ===
-      token_type::greater_greater_equal,          // >>=
-      token_type::pipe_pipe_equal,                // ||=
-      token_type::greater_greater_greater_equal,  // >>>=
-      token_type::question_question_equal,        // ??=
-      token_type::dot_dot_dot,                    // ...
-      token_type::less_equal,                     // <=
-      token_type::less_less_equal,                // <<=
-      token_type::minus_equal,                    // -=
+      token_type::percent_equal,              // %=
+      token_type::ampersand_equal,            // &=
+      token_type::plus_plus,                  // ++
+      token_type::plus_equal,                 // +=
+      token_type::equal_greater,              // =>
+      token_type::greater_equal,              // >=
+      token_type::circumflex_equal,           // ^=
+      token_type::pipe_equal,                 // |=
+      token_type::bang_equal_equal,           // !==
+      token_type::ampersand_ampersand_equal,  // &&=
+      token_type::equal_equal_equal,          // ===
+      token_type::greater_greater_equal,      // >>=
+      token_type::pipe_pipe_equal,            // ||=
+      token_type::question_question_equal,    // ??=
+      token_type::dot_dot_dot,                // ...
+      token_type::less_equal,                 // <=
+      token_type::less_less_equal,            // <<=
+      token_type::minus_equal,                // -=
   };
 
   // Key: a state < input_state_count
   // Value: corresponding token_type
   static constexpr token_type retract_for_symbol_tokens[] = {
-      token_type::bang,                     // !
-      token_type::percent,                  // %
-      token_type::ampersand,                // &
-      token_type::plus,                     // +
-      token_type::minus,                    // -
-      token_type::less,                     // <
-      token_type::equal,                    // =
-      token_type::greater,                  // >
-      token_type::circumflex,               // ^
-      token_type::pipe,                     // |
-      token_type::question,                 // ?
-      token_type::dot,                      // .
-      invalid_token_type,                   // 9    (invalid)
-      token_type::bang_equal,               // !=
-      token_type::ampersand_ampersand,      // &&
-      token_type::less_less,                // <<
-      token_type::equal_equal,              // ==
-      token_type::greater_greater,          // >>
-      token_type::pipe_pipe,                // ||
-      token_type::greater_greater_greater,  // >>>
-      token_type::question_question,        // ??
-      token_type::question_dot,             // ?.
+      token_type::bang,                 // !
+      token_type::percent,              // %
+      token_type::ampersand,            // &
+      token_type::plus,                 // +
+      token_type::minus,                // -
+      token_type::less,                 // <
+      token_type::equal,                // =
+      token_type::greater,              // >
+      token_type::circumflex,           // ^
+      token_type::pipe,                 // |
+      token_type::question,             // ?
+      token_type::dot,                  // .
+      invalid_token_type,               // 9    (invalid)
+      token_type::bang_equal,           // !=
+      token_type::ampersand_ampersand,  // &&
+      token_type::less_less,            // <<
+      token_type::equal_equal,          // ==
+      token_type::greater_greater,      // >>
+      token_type::pipe_pipe,            // ||
+      token_type::question_question,    // ??
+      token_type::question_dot,         // ?.
       token_type::dot,  // ..(misc) -> . ( done_retract_2_for_symbol)
   };
 
@@ -905,6 +889,23 @@ struct lex_tables {
         l->last_token_.end = l->input_;
         return true;
       }
+
+    // ">>>" was parsed; parse either ">>>" or ">>>=".
+    case 2:
+      QLJS_ASSERT(l->input_[0] == u8'>');
+      QLJS_ASSERT(l->input_[1] == u8'>');
+      QLJS_ASSERT(l->input_[2] == u8'>');
+      if (l->input_[3] == u8'=') {
+        // >>>=
+        l->input_ += 4;
+        l->last_token_.type = token_type::greater_greater_greater_equal;
+      } else {
+        // >>>
+        l->input_ += 3;
+        l->last_token_.type = token_type::greater_greater_greater;
+      }
+      l->last_token_.end = l->input_;
+      return true;
 
     default:
       QLJS_UNREACHABLE();
