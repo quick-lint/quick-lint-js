@@ -179,7 +179,8 @@ struct lex_tables {
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
   // clang-format on
 
-  using state_type = std::uint8_t;
+  // TODO(strager): Shrink to 8 bits.
+  using state_type = std::uint16_t;
 
   // How many bits in the state are reserved for the state number for
   // intermediate and non-unique terminal states, or for extra data for unique

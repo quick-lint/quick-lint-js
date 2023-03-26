@@ -28,12 +28,13 @@ std::vector<string8_view> symbols = {
     u8"|"_sv,  u8"|="_sv,  u8"||"_sv,  u8"||="_sv,
 };
 
-std::string pretty_character_class(std::uint8_t);
+std::string pretty_character_class(lex_tables::state_type);
 
 TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
-  hash_set<std::uint8_t> all_character_classes;
-  for (int i = 0; i < lex_tables::character_class_count; ++i) {
-    all_character_classes.insert(narrow_cast<std::uint8_t>(i));
+  hash_set<lex_tables::state_type> all_character_classes;
+  for (lex_tables::state_type c_class = 0;
+       c_class < lex_tables::character_class_count; ++c_class) {
+    all_character_classes.insert(c_class);
   }
 
   for (string8_view symbol : symbols) {
@@ -74,7 +75,7 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
     // '>>>' and '>>='). Every next character in the symbol table should cause a
     // transition to the retract state.
     {
-      hash_set<std::uint8_t> expected_retracting_character_classes =
+      hash_set<lex_tables::state_type> expected_retracting_character_classes =
           all_character_classes;
       for (string8_view other_symbol : symbols) {
         if (other_symbol.size() > symbol.size() &&
@@ -85,7 +86,8 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
         }
       }
       ASSERT_FALSE(expected_retracting_character_classes.empty());
-      for (std::uint8_t c_class : expected_retracting_character_classes) {
+      for (lex_tables::state_type c_class :
+           expected_retracting_character_classes) {
         if (symbol == u8"."_sv &&
             c_class == lex_tables::character_class_table[u8'0']) {
           // '.9' does not retract.
@@ -132,7 +134,7 @@ TEST(test_lex_tables, maximum_depth) {
   constexpr std::uint8_t depth_limit = 20;
 
   struct state_history {
-    std::uint8_t c_class_history[depth_limit];
+    lex_tables::state_type c_class_history[depth_limit];
     std::uint8_t depth;  // Number of entries in c_class_history.
 
     std::string to_string() const {
@@ -149,7 +151,7 @@ TEST(test_lex_tables, maximum_depth) {
   struct queue_entry {
     state_history history;
     // Invariant: next_c_class == history.c_class_history[history.depth - 1]
-    std::uint8_t next_c_class;
+    lex_tables::state_type next_c_class;
     lex_tables::state_type next_state;
   };
 
@@ -165,7 +167,7 @@ TEST(test_lex_tables, maximum_depth) {
   for (lex_tables::state_type state = 0;
        state < lex_tables::character_class::other_character_class; ++state) {
     if (!lex_tables::is_initial_state_terminal(state)) {
-      for (std::uint8_t c_class = 0;
+      for (lex_tables::state_type c_class = 0;
            c_class < lex_tables::character_class_count; ++c_class) {
         queue.push_back(queue_entry{
             .history =
@@ -197,7 +199,7 @@ TEST(test_lex_tables, maximum_depth) {
     if (!lex_tables::is_terminal_state(new_state)) {
       ASSERT_LT(entry.history.depth, depth_limit)
           << "transition table should not have cycles";
-      for (std::uint8_t new_c_class = 0;
+      for (lex_tables::state_type new_c_class = 0;
            new_c_class < lex_tables::character_class_count; ++new_c_class) {
         queue_entry new_entry = entry;
         new_entry.history.c_class_history[entry.history.depth] = new_c_class;
@@ -211,8 +213,8 @@ TEST(test_lex_tables, maximum_depth) {
   }
 
 #if QLJS_DUMP_TRANSITION_TABLE_FINAL_STATE_HISTORIES
-  for (std::uint8_t c_class = 0; c_class < lex_tables::character_class_count;
-       ++c_class) {
+  for (lex_tables::state_type c_class = 0;
+       c_class < lex_tables::character_class_count; ++c_class) {
     for (lex_tables::state_type final_state = 0;
          final_state < lex_tables::input_state_count; ++final_state) {
       state_history& history = max_depths[c_class][final_state];
@@ -223,8 +225,8 @@ TEST(test_lex_tables, maximum_depth) {
   }
 #endif
 
-  for (std::uint8_t c_class = 0; c_class < lex_tables::character_class_count;
-       ++c_class) {
+  for (lex_tables::state_type c_class = 0;
+       c_class < lex_tables::character_class_count; ++c_class) {
     for (lex_tables::state_type final_state = 0;
          final_state < lex_tables::input_state_count; ++final_state) {
       state_history& history = max_depths[c_class][final_state];
@@ -235,7 +237,7 @@ TEST(test_lex_tables, maximum_depth) {
   }
 }
 
-std::string pretty_character_class(std::uint8_t c_class) {
+std::string pretty_character_class(lex_tables::state_type c_class) {
   std::string result = std::to_string(narrow_cast<unsigned>(c_class)) + " (";
   if (c_class == lex_tables::character_class::other_character_class) {
     return result + "other)";
