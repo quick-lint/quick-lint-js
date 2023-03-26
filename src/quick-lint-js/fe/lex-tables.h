@@ -207,6 +207,8 @@ struct lex_tables {
     pipe_pipe,
     greater_greater_greater,
 
+    input_state_count,
+
     // Complete/terminal states:
     // clang-format off
     done_percent_equal                 = QLJS_STATE(handler_done_unique_terminal, 14),
@@ -230,7 +232,6 @@ struct lex_tables {
     retract = QLJS_STATE(handler_done_retract, 0),
   };
 #undef QLJS_STATE
-  static constexpr int input_state_count = 14;
 
   // Returns true if there are no transitions from this state to any other
   // state.
