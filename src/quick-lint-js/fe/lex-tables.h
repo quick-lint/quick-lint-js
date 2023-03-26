@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FE_LEX_TABLES_H
 #define QUICK_LINT_JS_FE_LEX_TABLES_H
 
+#include <climits>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/fe/lex.h>
@@ -160,12 +161,24 @@ struct lex_tables {
   static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
   // clang-format on
 
-  static constexpr int state_data_bits = 5;
+  using state_type = std::uint8_t;
 
-  static constexpr int state_data_mask = 31;
+  // How many bits in the state are reserved for the state number for
+  // intermediate and non-unique terminal states, or for extra data for unique
+  // terminal states and the retract terminal state.
+  static constexpr int state_data_bits = 5;
+  static constexpr state_type state_data_mask = (1 << state_data_bits) - 1;
+
+  // How many bits in the state are reserved for selecting the dispatcher.
+  // Dispatcher 0 is the keep-going dispatcher.
   static constexpr int state_dispatcher_bits = 3;
 
-  enum state : std::uint8_t {
+  static_assert(sizeof(state_type) >=
+                    (state_data_bits + state_dispatcher_bits) / CHAR_BIT,
+                "state_type should be big enough to fit all data bits and "
+                "dispatcher bits");
+
+  enum state : state_type {
     // Initial states:
     // See enum character_class and NOTE[lex-table-initial].
 
