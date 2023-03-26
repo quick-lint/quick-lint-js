@@ -211,8 +211,10 @@ struct lex_tables {
     // The state data is how many characters to retract.
     handler_done_retract_for_symbol,
 
-    // The state data is the index into unique_terminal_symbol_tokens.
-    handler_done_unique_terminal_symbol,
+    // The state data is the index into unique_terminal_symbol_tokens_a.
+    handler_done_unique_terminal_symbol_a,
+    // The state data is the index into unique_terminal_symbol_tokens_b.
+    handler_done_unique_terminal_symbol_b,
 
     handler_done_minus_minus,
     handler_done_number,
@@ -258,27 +260,27 @@ struct lex_tables {
 
     // Complete/terminal states:
     // clang-format off
-    done_percent_equal                 = QLJS_STATE(handler_done_unique_terminal_symbol, 0),
-    done_ampersand_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 1),
-    done_plus_plus                     = QLJS_STATE(handler_done_unique_terminal_symbol, 2),
-    done_plus_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 3),
-    done_equal_greater                 = QLJS_STATE(handler_done_unique_terminal_symbol, 4),
-    done_greater_equal                 = QLJS_STATE(handler_done_unique_terminal_symbol, 5),
-    done_circumflex_equal              = QLJS_STATE(handler_done_unique_terminal_symbol, 6),
-    done_pipe_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 7),
-    done_bang_equal_equal              = QLJS_STATE(handler_done_unique_terminal_symbol, 8),
-    done_ampersand_ampersand_equal     = QLJS_STATE(handler_done_unique_terminal_symbol, 9),
-    done_equal_equal_equal             = QLJS_STATE(handler_done_unique_terminal_symbol, 10),
-    done_greater_greater_equal         = QLJS_STATE(handler_done_unique_terminal_symbol, 11),
-    done_pipe_pipe_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 12),
-    done_question_question_equal       = QLJS_STATE(handler_done_unique_terminal_symbol, 13),
-    done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol, 14),
-    done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 15),
-    done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 16),
-    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 17),
-    done_star_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol, 18),
-    done_star_star_equal               = QLJS_STATE(handler_done_unique_terminal_symbol, 19),
-    done_slash_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol, 20),
+    done_percent_equal                 = QLJS_STATE(handler_done_unique_terminal_symbol_a, 0),
+    done_ampersand_equal               = QLJS_STATE(handler_done_unique_terminal_symbol_a, 1),
+    done_plus_plus                     = QLJS_STATE(handler_done_unique_terminal_symbol_a, 2),
+    done_plus_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol_a, 3),
+    done_equal_greater                 = QLJS_STATE(handler_done_unique_terminal_symbol_a, 4),
+    done_greater_equal                 = QLJS_STATE(handler_done_unique_terminal_symbol_a, 5),
+    done_circumflex_equal              = QLJS_STATE(handler_done_unique_terminal_symbol_a, 6),
+    done_pipe_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol_a, 7),
+    done_bang_equal_equal              = QLJS_STATE(handler_done_unique_terminal_symbol_a, 8),
+    done_ampersand_ampersand_equal     = QLJS_STATE(handler_done_unique_terminal_symbol_a, 9),
+    done_equal_equal_equal             = QLJS_STATE(handler_done_unique_terminal_symbol_a, 10),
+    done_greater_greater_equal         = QLJS_STATE(handler_done_unique_terminal_symbol_a, 11),
+    done_pipe_pipe_equal               = QLJS_STATE(handler_done_unique_terminal_symbol_a, 12),
+    done_question_question_equal       = QLJS_STATE(handler_done_unique_terminal_symbol_a, 13),
+    done_dot_dot_dot                   = QLJS_STATE(handler_done_unique_terminal_symbol_a, 14),
+    done_less_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol_a, 15),
+    done_less_less_equal               = QLJS_STATE(handler_done_unique_terminal_symbol_b, 0),
+    done_minus_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol_b, 1),
+    done_star_equal                    = QLJS_STATE(handler_done_unique_terminal_symbol_b, 2),
+    done_star_star_equal               = QLJS_STATE(handler_done_unique_terminal_symbol_b, 3),
+    done_slash_equal                   = QLJS_STATE(handler_done_unique_terminal_symbol_b, 4),
     // clang-format on
 
     done_greater_greater_greater = QLJS_STATE(handler_done_special_slow, 2),
@@ -779,7 +781,7 @@ struct lex_tables {
   static constexpr token_type invalid_token_type = token_type::identifier;
 
   // See NOTE[lex-table-token-type].
-  static constexpr token_type unique_terminal_symbol_tokens[] = {
+  static constexpr token_type unique_terminal_symbol_tokens_a[] = {
       token_type::percent_equal,              // %=
       token_type::ampersand_equal,            // &=
       token_type::plus_plus,                  // ++
@@ -796,11 +798,13 @@ struct lex_tables {
       token_type::question_question_equal,    // ??=
       token_type::dot_dot_dot,                // ...
       token_type::less_equal,                 // <=
-      token_type::less_less_equal,            // <<=
-      token_type::minus_equal,                // -=
-      token_type::star_equal,                 // *=
-      token_type::star_star_equal,            // **=
-      token_type::slash_equal,                // /=
+  };
+  static constexpr token_type unique_terminal_symbol_tokens_b[] = {
+      token_type::less_less_equal,  // <<=
+      token_type::minus_equal,      // -=
+      token_type::star_equal,       // *=
+      token_type::star_star_equal,  // **=
+      token_type::slash_equal,      // /=
   };
 
   // Key: a state < input_state_count
@@ -843,8 +847,10 @@ struct lex_tables {
     static void* handler_table[] = {
         /*[handler_transition] = */ &&transition,
         /*[handler_done_retract_for_symbol] = */ &&done_retract_for_symbol,
-        /*[handler_done_unique_terminal_symbol] = */
-        &&done_unique_terminal_symbol,
+        /*[handler_done_unique_terminal_symbol_a] = */
+        &&done_unique_terminal_symbol_a,
+        /*[handler_done_unique_terminal_symbol_b] = */
+        &&done_unique_terminal_symbol_b,
         /*[handler_done_minus_minus] = */ &&done_minus_minus,
         /*[handler_done_number] = */ &&done_number,
         /*[handler_done_special_slow] = */ &&done_special_slow,
@@ -896,8 +902,10 @@ struct lex_tables {
       goto transition;
     case handler_done_retract_for_symbol:
       goto done_retract_for_symbol;
-    case handler_done_unique_terminal_symbol:
-      goto done_unique_terminal_symbol;
+    case handler_done_unique_terminal_symbol_a:
+      goto done_unique_terminal_symbol_a;
+    case handler_done_unique_terminal_symbol_b:
+      goto done_unique_terminal_symbol_b;
     case handler_done_minus_minus:
       goto done_minus_minus;
     case handler_done_number:
@@ -914,9 +922,18 @@ struct lex_tables {
   }
 #endif
 
-  done_unique_terminal_symbol : {
+  done_unique_terminal_symbol_a : {
     l->last_token_.type =
-        lex_tables::unique_terminal_symbol_tokens[get_state_data(new_state)];
+        lex_tables::unique_terminal_symbol_tokens_a[get_state_data(new_state)];
+    QLJS_ASSERT(l->last_token_.type != invalid_token_type);
+    l->input_ = input;
+    l->last_token_.end = l->input_;
+    return true;
+  }
+
+  done_unique_terminal_symbol_b : {
+    l->last_token_.type =
+        lex_tables::unique_terminal_symbol_tokens_b[get_state_data(new_state)];
     QLJS_ASSERT(l->last_token_.type != invalid_token_type);
     l->input_ = input;
     l->last_token_.end = input;
