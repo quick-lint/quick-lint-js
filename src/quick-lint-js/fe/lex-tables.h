@@ -311,7 +311,7 @@ struct lex_tables {
   }
 
   static constexpr state
-      transition_table[character_class_count + 1][input_state_count] = {
+      transition_table[character_class_count][input_state_count] = {
           // !
           {
               done_retract_for_symbol,    // !!               (invalid)
