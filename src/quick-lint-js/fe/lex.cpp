@@ -273,6 +273,7 @@ bool lexer::try_parse_current_token() {
   QLJS_CASE_IDENTIFIER_START:
   case '!':
   case '"':
+  case '#':
   case '%':
   case '&':
   case '*':
@@ -589,7 +590,6 @@ bool lexer::try_parse_current_token() {
     this->last_token_.end = this->input_;
     break;
   }
-#endif
 
   case '#':
     if (this->input_[1] == '!' &&
@@ -622,6 +622,7 @@ bool lexer::try_parse_current_token() {
       return false;
     }
     break;
+#endif
 
   case '\0':
     if (this->is_eof(this->input_)) {
@@ -2212,6 +2213,7 @@ bool lexer::is_hex_digit(char8 c) {
 }
 
 bool lexer::is_initial_identifier_byte(char8 byte) {
+  // TODO(strager): Reuse lex_tables::initial_character_class?
   switch (static_cast<std::uint8_t>(byte)) {
   QLJS_CASE_IDENTIFIER_START:
     // clang-format off

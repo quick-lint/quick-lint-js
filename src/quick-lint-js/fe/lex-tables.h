@@ -128,6 +128,7 @@ struct lex_tables {
     ident = character_class_count,  // Initial identifier character.
     quote,                          // " or '
     tick,                           // `
+    hash,
 
     initial_character_class_count,
   };
@@ -144,7 +145,7 @@ struct lex_tables {
   static constexpr std::uint8_t initial_character_class_table[256] = {
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
       _,     _,     _,     _,     _,     _,       _,         _,     _,     _,     _,     _,    _,     _,     _,          _,         //
-      _,     bang,  quote, _,     ident, percent, ampersand, quote, _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
+      _,     bang,  quote, hash,  ident, percent, ampersand, quote, _,     _,     star,  plus, _,     minus, dot,        slash,     // (sp) !"#$%&'()*+,-./
       digit, digit, digit, digit, digit, digit,   digit,     digit, digit, digit, _,     _,    less,  equal, greater,    question,  // 0123456789:;<=>?
       _,     ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, ident,ident, ident, ident,      ident,     // @ABCDEFGHIJKLMNO
       ident, ident, ident, ident, ident, ident,   ident,     ident, ident, ident, ident, _,    ident, _,     circumflex, ident,     // PQRSTUVWXYZ[\]^_
@@ -184,6 +185,7 @@ struct lex_tables {
   // clang-format off
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'"')] == character_class::quote);
+  static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'#')] == character_class::hash);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'$')] == character_class::ident);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
   static_assert(initial_character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
@@ -930,6 +932,7 @@ struct lex_tables {
         /*[ident] = */ &&done_identifier,
         /*[quote] = */ &&done_string_literal,
         /*[tick] = */ &&done_template_literal,
+        /*[hash] = */ &&done_hash,
     };
 
     static void* handler_table[] = {
@@ -994,6 +997,9 @@ struct lex_tables {
 
     case character_class::tick:
       goto done_template_literal;
+
+    case character_class::hash:
+      goto done_hash;
 
     case character_class::other_character_class:
     default:
@@ -1186,6 +1192,37 @@ struct lex_tables {
     l->last_token_.type = body.type;
     l->input_ = body.end;
     l->last_token_.end = l->input_;
+    return true;
+  }
+
+  done_hash : {
+    if (l->input_[1] == '!' && l->input_ == l->original_input_.data()) {
+      l->input_ += 2;
+      l->skip_line_comment_body();
+      return false;
+    } else if (l->is_initial_identifier_byte(l->input_[1])) {
+      // Private identifier: #alphaNumeric
+      lexer::parsed_identifier ident = l->parse_identifier(
+          l->input_ + 1, lexer::identifier_kind::javascript);
+      if (ident.normalized.data() == l->input_ + 1) {
+        // Include the '#'.
+        ident.normalized = string8_view(l->input_, ident.normalized.size() + 1);
+      } else {
+        // parse_identifier called parse_identifier_slow, and it included the
+        // '#' already in normalized_name.
+        QLJS_ASSERT(ident.normalized[0] == u8'#');
+      }
+      l->input_ = ident.after;
+      l->last_token_.normalized_identifier = ident.normalized;
+      l->last_token_.end = ident.after;
+      l->last_token_.type = token_type::private_identifier;
+    } else {
+      l->diag_reporter_->report(diag_unexpected_hash_character{
+          source_code_span(&l->input_[0], &l->input_[1])});
+      l->input_ += 1;
+      l->skip_whitespace();
+      return false;
+    }
     return true;
   }
 
