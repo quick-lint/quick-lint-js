@@ -106,25 +106,59 @@ namespace quick_lint_js {
 // require further processing need to be supported.
 struct lex_tables {
   // See NOTE[lex-table-class].
-  static constexpr std::uint8_t character_class_table[256] = {
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 0, 8, 8, 8, 1, 2, 8, 8, 8, 8, 3, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 5, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  //
+  enum character_class : std::uint8_t {
+    bang,
+    percent,
+    ampersand,
+    plus,
+    equal,
+    greater,
+    circumflex,
+    pipe,
+
+    // Must be last:
+    other_character_class,
+
+    character_class_count,
   };
-  static constexpr int character_class_count = 8;
+
+  // Folds each character into a small set of equivalence classes. This makes
+  // transition_table significantly smaller.
+  //
+  // See NOTE[lex-table-class].
+#define _ other_character_class
+  // clang-format off
+  static constexpr std::uint8_t character_class_table[256] = {
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, bang, _, _, _, percent, ampersand, _, _, _, _, plus, _,    _,     _,          _,  // (sp) !"#$%&'()*+,-./
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    equal, greater,    _,  // 0123456789:;<=>?
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  // @ABCDEFGHIJKLMNO
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     circumflex, _,  // PQRSTUVWXYZ[\]^_
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  // `abcdefghijklmno
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    pipe, _,     _,          _,  // pqrstuvwxyz{|}~ (del)
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+      _, _,    _, _, _, _,       _,         _, _, _, _, _,    _,    _,     _,          _,  //
+  };
+  // clang-format on
+#undef _
+
+  // clang-format off
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == character_class::bang);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == character_class::percent);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'&')] == character_class::ampersand);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'+')] == character_class::plus);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'=')] == character_class::equal);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'>')] == character_class::greater);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'^')] == character_class::circumflex);
+  static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == character_class::pipe);
+  // clang-format on
 
   static constexpr int state_data_bits = 5;
 
@@ -133,14 +167,7 @@ struct lex_tables {
 
   enum state : std::uint8_t {
     // Initial states:
-    bang = 0 | (0 << state_data_bits),
-    percent = 1 | (0 << state_data_bits),
-    ampersand = 2 | (0 << state_data_bits),
-    plus = 3 | (0 << state_data_bits),
-    equal = 4 | (0 << state_data_bits),
-    greater = 5 | (0 << state_data_bits),
-    circumflex = 6 | (0 << state_data_bits),
-    pipe = 7 | (0 << state_data_bits),
+    // See enum character_class and NOTE[lex-table-initial].
 
     // Possibly-incomplete states:
     bang_equal = 8 | (0 << state_data_bits),
@@ -171,17 +198,6 @@ struct lex_tables {
     retract = (1 << state_data_bits),
   };
   static constexpr int input_state_count = 14;
-
-  // clang-format off
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'!')] == state::bang);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'%')] == state::percent);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'&')] == state::ampersand);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'+')] == state::plus);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'=')] == state::equal);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'>')] == state::greater);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'^')] == state::circumflex);
-  static_assert(character_class_table[static_cast<std::uint8_t>(u8'|')] == state::pipe);
-  // clang-format on
 
   // Returns true if there are no transitions from this state to any other
   // state.
