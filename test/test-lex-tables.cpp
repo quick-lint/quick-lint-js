@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#define QLJS_DUMP_TRANSITION_TABLE_FINAL_STATE_HISTORIES 0
+
 QLJS_WARNING_IGNORE_CLANG("-Wchar-subscripts")
 
 namespace quick_lint_js {
@@ -112,6 +114,113 @@ TEST(test_lex_tables, symbols_transition_to_done_or_retract) {
     }
 
   done:;
+  }
+}
+
+TEST(test_lex_tables, maximum_depth) {
+  constexpr std::uint8_t depth_limit = 20;
+
+  struct state_history {
+    std::uint8_t c_class_history[depth_limit];
+    std::uint8_t depth;  // Number of entries in c_class_history.
+
+    std::string to_string() const {
+      std::string result;
+      for (std::uint8_t d = 0; d < this->depth; ++d) {
+        if (d > 0) {
+          result += ", "sv;
+        }
+        result += pretty_character_class(this->c_class_history[d]);
+      }
+      return result;
+    }
+  };
+  struct queue_entry {
+    state_history history;
+    // Invariant: next_c_class == history.c_class_history[history.depth - 1]
+    std::uint8_t next_c_class;
+    lex_tables::state_type next_state;
+  };
+
+  state_history max_depths[lex_tables::character_class_count]
+                          [lex_tables::input_state_count] = {};
+
+  std::vector<queue_entry> queue;
+  queue.reserve(narrow_cast<std::size_t>(lex_tables::character_class_count) *
+                lex_tables::input_state_count);
+
+  // First level: Initial state can be any character class except
+  // other_character_class.
+  for (lex_tables::state_type state = 0;
+       state < lex_tables::character_class::other_character_class; ++state) {
+    if (!lex_tables::is_initial_state_terminal(state)) {
+      for (std::uint8_t c_class = 0;
+           c_class < lex_tables::character_class_count; ++c_class) {
+        queue.push_back(queue_entry{
+            .history =
+                state_history{
+                    .c_class_history = {state, c_class},
+                    .depth = 2,
+                },
+            .next_c_class = c_class,
+            .next_state = state,
+        });
+      }
+    }
+  }
+
+  // Second and subsequent levels: State can be any input or transition state.
+  while (!queue.empty()) {
+    queue_entry entry = queue.back();
+    queue.pop_back();
+
+    ASSERT_LE(entry.next_c_class, lex_tables::character_class_count);
+    ASSERT_LE(entry.next_state, lex_tables::input_state_count);
+    if (entry.history.depth >
+        max_depths[entry.next_c_class][entry.next_state].depth) {
+      max_depths[entry.next_c_class][entry.next_state] = entry.history;
+    }
+
+    lex_tables::state_type new_state =
+        lex_tables::transition_table[entry.next_c_class][entry.next_state];
+    if (!lex_tables::is_terminal_state(new_state)) {
+      ASSERT_LT(entry.history.depth, depth_limit)
+          << "transition table should not have cycles";
+      for (std::uint8_t new_c_class = 0;
+           new_c_class < lex_tables::character_class_count; ++new_c_class) {
+        queue_entry new_entry = entry;
+        new_entry.history.c_class_history[entry.history.depth] = new_c_class;
+        new_entry.history.depth =
+            narrow_cast<std::uint8_t>(new_entry.history.depth + 1);
+        new_entry.next_c_class = new_c_class;
+        new_entry.next_state = new_state;
+        queue.push_back(new_entry);
+      }
+    }
+  }
+
+#if QLJS_DUMP_TRANSITION_TABLE_FINAL_STATE_HISTORIES
+  for (std::uint8_t c_class = 0; c_class < lex_tables::character_class_count;
+       ++c_class) {
+    for (lex_tables::state_type final_state = 0;
+         final_state < lex_tables::input_state_count; ++final_state) {
+      state_history& history = max_depths[c_class][final_state];
+      std::fprintf(stderr, "max_depths[%s][%d] = %d (%s)\n",
+                   pretty_character_class(c_class).c_str(), final_state,
+                   history.depth, history.to_string().c_str());
+    }
+  }
+#endif
+
+  for (std::uint8_t c_class = 0; c_class < lex_tables::character_class_count;
+       ++c_class) {
+    for (lex_tables::state_type final_state = 0;
+         final_state < lex_tables::input_state_count; ++final_state) {
+      state_history& history = max_depths[c_class][final_state];
+      ASSERT_LE(history.depth, lex_tables::maximum_state_depth)
+          << "final_state=" << long{final_state}
+          << ", history=" << history.to_string();
+    }
   }
 }
 

@@ -293,7 +293,7 @@ struct lex_tables {
 
   // Returns true if there are no transitions from this state to any other
   // state.
-  static bool is_terminal_state(state s) {
+  static bool is_terminal_state(state_type s) {
     // Any state with a handler other than handler_transition is a terminal
     // state.
     static_assert(handler_transition == 0);
@@ -307,9 +307,9 @@ struct lex_tables {
   // state.
   //
   // Precondition: s is an initial state.
-  static bool is_initial_state_terminal(state s) {
+  static bool is_initial_state_terminal(state_type s) {
     // See NOTE[lex-table-state-order].
-    return static_cast<state_type>(s) >= other_character_class;
+    return s >= other_character_class;
   }
 
   static constexpr state
@@ -679,6 +679,10 @@ struct lex_tables {
               done_retract_2_for_symbol,  // ..(other)        (invalid)
           },
   };
+
+  // The maximum number of input bytes which can be processed by the lexer
+  // tables before terminating.
+  static constexpr int maximum_state_depth = 4;
 
   static constexpr token_type invalid_token_type = token_type::identifier;
 
