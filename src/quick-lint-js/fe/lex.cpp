@@ -152,8 +152,11 @@ void lexer::parse_bom_before_shebang() {
 
 bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
+
+#if QLJS_FEATURE_LEX_TABLES
+  return lex_tables::try_parse_current_token(this);
+#else
   switch (this->input_[0]) {
-#if !QLJS_FEATURE_LEX_TABLES
   QLJS_CASE_DECIMAL_DIGIT:
     this->last_token_.type = token_type::number;
     if (this->input_[0] == '0') {
@@ -249,71 +252,7 @@ bool lexer::try_parse_current_token() {
     this->input_ += 1;
     this->last_token_.end = this->input_;
     break;
-#endif
 
-#if QLJS_FEATURE_LEX_TABLES
-  default:
-  QLJS_CASE_DECIMAL_DIGIT:
-  QLJS_CASE_IDENTIFIER_START:
-  case '!':
-  case '"':
-  case '#':
-  case '%':
-  case '&':
-  case '(':
-  case ')':
-  case '*':
-  case '+':
-  case ',':
-  case '-':
-  case '.':
-  case '/':
-  case ':':
-  case ';':
-  case '<':
-  case '=':
-  case '>':
-  case '?':
-  case '[':
-  case '\'':
-  case '\0':
-  case ']':
-  case '^':
-  case '`':
-  case '{':
-  case '|':
-  case '}':
-  case '~':
-  case u8'@':
-  case u8'\x01':
-  case u8'\x02':
-  case u8'\x03':
-  case u8'\x04':
-  case u8'\x05':
-  case u8'\x06':
-  case u8'\x07':
-  case u8'\x08':
-  case u8'\x0e':
-  case u8'\x0f':
-  case u8'\x10':
-  case u8'\x11':
-  case u8'\x12':
-  case u8'\x13':
-  case u8'\x14':
-  case u8'\x15':
-  case u8'\x16':
-  case u8'\x17':
-  case u8'\x18':
-  case u8'\x19':
-  case u8'\x1a':
-  case u8'\x1b':
-  case u8'\x1c':
-  case u8'\x1d':
-  case u8'\x1e':
-  case u8'\x1f':
-  case u8'\x7f':
-    return lex_tables::try_parse_current_token(this);
-#else
   case '?':
     if (this->input_[1] == '?') {
       if (this->input_[2] == '=') {
@@ -697,10 +636,10 @@ bool lexer::try_parse_current_token() {
     this->skip_whitespace();
     return false;
   }
-#endif
   }
 
   return true;
+#endif
 }
 
 bool lexer::test_for_regexp(const char8* regexp_begin) {
