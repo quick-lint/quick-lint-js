@@ -941,7 +941,7 @@ struct lex_tables {
         /*[question] = */ &&transition,
         /*[dot] = */ &&transition,
         /*[digit] = */ &&done_number,
-        /*[other_character_class] = */ &&done_table_broken,
+        /*[other_character_class] = */ &&done_non_ascii,
         /*[ident] = */ &&done_identifier,
         /*[quote] = */ &&done_string_literal,
         /*[tick] = */ &&done_template_literal,
@@ -1004,6 +1004,9 @@ struct lex_tables {
     case character_class::digit:
       goto done_number;
 
+    case character_class::other_character_class:
+      goto done_non_ascii;
+
     case character_class::ident:
       goto done_identifier;
 
@@ -1022,7 +1025,6 @@ struct lex_tables {
     case character_class::error:
       goto done_invalid_character;
 
-    case character_class::other_character_class:
     default:
       goto done_table_broken;
     }
@@ -1288,6 +1290,17 @@ struct lex_tables {
       l->parse_number();
     }
     l->last_token_.end = l->input_;
+    return true;
+  }
+
+  // >= 0x80
+  // linefeed
+  // newline
+  // space
+  // tab
+  done_non_ascii : {
+    // NOTE(strager): Whitespace should already have been parsed.
+    l->parse_non_ascii();
     return true;
   }
 

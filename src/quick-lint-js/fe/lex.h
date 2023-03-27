@@ -289,6 +289,8 @@ class lexer {
                                           const char8* identifier_begin,
                                           identifier_kind);
 
+  void parse_non_ascii();
+
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment_body();

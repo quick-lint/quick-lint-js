@@ -228,31 +228,12 @@ bool lexer::try_parse_current_token() {
     }
     break;
   }
-#endif
 
   // Non-ASCII or control character.
-  default: {
-    decode_utf_8_result character = decode_utf_8(padded_string_view(
-        this->input_, this->original_input_.null_terminator()));
-    if (character.code_point == left_single_quote ||
-        character.code_point == right_single_quote ||
-        character.code_point == left_double_quote ||
-        character.code_point == right_double_quote) {
-      this->input_ = this->parse_smart_quote_string_literal(character);
-      this->last_token_.type = token_type::string;
-      this->last_token_.end = this->input_;
-    } else {
-      parsed_identifier ident = this->parse_identifier_slow(
-          this->input_, this->input_, identifier_kind::javascript);
-      this->input_ = ident.after;
-      this->last_token_.normalized_identifier = ident.normalized;
-      this->last_token_.end = ident.after;
-      this->last_token_.type = token_type::identifier;
-    }
+  default:
+    this->parse_non_ascii();
     break;
-  }
 
-#if !QLJS_FEATURE_LEX_TABLES
   // NOTE[one-byte-symbols]:
   case '(':
   case ')':
@@ -271,6 +252,7 @@ bool lexer::try_parse_current_token() {
 #endif
 
 #if QLJS_FEATURE_LEX_TABLES
+  default:
   QLJS_CASE_DECIMAL_DIGIT:
   QLJS_CASE_IDENTIFIER_START:
   case '!':
@@ -1906,6 +1888,26 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   };
 }
 QLJS_WARNING_POP
+
+void lexer::parse_non_ascii() {
+  decode_utf_8_result character = decode_utf_8(padded_string_view(
+      this->input_, this->original_input_.null_terminator()));
+  if (character.code_point == left_single_quote ||
+      character.code_point == right_single_quote ||
+      character.code_point == left_double_quote ||
+      character.code_point == right_double_quote) {
+    this->input_ = this->parse_smart_quote_string_literal(character);
+    this->last_token_.type = token_type::string;
+    this->last_token_.end = this->input_;
+  } else {
+    parsed_identifier ident = this->parse_identifier_slow(
+        this->input_, this->input_, identifier_kind::javascript);
+    this->input_ = ident.after;
+    this->last_token_.normalized_identifier = ident.normalized;
+    this->last_token_.end = ident.after;
+    this->last_token_.type = token_type::identifier;
+  }
+}
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
