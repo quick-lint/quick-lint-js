@@ -126,6 +126,7 @@ archive_to_project = {
     "node-napi.lib": WindowsSoftwareImportLibrary(),
     #
     "pathcch.lib": WindowsSystemImportLibrary(),
+    "wsock32.lib": WindowsSystemImportLibrary(),
     # HACK(strager): Ignore these libraries for now.
     "LIBCMT.lib": IgnoredLibrary(),
     "LIBCMTD.lib": IgnoredLibrary(),
