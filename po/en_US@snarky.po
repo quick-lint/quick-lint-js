@@ -531,6 +531,16 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr "I know you hate semicolons, but you need one here"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "expected expression after '('"
+msgstr "this 'case' is awful lonely"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'{1}' statement starts here"
+msgstr "at least you tried"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "you forgot 'as' between '{1}' and '{2}'"
 
@@ -1935,6 +1945,14 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "missing condition in '{1}' statement"
+#~ msgstr "if WHAT?!"
+
+#, fuzzy
+#~ msgid "'{1}' statement ends here"
+#~ msgstr "at least you tried"
 
 #, fuzzy
 #~ msgid "',' is not expected between the mems in '['']'"

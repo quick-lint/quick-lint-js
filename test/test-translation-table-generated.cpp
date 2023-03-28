@@ -748,6 +748,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'{1}' statement starts here"_translatable,
+        {
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+        },
+    },
+    {
         "'}' is not allowed directly in JSX text; write {{'}'} instead"_translatable,
         {
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
@@ -2109,6 +2120,17 @@ const translated_string test_translation_table[] = {
             u8"expected at least one parameter in generic parameter list",
             u8"esperado ao menos um par\u00e2metro na lista de par\u00e2metros gen\u00e9ricos",
             u8"expected at least one parameter in generic parameter list",
+        },
+    },
+    {
+        "expected expression after '('"_translatable,
+        {
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
         },
     },
     {

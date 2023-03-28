@@ -78,7 +78,8 @@ const translation_table translation_data = {
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
         {69, 48, 0, 36, 0, 32},              //
-        {68, 25, 0, 65, 0, 62},              //
+        {0, 0, 0, 0, 0, 62},                 //
+        {68, 25, 0, 65, 0, 28},              //
         {83, 55, 66, 62, 49, 62},            //
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
@@ -202,7 +203,8 @@ const translation_table translation_data = {
         {37, 29, 36, 37, 41, 37},            //
         {39, 25, 49, 41, 44, 40},            //
         {0, 0, 0, 14, 0, 14},                //
-        {14, 24, 13, 67, 18, 58},            //
+        {0, 0, 0, 0, 0, 58},                 //
+        {14, 24, 13, 67, 18, 30},            //
         {30, 28, 35, 37, 38, 33},            //
         {36, 18, 44, 49, 37, 35},            //
         {32, 39, 44, 50, 41, 37},            //
@@ -1793,6 +1795,7 @@ const translation_table translation_data = {
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
+        u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
         u8"BigInt literal contains decimal point\0"
         u8"BigInt literal contains exponent\0"
@@ -1917,6 +1920,7 @@ const translation_table translation_data = {
         u8"expected 'from' before module specifier\0"
         u8"expected '{{'\0"
         u8"expected at least one parameter in generic parameter list\0"
+        u8"expected expression after '('\0"
         u8"expected expression after 'case'\0"
         u8"expected expression before newline\0"
         u8"expected expression before semicolon\0"

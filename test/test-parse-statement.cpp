@@ -261,6 +261,56 @@ TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
   }
 }
 
+TEST_F(test_parse_statement, empty_paren_after_control_statement) {
+  {
+    test_parser p(u8"if(){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_empty_paren_after_control_statement,
+                        expected_expression, strlen(u8"if("), u8""_sv, token,
+                        strlen(u8""), u8"if"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"switch(){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_empty_paren_after_control_statement,
+                        expected_expression, strlen(u8"switch("), u8""_sv,
+                        token, strlen(u8""), u8"switch"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"while(){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_empty_paren_after_control_statement,
+                        expected_expression, strlen(u8"while("), u8""_sv, token,
+                        strlen(u8""), u8"while"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"with(){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_empty_paren_after_control_statement,
+                        expected_expression, strlen(u8"with("), u8""_sv, token,
+                        strlen(u8""), u8"with"_sv),
+                }));
+  }
+}
+
 TEST_F(test_parse_statement, throw_statement) {
   {
     test_parser p(u8"throw new Error('ouch');"_sv);

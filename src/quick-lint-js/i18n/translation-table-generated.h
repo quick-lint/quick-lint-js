@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 435;
-constexpr std::size_t translation_table_string_table_size = 76040;
+constexpr std::uint16_t translation_table_mapping_table_size = 437;
+constexpr std::size_t translation_table_string_table_size = 76098;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -95,6 +95,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'{0}' is not allowed for strings; use {1} instead"sv,
           "'{0}' is not allowed on methods"sv,
           "'{0}' operator cannot be used before '**' without parentheses"sv,
+          "'{1}' statement starts here"sv,
           "'}' is not allowed directly in JSX text; write {{'}'} instead"sv,
           "BigInt literal contains decimal point"sv,
           "BigInt literal contains exponent"sv,
@@ -219,6 +220,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "expected 'from' before module specifier"sv,
           "expected '{{'"sv,
           "expected at least one parameter in generic parameter list"sv,
+          "expected expression after '('"sv,
           "expected expression after 'case'"sv,
           "expected expression before newline"sv,
           "expected expression before semicolon"sv,

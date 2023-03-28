@@ -515,6 +515,16 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr "falta o ponto e vírgula após a instrução"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "expected expression after '('"
+msgstr "esperada uma expressão após 'case'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'{1}' statement starts here"
+msgstr "instrução try iniciou aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' esperado entre '{1}' e '{2}'"
 
@@ -1869,6 +1879,14 @@ msgstr "esperado {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "aqui"
+
+#, fuzzy
+#~ msgid "missing condition in '{1}' statement"
+#~ msgstr "falta a condição da instrução if"
+
+#, fuzzy
+#~ msgid "'{1}' statement ends here"
+#~ msgstr "instrução try iniciou aqui"
 
 #~ msgid "newline is not allowed after 'namespace'"
 #~ msgstr "quebra de linha não é permitida após 'namespace'"

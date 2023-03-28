@@ -1988,7 +1988,7 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
         diag_expected_parentheses_around_switch_condition,
         diag_expected_parenthesis_around_switch_condition,
         /*CheckForSketchyConditions=*/false,
-        /*CheckForCommaOperator=*/true>(v);
+        /*CheckForCommaOperator=*/true>(v, switch_token_span);
   }
 
   switch (this->peek().type) {
@@ -2785,7 +2785,7 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
       diag_expected_parentheses_around_do_while_condition,
       diag_expected_parenthesis_around_do_while_condition,
       /*CheckForSketchyConditions=*/true,
-      /*CheckForCommaOperator=*/true>(v);
+      /*CheckForCommaOperator=*/true>(v, do_token_span);
 
   if (this->peek().type == token_type::semicolon) {
     this->skip();
@@ -3200,7 +3200,7 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
         diag_expected_parentheses_around_while_condition,
         diag_expected_parenthesis_around_while_condition,
         /*CheckForSketchyConditions=*/true,
-        /*CheckForCommaOperator=*/true>(v);
+        /*CheckForCommaOperator=*/true>(v, while_token_span);
   }
 
   this->error_on_class_statement(statement_kind::while_loop);
@@ -3218,13 +3218,14 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
 
 void parser::parse_and_visit_with(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_with);
+  source_code_span with_token_span = this->peek().span();
   this->skip();
 
   this->parse_and_visit_parenthesized_expression<
       diag_expected_parentheses_around_with_expression,
       diag_expected_parenthesis_around_with_expression,
       /*CheckForSketchyConditions=*/false,
-      /*CheckForCommaOperator=*/false>(v);
+      /*CheckForCommaOperator=*/false>(v, with_token_span);
 
   this->error_on_class_statement(statement_kind::with_statement);
   this->error_on_function_statement(statement_kind::with_statement);
@@ -3254,7 +3255,7 @@ void parser::parse_and_visit_if(parse_visitor_base &v) {
         diag_expected_parentheses_around_if_condition,
         diag_expected_parenthesis_around_if_condition,
         /*CheckForSketchyConditions=*/true,
-        /*CheckForCommaOperator=*/true>(v);
+        /*CheckForCommaOperator=*/true>(v, if_token_span);
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {

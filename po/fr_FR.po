@@ -589,6 +589,16 @@ msgid "misleading use of ',' operator in conditional statement"
 msgstr "point-virgule manquant après l'instruction"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "expected expression after '('"
+msgstr "instruction attendue après 'case'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'{1}' statement starts here"
+msgstr "l'instruction try débute ici"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' attendu entre '{1}' and '{2}'"
 
@@ -2101,6 +2111,14 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "missing condition in '{1}' statement"
+#~ msgstr "condition manquante pour l'instruction if"
+
+#, fuzzy
+#~ msgid "'{1}' statement ends here"
+#~ msgstr "l'instruction try débute ici"
 
 #, fuzzy
 #~ msgid "',' is not expected between the mems in '['']'"
