@@ -1142,6 +1142,13 @@ def parse_text_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(pathlib.Path(match.group("archive")).name)
+                # ELF LLD style:
+                match = re.match(
+                    r"^\s*[0-9a-f]+\s+[0-9a-f]+\s+[0-9a-f]+\s+[0-9a-f]+\s+(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\):\((?P<symbol>.*)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(match.group("archive"))
     return LinkMap(linked_archives=linked_archives)
 
 
@@ -1322,6 +1329,38 @@ class TestMoldLinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"libquick-lint-js-lib.a"},
+        )
+
+
+class TestELFLLDLinkMap(unittest.TestCase):
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+             VMA              LMA     Size Align Out     In      Symbol
+          2002e0           2002e0       15     1 .interp
+          2002e0           2002e0       15     1         <internal>:(.interp)
+          2002f8           2002f8       30     4 .note.tag
+          2002f8           2002f8       30     4         /usr/lib/crt1.o:(.note.tag)
+          202350           202350     c2a6     1         <internal>:(.rodata)
+          20e5f8           20e5f8       20     8         CMakeFiles/quick-lint-js.dir/quick-lint-js/cli/main.cpp.o:(.rodata._ZN13quick_lint_js12_GLOBAL__N_132get_linter_options_from_languageENS_19input_file_languageE)
+          20e618           20e618       10     4         <internal>:(.rodata)
+          20e628           20e628       30     8         CMakeFiles/quick-lint-js.dir/quick-lint-js/cli/main.cpp.o:(.rodata._ZTVN13quick_lint_js24configuration_filesystemE)
+          20e628           20e628       30     1                 vtable for quick_lint_js::configuration_filesystem
+          20e778           20e778       30     8         libquick-lint-js-lib.a(basic-configuration-filesystem.cpp.o):(.rodata._ZTVN13quick_lint_js30basic_configuration_filesystemE)
+          20e778           20e778       30     1                 vtable for quick_lint_js::basic_configuration_filesystem
+          5783a8           5783a8        1     1         ../vendor/simdjson/libsimdjson.a(simdjson.cpp.o):(.bss._ZN8simdjson25available_implementationsE)
+          5783a8           5783a8        1     1                 simdjson::available_implementations
+          5783b0           5783b0        8     8         ../vendor/simdjson/libsimdjson.a(simdjson.cpp.o):(.bss._ZN8simdjson21active_implementationE)
+          5783b0           5783b0        8     1                 simdjson::active_implementation
+          2c9e00           2c9e00       30     1         /usr/lib/libm.a(s_ceilf.o):(.eh_frame+0x18)
+"""
+        link_map = parse_text_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {
+                "libquick-lint-js-lib.a",
+                "../vendor/simdjson/libsimdjson.a",
+                "/usr/lib/libm.a",
+            },
         )
 
 
