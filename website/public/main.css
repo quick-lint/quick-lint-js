@@ -721,70 +721,57 @@ kbd.keystroke {
 .show-in-mobile {
   display: none;
 }
+#supported-editors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 2em;
+  text-align: center;
+  padding: 2em;
+}
+#supported-editors .logo {
+  width: 2rem;
+  height: 2rem;
+}
+#supported-editors a {
+  background-color: rgb(240, 219, 79);
+  font-weight: bold;
+  border-radius: 0.5rem;
+  margin: 0 0.5rem 0 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+  text-decoration: none;
+}
+#supported-editors a {
+  color: rgb(50, 51, 48);
+}
 @media only screen and (max-width: 43em) {
-  /* Hide the feature, JShint and Deno columns */
-  .comparison tr th:first-child,
-  .comparison table th:nth-child(4),
-  .comparison table th:nth-child(6),
-  .comparison table th:nth-child(7),
-  .comparison table td:nth-child(4),
-  .comparison table td:nth-child(6),
-  .comparison table td:nth-child(7),
+  /* Hide the feature, JShint, Deno columns and stable, easy npm install rows*/
   .hide-in-mobile {
     display: none;
   }
 
-  /* Hide stable, easy npm install rows */
-  .comparison tbody tr:nth-child(3),
-  .comparison tbody tr:nth-child(8) {
-    display: none;
-  }
-  /*how elements that are only for mobile */
+  /* show elements that are only for mobile */
   .show-in-mobile {
     display: initial;
   }
   .comparison table {
     border: 1px solid gray;
   }
-  #supported-editors {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    row-gap: 2em;
-    text-align: center;
-    padding: 2em;
-  }
-  .comparison-mobile figcaption p {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
-  }
-  #supported-editors a {
-    text-decoration: none;
-  }
-  #supported-editors .logo {
-    width: 2rem;
-    height: 2rem;
-  }
-  .editors-support-buttons {
-    background-color: rgb(240, 219, 79);
-    font-weight: bold;
-    border-radius: 0.5rem;
-    margin: 0 0.5rem 0 0.5rem;
-    padding-bottom: 0.5rem;
-    padding-top: 0.5rem;
-  }
-  .editors-support-buttons span {
-    color: rgb(50, 51, 48);
-  }
-  #CTA {
+  /*Hide Calll to action section*/
+  #install-section {
     display: none;
+  }
+  #editors-support img {
+    padding-bottom: 1rem;
   }
 }
 
 @media only screen and (max-width: 37em) {
-  .editors-support-buttons {
+  #supported-editors {
     font-size: x-small;
   }
 }
+
 /*
  * quick-lint-js finds bugs in JavaScript programs.
  * Copyright (C) 2020  Matthew "strager" Glazar
