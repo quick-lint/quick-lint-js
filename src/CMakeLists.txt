@@ -155,7 +155,6 @@ quick_lint_js_add_library(
   quick-lint-js/fe/keyword-lexer.cpp
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
-  quick-lint-js/fe/lex-tables.h
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
@@ -342,20 +341,6 @@ else ()
 endif ()
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_link_libraries(quick-lint-js-lib PRIVATE quick-lint-js-lib-debug)
-endif ()
-
-if (QUICK_LINT_JS_FEATURE_LEX_TABLES)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_FEATURE_LEX_TABLES=1
-  )
-else ()
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_FEATURE_LEX_TABLES=0
-  )
 endif ()
 
 # quick-lint-js-lib-debug should be dead-code stripped from production builds.

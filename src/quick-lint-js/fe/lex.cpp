@@ -13,7 +13,6 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
-#include <quick-lint-js/fe/lex-tables.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/bit.h>
@@ -153,9 +152,6 @@ void lexer::parse_bom_before_shebang() {
 bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
 
-#if QLJS_FEATURE_LEX_TABLES
-  return lex_tables::try_parse_current_token(this);
-#else
   switch (this->input_[0]) {
   QLJS_CASE_DECIMAL_DIGIT:
     this->last_token_.type = token_type::number;
@@ -639,7 +635,6 @@ bool lexer::try_parse_current_token() {
   }
 
   return true;
-#endif
 }
 
 bool lexer::test_for_regexp(const char8* regexp_begin) {
