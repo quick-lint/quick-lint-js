@@ -6,6 +6,21 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* `if () {}` (without a condition) now reports [E0452][] ("empty parenthesis
+  after control statement"). (Implemented by [Yunus][].)
+* `return x,` now reports [E0026][] ("missing operand for operator").
+  (Implemented by [Tom Binford][].)
+
+### Fixed
+
+* The CLI's `--output-format=gnu-like` output (default) no longer prints
+  terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
+  [wagner riffel][].)
+
 ## 2.12.0 (2023-03-08)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.12.0/)
@@ -811,6 +826,7 @@ Beta release.
 [Roland Strasser]: https://github.com/rol1510
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
+[Tom Binford]: https://github.com/TomBinford
 [Tony Sathre]: https://github.com/tonysathre
 [Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
@@ -915,4 +931,5 @@ Beta release.
 [E0356]: https://quick-lint-js.com/errors/E0356/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
+[E0452]: https://quick-lint-js.com/errors/E0452/
 [E0707]: https://quick-lint-js.com/errors/E0707/
