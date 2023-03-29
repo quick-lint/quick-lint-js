@@ -64,6 +64,7 @@ authored portions of quick-lint-js:
 * Sarah Schulte; sarah.schulte@samsara.com; signed CLA-v1.md
 * Sasha Krassovsky; warplane@hotmail.com; signed CLA-v1.md
 * Shivam Mehta; sm.cse17@gmail.com; signed CLA-v1.md
+* Tom Binford; tjbof123@gmail.com; signed CLA-v1.md
 * Tony Sathre; tony@ghostbit.org; signed CLA-v1.md
 * Youness Asserare; signed CLA-v1.md
 * Yunus; ynsmrycl2007@gmail.com; signed CLA-v1.md
