@@ -2,6 +2,7 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
+include(GNUInstallDirs)
 include(QuickLintJSTarget)
 
 if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
@@ -39,6 +40,15 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
     quick-lint-js-generate-lex-keyword
     PRIVATE
     quick-lint-js-tool-lib
+  )
+
+  install(
+    TARGETS
+      quick-lint-js-generate-lex-keyword
+    COMPONENT build-tools
+    EXCLUDE_FROM_ALL
+    RUNTIME
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
   )
 endif ()
 

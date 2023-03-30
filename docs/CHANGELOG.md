@@ -21,6 +21,13 @@ Semantic Versioning.
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)
 
+### Changed
+
+* Cross compiling now requires you to build with
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` for the build machine then with
+  `QUICK_LINT_JS_USE_BUILD_TOOLS` for the target machine. See the
+  [cross-compiling documentation][cross-compiling-quick-lint-js] for details.
+
 ## 2.12.0 (2023-03-08)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.12.0/)
