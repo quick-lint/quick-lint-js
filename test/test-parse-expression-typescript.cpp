@@ -213,6 +213,27 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
+
+  {
+    test_parser p(u8"x as (y)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "as(var x)");
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
+  }
+}
+
+TEST_F(test_parse_expression_typescript, as_cannot_have_newline_before) {
+  {
+    test_parser p(u8"f\nas(T);"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // f
+                              "visit_variable_use",   // as
+                              "visit_variable_use",   // T
+                              "visit_end_of_module",  //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"f", u8"as", u8"T"}));
+  }
 }
 
 TEST_F(test_parse_expression_typescript,
