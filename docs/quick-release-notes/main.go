@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"time"
 )
 
 type tag struct {
@@ -73,6 +74,7 @@ var redColor = "\033[31m"
 var resetColor = "\033[0m"
 
 func main() {
+	start := time.Now()
 	authTokenPtr := flag.String("AuthToken", "", "a string")
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
@@ -104,6 +106,8 @@ func main() {
 	releaseMetaData := validateTagsHaveReleases(releaseTagValidationInput)
 	createMissingReleases(releaseMetaData, *authTokenPtr, repoPath)
 	updateReleasesIfChanged(releaseMetaData, *authTokenPtr, repoPath)
+	elapsed := time.Since(start)
+	fmt.Println("Program finished in: ", elapsed)
 }
 
 func createMissingReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
