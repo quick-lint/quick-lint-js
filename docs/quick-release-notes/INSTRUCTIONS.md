@@ -1,26 +1,22 @@
 
 ### Instuctions for generating a Personal access token:
 
-1. Navigate to your GitHub account settings.
-2. Then Developer Settings (bottom-most option in the panel on the left).
-3. Click the Personal access tokens menu.
-4. Then click Generate new token.
+Link: https://github.com/settings/tokens
+1. Click Generate new token.
 
-Under `repo` permissions for the token you only need to select/checkbox scope for:
+2. Under `repo` permissions for the token you only need to select/checkbox scope for:
 
     public_repo Access public repositories
 
-Store the access token in a file.
+3. Store the access token in file (token.txt)
 
 ### Running quick-release-notes.
 
-    $ go run main.go -Repo=quck-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat example.txt) isDraft=false 
+    $ go run main.go -Repo=quick-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat token.txt) isDraft=false 
 
-Three flags:
+Flags:
 
 - -Repo (optional): where you want the release notes to be released.
 - -TagsRepo (optional): where you want to get the GitHub tags that correspond to the releases from.
 - -AuthToken (required): the token that is required to make releases using the GitHub releases
 API.
-- -isDraft (optional): creates releases as drafts.
-
