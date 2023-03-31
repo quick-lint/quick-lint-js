@@ -219,11 +219,11 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
   }
 #endif
 #if defined(__FreeBSD__)
-  int rc = ::pthread_setname_np(pthread_self(), name.data());
+  int rc = ::pthread_setname_np(::pthread_self(), name.data());
   if (rc != 0) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: %s\n",
-        __func__, std::strerror(errno));
+        __func__, std::strerror(rc));
     return;
   }
 #endif
@@ -491,14 +491,14 @@ std::vector<found_debug_server> find_debug_servers() {
   char errbuf[_POSIX2_LINE_MAX] = {};
   int p_size, own_jid, rc;
   size_t own_jid_size;
-  kinfo_proc* p;
-  kvm_t* kd;
+  ::kinfo_proc* p;
+  ::kvm_t* kd;
   std::vector<found_debug_server> debug_servers;
 
   // Query our own jail id
   own_jid_size = sizeof own_jid;
-  rc = sysctlbyname("security.jail.param.jid", &own_jid, &own_jid_size, nullptr,
-                    0);
+  rc = ::sysctlbyname("security.jail.param.jid", &own_jid, &own_jid_size,
+                      nullptr, 0);
   if (rc < 0) {
     QLJS_DEBUG_LOG("%s: ignoring failure to query own jail id: %s\n", func,
                    ::strerror(errno));
@@ -506,9 +506,8 @@ std::vector<found_debug_server> find_debug_servers() {
   }
 
   // Open KVM access device
-  kd = ::kvm_openfiles(nullptr /* execfile */, "/dev/null" /* corefile */,
-                       nullptr /* swapfile (unused) */, O_RDONLY /* flags */,
-                       errbuf);
+  kd = ::kvm_openfiles(/* execfile=*/nullptr, /* corefile=*/"/dev/null",
+                       /* swapfile=*/nullptr, /* flags=*/O_RDONLY, errbuf);
   if (kd == nullptr) {
     QLJS_DEBUG_LOG("%s: ignoring failure to open kvm device: %s\n", func,
                    errbuf);
@@ -516,7 +515,7 @@ std::vector<found_debug_server> find_debug_servers() {
   }
 
   // Read in process list
-  p = kvm_getprocs(kd, KERN_PROC_ALL, 0, &p_size);
+  p = ::kvm_getprocs(kd, KERN_PROC_ALL, 0, &p_size);
   if (p == nullptr) {
     QLJS_DEBUG_LOG("%s: ignoring failure to get process list: %s\n", func,
                    ::strerror(errno));
@@ -541,7 +540,7 @@ std::vector<found_debug_server> find_debug_servers() {
   }
 
 error_get_procs:
-  kvm_close(kd);
+  ::kvm_close(kd);
 error_open_kvm:
   return debug_servers;
 }
