@@ -380,6 +380,7 @@ parse_statement:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_string:
@@ -1279,6 +1280,7 @@ next_parameter:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::kw_undefined:
@@ -2305,6 +2307,7 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::kw_unique:
@@ -3444,6 +3447,7 @@ void parser::parse_and_visit_import(
     case token_type::kw_get:
     case token_type::kw_let:
     case token_type::kw_of:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_static:
     case token_type::kw_type:
@@ -3869,6 +3873,7 @@ void parser::parse_and_visit_named_exports(
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
+      case token_type::kw_satisfies:
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_type:
@@ -4096,6 +4101,7 @@ void parser::parse_and_visit_let_bindings(
     case token_type::kw_get:
     case token_type::kw_let:
     case token_type::kw_of:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_static: {
       expression *variable = this->make_expression<expression::variable>(

@@ -295,6 +295,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   case token_type::kw_get:
   case token_type::kw_let:
   case token_type::kw_of:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static: {
     expression* ast = this->make_expression<expression::variable>(
@@ -2105,6 +2106,7 @@ next:
   case token_type::kw_protected:
   case token_type::kw_public:
   case token_type::kw_return:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_super:

@@ -1269,6 +1269,7 @@ void parser::parse_and_visit_typescript_interface(
   case token_type::kw_readonly:
   case token_type::kw_require:
   case token_type::kw_set:
+  case token_type::kw_satisfies:
   case token_type::kw_type:
   case token_type::kw_unique:
   interface_name:

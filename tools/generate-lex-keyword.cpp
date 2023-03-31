@@ -164,7 +164,7 @@ struct hash_table {
 };
 
 hash_table make_hash_table(const std::vector<std::string_view>& keys) {
-  constexpr int attempts_per_table_size = 50'000;
+  constexpr int attempts_per_table_size = 80'000;
   constexpr std::size_t max_table_size = 1024;
 
   std::size_t table_size = bit_ceil(keys.size());
@@ -270,6 +270,7 @@ struct tables_type {
 
 )");
 
+  std::fprintf(f, "// clang-format off\n");
   std::fprintf(f, "constexpr tables_type tables = {\n");
   std::fprintf(f, "    .hash_table =\n");
   std::fprintf(f, "        {\n");
@@ -305,7 +306,8 @@ struct tables_type {
   }
   std::fprintf(f, "\",\n");
 
-  std::fprintf(f, "};");
+  std::fprintf(f, "};\n");
+  std::fprintf(f, "// clang-format on");
 
   std::fprintf(f, "%s", R"(
 }
