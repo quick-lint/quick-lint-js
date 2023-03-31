@@ -287,21 +287,22 @@ func createReleaseNotes(changeLog changeLog) []string {
 		}
 	}
 	var releaseNotes []string
-	for i, version := range changeLog.versions[:] {
-		releaseBodyLines := ""
+	for i, version := range changeLog.versions {
+		releaseBody := strings.Builder{}
 		var nextVersionLineNumber int
-		if i != lastVersionIdx {
+		if i < lastVersionIdx {
 			nextVersionLineNumber = changeLog.versions[i+1].lineNumber
 		} else {
 			nextVersionLineNumber = changeLog.changeLogLength
 		}
+
 		for j := version.lineNumber + 1; j < nextVersionLineNumber; j++ {
 			if !linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[j]) {
-				releaseBodyLines += changeLog.changeLogText[j] + "\n"
+				releaseBody.WriteString(changeLog.changeLogText[j] + "\n")
 			}
 		}
 
-		releaseNotes = append(releaseNotes, releaseBodyLines+contributorsAndErrors)
+		releaseNotes = append(releaseNotes, releaseBody.String()+contributorsAndErrors)
 	}
 	return releaseNotes
 }
