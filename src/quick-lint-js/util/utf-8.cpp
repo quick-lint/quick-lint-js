@@ -81,11 +81,11 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
   } else if ((c[0] & 0b1111'0000) == 0b1110'0000) {
     // 3-byte sequence (0xe0..0xef).
     static_assert(padded_string::padding_size >= 2);
-    // clang-format off
-    bool byte_1_ok = (c[0] == 0xe0 ? 0xa0 <= c[1] && c[1] <= 0xbf
-                    : c[0] == 0xed ? 0x80 <= c[1] && c[1] <= 0x9f
-                    : is_continuation_byte(c[1]));
-    // clang-format on
+    bool byte_1_ok = [&] {
+      if (c[0] == 0xe0) return 0xa0 <= c[1] && c[1] <= 0xbf;
+      if (c[0] == 0xed) return 0x80 <= c[1] && c[1] <= 0x9f;
+      return is_continuation_byte(c[1]);
+    }();
     bool byte_2_ok = is_continuation_byte(c[2]);
     if (byte_1_ok && byte_2_ok) {
       return decode_utf_8_result{
@@ -106,9 +106,11 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
     // 4-byte sequence (0xf0..0xf7).
     static_assert(padded_string::padding_size >= 3);
     bool byte_0_ok = c[0] <= 0xf4;
-    bool byte_1_ok = (c[0] == 0xf0 ? 0x90 <= c[1] && c[1] <= 0xbf
-                                   : c[0] == 0xf4 ? 0x80 <= c[1] && c[1] <= 0x8f
-                                                  : is_continuation_byte(c[1]));
+    bool byte_1_ok = [&] {
+      if (c[0] == 0xf0) return 0x90 <= c[1] && c[1] <= 0xbf;
+      if (c[0] == 0xf4) return 0x80 <= c[1] && c[1] <= 0x8f;
+      return is_continuation_byte(c[1]);
+    }();
     bool byte_2_ok = is_continuation_byte(c[2]);
     bool byte_3_ok = is_continuation_byte(c[3]);
     if (byte_0_ok && byte_1_ok && byte_2_ok && byte_3_ok) {
