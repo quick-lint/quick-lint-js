@@ -279,30 +279,31 @@ func createReleaseNotes(changeLog changeLog) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lastVersionIdx := len(changeLog.versions) - 1
-	contributorsAndErrors := ""
+	contributorsAndErrors := strings.Builder{}
 	for i, line := range changeLog.changeLogText {
 		if linkReferenceDefinitionRE.MatchString(line) {
-			contributorsAndErrors += changeLog.changeLogText[i] + "\n"
+			contributorsAndErrors.WriteString(changeLog.changeLogText[i] + "\n")
 		}
 	}
+	lastVersionIdx := len(changeLog.versions) - 1
 	var releaseNotes []string
 	for i, version := range changeLog.versions {
 		releaseBody := strings.Builder{}
-		var nextVersionLineNumber int
+		var versionEndLine int
 		if i < lastVersionIdx {
-			nextVersionLineNumber = changeLog.versions[i+1].lineNumber
+			versionEndLine = changeLog.versions[i+1].lineNumber
 		} else {
-			nextVersionLineNumber = changeLog.changeLogLength
+			versionEndLine = changeLog.changeLogLength
 		}
 
-		for j := version.lineNumber + 1; j < nextVersionLineNumber; j++ {
-			if !linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[j]) {
-				releaseBody.WriteString(changeLog.changeLogText[j] + "\n")
+		for j := version.lineNumber + 1; j < versionEndLine; j++ {
+			if linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[j]) {
+				continue
 			}
+			releaseBody.WriteString(changeLog.changeLogText[j] + "\n")
 		}
 
-		releaseNotes = append(releaseNotes, releaseBody.String()+contributorsAndErrors)
+		releaseNotes = append(releaseNotes, releaseBody.String()+contributorsAndErrors.String())
 	}
 	return releaseNotes
 }
