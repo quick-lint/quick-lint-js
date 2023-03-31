@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11672, 20759, 31424, 0, 57380},  //
+        {1, 11672, 20759, 31424, 0, 57304},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -20,7 +20,7 @@ const translation_table translation_data = {
         {31, 56, 0, 32, 0, 28},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
-        {79, 25, 30, 63, 49805, 66},         //
+        {79, 25, 30, 63, 49729, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
@@ -94,7 +94,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 59},                 //
         {0, 0, 0, 78, 0, 54},                //
-        {0, 0, 0, 45, 0, 53},                //
+        {0, 0, 0, 0, 0, 53},                 //
+        {0, 0, 0, 45, 0, 61},                //
         {0, 0, 0, 78, 0, 62},                //
         {0, 0, 0, 87, 0, 70},                //
         {0, 0, 0, 66, 0, 55},                //
@@ -422,8 +423,8 @@ const translation_table translation_data = {
         {26, 41, 26, 32, 0, 22},             //
         {27, 3, 0, 37, 0, 23},               //
         {0, 0, 0, 46, 0, 45},                //
-        {0, 0, 0, 33, 0, 42},                //
-        {50, 47, 31, 76, 18, 53},            //
+        {0, 0, 0, 0, 0, 42},                 //
+        {50, 47, 31, 33, 18, 54},            //
         {0, 33, 0, 59, 0, 55},               //
         {64, 31, 79, 32, 68, 28},            //
         {0, 0, 0, 37, 0, 32},                //
@@ -1528,7 +1529,6 @@ const translation_table translation_data = {
         u8"bloco de coment\u00e1rio n\u00e3o foi aberto\0"
         u8"letras mai\u00fasculas comparadas com toLowerCase\0"
         u8"use ':' em vez de '=' em objetos\0"
-        u8"use ':' em vez de 'as' para definir o tipo de um par\u00e2metro de uma fun\u00e7\u00e3o\0"
         u8"use 'while' para fazer um loop at\u00e9 a condi\u00e7\u00e3o ser falsa\0"
         u8"uso de tipo n\u00e3o declarado: {0}\0"
         u8"uso de vari\u00e1vel n\u00e3o declarada: {0}\0"
@@ -1811,6 +1811,7 @@ const translation_table translation_data = {
         u8"TypeScript 'declare function' is not allowed in JavaScript\0"
         u8"TypeScript 'declare {1}' is not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
+        u8"TypeScript 'satisfies' operator is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
         u8"TypeScript generics are not allowed in JavaScript code\0"
@@ -2139,7 +2140,7 @@ const translation_table translation_data = {
         u8"unopened block comment\0"
         u8"upper case letters compared with toLowerCase\0"
         u8"use ':' instead of '=' in object literals\0"
-        u8"use ':' instead of 'as' to type a function parameter\0"
+        u8"use ':' instead of '{0}' to type a function parameter\0"
         u8"use 'while' instead to loop until a condition is false\0"
         u8"use of undeclared type: {0}\0"
         u8"use of undeclared variable: {0}\0"

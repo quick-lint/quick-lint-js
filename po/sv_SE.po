@@ -1283,7 +1283,7 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "use ':' instead of 'as' to type a function parameter"
+msgid "use ':' instead of '{0}' to type a function parameter"
 msgstr "ogiltigt låneuttryck i objektliteral"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
@@ -1545,6 +1545,11 @@ msgstr "förväntade ')' för att slutföra funktionkallelse"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'satisfies' operator is not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

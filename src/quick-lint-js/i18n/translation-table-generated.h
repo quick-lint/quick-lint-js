@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 437;
-constexpr std::size_t translation_table_string_table_size = 76098;
+constexpr std::uint16_t translation_table_mapping_table_size = 438;
+constexpr std::size_t translation_table_string_table_size = 76084;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -111,6 +111,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript 'declare function' is not allowed in JavaScript"sv,
           "TypeScript 'declare {1}' is not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
+          "TypeScript 'satisfies' operator is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
           "TypeScript generics are not allowed in JavaScript code"sv,
@@ -439,7 +440,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unopened block comment"sv,
           "upper case letters compared with toLowerCase"sv,
           "use ':' instead of '=' in object literals"sv,
-          "use ':' instead of 'as' to type a function parameter"sv,
+          "use ':' instead of '{0}' to type a function parameter"sv,
           "use 'while' instead to loop until a condition is false"sv,
           "use of undeclared type: {0}"sv,
           "use of undeclared variable: {0}"sv,

@@ -1347,7 +1347,7 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "use ':' instead of 'as' to type a function parameter"
+msgid "use ':' instead of '{0}' to type a function parameter"
 msgstr "Vereinzeltes Literal in Objekt-Literal"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
@@ -1655,6 +1655,13 @@ msgstr "')' für Funktionsaufruf fehlt"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'satisfies' operator is not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

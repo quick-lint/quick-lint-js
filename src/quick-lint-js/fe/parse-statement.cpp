@@ -2555,6 +2555,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
+  case expression_kind::satisfies:
   case expression_kind::spread:
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
@@ -4552,10 +4553,21 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   case expression_kind::as_type_assertion: {
     auto *assertion = static_cast<const expression::as_type_assertion *>(ast);
     this->diag_reporter_->report(
-        diag_typescript_as_keyword_used_for_parameter_type_annotation{
-            .as_keyword = assertion->as_span(),
+        diag_typescript_as_or_satisfies_used_for_parameter_type_annotation{
+            .bad_keyword = assertion->as_span(),
         });
     this->visit_binding_element(assertion->child_, v, info);
+    break;
+  }
+
+  // function f(x satisfies T) {}  // Invalid.
+  case expression_kind::satisfies: {
+    auto *s = static_cast<const expression::satisfies *>(ast);
+    this->diag_reporter_->report(
+        diag_typescript_as_or_satisfies_used_for_parameter_type_annotation{
+            .bad_keyword = s->satisfies_span(),
+        });
+    this->visit_binding_element(s->child_, v, info);
     break;
   }
 

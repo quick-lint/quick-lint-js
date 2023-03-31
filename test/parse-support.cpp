@@ -260,6 +260,11 @@ void summarize(const expression& expression, std::string& out) {
     summarize(expression.child_0(), out);
     out += ")";
     break;
+  case expression_kind::satisfies:
+    out += "satisfies(";
+    summarize(expression.child_0(), out);
+    out += ")";
+    break;
   case expression_kind::spread:
     out += "spread(";
     summarize(expression.child_0(), out);
