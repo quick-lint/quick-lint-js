@@ -50,7 +50,7 @@ type releaseMetaData struct {
 	TagReleaseVersionMap  map[string]string
 }
 
-type validationData struct {
+type releaseTagValidationInput struct {
 	authToken    string
 	tags         []tag
 	changeLog    changeLog
@@ -58,7 +58,7 @@ type validationData struct {
 	repoPath     string
 }
 
-type newReleaseRequest struct {
+type releaseRequest struct {
 	authToken     string
 	repoPath      string
 	requestType   string
@@ -94,9 +94,16 @@ func main() {
 	releaseNotes := createReleaseNotes(changeLog)
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
-	releaseMetaData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
+	releaseTagValidationInput := releaseTagValidationInput{
+		authToken:    *authTokenPtr,
+		tags:         tags,
+		changeLog:    changeLog,
+		releaseNotes: releaseNotes,
+		repoPath:     repoPath,
+	}
+	releaseMetaData := validateTagsHaveReleases(releaseTagValidationInput)
 	createMissingReleases(releaseMetaData, *authTokenPtr, repoPath)
-	ifChangeLogChangedUpdateReleases(releaseMetaData, *authTokenPtr, repoPath)
+	updateReleasesIfChanged(releaseMetaData, *authTokenPtr, repoPath)
 }
 
 func createMissingReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
@@ -104,7 +111,7 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
-			request := newReleaseRequest{
+			request := releaseRequest{
 				authToken:     authToken,
 				repoPath:      repoPath,
 				requestType:   "POST",
@@ -112,29 +119,37 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 				versionTitle:  releaseMetaData.TagReleaseVersionMap[releaseVersion],
 				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
 			}
-			makeOrUpdateGitHubRelease(request, requestURL)
+			updateOrCreateGitHubRelease(request, requestURL)
 		}
 	}
 }
 
-func ifChangeLogChangedUpdateReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
+func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, repoPath string) {
 	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
 		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.Name] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseMetaData.ReleaseVersionNoteMap[release.Name]}, requestURL)
+			request := releaseRequest{
+				authToken:     authToken,
+				repoPath:      repoPath,
+				requestType:   "PATCH",
+				tagForRelease: release.TagName,
+				versionTitle:  release.Name,
+				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.Name],
+			}
+			updateOrCreateGitHubRelease(request, requestURL)
 		}
 	}
 }
 
-func validateTagsHaveReleases(validationData validationData) releaseMetaData {
+func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInput) releaseMetaData {
 	ReleaseVersionTagMap := make(map[string]string)
 	ReleaseVersionNoteMap := make(map[string]string)
-	for i, releaseVersion := range validationData.changeLog.versions[:] {
+	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
 		tagVersionForMap := ""
 		releaseVersionHasTag := false
-		for _, tagVersion := range validationData.tags[:] {
+		for _, tagVersion := range releaseTagValidationInput.tags[:] {
 			if releaseVersion.number == tagVersion.Name {
 				releaseVersionHasTag = true
 				tagVersionForMap = tagVersion.Name
@@ -145,14 +160,14 @@ func validateTagsHaveReleases(validationData validationData) releaseMetaData {
 		}
 		if releaseVersionHasTag {
 			ReleaseVersionTagMap[releaseVersion.number] = tagVersionForMap
-			ReleaseVersionNoteMap[releaseVersion.number] = validationData.releaseNotes[i]
+			ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
 		}
 	}
 	TagReleaseVersionMap := make(map[string]string)
-	for _, tagVersion := range validationData.tags[:] {
+	for _, tagVersion := range releaseTagValidationInput.tags[:] {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
-		for _, releaseVersion := range validationData.changeLog.versions[:] {
+		for _, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
 			if tagVersion.Name == releaseVersion.number {
 				tagHasVersionNumber = true
 				releaseVersionForMap = releaseVersion.number
@@ -279,20 +294,20 @@ func createReleaseNotes(changeLog changeLog) []string {
 	return releaseNotes
 }
 
-func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, requestURL string) {
+func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL string) {
 	postBody, err := json.Marshal(map[string]interface{}{
-		"name":     newReleaseRequest.versionTitle,
-		"tag_name": newReleaseRequest.tagForRelease,
-		"body":     newReleaseRequest.releaseNote,
+		"name":     releaseRequest.versionTitle,
+		"tag_name": releaseRequest.tagForRelease,
+		"body":     releaseRequest.releaseNote,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	requestBody := bytes.NewBuffer(postBody)
-	req, err := http.NewRequest(newReleaseRequest.requestType, requestURL, requestBody)
+	req, err := http.NewRequest(releaseRequest.requestType, requestURL, requestBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token "+newReleaseRequest.authToken)
+	req.Header.Set("Authorization", "token "+releaseRequest.authToken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
