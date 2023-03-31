@@ -73,8 +73,7 @@ Copyright information for {self.name}:
 
 
 class QLJSSubproject(typing.NamedTuple):
-    """A sub-project of quick-lint-js. Has no additional copyright information.
-    """
+    """A sub-project of quick-lint-js. Has no additional copyright information."""
 
     def print_copyright(self) -> None:
         pass
@@ -313,7 +312,8 @@ def dump_from_linkmap(
 
 
 def dump_from_projects(
-    archives: typing.List[str], extra_projects: typing.List["Project"],
+    archives: typing.List[str],
+    extra_projects: typing.List["Project"],
 ) -> None:
     all_projects = extra_projects
     for archive in sorted(archives):
@@ -497,7 +497,9 @@ class Homebrew:
         try:
             # path_in_brew will look like:
             # Cellar/llvm@13/13.0.1/lib/libc++.a
-            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(self.__brew_prefix)
+            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(
+                self.__brew_prefix
+            )
             if len(path_in_brew.parts) >= 2 and path_in_brew.parts[0] == "Cellar":
                 return path_in_brew.parts[1]
         except ValueError:
@@ -624,8 +626,7 @@ class LLVMMinGW:
 
 
 class Pacman:
-    """The Pacman package manager, used on Arch Linux and in MSYS2.
-    """
+    """The Pacman package manager, used on Arch Linux and in MSYS2."""
 
     class InstalledPackage(typing.NamedTuple):
         name: str
@@ -654,13 +655,15 @@ class Pacman:
         return packages
 
     def _packages_for_installed_files(
-        self, files: typing.List[str],
+        self,
+        files: typing.List[str],
     ) -> typing.List[str]:
         # HACK(strager): On Windows, Pacman doesn't work with \ as the path
         # separator.
         pacman_friendly_files = [f.replace("\\", "/") for f in files]
         process = subprocess.run(
-            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"] + pacman_friendly_files,
+            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"]
+            + pacman_friendly_files,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding="utf-8",
@@ -1246,9 +1249,7 @@ libboost.a(dlmalloc.cpp.o)    libboost.a(global_resource.cpp.o) (boost::containe
 libboost.a(alloc_lib.c.o)     libboost.a(dlmalloc.cpp.o) (boost_cont_all_deallocated)
 """
         link_map = parse_text_link_map(raw_link_map)
-        self.assertEqual(
-            link_map.linked_archives, {"libboost.a"}
-        )
+        self.assertEqual(link_map.linked_archives, {"libboost.a"})
 
     def test_small_link_map_from_gold(self) -> None:
         raw_link_map = """\
