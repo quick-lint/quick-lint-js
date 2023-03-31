@@ -375,6 +375,12 @@ def detect_system_package_manager(
     except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
+    try:
+        subprocess.check_output(["pkg", "info", "pkg"])
+        return FreeBSD()
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
+        pass
+
     return None
 
 
@@ -886,6 +892,92 @@ class Debian:
             if match is not None:
                 source_uris.append(match.group("uri"))
         return source_uris
+
+
+class FreeBSD:
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        source: str
+        source_uris: typing.Tuple[str, ...]
+        version: str
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        files = set(files)
+        packages = []
+
+        freebsd_version = None
+        freebsd_source_uri = None
+
+        def get_freebsd_info() -> None:
+            nonlocal freebsd_version
+            nonlocal freebsd_source_uri
+            if freebsd_version is not None:
+                return  # Already computed.
+            freebsd_version = subprocess.check_output(
+                ["/bin/freebsd-version", "-u"], encoding="utf-8"
+            ).strip()
+            freebsd_source_uri = f"https://cgit.freebsd.org/src/?h=releng/{freebsd_version.replace('-RELEASE', '')}"
+
+        freebsd_lib_files = {
+            "/usr/lib/libc.a",
+            "/usr/lib/libm.a",
+            "/usr/lib/libpthread.a",
+        }
+        matched_freebsd_lib_files = files & freebsd_lib_files
+        if matched_freebsd_lib_files:
+            get_freebsd_info()
+            base_freebsd_package = FreeBSD.InstalledPackage(
+                name="",
+                source="FreeBSD",
+                version=freebsd_version,
+                source_uris=(freebsd_source_uri,),
+            )
+            for file in matched_freebsd_lib_files:
+                packages.append(
+                    base_freebsd_package._replace(name=pathlib.Path(file).stem)
+                )
+                files.remove(file)
+
+        freebsd_llvm_files = {
+            "/usr/lib/libc++.a": "libc++",
+            "/usr/lib/libgcc_eh.a": "libunwind",
+        }
+        matched_freebsd_llvm_files = set(f for f in files if f in freebsd_llvm_files)
+        if matched_freebsd_llvm_files:
+            get_freebsd_info()
+            clang_version_info = parse_clang_version(
+                subprocess.check_output(
+                    ["/usr/bin/clang", "--version"], encoding="utf-8"
+                )
+            )
+            base_llvm_package = FreeBSD.InstalledPackage(
+                name="",
+                source="LLVM (FreeBSD)",
+                version=clang_version_info.vcs_tag or clang_version_info.version,
+                source_uris=(
+                    freebsd_source_uri,
+                    clang_version_info.vcs_uri,
+                ),
+            )
+            for file in matched_freebsd_llvm_files:
+                packages.append(
+                    base_llvm_package._replace(name=freebsd_llvm_files[file])
+                )
+                files.remove(file)
+
+        if files:
+            raise Exception(f"failed to determine source for linked files: {files}")
+
+        return packages
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        if package.source == "FreeBSD":
+            return pathlib.Path("/COPYRIGHT").read_text()
+        if package.source == "LLVM (FreeBSD)":
+            return pathlib.Path("/usr/share/doc/llvm/LICENSE.TXT").read_text()
+        raise Exception(f"could not determine copyright for package: {package.source}")
 
 
 class Nix:
@@ -1511,6 +1603,79 @@ Version: 1.74.0
                 ),
             ],
         )
+
+
+class TestParseClangVersion(unittest.TestCase):
+    def test_freebsd_13(self) -> None:
+        version_output = """\
+FreeBSD clang version 11.0.1 (git@github.com:llvm/llvm-project.git llvmorg-11.0.1-0-g43ff75f2c3fe)
+Target: x86_64-unknown-freebsd13.0
+Thread model: posix
+InstalledDir: /usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "11.0.1")
+        self.assertEqual(v.vcs_uri, "git@github.com:llvm/llvm-project.git")
+        self.assertEqual(v.vcs_tag, "llvmorg-11.0.1-0-g43ff75f2c3fe")
+
+    def test_ubuntu(self) -> None:
+        version_output = """\
+Ubuntu clang version 14.0.0-1ubuntu1
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "14.0.0-1ubuntu1")
+        self.assertIsNone(v.vcs_uri)
+        self.assertIsNone(v.vcs_tag)
+
+    def test_custom(self) -> None:
+        version_output = """\
+clang version 15.0.6 (https://github.com/rust-lang/llvm-project.git 3dfd4d93fa013e1c0578d3ceac5c8f4ebba4b6ec)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /home/strager/Toolchains/clang-stage4-qljs-bolt/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "15.0.6")
+        self.assertEqual(v.vcs_uri, "https://github.com/rust-lang/llvm-project.git")
+        self.assertEqual(v.vcs_tag, "3dfd4d93fa013e1c0578d3ceac5c8f4ebba4b6ec")
+
+    def test_apple_clang(self) -> None:
+        version_output = """\
+Apple clang version 14.0.0 (clang-1400.0.29.202)
+Target: arm64-apple-darwin22.3.0
+Thread model: posix
+InstalledDir: /Users/strager/Applications/Xcode_14.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "14.0.0")
+        self.assertIsNone(v.vcs_uri)
+        self.assertIsNone(v.vcs_tag)
+
+
+class ClangVersion(typing.NamedTuple):
+    version: str
+    vcs_uri: typing.Optional[str]
+    vcs_tag: typing.Optional[str]
+
+
+def parse_clang_version(clang_version_output: str) -> ClangVersion:
+    """Extract version information from the output of 'clang --version'."""
+    match = re.search(
+        r"\bclang version (?P<version>\d\S*)(?: \((?P<vcs_uri>\S+) (?P<vcs_tag>\S+)\))?",
+        clang_version_output,
+    )
+    if match is not None:
+        return ClangVersion(
+            version=match.group("version"),
+            vcs_uri=match.group("vcs_uri"),
+            vcs_tag=match.group("vcs_tag"),
+        )
+    raise ValueError(
+        "failed to parse version information from 'clang --version' output"
+    )
 
 
 if __name__ == "__main__":
