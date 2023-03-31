@@ -321,6 +321,9 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 		if resp.StatusCode == http.StatusNotFound {
 			fmt.Printf("Error: Status code: %d - GitHub release not found.\n", http.StatusNotFound)
 			return
+		} else if resp.StatusCode == http.StatusInternalServerError {
+			fmt.Printf("Error: Status code: %d - Internal server error.\n", http.StatusInternalServerError)
+			return
 		} else {
 			log.Fatal(err)
 		}
