@@ -32,12 +32,6 @@ type releaseForUpdate struct {
 	TagName string `json:"tag_name"`
 }
 
-type changeLog struct {
-	changeLogText   []string
-	changeLogLength int
-	versions        []changeLogVersion
-}
-
 type changeLogVersion struct {
 	lineNumber int
 	title      string
@@ -48,6 +42,12 @@ type releaseMetaData struct {
 	ReleaseVersionNoteMap map[string]string
 	ReleaseVersionTagMap  map[string]string
 	TagReleaseVersionMap  map[string]string
+}
+
+type changeLog struct {
+	changeLogText   []string
+	changeLogLength int
+	versions        []changeLogVersion
 }
 
 type releaseTagValidationInput struct {
@@ -144,8 +144,11 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 }
 
 func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInput) releaseMetaData {
-	ReleaseVersionTagMap := make(map[string]string)
-	ReleaseVersionNoteMap := make(map[string]string)
+	releaseMetaData := releaseMetaData{
+		ReleaseVersionNoteMap: make(map[string]string),
+		ReleaseVersionTagMap:  make(map[string]string),
+		TagReleaseVersionMap:  make(map[string]string),
+	}
 	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
 		tagVersionForMap := ""
 		releaseVersionHasTag := false
@@ -159,11 +162,10 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tag"+resetColor)
 		}
 		if releaseVersionHasTag {
-			ReleaseVersionTagMap[releaseVersion.number] = tagVersionForMap
-			ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
+			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = tagVersionForMap
+			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
 		}
 	}
-	TagReleaseVersionMap := make(map[string]string)
 	for _, tagVersion := range releaseTagValidationInput.tags[:] {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
@@ -177,10 +179,10 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
 		}
 		if tagHasVersionNumber {
-			TagReleaseVersionMap[tagVersion.Name] = releaseVersionForMap
+			releaseMetaData.TagReleaseVersionMap[tagVersion.Name] = releaseVersionForMap
 		}
 	}
-	return releaseMetaData{ReleaseVersionNoteMap: ReleaseVersionNoteMap, ReleaseVersionTagMap: ReleaseVersionTagMap, TagReleaseVersionMap: TagReleaseVersionMap}
+	return releaseMetaData
 }
 
 func splitAndEncodeURLPath(urlPath string) (string, string) {
@@ -253,13 +255,19 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 			idxVersionNumber := versionNumberAndDateRE.SubexpIndex("versionNumber")
 			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
 			versionNumber := hashVersionAndDate[idxVersionNumber]
-			versions = append(versions, changeLogVersion{title: versionNumberAndDate, number: versionNumber, lineNumber: len(changeLogText) - 1})
+			changeLogVersion := changeLogVersion{title: versionNumberAndDate, number: versionNumber, lineNumber: len(changeLogText) - 1}
+			versions = append(versions, changeLogVersion)
 		}
 	}
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return changeLog{changeLogText: changeLogText, changeLogLength: len(changeLogText), versions: versions}
+	changeLog := changeLog{
+		changeLogText:   changeLogText,
+		changeLogLength: len(changeLogText),
+		versions:        versions,
+	}
+	return changeLog
 }
 
 func createReleaseNotes(changeLog changeLog) []string {
@@ -278,7 +286,7 @@ func createReleaseNotes(changeLog changeLog) []string {
 	for i, version := range changeLog.versions[:] {
 		releaseBodyLines := ""
 		var nextVersionLineNumber int
-		if !(i == (lastVersionIdx)) {
+		if i != lastVersionIdx {
 			nextVersionLineNumber = changeLog.versions[i+1].lineNumber
 		} else {
 			nextVersionLineNumber = changeLog.changeLogLength
@@ -310,7 +318,12 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	req.Header.Set("Authorization", "token "+releaseRequest.authToken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		if resp.StatusCode == http.StatusNotFound {
+			fmt.Printf("Error: Status code: %d - GitHub release not found.\n", http.StatusNotFound)
+			return
+		} else {
+			log.Fatal(err)
+		}
 	}
 	defer resp.Body.Close()
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
