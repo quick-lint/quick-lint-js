@@ -115,7 +115,7 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
-			request := releaseRequest{
+			postRequest := releaseRequest{
 				authToken:     authToken,
 				repoPath:      repoPath,
 				requestType:   "POST",
@@ -123,7 +123,7 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 				versionTitle:  releaseMetaData.TagReleaseVersionMap[releaseVersion],
 				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
 			}
-			updateOrCreateGitHubRelease(request, requestURL)
+			updateOrCreateGitHubRelease(postRequest, requestURL)
 		}
 	}
 }
@@ -134,7 +134,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 	for _, release := range releases[:] {
 		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.Name] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
-			request := releaseRequest{
+			patchRequest := releaseRequest{
 				authToken:     authToken,
 				repoPath:      repoPath,
 				requestType:   "PATCH",
@@ -142,7 +142,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 				versionTitle:  release.Name,
 				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.Name],
 			}
-			updateOrCreateGitHubRelease(request, requestURL)
+			updateOrCreateGitHubRelease(patchRequest, requestURL)
 		}
 	}
 }
