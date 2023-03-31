@@ -2,26 +2,11 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
-void PrintTo(const spy_visitor::visited_property_declaration &d,
-             std::ostream *out) {
-  if (d.name.has_value()) {
-    *out << out_string8(*d.name);
-  } else {
-    *out << "(null)";
-  }
-}
-
-void PrintTo(const spy_visitor::visited_variable_assignment &x,
-             std::ostream *out) {
-  *out << out_string8(x.name);
-}
-
-void PrintTo(const spy_visitor::visited_variable_declaration &x,
-             std::ostream *out) {
+void PrintTo(const visited_variable_declaration &x, std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);
   switch (x.init_kind) {
   case variable_init_kind::normal:
@@ -30,10 +15,6 @@ void PrintTo(const spy_visitor::visited_variable_declaration &x,
     *out << " (initialized with '=')";
     break;
   }
-}
-
-void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
-  *out << out_string8(x.name);
 }
 }
 

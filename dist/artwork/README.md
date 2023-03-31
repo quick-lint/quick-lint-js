@@ -2,7 +2,7 @@
 
 This directory contains artwork for quick-lint-js.
 
-Artwork is licensed under Creative Commons Attribution-NoDerivatives 4.0
+Artwork is licensed under Creative Commons Attribution-ShareAlike 4.0
 International. See [LICENSE.txt](LICENSE.txt) for details.
 
 ### Files
@@ -26,6 +26,6 @@ International. See [LICENSE.txt](LICENSE.txt) for details.
   color-matching.
 * [`dusty-app.ico`](dusty-app.ico): Icon used for the Windows app. Generated
   with the following command (needs
-  [iconutils](https://www.nongnu.org/icoutils/)):
+  [imagemagick](https://imagemagick.org/)):
 
-    $ icotool --create dusty-right-256x256.png dusty-favicon-32x32.png dusty-favicon-16x16.png --out dusty-app.ico
+    $ convert dusty-right-256x256.png dusty-favicon-32x32.png dusty-favicon-16x16.png dusty-app.ico

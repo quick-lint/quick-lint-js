@@ -1,11 +1,14 @@
+<!---{
+"title": "Install quick-lint-js for Neovim",
+"description": "Install quick-lint-js's Neovim plugin"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `Install
-    quick-lint-js for Neovim`, description: `Install quick-lint-js's Neovim
-    plugin` }) %>
+    <%- await include("../../common-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -21,84 +24,38 @@
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../neovim.svg"
-          alt=""
-          title="Neovim"
-          width="29"
-          height="29"
-        />
+        <qljs-icon name="neovim" size="29" />
         Install for Neovim
       </h2>
       <p>Choose which operating system you want to install on:</p>
 
       <div class="os-column-table">
         <div class="linux">
-          <h3>
-            <img
-              class="os-logo"
-              src="../../linux.svg"
-              alt=""
-              title=""
-              width="22"
-              height="22"
-            />&nbsp;GNU/Linux
-          </h3>
+          <h3><qljs-icon name="linux" size="22" />&nbsp;GNU/Linux</h3>
           <ul>
             <li>
               <a href="debian/"
-                ><img
-                  class="install-logo"
-                  src="../../debian.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Debian</a
+                ><qljs-icon name="debian" size="19" />&nbsp;Debian</a
               >
             </li>
             <li>
               <a href="debian/"
-                ><img
-                  class="install-logo"
-                  src="../../ubuntu.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Ubuntu</a
+                ><qljs-icon name="ubuntu" size="19" />&nbsp;Ubuntu</a
               >
             </li>
             <li>
               <a href="arch-linux/"
-                ><img
-                  class="install-logo"
-                  src="../../arch-linux.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Arch Linux</a
+                ><qljs-icon name="arch-linux" size="19" />&nbsp;Arch Linux</a
               >
             </li>
             <li>
               <a href="nix/"
-                ><img
-                  class="install-logo"
-                  src="../../nix.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Nix + manual</a
+                ><qljs-icon name="nix" size="19" />&nbsp;Nix + manual</a
               >
             </li>
             <li>
               <a href="npm-posix/"
-                ><img
-                  class="install-logo"
-                  src="../../npm.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;npm + manual</a
+                ><qljs-icon name="npm" size="19" />&nbsp;npm + manual</a
               >
             </li>
             <li><a href="static-linux/">Manual</a></li>
@@ -106,48 +63,21 @@
         </div>
 
         <div class="macos">
-          <h3>
-            <img
-              class="os-logo"
-              src="../../macos.svg"
-              alt=""
-              title=""
-              width="22"
-              height="22"
-            />&nbsp;macOS
-          </h3>
+          <h3><qljs-icon name="macos" size="22" />&nbsp;macOS</h3>
           <ul>
             <li>
               <a href="homebrew/"
-                ><img
-                  class="install-logo"
-                  src="../../homebrew.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Homebrew</a
+                ><qljs-icon name="homebrew" size="19" />&nbsp;Homebrew</a
               >
             </li>
             <li>
               <a href="nix/"
-                ><img
-                  class="install-logo"
-                  src="../../nix.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;Nix + manual</a
+                ><qljs-icon name="nix" size="19" />&nbsp;Nix + manual</a
               >
             </li>
             <li>
               <a href="npm-posix/"
-                ><img
-                  class="install-logo"
-                  src="../../npm.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;npm + manual</a
+                ><qljs-icon name="npm" size="19" />&nbsp;npm + manual</a
               >
             </li>
             <li><a href="static-macos/">Manual</a></li>
@@ -155,28 +85,20 @@
         </div>
 
         <div class="windows">
-          <h3>
-            <img
-              class="os-logo"
-              src="../../windows.svg"
-              alt=""
-              title=""
-              width="22"
-              height="22"
-            />&nbsp;Windows
-          </h3>
+          <h3><qljs-icon name="windows" size="22" />&nbsp;Windows</h3>
           <ul>
+            <li><a href="winget/">winget</a></li>
             <li>
-              <a href="npm-windows/"
-                ><img
-                  class="install-logo"
-                  src="../../npm.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />&nbsp;npm + manual</a
+              <a href="chocolatey/"
+                ><qljs-icon name="chocolatey" size="19" />&nbsp;Chocolatey</a
               >
             </li>
+            <li>
+              <a href="npm-windows/"
+                ><qljs-icon name="npm" size="19" />&nbsp;npm + manual</a
+              >
+            </li>
+            <li><a href="scoop/">Scoop</a></li>
             <li><a href="static-windows/">Manual</a></li>
           </ul>
         </div>

@@ -1,0 +1,62 @@
+<!---{
+"title": "quick-lint-js authors",
+"navTitle": "Authors"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <script>
+      //<%
+      let fs = await import("node:fs");
+      let { default: MarkdownIt } = await import("markdown-it");
+      let { retagHeadings } = await importFileAsync("../../../src/markdown.mjs");
+
+      let authorsMarkdown = await fs.promises.readFile(absoluteFilePath("../../../../docs/AUTHORS.md"), "utf-8");
+
+      let env = {};
+      let markdownParser = new MarkdownIt("commonmark");
+      let tokens = markdownParser.parse(authorsMarkdown, env);
+      tokens = retagHeadings(tokens, {
+        h1: "h2",
+        h2: "h3",
+        h3: "h4",
+        h4: "h5",
+      });
+      let html = markdownParser.renderer.render(tokens, markdownParser.options, env);
+      //%>
+    </script>
+
+    <main><%- html %></main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

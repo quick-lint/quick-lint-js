@@ -1,70 +1,32 @@
+<!---{
+"title": "Install quick-lint-js CLI with npm",
+"description": "Install quick-lint-js's CLI with npm"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../../common-head.ejs.html", { title: `Install
-    quick-lint-js CLI with npm`, description: `Install quick-lint-js's CLI with
-    npm` }) %>
+    <%- await include("../../../common-head.ejs.html") %>
     <link href="../../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <header>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">CLI &amp; LSP server</a></li>
-          <li>npm</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `npm`}) %>
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../../gnome-terminal.svg"
-          alt=""
-          title="CLI and LSP server"
-          width="29"
-          height="29"
-        /><img
-          class="os-logo"
-          src="../../../npm.svg"
-          alt=""
-          title="npm"
-          width="29"
-          height="29"
+        <qljs-icon name="cli-and-lsp-server" size="29" /><qljs-icon
+          name="npm"
+          size="29"
         />
         Install CLI and LSP server with npm
       </h2>
       <p>
         Supported operating systems:
-        <img
-          class="os-logo"
-          src="../../../linux.svg"
-          alt="GNU/Linux"
-          title="GNU/Linux"
-          width="19"
-          height="19"
-        />
-        <img
-          class="os-logo"
-          src="../../../macos.svg"
-          alt="macOS"
-          title="macOS"
-          width="19"
-          height="19"
-        />
-        <img
-          class="os-logo"
-          src="../../../windows.svg"
-          alt="Windows"
-          title="Windows"
-          width="19"
-          height="19"
-        />
+        <qljs-content-icon name="linux" size="19" />
+        <qljs-content-icon name="macos" size="19" />
+        <qljs-content-icon name="windows" size="19" />
       </p>
 
       <p>
@@ -90,9 +52,8 @@
       </p>
 
       <h4>
-        <img class="os-logo" src="../../../linux.svg" alt="" />&nbsp;GNU/Linux
-        and <img class="os-logo" src="../../../macos.svg" alt="" />&nbsp;macOS
-        with npm
+        <qljs-icon name="linux" />&nbsp;GNU/Linux and
+        <qljs-icon name="macos" />&nbsp;macOS with npm
       </h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>npm install quick-lint-js --save-dev --save-exact</kbd>
@@ -100,28 +61,21 @@
       </blockquote>
 
       <h4>
-        <img class="os-logo" src="../../../linux.svg" alt="" />&nbsp;GNU/Linux
-        and <img class="os-logo" src="../../../macos.svg" alt="" />&nbsp;macOS
-        with yarn
+        <qljs-icon name="linux" />&nbsp;GNU/Linux and
+        <qljs-icon name="macos" />&nbsp;macOS with yarn
       </h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>yarn add quick-lint-js --dev --exact</kbd>
 <kbd>node_modules/.bin/quick-lint-js --help</kbd></code></pre>
       </blockquote>
 
-      <h4>
-        <img class="os-logo" src="../../../windows.svg" alt="" />&nbsp;Windows
-        with npm
-      </h4>
+      <h4><qljs-icon name="windows" />&nbsp;Windows with npm</h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>npm install quick-lint-js --save-dev --save-exact</kbd>
 <kbd>node_modules\.bin\quick-lint-js.cmd --help</kbd></code></pre>
       </blockquote>
 
-      <h4>
-        <img class="os-logo" src="../../../windows.svg" alt="" />&nbsp;Windows
-        with yarn
-      </h4>
+      <h4><qljs-icon name="windows" />&nbsp;Windows with yarn</h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>yarn add quick-lint-js --dev --exact</kbd>
 <kbd>node_modules\.bin\quick-lint-js.cmd --help</kbd></code></pre>
@@ -131,17 +85,15 @@
       <p>Install quick-lint-js globally (on your machine) for use anywhere:</p>
 
       <h4>
-        <img class="os-logo" src="../../../linux.svg" alt="" />&nbsp;GNU/Linux
-        and <img class="os-logo" src="../../../macos.svg" alt="" />&nbsp;macOS
+        <qljs-icon name="linux" />&nbsp;GNU/Linux and
+        <qljs-icon name="macos" />&nbsp;macOS
       </h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>sudo npm install --global --unsafe-perm quick-lint-js</kbd>
 <kbd>quick-lint-js --help</kbd></code></pre>
       </blockquote>
 
-      <h4>
-        <img class="os-logo" src="../../../windows.svg" alt="" />&nbsp;Windows
-      </h4>
+      <h4><qljs-icon name="windows" />&nbsp;Windows</h4>
       <blockquote>
         <pre><code class="shell-session"><kbd>npm install --global quick-lint-js</kbd>
 <kbd>quick-lint-js.cmd --help</kbd></code></pre>

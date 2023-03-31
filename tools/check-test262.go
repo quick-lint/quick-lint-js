@@ -11,7 +11,6 @@ import "bytes"
 import "flag"
 import "fmt"
 import "io"
-import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -42,6 +41,9 @@ var testTodo = TestTodo{
 		"language/directive-prologue/10.1.1-8gs.js",
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
+		"language/expressions/*/*-eval-strict.js",
+		"language/expressions/*/eval.js",
+		"language/expressions/compound-assignment/11.13.2-6-1gs.js",
 	},
 	TodoFeatures: [][]byte{},
 }
@@ -249,7 +251,7 @@ type TestExpectations struct {
 }
 
 func ReadTestExpectations(testTodo TestTodo, path string) TestExpectations {
-	source, err := ioutil.ReadFile(path)
+	source, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -286,7 +288,7 @@ func testSourceRequiresFeatures(source []byte, features [][]byte) bool {
 func RunQuickLintJS(quickLintJSExecutable string, jsFile string, ignoreWarnings bool) LintResult {
 	command := []string{quickLintJSExecutable}
 	if ignoreWarnings {
-		command = append(command, "--exit-fail-on=-E0002,-E0003,-E0057,-E0058,-E0059,-E0077,-E0086,-E0179,-E0185")
+		command = append(command, "--exit-fail-on=-E0002,-E0003,-E0057,-E0058,-E0059,-E0077,-E0086,-E0179,-E0185,-E0196,-E0212")
 	}
 	command = append(command, "--", jsFile)
 

@@ -12,13 +12,13 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/process.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <signal.h>
 #include <spawn.h>
 #include <string>
@@ -269,7 +269,7 @@ lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
       [&](::boost::json::object& params) {
         ::boost::json::string diagnostics_uri =
             look_up(params, "uri").get_string();
-        if (diagnostics_uri != to_string_view(document_uri)) {
+        if (diagnostics_uri != to_boost_string_view(document_uri)) {
           return false;
         }
         std::int64_t* diagnostics_version = if_int64(params, "version");
@@ -421,10 +421,10 @@ void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
 
 ::boost::json::value lsp_server_process::get_message_awaitable::await_resume() {
   QLJS_ASSERT(!this->message_content_.empty());
-  std::error_code error;
+  ::boost::json::error_code error;
   ::boost::json::value root =
-      ::boost::json::parse(to_string_view(this->message_content_), error);
-  if (error != std::error_code()) {
+      ::boost::json::parse(to_boost_string_view(this->message_content_), error);
+  if (error != ::boost::json::error_code()) {
     std::fprintf(stderr, "error: parsing JSON from LSP server failed\n");
     std::exit(1);
   }

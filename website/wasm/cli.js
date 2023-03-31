@@ -9,7 +9,7 @@ let {
 } = require("./quick-lint-js.js");
 let fs = require("fs");
 
-async function main() {
+async function mainAsync() {
   let fileName = process.argv[2];
   let fileContent = fs.readFileSync(fileName, "utf-8");
 
@@ -44,7 +44,7 @@ function severityString(severity) {
   }
 }
 
-main().catch((error) => {
+mainAsync().catch((error) => {
   console.error(error.stack);
   process.exit(1);
 });

@@ -14,15 +14,16 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-10.15, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: macos-12, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a"}
           - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
-          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: windows-latest, name: "Windows x86", archive_name: "windows-x86", archive_extension: ".zip", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A Win32"}
-          - {runs_on: windows-latest, name: "Windows x64", archive_name: "windows", archive_extension: ".zip", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
-          - {runs_on: windows-latest, name: "Windows ARM", archive_name: "windows-arm", archive_extension: ".zip", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM"}
-          - {runs_on: windows-latest, name: "Windows ARM64", archive_name: "windows-arm64", archive_extension: ".zip", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM64"}
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v5", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-DQUICK_LINT_JS_DISABLE_LTO_FOR_LSP_SERVER_TO_WORK_AROUND_GCC_LTO_CRASH=YES"}
+          - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          # HACK(strager): -Wl,-allow-multiple-definition works around a GCC bug: https://sourceware.org/bugzilla/show_bug.cgi?id=12762
+          - {runs_on: windows-2022, name: "Windows x86", archive_name: "windows-x86", archive_extension: ".zip", test: true, CC: "c:/msys64/mingw32/bin/gcc.exe", CXX: "c:/msys64/mingw32/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-i686-gcc ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
+          - {runs_on: windows-2022, name: "Windows x64", archive_name: "windows", archive_extension: ".zip", test: true, CC: "c:/msys64/ucrt64/bin/gcc.exe", CXX: "c:/msys64/ucrt64/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-ucrt-x86_64-gcc ninja", LDFLAGS: "-static"}
+          - {runs_on: ubuntu-latest, name: "Windows ARM", archive_name: "windows-arm", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-armv7.cmake -G Ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
+          - {runs_on: ubuntu-latest, name: "Windows ARM64", archive_name: "windows-arm64", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-aarch64.cmake -G Ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     container: ${{ matrix.toolchain.docker_container }}
     env:
@@ -37,12 +38,35 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: update $PATH
+        if: ${{ matrix.toolchain.msys2_packages }}
+        run: |
+          # For DLLs needed by GCC:
+          echo "c:/msys64/mingw32/bin" >>"${GITHUB_PATH}"
+          echo "c:/msys64/ucrt64/bin" >>"${GITHUB_PATH}"
+        shell: bash
+
+      - name: install dependencies (Chocolatey)
+        if: ${{ matrix.toolchain.chocolatey_packages }}
+        run: choco install --yes ${{ matrix.toolchain.chocolatey_packages }}
+        shell: powershell
+      - name: install dependencies (MSYS2)
+        if: ${{ matrix.toolchain.msys2_packages }}
+        run: c:/msys64/usr/bin/pacman.exe --sync --noconfirm ${{ matrix.toolchain.msys2_packages }}
+
+      - name: build tools for cross compilation
+        if: ${{ matrix.toolchain.cross_compiling }}
+        run: |
+          unset CC CXX
+          cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -S . -B build-tools -G Ninja
+          cmake --build build-tools --config Debug --target quick-lint-js-build-tools
 
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
+          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=${{ matrix.toolchain.test }} -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${{ fromJSON('["", "-DQUICK_LINT_JS_USE_BUILD_TOOLS=${PWD}/build-tools"]')[matrix.toolchain.cross_compiling] }} ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: build
         run: cmake --build build --config Release
@@ -50,7 +74,7 @@ jobs:
         if: ${{ matrix.toolchain.test }}
         run: cd build && ctest --build-config Release --verbose
       - name: install
-        run: cmake --install build --prefix usr
+        run: cmake --install build --prefix usr --strip
 
       - name: bundle build into .tar.gz
         if: ${{ matrix.toolchain.archive_extension == '.tar.gz' }}
@@ -60,21 +84,21 @@ jobs:
           tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C temp/ quick-lint-js
       - name: bundle build into .zip
         if: ${{ matrix.toolchain.archive_extension == '.zip' }}
-        uses: quick-lint/action-zip@v1
+        uses: quick-lint/action-zip@v1.1
         with:
           dest: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
           files: usr/
           recursive: true
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
           path: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
@@ -90,14 +114,13 @@ jobs:
       matrix:
         os:
           - {runs_on: windows-latest, name: "Windows", archive_name: "windows", exe_file: "bin/quick-lint-js.exe"}
-          - {runs_on: macos-10.15, name: "macOS 10.15", archive_name: "macos", exe_file: "bin/quick-lint-js"}
+          - {runs_on: macos-11, name: "macOS 11", archive_name: "macos", exe_file: "bin/quick-lint-js"}
+          - {runs_on: macos-12, name: "macOS 12", archive_name: "macos", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:31", name: "Fedora 31", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:32", name: "Fedora 32", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:35", name: "Fedora 35", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:36", name: "Fedora 36", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux", exe_file: "bin/quick-lint-js"}
     runs-on: ${{ matrix.os.runs_on }}
@@ -117,7 +140,7 @@ jobs:
           uname -a || :
         shell: bash
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
       - name: unpack .zip build
@@ -138,37 +161,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-armhf-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-linux-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-macos-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-macos-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-arm64-${{ github.sha }}
           path: ./
@@ -204,14 +227,14 @@ jobs:
         run: npm pack ./dist/npm
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-npm-${{ github.sha }}
           path: quick-lint-js-*.tgz
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js-*.tgz
@@ -227,7 +250,8 @@ jobs:
       matrix:
         os:
           - {runs_on: windows-latest, name: "Windows", test_cmd: true}
-          - {runs_on: macos-10.15, name: "macOS 10.15"}
+          - {runs_on: macos-11, name: "macOS 11"}
+          - {runs_on: macos-12, name: "macOS 12"}
           - {runs_on: ubuntu-latest, name: "Ubuntu", global_install_command_prefix: "sudo"}
         manager:
           - {name: "npm", install_command: "npm install", global: false}
@@ -236,7 +260,7 @@ jobs:
     runs-on: ${{ matrix.os.runs_on }}
 
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-npm-${{ github.sha }}
 
@@ -269,12 +293,12 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -283,14 +307,14 @@ jobs:
         run: go run ./dist/chocolatey/build.go -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.nupkg
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-chocolatey-${{ github.sha }}
           path: quick-lint-js.nupkg
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.nupkg
@@ -303,7 +327,7 @@ jobs:
     needs: package-chocolatey
     runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-chocolatey-${{ github.sha }}
       - name: install
@@ -318,12 +342,12 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -332,19 +356,89 @@ jobs:
         run: go run ./dist/scoop/make-manifest.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.json
 
       - name: upload manifest to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: quick-lint-js-scoop-${{ github.sha }}
           path: quick-lint-js.json
       - name: upload manifest to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.json
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/scoop/
+          user: ${{ secrets.artifacts_user }}
+
+  package-msix:
+    name: MSIX installer
+    needs: build
+    runs-on: windows-2022
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+
+      - name: extract ZIP
+        run: Expand-Archive -LiteralPath windows.zip -DestinationPath quick-lint-js
+        shell: powershell
+
+      - name: create MSIX
+        run: |
+          PATH="${PATH}:/c/Program Files (x86)/Windows Kits/10/App Certification Kit"
+          go run ./dist/msix/build-unsigned-msix.go -EXE ./quick-lint-js/bin/quick-lint-js.exe -License ./quick-lint-js/share/doc/quick-lint-js/copyright -Out quick-lint-js.msix
+        shell: bash
+
+      - name: upload MSIX to workflow
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-msix-${{ github.sha }}
+          path: quick-lint-js.msix
+      - name: upload MSIX to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@v3
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js.msix
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/windows/
+          user: ${{ secrets.artifacts_user }}
+
+  package-winget:
+    name: winget manifests
+    needs: package-msix
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: quick-lint-js-msix-${{ github.sha }}
+          path: ./
+
+      - name: create manifests
+        run: go run ./dist/winget/make-manifests.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -MSIX ./quick-lint-js.msix -OutDir winget-manifests
+
+      - name: upload manifests to workflow
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-winget-${{ github.sha }}
+          path: winget-manifests/
+      - name: upload manifests to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@v3
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: winget-manifests/*
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/winget/
           user: ${{ secrets.artifacts_user }}
 
 # quick-lint-js finds bugs in JavaScript programs.

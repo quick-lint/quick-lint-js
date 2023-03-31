@@ -1,0 +1,4 @@
+version=4
+
+opts="pgpmode=next" https://c.quick-lint-js.com/releases/latest/source/ quick-lint-js-@ANY_VERSION@@ARCHIVE_EXT@ debian
+opts="pgpmode=previous" https://c.quick-lint-js.com/releases/latest/source/ quick-lint-js-@ANY_VERSION@@SIGNATURE_EXT@ previous

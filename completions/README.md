@@ -47,3 +47,17 @@ To install the completions for fish, run
 mkdir -p $fish_complete_path[1]
 cp completions/quick-lint-js.fish $fish_complete_path[1]/quick-lint-js.fish
 ```
+
+## PowerShell
+
+To install the completions for powershell, you can `dot source` the `completions/quick-lint-js.ps1` file in your `$profile` file.
+
+```powershell
+. completions/quick-lint-js.ps1
+```
+
+Or copy the contents of `completions/quick-lint-js.ps1` into your `$profile` file.
+
+```powershell
+Get-Content ./completions/quick-lint-js.ps1 | Out-File -Append $profile
+```

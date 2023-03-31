@@ -152,6 +152,8 @@ This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if vari
 This group is not enabled by default.
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
+*bun*:: globals defined by the Bun JavaScript runtime, including *Bun*, *fetch*, and *console*.
+This group is enabled by default.
 *ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
 This group is enabled by default.
 *jasmine*:: globals defined by the Jasmine test framework, including *describe*, *it*, and *expect*.
@@ -164,6 +166,15 @@ This group is enabled by default.
 This group is enabled by default.
 *node.js-es*:: globals defined by Node.js for ES modules, including *console* and *process*.
 This group is enabled by default.
+*typescript*:: global types defined by TypeScript, including *Readonly* and *NonNullable*.
+This group is enabled by default.
+(Introduced in version 2.12.0.)
+*quickjs*:: globals defined by QuickJS, including *console* and *scriptArgs*.
+This group is enabled by default.
+(Introduced in version 2.11.0.)
+*web-worker*:: globals defined in HTML standards for dedicated Web Workers, including *postMessage*, *self*, and *console*.
+This group is enabled by default.
+(Introduced in version 2.6.0.)
 
 == Examples
 

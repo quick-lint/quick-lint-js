@@ -5,10 +5,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration-loader.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
+#include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 namespace {
@@ -32,8 +32,7 @@ class null_configuration_filesystem : public configuration_filesystem {
 #if QLJS_HAVE_UNISTD_H
     posix_file_io_error io_error = {ENOENT};
 #endif
-    return result<padded_string, read_file_io_error>::failure<
-        read_file_io_error>(read_file_io_error{
+    return failed_result(read_file_io_error{
         .path = path.c_str(),
         .io_error = io_error,
     });
@@ -47,9 +46,9 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   using namespace quick_lint_js;
 
   null_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_endpoint_remote>
-      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+  lsp_javascript_linter linter;
+  lsp_endpoint<linting_lsp_server_handler, null_lsp_endpoint_remote> server(
+      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
 
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };

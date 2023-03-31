@@ -20,18 +20,41 @@ figure {
 }
 img + figcaption,
 picture + figcaption,
+video + figcaption,
 .side-by-side-comparison + figcaption,
 pre + figcaption {
   font-style: italic;
 }
-figure > img {
+figure > img,
+figure > video {
   width: 100%;
   height: auto;
 }
 img + figcaption,
 picture + figcaption,
+pre.emphasized + figcaption,
+video + figcaption,
 .side-by-side-comparison + figcaption {
   text-align: center;
+}
+
+.side-by-side-comparison {
+  display: grid;
+  grid-template-areas: "before after";
+}
+.side-by-side-comparison .before {
+  grid-area: "before";
+}
+.side-by-side-comparison .after {
+  grid-area: "after";
+}
+.side-by-side-comparison figure {
+  margin: 0.5em;
+}
+.side-by-side-comparison figcaption {
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 0.5em;
 }
 
 header {
@@ -143,7 +166,7 @@ header {
   --tag-line-height: calc(0.5rem + 2rem * 1.2); /* Assumes two lines. */
   --title-height: calc(2rem * 1.2); /* Assumes no word-wrapping. */
   --mascot-height: calc(var(--title-height) + var(--tag-line-height));
-  --mascot-width: var(--mascot-height) / 874.176 * 1126.752;
+  --mascot-width: var(--mascot-height);
   display: grid;
   grid-template-areas:
     "mascot title main-nav"
@@ -178,17 +201,16 @@ header .mascot {
   height: var(--mascot-height);
 }
 
-/* On smaller screens, put the mascot under the title. */
+/* On smaller screens, hide the tag line. */
 @media only screen and (max-width: 32em) {
   header {
-    --mascot-height: var(--tag-line-height);
     grid-template-areas:
-      "title title main-nav"
-      "mascot tag-line main-nav"
+      "mascot title main-nav"
+      "mascot mascot main-nav"
       "breadcrumbs breadcrumbs main-nav";
   }
-  header > .mascot {
-    margin-top: 0.5rem;
+  header > .tag-line {
+    display: none;
   }
 }
 
@@ -206,6 +228,7 @@ hr {
 
 main > h2:first-child {
   border-top: 0;
+  margin-top: 0;
   padding-top: 0;
 }
 
@@ -227,6 +250,13 @@ nav.breadcrumbs ol > li:not(:first-child)::before {
   content: "➤ ";
 }
 
+/* HACK(strager): The '>' symbol pushes some breadcrumbs down for some reason.
+   This causes vertical misalignment between breadcrumbs. Fix this by tweaking
+   line-height. I don't know why this works. */
+nav.breadcrumbs ol > li {
+  line-height: 100%;
+}
+
 @media (prefers-color-scheme: dark) {
   a:link {
     color: #3398e0;
@@ -243,8 +273,7 @@ nav.breadcrumbs ol > li:not(:first-child)::before {
   body {
     color: white;
   }
-  .os-logo[src="macos.svg"],
-  .os-logo[src$="/macos.svg"] {
+  .logo[data-icon="macos"] {
     filter: invert(100%);
   }
 }
@@ -312,8 +341,13 @@ nav.breadcrumbs ol > li:not(:first-child)::before {
   text-align: center;
 }
 
+ins {
+  text-decoration: none;
+}
+
 /* Make errors stand out. */
-pre mark {
+pre mark,
+.diagnostic {
   color: unset;
   text-decoration: underline;
   background-color: #ffdddd;
@@ -331,8 +365,42 @@ pre mark:empty::before {
   position: absolute;
 }
 @media (prefers-color-scheme: dark) {
-  pre mark {
+  pre mark,
+  .diagnostic {
     background-color: #7a1965;
+  }
+}
+
+/* Make diffs look pretty. */
+pre ins {
+  text-decoration: none;
+}
+pre del {
+  text-decoration: none;
+  opacity: 0.5;
+}
+
+.diff ins::before {
+  content: "+";
+}
+.diff ins {
+  color: rgb(68, 141, 20);
+}
+@media (prefers-color-scheme: dark) {
+  .diff ins {
+    color: rgb(98, 181, 60);
+  }
+}
+.diff del::before {
+  content: "-";
+}
+.diff del {
+  color: rgb(220, 50, 47);
+  opacity: 1;
+}
+@media (prefers-color-scheme: dark) {
+  .diff del {
+    color: rgb(240, 90, 87);
   }
 }
 
@@ -370,10 +438,29 @@ pre mark.unmark:empty::before {
   content: unset;
 }
 
-.install-logo,
-.os-logo {
+/* Make the details summaries (which are clickable) look more like links. */
+summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Make details summaries act like unobtrusive section headings. */
+summary {
+  margin-top: 1em;
+  font-weight: bold;
+}
+summary h3 {
+  display: inline;
+  font-size: inherit;
+}
+summary + h4 {
+  margin-top: 0.75em;
+}
+
+.logo {
   height: 1.2em;
   vertical-align: text-bottom;
+  width: 1.2em;
 }
 
 .inline-logo {
@@ -421,6 +508,9 @@ code.shell-session .long-shell-command-line {
 code.shell-session kbd::before {
   content: "$ ";
 }
+code.shell-session.windows kbd::before {
+  content: "> ";
+}
 
 /* Make keystrokes like "CTRL-S" and "RET" distinct from regular key presses. */
 kbd.keystroke {
@@ -434,14 +524,15 @@ kbd.keystroke {
   }
 }
 
-#error-box {
+#error-box,
+.error-box {
   background-color: #252526;
   color: yellow;
   border: 1px solid #fff;
   padding: 5px;
   font-size: 0.8rem;
   max-width: 300px;
-  z-index: 999999;
+  z-index: 100;
 }
 
 @media only screen and (min-width: 34em) and (max-width: 40em) {
@@ -498,11 +589,6 @@ kbd.keystroke {
 
 .install-options {
   line-height: 1.4em;
-}
-.install-logo {
-  height: 1.2em;
-  width: 1.2em;
-  vertical-align: text-bottom;
 }
 
 /* Side-bar navigation, if the viewport is wide enough. */

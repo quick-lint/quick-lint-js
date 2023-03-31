@@ -1,0 +1,52 @@
+---
+discord_token: "{{ discord_token }}"
+#irc_server_name: freenode
+#irc_server: chat.freenode.net:6697
+irc_server_name: LiberaChat
+irc_server: irc.libera.chat:6697
+guild_id: 640652660839677962
+
+# Default is as below
+avatar_url: "https://robohash.org/${USERNAME}.png?set=set4"
+
+# Updating this will automatically add or remove puppets from channels
+channel_mappings:
+  "#quick-lint-js": 835712135962296330
+
+# Prevent MEE6 from appearing on IRC
+# ignored_discord_ids:
+#  - 159985870458322944
+
+suffix: ""
+separator: "_"
+irc_listener_name: "qljs_discord"
+puppet_username: "IRC" # This will default to the discord username of the puppeted account
+#webirc_pass: abcdef.ghijk.lmnop
+
+show_joinquit: false # displays JOIN, PART, QUIT, KICK on discord
+cooldown_duration: 86400 # optional, default 86400 (24 hours), time in seconds for a discord user to be offline before it's puppet disconnects from irc
+max_nick_length: 30 # Maximum Length of a nick allowed
+
+# You definitely should restart the bridge after changing the following:
+insecure: false
+no_tls: false
+debug: false
+simple: true
+
+# irc_listener_prejoin_commands:
+#   - PART #forced-to-join-test-channel
+#   - PRIVMSG Nick :msg
+
+# This is the default value, which makes sure that puppets
+# are deafened (i.e. puppets do not need to hear anything!)
+irc_puppet_prejoin_commands:
+  - "MODE ${NICK} +D" # Note that for inspircd 3.x this should be +d!
+# - "PRIVMSG NickServ IDENTIFY your-password-here" # this is how you can identify to NickServ!
+
+# Uses matching syntax as in https://github.com/gobwas/glob
+# ignored_irc_hostmasks:
+#  - "bot1!*@*"
+#  - "*!?bot@*"
+
+# This limits to 2 connections (a listener, and one puppet, the rest relayed in simple mode)
+# connection_limit: 2

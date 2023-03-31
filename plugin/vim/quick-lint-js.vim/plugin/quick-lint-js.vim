@@ -3,12 +3,21 @@
 
 " Register quick-lint-js with coc.nvim (Conquer of Completion).
 " https://github.com/neoclide/coc.nvim
+
+let s:enable_typescript = get(g:, 'coc_quick_lint_js_experimental_typescript', v:false)
+
+let s:filetypes = ['javascript', 'javascriptreact', 'json']
+if s:enable_typescript
+  call add(s:filetypes, 'typescript')
+  call add(s:filetypes, 'typescriptreact')
+endif
+
 try
   call coc#config('languageserver', {
     \ 'quick-lint-js': {
       \ 'args': ['--lsp-server'],
       \ 'command': 'quick-lint-js',
-      \ 'filetypes': ['javascript', 'javascriptreact', 'json'],
+      \ 'filetypes': s:filetypes,
     \ }
   \ })
 catch /E117/

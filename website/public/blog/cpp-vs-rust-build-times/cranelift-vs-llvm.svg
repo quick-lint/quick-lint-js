@@ -1,0 +1,659 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="200"
+    viewBox="0 0 362 200"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan></text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">tested on Linux. lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="59.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="184.48532936405041"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="7.502959105179174"
+                    height="0.75"
+                    x="242.8671829438861"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="242.1171829438861"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="250.37014204906527"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="56">LLVM</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="292.21710908191244"
+                    y="56">2017ms</text>
+            
+                <rect
+                    class="bar emphasize-bar bar-label-inside-bar"
+                    width="190.68910320014905"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="5.411312324557891"
+                    height="0.75"
+                    x="248.4307967573545"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="247.6807967573545"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="253.8421090819124"
+                    y="63.0" />
+
+                <text
+                    class="bar-label emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="68">Cranelift</text>
+                <text
+                    class="bar-value emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="292.21710908191244"
+                    y="68">2085ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="292.21710908191244"
+                        y="68">&#x00a0;(+3.4%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="90.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/ deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="201.04671005462674"
+                    height="10"
+                    x="60"
+                    y="79" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="11.02496004869982"
+                    height="0.75"
+                    x="258.1921093248559"
+                    y="83.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="257.4421093248559"
+                    y="82.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="269.21706937355566"
+                    y="82.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="87">LLVM</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="87">2198ms</text>
+            
+                <rect
+                    class="bar emphasize-bar bar-label-inside-bar"
+                    width="218.74176963054995"
+                    height="10"
+                    x="60"
+                    y="91" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="8.491642260251066"
+                    height="0.75"
+                    x="276.13335773974893"
+                    y="95.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="275.38335773974893"
+                    y="94.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="284.625"
+                    y="94.0" />
+
+                <text
+                    class="bar-label emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="99">Cranelift</text>
+                <text
+                    class="bar-value emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="99">2392ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="323.0"
+                        y="99">&#x00a0;(+8.8%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="121.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="103.02892441594263"
+                    height="10"
+                    x="60"
+                    y="110" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="2.8615855172106817"
+                    height="0.75"
+                    x="161.96341582971073"
+                    y="114.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="161.21341582971073"
+                    y="113.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="164.8250013469214"
+                    y="113.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="118">LLVM</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="228.38687660075203"
+                    y="118">1127ms</text>
+            
+                <rect
+                    class="bar emphasize-bar bar-label-inside-bar"
+                    width="105.83003410356477"
+                    height="10"
+                    x="60"
+                    y="122" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="29.10235603977654"
+                    height="0.75"
+                    x="160.9095205609755"
+                    y="126.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="160.1595205609755"
+                    y="125.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="190.01187660075203"
+                    y="125.0" />
+
+                <text
+                    class="bar-label emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="130">Cranelift</text>
+                <text
+                    class="bar-value emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="228.38687660075203"
+                    y="130">1157ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="228.38687660075203"
+                        y="130">&#x00a0;(+2.7%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="152.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="93.78152984753642"
+                    height="10"
+                    x="60"
+                    y="141" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="7.875862390246958"
+                    height="0.75"
+                    x="151.7712209192743"
+                    y="145.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="151.0212209192743"
+                    y="144.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="159.64708330952124"
+                    y="144.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="149">LLVM</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="207.594234674125"
+                    y="149">1026ms</text>
+            
+                <rect
+                    class="bar emphasize-bar bar-label-inside-bar"
+                    width="107.25957283263071"
+                    height="10"
+                    x="60"
+                    y="153" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="3.524898974399716"
+                    height="0.75"
+                    x="165.6943356997253"
+                    y="157.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="164.9443356997253"
+                    y="156.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="169.219234674125"
+                    y="156.0" />
+
+                <text
+                    class="bar-label emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="161">Cranelift</text>
+                <text
+                    class="bar-value emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="207.594234674125"
+                    y="161">1173ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="207.594234674125"
+                        y="161">&#x00a0;(+14%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="183.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar bar-label-small"
+                    width="31.388409079980683"
+                    height="10"
+                    x="60"
+                    y="172" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar bar-label-small"
+                    width="2.253140691687051"
+                    height="0.75"
+                    x="90.97337152664333"
+                    y="176.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="90.22337152664333"
+                    y="175.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="93.22651221833038"
+                    y="175.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="180">LLVM</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="145.05750217646292"
+                    y="180">344ms</text>
+            
+                <rect
+                    class="bar emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="44.685738424839535"
+                    height="10"
+                    x="60"
+                    y="184" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="4.198619850887531"
+                    height="0.75"
+                    x="102.4838823255754"
+                    y="188.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="101.7338823255754"
+                    y="187.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="106.68250217646292"
+                    y="187.0" />
+
+                <text
+                    class="bar-label emphasize-bar bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="192">Cranelift</text>
+                <text
+                    class="bar-value emphasize-bar bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="145.05750217646292"
+                    y="192">489ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="145.05750217646292"
+                        y="192">&#x00a0;(+42%)</text>
+                </svg>

@@ -6,6 +6,7 @@
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -57,12 +58,19 @@ class TestQuickLintJSCLI(unittest.TestCase):
             test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
 
             result = subprocess.run(
-                [get_quick_lint_js_executable_path(), "--diagnostic-hyperlinks=always" ,str(test_file)],
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--diagnostic-hyperlinks=always",
+                    str(test_file),
+                ],
                 capture_output=True,
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertIn("[]8;;https://quick-lint-js.com/errors/E0017/\E0017]8;;\]", result.stderr)
+            self.assertIn(
+                "[\u001b]8;;https://quick-lint-js.com/errors/E0017/\u001b\E0017\u001b]8;;\u001b\]",
+                result.stderr,
+            )
 
     def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
         self,
@@ -215,7 +223,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             test_file.write_text("console.log(myGlobalVariable);")
 
             config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
-            config_file.write_text('INVALID JSON')
+            config_file.write_text("INVALID JSON")
 
             result = subprocess.run(
                 [
@@ -243,7 +251,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             test_file_2.write_text("")
 
             config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
-            config_file.write_text('INVALID JSON')
+            config_file.write_text("INVALID JSON")
 
             result = subprocess.run(
                 [
@@ -264,14 +272,14 @@ class TestQuickLintJSCLI(unittest.TestCase):
             test_file_1 = test_dir_1 / "test.js"
             test_file_1.write_text("")
             config_file_1 = test_dir_1 / "quick-lint-js.config"
-            config_file_1.write_text('INVALID JSON')
+            config_file_1.write_text("INVALID JSON")
 
             test_dir_2 = pathlib.Path(test_directory) / "dir2"
             test_dir_2.mkdir()
             test_file_2 = test_dir_2 / "test.js"
             test_file_2.write_text("")
             config_file_2 = test_dir_2 / "quick-lint-js.config"
-            config_file_2.write_text('INVALID JSON')
+            config_file_2.write_text("INVALID JSON")
 
             result = subprocess.run(
                 [
@@ -287,6 +295,60 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertIn("dir2", result.stderr)
             self.assertEqual(result.stderr.count("E0164"), 2)
 
+    def test_language_javascript(self) -> None:
+        result = subprocess.run(
+            [
+                get_quick_lint_js_executable_path(),
+                "--language=javascript",
+                "--stdin",
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            input="let c = <JSX />;",
+        )
+        self.assertIn("E0177", result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.returncode, 1)
+
+    def test_language_typescript_warns_about_undeclared_variables_despite_eval(
+        self,
+    ) -> None:
+        result = subprocess.run(
+            [
+                get_quick_lint_js_executable_path(),
+                "--language=experimental-typescript",
+                "--stdin",
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            input="eval('var x = 42;'); console.log(x);",
+        )
+        self.assertIn("E0057", result.stderr)  # use of undeclared variable 'x'
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.returncode, 1)
+
+    @unittest.skipIf(
+        sys.platform == "win32", "hyperlinks are not implemented on Windows yet"
+    )
+    def test_auto_hyperlinks_are_not_printed_in_dumb_terminals(self) -> None:
+        import pty
+
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
+
+            (pid, fd) = pty.fork()
+            if pid == 0:
+                qljs = get_quick_lint_js_executable_path()
+                os.execve(qljs, [qljs, str(test_file)], {"TERM": "dumb"})
+            else:
+                (_, rc) = os.waitpid(pid, 0)
+                stderr = os.read(fd, 4096)
+                returncode = 0
+                if os.WIFEXITED(rc):
+                    returncode = os.WEXITSTATUS(rc)
+                self.assertEqual(returncode, 1)
+                self.assertNotIn(b"\x1b", stderr)
 
 if __name__ == "__main__":
     unittest.main()

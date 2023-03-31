@@ -3,14 +3,14 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 namespace quick_lint_js {
 namespace {
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
-TEST(test_assert, failing_assert_crashes) {
+TEST(test_assert, failing_assert_crashes_SLOW) {
   auto check = [] {
     bool everything_is_okay = false;
     QLJS_ALWAYS_ASSERT(everything_is_okay);

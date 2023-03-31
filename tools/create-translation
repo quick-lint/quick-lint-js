@@ -8,7 +8,7 @@ set -u
 
 cd "$(dirname "${0}")/../po"
 
-msginit --input=messages.pot
+msginit --input=messages.pot "${@}"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

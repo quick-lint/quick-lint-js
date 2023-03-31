@@ -4,8 +4,19 @@
 # This file is a library used by other script. Do not execute this file
 # directly.
 
+find_repo_files() {
+  if git ls-files --cached --exclude-standard -- "${@}" 2>/dev/null; then
+    return
+  fi
+  if sl files "${@}" 2>/dev/null; then
+    return
+  fi
+  printf "error: could not run 'git ls-files' or 'sl files'\n'" >&2
+  return 1
+}
+
 find_non_vendor_files() {
-  git ls-files --cached --exclude-standard --others \
+  find_repo_files "${@}" \
     | { grep -v '^vendor/.*/' || true ; } \
     | {
       while read path ; do
@@ -18,7 +29,12 @@ find_non_vendor_files() {
 
 matching() {
   local pattern="${1}"
-  grep -E "${pattern}" || true
+  grep -E -- "${pattern}" || true
+}
+
+not_matching() {
+  local pattern="${1}"
+  grep -E -v -- "${pattern}" || true
 }
 
 # quick-lint-js finds bugs in JavaScript programs.

@@ -1,0 +1,27 @@
+{
+  "ProjectName": "quick-lint-js",
+  "ArchiveRoot": "..",
+  "MediaBaseUrl": "https://c.quick-lint-js.com/debian/appstream/export/media/",
+  "HtmlBaseUrl": "https://c.quick-lint-js.com/debian/appstream/export/html/",
+  "Backend": "debian",
+  "Features": {
+    "immutableSuites": false,
+    "validateMetainfo": true
+  },
+  "Suites": {
+    "experimental": {
+      "sections": ["main"],
+      "architectures": ["amd64"]
+    }
+  },
+  "Icons": {
+    "64x64": {
+      "cached": true,
+      "remote": false
+    },
+    "128x128": {
+      "cached": false,
+      "remote": true
+    }
+  }
+}

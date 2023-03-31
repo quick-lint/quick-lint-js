@@ -5,19 +5,20 @@
 # Contributor: Shivam Mehta <sm.cse at gmail dot com>
 
 pkgname=quick-lint-js-dev
-pkgver=2.3.0
+pkgver=2.12.0
 pkgrel=1
 pkgdesc="Find bugs in JavaScript programs"
 arch=(aarch64 arm armv6h armv7h i686 pentium4 x86_64)
 url="https://quick-lint-js.com/"
 license=(Apache Boost GPL3)
-depends=(gcc-libs)
+depends=(gcc-libs glibc hicolor-icon-theme)
 makedepends=(cmake gcc git ninja)
 checkdepends=(icu)
 provides=(quick-lint-js)
 conflicts=(quick-lint-js)
 source=("quick-lint-js::git+file://${PWD}/../../")
 sha256sums=(SKIP)
+options=(lto)
 
 pkgver() {
   cd quick-lint-js
@@ -36,8 +37,8 @@ build() {
 }
 
 check() {
-  cd quick-lint-js
-  ninja -C build test
+  cd quick-lint-js/build
+  ctest --output-on-failure
 }
 
 package() {

@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/generate-code.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <random>
 #include <set>
 #include <utility>
@@ -85,10 +86,9 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
     line_begin_offset += line_length + narrow_cast<int>(newline.size());
   }
 
-  std::sort(spans.begin(), spans.end(),
-            [](const source_code_span &a, const source_code_span &b) {
-              return a.begin() < b.begin();
-            });
+  sort(spans, [](const source_code_span &a, const source_code_span &b) {
+    return a.begin() < b.begin();
+  });
   partial_shuffle(spans, rng, /*rounds=*/5);
 
   return source_code_with_spans(std::move(source), std::move(spans));

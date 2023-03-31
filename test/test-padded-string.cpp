@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
 
@@ -66,7 +66,7 @@ TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
 }
 
 TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
-  EXPECT_TRUE(padded_string(string8(u8"hello")) == string8_view(u8"hello"));
+  EXPECT_TRUE(padded_string(string8(u8"hello")) == u8"hello"_sv);
 }
 
 TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
@@ -78,7 +78,7 @@ TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
 
 TEST(test_padded_string, std_string_view_excludes_padding_bytes) {
   padded_string s(string8(u8"hello"));
-  EXPECT_TRUE(s.string_view() == string8_view(u8"hello"));
+  EXPECT_TRUE(s.string_view() == u8"hello"_sv);
 }
 
 TEST(test_padded_string, shrinking_does_not_reallocate) {
@@ -134,8 +134,8 @@ TEST(test_padded_string, move_assigning_empty_string_copies_pointers) {
 namespace {
 void expect_null_terminated(const padded_string &s) {
   const char8 *data = s.c_str();
-  for (int i = 0; i < s.padding_size; ++i) {
-    int index = s.size() + i;
+  for (padded_string_size i = 0; i < s.padding_size; ++i) {
+    padded_string_size index = s.size() + i;
     EXPECT_EQ(data[index], u8'\0') << "index=" << index;
   }
 }

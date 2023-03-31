@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="179"
+    viewBox="0 0 362 179"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">Rust toolchains: <tspan class='color-2-of-2'>custom toolchain</tspan> is fastest</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">tested on Linux. lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="77.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/ deps</tspan></text>
+
+                <rect
+                    class="bar bar-label-inside-bar"
+                    width="187.79849256175962"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="1.862834663584584"
+                    height="0.75"
+                    x="246.57095329129675"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="245.82095329129675"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="248.43378795488132"
+                    y="51.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar"
+                    x="63"
+                    y="56">Stable</text>
+                <text
+                    class="bar-value bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="56">2000ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="188.47388155687764"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="2.205380833025977"
+                    height="0.75"
+                    x="247.6885654426034"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="246.9385654426034"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="249.89394627562936"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="68">Nightly</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="68">2007ms</text>
+            
+                <rect
+                    class="bar bar-label-inside-bar"
+                    width="220.75848174194596"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="6.190251945350197"
+                    height="0.75"
+                    x="278.4347480546498"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="277.6847480546498"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="284.625"
+                    y="75.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar"
+                    x="63"
+                    y="80">Custom</text>
+                <text
+                    class="bar-value bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="80">2351ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="80">&#x00a0;(+17%)</text>
+                
+                <rect
+                    class="bar bar-label-inside-bar"
+                    width="187.68643733408263"
+                    height="10"
+                    x="60"
+                    y="84" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="4.38347370927817"
+                    height="0.75"
+                    x="245.52178566801567"
+                    y="88.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="244.77178566801567"
+                    y="87.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="249.90525937729382"
+                    y="87.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar"
+                    x="63"
+                    y="92">Custom+PGO</text>
+                <text
+                    class="bar-value bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="92">1999ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="92">&#x00a0;(-0.4%)</text>
+                
+                <rect
+                    class="bar color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    width="184.0323353888821"
+                    height="10"
+                    x="60"
+                    y="96" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    width="2.8582400731765225"
+                    height="0.75"
+                    x="242.30855009379258"
+                    y="100.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="241.55855009379258"
+                    y="99.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="245.16679016696912"
+                    y="99.0" />
+
+                <text
+                    class="bar-label color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="104">Custom+PGO+BOLT</text>
+                <text
+                    class="bar-value color-2-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="104">1960ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="323.0"
+                        y="104">&#x00a0;(-2.4%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="144.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar bar-label-inside-bar bar-label-small"
+                    width="87.8852222048536"
+                    height="10"
+                    x="60"
+                    y="115" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="2.5168631170745708"
+                    height="0.75"
+                    x="147.08305088012085"
+                    y="119.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="146.33305088012085"
+                    y="118.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="149.59991399719542"
+                    y="118.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="123">Stable</text>
+                <text
+                    class="bar-value bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="192.1756780517859"
+                    y="123">936ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="87.37952236255401"
+                    height="10"
+                    x="60"
+                    y="127" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.3803315959235629"
+                    height="0.75"
+                    x="147.34029650342882"
+                    y="131.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="146.59029650342882"
+                    y="130.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="147.72062809935238"
+                    y="130.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="135">Nightly</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="192.1756780517859"
+                    y="135">931ms</text>
+            
+                <rect
+                    class="bar bar-label-inside-bar bar-label-small"
+                    width="91.98578341782353"
+                    height="10"
+                    x="60"
+                    y="139" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="2.4738350331432337"
+                    height="0.75"
+                    x="151.32684301864265"
+                    y="143.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="150.57684301864265"
+                    y="142.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="153.8006780517859"
+                    y="142.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="147">Custom</text>
+                <text
+                    class="bar-value bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="192.1756780517859"
+                    y="147">980ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="192.1756780517859"
+                        y="147">&#x00a0;(+5.3%)</text>
+                
+                <rect
+                    class="bar bar-label-inside-bar bar-label-small"
+                    width="83.43476261174717"
+                    height="10"
+                    x="60"
+                    y="151" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="1.1956347635658169"
+                    height="0.75"
+                    x="143.01479710719076"
+                    y="155.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="142.26479710719076"
+                    y="154.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="144.21043187075657"
+                    y="154.0" />
+
+                <text
+                    class="bar-label bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="159">Custom+PGO</text>
+                <text
+                    class="bar-value bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="192.1756780517859"
+                    y="159">889ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="192.1756780517859"
+                        y="159">&#x00a0;(-4.5%)</text>
+                
+                <rect
+                    class="bar color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="82.64874074402303"
+                    height="10"
+                    x="60"
+                    y="163" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="1.0648105908449117"
+                    height="0.75"
+                    x="141.9531321428709"
+                    y="167.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="141.2031321428709"
+                    y="166.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="143.0179427337158"
+                    y="166.0" />
+
+                <text
+                    class="bar-label color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="171">Custom+PGO+BOLT</text>
+                <text
+                    class="bar-value color-2-of-2 emphasize-bar bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="192.1756780517859"
+                    y="171">881ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-1-of-2"
+                        text-anchor="start"
+                        x="192.1756780517859"
+                        y="171">&#x00a0;(-5.4%)</text>
+                </svg>

@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="260"
+    viewBox="0 0 362 260"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">macOS: linkers perform about the same</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="65.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="237.2342086914008"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="10.547760875512724"
+                    height="0.75"
+                    x="291.06355460431683"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="290.31355460431683"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="301.61131547982956"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="56">ld64 (default)</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="56">3186ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="235.54591452237696"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="14.841609101220982"
+                    height="0.75"
+                    x="288.4136929382915"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="287.6636929382915"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="303.25530203951246"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="68">lld</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="68">3164ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="240.20574281119562"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="32.94654676928312"
+                    height="0.75"
+                    x="288.67845323071685"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="287.92845323071685"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="321.625"
+                    y="75.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="80">zld</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="360.0"
+                    y="80">3226ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="108.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/ deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="254.41016151408445"
+                    height="10"
+                    x="60"
+                    y="91" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="11.70795605817345"
+                    height="0.75"
+                    x="308.79846079319555"
+                    y="95.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="308.04846079319555"
+                    y="94.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="320.506416851369"
+                    y="94.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="99">ld64 (default)</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="358.881416851369"
+                    y="99">3417ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="252.3550960745076"
+                    height="10"
+                    x="60"
+                    y="103" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="15.609480630314081"
+                    height="0.75"
+                    x="304.62663160889576"
+                    y="107.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="303.87663160889576"
+                    y="106.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="320.23611223920983"
+                    y="106.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="111">lld</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="358.881416851369"
+                    y="111">3390ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="251.46414997746058"
+                    height="10"
+                    x="60"
+                    y="115" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="10.177962091260252"
+                    height="0.75"
+                    x="304.9793567655945"
+                    y="119.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="304.2293567655945"
+                    y="118.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="315.1573188568547"
+                    y="118.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="123">zld</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="358.881416851369"
+                    y="123">3378ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="151.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="153.26401828267376"
+                    height="10"
+                    x="60"
+                    y="134" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="5.741670464046626"
+                    height="0.75"
+                    x="211.10161809166496"
+                    y="138.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="210.35161809166496"
+                    y="137.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="216.84328855571158"
+                    y="137.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="142">ld64 (default)</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="255.21828855571158"
+                    y="142">2059ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="151.83254670914482"
+                    height="10"
+                    x="60"
+                    y="146" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="5.570354275510017"
+                    height="0.75"
+                    x="209.4171487943756"
+                    y="150.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="208.6671487943756"
+                    y="149.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="214.9875030698856"
+                    y="149.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="154">lld</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="255.21828855571158"
+                    y="154">2040ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="152.22206005576936"
+                    height="10"
+                    x="60"
+                    y="158" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="4.590565871867229"
+                    height="0.75"
+                    x="210.23748532353991"
+                    y="162.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="209.48748532353991"
+                    y="161.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="214.82805119540714"
+                    y="161.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="166">zld</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="255.21828855571158"
+                    y="166">2045ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="194.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="155.60350987120674"
+                    height="10"
+                    x="60"
+                    y="177" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="8.118000765228826"
+                    height="0.75"
+                    x="212.1987064835167"
+                    y="181.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="211.4487064835167"
+                    y="180.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="220.31670724874553"
+                    y="180.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="185">ld64 (default)</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="258.6917072487455"
+                    y="185">2090ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-inside-bar"
+                    width="153.85107254399827"
+                    height="10"
+                    x="60"
+                    y="189" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="6.750272680517356"
+                    height="0.75"
+                    x="212.29860081642883"
+                    y="193.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="211.54860081642883"
+                    y="192.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="219.0488734969462"
+                    y="192.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="197">lld</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="258.6917072487455"
+                    y="197">2067ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-inside-bar"
+                    width="148.8193031064063"
+                    height="10"
+                    x="60"
+                    y="201" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="4.55643730681658"
+                    height="0.75"
+                    x="206.4558637954149"
+                    y="205.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="205.7058637954149"
+                    y="204.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="211.01230110223148"
+                    y="204.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-inside-bar"
+                    x="63"
+                    y="209">zld</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-inside-bar"
+                    text-anchor="end"
+                    x="258.6917072487455"
+                    y="209">1999ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="237.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-outside-bar"
+                    width="38.32220798855553"
+                    height="10"
+                    x="60"
+                    y="220" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="1.2522157519689454"
+                    height="0.75"
+                    x="97.96321743710655"
+                    y="224.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="97.21321743710655"
+                    y="223.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="99.2154331890755"
+                    y="223.0" />
+
+                <text
+                    class="bar-label color-default bar-label-outside-bar"
+                    x="142.5904331890755"
+                    y="228">ld64 (default)</text>
+                <text
+                    class="bar-value color-default bar-label-outside-bar"
+                    text-anchor="end"
+                    x="137.5904331890755"
+                    y="228">515ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 bar-label-outside-bar"
+                    width="38.01988422626431"
+                    height="10"
+                    x="60"
+                    y="232" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.6345534546972988"
+                    height="0.75"
+                    x="97.86541110373317"
+                    y="236.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="97.11541110373317"
+                    y="235.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="98.49996455843046"
+                    y="235.0" />
+
+                <text
+                    class="bar-label color-1-of-2 bar-label-outside-bar"
+                    x="142.5904331890755"
+                    y="240">lld</text>
+                <text
+                    class="bar-value color-1-of-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="137.5904331890755"
+                    y="240">511ms</text>
+            
+                <rect
+                    class="bar color-2-of-2 bar-label-outside-bar"
+                    width="35.97622113615307"
+                    height="10"
+                    x="60"
+                    y="244" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="-0.14164542550364156"
+                    height="0.75"
+                    x="96.04022958076226"
+                    y="248.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="95.29022958076226"
+                    y="247.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-2 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="95.8985841552586"
+                    y="247.0" />
+
+                <text
+                    class="bar-label color-2-of-2 bar-label-outside-bar"
+                    x="142.5904331890755"
+                    y="252">zld</text>
+                <text
+                    class="bar-value color-2-of-2 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="137.5904331890755"
+                    y="252">484ms</text>
+            </svg>

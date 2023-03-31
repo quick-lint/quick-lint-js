@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - run: |
           if ! ./tools/check-file-copyrights; then

@@ -17,13 +17,16 @@ quick-lint-js - find bugs in JavaScript programs
 == Synopsis
 
 *quick-lint-js* [*--output-format*=_format_] [<options>] _file_ [_file_...] +
-*quick-lint-js* *--lsp-server* [<options>]
+*quick-lint-js* *--lsp-server* [<options>] +
+*quick-lint-js* *--debug-apps* +
+*quick-lint-js* *--help* +
+*quick-lint-js* *--version*
 
 == Description
 
 *quick-lint-js* reads JavaScript files and reports syntax errors and other bugs.
 
-This command has two modes:
+This command has three modes:
 
 *quick-lint-js* [<options>] _file_ [_file_...]::
   Batch mode (default).
@@ -32,8 +35,20 @@ This command has two modes:
 
 *quick-lint-js* --lsp-server::
   LSP server mode.
-  Start a Language Server Protocol server, communicating using standard input and standard output.
   Use this mode to integrate with code editors supporting LSP.
+  For more information, see
+ifdef::backend-html5[]
+  the link:../docs/lsp/[LSP server documentation].
+endif::[]
+ifndef::backend-html5[]
+  *quick-lint-js-lsp*(8).
+endif::[]
+
+*quick-lint-js* --debug-apps::
+*quick-lint-js* --help::
+*quick-lint-js* --version::
+  Information mode.
+  Prints information about quick-lint-js then exits.
 
 == Options
 
@@ -60,6 +75,8 @@ On Windows it behaves like 'never'.
 - *never*: never shows error codes as hyperlinks.
 
 Incompatible with *--lsp-server*.
+
+Added in quick-lint-js version 0.7.0.
 --
 
 *--vim-file-bufnr*=_number_::
@@ -71,10 +88,10 @@ Therefore, if multiple input files are given, *--vim-file-bufnr* can be specifie
 *--path-for-config-search*=_path_::
   For the following input file or *--stdin*, use _path_ as the file's path when
 ifdef::backend-manpage[]
-searching for a configuration file (see *quick-lint-js.config*(5)).
+  searching for a configuration file (see *quick-lint-js.config*(5)).
 endif::[]
 ifdef::backend-html5[]
-link:../config/[searching for a configuration file].
+  link:../config/[searching for a configuration file].
 endif::[]
 +
 _path_ must be a syntactically-valid path.
@@ -85,6 +102,8 @@ Therefore, if multiple input files are given, *--path-for-config-search* can be 
 If *--path-for-config-search* is the last option, it has no effect.
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.4.0.
 
 [#config-file]
 *--config-file*=_file_::
@@ -107,6 +126,36 @@ If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a 
 endif::[]
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.3.0.
+
+[#language]
+*--language*=_languageid_::
+  Interpret input files which are given later in the command line as if they were written in _languageid_. _languageid_ is one of the following:
++
+--
+* *default* (default): infer the _languageid_ from the file's extension:
+** *.js*: *javascript-jsx*
+** *.jsx*: *javascript-jsx*
+** (anything else): *javascript-jsx*
+* *javascript*: the latest ECMAScript standard with proposed features.
+* *javascript-jsx*: like *javascript* but with JSX (React) extensions.
+* *experimental-typescript*: the latest TypeScript version.
+(EXPERIMENTAL.
+Subject to change in future versions of quick-lint-js.)
+* *experimental-typescript-jsx*: like *experimental-typescript* but with JSX (React) extensions.
+(EXPERIMENTAL.
+Subject to change in future versions of quick-lint-js.)
+
+If *--language* is given twice, then the _languageid_ for the first *--language* option applies only to the input files between the two *--language* options, and the _languageid_ for the second *--language* option apples only to the input files after the second *--language* option.
+See the <<Example>> section for an example.
+
+If *--language* is the last option, it has no effect.
+
+Incompatible with *--lsp-server*.
+
+Added in quick-lint-js version 2.10.0.
+--
 
 *--exit-fail-on*=_errors_::
   Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
@@ -130,20 +179,41 @@ endif::[]
 starting from *--path-for-config-search*'s _path_.
 +
 Incompatible with *--lsp-server*.
++
+Added in quick-lint-js version 0.3.0.
 
 *--lsp*::
 *--lsp-server*::
   Run *quick-lint-js* in LSP server mode.
   Use this mode to integrate with code editors supporting LSP.
-  An editor can send LSP requests and notifications to *quick-lint-js* via standard input, and receive LSP responses and notifications from standard output.
+  For more information, see
+ifdef::backend-html5[]
+  the link:../docs/lsp/[LSP server documentation].
+endif::[]
+ifndef::backend-html5[]
+  *quick-lint-js-lsp*(8).
+endif::[]
 +
 Incompatible with *--output-format*.
+
+*--snarky*::
+  Add spice to your failures.
+  This option makes error messages more interesting.
++
+Added in quick-lint-js version 2.5.0.
 
 *-h*::
 *--help*::
   Print a help message and exit.
 +
 The output format is not intended to be machine-parsable and may change in the future.
+
+*--debug-apps*::
+  Print a list of running quick-lint-js instances which have the debug app enabled.
++
+The output format is not intended to be machine-parsable and may change in the future.
++
+*--debug-apps* is only supported on Linux, macOS, and Windows.
 
 *-v*::
 *--version*::
@@ -276,12 +346,30 @@ $ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved12m1uz.js
 ----
 ____
 
+To lint _.js_ files as JavaScript, and _.jsx_ files as JavaScript+JSX:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* \
+    --language javascript *.js \
+    --language javascript-jsx *.jsx
+----
+____
+
+To lint standard input as JavaScript:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --language javascript --stdin
+----
+____
+
 ifdef::backend-manpage[]
 
 == See also
 
 *eslint*(1)
-*quick-lint-js.config*(1)
+*quick-lint-js.config*(5)
 
 endif::backend-manpage[]
 

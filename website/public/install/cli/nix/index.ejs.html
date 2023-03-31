@@ -1,62 +1,31 @@
+<!---{
+"title": "Install quick-lint-js CLI with Nix",
+"description": "Install quick-lint-js's CLI with Nix"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../../common-head.ejs.html", { title: `Install
-    quick-lint-js CLI with Nix`, description: `Install quick-lint-js's CLI with
-    Nix` }) %>
+    <%- await include("../../../common-head.ejs.html") %>
     <link href="../../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <header>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">CLI &amp; LSP server</a></li>
-          <li>Nix</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `Nix`}) %>
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../../gnome-terminal.svg"
-          alt=""
-          title="CLI and LSP server"
-          width="29"
-          height="29"
-        /><img
-          class="os-logo"
-          src="../../../nix.svg"
-          alt=""
-          title="Nix"
-          width="29"
-          height="29"
+        <qljs-icon name="cli-and-lsp-server" size="29" /><qljs-icon
+          name="nix"
+          size="29"
         />
         Install CLI and LSP server with Nix
       </h2>
       <p>
         Supported operating systems:
-        <img
-          class="os-logo"
-          src="../../../linux.svg"
-          alt="GNU/Linux"
-          title="GNU/Linux"
-          width="19"
-          height="19"
-        />
-        <img
-          class="os-logo"
-          src="../../../macos.svg"
-          alt="macOS"
-          title="macOS"
-          width="19"
-          height="19"
-        />
+        <qljs-content-icon name="linux" size="19" />
+        <qljs-content-icon name="macos" size="19" />
       </p>
 
       <%- await include("../../common-nix.ejs.html") %>

@@ -2,7 +2,7 @@
   "name": "quick-lint-js-lsp",
   "description": "Find JavaScript bugs with quick-lint-js (LSP version, not recommended)",
   "publisher": "quick-lint",
-  "version": "2.3.0",
+  "version": "2.12.0",
   "engines": {
     "vscode": "^1.43.0"
   },
@@ -32,6 +32,12 @@
           ],
           "default": "off",
           "description": "Log messages between VS Code and quick-lint-js."
+        },
+        "quick-lint-js-lsp.tracing-directory": {
+          "scope": "window",
+          "type": "string",
+          "default": "",
+          "description": "Log raw LSP between VS Code and quick-lint-js to a binary log file in this directory. Tracing is disabled if empty."
         }
       }
     },
@@ -48,10 +54,10 @@
     "fmt": "prettier --write '*.js' '*.json' '.vscode/*.json'"
   },
   "dependencies": {
-    "vscode-languageclient": "^7.0.0"
+    "vscode-languageclient": "8.0.2"
   },
   "devDependencies": {
-    "prettier": "^2.4.1",
-    "vsce": "^1.100.0"
+    "prettier": "2.7.1",
+    "vsce": "2.12.0"
   }
 }

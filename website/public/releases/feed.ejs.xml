@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<rss version="2.0">
+  <%
+    let fs = await import("fs");
+    let url = await import("url");
+    let { datestampToRFC822 } = await importFileAsync("../../src/timestamp.mjs");
+    let { parseReleaseVersionsFromMarkdown } = await importFileAsync("../../src/release-documentation.mjs");
+
+    let releaseVersions = parseReleaseVersionsFromMarkdown(await fs.promises.readFile(absoluteFilePath("../../../docs/CHANGELOG.md"), "utf-8"));
+  %>
+
+  <channel>
+    <title>quick-lint-js releases</title>
+    <link>https://quick-lint-js.com/releases/</link>
+    <description>Change log and release notes for new quick-lint-js versions.</description>
+
+    <language>en-US</language>
+    <copyright>Copyright (C) 2020  Matthew "strager" Glazar</copyright> 
+    <managingEditor>strager.nds@gmail.com (strager)</managingEditor>
+    <webMaster>strager.nds@gmail.com (strager)</webMaster>
+
+    <image>
+      <url>https://quick-lint-js.com/dusty-right-256x256.png</url>
+      <title>Dusty, the quick-lint-js mascot</title>
+      <description>Dusty, the quick-lint-js mascot</description>
+      <link>https://quick-lint-js.com/releases/</link>
+      <!-- FIXME(strager): These numbers are out of spec. -->
+      <width>256</width>
+      <height>256</height>
+    </image>
+
+    <% for (let versionInfo of releaseVersions) { %>
+      <item>
+        <title>quick-lint-js release: version <%= versionInfo.version %></title>
+        <link>https://quick-lint-js.com/releases/#<%= versionInfo.version %></link>
+        <author>strager.nds@gmail.com (strager)</author>
+        <pubDate><%= datestampToRFC822(versionInfo.date) %></pubDate>
+      </item>
+    <% } %>
+  </channel>
+</rss>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

@@ -2,7 +2,7 @@
   "name": "quick-lint-js",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
-  "version": "2.3.0",
+  "version": "2.12.0",
   "license": "SEE LICENSE IN LICENSE",
   "categories": [
     "Linters"
@@ -26,6 +26,12 @@
       "type": "object",
       "title": "quick-lint-js",
       "properties": {
+        "quick-lint-js.experimental-typescript": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "description": "Lint TypeScript and TypeScript JSX files, not just JavaScript and JSX files. (Requires restart.) (EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)"
+        },
         "quick-lint-js.logging": {
           "scope": "window",
           "type": "string",
@@ -35,6 +41,16 @@
           ],
           "default": "off",
           "description": "Log messages useful for quick-lint-js contributors."
+        },
+        "quick-lint-js.tracing": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log document changes. Useful for quick-lint-js contributors."
         }
       }
     },
@@ -54,14 +70,17 @@
   "bugs": {
     "url": "https://github.com/quick-lint/quick-lint-js/issues"
   },
+  "sponsor": {
+    "url": "https://github.com/sponsors/quick-lint"
+  },
   "scripts": {
     "fmt": "prettier --write '*.js' 'test/*.js' '*.json' '.vscode/*.json'",
     "test": "node test/run-vscode-tests.js"
   },
   "devDependencies": {
+    "@vscode/test-electron": "2.3.0",
     "colors": "1.4.0",
-    "prettier": "^2.4.1",
-    "vsce": "^1.100.0",
-    "vscode-test": "1.6.1"
+    "prettier": "2.8.4",
+    "vsce": "2.15.0"
   }
 }

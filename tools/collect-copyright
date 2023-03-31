@@ -10,6 +10,7 @@ software used by quick-lint-js (and quick-lint-js' own copyright and license).
 """
 
 import argparse
+import collections
 import json
 import logging
 import os
@@ -17,40 +18,134 @@ import pathlib
 import re
 import subprocess
 import sys
+import tarfile
 import typing
 import unittest
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
-archive_to_vendor_project = {
-    "Pathcch.lib": None,
-    "boost.lib": "boost",
-    "libboost.a": "boost",
-    "libquick-lint-js-lib.a": None,
-    "libsimdjson.a": "simdjson",
-    "node-hook.lib": None,
-    "node-napi.lib": None,  # Dynamically linked.
-    "quick-lint-js-lib.lib": None,
-    "simdjson.lib": "simdjson",
+# Initialized in main.
+global_vendor_projects: typing.List["VendorProject"] = []
+
+
+if typing.TYPE_CHECKING:
+
+    class Project(typing.Protocol):
+        def print_copyright(self) -> None:
+            ...
+
+
+class VendorProject(typing.NamedTuple):
+    """A project listed in vendor/README.txt."""
+
+    name: str
+
+    def print_copyright(self) -> None:
+        readme_project = self._readme_project
+        license_files = readme_project.properties["License file"].split("; ")
+        license = (readme_project.vendor_directory / license_files[0]).read_text()
+
+        print(
+            f"""\
+## {self.name}
+
+Version {readme_project.properties['Version']} of {self.name} is statically linked into quick-lint-js.
+
+Source code for {self.name} is available at:
+* {readme_project.properties['Download URL']}
+
+Copyright information for {self.name}:
+{markdown_block_quote(license)}
+"""
+        )
+
+    @property
+    def _readme_project(self) -> "VendorReadmeProject":
+        matching_vendor_projects = [
+            p for p in global_vendor_projects if p.project_name == self.name
+        ]
+        if len(matching_vendor_projects) != 1:
+            raise Exception(
+                f"could not find vendor project for project name: {self.name}"
+            ) from None
+        return matching_vendor_projects[0]
+
+
+class QLJSSubproject(typing.NamedTuple):
+    """A sub-project of quick-lint-js. Has no additional copyright information.
+    """
+
+    def print_copyright(self) -> None:
+        pass
+
+
+class IgnoredLibrary(typing.NamedTuple):
+    """HACK(strager)"""
+
+    def print_copyright(self) -> None:
+        pass
+
+
+class WindowsSoftwareImportLibrary(typing.NamedTuple):
+    """A Windows implib containing only imports to DLLs not shipped with
+    Windows.
+    """
+
+    def print_copyright(self) -> None:
+        # TODO(strager): Should we mention dynamic linking?
+        pass
+
+
+class WindowsSystemImportLibrary(typing.NamedTuple):
+    """A Windows implib containing only imports to system DLLs."""
+
+    def print_copyright(self) -> None:
+        # TODO(strager): Should we mention dynamic linking
+        # to the OS?
+        pass
+
+
+archive_to_project = {
+    "boost.lib": VendorProject("boost"),
+    "libboost.a": VendorProject("boost"),
+    "libmongoose.a": VendorProject("simdjson"),
+    "libsimdjson.a": VendorProject("simdjson"),
+    "mongoose.lib": VendorProject("simdjson"),
+    "simdjson.lib": VendorProject("simdjson"),
+    #
+    "libnode-hook.a": QLJSSubproject(),
+    "libquick-lint-js-lib-debug.a": QLJSSubproject(),
+    "libquick-lint-js-lib.a": QLJSSubproject(),
+    "libquick-lint-js-tool-lib.a": QLJSSubproject(),
+    "node-hook.lib": QLJSSubproject(),
+    "quick-lint-js-lib-debug.lib": QLJSSubproject(),
+    "quick-lint-js-lib.lib": QLJSSubproject(),
+    "quick-lint-js-tool-lib.lib": QLJSSubproject(),
+    #
+    "node-napi.lib": WindowsSoftwareImportLibrary(),
+    #
+    "pathcch.lib": WindowsSystemImportLibrary(),
+    "wsock32.lib": WindowsSystemImportLibrary(),
     # HACK(strager): Ignore these libraries for now.
-    "LIBCMT.lib": None,
-    "LIBCMTD.lib": None,
-    "MSVCRT.lib": None,
-    "MSVCRTD.lib": None,
-    "delayimp.lib": None,
-    "kernel32.lib": None,
-    "libcpmt.lib": None,
-    "libcpmtd.lib": None,
-    "libucrt.lib": None,
-    "libucrtd.lib": None,
-    "libvcruntime.lib": None,
-    "libvcruntimed.lib": None,
-    "msvcprt.lib": None,
-    "msvcprtd.lib": None,
-    "ucrt.lib": None,
-    "ucrtd.lib": None,
-    "vcruntime.lib": None,
-    "vcruntimed.lib": None,
+    "LIBCMT.lib": IgnoredLibrary(),
+    "LIBCMTD.lib": IgnoredLibrary(),
+    "MSVCRT.lib": IgnoredLibrary(),
+    "MSVCRTD.lib": IgnoredLibrary(),
+    "delayimp.lib": IgnoredLibrary(),
+    "kernel32.lib": IgnoredLibrary(),
+    "libcpmt.lib": IgnoredLibrary(),
+    "libcpmtd.lib": IgnoredLibrary(),
+    "libucrt.lib": IgnoredLibrary(),
+    "libucrtd.lib": IgnoredLibrary(),
+    "libvcruntime.lib": IgnoredLibrary(),
+    "libvcruntimed.lib": IgnoredLibrary(),
+    "msvcprt.lib": IgnoredLibrary(),
+    "msvcprtd.lib": IgnoredLibrary(),
+    "ucrt.lib": IgnoredLibrary(),
+    "ucrtd.lib": IgnoredLibrary(),
+    "vcruntime.lib": IgnoredLibrary(),
+    "vcruntimed.lib": IgnoredLibrary(),
 }
 
 
@@ -58,6 +153,12 @@ def main() -> None:
     logging.basicConfig()
 
     parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument(
+        "--build-directory",
+        help="Required for PE/COFF LLD traces",
+        required=False,
+        type=pathlib.Path,
+    )
     parser.add_argument(
         "--linkmap",
         help="File generated by an Mach-O linker's -map option or an ELF linker's -Map option or a PE linker's /MAP option",
@@ -132,16 +233,46 @@ Copyright information for Arm Optimized Routines:
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
+
+# sse2neon
+
+src/quick-lint-js/simd-neon-arm.h in quick-lint-js is derived from sse2neon.
+
+Source code of Arm Optimized Routines is available at:
+* https://github.com/DLTcollab/sse2neon/blob/814935c9ba06f68e9549272dbf5df0db8dab2a00/sse2neon.h
+
+Copyright information for sse2neon:
+> sse2neon is freely redistributable under the MIT License.
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in
+> all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 """
     )
 
     vendor_readme_file = pathlib.Path(args.vendor_readme)
-    vendor_projects = parse_vendor_readme_txt(vendor_readme_file.read_text())
+    global global_vendor_projects
+    global_vendor_projects = parse_vendor_readme_txt(
+        vendor_readme_file.read_text(), vendor_directory=vendor_readme_file.parent
+    )
 
     dump_from_linkmap(
         link_map_file=pathlib.Path(args.linkmap),
-        vendor_projects=vendor_projects,
-        vendor_directory=vendor_readme_file.parent,
+        build_directory=args.build_directory,
         is_cross_compiling_emscripten=args.cross_compiling_emscripten,
         extra_vendor_projects=args.extra_vendor_projects,
     )
@@ -149,12 +280,18 @@ Copyright information for Arm Optimized Routines:
 
 def dump_from_linkmap(
     link_map_file: pathlib.Path,
-    vendor_projects: typing.List["VendorReadmeProject"],
-    vendor_directory: pathlib.Path,
+    build_directory: typing.Optional[pathlib.Path],
     is_cross_compiling_emscripten: bool,
     extra_vendor_projects: typing.List[str],
 ) -> None:
-    link_map = parse_link_map(link_map_file.read_text())
+    if tarfile.is_tarfile(link_map_file):
+        if build_directory is None:
+            raise Exception("--build-directory is required")
+        link_map = parse_coff_lld_link_map(
+            link_map_file, build_directory=build_directory
+        )
+    else:
+        link_map = parse_text_link_map(link_map_file.read_text())
     if not link_map.linked_archives:
         warn("link map lists no archives; this is probably a bug in collect-copyright")
     linked_system_archives = [
@@ -165,11 +302,9 @@ def dump_from_linkmap(
         for file in link_map.linked_archives
         if not pathlib.Path(file).is_absolute()
     ]
-    dump_from_vendor(
+    dump_from_projects(
         linked_vendored_archives,
-        project_names=extra_vendor_projects,
-        vendor_projects=vendor_projects,
-        vendor_directory=vendor_directory,
+        extra_projects=[VendorProject(name) for name in extra_vendor_projects],
     )
     dump_from_system_archives(
         linked_system_archives,
@@ -177,50 +312,20 @@ def dump_from_linkmap(
     )
 
 
-def dump_from_vendor(
-    archives: typing.List[str],
-    project_names: typing.List[str],
-    vendor_projects: typing.List["VendorReadmeProject"],
-    vendor_directory: pathlib.Path,
+def dump_from_projects(
+    archives: typing.List[str], extra_projects: typing.List["Project"],
 ) -> None:
-    all_project_names = project_names
+    all_projects = extra_projects
     for archive in sorted(archives):
         try:
-            vendor_project_name = archive_to_vendor_project[pathlib.Path(archive).name]
+            project = archive_to_project[pathlib.Path(archive).name]
         except KeyError:
             raise Exception(f"could not find source for archive: {archive}") from None
-        if vendor_project_name is None:
-            # Archive is quick-lint-js itself. Its license is handled elsewhere.
-            continue
-        all_project_names.append(vendor_project_name)
+        all_projects.append(project)
 
-    all_project_names = sorted(set(all_project_names))
-    for vendor_project_name in all_project_names:
-        matching_vendor_projects = [
-            p for p in vendor_projects if p.project_name == vendor_project_name
-        ]
-        if len(matching_vendor_projects) != 1:
-            raise Exception(
-                f"could not find vendor project for project name: {vendor_project_name}"
-            ) from None
-        vendor_project = matching_vendor_projects[0]
-
-        license_files = vendor_project.properties["License file"].split("; ")
-        license = (vendor_directory / license_files[0]).read_text()
-
-        print(
-            f"""\
-## {vendor_project_name}
-
-Version {vendor_project.properties['Version']} of {vendor_project_name} is statically linked into quick-lint-js.
-
-Source code for {vendor_project_name} is available at:
-* {vendor_project.properties['Download URL']}
-
-Copyright information for libc6-dev:amd64:
-{markdown_block_quote(license)})
-"""
-        )
+    all_projects = sorted(set(all_projects))
+    for project in all_projects:
+        project.print_copyright()
 
 
 def detect_system_package_manager(
@@ -232,6 +337,22 @@ def detect_system_package_manager(
     if os.environ.get("NIX_STORE", ""):
         warn("Nix not well supported")
         return Nix()
+
+    # HACK(strager): Detect LLVM MinGW as used by our GitHub Actions workers.
+    if os.name != "nt":
+        llvm_mingw_root = pathlib.Path("/opt/llvm-mingw")
+        if any(is_path_relative(root_path=llvm_mingw_root, sub_path=f) for f in files):
+            return LLVMMinGW(root=llvm_mingw_root)
+
+    msys_path = find_msys_install_path()
+    if msys_path and any(
+        is_path_relative(root_path=msys_path, sub_path=f) for f in files
+    ):
+        return Pacman(
+            pacman_exe=msys_path / "usr" / "bin" / "pacman.exe",
+            root=msys_path,
+            source_uri="https://packages.msys2.org/search?t=binpkg&q=__PACKAGE__",
+        )
 
     try:
         brew_prefix = subprocess.check_output(
@@ -253,6 +374,32 @@ def detect_system_package_manager(
         return Debian()
     except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
+
+    return None
+
+
+def find_msys_install_path() -> typing.Optional[pathlib.Path]:
+    """Figure out where MSYS2 is installed on Windows.
+
+    If MSYS2 is not installed, this function returns None.
+    """
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f77d714f-1d9f-4795-858c-9633aeec04b8}",
+        ) as key:
+            (path, _type) = winreg.QueryValueEx(key, "InstallLocation")
+            return pathlib.Path(path)
+    except (FileNotFoundError, ImportError):
+        pass
+
+    paths_to_guess = ["c:/msys64"]
+    for path_to_guess in paths_to_guess:
+        path = pathlib.Path(path_to_guess)
+        if path.is_absolute() and (path / "msys2.ini").is_file():
+            return path
 
     return None
 
@@ -335,8 +482,9 @@ class Homebrew:
         files_from_unknown_formula = set()
         formulae = set()
         for file in files:
-            if self._is_llvm_file(file):
-                formulae.add("llvm")
+            formula_name = self._get_formula_name_from_path(file)
+            if formula_name is not None:
+                formulae.add(formula_name)
             else:
                 files_from_unknown_formula.add(file)
         if files_from_unknown_formula:
@@ -345,8 +493,19 @@ class Homebrew:
             )
         return [self._make_installed_package(f) for f in formulae]
 
+    def _get_formula_name_from_path(self, path: str) -> typing.Optional[str]:
+        try:
+            # path_in_brew will look like:
+            # Cellar/llvm@13/13.0.1/lib/libc++.a
+            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(self.__brew_prefix)
+            if len(path_in_brew.parts) >= 2 and path_in_brew.parts[0] == "Cellar":
+                return path_in_brew.parts[1]
+        except ValueError:
+            # Path isn't in the brew prefix.
+            return None
+
     def get_copyright(self, package: InstalledPackage) -> str:
-        if package.name == "llvm":
+        if re.search(r"^llvm(@\d+)?$", package.name):
             return """\
 Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 See https://llvm.org/LICENSE.txt for license information.
@@ -401,6 +560,213 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
             sub_path=file_path,
             root_path=pathlib.Path(self.__brew_prefix) / "opt" / "llvm",
         )
+
+
+class LLVMMinGW:
+    """An installation of LLVM MinGW."""
+
+    class ToolchainComponent(typing.NamedTuple):
+        name: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+        license_paths: typing.Tuple[pathlib.Path, ...]
+
+        @property
+        def source(self) -> str:
+            return self.name
+
+    def __init__(self, root: pathlib.Path) -> None:
+        self.__root = root
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[ToolchainComponent]:
+        files = list(files)
+        for file in files:
+            if not is_path_relative(root_path=self.__root, sub_path=file):
+                warn(f"found {file} outside LLVM MinGW root ({self.__root})")
+        # TODO(strager): Map .a/.lib files to projects, similar to Emscripten.
+        return [
+            # TODO(strager): Return version and source information.
+            self.ToolchainComponent(
+                name="LLVM",
+                version="(unknown version)",
+                source_uris=(),
+                license_paths=(self.__root / "LICENSE.TXT",),
+            ),
+            self.ToolchainComponent(
+                name="MinGW",
+                version="(unknown version)",
+                source_uris=(),
+                license_paths=(
+                    self.__root
+                    / "aarch64-w64-mingw32"
+                    / "share"
+                    / "mingw32"
+                    / "COPYING",
+                    self.__root
+                    / "aarch64-w64-mingw32"
+                    / "share"
+                    / "mingw32"
+                    / "COPYING.MinGW-w64-runtime.txt",
+                ),
+            ),
+        ]
+
+    def get_copyright(self, package: ToolchainComponent) -> str:
+        license_files = {path: path.read_text() for path in package.license_paths}
+        result_lines = []
+        for (license_path, license) in license_files.items():
+            result_lines.append(f"Contents of {license_path.name}:")
+            result_lines.append(license)
+            result_lines.append("")
+        return "\n".join(result_lines)
+
+
+class Pacman:
+    """The Pacman package manager, used on Arch Linux and in MSYS2.
+    """
+
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+        licenses: str
+        files: typing.Tuple[str, ...]
+
+        @property
+        def source(self) -> str:
+            return self.name
+
+    def __init__(
+        self, pacman_exe: pathlib.Path, root: pathlib.Path, source_uri: str
+    ) -> None:
+        self.__pacman_exe = pacman_exe
+        self.__root = root
+        self.__source_uri = source_uri
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        files = list(files)
+        package_names = self._packages_for_installed_files(files)
+        packages = self._get_installed_packages(list(set(package_names)))
+        return packages
+
+    def _packages_for_installed_files(
+        self, files: typing.List[str],
+    ) -> typing.List[str]:
+        # HACK(strager): On Windows, Pacman doesn't work with \ as the path
+        # separator.
+        pacman_friendly_files = [f.replace("\\", "/") for f in files]
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"] + pacman_friendly_files,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        for (i, line) in enumerate(process.stdout.splitlines()):
+            file = files[i]
+            if line.startswith("error:"):
+                warn("could not determine Pacman package for file %s: %s", file, line)
+            else:
+                package_name = line
+                logger.debug("Pacman package %s contains file %s", package_name, file)
+                packages.append(package_name)
+        return packages
+
+    def _get_installed_packages(
+        self, package_names: typing.List[str]
+    ) -> typing.List[InstalledPackage]:
+        package_to_paths = self._get_files_for_packages(package_names)
+
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--quiet", "--info", "--"] + package_names,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        current_package_properties = {}
+
+        def finish_package() -> None:
+            nonlocal current_package_properties
+            name = current_package_properties["Name"]
+            packages.append(
+                self.InstalledPackage(
+                    name=name,
+                    version=current_package_properties["Version"],
+                    source_uris=(
+                        self.__source_uri.replace(
+                            "__PACKAGE__", urllib.parse.quote(name)
+                        ),
+                    ),
+                    licenses=current_package_properties["Licenses"],
+                    files=tuple(sorted(package_to_paths.get(name, []))),
+                )
+            )
+            current_package_properties = {}
+
+        for line in process.stdout.splitlines():
+            match = re.match(r"^(?P<key>[^:]+?)\s*:\s*(?P<value>.*)$", line)
+            if match is not None:
+                key = match.group("key")
+                value = match.group("value")
+                if key == "Name":
+                    if current_package_properties:
+                        finish_package()
+                current_package_properties[key] = value
+        finish_package()
+        return packages
+
+    def _get_files_for_packages(
+        self, package_names: typing.List[str]
+    ) -> typing.Mapping[str, typing.Set[pathlib.Path]]:
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--list", "--"] + package_names,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        package_to_paths = collections.defaultdict(set)
+        for line in process.stdout.splitlines():
+            (package_name, path) = line.split(" ", 1)
+            package_to_paths[package_name].add(self._absolute_path(path))
+        return package_to_paths
+
+    def _absolute_path(self, pacman_path: str) -> pathlib.Path:
+        """On MSYS2, Pacman returns paths like "/ucrt64/include/agtctl_i.c".
+        Convert this path to "C:/msys64/ucrt64/include/agtctl_i.c".
+        """
+        assert pacman_path[0] == "/"
+        return self.__root / pacman_path[1:]
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        license_files = self._read_license_files(package.files)
+        if not license_files:
+            # We don't have the proper copyright information. Report the SPDX
+            # license names from the PKGBUILD files.
+            return package.licenses
+        result_lines = []
+        for (license_path, license) in license_files.items():
+            result_lines.append(f"Contents of {license_path.name}:")
+            result_lines.append(license)
+            result_lines.append("")
+        return "\n".join(result_lines)
+
+    def _read_license_files(
+        self, package_files: typing.Iterable[pathlib.Path]
+    ) -> typing.Mapping[pathlib.Path, str]:
+        license_files = {}
+        for path in package_files:
+            if "COPYING" in path.name:
+                license_files[path] = path.read_text()
+        return license_files
 
 
 def is_path_relative(root_path: str, sub_path: typing.Union[str, pathlib.Path]) -> bool:
@@ -723,7 +1089,7 @@ class LinkMap(typing.NamedTuple):
     linked_archives: typing.Set[str]
 
 
-def parse_link_map(raw_link_map: str) -> LinkMap:
+def parse_text_link_map(raw_link_map: str) -> LinkMap:
     linked_archives = set()
     state = "NONE"
     for line in raw_link_map.splitlines():
@@ -741,7 +1107,16 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
             state = "MACHO_OBJECT_FILES"
         else:
             if state == "ELF_ARCHIVE_MEMBERS":
-                match = re.match(r"^(?P<file>\S[^()]*)\((?P<symbol>[^()]*)\)$", line)
+                match = re.compile(
+                    r"""
+                        ^
+                        (?P<file>\S[^()]*?)     # File
+                        (?:\([^()]*\))?         # Optional symbol after file
+                        (?:\s+\S+\s\([^()]*\))? # Optional reason (file-symbol pair)
+                        $
+                    """,
+                    re.VERBOSE,
+                ).match(line)
                 if match is not None:
                     linked_archives.add(match.group("file"))
             elif state == "MACHO_OBJECT_FILES":
@@ -767,15 +1142,55 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(pathlib.Path(match.group("archive")).name)
+                # ELF LLD style:
+                match = re.match(
+                    r"^\s*[0-9a-f]+\s+[0-9a-f]+\s+[0-9a-f]+\s+[0-9a-f]+\s+(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\):\((?P<symbol>.*)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(match.group("archive"))
+    return LinkMap(linked_archives=linked_archives)
+
+
+def parse_coff_lld_link_map(
+    tar_path: pathlib.Path, build_directory: pathlib.Path
+) -> LinkMap:
+    """Read a .tar file generated by Windows lld's -reproduce option."""
+
+    def absolute_tar_entry_path(entry_path: str) -> pathlib.Path:
+        """
+        POSIX: quick-lint-js/tmp/crt2u.o -> /tmp/crt2u.o
+        Windows: quick-lint-js/C/tmp/crt2u.o -> C:/tmp/crt2u.o
+        """
+        entry_path = pathlib.PurePosixPath(entry_path)
+        parts = list(entry_path.parts)
+        if os.name == "nt":
+            del parts[0]
+            parts[0] = parts[0] + ":\\"
+        else:
+            parts[0] = "/"
+        return pathlib.Path(*parts)
+
+    linked_archives = set()
+    with tarfile.open(tar_path) as tar:
+        for entry_path in tar.getnames():
+            path = absolute_tar_entry_path(entry_path)
+            if path.suffix.lower() in (".a", ".lib"):
+                linked_archives.add(
+                    path.name if is_path_relative(build_directory, path) else str(path)
+                )
     return LinkMap(linked_archives=linked_archives)
 
 
 class VendorReadmeProject(typing.NamedTuple):
     project_name: str
+    vendor_directory: pathlib.Path
     properties: typing.Dict[str, str]
 
 
-def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
+def parse_vendor_readme_txt(
+    txt: str, vendor_directory: pathlib.Path
+) -> typing.List[VendorReadmeProject]:
     """Parse the README.txt file in quick-lint-js' vendor/ directory."""
     projects = []
     for line in txt.splitlines():
@@ -783,7 +1198,9 @@ def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
         if match is not None:
             projects.append(
                 VendorReadmeProject(
-                    project_name=match.group("project_name"), properties={}
+                    project_name=match.group("project_name"),
+                    vendor_directory=vendor_directory,
+                    properties={},
                 )
             )
         match = re.match(r"^(?P<key>[^:]+): (?P<value>.*)$", line)
@@ -814,7 +1231,7 @@ As-needed library included to satisfy reference by file (symbol)
 
 libc.so.6                     /tmp/cchQcqEp.o (puts@@GLIBC_2.2.5)
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives, {"/usr/lib/x86_64-linux-gnu/libc_nonshared.a"}
         )
@@ -824,11 +1241,11 @@ libc.so.6                     /tmp/cchQcqEp.o (puts@@GLIBC_2.2.5)
 Archive member included to satisfy reference by file (symbol)
 
 libboost.a(global_resource.cpp.o)
-                              src/CMakeFiles/quick-lint-js.dir/main.cpp.o (boost::container::pmr::new_delete_resource())
+                              src/CMakeFiles/quick-lint-js.dir/main.cpp.o (new_delete_resource())
 libboost.a(dlmalloc.cpp.o)    libboost.a(global_resource.cpp.o) (boost::container::dlmalloc_global_sync_lock())
 libboost.a(alloc_lib.c.o)     libboost.a(dlmalloc.cpp.o) (boost_cont_all_deallocated)
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives, {"libboost.a"}
         )
@@ -839,6 +1256,10 @@ Archive member included because of file (symbol)
 
 /usr/lib/x86_64-linux-gnu/libc_nonshared.a(elf-init.oS)
                               /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o (__libc_csu_init)
+libquick-lint-js-lib.a        libquick-lint-js-lib.a (_ZN13quick_lint_js16web_demo_locatorC1ENS_18padded_string_viewE)
+../libboost.a                 CMakeFiles/quick-lint-js.dir/main.cpp.o (_ZN5boost9container3pmr19new_delete_resourceEv)
+../libboost.a                 ../libboost.a (_ZN5boost9container25dlmalloc_global_sync_lockEv)
+../libboost.a                 ../libboost.a (boost_cont_multialloc_arrays)
 
 Discarded input sections
 
@@ -846,9 +1267,14 @@ Discarded input sections
                 0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o
  .note.GNU-stack
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
-            link_map.linked_archives, {"/usr/lib/x86_64-linux-gnu/libc_nonshared.a"}
+            link_map.linked_archives,
+            {
+                "/usr/lib/x86_64-linux-gnu/libc_nonshared.a",
+                "libquick-lint-js-lib.a",
+                "../libboost.a",
+            },
         )
 
 
@@ -874,7 +1300,7 @@ class TestLD64LinkMap(unittest.TestCase):
 0x100002390	0x00000020	[  2] __ZNSt3__118condition_variable10notify_oneEv
 0x1000023B0	0x00000020	[  2] __ZNSt3__118condition_variable10notify_allEv
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives,
             {"/usr/local/opt/llvm/lib/libc++.a", "/usr/local/opt/llvm/lib/libc++abi.a"},
@@ -899,10 +1325,42 @@ class TestMoldLinkMap(unittest.TestCase):
                0    3085635     1 .debug_str
                0       2432     8 
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives,
             {"libquick-lint-js-lib.a"},
+        )
+
+
+class TestELFLLDLinkMap(unittest.TestCase):
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+             VMA              LMA     Size Align Out     In      Symbol
+          2002e0           2002e0       15     1 .interp
+          2002e0           2002e0       15     1         <internal>:(.interp)
+          2002f8           2002f8       30     4 .note.tag
+          2002f8           2002f8       30     4         /usr/lib/crt1.o:(.note.tag)
+          202350           202350     c2a6     1         <internal>:(.rodata)
+          20e5f8           20e5f8       20     8         CMakeFiles/quick-lint-js.dir/quick-lint-js/cli/main.cpp.o:(.rodata._ZN13quick_lint_js12_GLOBAL__N_132get_linter_options_from_languageENS_19input_file_languageE)
+          20e618           20e618       10     4         <internal>:(.rodata)
+          20e628           20e628       30     8         CMakeFiles/quick-lint-js.dir/quick-lint-js/cli/main.cpp.o:(.rodata._ZTVN13quick_lint_js24configuration_filesystemE)
+          20e628           20e628       30     1                 vtable for quick_lint_js::configuration_filesystem
+          20e778           20e778       30     8         libquick-lint-js-lib.a(basic-configuration-filesystem.cpp.o):(.rodata._ZTVN13quick_lint_js30basic_configuration_filesystemE)
+          20e778           20e778       30     1                 vtable for quick_lint_js::basic_configuration_filesystem
+          5783a8           5783a8        1     1         ../vendor/simdjson/libsimdjson.a(simdjson.cpp.o):(.bss._ZN8simdjson25available_implementationsE)
+          5783a8           5783a8        1     1                 simdjson::available_implementations
+          5783b0           5783b0        8     8         ../vendor/simdjson/libsimdjson.a(simdjson.cpp.o):(.bss._ZN8simdjson21active_implementationE)
+          5783b0           5783b0        8     1                 simdjson::active_implementation
+          2c9e00           2c9e00       30     1         /usr/lib/libm.a(s_ceilf.o):(.eh_frame+0x18)
+"""
+        link_map = parse_text_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {
+                "libquick-lint-js-lib.a",
+                "../vendor/simdjson/libsimdjson.a",
+                "/usr/lib/libm.a",
+            },
         )
 
 
@@ -933,7 +1391,7 @@ class TestMicrosoftLinkMap(unittest.TestCase):
  0003:00025f0c       ?initialized@?1??__acrt_initialize_multibyte@@9@4_NA 00000001400c9f0c     libucrt:mbctype.obj
  0006:00000060       $R000000                   00000001400d1060     * linker generated manifest res *
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives,
             {"libucrt.lib", "simdjson.lib", "quick-lint-js-lib.lib"},
@@ -949,7 +1407,7 @@ src/libquick-lint-js-lib.a(vscode.cpp.o)
 /home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libc++-noexcept.a(new.o)
 /home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libstandalonewasm.a(standalone.o)
 """
-        link_map = parse_link_map(raw_link_map)
+        link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives,
             {
@@ -1028,12 +1486,14 @@ Download URL: https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0
 Download date: August 25, 2020
 Version: 1.74.0
 """
-        projects = parse_vendor_readme_txt(readme_txt)
+        vendor_dir = pathlib.Path(".")
+        projects = parse_vendor_readme_txt(readme_txt, vendor_directory=vendor_dir)
         self.assertEqual(
             projects,
             [
                 VendorReadmeProject(
                     project_name="benchmark",
+                    vendor_directory=vendor_dir,
                     properties={
                         "Copyright": "Copyright 2015 Google Inc. All rights reserved.",
                         "Version": "v1.5.1",
@@ -1041,6 +1501,7 @@ Version: 1.74.0
                 ),
                 VendorReadmeProject(
                     project_name="boost",
+                    vendor_directory=vendor_dir,
                     properties={
                         "Download URL": "https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2",
                         "Download date": "August 25, 2020",

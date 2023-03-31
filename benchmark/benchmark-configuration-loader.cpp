@@ -2,16 +2,17 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <quick-lint-js/basic-configuration-filesystem.h>
-#include <quick-lint-js/configuration-loader.h>
-#include <quick-lint-js/file.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/options.h>
-#include <quick-lint-js/temporary-directory.h>
+#include <quick-lint-js/cli/options.h>
+#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/temporary-directory.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 
 namespace quick_lint_js {
 namespace {
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_no_config_file(::benchmark::State& state) {
   int extra_depth = narrow_cast<int>(state.range(0));
   std::string temp_dir = make_temporary_directory();
@@ -19,10 +20,10 @@ void benchmark_no_config_file(::benchmark::State& state) {
   std::string path = temp_dir;
   for (int i = 0; i < extra_depth; ++i) {
     path += "/subdir" + std::to_string(i);
-    create_directory(path);
+    create_directory_or_exit(path);
   }
   path += "/hello.js";
-  write_file(path, u8"");
+  write_file_or_exit(path, u8"");
 
   for (auto _ : state) {
     configuration_loader loader(basic_configuration_filesystem::instance());
@@ -38,8 +39,9 @@ BENCHMARK(benchmark_no_config_file)
     ->Arg(32)
     ->Arg(48)
     ->Arg(64);
-}  // namespace
-}  // namespace quick_lint_js
+#endif
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

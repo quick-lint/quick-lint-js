@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/utf-8.h>
 
 namespace quick_lint_js {
 namespace {
@@ -19,8 +19,8 @@ string8 repeat(string8_view s, int count) {
 void benchmark_advance_lsp_characters_in_utf_8(::benchmark::State& state,
                                                string8_view input) {
   padded_string padded_input(input);
-  int total_character_count = narrow_cast<int>(
-      count_lsp_characters_in_utf_8(&padded_input, padded_input.size()));
+  int total_character_count = narrow_cast<int>(count_lsp_characters_in_utf_8(
+      &padded_input, narrow_cast<int>(padded_input.size())));
   // Avoid count==size optimizations:
   int characters_to_count = total_character_count - 1;
 
@@ -50,8 +50,8 @@ BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, small_japanese,
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, large_japanese,
                   repeat(u8"こんにちは"_sv, 1024));
 // TODO(strager): Mixed Japanese and ASCII.
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -6,7 +6,7 @@
 
 #include <array>
 #include <cstddef>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <type_traits>
 #include <utility>
 
@@ -18,6 +18,11 @@ template <class... Args>
 inline constexpr auto make_array(Args&&... items) {
   using item_type = std::common_type_t<Args...>;
   return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
+}
+
+template <class T, class... Args>
+inline constexpr auto make_array_explicit(Args&&... items) {
+  return std::array<T, sizeof...(items)>{T(std::forward<Args>(items))...};
 }
 
 template <class T, std::size_t LHSSize, std::size_t RHSSize,

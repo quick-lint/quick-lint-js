@@ -1,11 +1,14 @@
+<!---{
+"title": "Install quick-lint-js for VSCodium",
+"description": "Install quick-lint-js's VSCodium extension"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `Install
-    quick-lint-js for VSCodium`, description: `Install quick-lint-js's VSCodium
-    extension` }) %>
+    <%- await include("../../common-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -21,42 +24,14 @@
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../open-vsx.svg"
-          alt=""
-          title="Open VSX"
-          width="29"
-          height="29"
-        />
+        <qljs-icon name="open-vsx" size="29" />
         Install for VSCodium
       </h2>
       <p>
         Supported operating systems:
-        <img
-          class="os-logo"
-          src="../../linux.svg"
-          alt="GNU/Linux"
-          title="GNU/Linux"
-          width="19"
-          height="19"
-        />
-        <img
-          class="os-logo"
-          src="../../macos.svg"
-          alt="macOS"
-          title="macOS"
-          width="19"
-          height="19"
-        />
-        <img
-          class="os-logo"
-          src="../../windows.svg"
-          alt="Windows"
-          title="Windows"
-          width="19"
-          height="19"
-        />
+        <qljs-content-icon name="linux" size="19" />
+        <qljs-content-icon name="macos" size="19" />
+        <qljs-content-icon name="windows" size="19" />
       </p>
 
       <p>quick-lint-js has a VSCodium extension on the Open VSX registry.</p>
@@ -89,14 +64,8 @@
       </ol>
       <p>
         <a href="../vscode/"
-          ><img
-            class="install-logo"
-            src="../../vscode.png"
-            alt=""
-            width="19"
-            height="19"
-          />
-          Visual Studio Code instructions</a
+          ><qljs-icon name="vscode" size="19" /> Visual Studio Code
+          instructions</a
         >
       </p>
     </main>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- This work is licensed under a Creative Commons Attribution-ShareAlike 4.0
+     International License. http://creativecommons.org/licenses/by-sa/4.0/ -->
+
+<!-- HACK(strager): The component type should really be "console-application",
+     but Pop!_Shop doesn't show packages with that component type. -->
+<component type="desktop-application">
+  <id>com.quick_lint.quick_lint_js</id>
+
+  <name>quick-lint-js</name>
+  <summary>Find bugs in JavaScript programs</summary>
+  <project_license>GPL-3.0-or-later</project_license>
+  <url type="homepage">https://quick-lint-js.com/</url>
+  <description>
+    <p>
+      quick-lint-js gives you instant feedback as you code. Find bugs in your JavaScript before your finger leaves the keyboard. Lint any JavaScript file with no configuration.
+    </p>
+  </description>
+
+  <metadata_license>CC-BY-SA-4.0</metadata_license>
+  <update_contact>strager.nds@gmail.com</update_contact>
+
+  <icon type="stock">com.quick_lint.quick_lint_js</icon>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Kate running with quick-lint-js</caption>
+      <image>https://quick-lint-js.com/install/kate/quick-lint-js-in-kate.png</image>
+    </screenshot>
+  </screenshots>
+
+  <categories>
+    <category>Development</category>
+    <category>WebDevelopment</category>
+  </categories>
+
+  <provides>
+    <binary>quick-lint-js</binary>
+  </provides>
+
+  <!-- TODO(strager): Add <extends> for common IDEs with LSP support. -->
+  <!-- TODO(strager): Include <releases> derived from CHANGELOG.md. -->
+</component>

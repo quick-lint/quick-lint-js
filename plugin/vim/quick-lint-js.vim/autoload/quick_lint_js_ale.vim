@@ -4,6 +4,54 @@
 " quick-lint-js helper functions for ALE - Asynchronous Lint Engine.
 " https://github.com/dense-analysis/ale
 
+function! quick_lint_js_ale#init_variables() abort
+  call ale#Set('javascript_quick_lint_js_executable', 'quick-lint-js')
+  call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
+
+  call ale#Set('javascript_quick_lint_js_tracing_directory', '')
+
+  call ale#Set('javascript_quick_lint_js_experimental_typescript', v:false)
+endfunction
+
+function! quick_lint_js_ale#define_linter(filetype) abort
+  let l:enable_lsp_linter = v:true
+
+  if ale#Has('ale-2.4.0')
+    let l:linter_command_callback_key = 'command'
+    let l:linter_executable_callback_key = 'executable'
+    let l:linter_project_root_callback_key = 'project_root'
+  else
+    " The _callback variants are not supported since ALE v3.0.0. For details, see
+    " "Implement a uniform API for asynchronous processing for most ALE features":
+    " https://github.com/dense-analysis/ale/issues/2132
+    let l:linter_command_callback_key = 'command_callback'
+    let l:linter_executable_callback_key = 'executable_callback'
+    let l:linter_project_root_callback_key = 'project_root_callback'
+  endif
+
+  if l:enable_lsp_linter
+    call ale#linter#Define(a:filetype, {
+      \ 'aliases': ['quick-lint-js-lsp', 'quick_lint_js', 'quicklintjs'],
+      \ 'lsp': 'stdio',
+      \ 'name': 'quick-lint-js',
+      \ l:linter_command_callback_key: function('quick_lint_js_ale#get_lsp_command'),
+      \ l:linter_executable_callback_key: function('quick_lint_js_ale#get_executable'),
+      \ l:linter_project_root_callback_key: function('quick_lint_js_ale#get_lsp_project_root'),
+      \ 'lsp_config': function('quick_lint_js_ale#get_lsp_config'),
+    \ })
+  else
+    call ale#linter#Define(a:filetype, {
+      \ 'aliases': ['quick-lint-js-cli', 'quick_lint_js', 'quicklintjs'],
+      \ 'callback': function('quick_lint_js_ale#parse_command_output'),
+      \ 'name': 'quick-lint-js',
+      \ 'output_stream': 'stdout',
+      \ 'read_buffer': 0,
+      \ l:linter_command_callback_key: function('quick_lint_js_ale#get_command'),
+      \ l:linter_executable_callback_key: function('quick_lint_js_ale#get_executable'),
+    \ })
+  endif
+endfunction
+
 function! quick_lint_js_ale#get_command(buffer_number) abort
   let l:extra_options = ''
   if quick_lint_js_ale#is_buffer_associated_with_file(a:buffer_number)
@@ -38,6 +86,12 @@ endfunction
 
 function! quick_lint_js_ale#get_lsp_project_root(_buffer_number) abort
   return '/'
+endfunction
+
+function! quick_lint_js_ale#get_lsp_config(_buffer_number) abort
+  return {
+    \ 'quick-lint-js.tracing-directory': g:ale_javascript_quick_lint_js_tracing_directory,
+  \ }
 endfunction
 
 function! quick_lint_js_ale#is_buffer_associated_with_file(buffer_number) abort

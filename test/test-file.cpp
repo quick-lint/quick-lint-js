@@ -18,20 +18,24 @@
 #include <iostream>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/filesystem-test.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/pipe.h>
-#include <quick-lint-js/result.h>
-#include <quick-lint-js/string-view.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/pipe.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <stdlib.h>
 #include <string>
 #include <thread>
 #include <type_traits>
 #include <vector>
+
+#if QLJS_HAVE_WINDOWS_H
+#include <quick-lint-js/port/windows.h>
+#endif
 
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
@@ -49,22 +53,22 @@ class test_file : public ::testing::Test, protected filesystem_test {};
 
 TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, u8"hello\nworld!\n");
+  write_file_or_exit(temp_file_path, u8"hello\nworld!\n"_sv);
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
+  EXPECT_EQ(*file_content, u8"hello\nworld!\n"_sv);
 }
 
 TEST_F(test_file, read_empty_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, u8"");
+  write_file_or_exit(temp_file_path, u8""_sv);
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8""));
+  EXPECT_EQ(*file_content, u8""_sv);
 }
 
 TEST_F(test_file, read_non_existing_file) {
@@ -76,8 +80,13 @@ TEST_F(test_file, read_non_existing_file) {
   EXPECT_FALSE(file_content.ok());
   EXPECT_TRUE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr("does-not-exist.js"));
-  EXPECT_THAT(file_content.error().to_string(),
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(file_content.error().io_error.error, ENOENT);
+#elif QLJS_HAVE_WINDOWS_H
+  EXPECT_EQ(file_content.error().io_error.error, ERROR_FILE_NOT_FOUND);
+#else
+#error "Unknown platform"
+#endif
 }
 
 TEST_F(test_file, read_directory) {
@@ -88,12 +97,13 @@ TEST_F(test_file, read_directory) {
   EXPECT_FALSE(file_content.ok());
   EXPECT_FALSE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr(temp_file_path));
-  EXPECT_THAT(
-      file_content.error().to_string(),
-      testing::AnyOf(
-          HasSubstr("Is a directory"),
-          HasSubstr("Access is denied")  // TODO(strager): Improve this message.
-          ));
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(file_content.error().io_error.error, EISDIR);
+#elif QLJS_HAVE_WINDOWS_H
+  EXPECT_EQ(file_content.error().io_error.error, ERROR_ACCESS_DENIED);
+#else
+#error "Unknown platform"
+#endif
 }
 
 #if QLJS_HAVE_MKFIFO
@@ -102,12 +112,12 @@ TEST_F(test_file, read_fifo) {
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
-      [&]() { write_file(temp_file_path, u8"hello from fifo"); });
+      [&]() { write_file_or_exit(temp_file_path, u8"hello from fifo"_sv); });
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -116,12 +126,13 @@ TEST_F(test_file, read_empty_fifo) {
   std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
-  std::thread writer_thread([&]() { write_file(temp_file_path, u8""); });
+  std::thread writer_thread(
+      [&]() { write_file_or_exit(temp_file_path, u8""_sv); });
 
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8""));
+  EXPECT_EQ(*file_content, u8""_sv);
 
   writer_thread.join();
 }
@@ -154,7 +165,7 @@ TEST_F(test_file, read_fifo_multiple_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -165,11 +176,8 @@ TEST_F(test_file, read_pipe_multiple_writes) {
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
-    std::optional<int> bytes_written =
-        pipe.writer.write(message, narrow_cast<int>(message_size));
-    ASSERT_TRUE(bytes_written.has_value())
-        << pipe.writer.get_last_error_message();
-    EXPECT_EQ(*bytes_written, message_size);
+    auto write_result = pipe.writer.write_full(message, message_size);
+    ASSERT_TRUE(write_result.ok()) << write_result.error_to_string();
   };
   std::thread writer_thread([&]() {
     write_message("hello");
@@ -184,7 +192,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+  EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
 
   writer_thread.join();
 }
@@ -197,11 +205,8 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
-    std::optional<int> bytes_written =
-        pipe.writer.write(message, narrow_cast<int>(message_size));
-    ASSERT_TRUE(bytes_written.has_value())
-        << pipe.writer.get_last_error_message();
-    EXPECT_EQ(*bytes_written, message_size);
+    auto write_result = pipe.writer.write_full(message, message_size);
+    ASSERT_TRUE(write_result.ok()) << write_result.error_to_string();
   };
   std::thread writer_thread([&]() {
     write_message("");
@@ -218,7 +223,7 @@ TEST_F(test_file, read_pipe_empty_writes) {
   result<padded_string, read_file_io_error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
-  EXPECT_EQ(*file_content, string8_view(u8"helloworld"));
+  EXPECT_EQ(*file_content, u8"helloworld"_sv);
 
   writer_thread.join();
 }

@@ -1,6 +1,10 @@
-# CMake build directory. Created by instructions in docs/BUILDING.md and
-# plugin/vscode/BUILDING.md.
+# CMake build directory. Created by instructions in
+# website/public/contribute/build-from-source/... and plugin/vscode/BUILDING.md.
+/build-tools/
 /build/
 
 # Nix symlink. Created by instructions in docs/BUILDING.md.
 /result
+
+# Created by clangd after the project has been analyzed.
+/.cache/

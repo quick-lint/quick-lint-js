@@ -1,0 +1,188 @@
+<!---{
+"title": "Building quick-lint-js from source",
+"navTitle": "Build"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2><%= meta.title %></h2>
+
+      <h3>For contributors</h3>
+
+      <p>quick-lint-js contributors should use the CMake meta build system.</p>
+
+      <p>Recommended process:</p>
+
+      <ol>
+        <li>Run CMake to create a build directory containing project files.</li>
+        <li>Run your build tool to compile quick-lint-js and its tests.</li>
+        <li>Run quick-lint-js' tests directly.</li>
+      </ol>
+
+      <p>
+        The exact commands you need to run differs depending on your preferred
+        development environment and build tool:
+      </p>
+
+      <ul>
+        <li>
+          <a href="linux/"><qljs-icon name="linux" size="19" /> Linux</a>
+        </li>
+        <li>
+          <a href="macos/"><qljs-icon name="macos" size="19" /> macOS</a>
+        </li>
+        <li>
+          <a href="windows/"><qljs-icon name="windows" size="19" /> Windows</a>
+        </li>
+        <li>
+          <a href="nix/"><qljs-icon name="nix" size="19" /> Nix</a>
+        </li>
+      </ul>
+
+      <p>
+        If you are cross-compiling, see
+        <a href="cross-compiling/">how to cross-compile quick-lint-js</a>.
+      </p>
+
+      <section id="single-command-build">
+        <h3>Single-command build (not recommended)</h3>
+
+        <p>
+          If you want to quickly compile quick-lint-js to try it out, and don't
+          want to install CMake or Ninja, run the following commands (macOS and
+          Linux only):
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>c++ -o quick-lint-js -std=gnu++17 -I src -I vendor/boost -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/quick-lint-js/*.cpp src/quick-lint-js/*/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c vendor/simdjson/src/simdjson.cpp -pthread</kbd></span>
+<kbd>./quick-lint-js <var>path/to/my-file.js</var></kbd></code></pre>
+        </blockquote>
+      </section>
+
+      <section id="requirements">
+        <h3>Build requirements</h3>
+
+        <p>All of the following are required:</p>
+        <dl>
+          <dt>CMake</dt>
+          <dd>Version 3.10.2 or newer (per Ubuntu 18.04 LTS Bionic)</dd>
+          <dt>C++ compiler</dt>
+          <dd>See below</dd>
+        </dl>
+
+        <h4>Supported compilers</h4>
+        <p>
+          quick-lint-js is written in C++17/C++20 and thus requires a compatible
+          compiler. One of the following is required:
+        </p>
+        <dl>
+          <dt>GCC</dt>
+          <dd>Version 8.3.0 or newer (per Debian 10 Buster)</dd>
+          <dt>Clang</dt>
+          <dd>Version 9 or newer</dd>
+          <dt>MSVC</dt>
+          <dd>Version 14.30 (Visual Studio 2022) or newer</dd>
+          <dt>Emscripten</dt>
+          <dd>emsdk version 2.0.4 or newer</dd>
+        </dl>
+        <p>(Older versions may work.)</p>
+
+        <h4>Supported operating systems</h4>
+        <p>One of the following is required:</p>
+        <ul>
+          <li>Linux: Arch Linux</li>
+          <li>Linux: Debian 10 Buster (and newer)</li>
+          <li>Linux: Fedora 35 (and newer)</li>
+          <li>Linux: Ubuntu 18.04 LTS Bionic (and newer)</li>
+          <li>macOS: macOS Big Sur 11.7.4</li>
+          <li>Windows: Windows 10</li>
+        </ul>
+        <p>(Older versions may work.)</p>
+
+        <h4>Optional dependencies</h4>
+        <p>Each of the following are optional:</p>
+        <dl>
+          <dt>Boost Container</dt>
+          <dd>
+            Vendored by default; use your own version by setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake variable to
+            <code>NO</code>
+          </dd>
+          <dt>Boost JSON</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Boost JSON</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Google Benchmark</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>Google Test</dt>
+          <dd>
+            Vendored by default; used only for testing; use your own version by
+            setting the <code>QUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST</code> CMake
+            variable to <code>NO</code>
+          </dd>
+          <dt>simdjson</dt>
+          <dd>
+            Vendored by default; use your own version by setting the
+            <code>QUICK_LINT_JS_USE_BUNDLED_SIMDJSON</code> CMake variable to
+            <code>NO</code>
+          </dd>
+          <dt>Python</dt>
+          <dd>Version 3.7 or newer</dd>
+          <dt>clang-format</dt>
+          <dd>
+            Used only during development; see the
+            <a href="../coding-standards/">coding standards and style guide</a>
+          </dd>
+          <dt>GNU gettext</dt>
+          <dd>Used only during development</dd>
+          <dt>Go</dt>
+          <dd>Version 1.16 or newer; used only during development</dd>
+        </dl>
+      </section>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

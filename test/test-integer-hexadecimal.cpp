@@ -4,250 +4,214 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/gtest.h>
-#include <quick-lint-js/integer.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/integer.h>
+#include <string_view>
 #include <system_error>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 QLJS_WARNING_IGNORE_GCC("-Wtype-limits")
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 namespace {
-using test_integer_from_chars_hexadecimal_types =
+using test_parse_integer_exact_hexadecimal_types =
     ::testing::Types<char32_t, std::uint8_t>;
 
 template <class T>
-class test_integer_from_chars_hexadecimal : public ::testing::Test {};
-TYPED_TEST_SUITE(test_integer_from_chars_hexadecimal,
-                 test_integer_from_chars_hexadecimal_types,
+class test_parse_integer_exact_hexadecimal : public ::testing::Test {};
+TYPED_TEST_SUITE(test_parse_integer_exact_hexadecimal,
+                 test_parse_integer_exact_hexadecimal_types,
                  ::testing::internal::DefaultNameGenerator);
 
-TYPED_TEST(test_integer_from_chars_hexadecimal, common_integers) {
+TYPED_TEST(test_parse_integer_exact_hexadecimal, common_integers) {
   {
     TypeParam number;
-    const char *input = "0";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("0"sv, number);
     EXPECT_EQ(number, 0);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 
   {
     TypeParam number;
-    const char *input = "12";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("12"sv, number);
     EXPECT_EQ(number, 0x12);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 
   {
     TypeParam number;
-    const char *input = "ab";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("ab"sv, number);
     EXPECT_EQ(number, 0xab);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 
   {
     TypeParam number;
-    const char *input = "AB";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("AB"sv, number);
     EXPECT_EQ(number, 0xab);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal,
+TYPED_TEST(test_parse_integer_exact_hexadecimal,
            negative_integers_are_disallowed) {
   if constexpr (std::is_unsigned_v<TypeParam>) {
     TypeParam number = 42;
-    const char *input = "-12";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(result.ptr, input);
-    EXPECT_EQ(result.ec, std::errc::invalid_argument);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("-12"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal, minimum_integer) {
+TYPED_TEST(test_parse_integer_exact_hexadecimal, minimum_integer) {
   if constexpr (std::is_unsigned_v<TypeParam>) {
     static_assert(std::numeric_limits<TypeParam>::min() == 0);
     TypeParam number;
-    const char *input = "0";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("0"sv, number);
     EXPECT_EQ(number, 0);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
   }
 }
 
-TEST(test_integer_from_chars_hexadecimal_char32_t, maximum_integer) {
+TEST(test_parse_integer_exact_hexadecimal_char32_t, maximum_integer) {
   static_assert(std::numeric_limits<char32_t>::max() == 4294967295LL);
   char32_t number;
-  const char *input = "ffffffff";
-  from_chars_result result =
-      from_chars_hex(input, input + std::strlen(input), number);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("ffffffff"sv, number);
   EXPECT_EQ(number, 4294967295LL);
-  EXPECT_EQ(result.ptr, input + std::strlen(input));
-  EXPECT_EQ(result.ec, std::errc{0});
+  EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
 }
 
-TEST(test_integer_from_chars_hexadecimal_uint8_t, maximum_integer) {
+TEST(test_parse_integer_exact_hexadecimal_uint8_t, maximum_integer) {
   static_assert(std::numeric_limits<std::uint8_t>::max() == 255);
   std::uint8_t number;
-  const char *input = "ff";
-  from_chars_result result =
-      from_chars_hex(input, input + std::strlen(input), number);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("ff"sv, number);
   EXPECT_EQ(number, 255);
-  EXPECT_EQ(result.ptr, input + std::strlen(input));
-  EXPECT_EQ(result.ec, std::errc{0});
+  EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
 }
 
-TEST(test_integer_from_chars_hexadecimal_char32_t, over_maximum_integer) {
+TEST(test_parse_integer_exact_hexadecimal_char32_t, over_maximum_integer) {
   static_assert(std::numeric_limits<char32_t>::max() < 4294967296LL);
   char32_t number = 42;
-  const char *input = "100000000";
-  from_chars_result result =
-      from_chars_hex(input, input + std::strlen(input), number);
-  EXPECT_EQ(result.ptr, input + std::strlen(input));
-  EXPECT_EQ(result.ec, std::errc::result_out_of_range);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("100000000"sv, number);
+  EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 
-TEST(test_integer_from_chars_hexadecimal_uint8_t, over_maximum_integer) {
+TEST(test_parse_integer_exact_hexadecimal_uint8_t, over_maximum_integer) {
   static_assert(std::numeric_limits<std::uint8_t>::max() < 256);
   std::uint8_t number = 42;
-  const char *input = "100";
-  from_chars_result result =
-      from_chars_hex(input, input + std::strlen(input), number);
-  EXPECT_EQ(result.ptr, input + std::strlen(input));
-  EXPECT_EQ(result.ec, std::errc::result_out_of_range);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("100"sv, number);
+  EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal, over_maximum_integer) {
+TYPED_TEST(test_parse_integer_exact_hexadecimal, over_maximum_integer) {
   TypeParam number = 42;
-  const char *input = "fffffffffffffffffff";
-  from_chars_result result =
-      from_chars_hex(input, input + std::strlen(input), number);
-  EXPECT_EQ(result.ptr, input + std::strlen(input));
-  EXPECT_EQ(result.ec, std::errc::result_out_of_range);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("fffffffffffffffffff"sv, number);
+  EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal,
+TYPED_TEST(test_parse_integer_exact_hexadecimal,
            extra_characters_after_are_not_parsed) {
   {
-    TypeParam number;
-    const char *input = "1fgh";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(number, 0x1f);
-    EXPECT_EQ(result.ptr, &input[2]);
-    EXPECT_EQ(result.ec, std::errc{0});
-  }
-
-  {
-    TypeParam number;
-    const char *input = "ab   ";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(number, 0xab);
-    EXPECT_EQ(result.ptr, &input[2]);
-    EXPECT_EQ(result.ec, std::errc{0});
-  }
-}
-
-TYPED_TEST(test_integer_from_chars_hexadecimal, extra_characters_before) {
-  {
     TypeParam number = 42;
-    const char *input = "  123";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(result.ptr, input);
-    EXPECT_EQ(result.ec, std::errc{std::errc::invalid_argument});
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("1fgh"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number = 42;
-    const char *input = "--123";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(result.ptr, input);
-    EXPECT_EQ(result.ec, std::errc{std::errc::invalid_argument});
-    EXPECT_EQ(number, 42) << "number should be unmodified";
-  }
-
-  {
-    TypeParam number = 42;
-    const char *input = "+123";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(result.ptr, input);
-    EXPECT_EQ(result.ec, std::errc{std::errc::invalid_argument});
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("ab   "sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal, radix_prefix_is_not_special) {
+TYPED_TEST(test_parse_integer_exact_hexadecimal, extra_characters_before) {
   {
-    TypeParam number;
-    const char *input = "0x123a";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(number, 0);
-    EXPECT_EQ(result.ptr, &input[1]);
-    EXPECT_EQ(result.ec, std::errc{0});
+    TypeParam number = 42;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("  123"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  {
+    TypeParam number = 42;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("--123"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  {
+    TypeParam number = 42;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("+123"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+}
+
+TYPED_TEST(test_parse_integer_exact_hexadecimal, radix_prefix_is_not_special) {
+  {
+    TypeParam number = 42;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("0x123a"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid)
+        << "'x' is not a hex character";
+    EXPECT_EQ(number, 42) << "number should be unmodified";
+  }
+
+  {
+    TypeParam number = 42;
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("0X123a"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid)
+        << "'X' is not a hex character";
+    EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number;
-    const char *input = "0X123a";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(number, 0);
-    EXPECT_EQ(result.ptr, &input[1]);
-    EXPECT_EQ(result.ec, std::errc{0});
-  }
-
-  {
-    TypeParam number;
-    const char *input = "077";
-    from_chars_result result =
-        from_chars_hex(input, input + std::strlen(input), number);
+    parse_integer_exact_error parse_error =
+        parse_integer_exact_hex("077"sv, number);
+    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
     EXPECT_EQ(number, 0x77);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
   }
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal,
+TYPED_TEST(test_parse_integer_exact_hexadecimal,
            empty_input_string_is_unrecognized) {
   TypeParam number = 42;
-  const char *input = "";
-  from_chars_result result = from_chars_hex(input, input, number);
-  EXPECT_EQ(result.ptr, input);
-  EXPECT_EQ(result.ec, std::errc::invalid_argument);
+  parse_integer_exact_error parse_error = parse_integer_exact_hex(""sv, number);
+  EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 
-TYPED_TEST(test_integer_from_chars_hexadecimal,
+TYPED_TEST(test_parse_integer_exact_hexadecimal,
            minus_sign_without_digits_is_unrecognized) {
   TypeParam number = 42;
-  const char *input = "- 1";
-  from_chars_result result = from_chars_hex(input, input, number);
-  EXPECT_EQ(result.ptr, input);
-  EXPECT_EQ(result.ec, std::errc::invalid_argument);
+  parse_integer_exact_error parse_error =
+      parse_integer_exact_hex("- 1"sv, number);
+  EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 }

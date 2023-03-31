@@ -1,11 +1,14 @@
+<!---{
+"title": "JS linter benchmarks",
+"description": "quick-lint-js is faster than any other JavaScript linter."
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html", { title: `JS linter
-    benchmarks`, description: `quick-lint-js is faster than any other JavaScript
-    linter.` }) %>
+    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let fs = await import("fs");
@@ -21,6 +24,7 @@
         "vscode-eslint-vanilla": {hue: 70.0, name: "ESLint"},
         "vscode-eslint-typescript": {hue: 80.0, name: "ESLint + TypeScript plugin"},
         RSLint: {hue: 120.0},
+        Rome: {hue: 160.0},
         Flow: {hue: 180.0},
         Deno: {hue: 240.0},
         "Deno-nolint": {hue: 260.0, name: "Deno (no linting)"},
@@ -28,7 +32,7 @@
         "TypeScript-JSX": {hue: 330.0, name: "TypeScript (JSX parser)"},
       };
 
-      let versions = JSON.parse(fs.readFileSync("full-change-wait-express-router-js.json", "utf-8")).metadata;
+      let versions = JSON.parse(fs.readFileSync(absoluteFilePath("full-change-wait-express-router-js.json"), "utf-8")).metadata;
       //%>
     </script>
     <link href="../main.css" rel="stylesheet" />
@@ -86,31 +90,34 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-express-router-js.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("incremental-change-wait-express-router-js.json"),
         seriesOptions)); %>
-        <h3>Setup (untimed)</h3>
-        <ol>
-          <li>Start the LSP server.</li>
-          <li>Wait for initialization to finish.</li>
-          <li>
-            Open one document with contents from
-            <a
-              href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
-              >express-router.js</a
-            >.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+        <details>
+          <summary><h3>Benchmark details</h3></summary>
+          <h4>Setup (untimed)</h4>
+          <ol>
+            <li>Start the LSP server.</li>
+            <li>Wait for initialization to finish.</li>
+            <li>
+              Open one document with contents from
+              <a
+                href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
+                >express-router.js</a
+              >.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
 
-        <h3>Work (timed)</h3>
-        <p>Repeat the following steps <var>N</var> times:</p>
-        <ol>
-          <li>
-            Change a few characters in the document, sending small deltas in an
-            LSP message.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+          <h4>Work (timed)</h4>
+          <p>Repeat the following steps <var>N</var> times:</p>
+          <ol>
+            <li>
+              Change a few characters in the document, sending small deltas in
+              an LSP message.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
+        </details>
       </article>
 
       <article
@@ -131,31 +138,34 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-react-quickly-ch10-jsx.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("incremental-change-wait-react-quickly-ch10-jsx.json"),
         seriesOptions)); %>
-        <h3>Setup (untimed)</h3>
-        <ol>
-          <li>Start the LSP server.</li>
-          <li>Wait for initialization to finish.</li>
-          <li>
-            Open one document with contents from
-            <a
-              href="https://github.com/azat-co/react/blob/03f39f4fe5dffcc72fc9cfc4d7a984d9f4b2aa75/ch10/nile/app.jsx"
-              >react-quickly-ch10.jsx</a
-            >.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+        <details>
+          <summary><h3>Benchmark details</h3></summary>
+          <h4>Setup (untimed)</h4>
+          <ol>
+            <li>Start the LSP server.</li>
+            <li>Wait for initialization to finish.</li>
+            <li>
+              Open one document with contents from
+              <a
+                href="https://github.com/azat-co/react/blob/03f39f4fe5dffcc72fc9cfc4d7a984d9f4b2aa75/ch10/nile/app.jsx"
+                >react-quickly-ch10.jsx</a
+              >.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
 
-        <h3>Work (timed)</h3>
-        <p>Repeat the following steps <var>N</var> times:</p>
-        <ol>
-          <li>
-            Add or remove a few characters in the document, sending small deltas
-            in an LSP message.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+          <h4>Work (timed)</h4>
+          <p>Repeat the following steps <var>N</var> times:</p>
+          <ol>
+            <li>
+              Add or remove a few characters in the document, sending small
+              deltas in an LSP message.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
+        </details>
       </article>
 
       <article class="benchmark" id="full-change-wait-express-router-js">
@@ -175,31 +185,34 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("full-change-wait-express-router-js.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON(absoluteFilePath("full-change-wait-express-router-js.json"),
         seriesOptions)); %>
-        <h3>Setup (untimed)</h3>
-        <ol>
-          <li>Start the LSP server.</li>
-          <li>Wait for initialization to finish.</li>
-          <li>
-            Open one document with contents from
-            <a
-              href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
-              >express-router.js</a
-            >.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+        <details>
+          <summary><h3>Benchmark details</h3></summary>
+          <h4>Setup (untimed)</h4>
+          <ol>
+            <li>Start the LSP server.</li>
+            <li>Wait for initialization to finish.</li>
+            <li>
+              Open one document with contents from
+              <a
+                href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
+                >express-router.js</a
+              >.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
 
-        <h3>Work (timed)</h3>
-        <p>Repeat the following steps <var>N</var> times:</p>
-        <ol>
-          <li>
-            Change a few characters in the document, sending the entire new
-            document in an LSP message.
-          </li>
-          <li>Wait for diagnostics.</li>
-        </ol>
+          <h4>Work (timed)</h4>
+          <p>Repeat the following steps <var>N</var> times:</p>
+          <ol>
+            <li>
+              Change a few characters in the document, sending the entire new
+              document in an LSP message.
+            </li>
+            <li>Wait for diagnostics.</li>
+          </ol>
+        </details>
       </article>
 
       <article id="methodology">
@@ -211,8 +224,13 @@
             version <%= versions["quick-lint-js"]["version"] %> (Debian package)
           </li>
           <li>
+            <strong class="linter-name" style="--hue: 160">Rome</strong>
+            version 9be13cac83320929a949&shy;201ca462015d5a446dbc (with rustc
+            version 1.61.1)
+          </li>
+          <li>
             <strong class="linter-name" style="--hue: 120">RSLint</strong>
-            version v0.3.0 (with rustc version 1.56.1)
+            version v0.3.2 (with rustc version 1.61.1)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 180">Flow</strong>
@@ -277,7 +295,7 @@
         <p>
           Deno's LSP server (and thus its Visual Studio Code extension)
           <a
-            href="https://github.com/denoland/deno/blob/80a9a37df1607c4713538c422309801e25024bff/cli/lsp/diagnostics.rs#L148-L151"
+            href="https://github.com/denoland/deno/blob/5b26a4a30e67b56232dd306b4735b759df9b16d1/cli/lsp/diagnostics.rs#L226-L229"
             >delays processing by 200 milliseconds</a
           >. This means that Deno appears to be much slower than it actually is,
           but this artificial latency does affect the editing experience.
@@ -287,12 +305,12 @@
           TypeScript's LSP server (but not its Visual Studio Code extension)
           delays processing by
           <a
-            href="https://github.com/typescript-language-server/typescript-language-server/blob/103f00c0d969bf00345ae9f5f8c2d1882c710a01/src/lsp-server.ts#L250"
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/468e663f11b187203de022491df673c0a5846c2c/src/lsp-server.ts#L365"
             >200 milliseconds</a
           >
           +
           <a
-            href="https://github.com/typescript-language-server/typescript-language-server/blob/103f00c0d969bf00345ae9f5f8c2d1882c710a01/src/diagnostic-queue.ts#L33"
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/468e663f11b187203de022491df673c0a5846c2c/src/diagnostic-queue.ts#L33"
             >50 milliseconds</a
           >. This means that TypeScript appears to be much slower than it
           actually is, but this artificial latency does affect the editing

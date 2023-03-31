@@ -6,29 +6,27 @@
 #else
 
 #include <array>
-#include <condition_variable>
 #include <cstddef>
 #include <cstring>
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <mutex>
-#include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/file.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe-writer.h>
-#include <quick-lint-js/pipe.h>
-#include <quick-lint-js/result.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/result.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/pipe-writer.h>
+#include <quick-lint-js/io/pipe.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
-using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using namespace std::literals::chrono_literals;
 
@@ -88,7 +86,7 @@ class pipe_reader_thread {
             if (read_result.at_end_of_file()) {
               return;
             } else {
-              std::unique_lock<std::mutex> lock(this->mutex_);
+              std::unique_lock<mutex> lock(this->mutex_);
               this->received_data.append(string8_view(
                   buffer.data(),
                   narrow_cast<std::size_t>(read_result.bytes_read())));
@@ -99,7 +97,7 @@ class pipe_reader_thread {
   }
 
   void wait_until_size(std::size_t expected_data_size) {
-    std::unique_lock<std::mutex> lock(this->mutex_);
+    std::unique_lock<mutex> lock(this->mutex_);
     this->data_received_.wait(
         lock, [&] { return this->received_data.size() >= expected_data_size; });
   }
@@ -110,8 +108,8 @@ class pipe_reader_thread {
   string8 received_data;
 
  private:
-  std::mutex mutex_;
-  std::condition_variable data_received_;
+  mutex mutex_;
+  condition_variable data_received_;
   std::future<void> receiving_thread_;
 };
 
@@ -136,11 +134,11 @@ TEST_F(test_pipe_writer, large_write_with_no_reader_does_not_block) {
 
 TEST_F(test_pipe_writer,
        multiple_small_messages_with_no_reader_does_not_block) {
-  this->writer.write(byte_buffer_of(u8"hello"));  // Shouldn't block.
-  this->writer.write(byte_buffer_of(u8", "));     // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"hello"_sv));  // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8", "_sv));     // Shouldn't block.
   std::this_thread::sleep_for(1ms);  // Attempt to expose a race condition.
-  this->writer.write(byte_buffer_of(u8"world"));  // Shouldn't block.
-  this->writer.write(byte_buffer_of(u8"!"));      // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"world"_sv));  // Shouldn't block.
+  this->writer.write(byte_buffer_of(u8"!"_sv));      // Shouldn't block.
   string8 expected_data = u8"hello, world!";
 
   pipe_reader_thread read_thread;

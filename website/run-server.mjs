@@ -1,58 +1,78 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import express from "express";
-import http from "http";
-import morgan from "morgan";
+import chokidar from "chokidar";
+import cluster from "cluster";
 import path from "path";
 import url from "url";
-import { listenAsync, urlFromServerAddress } from "./src/net.mjs";
-import { makeServer } from "./src/server.mjs";
-import { websiteConfig } from "./src/config.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
-let DEFAULT_PORT = 9001;
-
 async function mainAsync() {
-  let { host, port } = parseArguments(process.argv.slice(2));
+  if (cluster.isMaster) {
+    let activeWorker = null;
 
-  let app = express();
-  app.use(morgan("dev"));
-  app.use(makeServer(websiteConfig));
+    function makeNewWorker() {
+      if (activeWorker !== null) {
+        activeWorker.disconnect();
+      }
 
-  let server = http.createServer(app);
-  await listenAsync(server, { host: host, port: port });
-  console.log(`Server running: ${urlFromServerAddress(server.address())}`);
+      console.log("note: creating worker");
+      let worker = cluster.fork();
+      worker.on("disconnect", () => {
+        if (activeWorker === worker) {
+          console.error("error: worker disconnected; existing");
+          process.exit(1);
+        } else {
+          console.log("note: old worker disconnected");
+        }
+      });
+
+      activeWorker = worker;
+    }
+
+    // When any server code is updated, restart the server.
+    let websiteWatcher = await watchDirectoryAsync(__dirname, [
+      "**/*.js",
+      "**/*.mjs",
+      "**/*.cjs",
+      "**/*.wasm",
+    ]);
+    websiteWatcher.on("all", (_event, _path) => {
+      makeNewWorker();
+    });
+
+    // When a new error doc file is created, invalidate the routes in
+    // website/public/errors/index.mjs.
+    let docsWatcher = await watchDirectoryAsync(
+      path.join(__dirname, "..", "docs", "errors"),
+      ["**/*.md"]
+    );
+    docsWatcher.on("add", (_event, _path) => {
+      makeNewWorker();
+    });
+
+    makeNewWorker();
+  } else {
+    let workerModule = await import("./run-server-worker.mjs");
+    await workerModule.mainAsync();
+  }
 }
 
-function parseArguments(args) {
-  let host = "localhost";
-  let port = DEFAULT_PORT;
-  switch (args.length) {
-    case 0:
-      break;
-
-    case 1:
-      port = parseInt(args[0]);
-      if (isNaN(port)) {
-        throw new Error(`Expected port number, but got: ${args[0]}`);
-      }
-      break;
-
-    case 2:
-      host = args[0];
-      port = parseInt(args[1]);
-      if (isNaN(port)) {
-        throw new Error(`Expected port number, but got: ${args[1]}`);
-      }
-      break;
-
-    default:
-      throw new Error("Too many arguments; expected 0, 1, or 2");
-  }
-  return { host, port };
+function watchDirectoryAsync(directory, wildcards) {
+  return new Promise((resolve, _reject) => {
+    let watcher = chokidar.watch(wildcards, {
+      cwd: directory,
+    });
+    let watcherReady = false;
+    watcher.on("error", (error) => {
+      console.error(`warning: ${error}`);
+    });
+    watcher.on("ready", (event, path) => {
+      resolve(watcher);
+    });
+  });
 }
 
 mainAsync().catch((error) => {

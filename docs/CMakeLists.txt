@@ -12,6 +12,10 @@ install(
   FILES man/quick-lint-js.config.5
   DESTINATION "${CMAKE_INSTALL_MANDIR}/man5"
 )
+install(
+  FILES man/quick-lint-js-lsp.8
+  DESTINATION "${CMAKE_INSTALL_MANDIR}/man8"
+)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

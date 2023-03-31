@@ -5,14 +5,14 @@
 #include <cerrno>
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/filesystem-test.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/output-stream.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/output-stream.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
 #if QLJS_HAVE_FCNTL_H
@@ -29,50 +29,50 @@ namespace quick_lint_js {
 namespace {
 TEST(test_memory_output_stream, no_data_is_written_before_flush) {
   memory_output_stream s(/*buffer_size=*/1024);
-  s.append_copy(u8"hello world"sv);
-  EXPECT_EQ(s.get_flushed_string8(), u8""sv);
+  s.append_copy(u8"hello world"_sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8""_sv);
 }
 
 TEST(test_memory_output_stream, initial_append_copy) {
   memory_output_stream s(/*buffer_size=*/1024);
-  s.append_copy(u8"hello world"sv);
+  s.append_copy(u8"hello world"_sv);
   s.flush();
-  EXPECT_EQ(s.get_flushed_string8(), u8"hello world"sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8"hello world"_sv);
 }
 
 TEST(test_memory_output_stream, append_copy_multiple_times) {
   memory_output_stream s(/*buffer_size=*/1024);
-  s.append_copy(u8"hello"sv);
-  s.append_copy(u8" "sv);
-  s.append_copy(u8"world"sv);
+  s.append_copy(u8"hello"_sv);
+  s.append_copy(u8" "_sv);
+  s.append_copy(u8"world"_sv);
   s.flush();
-  EXPECT_EQ(s.get_flushed_string8(), u8"hello world"sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8"hello world"_sv);
 }
 
 TEST(test_memory_output_stream, append_copy_overflowing_buffer) {
   memory_output_stream s(/*buffer_size=*/16);
-  s.append_copy(u8"helloworld"sv);  // total written: 10
-  s.append_copy(u8"HELLOWORLD"sv);  // total written: 20
+  s.append_copy(u8"helloworld"_sv);  // total written: 10
+  s.append_copy(u8"HELLOWORLD"_sv);  // total written: 20
   s.flush();
-  EXPECT_EQ(s.get_flushed_string8(), u8"helloworldHELLOWORLD"sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8"helloworldHELLOWORLD"_sv);
 }
 
 TEST(test_memory_output_stream,
      append_copy_more_than_buffer_size_flushes_immediately) {
   memory_output_stream s(/*buffer_size=*/16);
-  s.append_copy(u8"the quick brown fox jumps over"sv);
+  s.append_copy(u8"the quick brown fox jumps over"_sv);
   // Omitted: s.flush();
-  EXPECT_EQ(s.get_flushed_string8(), u8"the quick brown fox jumps over"sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8"the quick brown fox jumps over"_sv);
 }
 
 TEST(test_memory_output_stream,
      append_copy_more_than_buffer_size_preserves_previous_data) {
   memory_output_stream s(/*buffer_size=*/16);
-  s.append_copy(u8"first "sv);
-  s.append_copy(u8"the quick brown fox jumps over"sv);
+  s.append_copy(u8"first "_sv);
+  s.append_copy(u8"the quick brown fox jumps over"_sv);
   // Omitted: s.flush();
   EXPECT_EQ(s.get_flushed_string8(),
-            u8"first the quick brown fox jumps over"sv);
+            u8"first the quick brown fox jumps over"_sv);
 }
 
 TEST(test_memory_output_stream, append_small_with_callback) {
@@ -88,7 +88,7 @@ TEST(test_memory_output_stream, append_small_with_callback) {
   });
   s.flush();
 
-  EXPECT_EQ(s.get_flushed_string8(), u8"abcdef"sv);
+  EXPECT_EQ(s.get_flushed_string8(), u8"abcdef"_sv);
 }
 
 TEST(test_memory_output_stream,
@@ -133,6 +133,10 @@ TEST(test_memory_output_stream, append_with_callback_more_than_buffer_size) {
   EXPECT_EQ(s.get_flushed_string8(), message_0);
 }
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 class test_file_output_stream : public ::testing::Test,
                                 public filesystem_test {};
 
@@ -144,13 +148,13 @@ TEST_F(test_file_output_stream, write_to_posix_file) {
   ASSERT_TRUE(file.valid()) << std::strerror(errno);
 
   file_output_stream s(file.ref(), /*buffer_size=*/1024);
-  s.append_copy(u8"hello world"sv);
+  s.append_copy(u8"hello world"_sv);
   s.flush();
 
   result<padded_string, read_file_io_error> contents =
       read_file(temp_file_path.c_str());
   ASSERT_TRUE(contents.ok()) << contents.error_to_string();
-  EXPECT_EQ(contents->string_view(), u8"hello world"sv);
+  EXPECT_EQ(contents->string_view(), u8"hello world"_sv);
 }
 
 TEST_F(test_file_output_stream, destructing_flushes_pending_data) {
@@ -161,21 +165,23 @@ TEST_F(test_file_output_stream, destructing_flushes_pending_data) {
 
   {
     file_output_stream s(file.ref(), /*buffer_size=*/1024);
-    s.append_copy(u8"hello world"sv);
+    s.append_copy(u8"hello world"_sv);
 
     result<padded_string, read_file_io_error> before_contents =
         read_file(temp_file_path.c_str());
     ASSERT_TRUE(before_contents.ok()) << before_contents.error_to_string();
-    EXPECT_EQ(before_contents->string_view(), u8""sv)
+    EXPECT_EQ(before_contents->string_view(), u8""_sv)
         << "data should be unwritten before closing";
   }
 
   result<padded_string, read_file_io_error> after_contents =
       read_file(temp_file_path.c_str());
   ASSERT_TRUE(after_contents.ok()) << after_contents.error_to_string();
-  EXPECT_EQ(after_contents->string_view(), u8"hello world"sv)
+  EXPECT_EQ(after_contents->string_view(), u8"hello world"_sv)
       << "data should be written after closing";
 }
+#endif
+
 #endif
 }
 }

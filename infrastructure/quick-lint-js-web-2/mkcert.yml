@@ -1,0 +1,101 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Create and install development HTTPS certificates
+  hosts: web
+  vars:
+    hostnames:
+      - admin.quick-lint-js.com
+      - c.quick-lint-js.com
+      - quick-lint-js.com
+      - quicklintjs.com
+      - www.quick-lint-js.com
+      - www.quicklintjs.com
+  tasks:
+    - name: Create dev-certificates directories
+      ansible.builtin.file:
+        path: dev-certificates/{{ item }}
+        state: directory
+      loop: "{{ hostnames }}"
+      delegate_to: localhost
+
+    - name: Install mkcert dependencies
+      ansible.builtin.apt:
+        name: libnss3-tools
+        state: present
+      become: true
+      delegate_to: localhost
+
+    - name: Download mkcert
+      ansible.builtin.get_url:
+        url: https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64
+        dest: dev-certificates/mkcert
+        checksum: sha256:6d31c65b03972c6dc4a14ab429f2928300518b26503f58723e532d1b0a3bbb52
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Add local hosts to hosts file
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ ansible_facts.default_ipv4.address }}\t{{ item }}.developer.app"
+      become: true
+      loop: "{{ hostnames }}"
+      delegate_to: localhost
+
+    - name: Install root certificates for user browsers
+      ansible.builtin.command:
+        cmd: dev-certificates/mkcert -install
+      delegate_to: localhost
+
+    - name: Create certificates
+      ansible.builtin.command:
+        cmd: "dev-certificates/mkcert -cert-file 'dev-certificates/{{ item }}/fullchain.pem' -key-file 'dev-certificates/{{ item }}/privkey.pem' {{ item }}.developer.app"
+        creates: "dev-certificates/{{ item }}/privkey.pem"
+      loop: "{{ hostnames }}"
+      delegate_to: localhost
+
+    - name: Create directories for certificates
+      ansible.builtin.file:
+        path: "/etc/letsencrypt/live/{{ item }}"
+        state: directory
+      become: true
+      loop: "{{ hostnames }}"
+
+    - name: Copy certificate chains
+      ansible.builtin.copy:
+        src: dev-certificates/{{ item }}/fullchain.pem
+        dest: /etc/letsencrypt/live/{{ item }}/fullchain.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+      loop: "{{ hostnames }}"
+
+    - name: Copy certificate private keys
+      ansible.builtin.copy:
+        src: dev-certificates/{{ item }}/privkey.pem
+        dest: /etc/letsencrypt/live/{{ item }}/privkey.pem
+        owner: root
+        group: root
+        mode: '0600'
+      become: true
+      loop: "{{ hostnames }}"
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

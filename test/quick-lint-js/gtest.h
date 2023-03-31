@@ -6,7 +6,7 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 #include <string_view>
 
 namespace testing::internal {

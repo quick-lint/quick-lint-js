@@ -3,27 +3,32 @@
 
 package main
 
-import "bytes"
 import "crypto/sha256"
-import "encoding/json"
 import "flag"
 import "fmt"
 import "io"
 import "log"
 import "os"
 import "regexp"
+import "text/template"
 import _ "embed"
 
-//go:embed quick-lint-js.json
+//go:embed quick-lint-js.template.json
 var TemplateManifestJSON []byte
 
 var BaseURI string
-var BaseURIRegexp *regexp.Regexp = regexp.MustCompile(`^https://c\.quick-lint-js\.com/(builds|releases)/[^/]+/`)
+var BaseURIRegexp *regexp.Regexp = regexp.MustCompile(`^https?://.*/$`)
 
 var x64ZIP string
 var x86ZIP string
 
 var OutPath string
+
+type TemplateVariables struct {
+	BaseURI        string
+	X64_ZIP_SHA256 string
+	X86_ZIP_SHA256 string
+}
 
 func main() {
 	flag.StringVar(&BaseURI, "BaseURI", "", "")
@@ -58,51 +63,38 @@ func main() {
 }
 
 func Main() error {
-	decoder := json.NewDecoder(bytes.NewReader(TemplateManifestJSON))
-	var manifest interface{}
-	if err := decoder.Decode(&manifest); err != nil {
-		return err
-	}
+	var err error
 
-	if err := ModifyManifest(manifest); err != nil {
-		return err
+	variables := TemplateVariables{
+		BaseURI: BaseURI,
 	}
-
-	outFile, err := os.Create(OutPath)
+	variables.X86_ZIP_SHA256, err = SHA256HashFile(x86ZIP)
 	if err != nil {
 		return err
 	}
-	defer outFile.Close()
-	encoder := json.NewEncoder(outFile)
-	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(&manifest); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ModifyManifest(manifest interface{}) error {
-	x86Hash, err := HashFile(x86ZIP)
-	if err != nil {
-		return err
-	}
-	x64Hash, err := HashFile(x64ZIP)
+	variables.X64_ZIP_SHA256, err = SHA256HashFile(x64ZIP)
 	if err != nil {
 		return err
 	}
 
-	architecture := manifest.(map[string]interface{})["architecture"].(map[string]interface{})
-	architecture32 := architecture["32bit"].(map[string]interface{})
-	architecture32["hash"] = x86Hash
-	architecture32["url"] = BaseURIRegexp.ReplaceAllLiteralString(architecture32["url"].(string), BaseURI)
-	architecture64 := architecture["64bit"].(map[string]interface{})
-	architecture64["hash"] = x64Hash
-	architecture64["url"] = BaseURIRegexp.ReplaceAllLiteralString(architecture64["url"].(string), BaseURI)
+	tmpl, err := template.New("quick-lint-js.template.js").Parse(string(TemplateManifestJSON))
+	if err != nil {
+		return err
+	}
+
+	outputFile, err := os.Create(OutPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+	if err := tmpl.Execute(outputFile, variables); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func HashFile(path string) (string, error) {
+func SHA256HashFile(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -112,7 +104,7 @@ func HashFile(path string) (string, error) {
 	if _, err := io.Copy(hasher, file); err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("sha256:%x", hasher.Sum(nil)), nil
+	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

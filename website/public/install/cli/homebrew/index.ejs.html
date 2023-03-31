@@ -1,54 +1,31 @@
+<!---{
+"title": "Install quick-lint-js CLI with Homebrew",
+"description": "Install quick-lint-js's CLI with Homebrew"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../../common-head.ejs.html", { title: `Install
-    quick-lint-js CLI with Homebrew`, description: `Install quick-lint-js's CLI
-    with Homebrew` }) %>
+    <%- await include("../../../common-head.ejs.html") %>
     <link href="../../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <header>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">CLI &amp; LSP server</a></li>
-          <li>Homebrew</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `Homebrew`})
+    %>
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../../gnome-terminal.svg"
-          alt=""
-          title="CLI and LSP server"
-          width="29"
-          height="29"
-        /><img
-          class="os-logo"
-          src="../../../homebrew.svg"
-          alt=""
-          title="Homebrew"
-          width="29"
-          height="29"
+        <qljs-icon name="cli-and-lsp-server" size="29" /><qljs-icon
+          name="homebrew"
+          size="29"
         />
         Install CLI and LSP server on macOS with Homebrew
       </h2>
       <p>
         Supported operating systems:
-        <img
-          class="os-logo"
-          src="../../../macos.svg"
-          alt="macOS"
-          title="macOS"
-          width="19"
-          height="19"
-        />
+        <qljs-content-icon name="macos" size="19" />
       </p>
       <p>
         quick-lint-js has a Homebrew formula, making it easy to install the CLI

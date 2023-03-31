@@ -1,0 +1,1013 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="313"
+    viewBox="0 0 362 313"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">Linux: <tspan class='color-3-of-3'>custom Clang</tspan> is fastest toolchain</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="77.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-inside-bar bar-label-small"
+                    width="253.96318868269069"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-inside-bar bar-label-small"
+                    width="13.19183242898282"
+                    height="0.75"
+                    x="308.4331675710172"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="307.6831675710172"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="321.625"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="56">GCC</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="360.0"
+                    y="56">5291ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-inside-bar bar-label-small"
+                    width="135.19755308653595"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-inside-bar bar-label-small"
+                    width="6.252397978765862"
+                    height="0.75"
+                    x="191.47022559044703"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="190.72022559044703"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="197.72262356921289"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="68">Ubuntu Clang libc++</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="360.0"
+                    y="68">2817ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="137.87471765204444"
+                    height="10"
+                    x="60"
+                    y="72" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="8.411258492668255"
+                    height="0.75"
+                    x="193.60541480440386"
+                    y="76.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="192.85541480440386"
+                    y="75.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="202.01667329707212"
+                    y="75.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="80">Ubuntu Clang libstdc++</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="360.0"
+                    y="80">2873ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="101.03329045919234"
+                    height="10"
+                    x="60"
+                    y="84" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="4.037473733411924"
+                    height="0.75"
+                    x="158.4043814430423"
+                    y="88.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="157.6543814430423"
+                    y="87.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="162.44185517645423"
+                    y="87.0" />
+
+                <text
+                    class="bar-label color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="92">My Clang libc++</text>
+                <text
+                    class="bar-value color-3-of-3 emphasize-bar bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="360.0"
+                    y="92">2105ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="89.94474215825569"
+                    height="10"
+                    x="60"
+                    y="96" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="5.372025648858381"
+                    height="0.75"
+                    x="147.05683797023713"
+                    y="100.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="146.30683797023713"
+                    y="99.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    width="0.75"
+                    height="4.0"
+                    x="152.42886361909552"
+                    y="99.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    x="63"
+                    y="104">My Clang libstdc++</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade emphasize-bar bar-label-inside-bar bar-label-small"
+                    text-anchor="end"
+                    x="360.0"
+                    y="104">1874ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="144.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-outside-bar"
+                    width="152.2676840242034"
+                    height="10"
+                    x="60"
+                    y="115" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="8.493916616116762"
+                    height="0.75"
+                    x="207.85495003638164"
+                    y="119.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="207.10495003638164"
+                    y="118.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="216.3488666524984"
+                    y="118.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-outside-bar"
+                    x="259.7238666524984"
+                    y="123">GCC</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="254.7238666524984"
+                    y="123">3173ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-outside-bar"
+                    width="77.47796546879695"
+                    height="10"
+                    x="60"
+                    y="127" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="4.367428026841493"
+                    height="0.75"
+                    x="134.6456625793266"
+                    y="131.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="133.8956625793266"
+                    y="130.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="139.0130906061681"
+                    y="130.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-outside-bar"
+                    x="259.7238666524984"
+                    y="135">Ubuntu Clang libc++</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="254.7238666524984"
+                    y="135">1615ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="76.19458022120503"
+                    height="10"
+                    x="60"
+                    y="139" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="4.762035229655629"
+                    height="0.75"
+                    x="133.89453429142634"
+                    y="143.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="133.14453429142634"
+                    y="142.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="138.65656952108196"
+                    y="142.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="259.7238666524984"
+                    y="147">Ubuntu Clang libstdc++</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="254.7238666524984"
+                    y="147">1588ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="55.49645474314547"
+                    height="10"
+                    x="60"
+                    y="151" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="3.6698483353728317"
+                    height="0.75"
+                    x="113.05488656552862"
+                    y="155.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="112.30488656552862"
+                    y="154.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="116.72473490090144"
+                    y="154.0" />
+
+                <text
+                    class="bar-label color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    x="259.7238666524984"
+                    y="159">My Clang libc++</text>
+                <text
+                    class="bar-value color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="254.7238666524984"
+                    y="159">1157ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="51.85879842759162"
+                    height="10"
+                    x="60"
+                    y="163" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="3.2258458353510364"
+                    height="0.75"
+                    x="110.22741970949494"
+                    y="167.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="109.47741970949494"
+                    y="166.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="113.45326554484598"
+                    y="166.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    x="259.7238666524984"
+                    y="171">My Clang libstdc++</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="254.7238666524984"
+                    y="171">1081ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="211.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-outside-bar"
+                    width="37.54062210424177"
+                    height="10"
+                    x="60"
+                    y="182" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.5258535275008676"
+                    height="0.75"
+                    x="97.37277232110549"
+                    y="186.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="96.62277232110549"
+                    y="185.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="97.89862584860636"
+                    y="185.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-outside-bar"
+                    x="141.27362584860634"
+                    y="190">GCC</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.27362584860634"
+                    y="190">783ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-outside-bar"
+                    width="25.827307241863572"
+                    height="10"
+                    x="60"
+                    y="194" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.7823214586001306"
+                    height="0.75"
+                    x="85.65346037516339"
+                    y="198.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="84.90346037516339"
+                    y="197.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="86.43578183376351"
+                    y="197.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-outside-bar"
+                    x="141.27362584860634"
+                    y="202">Ubuntu Clang libc++</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.27362584860634"
+                    y="202">539ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="33.10748257774452"
+                    height="10"
+                    x="60"
+                    y="206" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="1.3119539427233202"
+                    height="0.75"
+                    x="92.35282432851577"
+                    y="210.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="91.60282432851577"
+                    y="209.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="93.6647782712391"
+                    y="209.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="141.27362584860634"
+                    y="214">Ubuntu Clang libstdc++</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.27362584860634"
+                    y="214">690ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="19.793019604705545"
+                    height="10"
+                    x="60"
+                    y="218" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.09754419702784389"
+                    height="0.75"
+                    x="79.78977660051619"
+                    y="222.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="79.03977660051619"
+                    y="221.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="79.88732079754404"
+                    y="221.0" />
+
+                <text
+                    class="bar-label color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    x="141.27362584860634"
+                    y="226">My Clang libc++</text>
+                <text
+                    class="bar-value color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.27362584860634"
+                    y="226">413ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="24.047952934930006"
+                    height="10"
+                    x="60"
+                    y="230" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.7619388232147091"
+                    height="0.75"
+                    x="83.64241082025981"
+                    y="234.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="82.89241082025981"
+                    y="233.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="84.40434964347452"
+                    y="233.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    x="141.27362584860634"
+                    y="238">My Clang libstdc++</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.27362584860634"
+                    y="238">501ms</text>
+            
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="278.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-1-of-3 bar-label-outside-bar"
+                    width="38.291035168920956"
+                    height="10"
+                    x="60"
+                    y="249" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.8766097894876255"
+                    height="0.75"
+                    x="97.72296356812375"
+                    y="253.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="96.97296356812375"
+                    y="252.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="98.59957335761138"
+                    y="252.0" />
+
+                <text
+                    class="bar-label color-1-of-3 bar-label-outside-bar"
+                    x="141.97457335761138"
+                    y="257">GCC</text>
+                <text
+                    class="bar-value color-1-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.97457335761138"
+                    y="257">798ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 bar-label-outside-bar"
+                    width="23.131825751246723"
+                    height="10"
+                    x="60"
+                    y="261" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="1.4684503208421313"
+                    height="0.75"
+                    x="82.46980997420658"
+                    y="265.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="81.71980997420658"
+                    y="264.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="83.9382602950487"
+                    y="264.0" />
+
+                <text
+                    class="bar-label color-2-of-3 bar-label-outside-bar"
+                    x="141.97457335761138"
+                    y="269">Ubuntu Clang libc++</text>
+                <text
+                    class="bar-value color-2-of-3 bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.97457335761138"
+                    y="269">482ms</text>
+            
+                <rect
+                    class="bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="21.960346871031046"
+                    height="10"
+                    x="60"
+                    y="273" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.6991300005738417"
+                    height="0.75"
+                    x="81.70719236060486"
+                    y="277.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="80.95719236060486"
+                    y="276.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="82.40632236117871"
+                    y="276.0" />
+
+                <text
+                    class="bar-label color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    x="141.97457335761138"
+                    y="281">Ubuntu Clang libstdc++</text>
+                <text
+                    class="bar-value color-2-of-3 color-alternate-shade bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.97457335761138"
+                    y="281">458ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="18.62289308356894"
+                    height="10"
+                    x="60"
+                    y="285" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.39811848010454987"
+                    height="0.75"
+                    x="78.3997451688235"
+                    y="289.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="77.6497451688235"
+                    y="288.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="78.79786364892806"
+                    y="288.0" />
+
+                <text
+                    class="bar-label color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    x="141.97457335761138"
+                    y="293">My Clang libc++</text>
+                <text
+                    class="bar-value color-3-of-3 emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.97457335761138"
+                    y="293">388ms</text>
+            
+                <rect
+                    class="bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="17.1599812874199"
+                    height="10"
+                    x="60"
+                    y="297" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="1.2960212982210289"
+                    height="0.75"
+                    x="76.5250599197436"
+                    y="301.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="75.7750599197436"
+                    y="300.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="77.82108121796462"
+                    y="300.0" />
+
+                <text
+                    class="bar-label color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    x="141.97457335761138"
+                    y="305">My Clang libstdc++</text>
+                <text
+                    class="bar-value color-3-of-3 color-alternate-shade emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="136.97457335761138"
+                    y="305">358ms</text>
+            </svg>

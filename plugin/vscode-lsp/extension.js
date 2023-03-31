@@ -13,6 +13,7 @@ let toDispose = [];
 
 async function startOrRestartServerAsync() {
   await stopServerIfStartedAsync();
+
   client = new LanguageClient(
     clientID,
     "quick-lint-js-lsp",
@@ -26,9 +27,51 @@ async function startOrRestartServerAsync() {
         { language: "javascriptreact" },
         { language: "json" },
       ],
+      synchronize: {
+        configurationSection: "quick-lint-js-lsp",
+      },
+      middleware: {
+        workspace: {
+          async configuration(params, _token, _next) {
+            let vscodeConfig = getLatestWorkspaceConfig();
+            return params.items.map((item) =>
+              getLSPWorkspaceConfig(vscodeConfig, item)
+            );
+          },
+          async didChangeConfiguration(sections) {
+            return client.sendNotification("workspace/didChangeConfiguration", {
+              settings: getLSPWorkspaceFullConfig(),
+            });
+          },
+        },
+      },
     }
   );
   client.start();
+
+  function getQuickLintJSExecutablePath() {
+    let config = getLatestWorkspaceConfig();
+    let path = config["executablePath"];
+    let pathIsEmpty = /^\s*$/.test(path);
+    return pathIsEmpty ? "quick-lint-js" : path;
+  }
+
+  function getLSPWorkspaceConfig(vscodeConfig, lspConfigItem) {
+    switch (lspConfigItem.section) {
+      case "quick-lint-js.tracing-directory":
+        return vscodeConfig.get("tracing-directory");
+
+      default:
+        return null;
+    }
+  }
+
+  function getLSPWorkspaceFullConfig() {
+    let config = getLatestWorkspaceConfig();
+    return {
+      "quick-lint-js.tracing-directory": config.get("tracing-directory"),
+    };
+  }
 }
 
 async function stopServerIfStartedAsync() {
@@ -69,10 +112,8 @@ async function deactivateAsync() {
 }
 exports.deactivate = deactivateAsync;
 
-function getQuickLintJSExecutablePath() {
-  let path = vscode.workspace.getConfiguration(clientID)["executablePath"];
-  let pathIsEmpty = /^\s*$/.test(path);
-  return pathIsEmpty ? "quick-lint-js" : path;
+function getLatestWorkspaceConfig() {
+  return vscode.workspace.getConfiguration(clientID);
 }
 
 function logAsyncErrors(promise) {

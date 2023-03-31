@@ -1,0 +1,1811 @@
+<!---{
+"title": "Is coding in Rust as bad as in C++?",
+"description": "A practical comparison of build and test speed between C++ and Rust.",
+"navTitle": "C++ vs Rust",
+"image": "/blog/cpp-vs-rust-build-times/cpp-vs-rust.jpg",
+"blogDate": "2023-01-05T21:32:37-08:00"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      h3 {
+        border-top: 1px solid #ccc;
+        padding-top: 1rem;
+      }
+      h4 {
+        font-style: italic;
+      }
+
+      .subtitle {
+        font-style: italic;
+      }
+
+      aside {
+        padding: 0 1em;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        margin: 0 2em;
+        background-color: rgba(0, 0, 0, 0.05);
+        font-style: italic;
+      }
+      @media (prefers-color-scheme: dark) {
+        aside {
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      figure,
+      .project-size,
+      .profile-results {
+        border-collapse: collapse;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      figure {
+        text-align: center;
+      }
+      figure pre {
+        text-align: left;
+      }
+
+      figcaption,
+      .project-size caption,
+      .profile-results caption {
+        font-style: italic;
+        margin-bottom: 0.5em;
+      }
+
+      .project-size th,
+      .profile-results th {
+        text-align: left;
+      }
+      .project-size td,
+      .profile-results td {
+        text-align: right;
+      }
+
+      .project-size td,
+      .project-size th,
+      .profile-results td,
+      .profile-results th {
+        padding: 0.25em 0.5em;
+      }
+
+      .project-size tr.subtotal td,
+      .project-size tr.subtotal th {
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 0.5em;
+        color: #999933;
+      }
+      @media (prefers-color-scheme: dark) {
+        .project-size tr.subtotal td,
+        .project-size tr.subtotal th {
+          border-bottom-color: #000;
+          color: #e4e499;
+        }
+      }
+
+      .project-size .dependencies {
+        color: #aaa;
+      }
+      @media (prefers-color-scheme: dark) {
+        .project-size .dependencies {
+          color: #777;
+        }
+      }
+
+      .file-tree,
+      .file-tree ul {
+        text-align: left;
+        padding-left: 1.5em;
+      }
+
+      .file-tree .directory,
+      .file-tree .file {
+        list-style-type: none;
+      }
+      .file-tree .directory::before,
+      .file-tree .file::before {
+        background-size: contain;
+        content: "\0202f";
+        display: inline-block;
+        height: 1em;
+        margin-left: -1.25em;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: absolute;
+        width: 1em;
+      }
+
+      .file-tree .cargo-toml-file::before {
+        background-image: url(../../rust-cargo.png);
+      }
+      .file-tree .directory::before {
+        background-image: url(../../blue-folder.svg);
+      }
+      .file-tree .rs-file::before {
+        background-image: url(../../rust-crab.svg);
+      }
+
+      .layouts {
+        align-items: stretch;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .layouts > figure {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+      }
+      .layouts > figure {
+        border-left: 2px solid #666;
+      }
+      .layouts > figure:first-child {
+        border-left-width: 0;
+      }
+
+      .layouts figcaption {
+        font-style: normal;
+        font-weight: bold;
+      }
+
+      code.cargo-tree mark {
+        text-decoration: none;
+      }
+
+      dd {
+        margin-bottom: 0.5em;
+      }
+
+      .color-1-of-2 {
+        color: #933;
+      }
+      .color-2-of-2 {
+        color: #339;
+      }
+      @media (prefers-color-scheme: dark) {
+        .color-1-of-2 {
+          color: #d55;
+        }
+        .color-2-of-2 {
+          color: #67d;
+        }
+      }
+    </style>
+
+    <script>
+            //<%
+              let projectSizesRows = [
+                {name: "src", cpp: 9338, rust: 9488},
+                {name: "test", cpp: 7271, rust: 7583},
+                {name: "subtotal", cpp: 16630, rust: 17071, classes: "subtotal"},
+              ];
+
+              let scaledProjectSizesRows = [
+                {name: "1x", cpp: 16630, rust: 17071},
+                {name: "8x", cpp: 52295, rust: 43657},
+                {name: "16x", cpp: 93055, rust: 74041},
+                {name: "24x", cpp: 133815, rust: 104425},
+              ];
+
+              function formatNumber(x) {
+                return x.toLocaleString('en-US');
+              }
+
+              function formatNumberDelta(x) {
+                let s = formatNumber(x);
+                if (x >= 0) {
+                  s = `+${s}`;
+                }
+                return s;
+              }
+
+              // 0.1234 => "+12.3%"
+              function formatPercentDelta(x) {
+                let decimalDigits = Math.abs(x) < 1 ? 1 : 0;
+                let s = (Math.round(x * 100 * 10) / 10).toFixed(decimalDigits) + "%";
+                if (x >= 0) {
+                  s = `+${s}`;
+                }
+                return s;
+              }
+
+      // 1234 => "1.2k"
+              function formatNumberK(x) {
+                return (Math.round(x / 1000 * 10) / 10).toFixed(1) + "k";
+              }
+
+      // 1234 => "+1.2k"
+              function formatNumberDeltaK(x) {
+                let s = (Math.round(x / 1000 * 10) / 10).toFixed(1) + "k";
+                if (x >= 0) {
+                  s = `+${s}`;
+                }
+                return s;
+              }
+
+            let {InlineSpriteSheet} = await importFileAsync("../../../src/sprite-sheet.mjs");
+
+            let spriteSheet = new InlineSpriteSheet({symbolIDPrefix: "sprites-"});
+            let twitterPoll = spriteSheet.addSVG(absoluteFilePath("twitter-poll.svg"));
+
+            let charts = {
+              rustLinuxLinker: spriteSheet.addSVG(absoluteFilePath("rust-linux-linker.svg")),
+              rustMacOSLinker: spriteSheet.addSVG(absoluteFilePath("rust-macos-linker.svg")),
+              craneliftVSLLVM: spriteSheet.addSVG(absoluteFilePath("cranelift-vs-llvm.svg")),
+              optimizedRustcFlags: spriteSheet.addSVG(absoluteFilePath("optimized-rustc-flags.svg")),
+              rustLayoutsFull: spriteSheet.addSVG(absoluteFilePath("rust-layouts-full.svg")),
+              rustLayoutsIncremental: spriteSheet.addSVG(absoluteFilePath("rust-layouts-incremental.svg")),
+              rustCrateFeatures: spriteSheet.addSVG(absoluteFilePath("rust-crate-features.svg")),
+              cargoNextestLinux: spriteSheet.addSVG(absoluteFilePath("cargo-nextest-linux.svg")),
+              cargoNextestMacOS: spriteSheet.addSVG(absoluteFilePath("cargo-nextest-macos.svg")),
+              rustToolchain: spriteSheet.addSVG(absoluteFilePath("rust-toolchain.svg")),
+              cppToolchainsLinux: spriteSheet.addSVG(absoluteFilePath("cpp-toolchains-linux.svg")),
+              cppToolchainsMacOS: spriteSheet.addSVG(absoluteFilePath("cpp-toolchains-macos.svg")),
+              cppVSRustLinux: spriteSheet.addSVG(absoluteFilePath("cpp-vs-rust-linux.svg")),
+              cppVSRustMacOS: spriteSheet.addSVG(absoluteFilePath("cpp-vs-rust-macos.svg")),
+              cppVSRustScaleFull: spriteSheet.addSVG(absoluteFilePath("cpp-vs-rust-scale-full.svg")),
+              cppVSRustScaleIncremental: spriteSheet.addSVG(absoluteFilePath("cpp-vs-rust-scale-incremental.svg")),
+            };
+            let chartWidth = 600;
+
+            //%>
+    </script>
+  </head>
+  <body>
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>Is coding in Rust as bad as in C++?</h2>
+      <p class="subtitle">
+        A practical comparison of build and test speed between C++ and Rust.
+      </p>
+
+      <p>
+        Written by <a href="https://strager.net/">strager</a> on
+        <qljs-date datetime="<%= meta.blogDate %>" />
+      </p>
+
+      <p>
+        Update (<time>2023-01-07</time>): bjorn3 found an issue with my
+        <a href="#optimizing-rust-with-cranelift">Cranelift benchmarks</a>.
+      </p>
+
+      <p>
+        C++ is notorious for its slow build times. &ldquo;My code's
+        compiling&rdquo; is a meme in the programming world, and C++ keeps this
+        joke alive.
+      </p>
+
+      <figure>
+        <img
+          src="xkcd-303-compiling-cropped.png"
+          width="382"
+          height="220"
+          style="width: 384px; border: 1px solid black"
+          alt='"Hey! Get back to work!" "(sword fighting with colleague) Compiling!" "Oh. Carry on."'
+          title="You were expecting some clever hover text? Too bad."
+        />
+        <figcaption>
+          <a href="https://xkcd.com/303/"
+            >&ldquo;Compiling&rdquo; by Randall Munroe</a
+          >, edited, CC BY-NC 2.5
+        </figcaption>
+      </figure>
+
+      <p>
+        Projects like Google Chromium take
+        <a
+          href="https://textslashplain.com/2020/02/02/my-new-chromium-build-pc/"
+          >an hour to build</a
+        >
+        on brand new hardware and
+        <a
+          href="https://randomascii.wordpress.com/2020/03/30/big-project-build-times-chromium/"
+          >6 hours to build</a
+        >
+        on older hardware. There are tons of
+        <a
+          href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/windows_build_instructions.md#Faster-builds"
+          >documented tweaks</a
+        >
+        to make builds faster, and
+        <a
+          href="https://chromium.googlesource.com/playground/chromium-org-site/+/refs/heads/main/chromium-os/build/improving-build-times.md"
+          >error-prone shortcuts</a
+        >
+        to compile less stuff. Even with thousands of dollars of cloud
+        computational power, Chromium build times are still on the order of half
+        a dozen minutes. This is completely unacceptable to me. How can people
+        work like this every day?
+      </p>
+
+      <p>
+        I've heard the same thing about Rust: build times are a huge problem.
+        But is it <em>really</em> a problem in Rust, or is this anti-Rust
+        propaganda? How does it compare to C++'s build time problem?
+      </p>
+
+      <p>
+        I deeply care about build speed and runtime performance. Fast build-test
+        cycles make me a productive, happy programmer, and I bend over backwards
+        to make my software fast so my customers are happy too. So I decided to
+        see for myself whether Rust build times were as bad as they claim. Here
+        is the plan:
+      </p>
+      <ol>
+        <li>Find an open source C++ project.</li>
+        <li>Isolate part of the project into its own mini project.</li>
+        <li>Rewrite the C++ code line-by-line into Rust.</li>
+        <li>
+          Optimize the build for both the C++ project and the Rust project.
+        </li>
+        <li>Compare compile+test times between the two projects.</li>
+      </ol>
+
+      <p>My hypotheses (educated guesses, <strong>not conclusions</strong>):</p>
+      <ol class="paragraph-list">
+        <li>
+          <p>
+            The Rust port will have slightly fewer lines of code than the C++
+            version.
+          </p>
+          <p>
+            Most functions and methods need to be declared twice in C++ (one in
+            the header, and one in the implementation file). This isn't needed
+            in Rust, reducing the line count.
+          </p>
+        </li>
+
+        <li>
+          <p>
+            For full builds, C++ will take longer to compile than Rust (i.e.
+            Rust wins).
+          </p>
+
+          <p>
+            This is because of C++'s <code>#include</code> feature and C++
+            templates, which need to be compiled once per .cpp file. This
+            compilation is done in parallel, but parallelism is imperfect.
+            <li>
+              <p>
+                For incremental builds, Rust will take longer to compile than
+                C++ (i.e. C++ wins).
+              </p>
+              <p>
+                This is because Rust compiles one crate at a time, rather than
+                one file at a time like in C++, so Rust has to look at more code
+                after each small change.
+              </p>
+            </li>
+          </p>
+        </li>
+      </ol>
+
+      <%- await spriteSheet.makeInlineHTMLAsync() %>
+
+      <p>
+        What do you think? I polled my audience to get their opinion:
+        <figure>
+          <%- twitterPoll.makeReferenceHTML({ width: 510, height: 352, style:
+          'border-radius: 5px; box-shadow: rgba(0, 0, 0, 0.8) 0 5px 10px;' }) %>
+          <figcaption>my poll on Twitter</figcaption>
+        </figure>
+      </p>
+
+      <p>
+        42% of people think that C++ will win the race.<br />
+        35% of people agree with me that &ldquo;it depends&trade;&rdquo;.<br />
+        And 17% of people think Rust will prove us all wrong.
+      </p>
+
+      <p>
+        Check out the
+        <a href="#optimizing-rust-build">optimizing Rust build times</a> section
+        if just want to make your Rust project build faster.
+      </p>
+
+      <p>
+        Check out the
+        <a href="#build-time-comparison">C++ vs Rust build times</a> section if
+        you just want the C++ vs Rust comparisons.
+      </p>
+
+      <p>Let's get started!</p>
+
+      <h3 id="porting-cpp-to-rust">Making the C++ and Rust test subjects</h3>
+
+      <h4>Finding a project</h4>
+
+      <p>
+        If I'm going to spend a month rewriting code, what code should I port? I
+        decided on a few criteria:
+      </p>
+      <ul>
+        <li>Few or no third-party dependencies. (Standard library is okay.)</li>
+        <li>
+          Works on Linux and macOS. (I don't care much about build times on
+          Windows.)
+        </li>
+        <li>
+          Extensive test suite. (Without one, I wouldn't know if my Rust code
+          was correct.)
+        </li>
+        <li>
+          A little bit of everything: FFI; pointers; standard and custom
+          containers; utility classes and functions; I/O; concurrency; generics;
+          macros; SIMD; inheritance
+        </li>
+      </ul>
+
+      <p>
+        The choice is easy: port the project I've been working on for the past
+        couple of years! I'll port the JavaScript lexer in the
+        <a href="https://quick-lint-js.com/">quick-lint-js project</a>.
+
+        <figure>
+          <img
+            class="mascot"
+            src="../../dusty.svg"
+            alt=""
+            width="111"
+            height="86"
+            style="width: 200px"
+          />
+          <figcaption>Dusty, the quick-lint-js mascot</figcaption>
+        </figure>
+      </p>
+
+      <h4>Trimming the C++ code</h4>
+
+      <p>
+        The C++ portion of quick-lint-js contains over 100k
+        <abbr title="source lines of code, excluding blank lines and comments"
+          >SLOC</abbr
+        >. I'm not going to port <em>that</em> much code to Rust; that would
+        take me half a year! Let's instead focus on just the JavaScript lexer.
+        This pulls in other parts of the project:
+      </p>
+
+      <ul>
+        <li>Diagnostic system</li>
+        <li>Translation system (used for diagnostics)</li>
+        <li>
+          Various memory allocators and containers (e.g. bump allocator;
+          SIMD-friendly string)
+        </li>
+        <li>
+          Various utility functions (e.g. UTF-8 decoder; SIMD intrinsic
+          wrappers)
+        </li>
+        <li>Test helper code (e.g. custom assertion macros)</li>
+        <li>C API</li>
+      </ul>
+
+      <p>
+        Unfortunately, this subset doesn't include any concurrency or I/O. This
+        means I can't test the compile time overhead of Rust's
+        <code>async</code>/<code>await</code>. But that's a small part of
+        quick-lint-js, so I'm not too concerned.
+      </p>
+
+      <p>
+        I'll start the project by copying all the C++ code, then deleting code I
+        knew was not relevant to the lexer, such as the parser and LSP server. I
+        actually ended up deleting too much code and had to add some back in. I
+        kept trimming and trimming until I couldn't trim no more. Throughout the
+        process, I kept the C++ tests passing.
+      </p>
+
+      <p>
+        After stripping the quick-lint-js code down to the lexer (and everything
+        the lexer needs), I end up with about 17k SLOC of C++:
+      </p>
+
+      <table class="project-size">
+        <caption>
+          C++ project size
+        </caption>
+        <thead>
+          <tr>
+            <th></th>
+            <th>
+              C++
+              <abbr
+                title="source lines of code, excluding blank lines and comments"
+                >SLOC</abbr
+              >
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let row of projectSizesRows) { %>
+          <tr class="<%= row.classes || '' %>">
+            <th><%= row.name %></th>
+            <td>
+              <abbr title="<%= formatNumber(row.cpp) %>"
+                ><%= formatNumberK(row.cpp) %></abbr
+              >
+            </td>
+            <% } %>
+          </tr>
+        </tbody>
+
+        <tbody class="dependencies">
+          <tr>
+            <th><abbr title="dependency">dep</abbr>: Google Test</th>
+            <td>69.7k</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>The rewrite</h4>
+
+      <p>
+        How am I going to rewrite thousands of lines of messy C++ code? One file
+        at a time. Here's the process:
+      </p>
+
+      <ol>
+        <li>Find a good module to convert.</li>
+        <li>
+          Copy-paste the code and tests, search-replace to fix some syntax, then
+          keep running <tt>cargo test</tt> until the build and tests pass.
+        </li>
+        <li>
+          If it turns out I needed another module first, go to step 2 for that
+          needed module, then come back to this module.
+        </li>
+
+        <li>If I'm not done converting everything, go to step 1.</li>
+      </ol>
+
+      <aside>
+        <p>
+          In a future article, I will expand on the differences between Rust and
+          C++ that I discovered, and my opinions on the two.
+        </p>
+      </aside>
+
+      <p>
+        There is one major difference between the Rust and C++ projects which
+        might affect build times. In C++, the diagnostics system is implemented
+        with a lot of code generation, macros, and <code>constexpr</code>. In
+        the Rust port, I use code generation, proc macros, normal macros, and a
+        dash of <code>const</code>. I have heard claims that proc macros are
+        slow, and other claims that proc macros are only slow because they're
+        usually poorly written. I hope I did a good job with my proc macros. 🤞
+      </p>
+
+      <p>
+        The Rust project turns out to be slightly larger than the C++ project:
+        <strong>17.1k SLOC of Rust</strong> compared to 16.6k SLOC of C++:
+      </p>
+      <p></p>
+
+      <table class="project-size">
+        <caption>
+          Project sizes
+        </caption>
+        <thead>
+          <tr>
+            <th></th>
+            <th>
+              C++
+              <abbr
+                title="source lines of code, excluding blank lines and comments"
+                >SLOC</abbr
+              >
+            </th>
+            <th>Rust SLOC</th>
+            <th>C++ vs Rust SLOC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let row of projectSizesRows) { %>
+          <tr class="<%= row.classes || '' %>">
+            <th><%= row.name %></th>
+            <td>
+              <abbr title="<%= formatNumber(row.cpp) %>"
+                ><%= formatNumberK(row.cpp) %></abbr
+              >
+            </td>
+            <td>
+              <abbr title="<%= formatNumber(row.rust) %>"
+                ><%= formatNumberK(row.rust) %></abbr
+              >
+            </td>
+            <td>
+              <abbr title="<%= formatNumberDelta(row.rust - row.cpp) %>"
+                ><%= formatNumberDeltaK(row.rust - row.cpp) %></abbr
+              >
+              (<%= formatPercentDelta((row.rust - row.cpp) / row.cpp) %>)
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+        <tbody class="dependencies">
+          <tr>
+            <th><abbr title="dependency">dep</abbr>: Google Test</th>
+            <td>69.7k</td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>dep: autocfg</th>
+            <td></td>
+            <td>0.6k</td>
+          </tr>
+          <tr>
+            <th>dep: lazy_static</th>
+            <td></td>
+            <td>0.4k</td>
+          </tr>
+          <tr>
+            <th>dep: libc</th>
+            <td></td>
+            <td>88.6k</td>
+          </tr>
+          <tr>
+            <th>dep: memoffset</th>
+            <td></td>
+            <td>0.6k</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="optimizing-rust-build">Optimizing the Rust build</h3>
+
+      <p>
+        I care a lot about build times. Therefore, I had already optimized build
+        times for the C++ project (before trimming it down). I need to put in a
+        similar amount of effort into optimizing build times for the Rust
+        project.
+      </p>
+
+      <p>
+        Let's try these things which <em>might</em> improve Rust build times:
+      </p>
+      <ul>
+        <li><a href="#optimizing-rust-with-faster-linker">Faster linker</a></li>
+        <li><a href="#optimizing-rust-with-cranelift">Cranelift backend</a></li>
+        <li>
+          <a href="#optimizing-rust-with-flags">Compiler and linker flags</a>
+        </li>
+        <li>
+          <a href="#optimizing-rust-with-different-layouts"
+            >Different workspace and test layouts</a
+          >
+        </li>
+        <li>
+          <a href="#optimizing-rust-with-lighter-dependencies"
+            >Minimize dependency features</a
+          >
+        </li>
+        <li><a href="#optimizing-rust-with-cargo-nextest">cargo-nextest</a></li>
+        <li>
+          <a href="#optimizing-rust-with-custom-toolchain"
+            >Custom-built toolchain with PGO</a
+          >
+        </li>
+      </ul>
+
+      <h4 id="optimizing-rust-with-faster-linker">Faster linker</h4>
+
+      <p>
+        My first step is to profile the build. Let's first profile using the
+        <a
+          href="https://doc.rust-lang.org/beta/unstable-book/compiler-flags/self-profile.html"
+          ><tt>-Zself-profile</tt> rustc flag</a
+        >. In my project, this flag outputs two different files. In one of the
+        files, the <code>run_linker</code> phase stands out:
+      </p>
+
+      <table class="profile-results">
+        <caption>
+          <tt>-Zself-profile</tt>
+          results (round 1)
+        </caption>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Self time</th>
+            <th>% of total time</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <th>run_linker</th>
+            <td>129.20ms</td>
+            <td>60.326</td>
+          </tr>
+          <tr>
+            <th>LLVM_module_&shy;codegen_emit_obj</th>
+            <td>23.58ms</td>
+            <td>11.009</td>
+          </tr>
+          <tr>
+            <th>LLVM_passes</th>
+            <td>13.63ms</td>
+            <td>6.365</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        In the past, I successfully improved C++ build times by switching to the
+        <a href="https://github.com/rui314/mold">Mold linker</a>. Let's try it
+        with my Rust project:
+
+        <figure>
+          <%- charts.rustLinuxLinker.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/200) }) %>
+        </figure>
+      </p>
+
+      <aside>
+        <p>
+          See <a href="#appendix">the appendix</a> for details on the benchmarks
+          and charts.
+        </p>
+      </aside>
+
+      <p>Shame; the improvement, if any, is barely noticeable.</p>
+
+      <p>
+        That was Linux. macOS also has alternatives to the default linker: lld
+        and zld. Let's try those:
+
+        <figure>
+          <%- charts.rustMacOSLinker.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/260) }) %>
+        </figure>
+      </p>
+
+      <p>
+        On macOS, I also see little to no improvement by switching away from the
+        default linker. I suspect that the default linkers on Linux and macOS
+        are doing a good enough job with my small project. The optimized linkers
+        (Mold, lld, zld) shine for big projects.
+      </p>
+
+      <h4 id="optimizing-rust-with-cranelift">Cranelift backend</h4>
+
+      <p>
+        Let's look at the
+        <a
+          href="https://doc.rust-lang.org/beta/unstable-book/compiler-flags/self-profile.html"
+          ><tt>-Zself-profile</tt></a
+        >
+        profiles again. In another file, the
+        <code>LLVM_module_&shy;codegen_emit_obj</code> and
+        <code>LLVM_passes</code> phases stood out:
+      </p>
+
+      <table class="profile-results">
+        <caption>
+          <tt>-Zself-profile</tt>
+          results (round 2)
+        </caption>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Self time</th>
+            <th>% of total time</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <th>LLVM_module_&shy;codegen_emit_obj</th>
+            <td>171.83ms</td>
+            <td>24.274</td>
+          </tr>
+          <tr>
+            <th>typeck</th>
+            <td>57.50ms</td>
+            <td>8.123</td>
+          </tr>
+          <tr>
+            <th>eval_to_allocation_raw</th>
+            <td>54.56ms</td>
+            <td>7.708</td>
+          </tr>
+          <tr>
+            <th>LLVM_passes</th>
+            <td>50.03ms</td>
+            <td>7.068</td>
+          </tr>
+          <tr>
+            <th>codegen_module</th>
+            <td>40.58ms</td>
+            <td>5.733</td>
+          </tr>
+          <tr>
+            <th>mir_borrowck</th>
+            <td>36.94ms</td>
+            <td>5.218</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        I heard talk about alternative rustc backends to LLVM, namely Cranelift.
+        If I build with the
+        <a href="https://github.com/bjorn3/rustc_codegen_cranelift"
+          >rustc Cranelift backend</a
+        >, <tt>-Zself-profile</tt> looks promising:
+      </p>
+
+      <table class="profile-results">
+        <caption>
+          <tt>-Zself-profile</tt>
+          results (round 2, with Cranelift)
+        </caption>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Self time</th>
+            <th>% of total time</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <th>define function</th>
+            <td>69.21ms</td>
+            <td>12.307</td>
+          </tr>
+          <tr>
+            <th>typeck</th>
+            <td>57.94ms</td>
+            <td>10.303</td>
+          </tr>
+          <tr>
+            <th>eval_to_allocation_raw</th>
+            <td>55.77ms</td>
+            <td>9.917</td>
+          </tr>
+          <tr>
+            <th>mir_borrowck</th>
+            <td>37.44ms</td>
+            <td>6.657</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Unfortunately, actual build times are worse with Cranelift than with
+        LLVM:
+
+        <figure>
+          <%- charts.craneliftVSLLVM.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/200) }) %>
+        </figure>
+      </p>
+
+      <aside>
+        <p>
+          Update (<time>2023-01-07</time>): bjorn3&#x2014;maintainer of rustc's
+          Cranelift backend&#x2014;looked into why Cranelift was slow with my
+          project. It turns out that
+          <a
+            href="https://github.com/quick-lint/cpp-vs-rust/issues/1#issuecomment-1373674764"
+            >rustup overhead might be the cause</a
+          >. It's likely that Cranelift would be faster with a workaround
+          applied. The results above do not include any workarounds.
+        </p>
+      </aside>
+
+      <h4 id="optimizing-rust-with-flags">Compiler and linker flags</h4>
+
+      <p>
+        Compilers have a bunch of knobs to speed up builds (or slow them down).
+        Let's try a bunch:
+      </p>
+
+      <ul>
+        <li><tt>-Zshare-generics=y</tt> (rustc) (Nightly only)</li>
+        <li><tt>-Clink-args=-Wl,-s</tt> (rustc)</li>
+        <li><tt>debug = false</tt> (Cargo)</li>
+        <li><tt>debug-assertions = false</tt> (Cargo)</li>
+        <li>
+          <tt>incremental = true</tt> and <tt>incremental = false</tt> (Cargo)
+        </li>
+        <li><tt>overflow-checks = false</tt> (Cargo)</li>
+        <li><tt>panic = 'abort'</tt> (Cargo)</li>
+        <li><tt>lib.doctest = false</tt> (Cargo)</li>
+        <li><tt>lib.test = false</tt> (Cargo)</li>
+      </ul>
+
+      <figure>
+        <%- charts.optimizedRustcFlags.makeReferenceHTML({ width: chartWidth,
+        height: chartWidth / (362/265) }) %>
+      </figure>
+
+      <p>
+        Note: <i>quick, -Zshare-generics=y</i> is the same as
+        <i>quick, incremental=true</i> but with the
+        <tt>-Zshare-generics=y</tt> flag enabled. Other bars exclude
+        <tt>-Zshare-generics=y</tt> because that flag is not stable (thus
+        requires the nightly Rust compiler).
+      </p>
+
+      <p>
+        Most of these knobs are documented elsewhere, but I haven't seen anyone
+        mention linking with <tt>-s</tt>. <tt>-s</tt> strips debug info,
+        including debug info from the statically-linked Rust standard library.
+        This means the linker needs to do less work, reducing link times.
+      </p>
+
+      <h4 id="optimizing-rust-with-different-layouts">
+        Workspace and test layouts
+      </h4>
+
+      <p>
+        Rust and Cargo have some flexibility in how you place your files on
+        disk. For this project, there are three reasonable layouts:
+      </p>
+
+      <div class="layouts">
+        <figure>
+          <figcaption>single&nbsp;crate</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">lib.rs</li>
+                <li class="directory">
+                  fe/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  i18n/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  test/ (test helpers)
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  util/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+
+        <figure>
+          <figcaption>2&nbsp;crates</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">lib.rs</li>
+                <li class="directory">
+                  fe/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  i18n/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  util/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">[...].rs</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li class="directory">
+              libs/
+              <ul>
+                <li class="directory">
+                  test/ (test helpers)
+                  <ul>
+                    <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+                    <li class="directory">
+                      src/
+                      <ul>
+                        <li class="file rs-file">lib.rs</li>
+                        <li class="file rs-file">[...].rs</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+
+        <figure>
+          <figcaption>workspace</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              libs/
+              <ul>
+                <li class="directory">
+                  fe/
+                  <ul>
+                    <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+                    <li class="directory">
+                      src/
+                      <ul>
+                        <li class="file rs-file">lib.rs</li>
+                        <li class="file rs-file">[...].rs</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  i18n/
+                  <ul>
+                    <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+                    <li class="directory">
+                      src/
+                      <ul>
+                        <li class="file rs-file">lib.rs</li>
+                        <li class="file rs-file">[...].rs</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  test/ (test helpers)
+                  <ul>
+                    <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+                    <li class="directory">
+                      src/
+                      <ul>
+                        <li class="file rs-file">lib.rs</li>
+                        <li class="file rs-file">[...].rs</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li class="directory">
+                  util/
+                  <ul>
+                    <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+                    <li class="directory">
+                      src/
+                      <ul>
+                        <li class="file rs-file">lib.rs</li>
+                        <li class="file rs-file">[...].rs</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+      </div>
+
+      <p>
+        In theory, if you split your code into multiple crates, Cargo can
+        parallelize rustc invocations. Because I have a 32-thread CPU on my
+        Linux machine, and a 10-thread CPU on my macOS machine, I expect
+        unlocking parallelization to reduce build times.
+      </p>
+
+      <p>
+        For a given crate, there are also multiple places for your tests in a
+        Rust project:
+      </p>
+
+      <div class="layouts">
+        <figure>
+          <figcaption>many&nbsp;test&nbsp;exes</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">a.rs</li>
+                <li class="file rs-file">b.rs</li>
+                <li class="file rs-file">c.rs</li>
+                <li class="file rs-file">lib.rs</li>
+              </ul>
+            </li>
+            <li class="directory">
+              tests/
+              <ul>
+                <li class="file rs-file">test_a.rs</li>
+                <li class="file rs-file">test_b.rs</li>
+                <li class="file rs-file">test_c.rs</li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+
+        <figure>
+          <figcaption>1&nbsp;test&nbsp;exe</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">a.rs</li>
+                <li class="file rs-file">b.rs</li>
+                <li class="file rs-file">c.rs</li>
+                <li class="file rs-file">lib.rs</li>
+              </ul>
+            </li>
+            <li class="directory">
+              tests/
+              <ul>
+                <li class="file rs-file">test.rs</li>
+                <li class="directory">
+                  t/
+                  <ul>
+                    <li class="file rs-file">mod.rs</li>
+                    <li class="file rs-file">test_a.rs</li>
+                    <li class="file rs-file">test_b.rs</li>
+                    <li class="file rs-file">test_c.rs</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+
+        <figure>
+          <figcaption>tests&nbsp;in&nbsp;lib</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">a.rs</li>
+                <li class="file rs-file">b.rs</li>
+                <li class="file rs-file">c.rs</li>
+                <li class="file rs-file">lib.rs</li>
+                <li class="file rs-file">test_a.rs</li>
+                <li class="file rs-file">test_b.rs</li>
+                <li class="file rs-file">test_c.rs</li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+
+        <figure>
+          <figcaption>unittests</figcaption>
+          <ul class="file-tree">
+            <li class="file toml-file cargo-toml-file">Cargo.toml</li>
+            <li class="directory">
+              src/
+              <ul>
+                <li class="file rs-file">a.rs&nbsp;(+tests)</li>
+                <li class="file rs-file">b.rs&nbsp;(+tests)</li>
+                <li class="file rs-file">c.rs&nbsp;(+tests)</li>
+                <li class="file rs-file">lib.rs</li>
+              </ul>
+            </li>
+          </ul>
+        </figure>
+      </div>
+
+      <p>
+        Because of dependency cycles, I couldn't benchmark the
+        <i>tests inside src files</i> layout. But I did benchmark the other
+        layouts in some combinations:
+
+        <figure>
+          <%- charts.rustLayoutsFull.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/124) }) %>
+        </figure>
+
+        <figure>
+          <%- charts.rustLayoutsIncremental.makeReferenceHTML({ width:
+          chartWidth, height: chartWidth / (362/203) }) %>
+        </figure>
+      </p>
+
+      <p>
+        The <i>workspace</i> configurations (with either separate test
+        executables (<i>many test exes</i>) or one merged test executable (<i
+          >1 test exes</i
+        >)) seems to be the all-around winner. Let's stick with the
+        <i>workspace; many test exes</i> configuration from here onward.
+      </p>
+
+      <h4 id="optimizing-rust-with-lighter-dependencies">
+        Minimize dependency features
+      </h4>
+
+      <p>
+        Many crates support optional features. Sometimes, optional features are
+        enabled by default. Let's see what features are enabled using the
+        <tt>cargo tree</tt> command:
+
+        <figure style="width: 25em">
+          <pre><code class="cargo-tree">$ <kbd>cargo tree --edges features</kbd>
+cpp_vs_rust v0.1.0
+├── cpp_vs_rust_proc feature "default"
+│   └── cpp_vs_rust_proc v0.1.0 (proc-macro)
+├── lazy_static feature "default"
+│   └── lazy_static v1.4.0
+└── libc feature "default"
+    ├── libc v0.2.138
+    └── <mark>libc feature "std"</mark>
+        └── libc v0.2.138
+[dev-dependencies]
+└── memoffset feature "default"
+    └── memoffset v0.7.1
+        [build-dependencies]
+        └── autocfg feature "default"
+            └── autocfg v1.1.0</code></pre>
+        </figure>
+      </p>
+
+      <p>
+        The <code>libc</code> crate has a feature called <code>std</code>. Let's
+        turn it off, test it, and see if build times improve:
+
+        <figure style="width: 28em">
+          <figcaption>Cargo.toml</figcaption>
+          <pre class="diff"><code> [dependencies]
+<ins>libc = { version = "0.2.138", default-features = false }</ins>
+<del>libc = { version = "0.2.138" }</del></code></pre>
+        </figure>
+
+        <figure>
+          <%- charts.rustCrateFeatures.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/76) }) %>
+        </figure>
+      </p>
+
+      <p>
+        Build times aren't any better. Maybe the <code>std</code> feature
+        doesn't actually do anything meaningful? Oh well. On to the next tweak.
+      </p>
+
+      <h4 id="optimizing-rust-with-cargo-nextest">cargo-nextest</h4>
+
+      <p>
+        <a href="https://nexte.st/">cargo-nextest</a> is a tool which claims to
+        be &ldquo;up to 60% faster than cargo test.&rdquo;. My Rust code base is
+        44% tests, so maybe cargo-nextest is just what I need. Let's try it and
+        compare build+test times:
+
+        <figure>
+          <%- charts.cargoNextestLinux.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/231) }) %>
+        </figure>
+      </p>
+
+      <p>
+        On my Linux machine, cargo-nextest either doesn't help or makes things
+        worse. The output does look pretty, though...
+
+        <figure style="width: 40em">
+          <figcaption>sample cargo-nextest test output</figcaption>
+          <pre><font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>       cpp_vs_rust::test_locale</b></font> <font color="#268BD2"><b>no_match</b></font>
+<font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>    cpp_vs_rust::test_offset_of</b></font> <font color="#268BD2"><b>fields_have_different_offsets</b></font>
+<font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>    cpp_vs_rust::test_offset_of</b></font> <font color="#268BD2"><b>matches_memoffset_for_primitive_fields</b></font>
+<font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>cpp_vs_rust::test_padded_string</b></font> <font color="#268BD2"><b>as_slice_excludes_padding_bytes</b></font>
+<font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>    cpp_vs_rust::test_offset_of</b></font> <font color="#268BD2"><b>matches_memoffset_for_reference_fields</b></font>
+<font color="#859900"><b>PASS</b></font> [   0.004s] <font color="#D33682"><b>cpp_vs_rust::test_linked_vector</b></font> <font color="#268BD2"><b>push_seven</b></font></pre>
+        </figure>
+      </p>
+
+      <p>
+        How about on macOS?
+
+        <figure>
+          <%- charts.cargoNextestMacOS.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/231) }) %>
+        </figure>
+      </p>
+
+      <p>
+        cargo-nextest does slightly speed up builds+tests on my MacBook Pro. I
+        wonder why speedup is OS-dependent. Perhaps it's actually
+        hardware-dependent?
+      </p>
+
+      <p>
+        From here on, on macOS I will use cargo-nextest, but on Linux I will
+        not.
+      </p>
+
+      <h4 id="optimizing-rust-with-custom-toolchain">
+        Custom-built toolchain with PGO
+      </h4>
+
+      <p>
+        For C++ builds, I found that building the compiler myself with
+        profile-guided optimizations (PGO, also known as
+        <abbr title="feedback-directed optimizations">FDO</abbr>) gave
+        significant performance wins. Let's try PGO with the Rust toolchain.
+        Let's also try
+        <a
+          href="https://github.com/llvm/llvm-project/blob/4d3f26bbe6d53ec2cf9666b7ae73feba6f840eb8/bolt/README.md"
+          >LLVM BOLT</a
+        >
+        to further optimize rustc. And <code>-Ctarget-cpu=native</code> as well.
+
+        <figure>
+          <%- charts.rustToolchain.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/179) }) %>
+        </figure>
+      </p>
+
+      <aside>
+        <p>
+          Here is the
+          <a
+            href="https://github.com/quick-lint/cpp-vs-rust/blob/953429a4d92923ec030301e5b00face1c13bb92b/tools/build-toolchains.sh"
+            >toolchain build script</a
+          >
+          for anyone curious. It probably won't work on your machine, but it
+          works on mine, and that's all that matters to me.
+          <span style="font-style: normal">😜</span>
+        </p>
+      </aside>
+
+      <p>
+        Compared to C++ compilers, it looks like the Rust toolchain published
+        via rustup is already well-optimized. PGO+BOLT gave us less than a 10%
+        performance boost. But a perf win is a perf win, so let's use this
+        faster toolchain in the fight versus C++.
+      </p>
+
+      <p>
+        When I first tried building a custom Rust toolchain, it was slower than
+        Nightly by about 2%. I struggled for days to at least reach parity,
+        tweaking all sorts of knobs in the Rust <code>config.toml</code>, and
+        cross-checking Rust's CI build scripts with my own. As I was putting the
+        finishing touches on this article, I decided to
+        <code>rustup update</code>, <code>git pull</code>, and re-build the
+        toolchain from scratch. Then my custom toolchain was faster! I guess
+        this was what I needed; perhaps I was accidentally on the wrong commit
+        in the Rust repo. 🤷‍♀️
+      </p>
+
+      <h3 id="optimmizing-cpp-build">Optimizing the C++ build</h3>
+
+      <p>
+        When working on the original C++ project, quick-lint-js, I already
+        optimized build times using common techniques, such as using
+        <abbr title="precompiled headers">PCH</abbr>, disabling exceptions and
+        <abbr title="run-time type information">RTTI</abbr>, tweaking build
+        flags, removing unnecessary <code>#include</code>s, moving code out of
+        headers, and <code>extern</code>ing template instantiations. But there
+        are several C++ compilers and linkers to choose from. Let's compare them
+        and choose the best before I compare C++ with Rust:
+      </p>
+
+      <figure>
+        <%- charts.cppToolchainsLinux.makeReferenceHTML({ width: chartWidth,
+        height: chartWidth / (362/265) }) %>
+      </figure>
+
+      <p>
+        On Linux, GCC is a clear outlier. Clang fares much better. My
+        custom-built Clang (which is built with PGO and BOLT, like my custom
+        Rust toolchain) really improves build times compared to Ubuntu's Clang.
+        libstdc++ builds slightly faster on average than libc++. Let's use my
+        custom Clang with libstdc++ in my C++ vs Rust comparison.
+
+        <figure>
+          <%- charts.cppToolchainsMacOS.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/361) }) %>
+        </figure>
+      </p>
+
+      <p>
+        On macOS, the Clang toolchain which comes with Xcode seems to be
+        better-optimized than the Clang toolchain from LLVM's website. I'll use
+        the Xcode Clang for my C++ vs Rust comparison.
+      </p>
+
+      <h4>C++20 modules</h4>
+
+      <p>
+        My C++ code uses <code>#include</code>. But what about
+        <code>import</code> introduced in C++20? Aren't C++20 modules supposed
+        to make compilation super fast?
+      </p>
+
+      <p>
+        I tried to use C++20 modules for this project. As of
+        <time>2023-01-03</time>, CMake support for modules on Linux is so
+        experimental that even
+        <a
+          href="https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1295150"
+          >'hello world' doesn't work</a
+        >.
+      </p>
+
+      <p>
+        Maybe 2023 will be the year of C++20 modules. As someone who cares a lot
+        about build times, I really hope so! But for now, I will pit Rust
+        against classic C++ <code>#include</code>s.
+      </p>
+
+      <h3 id="build-time-comparison">C++ vs Rust build times</h3>
+
+      <p>
+        I ported the C++ project to Rust and optimized the Rust build times as
+        much as I could. Which one compiles faster: C++ or Rust?
+      </p>
+
+      <p>
+        Unfortunately, the answer is: it depends!
+
+        <figure>
+          <%- charts.cppVSRustLinux.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/169) }) %>
+        </figure>
+      </p>
+
+      <p>
+        On my Linux machine, Rust builds are sometimes faster than C++ builds,
+        but sometimes slower or the same speed. In the
+        <i>incremental lex</i> benchmark, which modifies the largest src file,
+        Clang was faster than rustc. But for the other incremental benchmarks,
+        rustc came out on top.
+
+        <figure>
+          <%- charts.cppVSRustMacOS.makeReferenceHTML({ width: chartWidth,
+          height: chartWidth / (362/169) }) %>
+        </figure>
+      </p>
+
+      <p>
+        On my macOS machine, however, the story is very different. C++ builds
+        are usually much faster than Rust builds. In the
+        <i>incremental test-utf-8</i> benchmark, which modifies a medium-sized
+        test file, rustc compiled slightly faster than Clang. But for the other
+        incremental benchmarks, and for the full build benchmark, Clang clearly
+        came out on top.
+      </p>
+
+      <h4>Scaling beyond 17k SLOC</h4>
+
+      <p>
+        I benchmarked a 17k SLOC project. But that was a <em>small</em> project.
+        How do build times compare for a larger project of, say, 100k SLOC or
+        more?
+      </p>
+
+      <p>
+        To test how well the C++ and Rust compilers scale, I took the biggest
+        module (the lexer) and copy-pasted its code and tests, making 8, 16, and
+        24 copies.
+      </p>
+
+      <p>
+        Because my benchmarks also include the time it takes to run tests, I
+        expect times to increase linearly, even with instant build times.
+      </p>
+
+      <table class="project-size">
+        <caption>
+          Scaled project sizes
+        </caption>
+        <thead>
+          <tr>
+            <th></th>
+            <th colspan="2" class="color-2-of-2">
+              C++
+              <abbr
+                title="source lines of code, excluding blank lines and comments"
+                >SLOC</abbr
+              >
+            </th>
+            <th colspan="2" class="color-1-of-2">Rust SLOC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let row of scaledProjectSizesRows) { %>
+          <tr class="<%= row.classes || '' %>">
+            <th><%= row.name %></th>
+            <td class="color-2-of-2">
+              <abbr title="<%= formatNumber(row.cpp) %>"
+                ><%= formatNumberK(row.cpp) %></abbr
+              >
+            </td>
+            <td class="color-2-of-2">
+              <% if (row !== scaledProjectSizesRows[0]) { %> (<%=
+              formatPercentDelta(row.cpp / scaledProjectSizesRows[0].cpp - 1)
+              %>) <% } %>
+            </td>
+            <td class="color-1-of-2">
+              <abbr title="<%= formatNumber(row.rust) %>"
+                ><%= formatNumberK(row.rust) %></abbr
+              >
+            </td>
+            <td class="color-1-of-2">
+              <% if (row !== scaledProjectSizesRows[0]) { %> (<%=
+              formatPercentDelta(row.rust / scaledProjectSizesRows[0].rust - 1)
+              %>) <% } %>
+            </td>
+            <% } %>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <%- charts.cppVSRustScaleFull.makeReferenceHTML({ width: chartWidth,
+        height: chartWidth / (362/148) }) %>
+      </figure>
+      <figure>
+        <%- charts.cppVSRustScaleIncremental.makeReferenceHTML({ width:
+        chartWidth, height: chartWidth / (362/354) }) %>
+      </figure>
+
+      <p>Both Rust and Clang scaled linearly, which is good to see.</p>
+
+      <p>
+        For C++, changing a header file (<i>incremental diag-types</i>) lead to
+        the biggest change in build time, as expected. Build time scaled with a
+        low factor for the other incremental benchmarks, mostly thanks to the
+        Mold linker.
+      </p>
+
+      <p>
+        I am disappointed with how poorly Rust's build scales, even with the
+        <i>incremental test-utf-8</i> benchmark which shouldn't be affected that
+        much by adding unrelated files. This test uses the
+        <i>workspace; many test exes</i> crate layout, which means test-utf-8
+        should get its own executable which should compile independently.
+      </p>
+
+      <h3>Conclusion</h3>
+
+      <p>
+        Are compilation times a problem with Rust? <strong>Yes.</strong> There
+        are some tips and tricks to speed up builds, but I didn't find the
+        magical order-of-magnitude improvements which would make me happy
+        developing in Rust.
+      </p>
+
+      <p>
+        Are build times as bad with Rust as with C++? <strong>Yes.</strong> And
+        for bigger projects, development compile times are worse with Rust than
+        with C++, at least with my code style.
+      </p>
+
+      <p>Looking at my hypotheses, I was wrong on all counts:</p>
+      <ol>
+        <li>The Rust port had more lines than the C++ version, not fewer.</li>
+        <li>
+          For full builds, compared to Rust, C++ builds took about the same
+          amount of time (17k SLOC) or took less time (100k+ SLOC), not longer.
+        </li>
+
+        <li>
+          For incremental builds, compared to C++, Rust builds were sometimes
+          shorter and sometimes longer (17k SLOC) or much longer (100k+ SLOC),
+          not always longer.
+        </li>
+      </ol>
+
+      <p>
+        Am I sad? Yes. During the porting process, I have learned to like some
+        aspects of Rust. For example, proc macros would let me replace three
+        different code generators, simplifying the build pipeline and making
+        life easier for new contributors. I don't miss header files at all. And
+        I appreciate Rust's tooling (especially Cargo, rustup, and miri).
+      </p>
+
+      <p>
+        I decided to not port the rest of quick-lint-js to Rust.
+        <em>But...</em> if build times improve significantly, I will change my
+        mind! (Unless I become enchanted by
+        <a href="https://ziglang.org/">Zig</a> first.)
+      </p>
+
+      <h3 id="appendix">Appendix</h3>
+
+      <h4>Source code</h4>
+
+      <a href="https://github.com/quick-lint/cpp-vs-rust">Source code</a> for
+      the trimmed C++ project, the Rust port (including different project
+      layouts), code generation scripts, and benchmarking scripts.
+      GPL-3.0-or-later.
+
+      <h4>Linux machine</h4>
+
+      <dl>
+        <dt>name</dt>
+        <dd>strapurp</dd>
+        <dt>CPU</dt>
+        <dd>AMD Ryzen 9 5950X (PBO; stock clocks) (32 threads) (x86_64)</dd>
+        <dt>RAM</dt>
+        <dd>G.SKILL F4-4000C19-16GTZR 2x16 GiB (overclocked to 3800 MT/s)</dd>
+        <dt>OS</dt>
+        <dd>Linux Mint 21.1</dd>
+        <dt>Kernel</dt>
+        <dd>
+          Linux strapurp 5.15.0-56-generic #62-Ubuntu SMP Tue Nov 22 19:54:14
+          UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+        </dd>
+        <dt>Linux performance governor</dt>
+        <dd>schedutil</dd>
+        <dt>CMake</dt>
+        <dd>version 3.19.1</dd>
+        <dt>Ninja</dt>
+        <dd>version 1.10.2</dd>
+        <dt>GCC</dt>
+        <dd>version 12.1.0-2ubuntu1~22.04</dd>
+        <dt>Clang (Ubuntu)</dt>
+        <dd>version 14.0.0-1ubuntu1</dd>
+        <dt>Clang (custom)</dt>
+        <dd>
+          version 15.0.6 (Rust fork; commit
+          <a
+            href="https://github.com/rust-lang/llvm-project/tree/3dfd4d93fa013e1c0578d3ceac5c8f4ebba4b6ec"
+            >3dfd4d93fa013e1c0578&shy;d3ceac5c8f4ebba4b6ec</a
+          >)
+        </dd>
+        <dt>libstdc++ for Clang</dt>
+        <dd>version 11.3.0-1ubuntu1~22.04</dd>
+        <dt>Rust Stable</dt>
+        <dd>1.66.0 (69f9c33d7 2022-12-12)</dd>
+        <dt>Rust Nightly</dt>
+        <dd>version 1.68.0-nightly (c7572670a 2023-01-03)</dd>
+        <dt>Rust (custom)</dt>
+        <dd>version 1.68.0-dev (c7572670a 2023-01-03)</dd>
+        <dt>Mold</dt>
+        <dd>version 0.9.3 (ec3319b37f653dccfa4d&shy;1a859a5c687565ab722d)</dd>
+        <dt>binutils</dt>
+        <dd>version 2.38</dd>
+      </dl>
+
+      <h4>macOS machine</h4>
+
+      <dl>
+        <dt>name</dt>
+        <dd>strammer</dd>
+        <dt>CPU</dt>
+        <dd>Apple M1 Max (10 threads) (AArch64)</dd>
+        <dt>RAM</dt>
+        <dd>Apple 64 GiB</dd>
+        <dt>OS</dt>
+        <dd>macOS Monterey 12.6</dd>
+        <dt>CMake</dt>
+        <dd>version 3.19.1</dd>
+        <dt>Ninja</dt>
+        <dd>version 1.10.2</dd>
+        <dt>Xcode Clang</dt>
+        <dd>Apple clang version 14.0.0 (clang-1400.0.29.202) (Xcode 14.2)</dd>
+        <dt>Clang 15</dt>
+        <dd>version 15.0.6 (LLVM.org website)</dd>
+        <dt>Rust Stable</dt>
+        <dd>1.66.0 (69f9c33d7 2022-12-12)</dd>
+        <dt>Rust Nightly</dt>
+        <dd>version 1.68.0-nightly (c7572670a 2023-01-03)</dd>
+        <dt>Rust (custom)</dt>
+        <dd>version 1.68.0-dev (c7572670a 2023-01-03)</dd>
+        <dt>lld</dt>
+        <dd>version 15.0.6</dd>
+        <dt>zld</dt>
+        <dd>commit d50a975a5fe6576ba0fd&shy;2863897c6d016eaeac41</dd>
+      </dl>
+
+      <h4>Benchmarks</h4>
+
+      <dl>
+        <dt>build+test w/ deps</dt>
+        <dd>
+          C++:
+          <code
+            >cmake -S build -B . -G Ninja && ninja -C build quick-lint-js-test
+            && build/test/quick-lint-js-test</code
+          >
+          timed
+        </dd>
+        <dd>
+          Rust: <code>cargo fetch</code> untimed, then
+          <code>cargo test</code> timed
+        </dd>
+        <dt>build+test w/o deps</dt>
+        <dd>
+          C++:
+          <code
+            >cmake -S build -B . -G Ninja && ninja -C build gmock gmock_main
+            gtest</code
+          >
+          untimed, then
+          <code
+            >ninja -C build quick-lint-js-test &&
+            build/test/quick-lint-js-test</code
+          >
+          timed
+        </dd>
+        <dd>
+          Rust:
+          <code
+            >cargo build --package lazy_static --package libc --package
+            memoffset"</code
+          >
+          untimed, then <code>cargo test</code> timed
+        </dd>
+        <dt>incremental diag-types</dt>
+        <dd>
+          C++: build+test untimed, then modify <code>diagnostic-types.h</code>,
+          then
+          <code
+            >ninja -C build quick-lint-js-test &&
+            build/test/quick-lint-js-test</code
+          >
+        </dd>
+        <dd>
+          Rust: build+test untimed, then modify
+          <code>diagnostic_types.rs</code>, then <code>cargo test</code>
+        </dd>
+        <dt>incremental lex</dt>
+        <dd>Like incremental diag-types, but with lex.cpp/lex.rs</dd>
+        <dt>incremental test-utf-8</dt>
+        <dd>
+          Like incremental diag-types, but with test-utf-8.cpp/test_utf_8.rs
+        </dd>
+      </dl>
+
+      <p>
+        For each executed benchmark, 12 samples were taken. The first two were
+        discarded. Bars show the average of the last 10 samples. Error bars show
+        the minimum and maximum sample.
+      </p>
+    </main>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

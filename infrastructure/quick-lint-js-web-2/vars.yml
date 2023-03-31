@@ -1,0 +1,30 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+go_discord_irc_version: v1.0.0
+go_discord_irc_checksum: sha256:a1e4b450eaeb9d574eefada65b1a1f8811c716372f665096423dd0b88a310dd6
+
+matomo_version: 4.9.1
+matomo_checksum: sha256:2ff734151ce43d050fc2ecf0dcbb845859430c5106b9755c5be3244b8d9d5a54
+
+matomo_log_analytics_version: 1e85636b72d76ad31f87c42693a14cc8cf51f6b0
+matomo_log_analytics_checksum: sha256:106bf146e0b8531efd1b9927a28c714e1ebf874bbffba49b54c83cd55372da11
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

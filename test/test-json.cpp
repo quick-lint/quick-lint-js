@@ -5,58 +5,58 @@
 #include <boost/json/value.hpp>
 #include <gtest/gtest.h>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/output-stream.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 namespace {
 TEST(test_json, escapes_backslashes) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8R"(hello\world)"));
+  write_json_escaped_string(json, u8R"(hello\world)"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\\world)");
 }
 
 TEST(test_json, escapes_double_quotes) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8R"(hello"world)"));
+  write_json_escaped_string(json, u8R"(hello"world)"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\"world)");
 }
 
 TEST(test_json, escapes_newlines) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8"hello\nworld"));
+  write_json_escaped_string(json, u8"hello\nworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\nworld)");
 }
 
 TEST(test_json, escapes_tabs) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8"hello\tworld"));
+  write_json_escaped_string(json, u8"hello\tworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\tworld)");
 }
 
 TEST(test_json, escapes_carriage_returns) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8"hello\rworld"));
+  write_json_escaped_string(json, u8"hello\rworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\rworld)");
 }
 
 TEST(test_json, escapes_backspaces) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8"hello\bworld"));
+  write_json_escaped_string(json, u8"hello\bworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\bworld)");
 }
 
 TEST(test_json, escapes_form_feeds) {
   memory_output_stream json;
-  write_json_escaped_string(json, string8_view(u8"hello\fworld"));
+  write_json_escaped_string(json, u8"hello\fworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\fworld)");
 }

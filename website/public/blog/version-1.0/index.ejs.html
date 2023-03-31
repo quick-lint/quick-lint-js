@@ -1,10 +1,18 @@
+<!---{
+"title": "Faster, easier, friendlier: how quick-lint-js will take over ESLint",
+"linkLabelHTML": "Release: version 1.0",
+"description": "Faster, easier, friendlier: how quick-lint-js will take over ESLint",
+"navTitle": "Release 1.0",
+"blogDate": "2021-12-13T19:27:37-08:00"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `Faster, easier,
-    friendlier: how quick-lint-js will take over ESLint` }) %>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
   </head>
   <body>
@@ -12,27 +20,14 @@
     <ul class="install-options">
       <li>
         <a href="../../install/"
-          ><img
-            class="install-logo"
-            src="../../favicon-32x32.png"
-            alt=""
-            width="19"
-            height="19"
-          />
-          install quick-lint-js</a
+          ><qljs-icon name="quick-lint-js-small" size="19" /> install
+          quick-lint-js</a
         >
       </li>
       <li><a href="../../demo/">🌐 try in your browser</a></li>
       <li>
         <a href="https://github.com/quick-lint/quick-lint-js"
-          ><img
-            class="install-logo"
-            src="../../github.svg"
-            alt=""
-            width="19"
-            height="19"
-          />
-          code on GitHub</a
+          ><qljs-icon name="github" size="19" /> code on GitHub</a
         >
       </li>
     </ul>
@@ -44,7 +39,7 @@
       <h2>
         Faster, easier, friendlier: how quick-lint-js will take over ESLint
       </h2>
-      <p><time>2021-12-13</time></p>
+      <p><qljs-date datetime="<%= meta.blogDate %>" /></p>
 
       <p>
         ESLint finds bugs. Or does it? ESLint is so slow that you don't bother
@@ -69,44 +64,17 @@
         </li>
         <li>
           <a href="../../install/vscode/"
-            ><img
-              class="inline-logo"
-              src="../../vscode.png"
-              alt=""
-              width="19"
-              height="19"
-            />
-            VS Code</a
+            ><qljs-icon name="vscode" class="inline-logo" size="19" /> VS
+            Code</a
           >,
           <a href="../../install/emacs/"
-            ><img
-              class="inline-logo"
-              src="../../emacs.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Emacs</a
+            ><qljs-icon name="emacs" class="inline-logo" size="19" /> Emacs</a
           >,
           <a href="../../install/vim/"
-            ><img
-              class="inline-logo"
-              src="../../vim.gif"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Vim</a
+            ><qljs-icon name="vim" class="inline-logo" size="19" /> Vim</a
           >, and
           <a href="../../install/neovim/"
-            ><img
-              class="inline-logo"
-              src="../../neovim.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Neovim</a
+            ><qljs-icon name="neovim" class="inline-logo" size="19" /> Neovim</a
           >
           plugins
         </li>

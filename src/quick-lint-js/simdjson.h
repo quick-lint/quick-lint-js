@@ -4,11 +4,59 @@
 #ifndef QUICK_LINT_JS_SIMDJSON_H
 #define QUICK_LINT_JS_SIMDJSON_H
 
-#include <quick-lint-js/char8.h>
-#include <simdjson.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/simdjson-fwd.h>
+#include <string_view>
 
 namespace quick_lint_js {
+struct string_json_token {
+  // The string data.
+  string8_view data;
+  // The string data in JSON format.
+  string8_view json;
+};
+
 string8_view get_raw_json(::simdjson::ondemand::value&);
+
+// Returns true on success.
+//
+// Returns false if root is not an object, or if root does not contain key, or
+// if root[key] is not an object.
+bool get_object(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                const char* key, ::simdjson::ondemand::object* out);
+bool get_object(::simdjson::ondemand::object& root, const char* key,
+                ::simdjson::ondemand::object* out);
+
+// Returns true on success.
+//
+// Returns false if root does not contain key1, or if root[key1] does not
+// contain key2, or if root[key1][key2] is not an object.
+bool get_object(::simdjson::ondemand::object& root, const char* key1,
+                const char* key2, ::simdjson::ondemand::object* out);
+
+bool get_array(::simdjson::ondemand::object& root, const char* key1,
+               const char* key2, ::simdjson::ondemand::array* out);
+
+bool get_value(::simdjson::ondemand::object& root, const char* key,
+               ::simdjson::ondemand::value* out);
+
+bool get_string(::simdjson::ondemand::object& root, const char* key,
+                std::string_view* out);
+bool get_string(::simdjson::ondemand::object& root, const char* key1,
+                const char* key2, const char* key3, std::string_view* out);
+bool get_string(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                const char* key, std::string_view* out);
+
+bool get_string8(::simdjson::ondemand::object& root, const char* key,
+                 string8_view* out);
+bool get_string8(::simdjson::ondemand::object& root, const char* key1,
+                 const char* key2, const char* key3, string8_view* out);
+bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
+                 const char* key, string8_view* out);
+
+// TODO(strager): What do we do if the value is integral but is out of range of
+// 'int'?
+bool get_int(::simdjson::ondemand::object& root, const char* key, int* out);
 }
 
 #endif

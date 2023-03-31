@@ -1,17 +1,21 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <array>
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/basic-configuration-filesystem.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-server.h>
-#include <quick-lint-js/output-stream.h>
+#include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
+#include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;
@@ -20,9 +24,9 @@ namespace quick_lint_js {
 class byte_buffer;
 
 namespace {
-class null_lsp_writer {
+class null_lsp_writer final : public lsp_endpoint_remote {
  public:
-  void send_message(const byte_buffer& message) {
+  void send_message(byte_buffer&& message) override {
     ::benchmark::ClobberMemory();
     ::benchmark::DoNotOptimize(message);
   }
@@ -40,8 +44,9 @@ void benchmark_lsp_full_text_change_on_tiny_document(
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
   lsp_javascript_linter linter;
-  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
-      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
+  linting_lsp_server_handler handler(&fs, &linter);
+  null_lsp_writer remote;
+  lsp_json_rpc_message_parser lsp_server(&handler);
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -116,8 +121,9 @@ void benchmark_lsp_full_text_change_on_large_document(
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
   lsp_javascript_linter linter;
-  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
-      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
+  linting_lsp_server_handler handler(&fs, &linter);
+  null_lsp_writer remote;
+  lsp_json_rpc_message_parser lsp_server(&handler);
 
   lsp_server.append(
       make_message(u8R"({
@@ -251,8 +257,9 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
   lsp_javascript_linter linter;
-  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
-      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
+  linting_lsp_server_handler handler(&fs, &linter);
+  null_lsp_writer remote;
+  lsp_json_rpc_message_parser lsp_server(&handler);
   lsp_server.append(make_message(did_open_message_json.get_flushed_string8()));
 
   for (auto _ : state) {
@@ -267,6 +274,8 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
 BENCHMARK(benchmark_lsp_tiny_change_on_large_document);
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

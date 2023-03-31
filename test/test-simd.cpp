@@ -5,29 +5,44 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <iterator>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/simd.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/simd.h>
+#include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 
-#if QLJS_HAVE_ARM_NEON
-#include <arm_neon.h>
-#endif
-
-#if QLJS_HAVE_X86_SSE2
-#include <emmintrin.h>
-#endif
+QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 
 namespace quick_lint_js {
 namespace {
+#if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
+template <class CharVector16>
+class test_char_vector_16 : public ::testing::Test {};
+using char_vector_16_types = ::testing::Types<
+#if QLJS_HAVE_ARM_NEON
+    char_vector_16_neon
+#endif
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+        char_vector_16_wasm_simd128
+#endif
 #if QLJS_HAVE_X86_SSE2
-TEST(test_char_vector_16_sse2, repeated) {
+            char_vector_16_sse2
+#endif
+    >;
+TYPED_TEST_SUITE(test_char_vector_16, char_vector_16_types,
+                 ::testing::internal::DefaultNameGenerator);
+
+TYPED_TEST(test_char_vector_16, repeated) {
+  using char_vector_16 = TypeParam;
   char8 expected[16];
-  std::fill(std::begin(expected), std::end(expected), u8'x');
-  __m128i actual = char_vector_16_sse2::repeated('x').m128i();
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
+  fill(expected, u8'x');
+  char8 actual[16];
+  char_vector_16::repeated('x').store(actual);
+  EXPECT_EQ(std::memcmp(actual, expected, sizeof(actual)), 0);
 }
 
-TEST(test_char_vector_16_sse2, bitwise_or) {
+TYPED_TEST(test_char_vector_16, bitwise_or) {
+  using char_vector_16 = TypeParam;
   constexpr std::uint8_t lhs[16] = {
       0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,  //
       0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
@@ -36,81 +51,94 @@ TEST(test_char_vector_16_sse2, bitwise_or) {
       0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
       0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
   };
-  __m128i actual =
-      (char_vector_16_sse2::load(reinterpret_cast<const char8*>(lhs)) |
-       char_vector_16_sse2::load(reinterpret_cast<const char8*>(rhs)))
-          .m128i();
+  std::uint8_t actual[16];
+  (char_vector_16::load(reinterpret_cast<const char8*>(lhs)) |
+   char_vector_16::load(reinterpret_cast<const char8*>(rhs)))
+      .store(reinterpret_cast<char8*>(actual));
   constexpr std::uint8_t expected[16] = {
       0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,  //
       0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
   };
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
+  EXPECT_EQ(std::memcmp(actual, expected, sizeof(actual)), 0);
 }
 #endif
 
+#if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
+template <class BoolVector16>
+class test_bool_vector_16 : public ::testing::Test {};
+using bool_vector_16_types = ::testing::Types<
 #if QLJS_HAVE_ARM_NEON
-TEST(test_char_vector_16_neon, repeated) {
-  char8 expected[16];
-  std::fill(std::begin(expected), std::end(expected), u8'x');
-  ::uint8x16_t actual = char_vector_16_neon::repeated('x').uint8x16();
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
-}
+    bool_vector_16_neon
+#endif
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+        bool_vector_16_wasm_simd128
+#endif
+#if QLJS_HAVE_X86_SSE2
+            bool_vector_16_sse2
+#endif
+    >;
+TYPED_TEST_SUITE(test_bool_vector_16, bool_vector_16_types,
+                 ::testing::internal::DefaultNameGenerator);
 
-TEST(test_char_vector_16_neon, bitwise_or) {
-  constexpr std::uint8_t lhs[16] = {
-      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,  //
-      0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
-  };
-  constexpr std::uint8_t rhs[16] = {
-      0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
-      0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
-  };
-  ::uint8x16_t actual =
-      (char_vector_16_neon::load(reinterpret_cast<const char8*>(lhs)) |
-       char_vector_16_neon::load(reinterpret_cast<const char8*>(rhs)))
-          .uint8x16();
-  constexpr std::uint8_t expected[16] = {
-      0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,  //
-      0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
-  };
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
-}
-
-TEST(test_bool_vector_16_neon, first_false_of_all_false) {
-  ::uint8x16_t bools_data = {
+TYPED_TEST(test_bool_vector_16, first_false_of_all_false) {
+  using bool_vector_16 = TypeParam;
+  char8 bools_data[] = {
       0, 0, 0, 0, 0, 0, 0, 0,  //
       0, 0, 0, 0, 0, 0, 0, 0,  //
   };
-  bool_vector_16_neon bools(bools_data);
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
   EXPECT_EQ(bools.find_first_false(), 0);
 }
 
-TEST(test_bool_vector_16_neon, first_false_of_all_true) {
-  constexpr std::uint8_t t = 0xff;
-  ::uint8x16_t bools_data = {
+TYPED_TEST(test_bool_vector_16, first_false_of_all_true) {
+  using bool_vector_16 = TypeParam;
+  constexpr char8 t = static_cast<char8>(0xff);
+  char8 bools_data[] = {
       t, t, t, t, t, t, t, t,  //
       t, t, t, t, t, t, t, t,  //
   };
-  bool_vector_16_neon bools(bools_data);
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
   EXPECT_EQ(bools.find_first_false(), 16);
 }
 
-TEST(test_bool_vector_16_neon, find_first_false_exhaustive) {
+TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive_SLOW) {
+  using bool_vector_16 = TypeParam;
   for (std::uint32_t i = 0; i <= 0xffff; ++i) {
     SCOPED_TRACE(i);
-    ::uint8x16_t bools_data;
+    char8 bools_data[16];
     int first_false = 16;
     for (int bit = 0; bit < 16; ++bit) {
       bool bit_on = (i >> bit) & 1;
-      bools_data[bit] = bit_on ? 0xff : 0x00;
+      bools_data[bit] = bit_on;
       if (!bit_on) {
         first_false = std::min(first_false, bit);
       }
     }
 
-    bool_vector_16_neon bools(bools_data);
-    EXPECT_EQ(bools.find_first_false(), first_false);
+    bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
+    ASSERT_EQ(bools.find_first_false(), first_false);
   }
+}
+
+TYPED_TEST(test_bool_vector_16, mask_all_false) {
+  using bool_vector_16 = TypeParam;
+  char8 bools_data[] = {
+      0, 0, 0, 0, 0, 0, 0, 0,  //
+      0, 0, 0, 0, 0, 0, 0, 0,  //
+  };
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
+  EXPECT_EQ(bools.mask(), 0x0000);
+}
+
+TYPED_TEST(test_bool_vector_16, mask_all_true) {
+  using bool_vector_16 = TypeParam;
+  constexpr char8 t = static_cast<char8>(0xff);
+  char8 bools_data[] = {
+      t, t, t, t, t, t, t, t,  //
+      t, t, t, t, t, t, t, t,  //
+  };
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
+  EXPECT_EQ(bools.mask(), 0xffff);
 }
 #endif
 }

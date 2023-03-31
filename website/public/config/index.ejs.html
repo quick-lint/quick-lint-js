@@ -1,17 +1,20 @@
+<!---{
+"title": "Configuration files for quick-lint-js"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html", { title: `Configuration files
-    for quick-lint-js` }) %>
+    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let fs = await import("fs");
-      let asciidoctor = (await import("asciidoctor")).default();
+      let asciidoctor = (await import("@asciidoctor/core")).default();
 
       let adoc = await fs.promises.readFile(
-        "../../../docs/config.adoc",
+        absoluteFilePath("../../../docs/config.adoc"),
         "utf-8"
       );
       let configDocumentation = asciidoctor.convert(adoc);

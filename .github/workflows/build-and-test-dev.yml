@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Based on docs/BUILDING.md.
+# Based on website/public/contribute/build-from-source/.
 jobs:
   build:
     name: ${{ matrix.toolchain.name }}
@@ -16,12 +16,10 @@ jobs:
       matrix:
         toolchain:
           - {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syyuu --noconfirm cmake gcc ninja", extra_environment: ""}
-            # HACK(strager): Upgrade libarchive to work around "symbol lookup
-            # error: cmake: undefined symbol: archive_write_add_filter_zstd"
-            # error: https://access.redhat.com/solutions/6068431
+          - {docker_container: "debian:bullseye", name: "Debian 11 Bullseye", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "debian:buster", name: "Debian 10 Buster", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
-          - {docker_container: "fedora:32", name: "Fedora 32", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
-          - {docker_container: "fedora:34", name: "Fedora 34", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+          - {docker_container: "fedora:35", name: "Fedora 35", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+          - {docker_container: "fedora:36", name: "Fedora 36", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", install_dependencies_script: "apt-get update && apt-get install -y cmake g++-8 ninja-build", extra_environment: "CC=gcc-8 CXX=g++-8"}
           - {docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
     runs-on: ubuntu-latest
@@ -30,7 +28,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 0. Install build dependencies
         run: ${{ matrix.toolchain.install_dependencies_script }}
@@ -38,7 +36,7 @@ jobs:
       - name: 1. Configure with CMake
         run: |
           mkdir build ; cd build ; ${{ matrix.toolchain.extra_environment }} cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
-          if ! [ -f docs/BUILDING.md ]; then
+          if ! [ -f docs/FUZZING.md ]; then
             printf 'error: cwd changed unexpectedly\n' >&2
             exit 1
           fi

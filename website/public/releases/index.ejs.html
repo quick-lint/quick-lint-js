@@ -1,10 +1,14 @@
+<!---{
+"title": "Release history for quick-lint-js",
+"description": "Older versions of quick-lint-js"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html", { title: `Release history for
-    quick-lint-js`, description: `Older versions of quick-lint-js` }) %>
+    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let fs = await import("fs");
@@ -16,12 +20,34 @@
       //%>
     </script>
     <link href="../main.css" rel="stylesheet" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      href="<%= makeRelativeURI('/releases/feed.xml') %>"
+      title="quick-lint-js releases"
+    />
     <style>
       /* Clearly separate releases. */
       h3 {
         border-top: 1px solid #ccc;
         padding-top: 2rem;
         margin-top: 2rem;
+      }
+
+      h3 a,
+      h3 a:visited,
+      h3 a:link {
+        color: black;
+      }
+      h3 a:hover {
+        text-decoration: underline;
+      }
+      @media (prefers-color-scheme: dark) {
+        h3 a,
+        h3 a:visited,
+        h3 a:link {
+          color: white;
+        }
       }
     </style>
   </head>
@@ -33,7 +59,8 @@
 
       <article>
         <%- releasesMarkdownToHTML(await
-        fs.promises.readFile("../../../docs/CHANGELOG.md", "utf-8")) %>
+        fs.promises.readFile(absoluteFilePath("../../../docs/CHANGELOG.md"),
+        "utf-8")) %>
       </article>
     </main>
 

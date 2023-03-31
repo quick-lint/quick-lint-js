@@ -4,17 +4,29 @@
 #include <array>
 #include <gtest/gtest.h>
 #include <limits>
-#include <quick-lint-js/integer.h>
+#include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 
 namespace quick_lint_js {
 namespace {
+using unsigned_short = unsigned short;
+
 template <class T>
 string8 write_integer(T value) {
   std::array<char8, integer_string_length<T>> chars;
-  std::fill(chars.begin(), chars.end(), 'x');
+  fill(chars, 'x');
   char8* end = quick_lint_js::write_integer(value, chars.data());
   EXPECT_LE(end - chars.data(), chars.size());
   return string8(chars.data(), end);
+}
+
+template <class T>
+std::wstring write_integer_wchar_t(T value) {
+  std::array<wchar_t, integer_string_length<T>> chars;
+  fill(chars, L'x');
+  wchar_t* end = quick_lint_js::write_integer(value, chars.data());
+  EXPECT_LE(end - chars.data(), chars.size());
+  return std::wstring(chars.data(), end);
 }
 
 TEST(test_write_integer, common_integers) {
@@ -24,6 +36,12 @@ TEST(test_write_integer, common_integers) {
   EXPECT_EQ(write_integer(int{0}), u8"0");
   EXPECT_EQ(write_integer(int{1234}), u8"1234");
   EXPECT_EQ(write_integer(int{-42}), u8"-42");
+
+  EXPECT_EQ(write_integer(unsigned_short{0}), u8"0");
+  EXPECT_EQ(write_integer(unsigned_short{1234}), u8"1234");
+
+  EXPECT_EQ(write_integer_wchar_t(unsigned_short{0}), L"0");
+  EXPECT_EQ(write_integer_wchar_t(unsigned_short{1234}), L"1234");
 }
 
 TEST(test_write_integer, maximum) {
@@ -39,6 +57,9 @@ TEST(test_write_integer, maximum) {
   if constexpr (std::numeric_limits<int>::max() >= 2147483647LL) {
     EXPECT_EQ(write_integer(int(2147483647LL)), u8"2147483647");
   }
+
+  static_assert(std::numeric_limits<unsigned short>::max() == 65535);
+  EXPECT_EQ(write_integer(unsigned_short(65535)), u8"65535");
 }
 
 TEST(test_write_integer, minimum) {

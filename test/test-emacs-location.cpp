@@ -4,11 +4,12 @@
 #include <array>
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/characters.h>
-#include <quick-lint-js/emacs-location.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/cli/emacs-location.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -73,7 +74,7 @@ TEST(test_emacs_location, position_backwards) {
       actual_positions.push_back(l.position(&code[i]));
     }
   }
-  std::reverse(actual_positions.begin(), actual_positions.end());
+  reverse(actual_positions);
 
   EXPECT_EQ(actual_positions, expected_positions);
 }

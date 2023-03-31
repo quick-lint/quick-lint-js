@@ -1,10 +1,18 @@
+<!---{
+"title": "Reacts rocks with quick-lint-js",
+"linkLabelHTML": "Release: version 2.0",
+"description": "We are proud to announce version 2.0 of quick-lint-js!",
+"navTitle": "Release 2.0",
+"blogDate": "2022-02-04T21:43:20-08:00"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `Reacts rocks with
-    quick-lint-js` }) %>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
   </head>
   <body>
@@ -12,27 +20,14 @@
     <ul class="install-options">
       <li>
         <a href="../../install/"
-          ><img
-            class="install-logo"
-            src="../../favicon-32x32.png"
-            alt=""
-            width="19"
-            height="19"
-          />
-          install quick-lint-js</a
+          ><qljs-icon name="quick-lint-js-small" size="19" /> install
+          quick-lint-js</a
         >
       </li>
       <li><a href="../../demo/">🌐 try in your browser</a></li>
       <li>
         <a href="https://github.com/quick-lint/quick-lint-js"
-          ><img
-            class="install-logo"
-            src="../../github.svg"
-            alt=""
-            width="19"
-            height="19"
-          />
-          code on GitHub</a
+          ><qljs-icon name="github" size="19" /> code on GitHub</a
         >
       </li>
     </ul>
@@ -42,7 +37,7 @@
 
     <main>
       <h2>React rocks with quick-lint-js 2.0</h2>
-      <p><time>2022-02-04</time></p>
+      <p><qljs-date datetime="<%= meta.blogDate %>" /></p>
 
       <p>We are proud to announce version 2.0 of quick-lint-js!</p>
 

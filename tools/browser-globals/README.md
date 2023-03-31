@@ -24,7 +24,7 @@ Download the [web-specs repository](https://github.com/quick-lint/web-specs):
 
 Run the following command to regenerate src/global-variables-browser.cpp:
 
-    $ node tools/browser-globals/index.js tools/browser-globals/web-specs/specs.json >src/global-variables-browser.cpp
+    $ node tools/browser-globals/index.js tools/browser-globals/web-specs/specs.json >src/quick-lint-js/fe/global-variables-browser-generated.cpp
 
 [Node.js]: https://nodejs.org/en/
 [Yarn v1]: https://classic.yarnpkg.com/lang/en/

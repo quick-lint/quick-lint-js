@@ -8,15 +8,15 @@
 // No filesystem on the web.
 #else
 
-#include <functional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration-loader.h>
-#include <quick-lint-js/file-canonical.h>
-#include <quick-lint-js/file.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/heap-function.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/io/file-canonical.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 namespace quick_lint_js {
@@ -24,73 +24,28 @@ class fake_configuration_filesystem : public configuration_filesystem {
  public:
   using read_file_result = result<padded_string, read_file_io_error>;
 
+  explicit fake_configuration_filesystem();
+  ~fake_configuration_filesystem() override;
+
   // Create a new file, or modify an existing file.
-  void create_file(const canonical_path& path, string8_view content) {
-    this->files_.insert_or_assign(
-        path, [content_string = string8(content)]() -> read_file_result {
-          return padded_string(string8_view(content_string));
-        });
-  }
-
+  void create_file(const canonical_path& path, string8_view content);
   void create_file(const canonical_path& path,
-                   std::function<read_file_result()> callback) {
-    this->files_.insert_or_assign(path, std::move(callback));
-  }
+                   heap_function<read_file_result()> callback);
 
-  canonical_path rooted(const char* path) const {
-    std::string full_path;
-#if defined(_WIN32)
-    full_path = "X:\\";
-#else
-    full_path = "/";
-#endif
-    full_path += path;
-#if defined(_WIN32)
-    for (char& c : full_path) {
-      if (c == '/') {
-        c = '\\';
-      }
-    }
-#endif
-    return canonical_path(std::move(full_path));
-  }
+  canonical_path rooted(const char* path) const;
 
-  string8 file_uri_prefix_8() const {
-#if defined(_WIN32)
-    return u8"file:///X:/";
-#else
-    return u8"file:///";
-#endif
-  }
+  string8 file_uri_prefix_8() const;
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-      const std::string& path) override {
-    // TODO(strager): Check if path components exist.
-    return canonical_path_result(std::string(path), path.size());
-  }
+      const std::string& path) override;
 
   result<padded_string, read_file_io_error> read_file(
-      const canonical_path& path) override {
-    auto file_it = this->files_.find(path);
-    if (file_it == this->files_.end()) {
-#if QLJS_HAVE_WINDOWS_H
-      windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
-#endif
-#if QLJS_HAVE_UNISTD_H
-      posix_file_io_error io_error = {ENOENT};
-#endif
-      return read_file_result::failure<read_file_io_error>(read_file_io_error{
-          .path = std::string(path.path()),
-          .io_error = io_error,
-      });
-    }
-    return file_it->second();
-  }
+      const canonical_path& path) override;
 
-  void clear() { this->files_.clear(); }
+  void clear();
 
  private:
-  std::unordered_map<canonical_path, std::function<read_file_result()> > files_;
+  hash_map<canonical_path, heap_function<read_file_result()> > files_;
 };
 }
 

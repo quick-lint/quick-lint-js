@@ -6,13 +6,13 @@
 #else
 
 #include <chrono>
-#include <condition_variable>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <mutex>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/event-loop.h>
-#include <quick-lint-js/pipe.h>
+#include <quick-lint-js/container/heap-function.h>
+#include <quick-lint-js/io/event-loop.h>
+#include <quick-lint-js/io/pipe.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/spy-lsp-message-parser.h>
 #include <thread>
 
@@ -61,7 +61,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   template <class Func>
   void set_pipe_write(posix_fd_file_ref fd, Func on_event) {
     this->pipe_write_fd_ = fd;
-    this->pipe_write_event_callback_ = on_event;
+    this->pipe_write_event_callback_ = std::move(on_event);
   }
 #endif
 
@@ -87,8 +87,8 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
  private:
   platform_file_ref pipe_;
 
-  std::mutex mutex_;
-  std::condition_variable new_data_;
+  mutex mutex_;
+  condition_variable new_data_;
 
   // Protected by mutex_:
   string8 read_data_;
@@ -98,9 +98,9 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-  std::function<void(const struct ::kevent&)> pipe_write_event_callback_;
+  heap_function<void(const struct ::kevent&)> pipe_write_event_callback_;
 #elif QLJS_HAVE_POLL
-  std::function<void(const ::pollfd&)> pipe_write_event_callback_;
+  heap_function<void(const ::pollfd&)> pipe_write_event_callback_;
 #endif
 };
 
@@ -127,7 +127,7 @@ TEST_F(test_event_loop, stops_on_pipe_read_eof) {
 }
 
 TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
-  write_full_message(this->pipe.writer.ref(), u8"Hi");
+  write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
   this->pipe.writer.close();
 
   this->loop.run();
@@ -137,11 +137,11 @@ TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
 
 TEST_F(test_event_loop, reads_many_messages) {
   std::thread writer_thread([this]() {
-    write_full_message(this->pipe.writer.ref(), u8"first");
+    write_full_message(this->pipe.writer.ref(), u8"first"_sv);
     this->loop.wait_until_data(
         [](const string8& data) -> bool { return data == u8"first"; });
 
-    write_full_message(this->pipe.writer.ref(), u8"SECOND");
+    write_full_message(this->pipe.writer.ref(), u8"SECOND"_sv);
     this->loop.wait_until_data(
         [](const string8& data) -> bool { return data == u8"firstSECOND"; });
 
@@ -198,10 +198,8 @@ TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
 #endif
 
 void write_full_message(platform_file_ref file, string8_view message) {
-  std::optional<int> bytes_written =
-      file.write(message.data(), narrow_cast<int>(message.size()));
-  EXPECT_TRUE(bytes_written.has_value()) << file.get_last_error_message();
-  EXPECT_EQ(bytes_written, message.size());
+  auto write_result = file.write_full(message.data(), message.size());
+  EXPECT_TRUE(write_result.ok()) << write_result.error_to_string();
 }
 }
 }

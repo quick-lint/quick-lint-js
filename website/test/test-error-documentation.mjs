@@ -7,7 +7,9 @@ import path from "path";
 import {
   ErrorDocumentation,
   errorDocumentationExampleToHTML,
+  flattenDiagnostics,
 } from "../src/error-documentation.mjs";
+import { DiagnosticSeverity } from "../wasm/quick-lint-js.js";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -31,7 +33,7 @@ describe("error documentation", () => {
       "# E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescription).toBe("title goes here");
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
   });
 
   it("title with HTML entity", () => {
@@ -40,8 +42,23 @@ describe("error documentation", () => {
       "# E0123: title &#x67;oes here\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    // TODO(strager): Translate HTML entities.
-    expect(doc.titleErrorDescription).toBe("title &#x67;oes here");
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
+  });
+
+  it("title with < HTML entity", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E0123: test &lt; test\n"
+    );
+    expect(doc.titleErrorDescriptionHTML).toBe("test &lt; test");
+  });
+
+  it("title with inline code", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E0123: title goes `here`\n"
+    );
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes <code>here</code>");
   });
 
   it("title with extra colon", () => {
@@ -50,7 +67,7 @@ describe("error documentation", () => {
       "# E0123: banana: strawberry: apple\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescription).toBe("banana: strawberry: apple");
+    expect(doc.titleErrorDescriptionHTML).toBe("banana: strawberry: apple");
   });
 
   it("level 2 heading is not title", () => {
@@ -59,7 +76,7 @@ describe("error documentation", () => {
       "## E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("");
-    expect(doc.titleErrorDescription).toBe("");
+    expect(doc.titleErrorDescriptionHTML).toBe("");
   });
 
   it("no code blocks", () => {
@@ -71,7 +88,7 @@ describe("error documentation", () => {
     expect(doc.shouldCheckCodeBlocks).toBeTrue();
   });
 
-  it("one indented code block", () => {
+  it("indented code blocks are ignored", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
       `see this code:
@@ -85,12 +102,7 @@ describe("error documentation", () => {
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([
-      {
-        language: "javascript",
-        text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
-      },
-    ]);
+    expect(doc.codeBlocks).toEqual([]);
   });
 
   it("one bracketed code block", () => {
@@ -141,25 +153,29 @@ wasn't that neat?
     ]);
   });
 
-  it("multiple code blocks", () => {
+  it("multiple bracketed code blocks", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
       `see this code:
 
-    first
-
 \`\`\`
+first
+\`\`\`
+
+\`\`\`typescript
 second
 \`\`\`
 
-    third
+\`\`\`javascript
+third
+\`\`\`
 
 wasn't that neat?
 `
     );
     expect(doc.codeBlocks).toEqual([
       { language: "javascript", text: "first\n" },
-      { language: "javascript", text: "second\n" },
+      { language: "typescript", text: "second\n" },
       { language: "javascript", text: "third\n" },
     ]);
   });
@@ -167,36 +183,36 @@ wasn't that neat?
   it("html wraps byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    \ufeff--BOM\n"
+      "code:\n\n```\n\ufeff--BOM\n```\n"
     );
     expect(doc.toHTML()).toContain(
-      "<code><span class='unicode-bom'>\u{feff}</span>--BOM"
+      "<span class='unicode-bom'>\u{feff}</span>--BOM"
     );
   });
 
   it("html does not wrap fake byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    &#xfeff;--BOM\n"
+      "code:\n\n```\n&#xfeff;--BOM\n```\n"
     );
-    expect(doc.toHTML()).toContain("<code>&amp;#xfeff;--BOM");
+    expect(doc.toHTML()).toContain("&amp;#xfeff;--BOM");
   });
 
   it("html wraps <mark>-d byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    \ufeff--BOM\n"
+      "code:\n\n```\n\ufeff--BOM\n```\n"
     );
     doc.diagnostics = [[{ begin: 0, end: 1 }]];
     expect(doc.toHTML()).toContain(
-      "<code><mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+      "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
     );
   });
 
   it("html does not wrap zero-width no break space", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    hello\ufeffworld\n"
+      "code:\n\n```\nhello\ufeffworld\n```\n"
     );
     expect(doc.toHTML()).toContain("hello\ufeffworld");
   });
@@ -212,10 +228,18 @@ wasn't that neat?
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
   });
 
+  it("html has javascript class", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n```\nhello\n```\n"
+    );
+    expect(doc.toHTML()).toContain('<code class="javascript">');
+  });
+
   it("lint JavaScript", async () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "    let x;\n    let x;\n"
+      "```javascript\nlet x;\nlet x;\n```\n"
     );
     await doc.findDiagnosticsAsync();
     expect(doc.diagnostics).toEqual([
@@ -226,6 +250,25 @@ wasn't that neat?
           severity: 1,
           begin: 11,
           end: 12,
+        },
+      ],
+    ]);
+  });
+
+  it("lint TypeScript", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "```typescript\nabstract class C { }\nclass C { }\n```\n"
+    );
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E0034",
+          message: "redeclaration of variable: C",
+          severity: 1,
+          begin: 27,
+          end: 28,
         },
       ],
     ]);
@@ -263,7 +306,7 @@ wasn't that neat?
   it("config file for examples", async () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      '```config-for-examples\n{"global-groups": false}\n```\n\n    console.log();'
+      '```config-for-examples\n{"global-groups": false}\n```\n\n```\nconsole.log();\n```\n'
     );
     expect(doc.configForExamples).toEqual('{"global-groups": false}\n');
     expect(doc.codeBlocks).toEqual([
@@ -293,6 +336,158 @@ wasn't that neat?
       "# E9999: test\n\n<!-- QLJS_NO_CHECK_CODE -->\n\ndocs go here"
     );
     expect(doc.shouldCheckCodeBlocks).toBeFalse();
+  });
+});
+
+describe("flattenDiagnostics", () => {
+  it("flattens nothing to nothing", () => {
+    expect(flattenDiagnostics([])).toEqual([]);
+  });
+
+  it("one diag flattens to two points", () => {
+    expect(flattenDiagnostics([{ begin: 0, end: 5 }])).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+    ]);
+  });
+
+  it("one diag point diag flattens to one point", () => {
+    expect(flattenDiagnostics([{ begin: 1, end: 1 }])).toEqual([
+      { offset: 1, type: "point", diagnostic: { begin: 1, end: 1 } },
+    ]);
+  });
+
+  it("two unrelated diags flatten to two points each", () => {
+    expect(
+      flattenDiagnostics([
+        { begin: 0, end: 5 },
+        { begin: 10, end: 15 },
+      ])
+    ).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+    ]);
+
+    expect(
+      flattenDiagnostics([
+        { begin: 10, end: 15 },
+        { begin: 0, end: 5 },
+      ])
+    ).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+    ]);
+  });
+
+  it("two fully overlapping diags", () => {
+    let a = { begin: 0, end: 5, message: "a" };
+    let b = { begin: 0, end: 5, message: "b" };
+    expect(flattenDiagnostics([a, b])).toEqual([
+      { offset: 0, type: "begin", diagnostic: a },
+      { offset: 0, type: "begin", diagnostic: b },
+      { offset: 5, type: "end", diagnostic: b },
+      { offset: 5, type: "end", diagnostic: a },
+    ]);
+    expect(flattenDiagnostics([b, a])).toEqual([
+      { offset: 0, type: "begin", diagnostic: b },
+      { offset: 0, type: "begin", diagnostic: a },
+      { offset: 5, type: "end", diagnostic: a },
+      { offset: 5, type: "end", diagnostic: b },
+    ]);
+  });
+
+  it("one diag fully nested within another", () => {
+    // OOOOO
+    //   i
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 3 };
+    expect(flattenDiagnostics([outer, inner])).toEqual([
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "begin", diagnostic: inner },
+      { offset: 3, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ]);
+  });
+
+  it("one point diag fully nested within a diag", () => {
+    // OOOOO
+    //   <
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 2 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "point", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("one diag inside another touching end", () => {
+    // OOOOO
+    //   iii
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 5 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "begin", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("one diag inside another touching begin", () => {
+    // OOOOO
+    // iii
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 0, end: 3 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 0, type: "begin", diagnostic: inner },
+      { offset: 3, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("two overlapping non-nested diags", () => {
+    // LLLLL
+    //    RRRR
+    let left = { begin: 0, end: 5, message: "left" };
+    let right = { begin: 3, end: 8, message: "right" };
+    expect(flattenDiagnostics([left, right])).toEqual([
+      { offset: 0, type: "begin", diagnostic: left },
+      { offset: 3, type: "begin", diagnostic: right },
+      { offset: 5, type: "end", diagnostic: right },
+      { offset: 5, type: "end", diagnostic: left },
+      { offset: 5, type: "begin", diagnostic: right },
+      { offset: 8, type: "end", diagnostic: right },
+    ]);
+  });
+
+  it("diag overlapping two adjacent diags", () => {
+    // LLLLLLLLLLRRRRRRRRRR
+    //      MMMMMMMMMM
+    let left = { begin: 0, end: 10, message: "left" };
+    let middle = { begin: 5, end: 15, message: "middle" };
+    let right = { begin: 10, end: 20, message: "right" };
+    expect(flattenDiagnostics([left, middle, right])).toEqual([
+      { offset: 0, type: "begin", diagnostic: left },
+      { offset: 5, type: "begin", diagnostic: middle },
+      { offset: 10, type: "end", diagnostic: middle },
+      { offset: 10, type: "end", diagnostic: left },
+      { offset: 10, type: "begin", diagnostic: right },
+      { offset: 10, type: "begin", diagnostic: middle },
+      { offset: 15, type: "end", diagnostic: middle },
+      { offset: 20, type: "end", diagnostic: right },
+    ]);
   });
 });
 
@@ -378,7 +573,7 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toBe("<mark>hello</mark><mark></mark>world");
   });
 
-  it("identical marks are merged", () => {
+  it("identical marks are nested", () => {
     let html = errorDocumentationExampleToHTML({
       code: "helloworld",
       diagnostics: [
@@ -386,10 +581,10 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 0, end: 5 },
       ],
     });
-    expect(html).toBe("<mark>hello</mark>world");
+    expect(html).toBe("<mark><mark>hello</mark></mark>world");
   });
 
-  it("overlapping marks with same begin are merged", () => {
+  it("overlapping marks with same begin are nested", () => {
     let html = errorDocumentationExampleToHTML({
       code: "two errors please thanks",
       diagnostics: [
@@ -397,7 +592,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 4, end: 17 }, // "errors please"
       ],
     });
-    expect(html).toBe("two <mark>errors please</mark> thanks");
+    expect(html).toBe("two <mark><mark>errors</mark> please</mark> thanks");
   });
 
   it("wraps byte order mark", () => {
@@ -442,6 +637,38 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
     expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+  });
+
+  it("mark includes diagnostic code, message, and severity", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "NaN = 0",
+      diagnostics: [
+        {
+          begin: 0,
+          end: 3,
+          code: "E0002",
+          message: "assignment to const global variable",
+          severity: DiagnosticSeverity.ERROR,
+        },
+      ],
+    });
+    expect(html).toBe(
+      '<mark data-code="E0002" data-message="assignment to const global variable" data-severity="error">NaN</mark> = 0'
+    );
+  });
+
+  it("warning mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hi",
+      diagnostics: [
+        {
+          begin: 0,
+          end: 2,
+          severity: DiagnosticSeverity.WARNING,
+        },
+      ],
+    });
+    expect(html).toBe('<mark data-severity="warning">hi</mark>');
   });
 });
 

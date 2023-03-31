@@ -155,7 +155,26 @@ tests = {
     await waitUntilAnyDiagnosticsAsync(jsURI);
   },
 
-  "parser supports JSX": async ({ addCleanup }) => {
+  "parser supports JSX in vanilla JS files": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(
+      helloFilePath,
+      "function MyComponent() { return <div></div>; }\n"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      assert.deepStrictEqual(helloDiags, []);
+    });
+  },
+
+  "parser supports JSX in JSX files": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.jsx");
     fs.writeFileSync(
@@ -171,6 +190,109 @@ tests = {
     await pollAsync(async () => {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, []);
+    });
+  },
+
+  "parser does not support TypeScript in JS files": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(helloFilePath, "interface I { }");
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0213: TypeScript's interface feature is not allowed in JavaScript code
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0213"]
+      );
+    });
+  },
+
+  "parser does not check TypeScript files by default": async ({
+    addCleanup,
+  }) => {
+    for (let extension of [".ts", ".tsx"]) {
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let helloFilePath = path.join(scratchDirectory, `hello${extension}`);
+      fs.writeFileSync(helloFilePath, "this is a bug");
+      let helloURI = vscode.Uri.file(helloFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+      // Wait for possible linting to take effect.
+      await sleepAsync(100);
+      await waitUntilNoDiagnosticsAsync(helloURI);
+    }
+  },
+
+  "parser checks TypeScript files if opted in": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.ts");
+    fs.writeFileSync(
+      helloFilePath,
+      "interface MyTestInterface {}\nMyTestInterface();"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(
+        "experimental-typescript",
+        true,
+        vscode.ConfigurationTarget.Workspace
+      );
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0057: use of undeclared variable 'MyTestInterface'
+      // Should not report E0213 ('interface' not allowed in JavaScript).
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0057"]
+      );
+    });
+  },
+
+  "parser checks TypeScript JSX files if opted in": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.tsx");
+    fs.writeFileSync(
+      helloFilePath,
+      "interface MyTestInterface {}\nconsole.log(<MyTestInterface />);"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(
+        "experimental-typescript",
+        true,
+        vscode.ConfigurationTarget.Workspace
+      );
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      // E0057: use of undeclared variable 'MyTestInterface'
+      // Should not report E0213 ('interface' not allowed in JavaScript).
+      // Should not report E0177 (React/JSX is not allowed in vanilla JavaScript
+      //                          code).
+      assert.deepStrictEqual(
+        helloDiags.map((diag) => diag.code.value),
+        ["E0057"]
+      );
     });
   },
 
@@ -603,7 +725,7 @@ tests = {
           path.basename(vscode.window.activeTextEditor.document.fileName),
           "quick-lint-js.config"
         );
-      }, 1000);
+      });
     },
 
   "dismissing quick-lint-js.config error pop-up does not open config file":
@@ -891,17 +1013,8 @@ tests = {
   "no output channel by default": async ({ addCleanup }) => {
     let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
 
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let jsFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(jsFilePath, "test;");
-    let jsURI = vscode.Uri.file(jsFilePath);
-
     await loadExtensionAsync({ addCleanup });
-    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
-    let jsEditor = await vscode.window.showTextDocument(
-      jsDocument,
-      vscode.ViewColumn.One
-    );
+    await causeLogMessagesAsync({ addCleanup });
 
     assert.deepStrictEqual(outputChannelMocker.getOutputChannels(), []);
   },
@@ -916,17 +1029,8 @@ tests = {
       .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
     addCleanup(resetConfigurationAsync);
 
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let jsFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(jsFilePath, "test;");
-    let jsURI = vscode.Uri.file(jsFilePath);
-
     await loadExtensionAsync({ addCleanup });
-    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
-    let jsEditor = await vscode.window.showTextDocument(
-      jsDocument,
-      vscode.ViewColumn.One
-    );
+    await causeLogMessagesAsync({ addCleanup });
 
     assert.deepStrictEqual(
       outputChannelMocker.getOutputChannels().map((c) => c.name),
@@ -939,8 +1043,88 @@ tests = {
     );
   },
 
-  // TODO(strager): Allow user to turn logging on or off after loading the
-  // extension.
+  "output channel gets messages if logging is enabled after loading extension":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await pollAsync(async () => {
+        assert.deepStrictEqual(
+          outputChannelMocker.getOutputChannels().map((c) => c.name),
+          ["quick-lint-js"]
+        );
+        let channel = outputChannelMocker.getOutputChannels()[0];
+        assert.ok(
+          channel._data.length > 0,
+          "at least one message should have been logged by enabling logging"
+        );
+      });
+    },
+
+  "output channel gets no more messages if logging is disabled after loading extension":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "off", vscode.ConfigurationTarget.Workspace);
+      await waitForAsynchronousLogMessagesAsync();
+      let messagesAfterDisablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+
+      await causeLogMessagesAsync({ addCleanup });
+      let messages = outputChannelMocker.getOutputChannels()[0]._data;
+      assert.strictEqual(messages, messagesAfterDisablingLogging);
+    },
+
+  "enabling then disabling then enabling logging reuses output channel":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "off", vscode.ConfigurationTarget.Workspace);
+      let messagesAfterDisablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      await causeLogMessagesAsync({ addCleanup });
+
+      assert.deepStrictEqual(
+        outputChannelMocker.getOutputChannels().map((c) => c.name),
+        ["quick-lint-js"]
+      );
+      let messagesAfterReenablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+      assert.ok(
+        messagesAfterReenablingLogging.startsWith(messagesAfterDisablingLogging)
+      );
+    },
 
   // TODO(strager): Allow the user to delete the extenion, thereby deleting
   // the output channel.
@@ -1279,6 +1463,24 @@ function mockKqueueErrors({ addCleanup, directoryOpenError = 0 }) {
   });
 }
 
+async function causeLogMessagesAsync({ addCleanup }) {
+  let scratchDirectory = makeScratchDirectory({ addCleanup });
+  let jsFilePath = path.join(scratchDirectory, "hello.js");
+  fs.writeFileSync(jsFilePath, "test;");
+  let jsDocument = await vscode.workspace.openTextDocument(
+    vscode.Uri.file(jsFilePath)
+  );
+  let jsEditor = await vscode.window.showTextDocument(
+    jsDocument,
+    vscode.ViewColumn.One
+  );
+  await waitForAsynchronousLogMessagesAsync();
+}
+
+async function waitForAsynchronousLogMessagesAsync() {
+  await sleepAsync(100);
+}
+
 // Convert an array of vscode.Diagnostic into an array of plain JavaScript
 // objects. Use this with assert.deepStrictEqual in tests.
 //
@@ -1303,16 +1505,16 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     endLine: diag.range.end.line,
     endCharacter: diag.range.end.character,
     relatedInformation:
-      typeof diag.relatedInformation === "undefined" ?
-      [] :
-      diag.relatedInformation.map(info => ({
-        message: info.message,
-        uri: info.location.uri.toString(),
-        startLine: info.location.range.start.line,
-        startCharacter: info.location.range.start.character,
-        endLine: info.location.range.end.line,
-        endCharacter: info.location.range.end.character,
-      })),
+      typeof diag.relatedInformation === "undefined"
+        ? []
+        : diag.relatedInformation.map((info) => ({
+            message: info.message,
+            uri: info.location.uri.toString(),
+            startLine: info.location.range.start.line,
+            startCharacter: info.location.range.start.character,
+            endLine: info.location.range.end.line,
+            endCharacter: info.location.range.end.character,
+          })),
   }));
 }
 
@@ -1366,9 +1568,11 @@ async function pollAsync(callback) {
 }
 
 async function resetConfigurationAsync() {
-  await vscode.workspace
-    .getConfiguration("quick-lint-js")
-    .update("logging", undefined, vscode.ConfigurationTarget.Workspace);
+  for (let setting of ["experimental-typescript", "logging"]) {
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update(setting, undefined, vscode.ConfigurationTarget.Workspace);
+  }
 }
 
 async function runAsync() {
@@ -1383,6 +1587,7 @@ async function runAsync() {
   // because without its JavaScript file detection, our extension doesn't work.
   let vscodeConfig = vscode.workspace.getConfiguration();
   await vscodeConfig.update("javascript.validate.enable", false);
+  await vscodeConfig.update("typescript.validate.enable", false);
 
   // Clean up configuration in case a previous run didn't clean it up.
   await resetConfigurationAsync();
@@ -1391,7 +1596,16 @@ async function runAsync() {
     throw new Error(message);
   });
 }
-exports.run = runAsync;
+
+async function runCatchingErrorsAsync() {
+  try {
+    return await runAsync();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+exports.run = runCatchingErrorsAsync;
 // vscode-test will invoke the exports.run for us.
 
 // quick-lint-js finds bugs in JavaScript programs.

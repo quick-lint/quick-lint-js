@@ -1,6 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+include(QuickLintJSCompiler)
+
 set(QUICK_LINT_JS_COLLECT_COPYRIGHT "${CMAKE_CURRENT_LIST_DIR}/../tools/collect-copyright")
 
 function (quick_lint_js_collect_copyright NAME)
@@ -18,15 +20,24 @@ function (quick_lint_js_collect_copyright NAME)
     set(ERROR_MESSAGE_SEVERITY FATAL_ERROR)
   endif ()
 
+  set(LICENSE_LINKMAP_TYPE)
   if (EMSCRIPTEN)
     set(LICENSE_LINKMAP_TYPE emscripten)
   elseif (CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set(LICENSE_LINKMAP_TYPE macho)
-  elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  elseif (CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     set(LICENSE_LINKMAP_TYPE elf)
   elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MSVC)
     set(LICENSE_LINKMAP_TYPE pe)
-  else ()
+  elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MINGW)
+    quick_lint_js_classify_linker()
+    if ("${QUICK_LINT_JS_CXX_LINKER_TYPE}" STREQUAL "GNU ld")
+      set(LICENSE_LINKMAP_TYPE elf)
+    elseif ("${QUICK_LINT_JS_CXX_LINKER_TYPE}" STREQUAL "LLVM LLD PE")
+      set(LICENSE_LINKMAP_TYPE coff-lld)
+    endif ()
+  endif ()
+  if ("${LICENSE_LINKMAP_TYPE}" STREQUAL "")
     message("${ERROR_MESSAGE_SEVERITY}" "Unrecognized platform. Not generating copyright file.")
     return ()
   endif ()
@@ -43,6 +54,13 @@ function (quick_lint_js_collect_copyright NAME)
   endif ()
 
   set(COLLECT_COPYRIGHT_OPTIONS)
+  if (LICENSE_LINKMAP_TYPE STREQUAL coff-lld)
+    target_link_libraries(
+      "${_TARGET}"
+      PRIVATE
+      "-Wl,-Xlink,-reproduce:${LINKMAP_FILE}"
+    )
+  endif ()
   if (LICENSE_LINKMAP_TYPE STREQUAL emscripten)
     target_link_libraries(
       "${_TARGET}"
@@ -89,6 +107,8 @@ function (quick_lint_js_collect_copyright NAME)
     COMMAND
       "${PYTHON_EXECUTABLE}"
       "${QUICK_LINT_JS_COLLECT_COPYRIGHT}"
+      --build-directory
+      "${CMAKE_BINARY_DIR}"
       --linkmap
       "${LINKMAP_FILE}"
       ${COLLECT_COPYRIGHT_OPTIONS}

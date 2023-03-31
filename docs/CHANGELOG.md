@@ -10,7 +10,392 @@ Semantic Versioning.
 
 ### Added
 
+* `if () {}` (without a condition) now reports [E0452][] ("empty parenthesis
+  after control statement"). (Implemented by [Yunus][].)
+* `return x,` now reports [E0026][] ("missing operand for operator").
+  (Implemented by [Tom Binford][].)
+
+### Fixed
+
+* The CLI's `--output-format=gnu-like` output (default) no longer prints
+  terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
+  [wagner riffel][].)
+
+### Changed
+
+* Cross compiling now requires you to build with
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` for the build machine then with
+  `QUICK_LINT_JS_USE_BUILD_TOOLS` for the target machine. See the
+  [cross-compiling documentation][cross-compiling-quick-lint-js] for details.
+
+## 2.12.0 (2023-03-08)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.12.0/)
+
+### Added
+
+* `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
+  index") (implemented by [Yunus][]).
+* `while (x > 0, y > 0)` now reports [E0451][] ("misleading use of ',' operator
+  in conditional statement") (implemented by [Yunus][]).
+* Improvements to experimental TypeScript support:
+  * Type variables such as `Readonly<T>` and `IArguments` are now recognized by
+    the new `typescript` global group which is enabled by default.
+  * `declare` is now supported.
+  * The old-style `module` syntax for namespaces is now supported.
+
+### Fixed
+
+* Fixed [E0062][] being reported when [E0061][] should be reported instead
+  (fixed by [Yunus][]).
+* TypeScript `namespace` without a body now reports [E0356][] instead of
+  crashing with an assertion failure.
+
+### Changed
+
+* quick-lint-js' build system now optionally creates executes and runs them
+  during the build. This behavior is controlled by the
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` and `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake
+  variables.
+  * For most people, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is enabled by default
+    and should work without extra configuration. No action is needed.
+  * When cross-compiling, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is disabled.
+    Currently, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is optional, so this should
+    behave as before. However, in the future, either
+    `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` or `QUICK_LINT_JS_USE_BUILD_TOOLS` will
+    be required.
+  * If you need to configure the build tools specially, or if you want to build
+    the build tools when cross-compiling, you must use the
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake variable. See the [cross-compiling
+    documentation][cross-compiling-quick-lint-js] for instructions on using
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` correctly.
+
+## 2.11.0 (2023-01-31)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.11.0/)
+
+### Changed
+
+* Debian: The apt repository signing key expired on (2023-01-21). This causes
+  `apt-get update` to fail. To fix this issue, add the latest signing key by
+  running the following command:
+
+      $ curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -
+
+* LSP: The quick-lint-js LSP server no longer accepts JSON-RPC 2.0 batch
+  messages. In practice, LSP clients don't use this feature, so this breaking
+  change should do no harm. The LSP specification recently started
+  [prohibiting batch
+  messages](https://github.com/microsoft/language-server-protocol/pull/1651) to
+  match the status quo.
+
+### Added
+
+* LSP: The LSP server now recognizes and lints TypeScript and TypeScript JSX
+  code. However, the editor plugins currently do **not** use this feature by
+  default.
+* Vim: You can opt into TypeScript support. Search for `EXPERIMENTAL` in
+  `:help quick-lint-js`. (Disabled by default.)
+* VS Code: You can now opt into experimental TypeScript support. Set the
+  `quick-lint-js.experimental-typescript` setting to `true`. (Disabled by
+  default.)
+* `switch (c) { case A: break; case A: break; }` now reports [E0347][]
+  ("duplicated case clause in switch statement") (implemented by [Rebraws][]).
+* Translations: Brazilian Portuguese (implemented by [Guilherme Vasconcelos][]).
+* Mixing up the order of the `export`, `async`, and `function` keywords now
+  reports [E0326][] or [E0327][] (implemented by [Alek Lefebvre][]).
+* TypeScript types like `string?` now report [E0348][] (implemented by
+  [Alek Lefebvre][]).
+* Extra parentheses in function parameters now report [E0349][] (function
+  parameter cannot be parenthesized) (implemented by [Harshit Aghera][]).
+* QuickJS's global variables are now recognized by default via the new `quickjs`
+  global group (implemented by [wagner riffel]).
+* [E0190][] is now reported if the literal is `undefined`, not only `null`,
+  strings, and numbers (implemented by [Harshit Aghera][]).
+
+### Fixed
+
+* Variables can be named according to Unicode 15 (previously Unicode 14).
+* In tracing files, the thread IDs in the file headers are now correct if
+  tracing was enabled after startup.
+* [E0325][] is now an error rather than a warning.
+* `0o123.toString()`, `0x123.toString()`, `0b101.toString()`, and
+  `0123.toString()` no longer incorrectly report [E0046][], [E0047][], or
+  [E0048][].
+* Using a variable called `async`, then exporting something, no longer reports
+  an unexpected token error (implemented by [Alek Lefebvre][]).
+* `class C { x = 0, y; }` now reports [E0330][] ("',' should be ';' instead")
+  instead of [E0057][] ("use of undeclared variable: y") (implemented by
+  [clegoz][]).
+
+## 2.10.0 (2022-10-14)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.10.0/)
+
+### Added
+
+* [E0286][] and [E0287][] are now reported if the string or the value have extra
+  parentheses (such as in `(tag.toUpperCase()) === 'img'`) (implemented by
+  [Rebraws][]).
+* `myArray === []` now reports [E0344][] (implemented by [Rebraws][]).
+* `myArray === [a, b, c]` now reports [E0341][] (implemented by [Rebraws][]).
+* CLI: The new [`--language` option][cli-language] lets you opt out of JSX
+  support. With `--language=javascript`, quick-lint-js will report [E0177][] for
+  any uses of JSX.
+* You can opt into TypeScript support in the CLI using the
+  [`--language=experimental-typescript` option][cli-language]. TypeScript
+  support is experimental, so there will be bugs (including crashes) in
+  quick-lint-js. This option does not affect the LSP server.
+* [E0149][] and [E0150][] are now reported for labelled statements too
+  (implemented by [Guilherme Vasconcelos][]).
+
+### Fixed
+
+* `static` code blocks in classes no longer report E0242 ("TypeScript static
+  blocks are not supported in JavaScript").
+* When writing `implements` in JavaScript code, quick-lint-js will no longer
+  possibly report [E0246][] in addition to [E0247][]. quick-lint-js will now
+  only report [E0247][].
+* `{ x: y = z }` in an expression no longer incorrectly reports [E0253][].
+* `{ x: y = z }` now reports errors such as [E0057][] for `z`. (`z` used to be
+  completely ignored during variable analysis.)
+* `{ x = z }` now only reports [E0253][], instead of also reporting [E0059][]
+  for `x`.
+* `class C { field!; }` now only reports [E0239][] (TypeScript assignment-asserted
+  fields are not supported in JavaScript) instead of both E0239 and
+  [E0236][] (assignment-asserted field must have a type annotation).
+
+### Changed
+
+* [E0707][] has been merged into [E0069][].
+* [E0271][] has been merged into [E0270][].
+* [E0279][] has been merged into [E0278][].
+
+## 2.9.0 (2022-09-05)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.9.0/)
+
+### Added
+
+* `tag.toUpperCase() === 'img'` now reports [E0286][], and
+  `tag.toLowerCase() === 'IMG'` now reports [E0287][] (implemented by [Roland
+  Strasser][]).
+
+### Fixed
+
+* `(param) { body(); }` now reports [E0176][] ('missing arrow operator for arrow
+  function') (implemented by [Roland Strasser][]).
+* quick-lint-js no longer crashes if a TypeScript `type` alias appears in a
+  JavaScript file.
+* quick-lint-js now recognizes the `jest` global variable from the Jest test
+  framework. This suppresses undesired [E0057][] ("use of undeclared variable")
+  warnings.
+* `await () => x` no longer reports `x` as undeclared multiple times. ([E0178][]
+  is still reported, as intended.)
+* Defining a global variable in `quick-lint-js.config` which is already declared
+  by default now always changes the `shadowable` and `writable` settings.
+* `await () => await () => ...` no longer slows down linting and consumes a lot
+  of memory.
+
+## 2.8.0 (2022-07-25)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.8.0/)
+
+### Added
+
+* `await await f()` now reports [E0266][] ("redundant await") (implemented by
+  [clegoz][]).
+* CLI: Misuse of `--vim-file-bufnr` now reports warnings (implemented by [Roland
+  Strasser][]).
+
+### Fixed
+
+* LSP, VS Code: quick-lint-js now correctly handles merging lines containing
+  non-ASCII with lines containing ASCII. This fixes spurious diagnostics. Thanks
+  to T0x3139 and [mirabellier][] for reporting and helping fix this bug.
+* quick-lint-js now recognizes [Bun][]'s global variables, including `Bun` and
+  `bunJSX`. This suppresses undesired [E0057][] ("use of undeclared variable")
+  warnings.
+
+### Removed
+
+* The `en@loud` translation has been removed. It was only used for testing.
+
+### Changed
+
+* Debian/Ubuntu: Our Debian/Ubuntu package now might not work on Ubuntu 16.04 or
+  Debian 9. The following Debian-based Linux distributions are tested:
+  * Debian 10 Bullseye and 11 Buster
+  * PureOS Amber
+  * Ubuntu 18.04 Bionic and 20.04 Focal
+* Manual: Our Linux x86_64/amd64 pre-built binaries now might not work on Ubuntu
+  16.04 or similarly old distributions. The following Linux distributions are
+  tested:
+  * Arch Linux
+  * Debian 10 Bullseye and 11 Buster
+  * Fedora 35 and 36
+  * Ubuntu 18.04 Bionic and 20.04 Focal
+
+## 2.7.0 (2022-07-13)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.7.0/)
+
+### Added
+
+* `const o = {k = v};` now reports [E0253][] ("use ':' instead of '=' in object
+  literals").
+* `--snarky` is now even snarkier.
+* LSP server: The new `quick-lint-js.tracing-directory` LSP configuration item
+  can be set to a path where quick-lint-js will log LSP protocol traffic. This
+  keylogger option can be used by quick-lint-js contributors to investigate
+  bugs. This new option is disabled by default.
+
+### Fixed
+
+* quick-lint-js no longer fails to build with simdjson version 2.2.0.
+* Declaring a TypeScript interface with the same name as a generic parameter no
+  longer crashes quick-lint-js.
+
+## 2.6.0 (2022-06-15)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.6.0/)
+
+### Added
+
+* `DOMError`, `MutationEvent`, and some other browser global variables are now
+  recognized.
+* New global group: `web-worker` (enabled by default)
+* The `importScripts` global function is now recognized by default.
+* Forgetting a semicolon between class fields now reports "missing semicolon
+  after field" ([E0223][]) instead of "missing semicolon after statement"
+  ([E0027][]).
+* Using some TypeScript features, such as class generics and interfaces, in
+  JavaScript code is now reported with a friendly error message.
+* [E0199][] ("unclosed class") is now reported in more scenarios.
+* `static` code blocks in classes are now supported.
+
+### Fixed
+
+* [E0707][] now only complains about classes named `await`, not any class inside
+  an async function.
+* [E0054][] is no longer incorrectly reported for class properties named
+  `implements`, `interface`, `package`, `private`, `protected`, or `public`.
+* In statement contexts, `async` followed by a newline followed by `function` is
+  no longer falsely interpreted as an async function. It is instead interpreted
+  as the use of a variable called `async` followed by a non-async function, per
+  the language standard.
+* `((x)) => {}` no longer crashes the parser with an assertion failure.
+* Tests now pass if the user's locale is Italian (`it_IT.utf8` on Linux).
+* The FreeBSD build now succeeds and tests pass.
+
+## 2.5.0 (2022-05-23)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.5.0/)
+
+### Added
+
+* [E0144][] and [E0145][] are now reported for `implements`, `interface`,
+  `package`, `private`, `protected`, and `public` (in addition to other
+  keywords).
+* [E0086][] is now reported in more cases, such as when the deleted variable was
+  declared outside the function containing the `delete` expression.
+* Classes named `await` in `async` functions now report [E0707][] (implemented
+  by [ooblegork][]).
+* Integer literals which are silently rounded at run-time now report [E0212][]
+  (implemented by [Rob Miner][]).
+* VS Code: The new `quick-lint-js.tracing` setting can be set to `"verbose"` to
+  log changes to documents. This keylogger option can be used by quick-lint-js
+  contributors to investigate bugs. This new option is disabled by default.
+* CLI: The `--snarky` option makes error messages more interesting. Implemented
+  by [david doroz][].
+
+### Fixed
+
+* [E0150][] no longer crashes quick-lint-js when using a German (`de`) locale.
+  (Fixed by [Nico Sonack][].)
+* The npm package now includes `copyright` files listing software licenses and
+  copyright notices.
+* [E0086][] is no longer falsely reported in some cases.
+* VS Code (Windows x64): When the extension is first loaded, and a file has
+  errors, quick-lint-js no longer reports the first error always on the first
+  line. (The issue was a [compiler
+  bug](https://lists.gnu.org/archive/html/bug-binutils/2022-05/msg00099.html)
+  which we worked around.)
+* quick-lint-js no longer creates and writes messages to `/tmp/qljs.log`.
+
+### Changed
+
+* This release is signed with a new GPG key.
+  * Old fingerprint: 0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20
+  * New fingerprint: A6851D57A65803E98C05DA01C08A7BC89CA2F557
+
+## 2.4.2 (2022-04-22)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.4.2/)
+
+### Changed
+
+* The name of package installed by the MSIX installer has changed. It used to be
+  "fa6b940b-8f96-4b46-8e21-703a63133e06" but now it is
+  "quick-lint.quick-lint-js". If you installed quick-lint-js using a prior
+  version of the MSIX installer, Windows won't let you upgrade. Uninstall the
+  old version of quick-lint-js before installing a new version.
+
+## 2.4.1 (2022-04-19)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.4.1/)
+
+### Fixed
+
+* When using the `de`, `fr_FR`, or `sv_SV` locale, some error messages are no
+  longer blank.
+
+### Changed
+
+* The Windows MSIX installer is now signed with a Microsoft-trusted certificate.
+  If you installed quick-lint-js using a prior version of the MSIX installer,
+  Windows won't let you upgrade. Uninstall the old version of quick-lint-js
+  before installing a new version.
+* The Windows executable is now signed with a Microsoft-trusted certificate.
+
+## 2.4.0 (2022-04-15)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.4.0/)
+
+### Added
+
+* Missing parentheses around a self-invoked arrow function are now reported as
+  [E0211][]. (Implemented by [Sarah Schulte][].)
+* [E0179][] is now reported if a JSX element such as `<div />` follows `return`
+  (implemented by [Rob Miner][]).
+
+### Fixed
+
+* `<div> <> </> </div>` (a JSX fragment inside a JSX element) no longer reports
+  a syntax error.
+
+### Changed
+
+* Windows builds (x86, x64, ARM, and ARM64) are now built with MinGW's C and C++
+  runtime libraries instead of Microsoft's. This fixes a compliance issue with
+  GPLv3.
+
+## 2.3.1 (2022-03-24)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.3.1/)
+
+### Added
+
 * Windows: The 32-bit x86 builds are now code-signed.
+* Windows: Tab-completion now works in PowerShell. (Completion needs to be
+  [installed manually][install-powershell-completions].) (Implemented by [Tony
+  Sathre][].)
+
+### Fixed
+
+* The executable files shared between the npm packages and the static builds are
+  now identical. (Previously, the files sometimes differed because they were
+  code-signed independently. Code signing is non-deterministic.)
 
 ## 2.3.0 (2022-02-24)
 
@@ -392,7 +777,7 @@ Beta release.
 * Errors and warnings are now documented on the website
 * Various new errors and error message improvements (implemented by
   [AidenThing][], [Daniel La Rocque][], [Erlliam Mejia][], [Himanshu][], [Lee
-  Wannacott][], [Matheus Sousa][])
+  Wannacott][], [Matheus de Sousa][])
 * Shell completion for the CLI (Bash, Fish, Zsh) (implemented by [Shivam
   Mehta][])
 * `--stdin` CLI option allows reading JavaScript from standard input instead of
@@ -421,13 +806,20 @@ Beta release.
 
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
+[Bun]: https://bun.sh/
+[cli-language]: ../cli/#language
+[cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
+
 [AidenThing]: https://github.com/AidenThing
+[Alek Lefebvre]: https://github.com/AlekLefebvre
 [Amir]: https://github.com/ahmafi
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
 [Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
+[Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
+[Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
@@ -436,9 +828,21 @@ Beta release.
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
+[Rebraws]: https://github.com/Rebraws
+[Rob Miner]: https://github.com/robminer6
+[Roland Strasser]: https://github.com/rol1510
+[Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
+[Tom Binford]: https://github.com/TomBinford
+[Tony Sathre]: https://github.com/tonysathre
+[Yunus]: https://github.com/yunusey
+[clegoz]: https://github.com/clegoz
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[david doroz]: https://github.com/DaviddHub
+[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
+[mirabellier]: https://github.com/mirabellierr
+[ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
 
@@ -449,14 +853,23 @@ Beta release.
 [E0019]: https://quick-lint-js.com/errors/E0019/
 [E0020]: https://quick-lint-js.com/errors/E0020/
 [E0026]: https://quick-lint-js.com/errors/E0026/
+[E0027]: https://quick-lint-js.com/errors/E0027/
 [E0036]: https://quick-lint-js.com/errors/E0036/
 [E0038]: https://quick-lint-js.com/errors/E0038/
 [E0040]: https://quick-lint-js.com/errors/E0040/
+[E0046]: https://quick-lint-js.com/errors/E0046/
+[E0047]: https://quick-lint-js.com/errors/E0047/
+[E0048]: https://quick-lint-js.com/errors/E0048/
 [E0053]: https://quick-lint-js.com/errors/E0053/
 [E0054]: https://quick-lint-js.com/errors/E0054/
 [E0057]: https://quick-lint-js.com/errors/E0057/
+[E0059]: https://quick-lint-js.com/errors/E0059/
 [E0060]: https://quick-lint-js.com/errors/E0060/
+[E0061]: https://quick-lint-js.com/errors/E0061/
+[E0062]: https://quick-lint-js.com/errors/E0062/
+[E0069]: https://quick-lint-js.com/errors/E0069/
 [E0073]: https://quick-lint-js.com/errors/E0073/
+[E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
 [E0104]: https://quick-lint-js.com/errors/E0104/
 [E0106]: https://quick-lint-js.com/errors/E0106/
@@ -465,9 +878,13 @@ Beta release.
 [E0111]: https://quick-lint-js.com/errors/E0111/
 [E0119]: https://quick-lint-js.com/errors/E0119/
 [E0144]: https://quick-lint-js.com/errors/E0144/
+[E0145]: https://quick-lint-js.com/errors/E0145/
+[E0149]: https://quick-lint-js.com/errors/E0149/
+[E0150]: https://quick-lint-js.com/errors/E0150/
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
+[E0177]: https://quick-lint-js.com/errors/E0177/
 [E0178]: https://quick-lint-js.com/errors/E0178/
 [E0179]: https://quick-lint-js.com/errors/E0179/
 [E0180]: https://quick-lint-js.com/errors/E0180/
@@ -493,3 +910,33 @@ Beta release.
 [E0203]: https://quick-lint-js.com/errors/E0203/
 [E0205]: https://quick-lint-js.com/errors/E0205/
 [E0207]: https://quick-lint-js.com/errors/E0207/
+[E0211]: https://quick-lint-js.com/errors/E0211/
+[E0212]: https://quick-lint-js.com/errors/E0212/
+[E0223]: https://quick-lint-js.com/errors/E0223/
+[E0236]: https://quick-lint-js.com/errors/E0236/
+[E0239]: https://quick-lint-js.com/errors/E0239/
+[E0246]: https://quick-lint-js.com/errors/E0246/
+[E0247]: https://quick-lint-js.com/errors/E0247/
+[E0253]: https://quick-lint-js.com/errors/E0253/
+[E0266]: https://quick-lint-js.com/errors/E0266/
+[E0270]: https://quick-lint-js.com/errors/E0270/
+[E0271]: https://quick-lint-js.com/errors/E0271/
+[E0278]: https://quick-lint-js.com/errors/E0278/
+[E0279]: https://quick-lint-js.com/errors/E0279/
+[E0286]: https://quick-lint-js.com/errors/E0286/
+[E0287]: https://quick-lint-js.com/errors/E0287/
+[E0325]: https://quick-lint-js.com/errors/E0325/
+[E0326]: https://quick-lint-js.com/errors/E0326/
+[E0327]: https://quick-lint-js.com/errors/E0327/
+[E0330]: https://quick-lint-js.com/errors/E0330/
+[E0341]: https://quick-lint-js.com/errors/E0341/
+[E0344]: https://quick-lint-js.com/errors/E0344/
+[E0345]: https://quick-lint-js.com/errors/E0345/
+[E0347]: https://quick-lint-js.com/errors/E0347/
+[E0348]: https://quick-lint-js.com/errors/E0348/
+[E0349]: https://quick-lint-js.com/errors/E0349/
+[E0356]: https://quick-lint-js.com/errors/E0356/
+[E0450]: https://quick-lint-js.com/errors/E0450/
+[E0451]: https://quick-lint-js.com/errors/E0451/
+[E0452]: https://quick-lint-js.com/errors/E0452/
+[E0707]: https://quick-lint-js.com/errors/E0707/

@@ -1,16 +1,19 @@
+<!---{
+"title": "quick-lint-js CLI documentation"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html", { title: `quick-lint-js CLI
-    documentation` }) %>
+    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let fs = await import("fs");
-      let asciidoctor = (await import("asciidoctor")).default();
+      let asciidoctor = (await import("@asciidoctor/core")).default();
 
-      let adoc = await fs.promises.readFile("../../../docs/cli.adoc", "utf-8");
+      let adoc = await fs.promises.readFile(absoluteFilePath("../../../docs/cli.adoc"), "utf-8");
       let cliDocumentation = asciidoctor.convert(adoc);
       //%>
     </script>

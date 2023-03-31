@@ -33,7 +33,7 @@ func main() {
 	buildSizesDirectoryPath := flag.Arg(1)
 	workerCount := 8
 
-	CollectBinarySizesPath, err = filepath.Abs("./tools/build-sizes/collect-binary-sizes")
+	CollectBinarySizesPath, err = filepath.Abs("./tools/build-sizes/collect_binary_sizes.py")
 	if err != nil {
 		log.Fatal(err)
 	}

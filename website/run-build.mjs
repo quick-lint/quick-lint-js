@@ -3,94 +3,52 @@
 
 import fs from "fs";
 import path from "path";
-import url from "url";
-import { makeBuildInstructionsAsync } from "./src/build.mjs";
-import { Router, makeHTMLRedirect } from "./src/router.mjs";
+import promiseLimit from "promise-limit";
 import { websiteConfig } from "./src/config.mjs";
+import {
+  IndexConflictVFSError,
+  MalformedDirectoryURIError,
+  ServerConfigVFSFile,
+  VFS,
+  VFSDirectory,
+} from "./src/vfs.mjs";
 
-let __filename = url.fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
+let maxConcurrentJobs = 8;
+let semaphore = promiseLimit(maxConcurrentJobs);
 
 async function mainAsync() {
   let { targetDirectory } = parseArguments(process.argv.slice(2));
 
   let wwwRootPath = websiteConfig.wwwRootPath;
-  let instructions = await makeBuildInstructionsAsync(websiteConfig);
-  let router = new Router(websiteConfig);
-
-  async function copyFileAsync(fromPath, toPath) {
-    let from = path.relative("", path.resolve(wwwRootPath, fromPath));
-    let to = path.relative("", path.resolve(targetDirectory, toPath));
-    console.log(`copy: ${from} -> ${to}`);
-    await fs.promises.mkdir(path.dirname(to), { recursive: true });
-    await fs.promises.writeFile(to, await fs.promises.readFile(from));
-  }
-
-  for (let instruction of instructions) {
-    switch (instruction.type) {
-      case "copy":
-        await copyFileAsync(instruction.path, instruction.path);
-        break;
-
-      case "copy-to":
-        await copyFileAsync(
-          instruction.sourcePath,
-          instruction.destinationPath
-        );
-        break;
-
-      case "build-ejs":
-        let ejsPath = path.join(wwwRootPath, instruction.sourcePath);
-        let outPath = path.join(targetDirectory, instruction.destinationPath);
-        console.log(`build EJS: ${ejsPath} -> ${outPath}`);
-        await fs.promises.mkdir(path.dirname(outPath), { recursive: true });
-        let out = await router.renderEJSFile(
-          ejsPath,
-          instruction.ejsVariables,
-          {
-            // Reduce peak memory usage.
-            allowCacheBusting: false,
-          }
-        );
-        fs.promises.writeFile(outPath, out);
-        break;
-
-      case "esbuild":
-        let bundlePath = path.join(targetDirectory, instruction.bundlePath);
-        console.log(
-          `esbuild: ${instruction.esbuildConfig.entryPoints
-            .map((uri) => path.relative("", path.join(router.wwwRootPath, uri)))
-            .join(", ")} -> ${path.relative("", bundlePath)}`
-        );
-        await fs.promises.mkdir(path.dirname(bundlePath), { recursive: true });
-        await router.runESBuildAsync(instruction.esbuildConfig, bundlePath);
-        break;
-
-      case "html-redirect":
-        let htmlPath = path.join(targetDirectory, instruction.htmlPath);
-        await fs.promises.mkdir(path.dirname(htmlPath), { recursive: true });
-        console.log(
-          `redirect: ${htmlPath} -> ${instruction.redirectTargetURL}`
-        );
-        await fs.promises.writeFile(
-          htmlPath,
-          makeHTMLRedirect(instruction.htmlPath, instruction.redirectTargetURL)
-        );
-        break;
-
-      case "warning":
-        console.error(`error: ${instruction.message}`);
-        process.exit(1);
-        break;
-
-      default:
-        throw new Error(
-          `Unexpected type from makeBuildInstructionsAsync: ${instruction.type}`
-        );
-    }
-  }
+  let vfs = new VFS(wwwRootPath);
+  await buildDirAsync(vfs, "/", targetDirectory);
 
   process.exit(0);
+}
+
+async function buildDirAsync(vfs, uri, outputDirectory) {
+  let listing = await vfs.listDirectoryAsync(uri);
+  await fs.promises.mkdir(outputDirectory, { recursive: true });
+  await Promise.all(
+    listing.names().map(async (childName) => {
+      let child = listing.get(childName);
+      let childPath = path.join(
+        outputDirectory,
+        childName === "" ? "index.html" : childName
+      );
+      if (child instanceof VFSDirectory) {
+        await buildDirAsync(vfs, `${uri}${childName}/`, childPath);
+      } else if (child instanceof IndexConflictVFSError) {
+        throw child;
+      } else {
+        await semaphore(async () => {
+          console.log(`generating ${childPath} ...`);
+          let data = await child.getContentsAsync();
+          await fs.promises.writeFile(childPath, data);
+        });
+      }
+    })
+  );
 }
 
 function parseArguments(args) {

@@ -1,15 +1,21 @@
+<!---{
+"title": "JavaScript syntax errors compared (2021)",
+"description": "Comparison of errors produced by different JavaScript parsers",
+"navTitle": "JS errors",
+"blogDate": "2021-12-11T17:19:10-08:00"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `JavaScript syntax
-    errors compared (2021)`, description: `Comparison of errors produced by
-    different JavaScript parsers` }) %>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
     <script>
       //<%
       let url = await import("url");
-      let { html } = await import(url.pathToFileURL("../../../src/html-tag.mjs"));
+      let { html } = await importFileAsync("../../../src/html-tag.mjs");
 
       let engines = [
         {name: "Ba", fullName: "Babel", hue: 20.0},
@@ -278,7 +284,7 @@
 
       <p>
         Written by <a href="https://strager.net/">strager</a> on
-        <time>2021-12-11</time>
+        <qljs-date datetime="<%= meta.blogDate %>" />
       </p>
 
       <section id="table-of-contents">

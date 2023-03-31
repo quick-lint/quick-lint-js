@@ -1,0 +1,49 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Download Matomo
+  ansible.builtin.get_url:
+    url: http://builds.matomo.org/matomo-{{ matomo_version }}.tar.gz
+    dest: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}.tar.gz
+    owner: www-data
+    group: www-data
+    checksum: "{{ matomo_checksum }}"
+  become: true
+
+- name: Create directory for Matomo
+  ansible.builtin.file:
+    path: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}
+    owner: www-data
+    group: www-data
+    state: directory
+  become: true
+
+- name: Extract Matomo
+  ansible.builtin.unarchive:
+    remote_src: yes
+    src: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}.tar.gz
+    dest: /var/www/admin.quick-lint-js.com/matomo-{{ matomo_version }}
+    extra_opts:
+      - '--strip-components=1'
+    owner: www-data
+    group: www-data
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

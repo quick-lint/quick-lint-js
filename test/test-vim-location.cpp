@@ -4,12 +4,14 @@
 #include <array>
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/characters.h>
-#include <quick-lint-js/location.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/vim-location.h>
+#include <quick-lint-js/cli/vim-location.h>
+#include <quick-lint-js/container/concat.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/fe/source-code-span.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -28,8 +30,8 @@ TEST(test_vim_location, ranges_on_first_line) {
 
 TEST(test_vim_location, ranges_on_second_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"let x = 2;" + string8(line_terminator) +
-                       u8"let y = 3;");
+    padded_string code(
+        concat(u8"let x = 2;"_sv, line_terminator, u8"let y = 3;"_sv));
     const char8* y = strchr(code.c_str(), u8'y');
     vim_locator l(&code);
     vim_source_range x_range = l.range(source_code_span(y, y + 1));
@@ -44,8 +46,8 @@ TEST(test_vim_location, ranges_on_second_line) {
 
 TEST(test_vim_location, first_character_on_line_has_column_1) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(u8"function f() {}" + string8(line_terminator) +
-                       u8"g();");
+    padded_string code(
+        concat(u8"function f() {}"_sv, line_terminator, u8"g();"_sv));
     const char8* g = strchr(code.c_str(), u8'g');
     vim_locator l(&code);
     vim_source_position g_position = l.position(g);
@@ -69,8 +71,8 @@ TEST(test_vim_location, lf_cr_is_two_line_terminators) {
 
 TEST(test_vim_location, ls_and_ps_are_not_line_terminators) {
   for (string8_view not_line_terminator : ls_and_ps) {
-    padded_string code(u8"let x = 2;" + string8(not_line_terminator) +
-                       u8"let y = 3;");
+    padded_string code(
+        concat(u8"let x = 2;"_sv, not_line_terminator, u8"let y = 3;"_sv));
     SCOPED_TRACE(code);
     const char8* y = strchr(code.c_str(), u8'y');
     vim_locator l(&code);
@@ -108,7 +110,7 @@ TEST(test_vim_location, position_backwards) {
       actual_positions.push_back(l.position(&code[i]));
     }
   }
-  std::reverse(actual_positions.begin(), actual_positions.end());
+  reverse(actual_positions);
 
   EXPECT_EQ(actual_positions, expected_positions);
 }

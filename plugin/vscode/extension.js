@@ -27,6 +27,7 @@ async function activateAsync(extensionContext) {
   toDispose.push(diagnostics);
 
   let workspace = qljs.createWorkspace({
+    logDirectory: extensionContext?.logUri?.fsPath || "",
     vscode: vscode,
     vscodeDiagnosticCollection: diagnostics,
   });
@@ -68,6 +69,24 @@ async function activateAsync(extensionContext) {
     vscode.workspace.onDidCloseTextDocument((vscodeDocument) => {
       logErrors(() => {
         workspace.closeDocument(vscodeDocument);
+      });
+    })
+  );
+
+  toDispose.push(
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      logErrors(() => {
+        if (event.affectsConfiguration("quick-lint-js")) {
+          workspace.configurationChanged();
+        }
+      });
+    })
+  );
+
+  toDispose.push(
+    vscode.workspace.onDidSaveTextDocument((vscodeDocument) => {
+      logErrors(() => {
+        workspace.documentSaved(vscodeDocument);
       });
     })
   );

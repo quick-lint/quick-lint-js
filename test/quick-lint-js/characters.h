@@ -6,6 +6,7 @@
 
 #include <array>
 #include <quick-lint-js/array.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 inline constexpr std::array line_terminators_except_ls_ps =

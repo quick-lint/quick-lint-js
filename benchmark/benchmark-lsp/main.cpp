@@ -10,15 +10,15 @@
 #include <filesystem>
 #include <map>
 #include <memory>
-#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/cli/arg-parser.h>
+#include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
-#include <quick-lint-js/result.h>
-#include <quick-lint-js/string-view.h>
 #include <unistd.h>
 
 using namespace quick_lint_js;
@@ -220,9 +220,8 @@ namespace {
 parsed_args parse_arguments(int argc, char** argv) {
   auto read_number = [](const char* arg_value) {
     int output_number;
-    from_chars_result result = from_chars(
-        &arg_value[0], &arg_value[std::strlen(arg_value)], output_number);
-    if (*result.ptr != '\0' || result.ec != std::errc{}) {
+    if (parse_integer_exact(std::string_view(arg_value), output_number) !=
+        parse_integer_exact_error::ok) {
       std::fprintf(stderr, "error: failed to parse number: %s\n", arg_value);
       std::exit(2);
     }

@@ -1,7 +1,7 @@
 {
   "name": "quick-lint-js",
   "description": "Find bugs in your JavaScript code",
-  "version": "2.3.0",
+  "version": "2.12.0",
   "keywords": [
     "quick",
     "lint",
@@ -49,7 +49,7 @@
   "funding": [
     {
       "type": "individual",
-      "url": "https://github.com/sponsors/strager"
+      "url": "https://github.com/sponsors/quick-lint"
     }
   ]
 }

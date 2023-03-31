@@ -13,10 +13,19 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
     quick_lint_js_add_library(
       quick-lint-js-vscode-node
       SHARED
-      quick-lint-js-vscode-node.cpp
-      quick-lint-js/napi-support.h
-      quick-lint-js/vscode-error-reporter.h
-      quick-lint-js/vscode.h
+      quick-lint-js/vscode/addon.cpp
+      quick-lint-js/vscode/addon.h
+      quick-lint-js/vscode/napi-support.h
+      quick-lint-js/vscode/qljs-document.cpp
+      quick-lint-js/vscode/qljs-document.h
+      quick-lint-js/vscode/qljs-logger.h
+      quick-lint-js/vscode/qljs-workspace.cpp
+      quick-lint-js/vscode/qljs-workspace.h
+      quick-lint-js/vscode/thread-safe-js-function.h
+      quick-lint-js/vscode/vscode-configuration-filesystem.h
+      quick-lint-js/vscode/vscode-diag-reporter.h
+      quick-lint-js/vscode/vscode-tracer.h
+      quick-lint-js/vscode/vscode.h
     )
     set_target_properties(
       quick-lint-js-vscode-node
@@ -57,6 +66,13 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
         PRIVATE
         -Wl,-dead_strip
         -Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-vscode-node.exports
+      )
+    endif ()
+    if (MINGW)
+      target_link_libraries(
+        quick-lint-js-vscode-node
+        PRIVATE
+        -Wl,-exclude-all-symbols
       )
     endif ()
 

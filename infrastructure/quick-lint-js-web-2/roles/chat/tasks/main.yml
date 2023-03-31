@@ -1,0 +1,100 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Create qljs-chat-sync user
+  ansible.builtin.user:
+    name: qljs-chat-sync
+    home: /home/qljs-chat-sync
+    create_home: true
+  become: true
+
+- name: Check if go-discord-irc is installed
+  ansible.builtin.stat:
+    path: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}/go-discord-irc
+  register: go_discord_irc_installed_check
+  become: true
+  become_user: qljs-chat-sync
+
+- name: Install go-discord-irc
+  ansible.builtin.include_tasks:
+    file: install_go_discord_irc.yml
+  when: not go_discord_irc_installed_check.stat.exists
+
+- name: Create symlink point to the desired version of go-discord-irc
+  ansible.builtin.file:
+    src: /home/qljs-chat-sync/go-discord-irc-{{ go_discord_irc_version }}
+    dest: /home/qljs-chat-sync/go-discord-irc
+    owner: qljs-chat-sync
+    group: qljs-chat-sync
+    state: link
+  become: true
+  become_user: qljs-chat-sync
+
+- name: Copy go-discord-irc config file
+  ansible.builtin.template:
+    src: go-discord-irc-config.yml.j2
+    dest: /home/qljs-chat-sync/go-discord-irc-config.yml
+    owner: qljs-chat-sync
+    group: qljs-chat-sync
+    mode: "0600"
+  become: true
+  # NOTE(strager): 'become_user: qljs-chat-sync' leads to permission errors for
+  # some reason. Make the config file as root instead.
+
+- name: Install chat sync services
+  ansible.builtin.copy:
+    src: quick-lint-js-discord-irc-bridge.service
+    dest: /etc/systemd/system/quick-lint-js-discord-irc-bridge.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Start chat sync services
+  ansible.builtin.service:
+    name: quick-lint-js-discord-irc-bridge.service
+    state: started
+    enabled: yes
+  become: true
+
+- name: Install WeeChat
+  ansible.builtin.apt:
+    name:
+      - weechat-headless
+    state: present
+  become: true
+
+- name: Install chat log services
+  ansible.builtin.copy:
+    src: quick-lint-js-irc-log.service
+    dest: /etc/systemd/system/quick-lint-js-irc-log.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Start chat log services
+  ansible.builtin.service:
+    name: quick-lint-js-irc-log.service
+    state: started
+    enabled: yes
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

@@ -23,16 +23,11 @@
       >Download the quick-lint-js Neovim plugin.</a
     >
   </li>
-  <li>
-    Add <code style="vim">packloadall</code> to your <% if (os === "windows") {
-    %> <code>%USERPROFILE%\_vimrc</code> file (or
-    <code>%USERPROFILE%\vimfiles\vimrc</code>) <% } else { %>
-    <code>~/.vimrc</code> file <% } %> if not already present.
-  </li>
+  <!-- FIXME(strager): The paths are wrong for Windows. -->
   <li>
     Create the directory <% if (os === "windows") { %>
     <code>%USERPROFILE%\vimfiles\pack\external\start\</code>. <% } else { %>
-    <code>~/.vim/pack/external/start/</code>. <% } %>
+    <code>~/.local/share/nvim/site/pack/external/start/</code>. <% } %>
   </li>
   <li>
     Copy the extracted
@@ -40,7 +35,7 @@
     %>
     <code>%USERPROFILE%\vimfiles\pack\external\start\</code>
     <% } else { %>
-    <code>~/.vim/pack/external/start/</code>
+    <code>~/.local/share/nvim/site/pack/external/start/</code>
     <% } %> directory.
   </li>
   <li>Restart Neovim.</li>

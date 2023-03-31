@@ -1,0 +1,39 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:80>
+	ServerName admin.quick-lint-js.com{{ apache_dev_tld }}
+	RewriteEngine on
+	RewriteRule ^ https://admin.quick-lint-js.com{{ apache_dev_tld }}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+
+<VirtualHost *:443>
+	ServerName admin.quick-lint-js.com{{ apache_dev_tld }}
+
+	ServerAdmin strager.nds@gmail.com
+	DocumentRoot /var/www/admin.quick-lint-js.com
+
+	# Hide some places for security:
+	<Directory /var/www/admin.quick-lint-js.com>
+		Options -Indexes
+	</Directory>
+	<Directory /var/www/admin.quick-lint-js.com/matomo/config/>
+		Order allow,deny
+		Deny from all
+	</Directory>
+	<Directory /var/www/admin.quick-lint-js.com/matomo/lang/>
+		Order allow,deny
+		Deny from all
+	</Directory>
+	<Directory /var/www/admin.quick-lint-js.com/matomo/tmp/>
+		Order allow,deny
+		Deny from all
+	</Directory>
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	CustomLog ${APACHE_LOG_DIR}/matomo_analytics.log matomo_analytics
+
+	SSLCertificateFile /etc/letsencrypt/live/admin.quick-lint-js.com/fullchain.pem
+	SSLCertificateKeyFile /etc/letsencrypt/live/admin.quick-lint-js.com/privkey.pem
+	Include /etc/letsencrypt/options-ssl-apache.conf
+</VirtualHost>
+</IfModule>

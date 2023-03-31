@@ -10,6 +10,8 @@ local lspconfig_util = require("lspconfig/util")
 
 local quick_lint_js_config = {
   default_config = {
+    -- Keep these in sync with
+    -- plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt.
     cmd = {"quick-lint-js", "--lsp-server"},
     filetypes = {"javascript", "javascriptreact"},
     root_dir = function(fname)

@@ -3,10 +3,10 @@
     "fmt": "prettier --write '*.js' '*.json'"
   },
   "dependencies": {
-    "parse5": "^6.0.1",
-    "webidl2": "^24.1.2"
+    "parse5": "^7.1.2",
+    "webidl2": "^24.2.2"
   },
   "devDependencies": {
-    "prettier": "^2.4.1"
+    "prettier": "^2.8.4"
   }
 }

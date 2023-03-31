@@ -4,13 +4,8 @@
 #ifndef QUICK_LINT_JS_ASSERT_H
 #define QUICK_LINT_JS_ASSERT_H
 
-#include <cstdlib>
-#include <quick-lint-js/crash.h>
-#include <quick-lint-js/have.h>
-
-#if QLJS_HAVE_DEBUGBREAK
-#include <intrin.h>
-#endif
+#include <quick-lint-js/port/crash.h>
+#include <quick-lint-js/port/have.h>
 
 // See ADR012 for rationale on the design of this module.
 
@@ -42,15 +37,24 @@
 
 #define QLJS_UNIMPLEMENTED() QLJS_ALWAYS_ASSERT(false)
 
-#define QLJS_ALWAYS_ASSERT(...)                                               \
-  do {                                                                        \
-    if (__VA_ARGS__) {                                                        \
-    } else {                                                                  \
-      ::quick_lint_js::report_assertion_failure(__FILE__, __LINE__, __func__, \
-                                                #__VA_ARGS__);                \
-      QLJS_ASSERT_TRAP();                                                     \
-    }                                                                         \
+#define QLJS_ALWAYS_ASSERT(...)                    \
+  do {                                             \
+    if (__VA_ARGS__) {                             \
+    } else {                                       \
+      QLJS_REPORT_ASSERTION_FAILURE_(__VA_ARGS__); \
+      QLJS_ASSERT_TRAP();                          \
+    }                                              \
   } while (false)
+
+#if QLJS_HAVE_FILE_NAME_MACRO
+#define QLJS_REPORT_ASSERTION_FAILURE_(...)                                    \
+  ::quick_lint_js::report_assertion_failure(__FILE_NAME__, __LINE__, __func__, \
+                                            #__VA_ARGS__)
+#else
+#define QLJS_REPORT_ASSERTION_FAILURE_(...)                               \
+  ::quick_lint_js::report_assertion_failure(__FILE__, __LINE__, __func__, \
+                                            #__VA_ARGS__)
+#endif
 
 #define QLJS_NEVER_ASSERT(...) \
   do {                         \
@@ -73,6 +77,24 @@
 #endif
 
 #define QLJS_ASSERT_TRAP() QLJS_CRASH_ALLOWING_CORE_DUMP()
+
+// QLJS_CONSTEXPR_ASSERT is like QLJS_ALWAYS_ASSERT, except:
+//
+// * It must only be called in a constexpr function.
+// * It must only be called at compile time (i.e. not a run-time constexpr
+//   function).
+// * It works only with some compilers.
+#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
+#define QLJS_CONSTEXPR_ASSERT(...) \
+  do {                             \
+    if (__VA_ARGS__) {             \
+    } else {                       \
+      asm("");                     \
+    }                              \
+  } while (false)
+#else
+#define QLJS_CONSTEXPR_ASSERT(...) QLJS_NEVER_ASSERT(__VA_ARGS__)
+#endif
 
 namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,

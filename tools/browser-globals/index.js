@@ -36,49 +36,56 @@ async function mainAsync() {
   let idlObjects = [];
   for (let specPath of specPaths) {
     idlObjects.push(
-      ...yieldIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream)
+      ...getIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream)
     );
   }
   for (let idlPath of idlPaths) {
     idlObjects.push(
-      ...yieldIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream)
+      ...getIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream)
     );
   }
 
-  let globals = [];
+  let exposedGlobals = new Globals();
   for (let idlObject of idlObjects) {
-    for (let global of yieldExposedGlobals(idlObject, idlObjects)) {
-      globals.push(global);
-    }
+    collectExposedGlobals(exposedGlobals, idlObject, idlObjects);
   }
-  globals.push(...extraGlobals);
-  globals.sort();
+  exposedGlobals.addGlobals("Window", extraGlobals);
+  exposedGlobals.addGlobals(
+    "Window",
+    listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
+  );
 
-  writeCPPFile(globals, process.stdout);
+  writeCPPFile({
+    browserGlobals: exposedGlobals.getGlobalsForNamespaces([
+      "Window",
+      // EventTarget is implemented by Window.
+      "EventTarget",
+    ]),
+    webWorkerGlobals: exposedGlobals.getGlobalsForNamespaces([
+      "DedicatedWorker",
+      "DedicatedWorkerGlobalScope",
+      "EventTarget",
+      "Worker",
+      "WorkerGlobalScope",
+    ]),
+    outputStream: process.stdout,
+  });
 }
 
-function* yieldIDLObjectsFromSpecificationFile(
-  specPath,
-  idlSourceOutputStream
-) {
+function getIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream) {
   let idlExtractor = new IDLExtractor();
   let root = parse5.parse(fs.readFileSync(specPath, "utf-8"));
   idlExtractor.visitRoot(root);
+  let result = [];
   for (let idl of idlExtractor.getIDLs()) {
     idlSourceOutputStream.write(idl);
     idlSourceOutputStream.write("\n");
-    yield* WebIDL2.parse(idl);
+    result.push(...WebIDL2.parse(idl));
   }
+  return result;
 }
 
-class IDLExtractor {
-  constructor() {
-    this._currentIDLChunks = [];
-    this._inIDL = false;
-    this._inPre = false;
-    this._idls = [];
-  }
-
+class DOMExtractorBase {
   visitRoot(root) {
     this.visitNode(root);
   }
@@ -104,6 +111,31 @@ class IDLExtractor {
     } else {
       this.visitElement(node);
     }
+  }
+
+  visitElement(node) {
+    // Implement in base classes.
+    this.visitNodeChildren(node);
+  }
+
+  visitTextNode(_node) {
+    // Implement in base classes.
+  }
+
+  visitNodeChildren(node) {
+    for (let child of node.childNodes) {
+      this.visitNode(child);
+    }
+  }
+}
+
+class IDLExtractor extends DOMExtractorBase {
+  constructor() {
+    super();
+    this._currentIDLChunks = [];
+    this._inIDL = false;
+    this._inPre = false;
+    this._idls = [];
   }
 
   visitElement(node) {
@@ -171,12 +203,6 @@ class IDLExtractor {
     }
   }
 
-  visitNodeChildren(node) {
-    for (let child of node.childNodes) {
-      this.visitNode(child);
-    }
-  }
-
   getIDLs() {
     function fixInvalidPartialInterface(idl) {
       // HACK(strager): Fix broken IDL in webappsec-trusted-types.
@@ -186,22 +212,22 @@ class IDLExtractor {
   }
 }
 
-function* yieldIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream) {
+function getIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream) {
   let idl = fs.readFileSync(idlPath, "utf-8");
   idlSourceOutputStream.write(idl);
-  yield* WebIDL2.parse(idl);
+  return WebIDL2.parse(idl);
 }
 
-function* yieldExposedGlobals(idlObject, allIDLObjects) {
+function collectExposedGlobals(globals, idlObject, allIDLObjects) {
   switch (idlObject.type) {
     case "callback interface":
     case "interface":
     case "namespace":
-      yield* yieldExposedGlobalsForInterface(idlObject);
+      collectExposedGlobalsForInterface(globals, idlObject);
       break;
 
     case "includes":
-      yield* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects);
+      collectExposedGlobalsForIncludes(globals, idlObject, allIDLObjects);
       break;
 
     case "callback":
@@ -216,59 +242,92 @@ function* yieldExposedGlobals(idlObject, allIDLObjects) {
   }
 }
 
-function* yieldExposedGlobalsForInterface(idlObject) {
-  let globalNames = [
-    "EventTarget", // implemented by Window
-    "Window",
-  ];
-  if (globalNames.includes(idlObject.name)) {
-    yield* yieldInterfaceMemberNames(idlObject);
+class Globals {
+  constructor() {
+    this._globalsByNamespace = new Map();
   }
 
-  let exposed = false;
+  addGlobal(namespace, globalName) {
+    this._getGlobalsForNamespace(namespace).push(globalName);
+  }
+
+  addGlobals(namespace, globalNames) {
+    this._getGlobalsForNamespace(namespace).push(...globalNames);
+  }
+
+  getGlobalsForNamespaces(namespaces) {
+    let globals = new Set();
+    for (let namespace of namespaces) {
+      for (let global of this._getGlobalsForNamespace(namespace)) {
+        globals.add(global);
+      }
+    }
+    return [...globals].sort();
+  }
+
+  _getGlobalsForNamespace(namespace) {
+    let globals = this._globalsByNamespace.get(namespace);
+    if (typeof globals === "undefined") {
+      globals = [];
+      this._globalsByNamespace.set(namespace, globals);
+    }
+    return globals;
+  }
+}
+
+function collectExposedGlobalsForInterface(globals, idlObject) {
+  let namespaceWhitelist = [
+    "DedicatedWorker",
+    "DedicatedWorkerGlobalScope",
+    "EventTarget",
+    "Window",
+    "Worker",
+    "WorkerGlobalScope",
+  ];
+  if (namespaceWhitelist.includes(idlObject.name)) {
+    globals.addGlobals(idlObject.name, getInterfaceMemberNames(idlObject));
+  }
+
+  let exposingNamespaces = new Set();
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "Exposed") {
-      if (
-        attr.params.rhsType === "identifier" &&
-        attr.params.tokens.secondaryName.value === "Window"
-      ) {
-        exposed = true;
-        break;
+      if (attr.params.rhsType === "identifier") {
+        exposingNamespaces.add(attr.params.tokens.secondaryName.value);
       }
-      if (
-        attr.params.rhsType === "identifier-list" &&
-        attr.params.list.some((token) => token.value === "Window")
-      ) {
-        exposed = true;
-        break;
+      if (attr.params.rhsType === "identifier-list") {
+        for (let param of attr.params.list) {
+          exposingNamespaces.add(param.value);
+        }
       }
     }
   }
-  if (
-    exposed &&
-    !idlObject.extAttrs.some((attr) => attr.name === "LegacyNamespace")
-  ) {
-    yield idlObject.name;
+  for (let namespace of exposingNamespaces) {
+    if (!idlObject.extAttrs.some((attr) => attr.name === "LegacyNamespace")) {
+      globals.addGlobal(namespace, idlObject.name);
+    }
   }
 
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "LegacyFactoryFunction") {
       if (attr.params.rhsType === "identifier") {
-        yield attr.params.tokens.secondaryName.value;
+        globals.addGlobal("Window", attr.params.tokens.secondaryName.value);
       }
     }
     if (attr.name === "LegacyWindowAlias") {
       if (attr.params.rhsType === "identifier") {
-        yield attr.params.tokens.secondaryName.value;
+        globals.addGlobal("Window", attr.params.tokens.secondaryName.value);
       }
       if (attr.params.rhsType === "identifier-list") {
-        yield* attr.params.list.map((token) => token.value);
+        globals.addGlobals(
+          "Window",
+          attr.params.list.map((token) => token.value)
+        );
       }
     }
   }
 }
 
-function* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects) {
+function collectExposedGlobalsForIncludes(globals, idlObject, allIDLObjects) {
   if (idlObject.target === "Window") {
     let mixinName = idlObject.includes;
     let mixins = allIDLObjects.filter(
@@ -278,18 +337,19 @@ function* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects) {
       throw new TypeError(`Could not find mixin named ${mixinName}`);
     }
     for (let mixin of mixins) {
-      yield* yieldInterfaceMemberNames(mixin);
+      globals.addGlobals(idlObject.target, getInterfaceMemberNames(mixin));
     }
   }
 }
 
-function* yieldInterfaceMemberNames(idlObject) {
+function getInterfaceMemberNames(idlObject) {
+  let result = [];
   for (let member of idlObject.members) {
     switch (member.type) {
       case "attribute":
       case "operation":
         if (member.name !== "") {
-          yield member.name;
+          result.push(member.name);
         }
         break;
 
@@ -302,6 +362,51 @@ function* yieldInterfaceMemberNames(idlObject) {
         );
     }
   }
+  return result;
+}
+
+function listRemovedInterfaces(specPath) {
+  let root = parse5.parse(fs.readFileSync(specPath, "utf-8"));
+  let extractor = new HistoricalInterfaceExtractor();
+  extractor.visitRoot(root);
+  return extractor._interfaceNames;
+}
+
+class HistoricalInterfaceExtractor extends DOMExtractorBase {
+  constructor() {
+    super();
+    this._inHistorical = false;
+    this._inHistoricalDfn = false;
+    this._interfaceNames = [];
+  }
+
+  visitElement(node) {
+    let oldInHistorical = this._inHistorical;
+    if (
+      node.tagName === "ul" &&
+      node.attrs.some(
+        (attr) => attr.name === "dfn-type" && attr.value === "interface"
+      )
+    ) {
+      this._inHistorical = true;
+    }
+
+    let oldInHistoricalDfn = this._inHistoricalDfn;
+    if (this._inHistorical && node.tagName === "dfn") {
+      this._inHistoricalDfn = true;
+    }
+
+    this.visitNodeChildren(node);
+
+    this._inHistoricalDfn = oldInHistoricalDfn;
+    this._inHistorical = oldInHistorical;
+  }
+
+  visitTextNode(node) {
+    if (this._inHistoricalDfn) {
+      this._interfaceNames.push(node.value);
+    }
+  }
 }
 
 class NullWriter extends stream.Writable {
@@ -310,28 +415,34 @@ class NullWriter extends stream.Writable {
   }
 }
 
-function writeCPPFile(globals, outputStream) {
-  outputStream.write(`\
+function writeCPPFile({ browserGlobals, webWorkerGlobals, outputStream }) {
+  function writeStrings(strings) {
+    for (let string of strings) {
+      if (!/^[A-Za-z0-9_$]+$/g.test(string)) {
+        throw new TypeError(
+          `Global variable name doesn't look like an identifier: ${string}`
+        );
+      }
+      outputStream.write(`\n    u8"${string}\\0"`);
+    }
+  }
+
+  outputStream.write(`// Code generated by tools/browser-globals/index.js. DO NOT EDIT.
+// source: (various)
+
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-// This file was generated by tools/browser-globals.
-
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/global-variables.h>
+#include <quick-lint-js/fe/global-variables.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 const char8 global_variables_browser[] =`);
+  writeStrings(browserGlobals);
+  outputStream.write(`;
 
-  for (let global of globals) {
-    if (!/^[A-Za-z0-9_$]+$/g.test(global)) {
-      throw new TypeError(
-        `Global variable name doesn't look like an identifier: ${global}`
-      );
-    }
-    outputStream.write(`\n    u8"${global}\\0"`);
-  }
-
+const char8 global_variables_web_worker[] =`);
+  writeStrings(webWorkerGlobals);
   outputStream.write(`;
 }
 

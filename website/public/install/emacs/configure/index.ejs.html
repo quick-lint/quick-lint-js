@@ -1,11 +1,14 @@
+<!---{
+"title": "Configure Emacs plugin for quick-lint-js",
+"description": "Configure quick-lint-js's Emacs plugin"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../../../common-head.ejs.html", { title: `Configure Emacs
-    plugin for quick-lint-js`, description: `Configure quick-lint-js's Emacs
-    plugin` }) %>
+    <%- await include("../../../common-head.ejs.html") %>
     <link href="../../../main.css" rel="stylesheet" />
     <style>
       /* Make it harder to accidentally follow the wrong instructions. */
@@ -21,14 +24,7 @@
 
     <main>
       <h2>
-        <img
-          class="install-logo"
-          src="../../../emacs.svg"
-          alt=""
-          title="Emacs"
-          width="29"
-          height="29"
-        />
+        <qljs-icon name="emacs" size="29" />
         Configuring the Emacs plugin
       </h2>
       <p>

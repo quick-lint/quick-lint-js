@@ -33,9 +33,10 @@ c.quick-lint-js.com is a VPS on strager's [Vultr][] account.
 
 Data updated manually and by GitHub Actions.
 
-* Data: /mnt/blockstorage/c.quick-lint-js.com/ (Vultr block storage)
+* Data: /qljs-pool/var/www/c.quick-lint-js.com/ (Vultr block storage)
 * TLS certificates: Let's Encrypt
 * Cron: `/home/github-ci/prune-old-builds.py` run by `github-ci`
+* Ansible: [`quick-lint-js-web-2`][]
 
 ### vhost: http://c.quick-lint-js.com/
 
@@ -58,9 +59,10 @@ Redirects to https://admin.quick-lint-js.com/
 
 <https://quick-lint-js.com/> is the main website for users.
 
-* Deploy script: [`website/deploy.sh`](../website/deploy.sh)
+* Deploy script: [`website/tools/deploy.sh`](../website/tools/deploy.sh)
 * Source: [`website`](../website)
 * TLS certificates: Let's Encrypt
+* Docker: [`quick-lint-js-web`][]
 
 ### vhost: http://quick-lint-js.com/
 
@@ -139,3 +141,4 @@ package](https://www.npmjs.com/package/quick-lint-js) on the npm registry.
 [DNS Made Easy]: https://dnsmadeeasy.com/
 [Namecheap]: https://www.namecheap.com/
 [Vultr]: https://www.vultr.com/
+[`quick-lint-js-web-2`]: ../infrastructure/quick-lint-js-web-2/README.md

@@ -4,8 +4,8 @@
 #ifndef QUICK_LINT_JS_MOCK_KQUEUE_H
 #define QUICK_LINT_JS_MOCK_KQUEUE_H
 
-#include <quick-lint-js/change-detecting-filesystem.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/configuration/change-detecting-filesystem.h>
+#include <quick-lint-js/port/have.h>
 
 namespace quick_lint_js {
 #if QLJS_HAVE_KQUEUE

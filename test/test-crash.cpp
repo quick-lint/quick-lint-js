@@ -3,9 +3,9 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/crash.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/crash.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 
 #if QLJS_HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -20,7 +20,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 namespace quick_lint_js {
 namespace {
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
-TEST(test_crash, crash_allowing_core_dump) {
+TEST(test_crash, crash_allowing_core_dump_SLOW) {
   auto check = [] { QLJS_CRASH_ALLOWING_CORE_DUMP(); };
   auto crashed = [](int status) -> bool {
 #if QLJS_HAVE_SYS_WAIT_H

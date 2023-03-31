@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-message-parser.h>
+#include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/port/char8.h>
 
 using namespace quick_lint_js;
 

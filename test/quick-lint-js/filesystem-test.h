@@ -4,12 +4,30 @@
 #ifndef QUICK_LINT_JS_FILESYSTEM_TEST_H
 #define QUICK_LINT_JS_FILESYSTEM_TEST_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <optional>
-#include <quick-lint-js/temporary-directory.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <string>
 #include <vector>
 
 namespace quick_lint_js {
+// Crashes on failure.
+void delete_directory_recursive(const std::string& path);
+
+// Crashes on failure.
+std::string get_current_working_directory();
+
+// Crashes on failure.
+void set_current_working_directory(const char* path);
+
+// Excludes '.' and '..'.
+//
+// Result is not necessarily sorted.
+std::vector<std::string> list_files_in_directory(const std::string& directory);
+
 // Mixin for tests which manipulate the filesystem.
 class filesystem_test {
  public:
@@ -46,6 +64,8 @@ class filesystem_test {
   std::optional<std::string> old_working_directory_;
 };
 }
+
+#endif
 
 #endif
 

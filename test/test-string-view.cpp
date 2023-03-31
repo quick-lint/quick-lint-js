@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/string-view.h>
+#include <quick-lint-js/container/string-view.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

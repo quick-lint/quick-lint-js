@@ -25,6 +25,11 @@ install(
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/fish/vendor_completions.d"
 )
 
+install(
+  FILES quick-lint-js.ps1
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/powershell/completions"
+)
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

@@ -1,0 +1,749 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="362"
+    height="231"
+    viewBox="0 0 362 231"
+    version="1.1">
+
+    <style>
+        text {
+            font-family: sans-serif;
+            fill: #000;
+        }
+        @media (prefers-color-scheme: dark) {
+            text {
+                fill: #fff;
+            }
+        }
+
+        .bar-label {
+            fill: #fff;
+        }
+
+        text.chart-title {
+            font-size: 12.0px;
+            font-weight: bold;
+        }
+        text.chart-subtitle {
+            font-size: 7.199999999999999px;
+            font-style: italic;
+        }
+
+        rect.bar,
+        rect.bar.color-default {
+            fill: #444;
+        }
+        rect.bar.emphasize-bar {
+            fill: #c33;
+        }
+
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {
+            fill: #933;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {
+                fill: #d55;
+            }
+        }
+
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+            fill: #a52;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {
+                fill: #d73;
+            }
+        }
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {
+            fill: #915;
+        }
+
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {
+            fill: #339;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {
+                fill: #67d;
+            }
+        }
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar {
+            fill: #33c;
+        }
+
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+            fill: #629;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {
+                fill: #73d;
+            }
+        }
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {
+            fill: #25a;
+        }
+
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {
+            fill: #393;
+        }
+        .bar.color-3-of-3.emphasize-bar {
+            fill: #3a3;
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {
+                fill: #5b5;
+            }
+        }
+
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+            fill: #891;
+        }
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {
+            fill: #8a1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {
+                fill: #8a3;
+            }
+        }
+
+        .chart-title .color-default,
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {
+            fill: #666;
+        }
+        .bar-label.bar-label-inside-bar.color-default {
+            fill: #ccc
+        }
+        @media (prefers-color-scheme: dark) {
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {
+                fill: #ccc;
+            }
+        }
+
+        .bar-label,
+        .bar-value {
+            font-size: 8.0px;
+        }
+        .bar-label.bar-label-small {
+            font-size: 7.0px;
+        }
+        .bar-label.bar-label-very-small {
+            font-size: 5.5px;
+        }
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {
+            font-weight: bold;
+        }
+
+        rect.error-bar {
+            fill: rgba(0, 0, 0, 0.35);
+        }
+        @media (prefers-color-scheme: dark) {
+            rect.error-bar {
+                fill: rgba(255, 255, 255, 0.35);
+            }
+        }
+
+        text.group {
+            font-size:8.0px;
+        }
+    </style>
+
+    <text
+        class="chart-title"
+        text-anchor="middle"
+        x="195.0"
+        y="20">macOS: <tspan class='color-1-of-2'>cargo-nextest</tspan> speeds up build+test</text>
+    <text
+        class="chart-subtitle"
+        text-anchor="middle"
+        x="195.0"
+        y="32">lower is better.</text>
+
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="59.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/o deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="205.96976082049804"
+                    height="10"
+                    x="60"
+                    y="48" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="7.125929316493317"
+                    height="0.75"
+                    x="263.3312557782398"
+                    y="52.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="262.5812557782398"
+                    y="51.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="270.4571850947331"
+                    y="51.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="56">Default</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="308.8321850947331"
+                    y="56">2969ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="200.73117268292577"
+                    height="10"
+                    x="60"
+                    y="60" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="11.7687957827908"
+                    height="0.75"
+                    x="255.85259306689605"
+                    y="64.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="255.10259306689605"
+                    y="63.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="267.6213888496868"
+                    y="63.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="68">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="308.8321850947331"
+                    y="68">2893ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="308.8321850947331"
+                        y="68">&#x00a0;(-2.5%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="90.0"><tspan x="57" dy="0em">build+test</tspan><tspan x="57" dy="1.1em">w/ deps</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="220.07126849130188"
+                    height="10"
+                    x="60"
+                    y="79" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="9.214424385855732"
+                    height="0.75"
+                    x="275.41057561414425"
+                    y="83.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="274.66057561414425"
+                    y="82.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="284.625"
+                    y="82.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="87">Default</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="87">3172ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="214.0249647448127"
+                    height="10"
+                    x="60"
+                    y="91" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="10.560906668653962"
+                    height="0.75"
+                    x="267.8578181385683"
+                    y="95.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="267.1078181385683"
+                    y="94.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="278.41872480722225"
+                    y="94.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="99">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="323.0"
+                    y="99">3085ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="323.0"
+                        y="99">&#x00a0;(-2.7%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="121.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">diag-types</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="129.47190567821275"
+                    height="10"
+                    x="60"
+                    y="110" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="4.554956102604715"
+                    height="0.75"
+                    x="186.78486146465212"
+                    y="114.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="186.03486146465212"
+                    y="113.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="191.33981756725686"
+                    y="113.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="118">Default</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="229.71481756725686"
+                    y="118">1866ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="122.88642184309528"
+                    height="10"
+                    x="60"
+                    y="122" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="4.398746558425276"
+                    height="0.75"
+                    x="180.29267720119873"
+                    y="126.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="179.54267720119873"
+                    y="125.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="184.691423759624"
+                    y="125.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="130">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="229.71481756725686"
+                    y="130">1771ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="229.71481756725686"
+                        y="130">&#x00a0;(-5.1%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="152.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">lex</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-inside-bar"
+                    width="132.22222809471492"
+                    height="10"
+                    x="60"
+                    y="141" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="5.868605088617743"
+                    height="0.75"
+                    x="189.43921881898456"
+                    y="145.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="188.68921881898456"
+                    y="144.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="195.3078239076023"
+                    y="144.0" />
+
+                <text
+                    class="bar-label color-default bar-label-inside-bar"
+                    x="63"
+                    y="149">Default</text>
+                <text
+                    class="bar-value color-default bar-label-inside-bar"
+                    text-anchor="end"
+                    x="233.6828239076023"
+                    y="149">1906ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="131.60356926731495"
+                    height="10"
+                    x="60"
+                    y="153" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="9.02810505279744"
+                    height="0.75"
+                    x="186.27439313359383"
+                    y="157.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="185.52439313359383"
+                    y="156.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="195.30249818639126"
+                    y="156.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    x="63"
+                    y="161">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-inside-bar"
+                    text-anchor="end"
+                    x="233.6828239076023"
+                    y="161">1897ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="233.6828239076023"
+                        y="161">&#x00a0;(-0.5%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="183.0"><tspan x="57" dy="0em">incremental</tspan><tspan x="57" dy="1.1em">test-utf-8</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-outside-bar"
+                    width="30.61416242680199"
+                    height="10"
+                    x="60"
+                    y="172" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.14238790774498766"
+                    height="0.75"
+                    x="90.43091582601704"
+                    y="176.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="89.68091582601704"
+                    y="175.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="90.57330373376203"
+                    y="175.0" />
+
+                <text
+                    class="bar-label color-default bar-label-outside-bar"
+                    x="171.2500628446668"
+                    y="180">Default</text>
+                <text
+                    class="bar-value color-default bar-label-outside-bar"
+                    text-anchor="end"
+                    x="129.2500628446668"
+                    y="180">442ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="30.84435185229458"
+                    height="10"
+                    x="60"
+                    y="184" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="0.16877080202418349"
+                    height="0.75"
+                    x="90.70629204264262"
+                    y="188.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="89.95629204264262"
+                    y="187.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="90.8750628446668"
+                    y="187.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    x="171.2500628446668"
+                    y="192">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="129.2500628446668"
+                    y="192">445ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="129.2500628446668"
+                        y="192">&#x00a0;(+0.8%)</text>
+                
+                <text
+                    class="group"
+                    text-anchor="end"
+                    x="57"
+                    y="214.0"><tspan x="57" dy="0em">test only</tspan></text>
+
+                <rect
+                    class="bar color-default bar-label-outside-bar"
+                    width="14.249433161460024"
+                    height="10"
+                    x="60"
+                    y="203" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="-0.14933261767236183"
+                    height="0.75"
+                    x="74.4099783034582"
+                    y="207.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="73.6599783034582"
+                    y="206.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-default bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="74.26064568578583"
+                    y="206.0" />
+
+                <text
+                    class="bar-label color-default bar-label-outside-bar"
+                    x="154.63564568578585"
+                    y="211">Default</text>
+                <text
+                    class="bar-value color-default bar-label-outside-bar"
+                    text-anchor="end"
+                    x="112.63564568578585"
+                    y="211">206ms</text>
+            
+                <rect
+                    class="bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="12.949233512396116"
+                    height="10"
+                    x="60"
+                    y="215" />
+
+                <!-- horizontal error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="-0.18625995421588615"
+                    height="0.75"
+                    x="73.06935667326925"
+                    y="219.625" />
+                <!-- left error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="72.31935667326925"
+                    y="218.0" />
+                <!-- right error bar -->
+                <rect
+                    class="error-bar color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    width="0.75"
+                    height="4.0"
+                    x="72.88309671905338"
+                    y="218.0" />
+
+                <text
+                    class="bar-label color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    x="154.63564568578585"
+                    y="223">cargo-nextest</text>
+                <text
+                    class="bar-value color-1-of-2 emphasize-bar bar-label-outside-bar"
+                    text-anchor="end"
+                    x="112.63564568578585"
+                    y="223">187ms</text>
+            
+                    <text
+                        class="bar-value bar-percent-difference color-default"
+                        text-anchor="start"
+                        x="112.63564568578585"
+                        y="223">&#x00a0;(-9.1%)</text>
+                </svg>

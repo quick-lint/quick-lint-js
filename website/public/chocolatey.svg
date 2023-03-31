@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 18.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 31.7 31.700001"
+   enable-background="new 0 0 31.7 28.4"
+   xml:space="preserve"
+   sodipodi:docname="chocolatey.svg"
+   width="31.700001"
+   height="31.700001"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"><metadata
+   id="metadata39"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs37" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="509"
+   id="namedview35"
+   showgrid="false"
+   fit-margin-left="0"
+   fit-margin-right="0"
+   fit-margin-top="1.65"
+   fit-margin-bottom="1.65"
+   inkscape:zoom="8.3098593"
+   inkscape:cx="15.85"
+   inkscape:cy="15.850001"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="0"
+   inkscape:current-layer="Layer_1" />
+<g
+   id="g32"
+   transform="translate(0,1.65)">
+	<polygon
+   points="27.6,27.2 5.7,27.2 5.7,1 27.6,1 27.6,6.9 "
+   id="polygon2"
+   style="fill:#924716" />
+	<polygon
+   points="25.7,27.2 25.7,2.6 27.6,1 27.6,27.2 "
+   id="polygon4"
+   style="fill:#793812" />
+	<polygon
+   points="3.5,1 27.3,1 25.4,2.6 3.5,2.6 "
+   id="polygon6"
+   style="fill:#9f5326" />
+	<g
+   id="g12">
+		<polygon
+   points="30.5,21.1 29,23.6 31.7,28.4 27.6,27.2 3.7,27.2 3.7,1 8.5,1 12.6,4.2 16.6,2.6 19.1,5.7 23.8,4.9 25.7,10.7 27.6,18.1 "
+   id="polygon8"
+   style="fill:#80b5e3" />
+		<polygon
+   points="0,28.4 3.7,27.2 3.7,1 0,0 1.9,4.2 0,7.5 1.9,10.8 0,14.1 1.9,17.3 0,20.6 1.9,23.9 "
+   id="polygon10"
+   style="fill:#80b5e3" />
+	</g>
+	<polygon
+   points="3.5,1 8.3,1 10.4,2.6 5.4,2.6 "
+   id="polygon14"
+   style="opacity:0.2;fill:#ffffff" />
+	<g
+   id="g22">
+		<path
+   d="m 18.3,13.7 c -0.7,0.6 -2.5,1.9 -4.4,2.3 -2.3,0.5 -3.6,-1.4 -3.1,-3.2 0.5,-2.1 2.8,-3.7 4.8,-3 0.9,0.3 0.6,1.5 0.3,2.1 -0.8,1.5 0.3,1.7 0.8,1.2 1.5,-1.6 2.4,-4.3 -0.2,-5.3 -4,-1.5 -7.3,2.2 -8.4,5.2 -1.7,4.8 2.4,9 7.1,5.8 1.2,-0.8 2.6,-2.2 3.5,-3.4 0.8,-1.2 0.3,-2.3 -0.4,-1.7 z"
+   id="path16"
+   inkscape:connector-curvature="0"
+   style="fill:#924716" />
+		<ellipse
+   transform="matrix(0.707,-0.7072,0.7072,0.707,-1.547,19.2306)"
+   cx="22.4"
+   cy="11.5"
+   rx="1.6"
+   ry="1.1"
+   id="ellipse18"
+   style="fill:#924716" />
+		<ellipse
+   transform="matrix(0.707,-0.7072,0.7072,0.707,-4.7882,20.1076)"
+   cx="21.9"
+   cy="15.8"
+   rx="1.6"
+   ry="1.1"
+   id="ellipse20"
+   style="fill:#924716" />
+	</g>
+	<polygon
+   points="3.7,1 5.7,2.6 5.7,25.5 3.7,27.2 "
+   id="polygon24"
+   style="opacity:0.2;fill:#ffffff" />
+	<g
+   id="g30"
+   style="opacity:0.2">
+		<polygon
+   points="5.7,25.5 25.7,25.5 27.6,27.2 3.7,27.2 "
+   id="polygon26"
+   style="fill:#342565" />
+		<polygon
+   points="25.7,10.7 27.6,18.1 27.6,27.2 25.7,25.5 "
+   id="polygon28"
+   style="fill:#342565" />
+	</g>
+</g>
+</svg>

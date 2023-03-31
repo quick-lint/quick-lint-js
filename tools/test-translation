@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Copyright (C) 2022  Nico Sonack
+# See end of file for extended copyright information.
+
+#
+# Little script to test a translation of quick-lint-js error messages.
+#
+# This creates a temporary file and dumps all JS code from the error
+# code docs into it. Then it runs quick-lint-js over it.
+#
+#    Usage example:
+#
+#    nico@triton $ QLJS=build/quick-lint-js LANGUAGE=de tools/test\-translation --no-clean
+#
+# Be careful as this generates a decent amount of diagnostic messages.
+
+die() {
+    printf -- "error: %s\n" "${@}" 1>&2
+    exit 1
+}
+
+TMPFILE=$(mktemp)
+
+cleanup() {
+    rm ${TMPFILE}
+}
+
+trap cleanup INT ILL
+
+# Path to where all the error code docs reside (.md files)
+DOCSPATH=docs/errors
+
+[ ${QLJS} ]        || die "QLJS doesn't seem to be set in your environment"
+[ -x ${QLJS} ]     || die "${QLJS} is not executable"
+[ ${LANGUAGE} ]    || die "LANGUAGE doesn't seem to be set in your environment"
+[ -d ${DOCSPATH} ] || die "not in the source top. please change into the source's top level directory."
+
+main () {
+    # Only documented (thus stable?) error codes are tested
+    for FILENAME in ${DOCSPATH}/E*.md; do
+        grep '^\ \ \ \ ' "${FILENAME}"
+    done > ${TMPFILE}
+
+    ${QLJS} ${TMPFILE}
+
+    [ "${1}" = "--no-clean" ] || cleanup
+}
+
+main ${@}
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2022  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

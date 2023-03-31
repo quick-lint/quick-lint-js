@@ -1,0 +1,92 @@
+<!---{
+"title": "Cross-compiling quick-lint-js",
+"navTitle": "Cross-compile"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../../common-head.ejs.html") %>
+    <link href="../../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2><%= meta.title %></h2>
+
+      <p>
+        quick-lint-js' CMake build system supports cross-compiling. You can
+        build Windows executables on Linux, or ARM executables on x86.
+      </p>
+
+      <p>
+        This document focuses on cross-compiling considerations specific to
+        quick-lint-js. See
+        <a
+          href="https://cmake.org/cmake/help/book/mastering-cmake/chapter/Cross%20Compiling%20With%20CMake.html"
+          >CMake's documentation on cross compiling</a
+        >
+        for general cross-compilation information.
+      </p>
+
+      <p>
+        This document uses the term build machine and target machine. If you are
+        compiling on a Linux x86_64 machine and want quick-lint-js to run on a
+        Windows x86 machine, then the <dfn>build machine</dfn> is Linux x86_64,
+        and the <dfn>target machine</dfn> is Windows x86.
+      </p>
+
+      <p>
+        quick-lint-js has programs which run as part of the build. These
+        programs must run on the build machine. When cross-compiling, you need
+        to build these programs first for the build machine before building
+        quick-lint-js for the target machine. To do this, configure CMake for
+        the build machine and build the
+        <code>quick-lint-js-build-tools</code> CMake target:
+      </p>
+
+      <blockquote>
+        <pre><code class="shell-session"><kbd>cmake -DCMAKE_BUILD_TYPE=Release -S . -B build-tools -G Ninja</kbd>
+<span class="long-shell-command-line"><kbd>cmake --build build-tools --config Release --target quick-lint-js-build-tools</kbd></span></code></pre>
+      </blockquote>
+
+      <p>
+        After building the tools for the build machine, configure CMake for the
+        target machine. Set the
+        <code>QUICK_LINT_JS_USE_BUILD_TOOLS</code> CMake variable to the
+        <code>build-tools</code> directory we created with the previous
+        commands. For example:
+      </p>
+
+      <blockquote>
+        <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/MyToolchain.cmake -DQUICK_LINT_JS_USE_BUILD_TOOLS="${PWD}/build-tools" -S . -B build -G Ninja</kbd></span>
+<span class="long-shell-command-line"><kbd>cmake --build build --config Release</kbd></span></code></pre>
+      </blockquote>
+    </main>
+
+    <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

@@ -1,0 +1,89 @@
+<!---{
+"title": "Submitting patches",
+"navTitle": "Submitting"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2><%= meta.title %></h2>
+
+      <p>
+        Do you have an awesome change to quick-lint-js you want to contribute
+        back to the maintainers? Let's get your patch out there!
+      </p>
+
+      <h3>Pre-submit checklist</h3>
+
+      <ul>
+        <li>Tests pass on your machine.</li>
+        <li>
+          Code adheres to the
+          <a href="../coding-standards/">coding standards</a>.
+        </li>
+        <li>
+          New automated tests are included. (Tests are only necessary bug fixes
+          and features.)
+        </li>
+        <li>Documentation is updated, if appropriate.</li>
+        <li>
+          Code is checked into Git as one commit or a small number of commits.
+        </li>
+        <li>
+          Commits have a description explaining what the problem was and what
+          the solution is. The first line of the commit follows
+          <a href="https://www.conventionalcommits.org/en/v1.0.0/"
+            >Conventional Commits</a
+          >. Use <kbd>git log</kbd> to see examples.
+        </li>
+      </ul>
+
+      <h3>Submitting the patch</h3>
+
+      <p>
+        quick-lint-js maintainers prefer to receive a GitHub pull request with
+        your patches. If you are new to using GitHub, check out freeCodeCamp's
+        <a
+          href="https://www.freecodecamp.org/news/how-to-make-your-first-pull-request-on-github-3/#let-s-make-our-first-pull-request-"
+          >guide to creating your first pull request</a
+        >.
+      </p>
+
+      <p>
+        If you prefer to submit your patch discreetly, send an email to
+        <a href="mailto:strager.nds@gmail.com">strager.nds@gmail.com</a>.
+      </p>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

@@ -4,18 +4,19 @@
 #include <benchmark/benchmark.h>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/error.h>
-#include <quick-lint-js/file.h>
-#include <quick-lint-js/null-visitor.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/parse.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/null-visitor.h>
+#include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 namespace {
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_parse_file(benchmark::State &state) {
   const char *source_path_env_var = "QLJS_PARSE_BENCHMARK_SOURCE_FILE";
   const char *source_path = std::getenv(source_path_env_var);
@@ -28,18 +29,21 @@ void benchmark_parse_file(benchmark::State &state) {
   }
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
+  parser_options p_options;
   for (auto _ : state) {
-    parser p(&source, &null_error_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance, p_options);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }
 }
 BENCHMARK(benchmark_parse_file);
+#endif
 
 void benchmark_parse(benchmark::State &state, string8_view raw_source) {
   padded_string source(raw_source);
+  parser_options p_options;
   for (auto _ : state) {
-    parser p(&source, &null_error_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance, p_options);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }
@@ -86,8 +90,29 @@ await/
 ()=>{{{{{{{await/
 ()=>{{{{{{{await/
 )"_sv);
-}  // namespace
-}  // namespace quick_lint_js
+BENCHMARK_CAPTURE(benchmark_parse, pathological_await_arrow,
+                  u8R"(
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+await a =>
+a
+)"_sv);
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

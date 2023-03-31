@@ -1,11 +1,14 @@
+<!---{
+"title": "How to install quick-lint-js",
+"description": "Install quick-lint-js on Linux, macOS, Windows, VS Code and many more!"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html", { title: `How to install
-    quick-lint-js`, description: `Install quick-lint-js on Linux, macOS,
-    Windows, VS Code and many more!` }) %>
+    <%- await include("../common-head.ejs.html") %>
     <link href="../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -25,97 +28,34 @@
       <ul>
         <li>
           <a href="vscode/"
-            ><img
-              class="install-logo"
-              src="../vscode.png"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Visual Studio Code</a
+            ><qljs-icon name="vscode" size="19" /> Visual Studio Code</a
           >
         </li>
         <li>
           <a href="vscodium/"
-            ><img
-              class="install-logo"
-              src="../open-vsx.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            VSCodium</a
+            ><qljs-icon name="open-vsx" size="19" /> VSCodium</a
           >
         </li>
         <li>
-          <a href="vim/"
-            ><img
-              class="install-logo"
-              src="../vim.gif"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Vim</a
-          >
+          <a href="vim/"><qljs-icon name="vim" size="19" /> Vim</a>
         </li>
         <li>
-          <a href="neovim/"
-            ><img
-              class="install-logo"
-              src="../neovim.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Neovim</a
-          >
+          <a href="neovim/"><qljs-icon name="neovim" size="19" /> Neovim</a>
         </li>
         <li>
           <a href="sublime/"
-            ><img
-              class="install-logo"
-              src="../sublime-text.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Sublime Text</a
+            ><qljs-icon name="sublime-text" size="19" /> Sublime Text</a
           >
         </li>
         <li>
-          <a href="emacs/"
-            ><img
-              class="install-logo"
-              src="../emacs.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Emacs</a
-          >
+          <a href="emacs/"><qljs-icon name="emacs" size="19" /> Emacs</a>
         </li>
         <li>
-          <a href="kate/"
-            ><img
-              class="install-logo"
-              src="../kate.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
-            Kate</a
-          >
+          <a href="kate/"><qljs-icon name="kate" size="19" /> Kate</a>
         </li>
         <li>
           <a href="cli/"
-            ><img
-              class="install-logo"
-              src="../gnome-terminal.svg"
-              alt=""
-              width="19"
-              height="19"
-            />
+            ><qljs-icon name="cli-and-lsp-server" size="19" />
             <abbr title="command line interface">CLI</abbr> &amp;
             <abbr title="language server protocol">LSP</abbr> server</a
           >

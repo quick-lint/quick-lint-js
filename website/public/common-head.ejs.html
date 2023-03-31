@@ -20,21 +20,25 @@
 <link rel="canonical" href="https://quick-lint-js.com<%= currentURI %>" />
 <meta property="og:url" content="https://quick-lint-js.com<%= currentURI %>" />
 
-<title><%= collapseInteriorWhitespace(title) %></title>
-<meta property="og:title" content="<%= collapseInteriorWhitespace(title) %>" />
-<% if (typeof locals.description !== 'undefined') { %>
+<title><%= collapseInteriorWhitespace(locals.title ?? meta.title) %></title>
+<meta
+  property="og:title"
+  content="<%= collapseInteriorWhitespace(locals.title ?? meta.title) %>"
+/>
+<% if (typeof locals.description !== 'undefined' || typeof meta.description !==
+'undefined') { %>
 <meta
   name="description"
-  content="<%= collapseInteriorWhitespace(description) %>"
+  content="<%= collapseInteriorWhitespace(locals.description ?? meta.description) %>"
 />
 <meta
   property="og:description"
-  content="<%= collapseInteriorWhitespace(description) %>"
+  content="<%= collapseInteriorWhitespace(locals.description ?? meta.description) %>"
 />
 <% } %> <%# NOTE(strager): Only absolute URIs seem to work with Discord. %>
 <meta
   property="og:image"
-  content="<%= locals.image ?? '/vscode-demo-small.gif' %>"
+  content="<%= locals.image ?? meta.image ?? '/vscode-demo-small.gif' %>"
 />
 <meta name="theme-color" content="#a76851" />
 <meta property="og:type" content="website" />

@@ -1,12 +1,18 @@
+<!---{
+"title": "Show JavaScript errors in Neovim on macOS",
+"description": "How to install Homebrew, Neovim, and quick-lint-js on macOS to show JavaScript syntax errors while editing",
+"navTitle": "Neovim for JS",
+"image": "/blog/show-js-errors-neovim-macos/neovim-demo.png",
+"blogDate": "2022-02-16T21:48:38-08:00"
+}--->
+
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("../../common-head.ejs.html", { title: `Show JavaScript
-    errors in Neovim on macOS`, description: `How to install Homebrew, Neovim,
-    and quick-lint-js on macOS to show JavaScript syntax errors while editing`,
-    image: `/blog/show-js-errors-neovim-macos/neovim-demo.png` }) %>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
     <style>
       figure {
@@ -46,25 +52,6 @@
       section + section {
         border-top: 1px solid #ccc;
       }
-
-      .side-by-side-comparison {
-        display: grid;
-        grid-template-areas: "before after";
-      }
-      .side-by-side-comparison .before {
-        grid-area: "before";
-      }
-      .side-by-side-comparison .after {
-        grid-area: "after";
-      }
-      .side-by-side-comparison figure {
-        margin: 0.5em;
-      }
-      .side-by-side-comparison figcaption {
-        font-style: italic;
-        text-align: center;
-        margin-bottom: 0.5em;
-      }
     </style>
   </head>
   <body>
@@ -75,7 +62,7 @@
 
       <p>
         Written by <a href="https://strager.net/">strager</a> on
-        <time>2022-02-16</time>
+        <qljs-date datetime="<%= meta.blogDate %>" />
       </p>
 
       <figure>
@@ -108,13 +95,7 @@
       <section id="install-homebrew">
         <h3>
           1. Install Homebrew
-          <img
-            class="install-logo"
-            src="../../homebrew.svg"
-            alt=""
-            width="19"
-            height="19"
-          />
+          <qljs-icon name="homebrew" size="19" />
         </h3>
         <p>
           We are going to use the
@@ -132,13 +113,7 @@
       <section id="install-neovim">
         <h3>
           2. Install Neovim
-          <img
-            class="install-logo"
-            src="../../neovim.svg"
-            alt=""
-            width="19"
-            height="19"
-          />
+          <qljs-icon name="neovim" size="19" />
         </h3>
         <p>
           Use Homebrew to install Neovim by running the following command in a
@@ -194,13 +169,7 @@
       <section id="install-quick-lint-js">
         <h3>
           4. Install quick-lint-js
-          <img
-            class="install-logo"
-            src="../../dusty.svg"
-            alt=""
-            width="19"
-            height="19"
-          />
+          <qljs-icon name="quick-lint-js" size="19" />
         </h3>
         <p>
           We're almost done! We now need to install

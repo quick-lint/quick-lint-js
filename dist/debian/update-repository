@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See end of file for extended copyright information.
+
+set -e
+set -u
+
+if [ "${#}" -gt 2 ]; then
+    printf 'error: too many arguments\n' >&2
+    exit 2
+fi
+if [ "${#}" -eq 1 ]; then
+    cd "${1}"
+fi
+
+if ! [ -f apt-ftparchive.conf ]; then
+    printf 'error: run this script in a debian repository containing apt-ftparchive.conf\n' >&2
+    exit 1
+fi
+
+apt_suite=experimental
+
+mkdir -p "dists/${apt_suite}/main/binary-amd64/"
+mkdir -p "dists/${apt_suite}/main/dep11/"
+mkdir -p "dists/${apt_suite}/main/source/"
+mkdir -p appstream/
+
+apt-ftparchive --quiet generate apt-ftparchive.conf
+
+(cd appstream && appstream-generator process "${apt_suite}" --config ../asgen-config.json --workspace .)
+cp "appstream/export/data/${apt_suite}/main/"* "dists/${apt_suite}/main/dep11/"
+# HACK(strager): Without an uncompressed Components-*.yml
+# file, apt/appstream on Pop!_OS and Linux Mint both don't
+# notice the Components file at all. Create an uncompressed
+# version so the compressed version is noticed.
+gunzip <"dists/${apt_suite}/main/dep11/Components-amd64.yml.gz" >"dists/${apt_suite}/main/dep11/Components-amd64.yml"
+
+apt-ftparchive --quiet release --config-file apt-ftparchive.conf "dists/${apt_suite}" >"dists/${apt_suite}/Release"
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
