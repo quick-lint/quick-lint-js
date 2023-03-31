@@ -44,7 +44,7 @@ type changeLogVersion struct {
 	number     string
 }
 
-type releaseData struct {
+type releaseMetaData struct {
 	releaseVersionAndNote map[string]string
 	releaseVersionAndTag  map[string]string
 	tagAndReleaseVersion  map[string]string
@@ -94,33 +94,41 @@ func main() {
 	releaseNotes := createReleaseNotes(changeLog)
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
-	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
-	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath)
-	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath)
+	releaseMetaData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
+	createMissingReleases(releaseMetaData, *authTokenPtr, repoPath)
+	ifChangeLogChangedUpdateReleases(releaseMetaData, *authTokenPtr, repoPath)
 }
 
-func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string) {
-	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
-		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
+func createMissingReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
+	for releaseVersion, tagVersion := range releaseMetaData.releaseVersionAndTag {
+		if releaseMetaData.releaseVersionAndTag[releaseVersion] == releaseMetaData.tagAndReleaseVersion[tagVersion] {
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]}, requestURL)
+			request := newReleaseRequest{
+				authToken:     authToken,
+				repoPath:      repoPath,
+				requestType:   "POST",
+				tagForRelease: tagVersion,
+				versionTitle:  releaseMetaData.tagAndReleaseVersion[releaseVersion],
+				releaseNote:   releaseMetaData.releaseVersionAndNote[releaseVersion],
+			}
+			makeOrUpdateGitHubRelease(request, requestURL)
 		}
 	}
 }
 
-func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string) {
+func ifChangeLogChangedUpdateReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
 	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
-		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
+		if release.Body != releaseMetaData.releaseVersionAndNote[release.Name] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, requestURL)
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseMetaData.releaseVersionAndNote[release.Name]}, requestURL)
 		}
 	}
 }
 
-func validateTagsHaveReleases(validationData validationData) releaseData {
+func validateTagsHaveReleases(validationData validationData) releaseMetaData {
 	releaseVersionAndTag := make(map[string]string)
 	releaseVersionAndNote := make(map[string]string)
 	for i, releaseVersion := range validationData.changeLog.versions[:] {
@@ -157,7 +165,7 @@ func validateTagsHaveReleases(validationData validationData) releaseData {
 			tagAndReleaseVersion[tagVersion.Name] = releaseVersionForMap
 		}
 	}
-	return releaseData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
+	return releaseMetaData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
 }
 
 func splitAndEncodeURLPath(urlPath string) (string, string) {
