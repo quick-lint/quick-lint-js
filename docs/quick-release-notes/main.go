@@ -279,7 +279,7 @@ func createReleaseNotes(changeLog changeLog) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	contributorsAndErrors := strings.Builder{}
+	contributorsAndErrors := bytes.Buffer{}
 	for i, line := range changeLog.changeLogText {
 		if linkReferenceDefinitionRE.MatchString(line) {
 			contributorsAndErrors.WriteString(changeLog.changeLogText[i] + "\n")
@@ -288,7 +288,7 @@ func createReleaseNotes(changeLog changeLog) []string {
 	lastVersionIdx := len(changeLog.versions) - 1
 	var releaseNotes []string
 	for i, version := range changeLog.versions {
-		releaseBody := strings.Builder{}
+		releaseBody := bytes.Buffer{}
 		var versionEndLine int
 		if i < lastVersionIdx {
 			versionEndLine = changeLog.versions[i+1].lineNumber
