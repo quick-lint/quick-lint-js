@@ -1478,6 +1478,10 @@ msgstr ""
 "apenas elementos opcionais da tupla podem prosseguir esse elemento opcional"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "TypeScript requires whitespace between '>' and '=' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript 'satisfies' operator is not allowed in JavaScript"
 msgstr "'enum' do TypeScript não é permitido em JavaScript"

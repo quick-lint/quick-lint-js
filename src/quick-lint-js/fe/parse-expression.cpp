@@ -1409,15 +1409,13 @@ next:
               return false;
             }
             switch (this->peek().type) {
+            QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
             QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
-            case token_type::ampersand_equal:
-            case token_type::circumflex_equal:
             case token_type::colon:
             case token_type::comma:
             case token_type::complete_template:
             case token_type::dot:
             case token_type::end_of_file:
-            case token_type::greater_greater_greater_equal:
             case token_type::incomplete_template:
             case token_type::kw_break:
             case token_type::kw_case:
@@ -1440,19 +1438,11 @@ next:
             case token_type::kw_while:
             case token_type::kw_with:
             case token_type::left_paren:
-            case token_type::less_less_equal:
-            case token_type::minus_equal:
-            case token_type::percent_equal:
-            case token_type::pipe_equal:
-            case token_type::plus_equal:
             case token_type::question:
             case token_type::right_curly:
             case token_type::right_paren:
             case token_type::right_square:
             case token_type::semicolon:
-            case token_type::slash_equal:
-            case token_type::star_equal:
-            case token_type::star_star_equal:
               parsed_as_generic_arguments = true;
               return true;
 
@@ -1460,8 +1450,7 @@ next:
             // C<T>= rhs;   // Invalid.
             // A<B<C<D>>> = rhs;
             // A<B<C<D>>>= rhs;   // Invalid.
-            case token_type::equal:
-            case token_type::greater_greater_equal: {
+            case token_type::equal: {
               bool was_split_token = this->peek().begin[-1] == u8'>';
               if (was_split_token) {
                 // NOTE[typescript-generic-expression-token-splitting]:
@@ -1470,8 +1459,12 @@ next:
                 // '='. TypeScript's compiler does not split in this situation,
                 // so it does not treat the code as having a generic argument
                 // list.
-                // TODO(strager): Produce a nicer diagnostic.
-                return false;
+
+                this->diag_reporter_->report(
+                    diag_typescript_requires_space_between_greater_and_equal{
+                        .greater_equal = source_code_span(
+                            this->peek().begin - 1, this->peek().end),
+                    });
               }
 
               parsed_as_generic_arguments = true;

@@ -2347,6 +2347,13 @@
                   previous_optional_question))                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_requires_space_between_greater_and_equal, "E0365",        \
+      diagnostic_severity::error, { source_code_span greater_equal; },          \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "TypeScript requires whitespace between '>' and '=' here"),   \
+              greater_equal))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_satisfies_not_allowed_in_javascript, "E0364",             \
       diagnostic_severity::error, { source_code_span satisfies_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript 'satisfies' operator is not "       \

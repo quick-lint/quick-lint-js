@@ -1422,6 +1422,10 @@ msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "TypeScript requires whitespace between '>' and '=' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript 'satisfies' operator is not allowed in JavaScript"
 msgstr ""
 

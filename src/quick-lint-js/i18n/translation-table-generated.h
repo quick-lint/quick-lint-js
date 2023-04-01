@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 438;
-constexpr std::size_t translation_table_string_table_size = 76084;
+constexpr std::uint16_t translation_table_mapping_table_size = 439;
+constexpr std::size_t translation_table_string_table_size = 76140;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -129,6 +129,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript optional parameter with type annotation requires parentheses"sv,
           "TypeScript optional parameters are not allowed in JavaScript"sv,
           "TypeScript optional properties are not allowed in JavaScript code"sv,
+          "TypeScript requires whitespace between '>' and '=' here"sv,
           "TypeScript type annotation requires parentheses"sv,
           "TypeScript type annotations are not allowed in JavaScript code"sv,
           "TypeScript type exports are not allowed in JavaScript"sv,

@@ -3885,6 +3885,15 @@ TEST_F(test_parse_expression, precedence) {
     SCOPED_TRACE(out_string8(code));
     for (const parser_options& options :
          {javascript_options, typescript_options}) {
+      if (options.typescript &&
+          (code == u8"a<b>=c"_sv || code == u8"a<b>>=c"_sv ||
+           code == u8"a<b>>>=c"_sv)) {
+        // HACK(strager): For TypeScript, "a<b>=c" is parsed as "a<b> =c", not
+        // as "a < b >= c". Don't test those here. See
+        // NOTE[typescript-generic-expression-token-splitting].
+        continue;
+      }
+
       test_parser p(code, options, capture_diags);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), expected_ast_summary);

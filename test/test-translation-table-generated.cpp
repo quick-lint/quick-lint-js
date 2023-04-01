@@ -1122,6 +1122,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript requires whitespace between '>' and '=' here"_translatable,
+        {
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+        },
+    },
+    {
         "TypeScript type annotation requires parentheses"_translatable,
         {
             u8"TypeScript type annotation requires parentheses",
