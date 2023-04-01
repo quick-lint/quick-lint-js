@@ -108,6 +108,7 @@ again:
     this->skip();
     goto again;
     break;
+
   // Type
   // ns.Type<T>
   case token_type::kw_abstract:
@@ -120,7 +121,6 @@ again:
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_global:
-  case token_type::kw_infer:
   case token_type::kw_intrinsic:
   case token_type::kw_is:
   case token_type::kw_module:
@@ -158,6 +158,59 @@ again:
     if (this->peek().type == token_type::less ||
         this->peek().type == token_type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
+    }
+    break;
+  }
+
+  // infer T  // Invalid.
+  // T extends infer U ? V : W
+  case token_type::kw_infer: {
+    const char8 *infer_begin = this->peek().begin;
+    this->skip();
+    switch (this->peek().type) {
+    case token_type::identifier:
+    case token_type::kw_abstract:
+    case token_type::kw_as:
+    case token_type::kw_assert:
+    case token_type::kw_asserts:
+    case token_type::kw_async:
+    case token_type::kw_constructor:
+    case token_type::kw_declare:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_global:
+    case token_type::kw_infer:
+    case token_type::kw_intrinsic:
+    case token_type::kw_is:
+    case token_type::kw_keyof:
+    case token_type::kw_module:
+    case token_type::kw_namespace:
+    case token_type::kw_of:
+    case token_type::kw_out:
+    case token_type::kw_override:
+    case token_type::kw_readonly:
+    case token_type::kw_require:
+    case token_type::kw_satisfies:
+    case token_type::kw_set:
+    case token_type::kw_type:
+    case token_type::kw_undefined:
+    case token_type::kw_unique:
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    identifier variable = this->peek().identifier_name();
+    this->skip();
+
+    if (this->peek().type == token_type::left_square) {
+      // T extends infer U[] ? V : W  // Invalid.
+      this->diag_reporter_->report(diag_typescript_infer_requires_parentheses{
+          .infer_and_type =
+              source_code_span(infer_begin, variable.span().end()),
+          .type = variable,
+      });
     }
     break;
   }

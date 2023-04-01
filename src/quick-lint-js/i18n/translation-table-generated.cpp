@@ -363,6 +363,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 68},                 //
         {0, 0, 0, 68, 0, 58},                //
         {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 0, 0, 44},                 //
         {32, 13, 50, 41, 38, 29},            //
         {66, 33, 76, 54, 58, 54},            //
         {40, 29, 35, 35, 33, 33},            //
@@ -2080,6 +2081,7 @@ const translation_table translation_data = {
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"optional tuple elements cannot come after spread elements\0"
         u8"overloaded function '{0}' declared here\0"
+        u8"parentheses are required around 'infer {1}'\0"
         u8"prior spread element is here\0"
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"

@@ -2084,6 +2084,17 @@
               expected_type))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_infer_requires_parentheses, "E0366",                      \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span infer_and_type;                                        \
+        identifier type;                                                        \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("parentheses are required around 'infer {1}'"),     \
+          infer_and_type, type))                                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_function_overload_signature_must_have_same_name,          \
       "E0316", diagnostic_severity::error,                                      \
       {                                                                         \

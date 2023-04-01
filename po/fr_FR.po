@@ -1485,6 +1485,11 @@ msgid "index signatures require a value type"
 msgstr "l'indexation nécessite une expression"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "parentheses are required around 'infer {1}'"
+msgstr "nom ou parenthèses manquants pour la fonction"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function overload signature must be named '{1}'"
 msgstr ""
 

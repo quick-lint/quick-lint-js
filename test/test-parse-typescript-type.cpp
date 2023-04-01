@@ -45,7 +45,7 @@ TEST_F(test_parse_typescript_type, direct_type_reference) {
 TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   for (string8 keyword :
        contextual_keywords - typescript_builtin_type_keywords -
-           typescript_special_type_keywords -
+           typescript_special_type_keywords - typescript_type_only_keywords -
            dirty_set<string8>{
                // NOTE(strager): keyof is omitted on purpose because of
                // ambiguities in the grammar:
@@ -2252,6 +2252,99 @@ TEST_F(test_parse_typescript_type, extends_condition) {
         p.variable_uses,
         ElementsAreArray({u8"Derived", u8"DK", u8"Base", u8"BK", u8"TrueType",
                           u8"TK", u8"FalseType", u8"FK"}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
+  {
+    test_parser p(u8"MyType extends infer T ? TrueType : FalseType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_enter_conditional_type_scope",  //
+                              // TODO(#690): Declare 'T'.
+                              "visit_variable_type_use",            // TrueType
+                              "visit_exit_conditional_type_scope",  //
+                              "visit_variable_type_use",            // FalseType
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"MyType", u8"TrueType", u8"FalseType"}));
+    // TODO(#690): Check that 'T' was declared.
+  }
+
+  {
+    test_parser p(u8"MyType extends infer T | U ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType", u8"U"}));
+    // TODO(#690): Check that 'T' was declared.
+  }
+
+  {
+    test_parser p(u8"MyType extends (infer T)[] ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"}));
+    // TODO(#690): Check that 'T' was declared.
+  }
+}
+
+TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
+  for (string8_view keyword :
+       (contextual_keywords - typescript_builtin_type_keywords -
+        typescript_special_type_keywords -
+        dirty_set<string8>{
+            u8"let",
+            u8"static",
+            u8"yield",
+        }) |
+           dirty_set<string8>{
+               // TODO(strager): Put 'async' in contextual_keywords.
+               u8"async",
+               // TypeScript allows 'infer undefined'.
+               u8"undefined",
+           }) {
+    padded_string code(concat(u8"MyType extends infer "_sv, keyword,
+                              u8" ? TrueType : FalseType"_sv));
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    // TODO(#690): Check that 'T' was declared.
+  }
+}
+
+TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
+  {
+    test_parser p(u8"infer T"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty())
+        << "'infer T' should not declare or use 'T'";
+    // TODO(#690): Report a diagnostic.
+  }
+}
+
+TEST_F(test_parse_typescript_type, conditional_type_with_invalid_infer) {
+  {
+    test_parser p(u8"A extends infer T[] ? B : C"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // A
+                              "visit_enter_conditional_type_scope",  //
+                              // TODO(#690): Declare 'T'.
+                              "visit_variable_type_use",            // B
+                              "visit_exit_conditional_type_scope",  //
+                              "visit_variable_type_use",            // C
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_typescript_infer_requires_parentheses,      //
+                infer_and_type, strlen(u8"A extends "), u8"infer T"_sv,  //
+                type, strlen(u8"A extends infer "), u8"T"_sv),
+        }));
   }
 }
 

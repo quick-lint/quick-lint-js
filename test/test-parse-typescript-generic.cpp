@@ -296,7 +296,7 @@ TEST_F(test_parse_typescript_generic,
            u8"await",
            u8"undefined",
        } | (contextual_keywords - typescript_builtin_type_keywords -
-            typescript_special_type_keywords -
+            typescript_special_type_keywords - typescript_type_only_keywords -
             dirty_set<string8>{
                 u8"let",
                 u8"static",

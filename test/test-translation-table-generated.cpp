@@ -3872,6 +3872,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "parentheses are required around 'infer {1}'"_translatable,
+        {
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+        },
+    },
+    {
         "prior spread element is here"_translatable,
         {
             u8"prior spread element is here",
