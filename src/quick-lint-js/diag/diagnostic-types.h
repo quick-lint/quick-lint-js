@@ -1926,11 +1926,11 @@
               as_keyword))                                                      \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_typescript_as_keyword_used_for_parameter_type_annotation, "E0282",   \
-      diagnostic_severity::error, { source_code_span as_keyword; },             \
+      diag_typescript_as_or_satisfies_used_for_parameter_type_annotation,       \
+      "E0282", diagnostic_severity::error, { source_code_span bad_keyword; },   \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
-                  "use ':' instead of 'as' to type a function parameter"),      \
-              as_keyword))                                                      \
+                  "use ':' instead of '{0}' to type a function parameter"),     \
+              bad_keyword))                                                     \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class,  \
@@ -2345,6 +2345,13 @@
           MESSAGE(QLJS_TRANSLATABLE("only optional tuple elements can follow "  \
                                     "this optional tuple element"),             \
                   previous_optional_question))                                  \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_satisfies_not_allowed_in_javascript, "E0364",             \
+      diagnostic_severity::error, { source_code_span satisfies_keyword; },      \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript 'satisfies' operator is not "       \
+                                "allowed in JavaScript"),                       \
+              satisfies_keyword))                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_type_annotation_in_expression, "E0254",                   \

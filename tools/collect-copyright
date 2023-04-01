@@ -73,8 +73,7 @@ Copyright information for {self.name}:
 
 
 class QLJSSubproject(typing.NamedTuple):
-    """A sub-project of quick-lint-js. Has no additional copyright information.
-    """
+    """A sub-project of quick-lint-js. Has no additional copyright information."""
 
     def print_copyright(self) -> None:
         pass
@@ -313,7 +312,8 @@ def dump_from_linkmap(
 
 
 def dump_from_projects(
-    archives: typing.List[str], extra_projects: typing.List["Project"],
+    archives: typing.List[str],
+    extra_projects: typing.List["Project"],
 ) -> None:
     all_projects = extra_projects
     for archive in sorted(archives):
@@ -372,6 +372,12 @@ def detect_system_package_manager(
     try:
         subprocess.check_output(["dpkg-query", "--list", "libc6"])
         return Debian()
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
+        pass
+
+    try:
+        subprocess.check_output(["pkg", "info", "pkg"])
+        return FreeBSD()
     except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
@@ -497,7 +503,9 @@ class Homebrew:
         try:
             # path_in_brew will look like:
             # Cellar/llvm@13/13.0.1/lib/libc++.a
-            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(self.__brew_prefix)
+            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(
+                self.__brew_prefix
+            )
             if len(path_in_brew.parts) >= 2 and path_in_brew.parts[0] == "Cellar":
                 return path_in_brew.parts[1]
         except ValueError:
@@ -624,8 +632,7 @@ class LLVMMinGW:
 
 
 class Pacman:
-    """The Pacman package manager, used on Arch Linux and in MSYS2.
-    """
+    """The Pacman package manager, used on Arch Linux and in MSYS2."""
 
     class InstalledPackage(typing.NamedTuple):
         name: str
@@ -654,13 +661,15 @@ class Pacman:
         return packages
 
     def _packages_for_installed_files(
-        self, files: typing.List[str],
+        self,
+        files: typing.List[str],
     ) -> typing.List[str]:
         # HACK(strager): On Windows, Pacman doesn't work with \ as the path
         # separator.
         pacman_friendly_files = [f.replace("\\", "/") for f in files]
         process = subprocess.run(
-            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"] + pacman_friendly_files,
+            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"]
+            + pacman_friendly_files,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding="utf-8",
@@ -883,6 +892,92 @@ class Debian:
             if match is not None:
                 source_uris.append(match.group("uri"))
         return source_uris
+
+
+class FreeBSD:
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        source: str
+        source_uris: typing.Tuple[str, ...]
+        version: str
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        files = set(files)
+        packages = []
+
+        freebsd_version = None
+        freebsd_source_uri = None
+
+        def get_freebsd_info() -> None:
+            nonlocal freebsd_version
+            nonlocal freebsd_source_uri
+            if freebsd_version is not None:
+                return  # Already computed.
+            freebsd_version = subprocess.check_output(
+                ["/bin/freebsd-version", "-u"], encoding="utf-8"
+            ).strip()
+            freebsd_source_uri = f"https://cgit.freebsd.org/src/?h=releng/{freebsd_version.replace('-RELEASE', '')}"
+
+        freebsd_lib_files = {
+            "/usr/lib/libc.a",
+            "/usr/lib/libm.a",
+            "/usr/lib/libpthread.a",
+        }
+        matched_freebsd_lib_files = files & freebsd_lib_files
+        if matched_freebsd_lib_files:
+            get_freebsd_info()
+            base_freebsd_package = FreeBSD.InstalledPackage(
+                name="",
+                source="FreeBSD",
+                version=freebsd_version,
+                source_uris=(freebsd_source_uri,),
+            )
+            for file in matched_freebsd_lib_files:
+                packages.append(
+                    base_freebsd_package._replace(name=pathlib.Path(file).stem)
+                )
+                files.remove(file)
+
+        freebsd_llvm_files = {
+            "/usr/lib/libc++.a": "libc++",
+            "/usr/lib/libgcc_eh.a": "libunwind",
+        }
+        matched_freebsd_llvm_files = set(f for f in files if f in freebsd_llvm_files)
+        if matched_freebsd_llvm_files:
+            get_freebsd_info()
+            clang_version_info = parse_clang_version(
+                subprocess.check_output(
+                    ["/usr/bin/clang", "--version"], encoding="utf-8"
+                )
+            )
+            base_llvm_package = FreeBSD.InstalledPackage(
+                name="",
+                source="LLVM (FreeBSD)",
+                version=clang_version_info.vcs_tag or clang_version_info.version,
+                source_uris=(
+                    freebsd_source_uri,
+                    clang_version_info.vcs_uri,
+                ),
+            )
+            for file in matched_freebsd_llvm_files:
+                packages.append(
+                    base_llvm_package._replace(name=freebsd_llvm_files[file])
+                )
+                files.remove(file)
+
+        if files:
+            raise Exception(f"failed to determine source for linked files: {files}")
+
+        return packages
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        if package.source == "FreeBSD":
+            return pathlib.Path("/COPYRIGHT").read_text()
+        if package.source == "LLVM (FreeBSD)":
+            return pathlib.Path("/usr/share/doc/llvm/LICENSE.TXT").read_text()
+        raise Exception(f"could not determine copyright for package: {package.source}")
 
 
 class Nix:
@@ -1246,9 +1341,7 @@ libboost.a(dlmalloc.cpp.o)    libboost.a(global_resource.cpp.o) (boost::containe
 libboost.a(alloc_lib.c.o)     libboost.a(dlmalloc.cpp.o) (boost_cont_all_deallocated)
 """
         link_map = parse_text_link_map(raw_link_map)
-        self.assertEqual(
-            link_map.linked_archives, {"libboost.a"}
-        )
+        self.assertEqual(link_map.linked_archives, {"libboost.a"})
 
     def test_small_link_map_from_gold(self) -> None:
         raw_link_map = """\
@@ -1510,6 +1603,79 @@ Version: 1.74.0
                 ),
             ],
         )
+
+
+class TestParseClangVersion(unittest.TestCase):
+    def test_freebsd_13(self) -> None:
+        version_output = """\
+FreeBSD clang version 11.0.1 (git@github.com:llvm/llvm-project.git llvmorg-11.0.1-0-g43ff75f2c3fe)
+Target: x86_64-unknown-freebsd13.0
+Thread model: posix
+InstalledDir: /usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "11.0.1")
+        self.assertEqual(v.vcs_uri, "git@github.com:llvm/llvm-project.git")
+        self.assertEqual(v.vcs_tag, "llvmorg-11.0.1-0-g43ff75f2c3fe")
+
+    def test_ubuntu(self) -> None:
+        version_output = """\
+Ubuntu clang version 14.0.0-1ubuntu1
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "14.0.0-1ubuntu1")
+        self.assertIsNone(v.vcs_uri)
+        self.assertIsNone(v.vcs_tag)
+
+    def test_custom(self) -> None:
+        version_output = """\
+clang version 15.0.6 (https://github.com/rust-lang/llvm-project.git 3dfd4d93fa013e1c0578d3ceac5c8f4ebba4b6ec)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /home/strager/Toolchains/clang-stage4-qljs-bolt/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "15.0.6")
+        self.assertEqual(v.vcs_uri, "https://github.com/rust-lang/llvm-project.git")
+        self.assertEqual(v.vcs_tag, "3dfd4d93fa013e1c0578d3ceac5c8f4ebba4b6ec")
+
+    def test_apple_clang(self) -> None:
+        version_output = """\
+Apple clang version 14.0.0 (clang-1400.0.29.202)
+Target: arm64-apple-darwin22.3.0
+Thread model: posix
+InstalledDir: /Users/strager/Applications/Xcode_14.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+"""
+        v = parse_clang_version(version_output)
+        self.assertEqual(v.version, "14.0.0")
+        self.assertIsNone(v.vcs_uri)
+        self.assertIsNone(v.vcs_tag)
+
+
+class ClangVersion(typing.NamedTuple):
+    version: str
+    vcs_uri: typing.Optional[str]
+    vcs_tag: typing.Optional[str]
+
+
+def parse_clang_version(clang_version_output: str) -> ClangVersion:
+    """Extract version information from the output of 'clang --version'."""
+    match = re.search(
+        r"\bclang version (?P<version>\d\S*)(?: \((?P<vcs_uri>\S+) (?P<vcs_tag>\S+)\))?",
+        clang_version_output,
+    )
+    if match is not None:
+        return ClangVersion(
+            version=match.group("version"),
+            vcs_uri=match.group("vcs_uri"),
+            vcs_tag=match.group("vcs_tag"),
+        )
+    raise ValueError(
+        "failed to parse version information from 'clang --version' output"
+    )
 
 
 if __name__ == "__main__":

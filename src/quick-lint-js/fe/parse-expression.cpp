@@ -114,6 +114,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
+  case expression_kind::satisfies:
   case expression_kind::spread:
   case expression_kind::unary_operator:
   case expression_kind::yield_many:
@@ -263,6 +264,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
   case expression_kind::as_type_assertion:
   case expression_kind::non_null_assertion:
   case expression_kind::paren:
+  case expression_kind::satisfies:
     this->maybe_visit_assignment(ast->child_0(), v);
     break;
   case expression_kind::variable:
@@ -295,6 +297,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   case token_type::kw_get:
   case token_type::kw_let:
   case token_type::kw_of:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static: {
     expression* ast = this->make_expression<expression::variable>(
@@ -2028,27 +2031,42 @@ next:
   //
   // x as Type    // TypeScript only.
   // {} as const  // TypeScript only.
-  case token_type::kw_as: {
+  case token_type::kw_as:
+  case token_type::kw_satisfies: {
     if (this->peek().has_leading_newline) {
       // ASI. End this expression.
       break;
     }
 
-    source_code_span as_span = this->peek().span();
+    source_code_span operator_span = this->peek().span();
     if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          diag_typescript_as_type_assertion_not_allowed_in_javascript{
-              .as_keyword = as_span,
-          });
+      switch (this->peek().type) {
+      case token_type::kw_as:
+        this->diag_reporter_->report(
+            diag_typescript_as_type_assertion_not_allowed_in_javascript{
+                .as_keyword = operator_span,
+            });
+        break;
+      case token_type::kw_satisfies:
+        this->diag_reporter_->report(
+            diag_typescript_satisfies_not_allowed_in_javascript{
+                .satisfies_keyword = operator_span,
+            });
+        break;
+      default:
+        QLJS_UNREACHABLE();
+      }
     }
+    bool is_as = this->peek().type == token_type::kw_as;
     this->skip();
 
-    bool is_as_const = this->peek().type == token_type::kw_const;
+    bool is_as_const = is_as && this->peek().type == token_type::kw_const;
     if (is_as_const) {
       // {} as const
       this->skip();
     } else {
       // x as Type
+      // x satisfies Type
       this->parse_and_visit_typescript_type_expression(
           v,
           typescript_type_parse_options{
@@ -2063,11 +2081,14 @@ next:
     if (is_as_const) {
       this->error_on_invalid_as_const(
           child,
-          /*as_const_span=*/source_code_span(as_span.begin(), type_end));
+          /*as_const_span=*/source_code_span(operator_span.begin(), type_end));
     }
-    binary_builder.replace_last(
-        this->make_expression<expression::as_type_assertion>(child, as_span,
-                                                             type_end));
+    expression* expr =
+        is_as ? this->make_expression<expression::as_type_assertion>(
+                    child, operator_span, type_end)
+              : this->make_expression<expression::satisfies>(
+                    child, operator_span, type_end);
+    binary_builder.replace_last(expr);
     goto next;
   }
 
@@ -2186,6 +2207,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
+  case expression_kind::satisfies:
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
   case expression_kind::this_variable:
@@ -3906,6 +3928,9 @@ try_again:
     break;
   case expression_kind::optional:
     ast = static_cast<expression::optional*>(ast)->child_;
+    goto try_again;
+  case expression_kind::satisfies:
+    ast = static_cast<expression::satisfies*>(ast)->child_;
     goto try_again;
   case expression_kind::type_annotated:
     // TODO(strager): Distinguish between the following:

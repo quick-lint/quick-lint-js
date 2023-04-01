@@ -130,6 +130,7 @@ again:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::identifier: {
@@ -285,6 +286,7 @@ again:
     case token_type::kw_readonly:
     case token_type::kw_require:
     case token_type::kw_return:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_super:
     case token_type::kw_switch:

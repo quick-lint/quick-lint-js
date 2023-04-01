@@ -118,7 +118,8 @@
   case ::quick_lint_js::token_type::kw_as:                                            \
   case ::quick_lint_js::token_type::kw_from:                                          \
   case ::quick_lint_js::token_type::kw_let:                                           \
-  case ::quick_lint_js::token_type::kw_of
+  case ::quick_lint_js::token_type::kw_of:                                            \
+  case ::quick_lint_js::token_type::kw_satisfies
 
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET               \
   QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE \

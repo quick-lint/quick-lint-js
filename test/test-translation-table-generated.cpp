@@ -924,6 +924,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript 'satisfies' operator is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript <Type> type assertions are not allowed in JSX mode"_translatable,
         {
             u8"TypeScript <Type> type assertions are not allowed in JSX mode",
@@ -4532,14 +4543,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "use ':' instead of 'as' to type a function parameter"_translatable,
+        "use ':' instead of '{0}' to type a function parameter"_translatable,
         {
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' em vez de 'as' para definir o tipo de um par\u00e2metro de uma fun\u00e7\u00e3o",
-            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
         },
     },
     {
