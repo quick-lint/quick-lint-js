@@ -1133,8 +1133,11 @@ void parser::parse_and_visit_typescript_generic_arguments(
   case token_type::greater:
     this->skip();
     break;
+  case token_type::greater_equal:
   case token_type::greater_greater:
+  case token_type::greater_greater_equal:
   case token_type::greater_greater_greater:
+  case token_type::greater_greater_greater_equal:
     this->lexer_.skip_as_greater();
     break;
   default:

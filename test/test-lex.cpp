@@ -1874,6 +1874,48 @@ TEST_F(test_lex, split_greater_from_bigger_token) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::semicolon);
   }
+
+  {
+    padded_string input(u8">=;"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_equal);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::equal);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[2]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+  }
+
+  {
+    padded_string input(u8">>=;"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_greater_equal);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::greater_equal);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[3]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+  }
+
+  {
+    padded_string input(u8">>>=;"_sv);
+    lexer l(&input, &null_diag_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::greater_greater_greater_equal);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, token_type::greater_greater_equal);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[4]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+  }
 }
 
 TEST_F(test_lex, split_greater_from_bigger_token_has_no_leading_newline) {

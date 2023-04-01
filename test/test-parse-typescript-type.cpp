@@ -115,7 +115,9 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns", u8"T"}));
   }
+}
 
+TEST_F(test_parse_typescript_type, less_less_token_is_split) {
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
     test_parser p(u8"C<<T>() => ReturnType>"_sv, typescript_options);
@@ -131,7 +133,9 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
   }
+}
 
+TEST_F(test_parse_typescript_type, greater_greater_token_is_split) {
   {
     SCOPED_TRACE("'>>' should be split into two tokens");
     test_parser p(u8"A<B<C>>"_sv, typescript_options);
@@ -156,6 +160,55 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"A", u8"B", u8"C", u8"D"}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
+  {
+    SCOPED_TRACE("'>=' should be split into two tokens");
+    test_parser p(u8"let x: A<B>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"y"}));
+  }
+
+  {
+    SCOPED_TRACE("'>>=' should be split into three tokens");
+    test_parser p(u8"let x: A<B<C>>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_type_use",     // C
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"A", u8"B", u8"C", u8"y"}));
+  }
+
+  {
+    SCOPED_TRACE("'>>>=' should be split into four tokens");
+    test_parser p(u8"let x: A<B<C<D>>>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_type_use",     // C
+                              "visit_variable_type_use",     // D
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"A", u8"B", u8"C", u8"D", u8"y"}));
   }
 }
 
