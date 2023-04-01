@@ -1000,6 +1000,25 @@ TEST(test_variable_analyzer_type,
                                  name, span_of(false_type_use)),
               }));
 }
+
+TEST(test_variable_analyzer_type,
+     infer_variables_in_conditional_type_scope_are_declared) {
+  const char8 t_declaration[] = u8"T";
+  const char8 t_use[] = u8"T";
+
+  // null as (any extends infer T ? T : false)
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals, typescript_var_options);
+  l.visit_enter_conditional_type_scope();
+  l.visit_variable_declaration(identifier_of(t_declaration),
+                               variable_kind::_infer_type,
+                               variable_init_kind::normal);
+  l.visit_variable_type_use(identifier_of(t_use));
+  l.visit_exit_conditional_type_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 

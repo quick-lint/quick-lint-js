@@ -2263,14 +2263,15 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",             // MyType
                               "visit_enter_conditional_type_scope",  //
-                              // TODO(#690): Declare 'T'.
-                              "visit_variable_type_use",            // TrueType
-                              "visit_exit_conditional_type_scope",  //
-                              "visit_variable_type_use",            // FalseType
+                              "visit_variable_declaration",          // T
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",  // FalseType
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"MyType", u8"TrueType", u8"FalseType"}));
-    // TODO(#690): Check that 'T' was declared.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
   }
 
   {
@@ -2278,7 +2279,8 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType", u8"U"}));
-    // TODO(#690): Check that 'T' was declared.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
   }
 
   {
@@ -2286,7 +2288,54 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"}));
-    // TODO(#690): Check that 'T' was declared.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    test_parser p(
+        u8"MyType extends [infer A, infer B, infer C] ? true : false"_sv,
+        typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // A
+                              "visit_variable_declaration",          // B
+                              "visit_variable_declaration",          // C
+                              "visit_exit_conditional_type_scope",   //
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({infer_type_decl(u8"A"), infer_type_decl(u8"B"),
+                          infer_type_decl(u8"C")}));
+  }
+
+  {
+    test_parser p(
+        u8"MyType extends (OtherType extends infer T ? infer U : InnerFalse) ? OuterTrue : OuterFalse"_sv,
+        typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // MyType
+                              "visit_variable_type_use",  // OtherType
+                              "visit_enter_conditional_type_scope",  // (inner)
+                              "visit_variable_declaration",          // T
+                              "visit_exit_conditional_type_scope",   // (inner)
+                              "visit_variable_type_use",  // InnerFalse
+                              "visit_enter_conditional_type_scope",  // (inner)
+                              "visit_variable_declaration",          // U
+                              "visit_variable_type_use",            // OuterTrue
+                              "visit_exit_conditional_type_scope",  // (inner)
+                              "visit_variable_type_use",  // OuterFalse
+                          }));
+    EXPECT_THAT(
+        p.variable_uses,
+        ElementsAreArray({u8"MyType"_sv, u8"OtherType"_sv, u8"InnerFalse"_sv,
+                          u8"OuterTrue"_sv, u8"OuterFalse"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {infer_type_decl(u8"T"_sv), infer_type_decl(u8"U"_sv)}));
   }
 }
 
@@ -2310,7 +2359,8 @@ TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
     SCOPED_TRACE(code);
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_typescript_type_expression();
-    // TODO(#690): Check that 'T' was declared.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(keyword)}));
   }
 }
 
@@ -2332,10 +2382,10 @@ TEST_F(test_parse_typescript_type, conditional_type_with_invalid_infer) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",             // A
                               "visit_enter_conditional_type_scope",  //
-                              // TODO(#690): Declare 'T'.
-                              "visit_variable_type_use",            // B
-                              "visit_exit_conditional_type_scope",  //
-                              "visit_variable_type_use",            // C
+                              "visit_variable_declaration",          // T
+                              "visit_variable_type_use",             // B
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",             // C
                           }));
     EXPECT_THAT(
         p.errors,

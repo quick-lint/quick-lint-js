@@ -113,6 +113,11 @@ inline visited_variable_declaration index_signature_param_decl(
                                       variable_init_kind::normal};
 }
 
+inline visited_variable_declaration infer_type_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_infer_type,
+                                      variable_init_kind::normal};
+}
+
 inline visited_variable_declaration interface_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_interface,
                                       variable_init_kind::normal};

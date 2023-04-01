@@ -204,6 +204,11 @@ again:
     identifier variable = this->peek().identifier_name();
     this->skip();
 
+    if (this->typescript_infer_declaration_buffer_ != nullptr) {
+      this->typescript_infer_declaration_buffer_->visit_variable_declaration(
+          variable, variable_kind::_infer_type, variable_init_kind::normal);
+    }
+
     if (this->peek().type == token_type::left_square) {
       // T extends infer U[] ? V : W  // Invalid.
       this->diag_reporter_->report(diag_typescript_infer_requires_parentheses{
@@ -474,16 +479,34 @@ again:
   if (this->peek().type == token_type::kw_extends) {
     // T extends T ? T : T
     this->skip();
-    this->parse_and_visit_typescript_type_expression(
-        v, typescript_type_parse_options{
-               .parse_question_as_invalid = false,
-           });
+
+    stacked_buffering_visitor infer_visitor =
+        this->buffering_visitor_stack_.push();
+
+    buffering_visitor *old_typescript_infer_declaration_buffer =
+        this->typescript_infer_declaration_buffer_;
+    this->fatal_parse_error_stack_.try_finally(
+        [&]() -> void {
+          this->typescript_infer_declaration_buffer_ = &infer_visitor.visitor();
+          this->parse_and_visit_typescript_type_expression(
+              v, typescript_type_parse_options{
+                     .parse_question_as_invalid = false,
+                 });
+        },
+        [&]() -> void {
+          this->typescript_infer_declaration_buffer_ =
+              old_typescript_infer_declaration_buffer;
+        });
+
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
+
     v.visit_enter_conditional_type_scope();
+    infer_visitor.visitor().move_into(v);
     this->parse_and_visit_typescript_type_expression(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
     v.visit_exit_conditional_type_scope();
+
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
   }

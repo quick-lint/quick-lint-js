@@ -16,6 +16,7 @@ Semantic Versioning.
   (Implemented by [Tom Binford][].)
 * TypeScript support (still experimental):
     * The `satisfies` operator is now recognized.
+    * The `infer` operator is now recognized.
     * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
       '>' and '=' here").
 * FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico

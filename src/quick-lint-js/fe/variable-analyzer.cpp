@@ -827,6 +827,9 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
   case variable_kind::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
+  case variable_kind::_infer_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   case variable_kind::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
@@ -945,6 +948,9 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_import_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
+  case vk::_infer_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_namespace:
@@ -1182,6 +1188,7 @@ bool is_runtime(variable_kind kind) noexcept {
     return true;
   case variable_kind::_generic_parameter:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_type_alias:
     return false;
@@ -1197,6 +1204,7 @@ bool is_type(variable_kind kind) noexcept {
   case variable_kind::_import:
   case variable_kind::_import_alias:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_namespace:
   case variable_kind::_type_alias:
