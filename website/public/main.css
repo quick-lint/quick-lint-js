@@ -745,19 +745,17 @@ kbd.keystroke {
   color: rgb(50, 51, 48);
 }
 @media only screen and (max-width: 43em) {
-  /* Hide the feature, JShint, Deno columns and stable, easy npm install rows*/
   .hide-in-mobile {
     display: none;
   }
 
-  /* show elements that are only for mobile */
   .show-in-mobile {
     display: initial;
   }
   .comparison table {
     border: 1px solid gray;
   }
-  /*Hide Calll to action section*/
+  /*Hide call to action section*/
   #install-section {
     display: none;
   }
