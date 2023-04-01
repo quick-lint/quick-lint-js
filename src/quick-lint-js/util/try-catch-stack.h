@@ -45,12 +45,12 @@ class try_catch_stack {
     }
   }
 
-  // If this->try_raise(e) was called by t in this->try_catch(t, c), then this
-  // function unwinds the stack and calls c(e).
+  // If this->raise_if_have_handler(e) was called by t in this->try_catch(t, c),
+  // then this function unwinds the stack and calls c(e).
   //
   // Otherwise, this function does nothing and returns. The caller is
   // responsible for figuring out what to do in this case.
-  void try_raise(Exception &&e) {
+  void raise_if_have_handler(Exception &&e) {
     if (!this->catch_stack_.empty()) {
       catch_entry &c = this->catch_stack_.back();
       c.exception.emplace(std::move(e));

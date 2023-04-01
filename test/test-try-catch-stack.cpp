@@ -6,10 +6,10 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_try_catch_stack, try_raise_does_nothing_without_catch) {
+TEST(test_try_catch_stack, raise_if_have_handler_does_nothing_without_catch) {
   try_catch_stack<int> stack;
   // Shouldn't crash.
-  stack.try_raise(10);
+  stack.raise_if_have_handler(10);
 }
 
 TEST(test_try_catch_stack, try_catch_does_not_call_catch_if_not_raised) {
@@ -33,7 +33,7 @@ TEST(test_try_catch_stack, try_catch_calls_catch_if_raised) {
   bool catch_called = false;
   int result = stack.try_catch<int>(
       [&]() -> int {
-        stack.try_raise(420);
+        stack.raise_if_have_handler(420);
         return 42;
       },
       [&](int exception) -> int {
@@ -51,8 +51,8 @@ TEST(test_try_catch_stack, raise_does_not_return_inside_try) {
   stack.try_catch<int>(
       [&]() -> int {
         try_called = true;
-        stack.try_raise(420);
-        ADD_FAILURE() << "try_raise should not return";
+        stack.raise_if_have_handler(420);
+        ADD_FAILURE() << "raise_if_have_handler should not return";
         return 42;
       },
       [&]([[maybe_unused]] int exception) -> int { return 69; });
@@ -66,7 +66,7 @@ TEST(test_try_catch_stack, if_catch_is_called_raise_stops_propagating) {
       [&]() -> int {
         stack.try_catch<int>(
             [&]() -> int {
-              stack.try_raise(420);
+              stack.raise_if_have_handler(420);
               return 0;
             },
             [&](int exception) -> int {
@@ -96,13 +96,13 @@ TEST(test_try_catch_stack,
       [&]() -> int {
         stack.try_catch<int>(
             [&]() -> int {
-              stack.try_raise(420);
+              stack.raise_if_have_handler(420);
               return 0;
             },
             [&](int exception) -> int {
               inner_catch_called = true;
               EXPECT_EQ(exception, 420);
-              stack.try_raise(69);
+              stack.raise_if_have_handler(69);
               return 0;
             });
         return 0;

@@ -768,7 +768,7 @@ void parser::roll_back_transaction(parser_transaction&& transaction) {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
-  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
       this->peek().span(),
       fatal_parse_error_kind::unexpected_token,
   });
@@ -787,7 +787,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 }
 
 void parser::crash_on_depth_limit_exceeded() {
-  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
       this->peek().span(),
       fatal_parse_error_kind::depth_limit_exceeded,
   });
