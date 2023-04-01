@@ -964,6 +964,42 @@ TEST(test_variable_analyzer_type,
                          name, span_of(parameter_use)),
       }));
 }
+
+TEST(test_variable_analyzer_type,
+     variables_referenced_in_conditional_type_scope_are_looked_up) {
+  const char8 derived_use[] = u8"Derived";
+  const char8 base_use[] = u8"Base";
+  const char8 true_type_use[] = u8"TrueType";
+  const char8 false_type_use[] = u8"FalseType";
+
+  // type Derived = null;
+  // type Base = null;
+  // null as (Derived extends Base ? TrueType : FalseType)
+  diag_collector v;
+  variable_analyzer l(&v, &default_globals, typescript_var_options);
+  l.visit_variable_declaration(identifier_of(derived_use),
+                               variable_kind::_type_alias,
+                               variable_init_kind::normal);
+  l.visit_variable_declaration(identifier_of(base_use),
+                               variable_kind::_type_alias,
+                               variable_init_kind::normal);
+
+  l.visit_variable_type_use(identifier_of(derived_use));
+  l.visit_variable_type_use(identifier_of(base_use));
+  l.visit_enter_conditional_type_scope();
+  l.visit_variable_type_use(identifier_of(true_type_use));
+  l.visit_exit_conditional_type_scope();
+  l.visit_variable_type_use(identifier_of(false_type_use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ::testing::UnorderedElementsAreArray({
+                  DIAG_TYPE_SPAN(diag_use_of_undeclared_type,  //
+                                 name, span_of(true_type_use)),
+                  DIAG_TYPE_SPAN(diag_use_of_undeclared_type,  //
+                                 name, span_of(false_type_use)),
+              }));
+}
 }
 }
 

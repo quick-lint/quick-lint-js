@@ -427,8 +427,10 @@ again:
            });
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
+    v.visit_enter_conditional_type_scope();
     this->parse_and_visit_typescript_type_expression(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    v.visit_exit_conditional_type_scope();
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
   }

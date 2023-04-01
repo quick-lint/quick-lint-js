@@ -2231,9 +2231,11 @@ TEST_F(test_parse_typescript_type, extends_condition) {
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",  // Derived
-                              "visit_variable_type_use",  // Base
-                              "visit_variable_type_use",  // TrueType
+                              "visit_variable_type_use",             // Derived
+                              "visit_variable_type_use",             // Base
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
                               "visit_variable_type_use",  // FalseType
                           }));
     EXPECT_THAT(

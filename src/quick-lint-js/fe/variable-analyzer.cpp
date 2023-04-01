@@ -130,7 +130,7 @@ void variable_analyzer::visit_enter_class_scope_body(
 }
 
 void variable_analyzer::visit_enter_conditional_type_scope() {
-  QLJS_UNIMPLEMENTED();
+  this->scopes_.push();
 }
 
 void variable_analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
@@ -192,7 +192,11 @@ void variable_analyzer::visit_exit_class_scope() {
 }
 
 void variable_analyzer::visit_exit_conditional_type_scope() {
-  QLJS_UNIMPLEMENTED();
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+  this->scopes_.pop();
 }
 
 void variable_analyzer::visit_exit_enum_scope() {
