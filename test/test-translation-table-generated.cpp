@@ -550,6 +550,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'infer' is only allowed between 'extends' and '?' in conditional types"_translatable,
+        {
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+        },
+    },
+    {
         "'private' is not allowed in JavaScript"_translatable,
         {
             u8"'private' is not allowed in JavaScript",

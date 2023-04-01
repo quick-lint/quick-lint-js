@@ -1486,6 +1486,13 @@ msgstr "l'indexation nécessite une expression"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr ""
+"un saut de ligne n'est pas autorisé entre 'async' et la liste de paramètres "
+"d'une fonction fléchée"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parentheses are required around 'infer {1}'"
 msgstr "nom ou parenthèses manquants pour la fonction"
 

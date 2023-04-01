@@ -1280,6 +1280,10 @@ msgid "index signatures require a value type"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "parentheses are required around 'infer {1}'"
 msgstr ""
 

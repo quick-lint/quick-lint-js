@@ -1395,6 +1395,11 @@ msgstr "indexing requires an expression"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr "put this on a single line, please"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parentheses are required around 'infer {1}'"
 msgstr "JavaScript is stupid, so you need parentheses"
 

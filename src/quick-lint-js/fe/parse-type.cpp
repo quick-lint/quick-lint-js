@@ -165,7 +165,7 @@ again:
   // infer T  // Invalid.
   // T extends infer U ? V : W
   case token_type::kw_infer: {
-    const char8 *infer_begin = this->peek().begin;
+    source_code_span infer_keyword_span = this->peek().span();
     this->skip();
     switch (this->peek().type) {
     case token_type::identifier:
@@ -204,7 +204,12 @@ again:
     identifier variable = this->peek().identifier_name();
     this->skip();
 
-    if (this->typescript_infer_declaration_buffer_ != nullptr) {
+    if (this->typescript_infer_declaration_buffer_ == nullptr) {
+      this->diag_reporter_->report(
+          diag_typescript_infer_outside_conditional_type{
+              .infer_keyword = infer_keyword_span,
+          });
+    } else {
       this->typescript_infer_declaration_buffer_->visit_variable_declaration(
           variable, variable_kind::_infer_type, variable_init_kind::normal);
     }
@@ -212,8 +217,8 @@ again:
     if (this->peek().type == token_type::left_square) {
       // T extends infer U[] ? V : W  // Invalid.
       this->diag_reporter_->report(diag_typescript_infer_requires_parentheses{
-          .infer_and_type =
-              source_code_span(infer_begin, variable.span().end()),
+          .infer_and_type = source_code_span(infer_keyword_span.begin(),
+                                             variable.span().end()),
           .type = variable,
       });
     }

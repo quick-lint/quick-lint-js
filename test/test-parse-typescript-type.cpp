@@ -2366,11 +2366,16 @@ TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
 
 TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
   {
-    test_parser p(u8"infer T"_sv, typescript_options);
+    test_parser p(u8"infer T"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty())
         << "'infer T' should not declare or use 'T'";
-    // TODO(#690): Report a diagnostic.
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_infer_outside_conditional_type,
+                        infer_keyword, 0, u8"infer"_sv),
+                }));
   }
 }
 

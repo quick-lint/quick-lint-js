@@ -2084,6 +2084,13 @@
               expected_type))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_infer_outside_conditional_type, "E0367",                  \
+      diagnostic_severity::error, { source_code_span infer_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("'infer' is only allowed between 'extends' "    \
+                                "and '?' in conditional types"),                \
+              infer_keyword))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_infer_requires_parentheses, "E0366",                      \
       diagnostic_severity::error,                                               \
       {                                                                         \

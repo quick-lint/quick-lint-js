@@ -1331,6 +1331,11 @@ msgstr "index signature precisa de um tipo para o valor"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr "quebra de linha não é permitida entre 'async' e 'function'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parentheses are required around 'infer {1}'"
 msgstr "faltam os parênteses ao redor do operando de '{0}'"
 

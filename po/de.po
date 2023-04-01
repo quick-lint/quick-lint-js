@@ -1470,6 +1470,11 @@ msgstr "Indizierung erfordert einen Ausdruck"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr "Zeilenumbruch ist zwischen 'async' und Arrow-Funktion verboten"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parentheses are required around 'infer {1}'"
 msgstr "Klammern fehlen um den Operanden von '{0}'"
 

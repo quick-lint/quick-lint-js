@@ -1388,6 +1388,11 @@ msgstr "indexering kräver ett uttryck"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parentheses are required around 'infer {1}'"
 msgstr "saknar namn eller paranteser för funktion"
 
