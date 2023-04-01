@@ -17,6 +17,7 @@ class null_visitor final : public parse_visitor_base {
   void visit_enter_class_scope() override {}
   void visit_enter_class_scope_body(const std::optional<identifier>&) override {
   }
+  void visit_enter_conditional_type_scope() override {}
   void visit_enter_enum_scope() override {}
   void visit_enter_for_scope() override {}
   void visit_enter_function_scope() override {}
@@ -29,6 +30,7 @@ class null_visitor final : public parse_visitor_base {
   void visit_exit_block_scope() override {}
   void visit_exit_with_scope() override {}
   void visit_exit_class_scope() override {}
+  void visit_exit_conditional_type_scope() override {}
   void visit_exit_enum_scope() override {}
   void visit_exit_for_scope() override {}
   void visit_exit_function_scope() override {}

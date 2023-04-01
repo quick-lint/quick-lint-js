@@ -187,6 +187,10 @@ struct parse_visit_collector : public parse_visitor_base {
     this->visits.emplace_back("visit_enter_class_scope_body");
   }
 
+  void visit_enter_conditional_type_scope() override {
+    this->visits.emplace_back("visit_enter_conditional_type_scope");
+  }
+
   void visit_enter_enum_scope() override {
     this->visits.emplace_back("visit_enter_enum_scope");
   }
@@ -236,6 +240,10 @@ struct parse_visit_collector : public parse_visitor_base {
 
   void visit_exit_class_scope() override {
     this->visits.emplace_back("visit_exit_class_scope");
+  }
+
+  void visit_exit_conditional_type_scope() override {
+    this->visits.emplace_back("visit_exit_conditional_type_scope");
   }
 
   void visit_exit_enum_scope() override {
