@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -105,12 +106,36 @@ func main() {
 	}
 	releaseMetaData := validateTagsHaveReleases(releaseTagValidationInput)
 	createMissingReleases(releaseMetaData, *authTokenPtr, repoPath)
+	fmt.Println("Created missing releases.")
 	updateReleasesIfChanged(releaseMetaData, *authTokenPtr, repoPath)
+	fmt.Println("Updated releases.")
 	elapsed := time.Since(start)
-	fmt.Println("Program finished in: ", elapsed)
+	fmt.Println("Program finished in: ", elapsed, ".")
+}
+
+func handleChannels(channel chan bool, waitGroup *sync.WaitGroup) {
+	timeout := time.After(10 * time.Second)
+	for {
+		select {
+		case <-channel:
+			if len(channel) == 0 {
+				waitGroup.Wait()
+				close(channel)
+				return
+			}
+		case <-timeout:
+			fmt.Println("Timeout: Some goroutines did not complete")
+			close(channel)
+			return
+		}
+	}
 }
 
 func createMissingReleases(releaseMetaData releaseMetaData, authToken string, repoPath string) {
+	createReleaseWaitGroup := &sync.WaitGroup{}
+	createReleaseChannel := make(chan bool, len(releaseMetaData.ReleaseVersionTagMap))
+
+	spawnedThread := false
 	for releaseVersion, tagVersion := range releaseMetaData.ReleaseVersionTagMap {
 		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
@@ -123,15 +148,27 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 				versionTitle:  releaseMetaData.TagReleaseVersionMap[releaseVersion],
 				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
 			}
-			updateOrCreateGitHubRelease(postRequest, requestURL)
+			createReleaseWaitGroup.Add(1)
+			go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
+			spawnedThread = true
 		}
+	}
+	if spawnedThread {
+		handleChannels(createReleaseChannel, createReleaseWaitGroup)
+	} else {
+		close(createReleaseChannel)
 	}
 }
 
 func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, repoPath string) {
+	updateReleaseWaitGroup := &sync.WaitGroup{}
+	updateChannel := make(chan bool, len(releaseMetaData.ReleaseVersionTagMap))
+
 	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 	releases := getReleases(authToken, repoPath)
-	for _, release := range releases[:] {
+
+	spawnedThread := false
+	for _, release := range releases {
 		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.Name] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
 			patchRequest := releaseRequest{
@@ -142,8 +179,15 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 				versionTitle:  release.Name,
 				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.Name],
 			}
-			updateOrCreateGitHubRelease(patchRequest, requestURL)
+			updateReleaseWaitGroup.Add(1)
+			go updateOrCreateGitHubRelease(patchRequest, requestURL, updateChannel, updateReleaseWaitGroup)
+			spawnedThread = true
 		}
+	}
+	if spawnedThread {
+		handleChannels(updateChannel, updateReleaseWaitGroup)
+	} else {
+		close(updateChannel)
 	}
 }
 
@@ -308,7 +352,8 @@ func createReleaseNotes(changeLog changeLog) []string {
 	return releaseNotes
 }
 
-func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL string) {
+func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL string, channel chan<- bool, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
 	postBody, err := json.Marshal(map[string]interface{}{
 		"name":     releaseRequest.versionTitle,
 		"tag_name": releaseRequest.tagForRelease,
@@ -347,6 +392,7 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	} else {
 		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
 	}
+	channel <- true
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
