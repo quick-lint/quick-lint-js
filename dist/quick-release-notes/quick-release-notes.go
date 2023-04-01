@@ -87,7 +87,7 @@ func main() {
 	if !ok {
 		panic("could not determine path of .go file")
 	}
-	pathToChangeLog := filepath.Join(filepath.Dir(scriptPath), "../CHANGELOG.md")
+	pathToChangeLog := filepath.Join(filepath.Dir(scriptPath), "../../docs/CHANGELOG.md")
 	file, err := os.Open(pathToChangeLog)
 	if err != nil {
 		log.Fatal(err)
@@ -95,6 +95,9 @@ func main() {
 	defer file.Close()
 	changeLog := getChangeLogInfo(bufio.NewScanner(file))
 	releaseNotes := createReleaseNotes(changeLog)
+
+	elapsed := time.Since(start)
+	fmt.Println("Program finished in: ", elapsed, ".")
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
 	releaseTagValidationInput := releaseTagValidationInput{
@@ -109,8 +112,6 @@ func main() {
 	fmt.Println("Created missing releases.")
 	updateReleasesIfChanged(releaseMetaData, *authTokenPtr, repoPath)
 	fmt.Println("Updated releases.")
-	elapsed := time.Since(start)
-	fmt.Println("Program finished in: ", elapsed, ".")
 }
 
 func handleChannels(channel chan bool, waitGroup *sync.WaitGroup) {
