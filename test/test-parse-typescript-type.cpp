@@ -2337,6 +2337,22 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
                 ElementsAreArray(
                     {infer_type_decl(u8"T"_sv), infer_type_decl(u8"U"_sv)}));
   }
+
+  {
+    test_parser p(u8"MyType extends infer T extends U ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_variable_type_use",             // U
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // T
+                              "visit_exit_conditional_type_scope",   //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"_sv, u8"U"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
 }
 
 TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
@@ -2370,6 +2386,22 @@ TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty())
         << "'infer T' should not declare or use 'T'";
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_infer_outside_conditional_type,
+                        infer_keyword, 0, u8"infer"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"infer T extends U"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // U
+                          }))
+        << "'infer T' should not declare or use 'T'";
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"_sv}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(

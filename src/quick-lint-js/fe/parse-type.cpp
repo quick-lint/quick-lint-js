@@ -164,6 +164,7 @@ again:
 
   // infer T  // Invalid.
   // T extends infer U ? V : W
+  // T extends infer U extends X ? V : W
   case token_type::kw_infer: {
     source_code_span infer_keyword_span = this->peek().span();
     this->skip();
@@ -221,6 +222,16 @@ again:
                                              variable.span().end()),
           .type = variable,
       });
+    }
+
+    if (this->peek().type == token_type::kw_extends) {
+      // T extends infer U extends X ? V : W
+      //                   ^^^^^^^
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(
+          v, typescript_type_parse_options{
+                 .parse_question_as_invalid = false,
+             });
     }
     break;
   }
