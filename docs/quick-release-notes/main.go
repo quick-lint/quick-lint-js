@@ -347,8 +347,6 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	} else {
 		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
 	}
-	fmt.Print("Token Rate-limit:", resp.Header["X-Ratelimit-Remaining"])
-	fmt.Println(" Token Expiration:", resp.Header["Github-Authentication-Token-Expiration"])
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
