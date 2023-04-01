@@ -33,6 +33,19 @@
 #include <pthread.h>
 #endif
 
+#if defined(__FreeBSD__)
+#include <fcntl.h>
+#include <kvm.h>
+#include <limits.h>
+#include <pthread.h>
+#include <pthread_np.h>
+#include <sys/jail.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/user.h>
+#endif
+
 #if defined(_WIN32)
 #include <psapi.h>
 #include <quick-lint-js/port/windows-error.h>
@@ -126,6 +139,20 @@ constexpr std::string_view thread_name_prefix =
 constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
+#if defined(__FreeBSD__)
+constexpr std::string_view thread_name_prefix = "quick-lint"sv;
+// NOTE(Nico): This seems to be the limit defined in the kernel. It is extremely
+//             small so we choose a very short prefix like on Linux. (see
+//             sys/sys/proc.h:300, struct thread). Then we find another limit
+//             TDNAMLEN which is defined in sys/user.h and using the struct
+//             kinfo_proc. The following assert assures that TDNAMLEN isn't
+//             bigger than what we use here.
+constexpr std::size_t max_thread_name_length = MAXCOMLEN;
+static_assert(max_thread_name_length >= TDNAMLEN,
+              "sys/user.h defines TDNAMLEN to be bigger than MAXCOMLEN. "
+              "Your headers are broken.");
+#define QLJS_CAN_FIND_DEBUG_SERVERS 1
+#endif
 #if defined(_WIN32)
 constexpr std::wstring_view thread_name_prefix =
     L"quick-lint-js debug server port="sv;
@@ -188,6 +215,15 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: %s\n",
         __func__, std::strerror(errno));
+    return;
+  }
+#endif
+#if defined(__FreeBSD__)
+  int rc = ::pthread_setname_np(::pthread_self(), name.data());
+  if (rc != 0) {
+    QLJS_DEBUG_LOG(
+        "%s: ignoring failure to set thread name for debug server thread: %s\n",
+        __func__, std::strerror(rc));
     return;
   }
 #endif
@@ -433,6 +469,82 @@ std::vector<found_debug_server> find_debug_servers() {
   return debug_servers;
 }
 #endif
+
+#if defined(__FreeBSD__)
+std::vector<found_debug_server> find_debug_servers() {
+  static constexpr char func[] = "find_debug_servers";
+
+  // NOTE(Nico): On FreeBSD we can just fetch the list of all active LWPs by
+  // querying all active processes from the kvm library. This is not very
+  // efficient but it works.
+  //
+  // There is one potential pitfall with this approach though:
+  //
+  // When a quick-lint-js instance is running inside a jail then searching from
+  // the host will list processes running inside the jail too (unless the
+  // sysadmin disabled it for security reasons). However since the jail is
+  // likely to be listening on a different IP address than the host the URL
+  // printed by quick-lint does not match the one of the jail. This is why we
+  // first query our own Jail ID (JID), then compare it to a given processes's
+  // JID and skip the process if it doesn't match our own JID.
+
+  char errbuf[_POSIX2_LINE_MAX] = {};
+  int p_size, own_jid, rc;
+  size_t own_jid_size;
+  ::kinfo_proc* p;
+  ::kvm_t* kd;
+  std::vector<found_debug_server> debug_servers;
+
+  // Query our own jail id
+  own_jid_size = sizeof own_jid;
+  rc = ::sysctlbyname("security.jail.param.jid", &own_jid, &own_jid_size,
+                      nullptr, 0);
+  if (rc < 0) {
+    QLJS_DEBUG_LOG("%s: ignoring failure to query own jail id: %s\n", func,
+                   ::strerror(errno));
+    return {};
+  }
+
+  // Open KVM access device
+  kd = ::kvm_openfiles(/* execfile=*/nullptr, /* corefile=*/"/dev/null",
+                       /* swapfile=*/nullptr, /* flags=*/O_RDONLY, errbuf);
+  if (kd == nullptr) {
+    QLJS_DEBUG_LOG("%s: ignoring failure to open kvm device: %s\n", func,
+                   errbuf);
+    goto error_open_kvm;
+  }
+
+  // Read in process list
+  p = ::kvm_getprocs(kd, KERN_PROC_ALL, 0, &p_size);
+  if (p == nullptr) {
+    QLJS_DEBUG_LOG("%s: ignoring failure to get process list: %s\n", func,
+                   ::strerror(errno));
+    goto error_get_procs;
+  }
+
+  // Search for threads with the correct name
+  for (int ti = 0; ti < p_size; ++ti) {
+    if (p[ti].ki_jid != own_jid)
+      continue;  // not our own jail. potential IP address mismatch.
+
+    std::string_view thread_name(
+        p[ti].ki_tdname,
+        ::strnlen(p[ti].ki_tdname, max_thread_name_length - 1));
+    if (std::optional<std::uint16_t> port_number =
+            parse_port_number_from_thread_name(thread_name)) {
+      debug_servers.push_back(found_debug_server{
+          .process_id = narrow_cast<std::uint64_t>(p[ti].ki_pid),
+          .port_number = *port_number,
+      });
+    }
+  }
+
+error_get_procs:
+  ::kvm_close(kd);
+error_open_kvm:
+  return debug_servers;
+}
+#endif  // __FreeBSD__
 
 #if defined(_WIN32)
 template <class Callback>

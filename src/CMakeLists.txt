@@ -301,6 +301,9 @@ endif ()
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
   target_link_libraries(quick-lint-js-lib PUBLIC mongoose)
 endif ()
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  target_link_libraries(quick-lint-js-lib PUBLIC kvm)
+endif ()
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-lib
