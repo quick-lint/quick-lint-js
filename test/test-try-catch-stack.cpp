@@ -118,6 +118,76 @@ TEST(test_try_catch_stack,
   EXPECT_TRUE(outer_catch_called)
       << "outer-most catch callback should have been called";
 }
+
+TEST(test_try_catch_stack, raise_returns_if_only_finally_is_on_stack) {
+  try_catch_stack<int> stack;
+  bool finally_called = false;
+  bool raise_returned = false;
+  stack.try_finally(
+      [&]() -> void {
+        stack.raise_if_have_handler(420);
+        raise_returned = true;
+      },
+      [&]() -> void { finally_called = true; });
+
+  EXPECT_TRUE(finally_called);
+  EXPECT_TRUE(raise_returned);
+}
+
+TEST(test_try_catch_stack, raise_calls_catch_then_finally) {
+  try_catch_stack<int> stack;
+  bool catch_called = false;
+  bool finally_called = false;
+  stack.try_finally(
+      [&]() -> void {
+        stack.try_catch<int>(
+            [&]() -> int {
+              stack.raise_if_have_handler(420);
+              ADD_FAILURE() << "raise_if_have_handler should not have returned";
+              return 0;
+            },
+            [&](int exception) -> int {
+              catch_called = true;
+              EXPECT_FALSE(finally_called)
+                  << "inner catch should be called before outer finally";
+              EXPECT_EQ(exception, 420);
+              return 0;
+            });
+      },
+      [&]() -> void { finally_called = true; });
+
+  EXPECT_TRUE(catch_called);
+  EXPECT_TRUE(finally_called);
+}
+
+TEST(test_try_catch_stack, raise_calls_finally_then_catch) {
+  try_catch_stack<int> stack;
+  bool catch_called = false;
+  bool finally_called = false;
+  stack.try_catch<int>(
+      [&]() -> int {
+        stack.try_finally(
+            [&]() -> void {
+              stack.raise_if_have_handler(420);
+              ADD_FAILURE() << "raise_if_have_handler should not have returned";
+            },
+            [&]() -> void {
+              EXPECT_FALSE(catch_called)
+                  << "inner finally should be called before outer catch";
+              finally_called = true;
+            });
+        ADD_FAILURE() << "try_finally should not have returned";
+        return 0;
+      },
+      [&](int exception) -> int {
+        catch_called = true;
+        EXPECT_EQ(exception, 420);
+        return 0;
+      });
+
+  EXPECT_TRUE(catch_called);
+  EXPECT_TRUE(finally_called);
+}
 }
 }
 
