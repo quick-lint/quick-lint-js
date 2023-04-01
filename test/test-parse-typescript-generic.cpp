@@ -575,19 +575,13 @@ TEST_F(test_parse_typescript_generic,
            {u8"foo<T> []"_sv,            "binary(var foo, var T, array())"},
            {u8"foo<T> /regexp/"_sv,      "binary(var foo, var T, literal)"},
 
-           // TypeScript does not split '>=' into '>' and '='.
-           // See NOTE[typescript-generic-expression-token-splitting].
-           {u8"foo<T>= rhs"_sv,       "binary(var foo, var T, var rhs)"},
-           {u8"foo<T<U>>= rhs"_sv,    "upassign(binary(var foo, var T, var U), var rhs)"},
-           {u8"foo<T<U<V>>>= rhs"_sv, "upassign(binary(var foo, var T, var U, var V), var rhs)"},
-
            // The 'x' is part of the next statement.
            {u8"foo<T>\n let\n x"_sv,             "binary(var foo, var T, var let)"},
            {u8"foo<T>\n interface\n x\n {}"_sv,  "binary(var foo, var T, var interface)"},
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
-    test_parser p(tc.code, typescript_options, capture_diags);
+    test_parser p(tc.code, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.variable_uses, IsEmpty());
@@ -600,12 +594,48 @@ TEST_F(test_parse_typescript_generic,
                                           "visit_enter_function_scope_body",  //
                                           "visit_exit_function_scope")))
         << "there should be no generic arguments (visit_variable_type_use)";
+  }
+}
+
+TEST_F(
+    test_parse_typescript_generic,
+    greater_equal_ending_generic_argument_list_requires_space_in_expression) {
+  // TypeScript does not split '>=' into '>' and '='.
+  // See NOTE[typescript-generic-expression-token-splitting].
+
+  {
+    test_parser p(u8"foo<T>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var foo, var T, var rhs)");
+    EXPECT_THAT(p.visits, IsEmpty())
+        << "there should be no generic arguments (visit_variable_type_use)";
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"foo<T<U>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "upassign(binary(var foo, var T, var U), var rhs)");
+    EXPECT_THAT(p.visits, IsEmpty())
+        << "there should be no generic arguments (visit_variable_type_use)";
     EXPECT_THAT(p.errors,
-                ::testing::AnyOf(
-                    IsEmpty(),
-                    ElementsAreArray({
-                        DIAG_TYPE(diag_invalid_expression_left_of_assignment),
-                    })));
+                ElementsAreArray({
+                    DIAG_TYPE(diag_invalid_expression_left_of_assignment),
+                }));
+  }
+
+  {
+    test_parser p(u8"foo<T<U<V>>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "upassign(binary(var foo, var T, var U, var V), var rhs)");
+    EXPECT_THAT(p.visits, IsEmpty())
+        << "there should be no generic arguments (visit_variable_type_use)";
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_invalid_expression_left_of_assignment),
+                }));
   }
 }
 
