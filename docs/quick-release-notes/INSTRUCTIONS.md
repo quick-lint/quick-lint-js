@@ -12,7 +12,7 @@ Link: https://github.com/settings/tokens
 
 ### Running quick-release-notes.
 
-    $ go run main.go -Repo=quick-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat token.txt) isDraft=false 
+    $ go run main.go -Repo=quick-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat token.txt)
 
 Flags:
 
