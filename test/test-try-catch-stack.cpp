@@ -86,6 +86,38 @@ TEST(test_try_catch_stack, if_catch_is_called_raise_stops_propagating) {
       << "inner-most catch callback should have been called";
   EXPECT_EQ(result, 69) << "inner try_catch should have returned";
 }
+
+TEST(test_try_catch_stack,
+     try_catch_calls_catch_if_raised_inside_nested_catch) {
+  try_catch_stack<int> stack;
+  bool inner_catch_called = false;
+  bool outer_catch_called = false;
+  stack.try_catch<int>(
+      [&]() -> int {
+        stack.try_catch<int>(
+            [&]() -> int {
+              stack.try_raise(420);
+              return 0;
+            },
+            [&](int exception) -> int {
+              inner_catch_called = true;
+              EXPECT_EQ(exception, 420);
+              stack.try_raise(69);
+              return 0;
+            });
+        return 0;
+      },
+      [&](int exception) -> int {
+        outer_catch_called = true;
+        EXPECT_EQ(exception, 69);
+        return 0;
+      });
+
+  EXPECT_TRUE(inner_catch_called)
+      << "inner-most catch callback should have been called";
+  EXPECT_TRUE(outer_catch_called)
+      << "outer-most catch callback should have been called";
+}
 }
 }
 

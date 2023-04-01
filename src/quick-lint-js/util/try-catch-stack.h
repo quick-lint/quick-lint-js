@@ -38,8 +38,9 @@ class try_catch_stack {
       // this->raise() was called.
       catch_entry &c = this->catch_stack_.back();
       QLJS_ASSERT(c.exception.has_value());
-      ResultType result = std::move(catch_func)(std::move(*c.exception));
+      Exception exception = std::move(*c.exception);
       this->catch_stack_.pop_back();
+      ResultType result = std::move(catch_func)(std::move(exception));
       return result;
     }
   }
