@@ -42,7 +42,6 @@ type changeLogVersion struct {
 type releaseMetaData struct {
 	ReleaseVersionNoteMap map[string]string
 	ReleaseVersionTagMap  map[string]string
-	ReleaseNumberTitleMap map[string]string
 	TagReleaseVersionMap  map[string]string
 }
 
@@ -61,14 +60,13 @@ type releaseTagValidationInput struct {
 }
 
 type releaseRequest struct {
-	authToken           string
-	repoPath            string
-	requestType         string
-	urlWithID           string
-	tagForRelease       string
-	versionTitle        string
-	versionTitleAndDate string
-	releaseNote         string
+	authToken     string
+	repoPath      string
+	requestType   string
+	urlWithID     string
+	tagForRelease string
+	versionTitle  string
+	releaseNote   string
 }
 
 // Syntax highlighting for CLI warning messages.
@@ -118,13 +116,12 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 			postRequest := releaseRequest{
-				authToken:           authToken,
-				repoPath:            repoPath,
-				requestType:         "POST",
-				tagForRelease:       tagVersion,
-				versionTitle:        releaseMetaData.TagReleaseVersionMap[releaseVersion],
-				versionTitleAndDate: releaseMetaData.ReleaseNumberTitleMap[releaseVersion],
-				releaseNote:         releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
+				authToken:     authToken,
+				repoPath:      repoPath,
+				requestType:   "POST",
+				tagForRelease: tagVersion,
+				versionTitle:  releaseMetaData.TagReleaseVersionMap[releaseVersion],
+				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
 			}
 			updateOrCreateGitHubRelease(postRequest, requestURL)
 		}
@@ -135,17 +132,15 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
-		fmt.Println(release.Name)
 		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.Name] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
 			patchRequest := releaseRequest{
-				authToken:           authToken,
-				repoPath:            repoPath,
-				requestType:         "PATCH",
-				tagForRelease:       release.TagName,
-				versionTitle:        release.Name,
-				versionTitleAndDate: release.Name,
-				releaseNote:         releaseMetaData.ReleaseVersionNoteMap[release.Name],
+				authToken:     authToken,
+				repoPath:      repoPath,
+				requestType:   "PATCH",
+				tagForRelease: release.TagName,
+				versionTitle:  release.Name,
+				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.Name],
 			}
 			updateOrCreateGitHubRelease(patchRequest, requestURL)
 		}
@@ -156,7 +151,6 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 	releaseMetaData := releaseMetaData{
 		ReleaseVersionNoteMap: make(map[string]string),
 		ReleaseVersionTagMap:  make(map[string]string),
-		ReleaseNumberTitleMap: make(map[string]string),
 		TagReleaseVersionMap:  make(map[string]string),
 	}
 	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
@@ -172,9 +166,8 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tag"+resetColor)
 		}
 		if releaseVersionHasTag {
-			releaseMetaData.ReleaseNumberTitleMap[releaseVersion.number] = releaseVersion.title
 			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = tagVersionForMap
-			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.title] = releaseTagValidationInput.releaseNotes[i]
+			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
 		}
 	}
 	for _, tagVersion := range releaseTagValidationInput.tags[:] {
@@ -248,7 +241,7 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
-	versionNumberAndDateRE := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+)(?P<versionDate>.*))`)
+	versionNumberAndDateRE := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
 	unreleasedRE := regexp.MustCompile(`## Unreleased`)
 	var changeLogText []string
 	var versions []changeLogVersion
@@ -262,16 +255,11 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 			fmt.Println(redColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
 		}
 		if hashVersionAndDate != nil {
-			// idxVersionNumberAndDate := versionNumberAndDateRE.SubexpIndex("versionNumberAndDate")
+			idxVersionNumberAndDate := versionNumberAndDateRE.SubexpIndex("versionNumberAndDate")
 			idxVersionNumber := versionNumberAndDateRE.SubexpIndex("versionNumber")
-			idxVersionDate := versionNumberAndDateRE.SubexpIndex("versionDate")
-			fmt.Printf(hashVersionAndDate[idxVersionDate])
-			fmt.Printf("%v", strings.Contains(hashVersionAndDate[idxVersionDate], " "))
-			// versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
+			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
 			versionNumber := hashVersionAndDate[idxVersionNumber]
-			versionDate := strings.ReplaceAll(hashVersionAndDate[idxVersionDate], " ", "-") // fmt.Println(versionNumberAndDate)
-			fmt.Println(versionDate)
-			changeLogVersion := changeLogVersion{title: versionNumber + versionDate, number: versionNumber, lineNumber: len(changeLogText) - 1}
+			changeLogVersion := changeLogVersion{title: versionNumberAndDate, number: versionNumber, lineNumber: len(changeLogText) - 1}
 			versions = append(versions, changeLogVersion)
 		}
 	}
@@ -321,9 +309,8 @@ func createReleaseNotes(changeLog changeLog) []string {
 }
 
 func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL string) {
-	fmt.Println("releaseRequest: ", releaseRequest.versionTitleAndDate, releaseRequest.versionTitle)
 	postBody, err := json.Marshal(map[string]interface{}{
-		"name":     releaseRequest.versionTitleAndDate,
+		"name":     releaseRequest.versionTitle,
 		"tag_name": releaseRequest.tagForRelease,
 		"body":     releaseRequest.releaseNote,
 	})
