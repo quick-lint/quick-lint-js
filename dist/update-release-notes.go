@@ -41,10 +41,10 @@ type changeLogVersion struct {
 }
 
 type releaseMetaData struct {
-	ReleaseVersionNoteMap map[string]string
-	ReleaseVersionTagMap  map[string]string
-	ReleaseVersionTitle   map[string]string
-	TagReleaseVersionMap  map[string]string
+	TagVersionReleaseBodyMap map[string]string
+	ReleaseVersionTagMap     map[string]string
+	ReleaseVersionTitleMap   map[string]string
+	TagReleaseVersionMap     map[string]string
 }
 
 type changeLog struct {
@@ -163,8 +163,8 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 				repoPath:      repoPath,
 				requestType:   "POST",
 				tagForRelease: tagVersion,
-				versionTitle:  releaseMetaData.ReleaseVersionTitle[releaseVersion],
-				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[tagVersion],
+				versionTitle:  releaseMetaData.ReleaseVersionTitleMap[releaseVersion],
+				releaseNote:   releaseMetaData.TagVersionReleaseBodyMap[tagVersion],
 			}
 			createReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
@@ -187,7 +187,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 
 	spawnedThread := false
 	for _, release := range releases {
-		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.TagName] {
+		if release.Body != releaseMetaData.TagVersionReleaseBodyMap[release.TagName] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
 			patchRequest := releaseRequest{
 				authToken:     authToken,
@@ -195,7 +195,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 				requestType:   "PATCH",
 				tagForRelease: release.TagName,
 				versionTitle:  release.Name,
-				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.TagName],
+				releaseNote:   releaseMetaData.TagVersionReleaseBodyMap[release.TagName],
 			}
 			updateReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(patchRequest, requestURL, updateChannel, updateReleaseWaitGroup)
@@ -211,40 +211,40 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 
 func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInput) releaseMetaData {
 	releaseMetaData := releaseMetaData{
-		ReleaseVersionNoteMap: make(map[string]string),
-		ReleaseVersionTagMap:  make(map[string]string),
-		ReleaseVersionTitle:   make(map[string]string),
-		TagReleaseVersionMap:  make(map[string]string),
+		TagVersionReleaseBodyMap: make(map[string]string),
+		ReleaseVersionTagMap:     make(map[string]string),
+		ReleaseVersionTitleMap:   make(map[string]string),
+		TagReleaseVersionMap:     make(map[string]string),
 	}
 
-	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions {
+	for i, release := range releaseTagValidationInput.changeLog.versions {
 		releaseVersionHasTag := false
 		for _, tagVersion := range releaseTagValidationInput.tags {
-			if releaseVersion.number == tagVersion.Name {
+			if release.number == tagVersion.Name {
 				releaseVersionHasTag = true
 			}
 		}
 
 		if releaseVersionHasTag {
-			releaseMetaData.ReleaseVersionTitle[releaseVersion.number] = releaseVersion.title
-			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = releaseVersion.number
-			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
+			releaseMetaData.ReleaseVersionTitleMap[release.number] = release.title
+			releaseMetaData.ReleaseVersionTagMap[release.number] = release.number
+			releaseMetaData.TagVersionReleaseBodyMap[release.number] = releaseTagValidationInput.releaseNotes[i]
 		} else {
-			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tag"+resetColor)
+			fmt.Println(redColor+"WARNING: release", release, "missing tag"+resetColor)
 		}
 	}
 
-	for _, tagVersion := range releaseTagValidationInput.tags {
+	for _, tag := range releaseTagValidationInput.tags {
 		tagHasVersionNumber := false
-		for _, releaseVersion := range releaseTagValidationInput.changeLog.versions {
-			if tagVersion.Name == releaseVersion.number {
+		for _, release := range releaseTagValidationInput.changeLog.versions {
+			if tag.Name == release.number {
 				tagHasVersionNumber = true
 			}
 		}
 		if tagHasVersionNumber {
-			releaseMetaData.TagReleaseVersionMap[tagVersion.Name] = tagVersion.Name
+			releaseMetaData.TagReleaseVersionMap[tag.Name] = tag.Name
 		} else {
-			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
+			fmt.Println(redColor+"WARNING: tag", tag.Name, "missing changelog entry"+resetColor)
 		}
 	}
 	return releaseMetaData
