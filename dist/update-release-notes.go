@@ -231,10 +231,10 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
 		}
 	}
-	for _, tagVersion := range releaseTagValidationInput.tags[:] {
+	for _, tagVersion := range releaseTagValidationInput.tags {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
-		for _, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
+		for _, releaseVersion := range releaseTagValidationInput.changeLog.versions {
 			if tagVersion.Name == releaseVersion.number {
 				tagHasVersionNumber = true
 				releaseVersionForMap = releaseVersion.number
