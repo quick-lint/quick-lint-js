@@ -303,7 +303,7 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 
-	versionAndDateRE := regexp.MustCompile(`##\s*(?P<version>\d+\.\d+\.\d+)\s*\(\s*(?P<date>\d{4}-\d{2}-\d{2})\s*\)`)
+	titleAndVersionRE := regexp.MustCompile(`##\s*(?P<title>(?P<version>\d+(\.\d+)*).*)`)
 
 	unreleasedRE := regexp.MustCompile(`## Unreleased`)
 	var changeLogText []string
@@ -313,18 +313,16 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 		changeLogText = append(changeLogText, scanner.Text())
 		unreleased := unreleasedRE.FindStringSubmatch(scanner.Text())
 
-		versionAndDate := versionAndDateRE.FindStringSubmatch(scanner.Text())
+		titleAndVersionNumber := titleAndVersionRE.FindStringSubmatch(scanner.Text())
 		if unreleased != nil {
 			fmt.Println(redColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
 		}
-		if versionAndDate != nil {
-			versionIndex := versionAndDateRE.SubexpIndex("version")
-			dateIndex := versionAndDateRE.SubexpIndex("date")
-			// spaceIndex := versionAndDateRE.SubexpIndex("space")
-			date := versionAndDate[dateIndex]
-			// space := versionAndDate[spaceIndex]
-			versionNumber := versionAndDate[versionIndex]
-			changeLogVersion := changeLogVersion{title: versionNumber + " " + date, number: versionNumber, lineNumber: len(changeLogText) - 1}
+		if titleAndVersionNumber != nil {
+			versionIndex := titleAndVersionRE.SubexpIndex("version")
+			titleIndex := titleAndVersionRE.SubexpIndex("title")
+			title := titleAndVersionNumber[titleIndex]
+			versionNumber := titleAndVersionNumber[versionIndex]
+			changeLogVersion := changeLogVersion{title: title, number: versionNumber, lineNumber: len(changeLogText) - 1}
 			versions = append(versions, changeLogVersion)
 		}
 	}
