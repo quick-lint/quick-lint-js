@@ -214,23 +214,23 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		ReleaseVersionTagMap:  make(map[string]string),
 		TagReleaseVersionMap:  make(map[string]string),
 	}
+
 	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
-		tagVersionForMap := ""
 		releaseVersionHasTag := false
 		for _, tagVersion := range releaseTagValidationInput.tags[:] {
 			if releaseVersion.number == tagVersion.Name {
 				releaseVersionHasTag = true
-				tagVersionForMap = tagVersion.Name
 			}
 		}
-		if releaseVersionHasTag == false {
+
+		if releaseVersionHasTag {
+			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = releaseVersion.number
+			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
+		} else {
 			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tag"+resetColor)
 		}
-		if releaseVersionHasTag {
-			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = tagVersionForMap
-			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
-		}
 	}
+
 	for _, tagVersion := range releaseTagValidationInput.tags {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
@@ -240,11 +240,10 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 				releaseVersionForMap = releaseVersion.number
 			}
 		}
-		if tagHasVersionNumber == false {
-			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
-		}
 		if tagHasVersionNumber {
 			releaseMetaData.TagReleaseVersionMap[tagVersion.Name] = releaseVersionForMap
+		} else {
+			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
 		}
 	}
 	return releaseMetaData
