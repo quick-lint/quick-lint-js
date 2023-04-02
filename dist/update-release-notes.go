@@ -43,6 +43,7 @@ type changeLogVersion struct {
 type releaseMetaData struct {
 	ReleaseVersionNoteMap map[string]string
 	ReleaseVersionTagMap  map[string]string
+	ReleaseVersionTitle   map[string]string
 	TagReleaseVersionMap  map[string]string
 }
 
@@ -162,8 +163,8 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 				repoPath:      repoPath,
 				requestType:   "POST",
 				tagForRelease: tagVersion,
-				versionTitle:  releaseMetaData.TagReleaseVersionMap[releaseVersion],
-				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[releaseVersion],
+				versionTitle:  releaseMetaData.ReleaseVersionTitle[releaseVersion],
+				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[tagVersion],
 			}
 			createReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
@@ -186,7 +187,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 
 	spawnedThread := false
 	for _, release := range releases {
-		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.Name] {
+		if release.Body != releaseMetaData.ReleaseVersionNoteMap[release.TagName] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
 			patchRequest := releaseRequest{
 				authToken:     authToken,
@@ -194,7 +195,7 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 				requestType:   "PATCH",
 				tagForRelease: release.TagName,
 				versionTitle:  release.Name,
-				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.Name],
+				releaseNote:   releaseMetaData.ReleaseVersionNoteMap[release.TagName],
 			}
 			updateReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(patchRequest, requestURL, updateChannel, updateReleaseWaitGroup)
@@ -212,18 +213,20 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 	releaseMetaData := releaseMetaData{
 		ReleaseVersionNoteMap: make(map[string]string),
 		ReleaseVersionTagMap:  make(map[string]string),
+		ReleaseVersionTitle:   make(map[string]string),
 		TagReleaseVersionMap:  make(map[string]string),
 	}
 
-	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions[:] {
+	for i, releaseVersion := range releaseTagValidationInput.changeLog.versions {
 		releaseVersionHasTag := false
-		for _, tagVersion := range releaseTagValidationInput.tags[:] {
+		for _, tagVersion := range releaseTagValidationInput.tags {
 			if releaseVersion.number == tagVersion.Name {
 				releaseVersionHasTag = true
 			}
 		}
 
 		if releaseVersionHasTag {
+			releaseMetaData.ReleaseVersionTitle[releaseVersion.number] = releaseVersion.title
 			releaseMetaData.ReleaseVersionTagMap[releaseVersion.number] = releaseVersion.number
 			releaseMetaData.ReleaseVersionNoteMap[releaseVersion.number] = releaseTagValidationInput.releaseNotes[i]
 		} else {
@@ -232,16 +235,14 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 	}
 
 	for _, tagVersion := range releaseTagValidationInput.tags {
-		releaseVersionForMap := ""
 		tagHasVersionNumber := false
 		for _, releaseVersion := range releaseTagValidationInput.changeLog.versions {
 			if tagVersion.Name == releaseVersion.number {
 				tagHasVersionNumber = true
-				releaseVersionForMap = releaseVersion.number
 			}
 		}
 		if tagHasVersionNumber {
-			releaseMetaData.TagReleaseVersionMap[tagVersion.Name] = releaseVersionForMap
+			releaseMetaData.TagReleaseVersionMap[tagVersion.Name] = tagVersion.Name
 		} else {
 			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
 		}
@@ -301,7 +302,9 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
-	versionNumberAndDateRE := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
+
+	versionAndDateRE := regexp.MustCompile(`##\s*(?P<version>\d+\.\d+\.\d+)\s*\(\s*(?P<date>\d{4}-\d{2}-\d{2})\s*\)`)
+
 	unreleasedRE := regexp.MustCompile(`## Unreleased`)
 	var changeLogText []string
 	var versions []changeLogVersion
@@ -310,16 +313,18 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 		changeLogText = append(changeLogText, scanner.Text())
 		unreleased := unreleasedRE.FindStringSubmatch(scanner.Text())
 
-		hashVersionAndDate := versionNumberAndDateRE.FindStringSubmatch(scanner.Text())
+		versionAndDate := versionAndDateRE.FindStringSubmatch(scanner.Text())
 		if unreleased != nil {
 			fmt.Println(redColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
 		}
-		if hashVersionAndDate != nil {
-			idxVersionNumberAndDate := versionNumberAndDateRE.SubexpIndex("versionNumberAndDate")
-			idxVersionNumber := versionNumberAndDateRE.SubexpIndex("versionNumber")
-			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
-			versionNumber := hashVersionAndDate[idxVersionNumber]
-			changeLogVersion := changeLogVersion{title: versionNumberAndDate, number: versionNumber, lineNumber: len(changeLogText) - 1}
+		if versionAndDate != nil {
+			versionIndex := versionAndDateRE.SubexpIndex("version")
+			dateIndex := versionAndDateRE.SubexpIndex("date")
+			// spaceIndex := versionAndDateRE.SubexpIndex("space")
+			date := versionAndDate[dateIndex]
+			// space := versionAndDate[spaceIndex]
+			versionNumber := versionAndDate[versionIndex]
+			changeLogVersion := changeLogVersion{title: versionNumber + " " + date, number: versionNumber, lineNumber: len(changeLogText) - 1}
 			versions = append(versions, changeLogVersion)
 		}
 	}
