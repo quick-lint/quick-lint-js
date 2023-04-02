@@ -105,7 +105,7 @@ func main() {
 }
 
 func parseFlags() (*bool, *string, *string, *string) {
-	help := flag.Bool("help", false, "Print usage information. Example: $ go run quick-release-notes.go -Repo=quick-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat token.txt)")
+	help := flag.Bool("help", false, "Print usage information. Example: $ go run update-release-notes.go -Repo=quick-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat token.txt)")
 	authTokenPtr := flag.String("AuthToken", "", "Visit: (https://github.com/settings/tokens) generate a token with 'public_repo' or 'repo' permissions. Store access token in a file (token.txt). Example usage: -AuthToken=$(cat token.txt)")
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "GitHub repo where release notes to be released.")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "GitHub repo to get release tags from.")
@@ -126,7 +126,7 @@ func displayHelp(help *bool) {
 
 func getChangeLogPath() string {
 	_, filename, _, _ := runtime.Caller(0)
-	pathToChangeLog := filepath.Join(filepath.Dir(filename), "../../docs/CHANGELOG.md")
+	pathToChangeLog := filepath.Join(filepath.Dir(filename), "../docs/CHANGELOG.md")
 	return pathToChangeLog
 }
 
