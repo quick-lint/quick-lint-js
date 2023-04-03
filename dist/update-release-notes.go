@@ -45,6 +45,7 @@ type releaseMetaData struct {
 	ReleaseVersionTagMap     map[string]string
 	ReleaseVersionTitleMap   map[string]string
 	TagReleaseVersionMap     map[string]string
+	LatestReleaseVersion     string
 }
 
 type changeLog struct {
@@ -62,13 +63,14 @@ type releaseTagValidationInput struct {
 }
 
 type releaseRequest struct {
-	authToken     string
-	repoPath      string
-	requestType   string
-	urlWithID     string
-	tagForRelease string
-	versionTitle  string
-	releaseNote   string
+	authToken         string
+	repoPath          string
+	requestType       string
+	urlWithID         string
+	tagForRelease     string
+	versionTitle      string
+	releaseNote       string
+	makeLatestRelease string
 }
 
 // Syntax highlighting for CLI warning messages.
@@ -154,17 +156,24 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 	createReleaseChannel := make(chan bool, len(releaseMetaData.ReleaseVersionTagMap))
 
 	spawnedThread := false
+	makeLatestRelease := "false"
 	for releaseVersion, tagVersion := range releaseMetaData.ReleaseVersionTagMap {
 		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
+			if releaseVersion == releaseMetaData.LatestReleaseVersion {
+				makeLatestRelease = "true"
+			} else {
+				makeLatestRelease = "false"
+			}
 			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 			postRequest := releaseRequest{
-				authToken:     authToken,
-				repoPath:      repoPath,
-				requestType:   "POST",
-				tagForRelease: tagVersion,
-				versionTitle:  releaseMetaData.ReleaseVersionTitleMap[releaseVersion],
-				releaseNote:   releaseMetaData.TagVersionReleaseBodyMap[tagVersion],
+				authToken:         authToken,
+				repoPath:          repoPath,
+				requestType:       "POST",
+				tagForRelease:     tagVersion,
+				versionTitle:      releaseMetaData.ReleaseVersionTitleMap[releaseVersion],
+				releaseNote:       releaseMetaData.TagVersionReleaseBodyMap[tagVersion],
+				makeLatestRelease: makeLatestRelease,
 			}
 			createReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
@@ -190,12 +199,13 @@ func updateReleasesIfChanged(releaseMetaData releaseMetaData, authToken string, 
 		if release.Body != releaseMetaData.TagVersionReleaseBodyMap[release.TagName] {
 			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
 			patchRequest := releaseRequest{
-				authToken:     authToken,
-				repoPath:      repoPath,
-				requestType:   "PATCH",
-				tagForRelease: release.TagName,
-				versionTitle:  release.Name,
-				releaseNote:   releaseMetaData.TagVersionReleaseBodyMap[release.TagName],
+				authToken:         authToken,
+				repoPath:          repoPath,
+				requestType:       "PATCH",
+				tagForRelease:     release.TagName,
+				versionTitle:      release.Name,
+				releaseNote:       releaseMetaData.TagVersionReleaseBodyMap[release.TagName],
+				makeLatestRelease: "false",
 			}
 			updateReleaseWaitGroup.Add(1)
 			go updateOrCreateGitHubRelease(patchRequest, requestURL, updateChannel, updateReleaseWaitGroup)
@@ -215,6 +225,7 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		ReleaseVersionTagMap:     make(map[string]string),
 		ReleaseVersionTitleMap:   make(map[string]string),
 		TagReleaseVersionMap:     make(map[string]string),
+		LatestReleaseVersion:     "",
 	}
 
 	for i, release := range releaseTagValidationInput.changeLog.versions {
@@ -226,6 +237,9 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		}
 
 		if releaseVersionHasTag {
+			if i == 0 {
+				releaseMetaData.LatestReleaseVersion = release.number
+			}
 			releaseMetaData.ReleaseVersionTitleMap[release.number] = release.title
 			releaseMetaData.ReleaseVersionTagMap[release.number] = release.number
 			releaseMetaData.TagVersionReleaseBodyMap[release.number] = releaseTagValidationInput.releaseNotes[i]
@@ -374,9 +388,10 @@ func createReleaseNotes(changeLog changeLog) []string {
 func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL string, channel chan<- bool, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
 	postBody, err := json.Marshal(map[string]interface{}{
-		"name":     releaseRequest.versionTitle,
-		"tag_name": releaseRequest.tagForRelease,
-		"body":     releaseRequest.releaseNote,
+		"name":        releaseRequest.versionTitle,
+		"tag_name":    releaseRequest.tagForRelease,
+		"body":        releaseRequest.releaseNote,
+		"make_latest": releaseRequest.makeLatestRelease,
 	})
 	if err != nil {
 		log.Fatal(err)
