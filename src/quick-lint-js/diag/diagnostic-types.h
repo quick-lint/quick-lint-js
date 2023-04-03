@@ -2084,6 +2084,24 @@
               expected_type))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_infer_outside_conditional_type, "E0367",                  \
+      diagnostic_severity::error, { source_code_span infer_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("'infer' is only allowed between 'extends' "    \
+                                "and '?' in conditional types"),                \
+              infer_keyword))                                                   \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_infer_requires_parentheses, "E0366",                      \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span infer_and_type;                                        \
+        identifier type;                                                        \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("parentheses are required around 'infer {1}'"),     \
+          infer_and_type, type))                                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_function_overload_signature_must_have_same_name,          \
       "E0316", diagnostic_severity::error,                                      \
       {                                                                         \
@@ -2345,6 +2363,13 @@
           MESSAGE(QLJS_TRANSLATABLE("only optional tuple elements can follow "  \
                                     "this optional tuple element"),             \
                   previous_optional_question))                                  \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_requires_space_between_greater_and_equal, "E0365",        \
+      diagnostic_severity::error, { source_code_span greater_equal; },          \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "TypeScript requires whitespace between '>' and '=' here"),   \
+              greater_equal))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_satisfies_not_allowed_in_javascript, "E0364",             \

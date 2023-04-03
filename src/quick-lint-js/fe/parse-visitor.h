@@ -27,6 +27,7 @@ class parse_visitor_base {
   virtual void visit_enter_class_scope() = 0;
   virtual void visit_enter_class_scope_body(
       const std::optional<identifier> &class_name) = 0;
+  virtual void visit_enter_conditional_type_scope() = 0;
   virtual void visit_enter_enum_scope() = 0;
   virtual void visit_enter_for_scope() = 0;
   virtual void visit_enter_function_scope() = 0;
@@ -39,6 +40,7 @@ class parse_visitor_base {
   virtual void visit_exit_block_scope() = 0;
   virtual void visit_exit_with_scope() = 0;
   virtual void visit_exit_class_scope() = 0;
+  virtual void visit_exit_conditional_type_scope() = 0;
   virtual void visit_exit_enum_scope() = 0;
   virtual void visit_exit_for_scope() = 0;
   virtual void visit_exit_function_scope() = 0;

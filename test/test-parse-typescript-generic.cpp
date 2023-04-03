@@ -296,7 +296,7 @@ TEST_F(test_parse_typescript_generic,
            u8"await",
            u8"undefined",
        } | (contextual_keywords - typescript_builtin_type_keywords -
-            typescript_special_type_keywords -
+            typescript_special_type_keywords - typescript_type_only_keywords -
             dirty_set<string8>{
                 u8"let",
                 u8"static",
@@ -594,6 +594,83 @@ TEST_F(test_parse_typescript_generic,
                                           "visit_enter_function_scope_body",  //
                                           "visit_exit_function_scope")))
         << "there should be no generic arguments (visit_variable_type_use)";
+  }
+}
+
+TEST_F(
+    test_parse_typescript_generic,
+    greater_equal_ending_generic_argument_list_requires_space_in_expression) {
+  // TypeScript does not split '>=' into '>' and '='. This will always result in
+  // an error:
+  //
+  // * (A<B >= Z) is always a type error because booleans ('A<B' and 'Z') cannot
+  //   be compared using >= in TypeScript.
+  // * (A<B<C >>= Z) is always a type error because 'A<B' and 'C' cannot be
+  //   compared using '<', and is always an error because you cannot assign to
+  //   'A<B<C'.
+  // * (A<B<C<D >>>= Z) is always an error like with (A<B<C >>= Z).
+  //
+  // quick-lint-js does split '>=', but it should report a helpful diagnostic
+  // (instead of ugly type errors like TypeScript emits).
+  //
+  // See NOTE[typescript-generic-expression-token-splitting].
+
+  {
+    test_parser p(u8"foo<T>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T"), u8">="_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"foo<T<U>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_type_use",  // U
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"U"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T<U>"), u8">="_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"foo<T<U<V>>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_type_use",  // U
+                              "visit_variable_type_use",  // V
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"T"_sv, u8"U"_sv, u8"V"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T<U<V>>"), u8">="_sv),
+        }));
   }
 }
 

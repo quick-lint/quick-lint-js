@@ -1485,6 +1485,18 @@ msgid "index signatures require a value type"
 msgstr "l'indexation nécessite une expression"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr ""
+"un saut de ligne n'est pas autorisé entre 'async' et la liste de paramètres "
+"d'une fonction fléchée"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "parentheses are required around 'infer {1}'"
+msgstr "nom ou parenthèses manquants pour la fonction"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function overload signature must be named '{1}'"
 msgstr ""
 
@@ -1669,6 +1681,10 @@ msgstr "')' attendu pour clore un appel de fonction"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "only optional tuple elements can follow this optional tuple element"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "TypeScript requires whitespace between '>' and '=' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h

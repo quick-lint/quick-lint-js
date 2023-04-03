@@ -1330,6 +1330,16 @@ msgid "index signatures require a value type"
 msgstr "index signature precisa de um tipo para o valor"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
+msgstr "quebra de linha não é permitida entre 'async' e 'function'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "parentheses are required around 'infer {1}'"
+msgstr "faltam os parênteses ao redor do operando de '{0}'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "function overload signature must be named '{1}'"
 msgstr "overload de assinatura de função precisa se chamar '{1}'"
 
@@ -1476,6 +1486,10 @@ msgstr "esperado '?' para marcar o elemento da tupla como opcional"
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
 "apenas elementos opcionais da tupla podem prosseguir esse elemento opcional"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "TypeScript requires whitespace between '>' and '=' here"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

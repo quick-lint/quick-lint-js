@@ -135,6 +135,7 @@ quick_lint_js_add_executable(
   test-tracking-memory-resource.cpp
   test-translation-table-generated.cpp
   test-translation.cpp
+  test-try-catch-stack.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-variable-analyzer-arguments.cpp

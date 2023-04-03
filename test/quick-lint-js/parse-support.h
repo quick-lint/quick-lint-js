@@ -234,6 +234,12 @@ const inline dirty_set<string8> typescript_special_type_keywords = {
     u8"never",
     u8"unknown",
 };
+
+// Identifiers which are always keywords inside TypeScript types but never
+// keywords outside TypeScript types.
+const inline dirty_set<string8> typescript_type_only_keywords = {
+    u8"infer",
+};
 }
 }
 

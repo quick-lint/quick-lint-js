@@ -129,6 +129,10 @@ void variable_analyzer::visit_enter_class_scope_body(
   }
 }
 
+void variable_analyzer::visit_enter_conditional_type_scope() {
+  this->scopes_.push();
+}
+
 void variable_analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
 
 void variable_analyzer::visit_enter_for_scope() { this->scopes_.push(); }
@@ -180,6 +184,14 @@ void variable_analyzer::visit_exit_with_scope() {
 }
 
 void variable_analyzer::visit_exit_class_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+  this->scopes_.pop();
+}
+
+void variable_analyzer::visit_exit_conditional_type_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -815,6 +827,9 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
   case variable_kind::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
+  case variable_kind::_infer_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   case variable_kind::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
@@ -933,6 +948,9 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_import_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
+  case vk::_infer_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_namespace:
@@ -1170,6 +1188,7 @@ bool is_runtime(variable_kind kind) noexcept {
     return true;
   case variable_kind::_generic_parameter:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_type_alias:
     return false;
@@ -1185,6 +1204,7 @@ bool is_type(variable_kind kind) noexcept {
   case variable_kind::_import:
   case variable_kind::_import_alias:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_namespace:
   case variable_kind::_type_alias:

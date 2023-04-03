@@ -995,6 +995,15 @@ void lexer::skip_less_less_as_less() {
 
 void lexer::skip_as_greater() {
   switch (this->last_token_.type) {
+  case token_type::greater_equal:
+    this->last_token_.type = token_type::equal;
+    break;
+  case token_type::greater_greater_equal:
+    this->last_token_.type = token_type::greater_equal;
+    break;
+  case token_type::greater_greater_greater_equal:
+    this->last_token_.type = token_type::greater_greater_equal;
+    break;
   case token_type::greater_greater:
     this->last_token_.type = token_type::greater;
     break;

@@ -1416,7 +1416,6 @@ next:
             case token_type::complete_template:
             case token_type::dot:
             case token_type::end_of_file:
-            case token_type::equal:
             case token_type::incomplete_template:
             case token_type::kw_break:
             case token_type::kw_case:
@@ -1446,6 +1445,31 @@ next:
             case token_type::semicolon:
               parsed_as_generic_arguments = true;
               return true;
+
+            // C<T> = rhs;
+            // C<T>= rhs;   // Invalid.
+            // A<B<C<D>>> = rhs;
+            // A<B<C<D>>>= rhs;   // Invalid.
+            case token_type::equal: {
+              bool was_split_token = this->peek().begin[-1] == u8'>';
+              if (was_split_token) {
+                // NOTE[typescript-generic-expression-token-splitting]:
+                // parse_and_visit_typescript_generic_arguments split '>=' into
+                // '>' and '=', or split '>>>=' into '>' and '>' and '>' and
+                // '='. TypeScript's compiler does not split in this situation,
+                // so it does not treat the code as having a generic argument
+                // list.
+
+                this->diag_reporter_->report(
+                    diag_typescript_requires_space_between_greater_and_equal{
+                        .greater_equal = source_code_span(
+                            this->peek().begin - 1, this->peek().end),
+                    });
+              }
+
+              parsed_as_generic_arguments = true;
+              return true;
+            }
 
             default:
               return false;

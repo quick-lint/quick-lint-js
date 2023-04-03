@@ -60,7 +60,8 @@ const translation_table translation_data = {
         {0, 0, 0, 11, 0, 64},                //
         {13, 16, 0, 22, 0, 19},              //
         {13, 24, 37, 17, 31, 15},            //
-        {0, 0, 0, 53, 0, 48},                //
+        {0, 0, 0, 0, 0, 48},                 //
+        {0, 0, 0, 53, 0, 71},                //
         {0, 0, 0, 42, 0, 39},                //
         {0, 0, 0, 44, 0, 41},                //
         {0, 0, 0, 41, 0, 38},                //
@@ -112,7 +113,8 @@ const translation_table translation_data = {
         {0, 0, 0, 57, 0, 51},                //
         {0, 0, 0, 80, 0, 72},                //
         {0, 0, 0, 71, 0, 61},                //
-        {0, 0, 0, 80, 0, 66},                //
+        {0, 0, 0, 0, 0, 66},                 //
+        {0, 0, 0, 80, 0, 56},                //
         {0, 0, 0, 58, 0, 48},                //
         {0, 0, 0, 77, 0, 63},                //
         {0, 0, 0, 71, 0, 54},                //
@@ -362,6 +364,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 68},                 //
         {0, 0, 0, 68, 0, 58},                //
         {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 0, 0, 44},                 //
         {32, 13, 50, 41, 38, 29},            //
         {66, 33, 76, 54, 58, 54},            //
         {40, 29, 35, 35, 33, 33},            //
@@ -1777,6 +1780,7 @@ const translation_table translation_data = {
         u8"'function' is here\0"
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
+        u8"'infer' is only allowed between 'extends' and '?' in conditional types\0"
         u8"'private' is not allowed in JavaScript\0"
         u8"'protected' is not allowed in JavaScript\0"
         u8"'public' is not allowed in JavaScript\0"
@@ -1829,6 +1833,7 @@ const translation_table translation_data = {
         u8"TypeScript optional parameter with type annotation requires parentheses\0"
         u8"TypeScript optional parameters are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
+        u8"TypeScript requires whitespace between '>' and '=' here\0"
         u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
         u8"TypeScript type exports are not allowed in JavaScript\0"
@@ -2078,6 +2083,7 @@ const translation_table translation_data = {
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"optional tuple elements cannot come after spread elements\0"
         u8"overloaded function '{0}' declared here\0"
+        u8"parentheses are required around 'infer {1}'\0"
         u8"prior spread element is here\0"
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"

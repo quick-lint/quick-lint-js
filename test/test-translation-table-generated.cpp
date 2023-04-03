@@ -550,6 +550,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'infer' is only allowed between 'extends' and '?' in conditional types"_translatable,
+        {
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+        },
+    },
+    {
         "'private' is not allowed in JavaScript"_translatable,
         {
             u8"'private' is not allowed in JavaScript",
@@ -1119,6 +1130,17 @@ const translated_string test_translation_table[] = {
             u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"propriedades opcionais do TypeScript n\u00e3o s\u00e3o permitidas em c\u00f3digo JavaScript",
             u8"TypeScript optional properties are not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript requires whitespace between '>' and '=' here"_translatable,
+        {
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
         },
     },
     {
@@ -3858,6 +3880,17 @@ const translated_string test_translation_table[] = {
             u8"overloaded function '{0}' declared here",
             u8"fun\u00e7\u00e3o overloaded '{0}' declarada aqui",
             u8"overloaded function '{0}' declared here",
+        },
+    },
+    {
+        "parentheses are required around 'infer {1}'"_translatable,
+        {
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
         },
     },
     {

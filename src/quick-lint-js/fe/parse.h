@@ -859,6 +859,11 @@ class parser {
 
   bool in_typescript_only_construct_ = false;
 
+  // When parsing TypeScript 'infer', store visit_variable_declaration calls
+  // here. If typescript_infer_declaration_buffer_ is null, then we are in a
+  // context where 'infer' is disallowed.
+  buffering_visitor *typescript_infer_declaration_buffer_ = nullptr;
+
   // Cache of whether 'await' is an identifier or an operator. This cache is
   // used to avoid quadratic run-time in code like the following:
   //

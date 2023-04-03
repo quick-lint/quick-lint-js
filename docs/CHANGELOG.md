@@ -14,12 +14,22 @@ Semantic Versioning.
   after control statement"). (Implemented by [Yunus][].)
 * `return x,` now reports [E0026][] ("missing operand for operator").
   (Implemented by [Tom Binford][].)
+* TypeScript support (still experimental):
+    * The `satisfies` operator is now recognized.
+    * The `infer` operator is now recognized.
+    * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
+      '>' and '=' here").
+* FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico
+  Sonack][].)
 
 ### Fixed
 
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)
+* FreeBSD: The quick-lint-js-licenses.txt file is now populated correctly.
+* TypeScript support (still experimental):
+    * `let x: C<T>=y;` no longer falsely reports an error.
 
 ### Changed
 

@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 438;
-constexpr std::size_t translation_table_string_table_size = 76084;
+constexpr std::uint16_t translation_table_mapping_table_size = 441;
+constexpr std::size_t translation_table_string_table_size = 76255;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -77,6 +77,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'function' is here"sv,
           "'if' statement"sv,
           "'in' disallowed in C-style for loop initializer"sv,
+          "'infer' is only allowed between 'extends' and '?' in conditional types"sv,
           "'private' is not allowed in JavaScript"sv,
           "'protected' is not allowed in JavaScript"sv,
           "'public' is not allowed in JavaScript"sv,
@@ -129,6 +130,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript optional parameter with type annotation requires parentheses"sv,
           "TypeScript optional parameters are not allowed in JavaScript"sv,
           "TypeScript optional properties are not allowed in JavaScript code"sv,
+          "TypeScript requires whitespace between '>' and '=' here"sv,
           "TypeScript type annotation requires parentheses"sv,
           "TypeScript type annotations are not allowed in JavaScript code"sv,
           "TypeScript type exports are not allowed in JavaScript"sv,
@@ -378,6 +380,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "optional tuple elements cannot come after spread elements"sv,
           "overloaded function '{0}' declared here"sv,
+          "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,
           "private properties are not allowed in object literals"sv,
           "redeclaration of global variable"sv,
