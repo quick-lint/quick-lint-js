@@ -18,9 +18,6 @@ namespace quick_lint_js {
 void delete_directory_recursive(const std::string& path);
 
 // Crashes on failure.
-std::string get_current_working_directory();
-
-// Crashes on failure.
 void set_current_working_directory(const char* path);
 
 // Excludes '.' and '..'.
@@ -45,7 +42,14 @@ class filesystem_test {
 
   void set_current_working_directory(const char* path) {
     if (!this->old_working_directory_.has_value()) {
-      this->old_working_directory_ = get_current_working_directory();
+      result<std::string, platform_file_io_error> cwd =
+          get_current_working_directory();
+      if (!cwd.ok()) {
+        std::fprintf(stderr, "error: failed to get current directory: %s\n",
+                     cwd.error_to_string().c_str());
+        std::terminate();
+      }
+      this->old_working_directory_ = *cwd;
     }
     quick_lint_js::set_current_working_directory(path);
   }

@@ -254,6 +254,64 @@ retry:
   return directory;
 }
 QLJS_WARNING_POP
+
+result<std::string, platform_file_io_error> get_current_working_directory() {
+  std::string cwd;
+  result<void, platform_file_io_error> r = get_current_working_directory(cwd);
+  if (!r.ok()) {
+    return r.propagate();
+  }
+  return std::move(cwd);
+}
+
+#if QLJS_HAVE_WINDOWS_H
+result<void, platform_file_io_error> get_current_working_directory(
+    std::string &out) {
+  std::wstring cwd;
+  result<void, platform_file_io_error> r = get_current_working_directory(cwd);
+  if (!r.ok()) {
+    return r.propagate();
+  }
+  std::optional<std::string> result = wstring_to_mbstring(cwd);
+  if (!result.has_value()) {
+    QLJS_UNIMPLEMENTED();
+  }
+  out = std::move(*result);
+  return {};
+}
+
+result<void, platform_file_io_error> get_current_working_directory(
+    std::wstring &out) {
+  // size includes the null terminator.
+  DWORD size = ::GetCurrentDirectoryW(0, nullptr);
+  if (size == 0) {
+    QLJS_UNIMPLEMENTED();
+  }
+  out.resize(size - 1);
+  // length excludes the null terminator.
+  DWORD length = ::GetCurrentDirectoryW(size, out.data());
+  if (length == 0) {
+    QLJS_UNIMPLEMENTED();
+  }
+  if (length != size - 1) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  return {};
+}
+#else
+result<void, platform_file_io_error> get_current_working_directory(
+    std::string &out) {
+  // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
+  // buffer?
+  out.resize(PATH_MAX);
+  if (!::getcwd(out.data(), out.size() + 1)) {
+    return failed_result(posix_file_io_error{errno});
+  }
+  out.resize(std::strlen(out.c_str()));
+  return {};
+}
+#endif
 }
 
 #endif

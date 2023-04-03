@@ -36,6 +36,14 @@ void create_directory_or_exit(const std::string& path);
 // format is a std::strftime format string.
 result<std::string, platform_file_io_error> make_timestamped_directory(
     std::string_view parent_directory, const char* format);
+
+result<std::string, platform_file_io_error> get_current_working_directory();
+result<void, platform_file_io_error> get_current_working_directory(
+    std::string& out);
+#if defined(_WIN32)
+result<void, platform_file_io_error> get_current_working_directory(
+    std::wstring& out);
+#endif
 }
 
 #endif

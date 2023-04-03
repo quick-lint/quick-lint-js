@@ -16,6 +16,7 @@
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file-path.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -309,6 +310,16 @@ class path_canonicalizer_base {
     symlink,
   };
 
+  quick_lint_js::result<void, platform_file_io_error> load_cwd() {
+    result<void, platform_file_io_error> r =
+        get_current_working_directory(this->canonical_);
+    if (!r.ok()) {
+      return r.propagate();
+    }
+    this->need_root_slash_ = false;
+    return {};
+  }
+
  private:
   result<void, canonicalizing_path_io_error> process_next_component() {
     path_string_view component = parse_next_component();
@@ -476,19 +487,6 @@ class posix_path_canonicalizer
     return {};
   }
 
-  quick_lint_js::result<void, posix_file_io_error> load_cwd() {
-    // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
-    // buffer?
-    canonical_.resize(PATH_MAX);
-    if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      return failed_result(posix_file_io_error{errno});
-    }
-    canonical_.resize(std::strlen(canonical_.c_str()));
-
-    need_root_slash_ = false;
-    return {};
-  }
-
   void parent() {
     if (!canonical_.empty()) {
       canonical_ = parent_path(std::move(canonical_));
@@ -635,26 +633,6 @@ class windows_path_canonicalizer
       break;
     }
 
-    return {};
-  }
-
-  quick_lint_js::result<void, windows_file_io_error> load_cwd() {
-    // size includes the null terminator.
-    DWORD size = ::GetCurrentDirectoryW(0, nullptr);
-    if (size == 0) {
-      QLJS_UNIMPLEMENTED();
-    }
-    canonical_.resize(size - 1);
-    // length excludes the null terminator.
-    DWORD length = ::GetCurrentDirectoryW(size, canonical_.data());
-    if (length == 0) {
-      QLJS_UNIMPLEMENTED();
-    }
-    if (length != size - 1) {
-      QLJS_UNIMPLEMENTED();
-    }
-
-    need_root_slash_ = false;
     return {};
   }
 

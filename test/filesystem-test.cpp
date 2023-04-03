@@ -117,21 +117,6 @@ void delete_directory_recursive(const std::string &path) {
 }
 #endif
 
-std::string get_current_working_directory() {
-#if QLJS_HAVE_STD_FILESYSTEM
-  return std::filesystem::current_path().string();
-#else
-  std::string cwd;
-  cwd.resize(PATH_MAX);
-  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
-    std::terminate();
-  }
-  return cwd;
-#endif
-}
-
 void set_current_working_directory(const char *path) {
 #if QLJS_HAVE_STD_FILESYSTEM
   std::filesystem::current_path(path);
