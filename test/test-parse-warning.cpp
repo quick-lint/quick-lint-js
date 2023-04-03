@@ -672,8 +672,36 @@ TEST_F(test_parse_warning,
         }));
   }
 }
+
+  TEST_F(test_parse_warning, warn_on_invalid_do_while_loop) {
+  {
+    padded_string code(u8"do {} for (;;);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope",
+                                      "visit_enter_for_statement",
+                                      "visit_exit_for_statement"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_expected_token, where, offsets_matcher(&code, 8, 11))));
+  }
+  {
+    padded_string code(u8"do {} while (true);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope",
+                                      "visit_enter_while_statement",
+                                      "visit_exit_while_statement"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
+
 }
+
+
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
