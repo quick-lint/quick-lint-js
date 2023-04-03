@@ -7,11 +7,7 @@ include(QuickLintJSCompiler)
 include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
-set(NEED_THREADS TRUE)
-
-if (NEED_THREADS)
-  find_package(Threads REQUIRED)
-endif ()
+find_package(Threads REQUIRED)
 
 if (QUICK_LINT_JS_ENABLE_CLI)
   set(EXTRA_SOURCES)
@@ -291,12 +287,11 @@ target_link_libraries(
   boost
   quick-lint-js-tool-lib
   simdjson
+  PRIVATE
+  Threads::Threads
 )
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC pathcch)
-endif ()
-if (NEED_THREADS)
-  target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
 endif ()
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
   target_link_libraries(quick-lint-js-lib PUBLIC mongoose)
