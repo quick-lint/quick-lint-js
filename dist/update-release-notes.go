@@ -78,7 +78,6 @@ var redColor = "\033[31m"
 var resetColor = "\033[0m"
 
 func main() {
-	start := time.Now()
 	help, authTokenPtr, repoPtr, tagsRepoPtr := parseFlags()
 	displayHelp(help)
 	pathToChangeLog := getChangeLogPath()
@@ -103,8 +102,6 @@ func main() {
 	fmt.Println("Created missing releases.")
 	updateReleasesIfChanged(releaseMetaData, *authTokenPtr, repoPath)
 	fmt.Println("Updated releases.")
-	elapsed := time.Since(start)
-	fmt.Println("Program finished in: ", elapsed)
 }
 
 func parseFlags() (*bool, *string, *string, *string) {
@@ -418,13 +415,12 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	if len(resp.Header["X-Oauth-Scopes"]) > 0 {
 		for _, permission := range resp.Header["X-Oauth-Scopes"] {
 			// public_repo is the least permission; use repo for a private repo.
-			if permission == "public_repo" || permission == "repo" {
-			} else {
-				fmt.Println(redColor + "WARNING: token doesn't include X-Oauth-Scope: public_repo or repo access. " + resetColor)
+			if permission != "public_repo" {
+				fmt.Println(redColor + "WARNING: token doesn't include X-Oauth-Scope: public_repo." + resetColor)
 			}
 		}
 	} else {
-		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
+		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions at all for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
 	}
 	channel <- true
 }
