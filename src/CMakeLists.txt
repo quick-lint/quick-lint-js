@@ -367,23 +367,6 @@ quick_lint_js_add_library(
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 
-# HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
-# strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
-# invoking undefined behaviour though with our string table offset pointer
-# arithmetic? Unsure.) The bug appears to be fixed in GCC 10.1.0.
-#
-# Possibly related: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92765
-#
-# To work around the bug, apply -fno-builtin to the target. If we apply it only
-# to the source file, the flag seems to be ignored when using precompiled
-# headers.
-if (
-  CMAKE_CXX_COMPILER_ID STREQUAL GNU
-  AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.1.0
-)
-  target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
-endif ()
-
 if (QUICK_LINT_JS_ENABLE_CLI)
   quick_lint_js_collect_copyright(
     quick-lint-js-licenses
