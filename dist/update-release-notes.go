@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew "strager" Glazar
+// Copyright (C) 2023  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 package main
@@ -430,7 +430,7 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew "strager" Glazar
+// Copyright (C) 2023  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //
