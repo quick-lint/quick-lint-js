@@ -73,6 +73,7 @@ type releaseRequest struct {
 }
 
 // Syntax highlighting for CLI warning messages.
+const orangeColor = "\033[33m"
 const redColor = "\033[31m"
 const resetColor = "\033[0m"
 
@@ -110,7 +111,7 @@ func parseFlags() (*bool, *string, *string, *string) {
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "GitHub repo to get release tags from.")
 	flag.Parse()
 	if *authTokenPtr == "" {
-		fmt.Println(redColor + "WARNING: No GitHub access token given for flag -AuthToken. Refer to --help" + resetColor)
+		log.Fatalln(redColor + "Error: No GitHub access token given for flag -AuthToken. Refer to --help" + resetColor)
 	}
 	return help, authTokenPtr, repoPtr, tagsRepoPtr
 }
@@ -238,7 +239,7 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 			releaseMetaData.ReleaseVersionTagMap[release.number] = release.number
 			releaseMetaData.TagVersionReleaseBodyMap[release.number] = releaseTagValidationInput.releaseNotes[i]
 		} else {
-			fmt.Println(redColor+"WARNING: release", release, "missing tag"+resetColor)
+			fmt.Println(orangeColor+"WARNING: release", release, "missing tag"+resetColor)
 		}
 	}
 
@@ -252,7 +253,7 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		if tagHasVersionNumber {
 			releaseMetaData.TagReleaseVersionMap[tag.Name] = tag.Name
 		} else {
-			fmt.Println(redColor+"WARNING: tag", tag.Name, "missing changelog version"+resetColor)
+			fmt.Println(orangeColor+"WARNING: tag", tag.Name, "missing changelog version"+resetColor)
 		}
 	}
 	return releaseMetaData
@@ -322,7 +323,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 
 		titleAndVersionNumber := titleAndVersionRE.FindStringSubmatch(scanner.Text())
 		if unreleased != nil {
-			fmt.Println(redColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
+			fmt.Println(orangeColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
 		}
 		if titleAndVersionNumber != nil {
 			versionIndex := titleAndVersionRE.SubexpIndex("version")
