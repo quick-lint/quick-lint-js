@@ -923,6 +923,7 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   case vk::_const:
   case vk::_function:
   case vk::_let:
+  case vk::_namespace:
   case vk::_var:
     QLJS_ASSERT(kind != vk::_arrow_parameter);
     QLJS_ASSERT(kind != vk::_catch);
@@ -951,9 +952,6 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_infer_type:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
-  case vk::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_type_alias:
@@ -995,7 +993,9 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
       (other_kind == vk::_import && kind == vk::_interface) ||
       (other_kind == vk::_interface && !is_type(kind)) ||
       (!is_type(other_kind) && kind == vk::_interface) ||
-      (other_kind == vk::_enum && kind == vk::_enum);
+      (other_kind == vk::_enum && kind == vk::_enum) ||
+      (other_kind == vk::_namespace && kind == vk::_enum) ||
+      (other_kind == vk::_enum && kind == vk::_namespace);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(
