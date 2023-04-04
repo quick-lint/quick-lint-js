@@ -21,6 +21,8 @@ Semantic Versioning.
       recognized.
     * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
       '>' and '=' here").
+    * `extends` in `interface` now allows generic arguments, such as in
+      `interface I extends T<U> {}`.
 * FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico
   Sonack][].)
 

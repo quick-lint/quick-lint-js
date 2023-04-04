@@ -149,6 +149,20 @@ TEST_F(test_parse_typescript_interface, extends_multiple_things) {
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
+TEST_F(test_parse_typescript_interface, extends_generic) {
+  test_parser p(u8"interface I extends A<B> {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_variable_type_use",      // A
+                            "visit_variable_type_use",      // B
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
+}
+
 TEST_F(test_parse_typescript_interface, unclosed_interface_statement) {
   {
     test_parser p(u8"interface I { "_sv, typescript_options, capture_diags);

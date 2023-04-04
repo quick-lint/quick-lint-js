@@ -1335,6 +1335,11 @@ void parser::parse_and_visit_typescript_interface_reference(
     // extends MyInterface
     v.visit_variable_type_use(ident);
   }
+
+  if (this->peek().type == token_type::less) {
+    // extends SomeType<Arg>
+    this->parse_and_visit_typescript_generic_arguments(v);
+  }
 }
 
 void parser::parse_and_visit_typescript_interface_body(
