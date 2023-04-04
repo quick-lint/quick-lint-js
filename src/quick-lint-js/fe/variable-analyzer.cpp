@@ -924,6 +924,7 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   case vk::_function:
   case vk::_let:
   case vk::_namespace:
+  case vk::_type_alias:
   case vk::_var:
     QLJS_ASSERT(kind != vk::_arrow_parameter);
     QLJS_ASSERT(kind != vk::_catch);
@@ -952,9 +953,6 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_infer_type:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
-  case vk::_type_alias:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   }
