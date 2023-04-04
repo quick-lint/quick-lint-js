@@ -355,7 +355,8 @@ const translation_table translation_data = {
         {0, 0, 0, 47, 0, 35},                //
         {52, 31, 25, 61, 21, 54},            //
         {0, 0, 0, 89, 0, 73},                //
-        {63, 34, 103, 64, 73, 50},           //
+        {0, 0, 0, 0, 0, 50},                 //
+        {63, 34, 103, 64, 73, 73},           //
         {69, 23, 79, 41, 51, 48},            //
         {40, 26, 61, 39, 56, 47},            //
         {27, 36, 29, 20, 30, 28},            //
@@ -2081,6 +2082,7 @@ const translation_table translation_data = {
         u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"newline is not allowed between field name and '!'\0"
+        u8"nullish coalescing operator does nothing when left operand is never null\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"
         u8"object literal started here\0"

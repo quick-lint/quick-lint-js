@@ -3795,6 +3795,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "nullish coalescing operator does nothing when left operand is never null"_translatable,
+        {
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+        },
+    },
+    {
         "number literal contains consecutive underscores"_translatable,
         {
             u8"number literal contains consecutive underscores",

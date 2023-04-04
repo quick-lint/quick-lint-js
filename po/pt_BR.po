@@ -1890,6 +1890,11 @@ msgstr ""
 msgid "':' should be 'extends' instead"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid ""
+"nullish coalescing operator does nothing when left operand is never null"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

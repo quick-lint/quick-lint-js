@@ -69,6 +69,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
         static_cast<expression::binary_operator*>(ast));
     error_on_pointless_string_compare(
         static_cast<expression::binary_operator*>(ast));
+    this->error_on_pointless_nullish_coalescing_operator(
+        static_cast<expression::binary_operator*>(ast));
     break;
   case expression_kind::trailing_comma: {
     auto& trailing_comma_ast = static_cast<expression::trailing_comma&>(*ast);
