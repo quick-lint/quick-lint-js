@@ -413,19 +413,19 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	defer resp.Body.Close()
 
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
-	publicRepoScope := false
+	repoPermission := false
 	if len(resp.Header["X-Oauth-Scopes"]) > 0 {
 		for _, permission := range resp.Header["X-Oauth-Scopes"] {
 			// public_repo is the least permission; use repo for a private repo.
-			if permission == "public_repo" {
-				publicRepoScope = true
+			if permission == "public_repo" || permission == "repo" {
+				repoPermission = true
 			}
 		}
 	} else {
-		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions at all for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
+		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions at all for X-Oauth-Scopes (select `public_repo` or `repo` scopes)" + resetColor)
 	}
-	if !publicRepoScope {
-		fmt.Println(redColor + "WARNING: token doesn't include X-Oauth-Scope: public_repo." + resetColor)
+	if !repoPermission {
+		log.Fatalf("Error: GitHub access Token doesn't include X-Oauth-Scope: `public_repo` or `repo`.")
 	}
 	channel <- true
 }
