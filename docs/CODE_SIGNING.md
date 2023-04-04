@@ -71,4 +71,4 @@ from a certificate authority (e.g. [SSL.com][]):
 [SSL.com]: https://www.ssl.com/
 [macos-create-ca]: https://www.simplified.guide/macos/keychain-ca-code-signing-create
 [macos-create-cert]: https://www.simplified.guide/macos/keychain-cert-code-signing-create
-[apple-csreq]: apple/README.md
+[apple-csreq]: ../dist/apple/README.md
