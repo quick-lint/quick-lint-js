@@ -134,8 +134,6 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 		makeLatestRelease := "false"
 		if releaseVersion == releaseMetaData.LatestReleaseVersion {
 			makeLatestRelease = "true"
-		} else {
-			makeLatestRelease = "false"
 		}
 		repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 		requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
