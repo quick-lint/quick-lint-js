@@ -118,18 +118,33 @@ TEST_F(test_parse_typescript_interface, extends) {
 }
 
 TEST_F(test_parse_typescript_interface, extends_interface_from_namespace) {
-  test_parser p(u8"interface I extends ns.A {}"_sv, typescript_options,
-                capture_diags);
-  p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_variable_namespace_use",  // ns
-                            "visit_exit_interface_scope",    // I
-                            "visit_end_of_module",
-                        }));
-  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
-  EXPECT_THAT(p.errors, IsEmpty());
+  {
+    test_parser p(u8"interface I extends ns.A {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // I
+                              "visit_enter_interface_scope",   // I
+                              "visit_variable_namespace_use",  // ns
+                              "visit_exit_interface_scope",    // I
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"interface I extends ns.subns.A {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // I
+                              "visit_enter_interface_scope",   // I
+                              "visit_variable_namespace_use",  // ns
+                              "visit_exit_interface_scope",    // I
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"_sv}));
+  }
 }
 
 TEST_F(test_parse_typescript_interface, extends_multiple_things) {

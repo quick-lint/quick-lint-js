@@ -1327,9 +1327,12 @@ void parser::parse_and_visit_typescript_interface_reference(
 
   if (this->peek().type == token_type::dot) {
     // extends mynamespace.MyInterface
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    this->skip();
+    // extends ns.subns.I
+    while (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+    }
     v.visit_variable_namespace_use(ident);
   } else {
     // extends MyInterface

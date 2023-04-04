@@ -23,6 +23,8 @@ Semantic Versioning.
       '>' and '=' here").
     * `extends` in `interface` now allows generic arguments, such as in
       `interface I extends T<U> {}`.
+    * `extends` in `interface` now allows nested namespaces, such as in
+      `interface I extends ns1.ns2.ns3.I {}`.
 * FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico
   Sonack][].)
 
