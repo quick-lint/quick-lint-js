@@ -358,7 +358,6 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 	}
 	defer resp.Body.Close()
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
-
 	repoPermission := false
 	if len(resp.Header["X-Oauth-Scopes"]) > 0 {
 		scopes := strings.Split(resp.Header.Get("X-Oauth-Scopes"), ", ")
