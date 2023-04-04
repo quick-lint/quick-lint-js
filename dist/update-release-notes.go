@@ -109,7 +109,7 @@ func parseFlags() (*bool, *string, *string, *string) {
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "GitHub repo to get release tags from.")
 	flag.Parse()
 	if *authTokenPtr == "" {
-		log.Fatalln(redColor + "Error: No GitHub access token given for flag -AuthToken. Refer to --help" + resetColor)
+		fmt.Println(redColor + "Error: No GitHub access token given for flag -AuthToken. Refer to --help" + resetColor)
 	}
 	return help, authTokenPtr, repoPtr, tagsRepoPtr
 }
