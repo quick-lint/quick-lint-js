@@ -13,6 +13,7 @@
 #include <quick-lint-js/debug/find-debug-server.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/integer.h>
@@ -241,30 +242,6 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
 #endif
 
 #if defined(__linux__)
-template <class Callback, class ErrorCallback>
-void enumerate_directory(const char* path, Callback&& callback,
-                         ErrorCallback&& read_error_callback) {
-  ::DIR* dir = ::opendir(path);
-  if (dir == nullptr) {
-    QLJS_DEBUG_LOG("%s: ignoring failure to open directory %s: %s\n", __func__,
-                   path, std::strerror(errno));
-    return;
-  }
-  for (;;) {
-    errno = 0;
-    ::dirent* entry = ::readdir(dir);
-    if (!entry) {
-      if (errno != 0) {
-        read_error_callback(errno);
-      }
-      break;
-    }
-
-    callback(entry);
-  }
-  ::closedir(dir);
-}
-
 template <class Callback>
 void enumerate_all_process_thread_names(Callback&& callback) {
   static constexpr char func[] = "enumerate_all_process_thread_names";
@@ -272,71 +249,71 @@ void enumerate_all_process_thread_names(Callback&& callback) {
   std::string path = "/proc/";
   std::size_t path_size_without_process_id = path.size();
 
-  enumerate_directory(
-      path.c_str(),
-      [&](::dirent* proc_entry) -> void {
-        if (!isdigit(proc_entry->d_name[0])) {
+  auto visit_proc_entry = [&](const char* proc_entry_name) -> void {
+    if (!isdigit(proc_entry_name[0])) {
+      return;
+    }
+    path.resize(path_size_without_process_id);
+    path.append(proc_entry_name);
+    path.append("/task/");
+    std::size_t path_size_without_task_id = path.size();
+
+    auto visit_task_entry = [&](const char* task_entry_name) -> void {
+      if (!isdigit(task_entry_name[0])) {
+        return;
+      }
+
+      path.resize(path_size_without_task_id);
+      path.append(task_entry_name);
+      path.append("/comm");
+
+      posix_fd_file thread_name_file(::open(path.c_str(), O_RDONLY));
+      if (!thread_name_file.valid()) {
+        switch (errno) {
+        case ENOENT:
+          // The task probably died. Ignore.
+          return;
+
+        default:
+          QLJS_DEBUG_LOG("%s: ignoring failure to get open %s: %s\n", func,
+                         path.c_str(), std::strerror(errno));
           return;
         }
-        path.resize(path_size_without_process_id);
-        path.append(proc_entry->d_name);
-        path.append("/task/");
-        std::size_t path_size_without_task_id = path.size();
+      }
+      char thread_name_buffer[max_thread_name_length + 1];
+      file_read_result read_result =
+          thread_name_file.read(thread_name_buffer, sizeof(thread_name_buffer));
+      if (!read_result.ok() || read_result.at_end_of_file()) {
+        QLJS_DEBUG_LOG("%s: ignoring failure to get read %s: %s\n", func,
+                       path.c_str(), std::strerror(errno));
+        return;
+      }
+      std::string_view thread_name(
+          thread_name_buffer,
+          narrow_cast<std::size_t>(read_result.bytes_read()));
+      if (ends_with(thread_name, '\n')) {
+        thread_name.remove_suffix(1);
+      }
+      thread_name_file.close();
 
-        enumerate_directory(
-            path.c_str(),
-            [&](::dirent* task_entry) -> void {
-              if (!isdigit(task_entry->d_name[0])) {
-                return;
-              }
-
-              path.resize(path_size_without_task_id);
-              path.append(task_entry->d_name);
-              path.append("/comm");
-
-              posix_fd_file thread_name_file(::open(path.c_str(), O_RDONLY));
-              if (!thread_name_file.valid()) {
-                switch (errno) {
-                case ENOENT:
-                  // The task probably died. Ignore.
-                  return;
-
-                default:
-                  QLJS_DEBUG_LOG("%s: ignoring failure to get open %s: %s\n",
-                                 func, path.c_str(), std::strerror(errno));
-                  return;
-                }
-              }
-              char thread_name_buffer[max_thread_name_length + 1];
-              file_read_result read_result = thread_name_file.read(
-                  thread_name_buffer, sizeof(thread_name_buffer));
-              if (!read_result.ok() || read_result.at_end_of_file()) {
-                QLJS_DEBUG_LOG("%s: ignoring failure to get read %s: %s\n",
-                               func, path.c_str(), std::strerror(errno));
-                return;
-              }
-              std::string_view thread_name(
-                  thread_name_buffer,
-                  narrow_cast<std::size_t>(read_result.bytes_read()));
-              if (ends_with(thread_name, '\n')) {
-                thread_name.remove_suffix(1);
-              }
-              thread_name_file.close();
-
-              callback(
-                  /*process_id_string=*/std::string_view(proc_entry->d_name),
-                  /*thread_name=*/thread_name);
-            },
-            [&](int error) -> void {
-              path.resize(path_size_without_task_id);
-              QLJS_DEBUG_LOG("%s: ignoring failure to read %s: %s\n", func,
-                             path.c_str(), std::strerror(error));
-            });
-      },
-      [&](int error) -> void {
-        QLJS_DEBUG_LOG("%s: ignoring failure to read /proc: %s\n", func,
-                       std::strerror(error));
-      });
+      callback(
+          /*process_id_string=*/std::string_view(proc_entry_name),
+          /*thread_name=*/thread_name);
+    };
+    result<void, platform_file_io_error> list_task =
+        list_directory(path.c_str(), visit_task_entry);
+    if (!list_task.ok()) {
+      path.resize(path_size_without_task_id);
+      QLJS_DEBUG_LOG("%s: ignoring failure to read %s: %s\n", func,
+                     path.c_str(), list_task.error_to_string().c_str());
+    }
+  };
+  result<void, platform_file_io_error> list_proc =
+      list_directory(path.c_str(), visit_proc_entry);
+  if (!list_proc.ok()) {
+    QLJS_DEBUG_LOG("%s: ignoring failure to read /proc: %s\n", func,
+                   list_proc.error_to_string().c_str());
+  }
 }
 #endif
 

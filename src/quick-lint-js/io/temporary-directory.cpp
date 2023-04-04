@@ -269,6 +269,11 @@ result<void, platform_file_io_error> list_directory(
   return {};
 #elif QLJS_HAVE_DIRENT_H
   ::DIR *d = ::opendir(directory);
+  if (d == nullptr) {
+    return failed_result(posix_file_io_error{
+        .error = errno,
+    });
+  }
   for (;;) {
     errno = 0;
     ::dirent *entry = ::readdir(d);
