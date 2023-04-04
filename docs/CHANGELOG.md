@@ -43,6 +43,10 @@ Semantic Versioning.
   `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` for the build machine then with
   `QUICK_LINT_JS_USE_BUILD_TOOLS` for the target machine. See the
   [cross-compiling documentation][cross-compiling-quick-lint-js] for details.
+* Code signing certificate has been refreshed. The old certificate expires on
+  April 18, 2023 (PDT) and the new certificate expires on April 17, 2024 (PDT).
+  The public key is the same between the two certificates:
+  `7ea531a42cd3e7161b6951f93d83449546e90722` (SHA1).
 
 ## 2.12.0 (2023-03-08)
 
