@@ -43,7 +43,6 @@ type releaseMetaData struct {
 	TagVersionReleaseBodyMap map[string]string
 	ReleaseVersionTagMap     map[string]string
 	ReleaseVersionTitleMap   map[string]string
-	TagReleaseVersionMap     map[string]string
 	LatestReleaseVersion     string
 }
 
@@ -183,7 +182,6 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		TagVersionReleaseBodyMap: make(map[string]string),
 		ReleaseVersionTagMap:     make(map[string]string),
 		ReleaseVersionTitleMap:   make(map[string]string),
-		TagReleaseVersionMap:     make(map[string]string),
 		LatestReleaseVersion:     "",
 	}
 	for i, release := range releaseTagValidationInput.changeLog.versions {
@@ -212,9 +210,7 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 				tagHasVersionNumber = true
 			}
 		}
-		if tagHasVersionNumber {
-			releaseMetaData.TagReleaseVersionMap[tag.Name] = tag.Name
-		} else {
+		if !tagHasVersionNumber {
 			fmt.Println(orangeColor+"WARNING: tag", tag.Name, "missing changelog version"+resetColor)
 		}
 	}
