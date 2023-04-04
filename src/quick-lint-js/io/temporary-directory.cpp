@@ -23,6 +23,10 @@
 #include <string>
 #include <string_view>
 
+#if QLJS_HAVE_DIRENT_H
+#include <dirent.h>
+#endif
+
 #if QLJS_HAVE_FTS_H
 #include <fts.h>
 #endif
@@ -254,6 +258,42 @@ retry:
   return directory;
 }
 QLJS_WARNING_POP
+
+result<void, platform_file_io_error> list_directory(
+    const char *directory, function_ref<void(const char *)> visit_file) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  // TODO(strager): Propagate errors.
+  for (auto &entry : std::filesystem::directory_iterator(directory)) {
+    visit_file(entry.path().filename().string().c_str());
+  }
+  return {};
+#elif QLJS_HAVE_DIRENT_H
+  ::DIR *d = ::opendir(directory);
+  for (;;) {
+    errno = 0;
+    ::dirent *entry = ::readdir(d);
+    if (!entry) {
+      if (errno != 0) {
+        return failed_result(posix_file_io_error{
+            .error = errno,
+        });
+      }
+      break;
+    }
+    bool is_dot_or_dot_dot =
+        entry->d_name[0] == '.' &&
+        (entry->d_name[1] == '\0' ||
+         (entry->d_name[1] == '.' && entry->d_name[2] == '\0'));
+    if (!is_dot_or_dot_dot) {
+      visit_file(entry->d_name);
+    }
+  }
+  ::closedir(d);
+  return {};
+#else
+#error "Unsupported platform"
+#endif
+}
 
 result<std::string, platform_file_io_error> get_current_working_directory() {
   std::string cwd;

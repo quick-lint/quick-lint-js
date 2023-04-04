@@ -10,6 +10,7 @@
 
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/port/function-ref.h>
 #include <quick-lint-js/port/have.h>
 #include <string>
 #include <string_view>
@@ -36,6 +37,14 @@ void create_directory_or_exit(const std::string& path);
 // format is a std::strftime format string.
 result<std::string, platform_file_io_error> make_timestamped_directory(
     std::string_view parent_directory, const char* format);
+
+// Call visit_file for each child of the given directory.
+//
+// '.' and '..' are excluded.
+//
+// visit_file is called with the name (not full path) of the child.
+result<void, platform_file_io_error> list_directory(
+    const char* directory, function_ref<void(const char*)> visit_file);
 
 result<std::string, platform_file_io_error> get_current_working_directory();
 result<void, platform_file_io_error> get_current_working_directory(
