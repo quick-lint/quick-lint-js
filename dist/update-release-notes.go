@@ -153,28 +153,26 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 
 	spawnedThread := false
 	for releaseVersion, tagVersion := range releaseMetaData.ReleaseVersionTagMap {
-		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
-			makeLatestRelease := "false"
-			if releaseVersion == releaseMetaData.LatestReleaseVersion {
-				makeLatestRelease = "true"
-			} else {
-				makeLatestRelease = "false"
-			}
-			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
-			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
-			postRequest := releaseRequest{
-				authToken:         authToken,
-				repoPath:          repoPath,
-				requestType:       "POST",
-				tagForRelease:     tagVersion,
-				versionTitle:      releaseMetaData.ReleaseVersionTitleMap[releaseVersion],
-				releaseNote:       releaseMetaData.TagVersionReleaseBodyMap[tagVersion],
-				makeLatestRelease: makeLatestRelease,
-			}
-			createReleaseWaitGroup.Add(1)
-			go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
-			spawnedThread = true
+		makeLatestRelease := "false"
+		if releaseVersion == releaseMetaData.LatestReleaseVersion {
+			makeLatestRelease = "true"
+		} else {
+			makeLatestRelease = "false"
 		}
+		repoOwner, repoName := splitAndEncodeURLPath(repoPath)
+		requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
+		postRequest := releaseRequest{
+			authToken:         authToken,
+			repoPath:          repoPath,
+			requestType:       "POST",
+			tagForRelease:     tagVersion,
+			versionTitle:      releaseMetaData.ReleaseVersionTitleMap[releaseVersion],
+			releaseNote:       releaseMetaData.TagVersionReleaseBodyMap[tagVersion],
+			makeLatestRelease: makeLatestRelease,
+		}
+		createReleaseWaitGroup.Add(1)
+		go updateOrCreateGitHubRelease(postRequest, requestURL, createReleaseChannel, createReleaseWaitGroup)
+		spawnedThread = true
 	}
 	if spawnedThread {
 		handleChannels(createReleaseChannel, createReleaseWaitGroup)
@@ -254,7 +252,7 @@ func validateTagsHaveReleases(releaseTagValidationInput releaseTagValidationInpu
 		if tagHasVersionNumber {
 			releaseMetaData.TagReleaseVersionMap[tag.Name] = tag.Name
 		} else {
-			fmt.Println(redColor+"WARNING: tag", tag.Name, "missing changelog entry"+resetColor)
+			fmt.Println(redColor+"WARNING: tag", tag.Name, "missing changelog version"+resetColor)
 		}
 	}
 	return releaseMetaData
