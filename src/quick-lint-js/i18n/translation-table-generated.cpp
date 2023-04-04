@@ -61,7 +61,8 @@ const translation_table translation_data = {
         {13, 16, 0, 22, 0, 19},              //
         {13, 24, 37, 17, 31, 15},            //
         {0, 0, 0, 0, 0, 48},                 //
-        {0, 0, 0, 53, 0, 71},                //
+        {0, 0, 0, 0, 0, 71},                 //
+        {0, 0, 0, 53, 0, 48},                //
         {0, 0, 0, 42, 0, 39},                //
         {0, 0, 0, 44, 0, 41},                //
         {0, 0, 0, 41, 0, 38},                //
@@ -1781,6 +1782,7 @@ const translation_table translation_data = {
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
         u8"'infer' is only allowed between 'extends' and '?' in conditional types\0"
+        u8"'out in' is not allowed; write 'in out' instead\0"
         u8"'private' is not allowed in JavaScript\0"
         u8"'protected' is not allowed in JavaScript\0"
         u8"'public' is not allowed in JavaScript\0"

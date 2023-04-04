@@ -289,6 +289,58 @@ TEST_F(test_parse_typescript_generic, type_parameter_default_with_extends) {
   }
 }
 
+TEST_F(test_parse_typescript_generic, variance_specifiers) {
+  {
+    test_parser p(u8"<in T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+
+  {
+    test_parser p(u8"<out T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+
+  {
+    test_parser p(u8"<in out T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_generic, variance_specifiers_in_wrong_order) {
+  {
+    test_parser p(u8"<out in T>"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_typescript_variance_keywords_in_wrong_order,
+                in_keyword, strlen(u8"<out "), u8"in"_sv,  //
+                out_keyword, strlen(u8"<"), u8"out"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_generic,
        parameters_can_be_named_contextual_keywords) {
   for (string8 name :
@@ -302,14 +354,50 @@ TEST_F(test_parse_typescript_generic,
                 u8"static",
                 u8"yield",
             })) {
-    test_parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_typescript_generic_parameters();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",  // (name)
-                          }));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(name)}));
+    {
+      test_parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<in "_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<out "_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<in out "_sv, name, u8">"_sv),
+                    typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
   }
 }
 

@@ -1255,6 +1255,34 @@ void parser::parse_and_visit_typescript_generic_parameters(
   }
 
 next_parameter:
+  std::optional<identifier> in_keyword;
+  std::optional<identifier> out_keyword;
+
+  if (this->peek().type == token_type::kw_in) {
+    // <in T>
+    // <in out T>
+    in_keyword = this->peek().identifier_name();
+    this->skip();
+  }
+
+  if (this->peek().type == token_type::kw_out) {
+    // <out T>
+    // <out>
+    out_keyword = this->peek().identifier_name();
+    this->skip();
+
+    if (!in_keyword.has_value() && this->peek().type == token_type::kw_in) {
+      // <out in T>  // Invalid.
+      in_keyword = this->peek().identifier_name();
+      this->diag_reporter_->report(
+          diag_typescript_variance_keywords_in_wrong_order{
+              .in_keyword = in_keyword->span(),
+              .out_keyword = out_keyword->span(),
+          });
+      this->skip();
+    }
+  }
+
   std::optional<identifier> parameter_name;
   switch (this->peek().type) {
   case token_type::identifier:
@@ -1289,8 +1317,18 @@ next_parameter:
     this->skip();
     break;
 
-  default:
+  case token_type::kw_in:
     QLJS_PARSER_UNIMPLEMENTED();
+    break;
+
+  default:
+    if (out_keyword.has_value()) {
+      // <out>
+      parameter_name = out_keyword;
+      out_keyword = std::nullopt;
+    } else {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
     break;
   }
 

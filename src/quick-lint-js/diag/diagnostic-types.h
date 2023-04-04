@@ -2432,6 +2432,17 @@
               const_token))                                                     \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_variance_keywords_in_wrong_order, "E0368",                \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span in_keyword;                                            \
+        source_code_span out_keyword;                                           \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "'out in' is not allowed; write 'in out' instead"),           \
+              in_keyword))                                                      \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_unclosed_block_comment, "E0037", diagnostic_severity::error,         \
       { source_code_span comment_open; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \

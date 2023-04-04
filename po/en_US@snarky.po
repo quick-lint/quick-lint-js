@@ -1612,6 +1612,12 @@ msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr "this field is a bit CONSTipated 🤢 "
 
+# this is actually better than the OG one
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'out in' is not allowed; write 'in out' instead"
+msgstr "are you dyslexic or something?"
+
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr "you accidentally commented out your whole program"

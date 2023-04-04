@@ -1742,6 +1742,12 @@ msgstr ""
 "pas JavaScript"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'out in' is not allowed; write 'in out' instead"
+msgstr ""
+"'function static' n'est pas autorisé ; utiliser plutôt 'async function'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr "commentaire de bloc non fermé"
 

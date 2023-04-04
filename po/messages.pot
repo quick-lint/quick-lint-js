@@ -1471,6 +1471,10 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'out in' is not allowed; write 'in out' instead"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr ""
 

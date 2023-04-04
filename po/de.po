@@ -1725,6 +1725,12 @@ msgstr ""
 "in JavaScript"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'out in' is not allowed; write 'in out' instead"
+msgstr ""
+"'function async' ist ungültig. 'async function' anstattdessen verwenden."
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr "Blockkommentar ohne Ende"
 

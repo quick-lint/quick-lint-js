@@ -1605,6 +1605,11 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'out in' is not allowed; write 'in out' instead"
+msgstr "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr "oavslutad kommentationsstycke"
 

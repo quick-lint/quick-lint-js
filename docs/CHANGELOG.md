@@ -17,6 +17,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
     * The `satisfies` operator is now recognized.
     * The `infer` operator is now recognized.
+    * The `in` and `out` keywords for generic parameter variance are now
+      recognized.
     * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
       '>' and '=' here").
 * FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico

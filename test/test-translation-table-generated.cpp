@@ -561,6 +561,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'out in' is not allowed; write 'in out' instead"_translatable,
+        {
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+        },
+    },
+    {
         "'private' is not allowed in JavaScript"_translatable,
         {
             u8"'private' is not allowed in JavaScript",
