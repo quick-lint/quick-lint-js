@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -49,9 +49,8 @@ type releaseMetaData struct {
 }
 
 type changeLog struct {
-	changeLogText   []string
-	changeLogLength int
-	versions        []changeLogVersion
+	changeLogText []string
+	versions      []changeLogVersion
 }
 
 type releaseTagValidationInput struct {
@@ -74,8 +73,8 @@ type releaseRequest struct {
 }
 
 // Syntax highlighting for CLI warning messages.
-var redColor = "\033[31m"
-var resetColor = "\033[0m"
+const redColor = "\033[31m"
+const resetColor = "\033[0m"
 
 func main() {
 	help, authTokenPtr, repoPtr, tagsRepoPtr := parseFlags()
@@ -153,9 +152,9 @@ func createMissingReleases(releaseMetaData releaseMetaData, authToken string, re
 	createReleaseChannel := make(chan bool, len(releaseMetaData.ReleaseVersionTagMap))
 
 	spawnedThread := false
-	makeLatestRelease := "false"
 	for releaseVersion, tagVersion := range releaseMetaData.ReleaseVersionTagMap {
 		if releaseMetaData.ReleaseVersionTagMap[releaseVersion] == releaseMetaData.TagReleaseVersionMap[tagVersion] {
+			makeLatestRelease := "false"
 			if releaseVersion == releaseMetaData.LatestReleaseVersion {
 				makeLatestRelease = "true"
 			} else {
@@ -278,7 +277,7 @@ func getReleases(authToken string, repoPath string) []releaseForUpdate {
 	if err != nil {
 		log.Fatal(err)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -299,13 +298,12 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 	if err != nil {
 		log.Fatal(err)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	responseFromAPI := []byte(body)
 	var tags []tag
-	err = json.Unmarshal(responseFromAPI, &tags)
+	err = json.Unmarshal(body, &tags)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -341,9 +339,8 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 		fmt.Println(scanner.Err())
 	}
 	changeLog := changeLog{
-		changeLogText:   changeLogText,
-		changeLogLength: len(changeLogText),
-		versions:        versions,
+		changeLogText: changeLogText,
+		versions:      versions,
 	}
 	return changeLog
 }
@@ -354,9 +351,9 @@ func createReleaseNotes(changeLog changeLog) []string {
 		log.Fatal(err)
 	}
 	contributorsAndErrors := bytes.Buffer{}
-	for i, line := range changeLog.changeLogText {
+	for _, line := range changeLog.changeLogText {
 		if linkReferenceDefinitionRE.MatchString(line) {
-			contributorsAndErrors.WriteString(changeLog.changeLogText[i] + "\n")
+			contributorsAndErrors.WriteString(line + "\n")
 		}
 	}
 	lastVersionIdx := len(changeLog.versions) - 1
@@ -367,7 +364,7 @@ func createReleaseNotes(changeLog changeLog) []string {
 		if i < lastVersionIdx {
 			versionEndLine = changeLog.versions[i+1].lineNumber
 		} else {
-			versionEndLine = changeLog.changeLogLength
+			versionEndLine = len(changeLog.changeLogText)
 		}
 
 		for j := version.lineNumber + 1; j < versionEndLine; j++ {
@@ -422,10 +419,10 @@ func updateOrCreateGitHubRelease(releaseRequest releaseRequest, requestURL strin
 			}
 		}
 	} else {
-		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions at all for X-Oauth-Scopes (select `public_repo` or `repo` scopes)" + resetColor)
+		log.Fatalln(redColor + "Error: GitHub access Token has no permissions at all for X-Oauth-Scopes (select `public_repo` or `repo` scopes)" + resetColor)
 	}
 	if !repoPermission {
-		log.Fatalf("Error: GitHub access Token doesn't include X-Oauth-Scope: `public_repo` or `repo`.")
+		log.Fatalln("Error: GitHub access Token doesn't include X-Oauth-Scope: `public_repo` or `repo`.")
 	}
 	channel <- true
 }
