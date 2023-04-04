@@ -27,10 +27,6 @@
 #include <dirent.h>
 #endif
 
-#if QLJS_HAVE_FTS_H
-#include <fts.h>
-#endif
-
 #if QLJS_HAVE_STD_FILESYSTEM
 #include <filesystem>
 #endif
