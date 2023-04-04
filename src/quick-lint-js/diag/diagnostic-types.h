@@ -2943,6 +2943,15 @@
       diag_unexpected_colon_after_generic_definition, "E0331",                  \
       diagnostic_severity::error, { source_code_span colon; },                  \
       MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"), colon))     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_nullish_coalescing_operator, "E0369",                      \
+      diagnostic_severity::warning, {                                           \
+        source_code_span question_question;                                     \
+        },                                                                      \
+      MESSAGE(QLJS_TRANSLATABLE("nullish coalescing operator does nothing "     \
+                                "when left operand is never null"),             \
+              question_question))                                               \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

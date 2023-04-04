@@ -734,6 +734,55 @@ void parser::consume_semicolon() {
   }
 }
 
+void parser::error_on_pointless_nullish_coalescing_operator(
+    expression::binary_operator* ast) {
+  
+  auto is_nullish_operator = [](string8_view s) -> bool {
+    return s == u8"??"_sv;
+  };
+
+  auto no_left_operand = [](string8_view s) -> bool {
+    return s == u8"??"_sv;
+  };
+
+  if (no_left_operand(ast->span().string_view())){
+    return;
+  }
+
+  for (span_size i = 0; i < ast->child_count() - 1; i++) {
+    if (no_left_operand(ast->child(0)->span().string_view())){
+        return;
+    }
+    source_code_span op_span = ast->operator_spans_[i];
+    string8_view s = op_span.string_view();
+    if (is_nullish_operator(op_span.string_view())) {
+        if (i >= 1){
+            // lhs is a multi-child expression
+            this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+          .question_question = op_span});
+        } else {
+            this->check_lhs_for_null_potential(ast->child(i),
+                                               ast->child(i + 1), op_span);
+        }
+    }
+  }
+}
+
+void parser::check_lhs_for_null_potential(expression* lhs, expression* rhs,
+                                           source_code_span op_span) {
+  switch(lhs->kind()){
+    case expression_kind::variable:
+        return;
+    case expression_kind::call:
+        return;
+    default:
+        // expressions that are not variables or function calls are never null
+        this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+          .question_question = op_span});
+        return;
+  }
+}
+
 template void
 parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
 template void

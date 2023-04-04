@@ -677,6 +677,12 @@ class parser {
   template <class MissingSemicolonDiagnostic>
   void consume_semicolon();
 
+  void error_on_pointless_nullish_coalescing_operator(
+      expression::binary_operator *);
+
+  void check_lhs_for_null_potential(expression *, expression *,
+                                           source_code_span op_span);
+
   const token &peek() const noexcept { return this->lexer_.peek(); }
   void skip() noexcept { this->lexer_.skip(); }
 

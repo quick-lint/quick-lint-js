@@ -672,6 +672,68 @@ TEST_F(test_parse_warning,
         }));
   }
 }
+
+
+TEST_F(test_parse_warning,
+       warn_on_pointless_nullish_coalescing_operator) {
+  
+  {
+    test_parser p(u8"true ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_pointless_nullish_coalescing_operator,
+                question_question, strlen(u8"true "), u8"??"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"x == y ?? true"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_pointless_nullish_coalescing_operator,
+                question_question, strlen(u8"x == y "), u8"??"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"!b ?? y != x"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_pointless_nullish_coalescing_operator,
+                question_question, strlen(u8"!b "), u8"??"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"'hi' ?? true"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_pointless_nullish_coalescing_operator,
+                question_question, strlen(u8"'hi' "), u8"??"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"s.toLowerCase() ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"s ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
 }
 }
 
