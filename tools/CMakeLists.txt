@@ -12,6 +12,16 @@ if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
     PRIVATE
     quick-lint-js-lib
   )
+
+  quick_lint_js_add_executable(
+    quick-lint-js-test-typescript
+    test-typescript.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-test-typescript
+    PRIVATE
+    quick-lint-js-lib
+  )
 endif ()
 
 set(QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX "")
