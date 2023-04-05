@@ -255,13 +255,49 @@ retry:
 }
 QLJS_WARNING_POP
 
+namespace {
+template <class Char>
+bool is_dot_or_dot_dot(const Char *path) {
+  return path[0] == '.' &&
+         (path[1] == '\0' || (path[1] == '.' && path[2] == '\0'));
+}
+}
+
 result<void, platform_file_io_error> list_directory(
     const char *directory, function_ref<void(const char *)> visit_file) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  // TODO(strager): Propagate errors.
-  for (auto &entry : std::filesystem::directory_iterator(directory)) {
-    visit_file(entry.path().filename().string().c_str());
+#if QLJS_HAVE_WINDOWS_H
+  std::optional<std::wstring> search_pattern = mbstring_to_wstring(directory);
+  if (!search_pattern.has_value()) {
+    QLJS_UNIMPLEMENTED();
   }
+  *search_pattern += L"\\*";
+
+  ::WIN32_FIND_DATAW entry;
+  ::HANDLE finder = ::FindFirstFileW(search_pattern->c_str(), &entry);
+  if (finder == INVALID_HANDLE_VALUE) {
+    return failed_result(windows_file_io_error{
+        .error = ::GetLastError(),
+    });
+  }
+  do {
+    std::optional<std::string> entry_name =
+        wstring_to_mbstring(entry.cFileName);
+    if (!entry_name.has_value()) {
+      QLJS_UNIMPLEMENTED();
+    }
+    if (!is_dot_or_dot_dot(entry_name->c_str())) {
+      visit_file(entry_name->c_str());
+    }
+  } while (::FindNextFileW(finder, &entry));
+
+  ::DWORD error = ::GetLastError();
+  if (error != ERROR_NO_MORE_FILES) {
+    return failed_result(windows_file_io_error{
+        .error = error,
+    });
+  }
+
+  ::FindClose(finder);
   return {};
 #elif QLJS_HAVE_DIRENT_H
   ::DIR *d = ::opendir(directory);
@@ -281,11 +317,7 @@ result<void, platform_file_io_error> list_directory(
       }
       break;
     }
-    bool is_dot_or_dot_dot =
-        entry->d_name[0] == '.' &&
-        (entry->d_name[1] == '\0' ||
-         (entry->d_name[1] == '.' && entry->d_name[2] == '\0'));
-    if (!is_dot_or_dot_dot) {
+    if (!is_dot_or_dot_dot(entry->d_name)) {
       visit_file(entry->d_name);
     }
   }

@@ -35,6 +35,10 @@ bool posix_file_io_error::is_file_not_found_error() const noexcept {
   return this->error == ENOENT;
 }
 
+bool posix_file_io_error::is_not_a_directory_error() const noexcept {
+  return this->error == ENOTDIR;
+}
+
 std::string posix_file_io_error::to_string() const {
   return std::strerror(this->error);
 }
