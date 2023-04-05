@@ -30,6 +30,8 @@ Semantic Versioning.
 
 ### Fixed
 
+* `do while (x); while (y);` no longer falsely reports [E0101][] ("missing body
+  for do-while loop").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)
@@ -892,6 +894,7 @@ Beta release.
 [E0073]: https://quick-lint-js.com/errors/E0073/
 [E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
+[E0101]: https://quick-lint-js.com/errors/E0101/
 [E0104]: https://quick-lint-js.com/errors/E0104/
 [E0106]: https://quick-lint-js.com/errors/E0106/
 [E0108]: https://quick-lint-js.com/errors/E0108/

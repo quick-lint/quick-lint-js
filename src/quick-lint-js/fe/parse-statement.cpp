@@ -2794,31 +2794,31 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   source_code_span do_token_span = this->peek().span();
   this->skip();
 
-  switch (this->peek().type) {
-  default: {
-    this->error_on_class_statement(statement_kind::do_while_loop);
-    this->error_on_function_statement(statement_kind::do_while_loop);
-    this->error_on_lexical_declaration(statement_kind::do_while_loop);
-    bool parsed_statement = this->parse_and_visit_statement(v);
-    if (!parsed_statement) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    break;
-  }
-  case token_type::kw_while:
-    this->diag_reporter_->report(diag_missing_body_for_do_while_statement{
-        .do_token = do_token_span,
-    });
-    break;
+  bool body_is_while = this->peek().type == token_type::kw_while;
+
+  this->error_on_class_statement(statement_kind::do_while_loop);
+  this->error_on_function_statement(statement_kind::do_while_loop);
+  this->error_on_lexical_declaration(statement_kind::do_while_loop);
+  bool parsed_statement = this->parse_and_visit_statement(v);
+  if (!parsed_statement) {
+    QLJS_PARSER_UNIMPLEMENTED();
   }
 
   if (this->peek().type != token_type::kw_while) {
-    this->diag_reporter_->report(
-        diag_missing_while_and_condition_for_do_while_statement{
-            .do_token = do_token_span,
-            .expected_while =
-                source_code_span::unit(this->lexer_.end_of_previous_token()),
-        });
+    if (body_is_while) {
+      // { do while (cond); }  // Invalid
+      this->diag_reporter_->report(diag_missing_body_for_do_while_statement{
+          .do_token = do_token_span,
+      });
+    } else {
+      // do { } if (cond);  // Invalid
+      this->diag_reporter_->report(
+          diag_missing_while_and_condition_for_do_while_statement{
+              .do_token = do_token_span,
+              .expected_while =
+                  source_code_span::unit(this->lexer_.end_of_previous_token()),
+          });
+    }
     return;
   }
   this->skip();
