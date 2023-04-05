@@ -2355,6 +2355,25 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 }
 
+TEST_F(test_parse_typescript_type, keyof_in_extends_is_allowed) {
+  {
+    test_parser p(u8"T extends keyof O ? TrueType : FalseType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // T
+                              "visit_variable_type_use",             // O
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",  // FalseType
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray(
+                    {u8"T"_sv, u8"O"_sv, u8"TrueType"_sv, u8"FalseType"_sv}));
+  }
+}
+
 TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
   for (string8_view keyword :
        (contextual_keywords - typescript_builtin_type_keywords -

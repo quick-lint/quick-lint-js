@@ -441,7 +441,7 @@ again:
   // keyof Type
   case token_type::kw_keyof:
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(v, parse_options);
     break;
 
   case token_type::comma:
