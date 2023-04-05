@@ -645,6 +645,10 @@ TEST_F(test_parse_typescript_generic,
   }
 }
 
+// FIXME(#690): On second thought, I think treating less-greater as operators by
+// default is a bad plan. TypeScript parses foo<T>{} as < and > operations, but
+// also has type errors when using > with an object literal or when mixing < and
+// >.
 TEST_F(test_parse_typescript_generic,
        less_and_greater_are_operators_by_default) {
   struct test_case {

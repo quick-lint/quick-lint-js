@@ -552,6 +552,10 @@ class parser {
     // If false, parse '?:' as the conditional operator with no expression in
     // between.
     bool colon_question_is_typescript_optional_with_type_annotation : 1 = false;
+
+    // Whether 'T<U> {}' should be parsed as '<' and '>' binary expressions (if
+    // false) or a TypeScript generic followed by curlies (true).
+    bool allow_left_curly_after_generic : 1 = false;
   };
 
   // binary_expression_builder helps in the creation of a

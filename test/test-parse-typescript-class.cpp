@@ -708,6 +708,24 @@ TEST_F(test_parse_typescript_class, generic_classes_are_allowed_in_typescript) {
         p.variable_declarations,
         ElementsAreArray({generic_param_decl(u8"T"_sv), class_decl(u8"C"_sv)}));
   }
+
+  {
+    test_parser p(u8"class C<T> extends Base<T> { }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_variable_declaration",    // T
+                              "visit_variable_type_use",       // T
+                              "visit_variable_use",            // Base
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"_sv), class_decl(u8"C"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"Base"_sv}));
+  }
 }
 
 TEST_F(test_parse_typescript_class,

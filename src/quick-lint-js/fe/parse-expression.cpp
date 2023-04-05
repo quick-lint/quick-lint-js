@@ -1446,6 +1446,14 @@ next:
               parsed_as_generic_arguments = true;
               return true;
 
+            case token_type::left_curly:  // class A extends B<C> {}
+              if (prec.allow_left_curly_after_generic) {
+                parsed_as_generic_arguments = true;
+                return true;
+              } else {
+                return false;
+              }
+
             // C<T> = rhs;
             // C<T>= rhs;   // Invalid.
             // A<B<C<D>>> = rhs;

@@ -36,6 +36,7 @@ Semantic Versioning.
 * FreeBSD: The quick-lint-js-licenses.txt file is now populated correctly.
 * TypeScript support (still experimental):
     * `let x: C<T>=y;` no longer falsely reports an error.
+    * `class A extends B<C> {}` no longer falsely reports an error.
 
 ### Changed
 
