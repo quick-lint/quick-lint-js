@@ -92,6 +92,7 @@ target_include_directories(
   # Users should include our <mongoose.h>.
   "${CMAKE_CURRENT_LIST_DIR}"
 )
+quick_lint_js_optimize_target_for_code_size(mongoose)
 
 if (WIN32)
   target_link_libraries(mongoose PRIVATE wsock32 ws2_32)
