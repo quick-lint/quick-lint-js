@@ -1643,6 +1643,55 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
                 }));
   }
 }
+
+TEST_F(test_parse_expression_statement,
+       arrow_fuction_statement_requires_semicolon_or_asi) {
+  {
+    test_parser p(u8"() => {} foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"() => {}"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"() => {} //ASI\nfoo"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // foo
+                              "visit_end_of_module",              //
+                          }));
+  }
+
+  {
+    test_parser p(u8"async () => {} foo"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"async () => {}"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"async () => {} //ASI\nfoo"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // foo
+                              "visit_end_of_module",              //
+                          }));
+  }
+}
 }
 }
 

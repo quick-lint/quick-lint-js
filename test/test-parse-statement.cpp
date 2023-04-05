@@ -680,6 +680,18 @@ TEST_F(test_parse_statement, if_with_else) {
                               "visit_variable_use",
                           }));
   }
+
+  {
+    test_parser p(u8"if (a) async () => {}; else b;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",               // a
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // b
+                          }));
+  }
 }
 
 TEST_F(test_parse_statement, if_without_body) {

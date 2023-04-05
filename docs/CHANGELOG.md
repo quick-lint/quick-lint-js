@@ -34,6 +34,8 @@ Semantic Versioning.
   for do-while loop").
 * `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
   token").
+* `if (c) async () => {}; else {}` no longer falsely reports [E0065][] ("'else'
+  has no corresponding 'if'").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)
