@@ -442,7 +442,7 @@ result<std::string, platform_file_io_error> get_current_working_directory() {
   if (!r.ok()) {
     return r.propagate();
   }
-  return std::move(cwd);
+  return cwd;
 }
 
 #if QLJS_HAVE_WINDOWS_H
