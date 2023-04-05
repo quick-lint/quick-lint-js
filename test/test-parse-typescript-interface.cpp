@@ -1586,6 +1586,22 @@ TEST_F(test_parse_typescript_interface, generic_interface) {
                 ElementsAreArray(
                     {interface_decl(u8"I"_sv), generic_param_decl(u8"T"_sv)}));
   }
+
+  {
+    test_parser p(u8"interface I<T> extends T {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_variable_declaration",   // T
+                              "visit_variable_type_use",      // T
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {interface_decl(u8"I"_sv), generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
+  }
 }
 
 TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
