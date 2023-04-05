@@ -39,6 +39,10 @@ Semantic Versioning.
   around parameter").
 * `if (c) async () => {}; else {}` no longer falsely reports [E0065][] ("'else'
   has no corresponding 'if'").
+* `if (c) {} else (b) d;` now correctly reports [E0027][] ("missing semicolon
+  after statement").
+* `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
+  ("missing 'while (condition)' for do-while statement").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)

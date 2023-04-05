@@ -3374,14 +3374,19 @@ parse_maybe_else:
     } else {
       parse_and_visit_body();
     }
-    bool has_left_curly = this->peek().type == token_type::left_curly;
-    if (!this->peek().has_leading_newline && has_left_paren && has_left_curly) {
-      // if (cond) {} else (cond) {} // Invalid
-      this->diag_reporter_->report(diag_missing_if_after_else{
-          .expected_if = source_code_span::unit(end_of_else),
-      });
-      parse_and_visit_body();
-      goto parse_maybe_else;
+    if (has_left_paren) {
+      bool has_left_curly = this->peek().type == token_type::left_curly;
+      if (!this->peek().has_leading_newline && has_left_curly) {
+        // if (cond) {} else (cond) {} // Invalid
+        this->diag_reporter_->report(diag_missing_if_after_else{
+            .expected_if = source_code_span::unit(end_of_else),
+        });
+        parse_and_visit_body();
+        goto parse_maybe_else;
+      } else {
+        // if (cond) {} else (expr);
+        this->consume_semicolon_after_statement();
+      }
     }
   }
 }

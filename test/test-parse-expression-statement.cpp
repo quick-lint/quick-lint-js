@@ -1697,6 +1697,31 @@ TEST_F(test_parse_expression_statement,
                           }));
   }
 }
+
+TEST_F(test_parse_expression_statement,
+       parenthesized_expression_requires_semicolon_or_asi) {
+  {
+    test_parser p(u8"(2+2) foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"(2+2)"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"if (true) { } else (2+2) foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"if (true) { } else (2+2)"), u8""_sv),
+                }));
+  }
+}
 }
 }
 
