@@ -32,6 +32,8 @@ Semantic Versioning.
 
 * `do while (x); while (y);` no longer falsely reports [E0101][] ("missing body
   for do-while loop").
+* `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
+  token").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)

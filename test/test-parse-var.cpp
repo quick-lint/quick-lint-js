@@ -2044,6 +2044,19 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      test_parser p(concat(u8"{ "_sv, name, u8" }"_sv));
+      SCOPED_TRACE(p.code);
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_block_scope",  // {
+                                "visit_variable_use",       // (name)
+                                "visit_exit_block_scope",   // }
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
       test_parser p(concat(name, u8".method();"_sv));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();

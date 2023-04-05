@@ -215,6 +215,7 @@ parse_statement:
     case token_type::plus:
     case token_type::plus_plus:
     case token_type::question:
+    case token_type::right_curly:
     case token_type::semicolon:
     case token_type::slash: {
       expression *ast =
