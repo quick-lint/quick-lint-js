@@ -4,6 +4,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/ascii.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 
@@ -137,9 +138,7 @@ std::string_view path_file_name(std::string_view path) {
     }
 
     // Remove a drive (such as "C:") if present.
-    if (path.size() >= 2 && path[1] == ':' &&
-        (('a' <= path[0] && path[0] <= 'z') ||
-         ('A' <= path[0] && path[0] <= 'Z'))) {
+    if (path.size() >= 2 && path[1] == ':' && is_ascii_alpha(path[0])) {
       path.remove_prefix(2);
     }
 
