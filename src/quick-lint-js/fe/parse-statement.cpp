@@ -267,6 +267,8 @@ parse_statement:
     // [1, 2, 3].forEach(x => console.log(x));
     // ^ x  // invalid expression
   QLJS_CASE_BINARY_ONLY_OPERATOR:
+  QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
   case token_type::bang:
   case token_type::comma:
   case token_type::complete_template:

@@ -236,12 +236,17 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
 TEST_F(test_parse_expression_statement,
        statement_starting_with_binary_only_operator) {
   // '<' omitted. It is used for JSX.
+  // '/=' omitted. It starts a regular expression.
   for (string8_view op : {
-           u8"!="_sv,         u8"!=="_sv, u8"%"_sv,   u8"&"_sv,  u8"&&"_sv,
-           u8"*"_sv,          u8"**"_sv,  u8","_sv,   u8"<<"_sv, u8"<="_sv,
-           u8"="_sv,          u8"=="_sv,  u8"==="_sv, u8">"_sv,  u8">="_sv,
-           u8">>"_sv,         u8">>>"_sv, u8"??"_sv,  u8"^"_sv,  u8"in"_sv,
-           u8"instanceof"_sv, u8"|"_sv,
+           u8"!="_sv,         u8"!=="_sv, u8"%"_sv,    u8"%="_sv,
+           u8"&"_sv,          u8"&&"_sv,  u8"&&="_sv,  u8"&="_sv,
+           u8"*"_sv,          u8"**"_sv,  u8"**="_sv,  u8"*="_sv,
+           u8"+="_sv,         u8","_sv,   u8"-="_sv,   u8"<<"_sv,
+           u8"<<="_sv,        u8"<="_sv,  u8"="_sv,    u8"=="_sv,
+           u8"==="_sv,        u8">"_sv,   u8">="_sv,   u8">>"_sv,
+           u8">>="_sv,        u8">>>"_sv, u8">>>="_sv, u8"??"_sv,
+           u8"?\x3f="_sv,     u8"^"_sv,   u8"^="_sv,   u8"in"_sv,
+           u8"instanceof"_sv, u8"|"_sv,   u8"|="_sv,   u8"||="_sv,
        }) {
     test_parser p(concat(op, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
