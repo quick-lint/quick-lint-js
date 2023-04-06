@@ -5,20 +5,12 @@ cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 include(QuickLintJSTarget)
 
+add_subdirectory(test-typescript)
+
 if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
   quick_lint_js_add_executable(quick-lint-js-analyze-trace analyze-trace.cpp)
   target_link_libraries(
     quick-lint-js-analyze-trace
-    PRIVATE
-    quick-lint-js-lib
-  )
-
-  quick_lint_js_add_executable(
-    quick-lint-js-test-typescript
-    test-typescript.cpp
-  )
-  target_link_libraries(
-    quick-lint-js-test-typescript
     PRIVATE
     quick-lint-js-lib
   )
