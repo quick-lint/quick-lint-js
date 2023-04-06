@@ -853,6 +853,67 @@ TEST_F(test_parse_typescript_module,
                 }));
   }
 }
+
+TEST_F(test_parse_typescript_module,
+       export_equal_is_not_allowed_in_javascript) {
+  {
+    test_parser p(u8"export = foo;"_sv, javascript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_end_of_module",        //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_export_equal_not_allowed_in_javascript,  //
+                equal, strlen(u8"export "), u8"="_sv, export_keyword, 0,
+                u8"export"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_module, export_equal_with_identifier) {
+  {
+    test_parser p(u8"export = foo;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_end_of_module",        //
+                          }));
+  }
+}
+
+TEST_F(test_parse_typescript_module, export_equal_with_expression) {
+  {
+    test_parser p(u8"export = foo.bar;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+
+  {
+    test_parser p(u8"export = new foo();"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+
+  {
+    test_parser p(u8"export = (foo);"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+}
 }
 }
 

@@ -1366,6 +1366,18 @@ msgstr ""
 msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
+# this is actually better than the OG one
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid ""
+"'export =' is not allowed; write 'export default' or 'module.exports "
+"=' (CommonJS) instead"
+msgstr "are you dyslexic or something?"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'export' keyword here"
+msgstr ""
+
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""

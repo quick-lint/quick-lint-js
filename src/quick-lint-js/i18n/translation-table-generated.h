@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 442;
-constexpr std::size_t translation_table_string_table_size = 76303;
+constexpr std::uint16_t translation_table_mapping_table_size = 444;
+constexpr std::size_t translation_table_string_table_size = 76416;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -71,6 +71,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'declare' should not be written inside a 'declare namespace'"sv,
           "'do-while' loop"sv,
           "'else' has no corresponding 'if'"sv,
+          "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"sv,
+          "'export' keyword here"sv,
           "'extends' must be before 'implements'"sv,
           "'for' loop"sv,
           "'function async' is not allowed; write 'async function' instead"sv,

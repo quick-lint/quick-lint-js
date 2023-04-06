@@ -1205,6 +1205,26 @@ void parser::parse_and_visit_export(
     break;
   }
 
+  // export = foo;                // TypeScript only.
+  // export = 2 + foo.bar.baz();  // TypeScript only.
+  case token_type::equal: {
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_export_equal_not_allowed_in_javascript{
+              .equal = this->peek().span(),
+              .export_keyword = export_token_span,
+          });
+    }
+    this->skip();
+    expression *ast = this->parse_expression(v);
+    if (ast->kind() == expression_kind::variable) {
+      v.visit_variable_export_use(ast->variable_identifier());
+    } else {
+      this->visit_expression(ast, v, variable_context::rhs);
+    }
+    break;
+  }
+
   case token_type::end_of_file:
   case token_type::semicolon:
     this->diag_reporter_->report(diag_missing_token_after_export{

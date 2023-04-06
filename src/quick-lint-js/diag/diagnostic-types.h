@@ -2045,6 +2045,19 @@
               expression, declared_enum_kind))                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_export_equal_not_allowed_in_javascript, "E0370",          \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span equal;                                                 \
+        source_code_span export_keyword;                                        \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "'export =' is not allowed; write 'export default' or "       \
+                  "'module.exports =' (CommonJS) instead"),                     \
+              equal)                                                            \
+          MESSAGE(QLJS_TRANSLATABLE("'export' keyword here"), export_keyword))  \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_implements_must_be_after_extends, "E0246",                \
       diagnostic_severity::error,                                               \
       {                                                                         \

@@ -1456,6 +1456,17 @@ msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid ""
+"'export =' is not allowed; write 'export default' or 'module.exports "
+"=' (CommonJS) instead"
+msgstr "'async export' n'est pas autorisé ; utiliser plutôt 'export async'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'export' keyword here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 

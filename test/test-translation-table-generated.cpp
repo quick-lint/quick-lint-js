@@ -484,6 +484,28 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"_translatable,
+        {
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+        },
+    },
+    {
+        "'export' keyword here"_translatable,
+        {
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+        },
+    },
+    {
         "'extends' must be before 'implements'"_translatable,
         {
             u8"'extends' must be before 'implements'",

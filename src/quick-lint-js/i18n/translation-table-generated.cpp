@@ -54,7 +54,9 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 15},                 //
         {71, 48, 0, 44, 0, 61},              //
         {18, 13, 53, 16, 51, 16},            //
-        {0, 0, 0, 39, 0, 33},                //
+        {0, 0, 0, 0, 0, 33},                 //
+        {0, 0, 0, 0, 0, 91},                 //
+        {0, 0, 0, 39, 0, 22},                //
         {30, 39, 0, 46, 0, 38},              //
         {0, 0, 0, 0, 0, 11},                 //
         {0, 0, 0, 11, 0, 64},                //
@@ -1775,6 +1777,8 @@ const translation_table translation_data = {
         u8"'declare' should not be written inside a 'declare namespace'\0"
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
+        u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead\0"
+        u8"'export' keyword here\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
         u8"'function async' is not allowed; write 'async function' instead\0"

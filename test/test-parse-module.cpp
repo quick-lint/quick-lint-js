@@ -578,15 +578,15 @@ TEST_F(test_parse_module, invalid_export) {
   }
 
   {
-    test_parser p(u8"export = x"_sv, capture_diags);
+    test_parser p(u8"export += x"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_unexpected_token_after_export,  //
-                              unexpected_token, strlen(u8"export "), u8"="_sv),
+                              unexpected_token, strlen(u8"export "), u8"+="_sv),
         }));
-    p.parse_and_visit_statement();  // Parse '= x'.
+    p.parse_and_visit_statement();  // Parse '+= x'.
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
                           }));
