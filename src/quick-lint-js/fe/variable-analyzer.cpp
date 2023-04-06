@@ -970,38 +970,39 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   bool other_kind_is_parameter = is_parameter(other_kind);
 
   bool redeclaration_ok =
-      (other_kind == vk::_function && kind_is_parameter) ||
-      (other_kind == vk::_function && kind == vk::_function) ||
-      (other_kind_is_parameter && kind == vk::_function) ||
-      (other_kind == vk::_var && kind == vk::_function) ||
-      (other_kind_is_parameter && kind_is_parameter) ||
-      (other_kind == vk::_catch && kind == vk::_enum) ||
-      (other_kind == vk::_catch && kind == vk::_var) ||
-      (other_kind == vk::_function && kind == vk::_var) ||
-      (other_kind_is_parameter && kind == vk::_var) ||
-      (other_kind == vk::_var && kind == vk::_var) ||
-      (other_kind == vk::_function &&
-       already_declared_declaration_scope ==
-           declared_variable_scope::declared_in_descendant_scope) ||
+      (kind == vk::_class && other_kind == vk::_interface) ||
+      (kind == vk::_const && other_kind == vk::_namespace) ||
+      (kind == vk::_enum && other_kind == vk::_catch) ||
+      (kind == vk::_enum && other_kind == vk::_enum) ||
+      (kind == vk::_enum && other_kind == vk::_namespace) ||
+      (kind == vk::_function && other_kind == vk::_function) ||
+      (kind == vk::_function && other_kind == vk::_var) ||
+      (kind == vk::_function && other_kind_is_parameter) ||
+      (kind == vk::_import && other_kind == vk::_interface) ||
+      (kind == vk::_interface && other_kind == vk::_class) ||
+      (kind == vk::_interface && other_kind == vk::_import) ||
+      (kind == vk::_interface && other_kind == vk::_interface) ||
+      (kind == vk::_interface && !is_type(other_kind)) ||
+      (kind == vk::_let && other_kind == vk::_namespace) ||
+      (kind == vk::_namespace && other_kind == vk::_const) ||
+      (kind == vk::_namespace && other_kind == vk::_enum) ||
+      (kind == vk::_namespace && other_kind == vk::_let) ||
+      (kind == vk::_namespace && other_kind == vk::_var) ||
+      (kind == vk::_var && other_kind == vk::_catch) ||
+      (kind == vk::_var && other_kind == vk::_function) ||
+      (kind == vk::_var && other_kind == vk::_namespace) ||
+      (kind == vk::_var && other_kind == vk::_var) ||
+      (kind == vk::_var && other_kind_is_parameter) ||
+      (kind_is_parameter && other_kind == vk::_function) ||
+      (kind_is_parameter && other_kind_is_parameter) ||
+      (!is_type(kind) && other_kind == vk::_interface) ||
       (kind == vk::_function &&
        newly_declared_declaration_scope ==
            declared_variable_scope::declared_in_descendant_scope) ||
-      (other_kind == vk::_interface && kind == vk::_interface) ||
-      (other_kind == vk::_interface && kind == vk::_class) ||
-      (other_kind == vk::_class && kind == vk::_interface) ||
-      (other_kind == vk::_interface && kind == vk::_import) ||
-      (other_kind == vk::_import && kind == vk::_interface) ||
-      (other_kind == vk::_interface && !is_type(kind)) ||
-      (!is_type(other_kind) && kind == vk::_interface) ||
-      (other_kind == vk::_enum && kind == vk::_enum) ||
-      (other_kind == vk::_namespace && kind == vk::_enum) ||
-      (other_kind == vk::_enum && kind == vk::_namespace) ||
-      (other_kind == vk::_namespace && kind == vk::_const) ||
-      (other_kind == vk::_const && kind == vk::_namespace) ||
-      (other_kind == vk::_namespace && kind == vk::_let) ||
-      (other_kind == vk::_let && kind == vk::_namespace) ||
-      (other_kind == vk::_namespace && kind == vk::_var) ||
-      (other_kind == vk::_var && kind == vk::_namespace);
+      (other_kind == vk::_function &&
+       already_declared_declaration_scope ==
+           declared_variable_scope::declared_in_descendant_scope) ||
+      false;
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(
