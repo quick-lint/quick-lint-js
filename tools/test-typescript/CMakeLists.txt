@@ -13,7 +13,20 @@ if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
     quick-lint-js-test-typescript
     PRIVATE
     quick-lint-js-lib
+    quick-lint-js-typescript-test-lib
   )
+
+  quick_lint_js_add_library(
+    quick-lint-js-typescript-test-lib
+    typescript-test.cpp
+    quick-lint-js/typescript-test.h
+  )
+  target_link_libraries(
+    quick-lint-js-typescript-test-lib
+    PRIVATE
+    quick-lint-js-lib
+  )
+  target_include_directories(quick-lint-js-typescript-test-lib PUBLIC .)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.

@@ -18,6 +18,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/typescript-test.h>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -105,35 +106,39 @@ void process_test_case_file(expected_test_results& expected_results,
     std::exit(1);
   }
 
-  result<padded_string, read_file_io_error> source = read_file(path);
-  if (!source.ok()) {
+  result<padded_string, read_file_io_error> raw_source = read_file(path);
+  if (!raw_source.ok()) {
     std::fprintf(stderr, "fatal: failed to load file %s: %s\n", path,
-                 source.error_to_string().c_str());
+                 raw_source.error_to_string().c_str());
     std::exit(1);
   }
-  padded_string_view source_view(&*source);
 
-  buffering_diag_reporter diags(new_delete_resource());
   global_declared_variable_set globals;
   globals.add_literally_everything();
   linter_options options;
   options.jsx = false;
   options.typescript = true;
 
-  parse_and_lint(source_view, diags, globals, options);
+  memory_output_stream diags;
+  text_diag_reporter text_reporter(translator(), &diags,
+                                   /*escape_errors=*/false);
 
-  bool did_error = !diags.empty();
+  for (typescript_test_unit& unit :
+       extract_units_from_typescript_test(std::move(*raw_source))) {
+    // TODO(strager): Indicate which unit we are looking at.
+    text_reporter.set_source(&unit.data, path);
+    parse_and_lint(&unit.data, text_reporter, globals, options);
+  }
+  diags.flush();
+
+  string8 diags_text = diags.get_flushed_string8();
+  bool did_error = !diags_text.empty();
   bool should_error = expected->has_errors;
   if (did_error != should_error) {
     if (did_error) {
       std::fprintf(stderr, "fail: test case errored but should not have: %s\n",
                    path);
-      output_stream* out = file_output_stream::get_stderr();
-      text_diag_reporter text_reporter(translator(), out,
-                                       /*escape_errors=*/false);
-      text_reporter.set_source(source_view, path);
-      diags.move_into(&text_reporter);
-      out->flush();
+      std::fwrite(diags_text.data(), 1, diags_text.size(), stderr);
       std::exit(1);
     } else {
       // quick-lint-js probably failed to report a TypeScript type error. For

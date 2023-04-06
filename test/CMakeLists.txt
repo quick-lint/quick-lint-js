@@ -136,6 +136,7 @@ quick_lint_js_add_executable(
   test-translation-table-generated.cpp
   test-translation.cpp
   test-try-catch-stack.cpp
+  test-typescript-test.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-variable-analyzer-arguments.cpp
@@ -171,6 +172,7 @@ target_link_libraries(
   quick-lint-js-boost-json
   quick-lint-js-lib
   quick-lint-js-lib-debug
+  quick-lint-js-typescript-test-lib
 )
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
   target_link_libraries(quick-lint-js-test PRIVATE mongoose)
