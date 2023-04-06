@@ -995,7 +995,13 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
       (!is_type(other_kind) && kind == vk::_interface) ||
       (other_kind == vk::_enum && kind == vk::_enum) ||
       (other_kind == vk::_namespace && kind == vk::_enum) ||
-      (other_kind == vk::_enum && kind == vk::_namespace);
+      (other_kind == vk::_enum && kind == vk::_namespace) ||
+      (other_kind == vk::_namespace && kind == vk::_const) ||
+      (other_kind == vk::_const && kind == vk::_namespace) ||
+      (other_kind == vk::_namespace && kind == vk::_let) ||
+      (other_kind == vk::_let && kind == vk::_namespace) ||
+      (other_kind == vk::_namespace && kind == vk::_var) ||
+      (other_kind == vk::_var && kind == vk::_namespace);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(

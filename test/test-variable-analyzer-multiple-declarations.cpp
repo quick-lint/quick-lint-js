@@ -65,6 +65,51 @@ TEST(test_variable_analyzer_multiple_declarations,
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_variable_analyzer_multiple_declarations,
+     variable_and_namespace_do_not_conflict) {
+  const char8 namespace_declaration[] = u8"n";
+  const char8 var_declaration[] = u8"n";
+
+  for (variable_kind var_kind :
+       {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
+    SCOPED_TRACE(var_kind);
+
+    {
+      // namespace n {}
+      // var n;
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                   variable_kind::_namespace,
+                                   variable_init_kind::normal);
+      l.visit_enter_namespace_scope();
+      l.visit_exit_namespace_scope();
+      l.visit_variable_declaration(identifier_of(var_declaration), var_kind,
+                                   variable_init_kind::initialized_with_equals);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+
+    {
+      // var n;
+      // namespace n {}
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_declaration(identifier_of(var_declaration), var_kind,
+                                   variable_init_kind::initialized_with_equals);
+      l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                   variable_kind::_namespace,
+                                   variable_init_kind::normal);
+      l.visit_enter_namespace_scope();
+      l.visit_exit_namespace_scope();
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+  }
+}
 }
 }
 
