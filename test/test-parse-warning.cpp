@@ -676,7 +676,6 @@ TEST_F(test_parse_warning,
 
 TEST_F(test_parse_warning,
        warn_on_pointless_nullish_coalescing_operator) {
-  
   {
     test_parser p(u8"true ?? false"_sv, capture_diags);
     p.parse_and_visit_expression();
@@ -690,7 +689,7 @@ TEST_F(test_parse_warning,
         }));
   }
   {
-    test_parser p(u8"x == y ?? true"_sv, capture_diags);
+    test_parser p(u8"(a < b) ?? false"_sv, capture_diags);
     p.parse_and_visit_expression();
 
     EXPECT_THAT(
@@ -698,11 +697,11 @@ TEST_F(test_parse_warning,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, diag_pointless_nullish_coalescing_operator,
-                question_question, strlen(u8"x == y "), u8"??"_sv),
+                question_question, strlen(u8"(a < b) "), u8"??"_sv),
         }));
   }
   {
-    test_parser p(u8"!b ?? y != x"_sv, capture_diags);
+    test_parser p(u8"!b ?? false"_sv, capture_diags);
     p.parse_and_visit_expression();
     EXPECT_THAT(
         p.errors,
@@ -724,14 +723,44 @@ TEST_F(test_parse_warning,
         }));
   }
   {
-    test_parser p(u8"s.toLowerCase() ?? false"_sv, capture_diags);
+    test_parser p(u8"s.toLowerCase() ?? false"_sv);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
   {
-    test_parser p(u8"s ?? false"_sv, capture_diags);
+    test_parser p(u8"s ?? false"_sv);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"null ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"(foo) ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"{}.missingProp ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"{}['missingProp'] ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"await foo ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"void 42 ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"bar`hello` ?? false"_sv);
+    p.parse_and_visit_expression();
+  }
+  {
+    test_parser p(u8"this ?? false"_sv);
+    p.parse_and_visit_expression();
   }
 }
 }

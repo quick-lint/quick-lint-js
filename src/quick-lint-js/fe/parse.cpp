@@ -741,44 +741,70 @@ void parser::error_on_pointless_nullish_coalescing_operator(
     return s == u8"??"_sv;
   };
 
-  auto no_left_operand = [](string8_view s) -> bool {
-    return s == u8"??"_sv;
-  };
-
-  if (no_left_operand(ast->span().string_view())){
-    return;
-  }
-
   for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    if (no_left_operand(ast->child(0)->span().string_view())){
-        return;
-    }
     source_code_span op_span = ast->operator_spans_[i];
-    string8_view s = op_span.string_view();
     if (is_nullish_operator(op_span.string_view())) {
         if (i >= 1){
             // lhs is a multi-child expression
-            this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
-          .question_question = op_span});
+            return;
         } else {
-            this->check_lhs_for_null_potential(ast->child(i),
-                                               ast->child(i + 1), op_span);
+            this->check_lhs_for_null_potential(ast->child(i)->without_paren(), op_span);
         }
     }
   }
 }
 
-void parser::check_lhs_for_null_potential(expression* lhs, expression* rhs,
+void parser::check_lhs_for_null_potential(expression* lhs,
                                            source_code_span op_span) {
+  
+  auto binary_operator_is_never_null = [](string8_view s) -> bool {
+    // these 4 binary operators can resolve to a null value
+    string8_view can_resolve_to_null[4] = { u8"&&"_sv, u8"??"_sv, u8","_sv, u8"||"_sv };
+    for(int i = 0; i < 4; i++){
+        if(can_resolve_to_null[i] == s){
+            return false;
+        }
+    }
+    return true;
+  };
+  
   switch(lhs->kind()){
-    case expression_kind::variable:
-        return;
-    case expression_kind::call:
-        return;
-    default:
-        // expressions that are not variables or function calls are never null
+    case expression_kind::literal:
+        if (lhs->span().string_view() == u8"null"_sv){
+            return;
+        }
+        if (lhs->span().string_view() == u8"undefined"_sv){
+            return;
+        }
         this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
           .question_question = op_span});
+        return;
+    case expression_kind::rw_unary_suffix:
+        this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+          .question_question = op_span});
+        return;
+    case expression_kind::unary_operator:{
+        auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
+        if (maybe_void_lhs->is_void_operator() == false){
+            this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+            .question_question = op_span});
+        }
+        return;
+        }
+    case expression_kind::_typeof:
+        this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+            .question_question = op_span});
+        return;
+    case expression_kind::binary_operator:{
+        auto* operator_lhs = static_cast<expression::binary_operator*>(lhs);
+        source_code_span binary_op_span = operator_lhs->operator_spans_[0];
+        if (binary_operator_is_never_null(binary_op_span.string_view())){
+            this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+            .question_question = op_span});
+        }
+        return;
+        }
+    default:
         return;
   }
 }
