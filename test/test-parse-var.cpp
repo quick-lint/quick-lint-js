@@ -2066,6 +2066,18 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
     }
 
+    {
+      test_parser p(concat(name, u8"[x];"_sv));
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_use",  // (name)
+                                "visit_variable_use",  // x
+                            }));
+      EXPECT_THAT(p.variable_uses,
+                  ElementsAreArray({string8_view(name), u8"x"_sv}));
+    }
+
     for (string8 code : {
              u8"(async " + name + u8" => null)",
              u8"(async (" + name + u8") => null)",
