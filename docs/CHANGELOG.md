@@ -35,6 +35,8 @@ Semantic Versioning.
 * `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
   token").
 * `async[x]` no longer falsely reports [E0054][] ("unexpected token").
+* `await x ? y : z` no longer falsely reports [E0311][] ("missing parentheses
+  around parameter").
 * `if (c) async () => {}; else {}` no longer falsely reports [E0065][] ("'else'
   has no corresponding 'if'").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints

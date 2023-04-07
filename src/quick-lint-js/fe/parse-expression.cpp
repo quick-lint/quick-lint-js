@@ -1018,11 +1018,17 @@ expression* parser::parse_async_expression_only(
 
     std::optional<source_code_span> optional_question_span;
     if (this->peek().type == token_type::question) {
-      // async param? => {}  // Invalid.
-      optional_question_span = this->peek().span();
-      parameters[0] = this->make_expression<expression::optional>(
-          parameters[0], *optional_question_span);
-      this->skip();
+      if (is_await) {
+        // await a ? b : c
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto await_operator;
+      } else {
+        // async param? => {}  // Invalid.
+        optional_question_span = this->peek().span();
+        parameters[0] = this->make_expression<expression::optional>(
+            parameters[0], *optional_question_span);
+        this->skip();
+      }
     }
 
     std::optional<source_code_span> type_colon_span;

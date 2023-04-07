@@ -10,6 +10,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/parse-support.h>
@@ -412,6 +413,15 @@ TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
     test_parser p(u8"typeof o ? 10 : 20"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(typeof(var o), literal, literal)");
+  }
+}
+
+TEST_F(test_parse_expression, parse_await_conditional_operator) {
+  {
+    test_parser p(u8"await a ? b : c"_sv);
+    auto guard = p.enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(await(var a), var b, var c)");
   }
 }
 
