@@ -1650,7 +1650,7 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
 }
 
 TEST_F(test_parse_expression_statement,
-       arrow_fuction_statement_requires_semicolon_or_asi) {
+       arrow_function_statement_requires_semicolon_or_asi) {
   {
     test_parser p(u8"() => {} foo"_sv, capture_diags);
     p.parse_and_visit_module();
