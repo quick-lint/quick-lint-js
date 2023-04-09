@@ -43,6 +43,8 @@ Semantic Versioning.
   after statement").
 * `class A extends await {}` no longer falsely reports [E0111][] ("missing body
   for class").
+* `class A extends await() {}` no longer falsely reports [E0176][] ("missing
+  arrow operator for arrow function").
 * `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
   ("missing 'while (condition)' for do-while statement").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
