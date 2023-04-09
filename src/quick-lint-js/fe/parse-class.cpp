@@ -172,12 +172,11 @@ void parser::parse_and_visit_class_extends(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_extends);
   this->skip();
   // TODO(strager): Error when extending things like '0' or 'true'.
-  this->parse_and_visit_expression(v,
-                                   precedence{
-                                       .commas = false,
-                                       .trailing_curly_is_arrow_body = false,
-                                       .allow_left_curly_after_generic = true,
-                                   });
+  this->parse_and_visit_expression(v, precedence{
+                                          .commas = false,
+                                          .trailing_curly_is_arrow_body = false,
+                                          .in_class_extends_clause = true,
+                                      });
 }
 
 void parser::parse_and_visit_typescript_class_implements(

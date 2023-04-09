@@ -553,9 +553,16 @@ class parser {
     // between.
     bool colon_question_is_typescript_optional_with_type_annotation : 1 = false;
 
-    // Whether 'T<U> {}' should be parsed as '<' and '>' binary expressions (if
-    // false) or a TypeScript generic followed by curlies (true).
-    bool allow_left_curly_after_generic : 1 = false;
+    // Whether we are parsing the expression after 'extends' in a 'class'
+    // expression or statement.
+    //
+    // * true:  'T<U> {}' is TypeScript generic followed by curlies;
+    //   false: 'T<U> {}' is '<' and '>' binary expressions.
+    //
+    // * If in_async_function_ is false:
+    //   * true:  'await {}' is a variable named 'await' followed by curlies;
+    //     false: 'await {}' is an 'await' operator with an object literal.
+    bool in_class_extends_clause : 1 = false;
   };
 
   // binary_expression_builder helps in the creation of a

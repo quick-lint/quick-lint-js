@@ -41,6 +41,8 @@ Semantic Versioning.
   has no corresponding 'if'").
 * `if (c) {} else (b) d;` now correctly reports [E0027][] ("missing semicolon
   after statement").
+* `class A extends await {}` no longer falsely reports [E0111][] ("missing body
+  for class").
 * `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
   ("missing 'while (condition)' for do-while statement").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints

@@ -1232,6 +1232,11 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       case token_type::plus:
         return !this->in_top_level_;
 
+      // class A extends await { }  // Identifier.
+      // await {};                  // Operator.
+      case token_type::left_curly:
+        return prec.in_class_extends_clause;
+
       case token_type::dot_dot_dot:
       case token_type::identifier:
       case token_type::kw_as:
@@ -1244,7 +1249,6 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
-      case token_type::left_curly:
       case token_type::number:
       case token_type::private_identifier:
       case token_type::regexp:
@@ -1454,7 +1458,7 @@ next:
               return true;
 
             case token_type::left_curly:  // class A extends B<C> {}
-              if (prec.allow_left_curly_after_generic) {
+              if (prec.in_class_extends_clause) {
                 parsed_as_generic_arguments = true;
                 return true;
               } else {

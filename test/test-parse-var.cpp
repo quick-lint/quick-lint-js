@@ -2057,6 +2057,20 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      test_parser p(concat(u8"class A extends "_sv, name, u8" { }"_sv));
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_class_scope",       // { A
+                                "visit_variable_use",            // (name)
+                                "visit_enter_class_scope_body",  // { {
+                                "visit_exit_class_scope",        // }
+                                "visit_variable_declaration",    // A
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
       test_parser p(concat(name, u8".method();"_sv));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
