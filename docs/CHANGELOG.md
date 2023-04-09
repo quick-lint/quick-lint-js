@@ -30,23 +30,24 @@ Semantic Versioning.
 
 ### Fixed
 
-* `do while (x); while (y);` no longer falsely reports [E0101][] ("missing body
-  for do-while loop").
-* `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
-  token").
-* `async[x]` no longer falsely reports [E0054][] ("unexpected token").
-* `await x ? y : z` no longer falsely reports [E0311][] ("missing parentheses
-  around parameter").
-* `if (c) async () => {}; else {}` no longer falsely reports [E0065][] ("'else'
-  has no corresponding 'if'").
+* Fixed several false errors:
+  * `do while (x); while (y);` no longer falsely reports [E0101][] ("missing
+    body for do-while loop").
+  * `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
+    token").
+  * `async[x]` no longer falsely reports [E0054][] ("unexpected token").
+  * `await x ? y : z` no longer falsely reports [E0311][] ("missing parentheses
+    around parameter").
+  * `if (c) async () => {}; else {}` no longer falsely reports [E0065][]
+    ("'else' has no corresponding 'if'").
+  * `class A extends await {}` no longer falsely reports [E0111][] ("missing
+    body for class").
+  * `class A extends await() {}` no longer falsely reports [E0176][] ("missing
+    arrow operator for arrow function").
+  * `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
+    ("missing 'while (condition)' for do-while statement").
 * `if (c) {} else (b) d;` now correctly reports [E0027][] ("missing semicolon
   after statement").
-* `class A extends await {}` no longer falsely reports [E0111][] ("missing body
-  for class").
-* `class A extends await() {}` no longer falsely reports [E0176][] ("missing
-  arrow operator for arrow function").
-* `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
-  ("missing 'while (condition)' for do-while statement").
 * The CLI's `--output-format=gnu-like` output (default) no longer prints
   terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
   [wagner riffel][].)
