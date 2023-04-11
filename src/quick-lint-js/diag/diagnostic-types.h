@@ -2326,6 +2326,19 @@
                   previous_spread))                                             \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_parameter_property_cannot_be_destructured, "E0372",       \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span destructure_token;                                     \
+        source_code_span property_keyword;                                      \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("parameter properties cannot be destructured"),     \
+          destructure_token)                                                    \
+          MESSAGE(QLJS_TRANSLATABLE("property declared using '{0}' here"),      \
+                  property_keyword))                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_parameter_property_not_allowed_in_javascript, "E0371",    \
       diagnostic_severity::error, { source_code_span property_keyword; },       \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript parameter properties are not "      \

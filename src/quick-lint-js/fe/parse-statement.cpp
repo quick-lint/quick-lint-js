@@ -1886,12 +1886,15 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       case token_type::right_paren:
         return true;
 
-      // constructor(paramName myField) {}  // TypeScript only.
+      // constructor(paramName myField) {}    // TypeScript only.
+      // constructor(paramName [myField]) {}  // Invalid.
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
       case token_type::identifier:
       case token_type::kw_await:
       case token_type::kw_yield:
+      case token_type::left_curly:
+      case token_type::left_square:
         return false;
 
       default:
@@ -1899,7 +1902,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       }
     };
 
-    bool is_parameter_property = false;
+    std::optional<source_code_span> parameter_property_keyword = std::nullopt;
     switch (this->peek().type) {
     // function foo(public) {}
     // constructor(public myField) {}  // TypeScript only.
@@ -1919,7 +1922,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                   .property_keyword = accessor_span,
               });
         }
-        is_parameter_property = true;
+        parameter_property_keyword = accessor_span;
         this->lexer_.commit_transaction(std::move(transaction));
       }
       break;
@@ -1939,13 +1942,14 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       if (is_after_parameter_name()) {
         this->lexer_.roll_back_transaction(std::move(transaction));
       } else {
-        if (!this->options_.typescript && !is_parameter_property) {
+        if (!this->options_.typescript &&
+            !parameter_property_keyword.has_value()) {
           this->diag_reporter_->report(
               diag_typescript_parameter_property_not_allowed_in_javascript{
                   .property_keyword = readonly_span,
               });
         }
-        is_parameter_property = true;
+        parameter_property_keyword = readonly_span;
         this->lexer_.commit_transaction(std::move(transaction));
       }
     }
@@ -1975,6 +1979,34 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                  .colon_question_is_typescript_optional_with_type_annotation =
                      true,
              });
+      switch (parameter->kind()) {
+      case expression_kind::array:
+        if (parameter_property_keyword.has_value()) {
+          // constructor(private [field])  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_cannot_be_destructured{
+                  .destructure_token =
+                      static_cast<const expression::array *>(parameter)
+                          ->left_square_span(),
+                  .property_keyword = *parameter_property_keyword,
+              });
+        }
+        break;
+      case expression_kind::object:
+        if (parameter_property_keyword.has_value()) {
+          // constructor(private {field})  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_cannot_be_destructured{
+                  .destructure_token =
+                      static_cast<const expression::object *>(parameter)
+                          ->left_curly_span(),
+                  .property_keyword = *parameter_property_keyword,
+              });
+        }
+        break;
+      default:
+        break;
+      }
       this->visit_binding_element(
           parameter, v,
           binding_element_info{

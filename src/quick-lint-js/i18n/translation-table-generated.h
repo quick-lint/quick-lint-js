@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 445;
-constexpr std::size_t translation_table_string_table_size = 76478;
+constexpr std::uint16_t translation_table_mapping_table_size = 447;
+constexpr std::size_t translation_table_string_table_size = 76557;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -384,9 +384,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "optional tuple elements cannot come after spread elements"sv,
           "overloaded function '{0}' declared here"sv,
+          "parameter properties cannot be destructured"sv,
           "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,
           "private properties are not allowed in object literals"sv,
+          "property declared using '{0}' here"sv,
           "redeclaration of global variable"sv,
           "redeclaration of variable: {0}"sv,
           "redundant 'await'"sv,

@@ -1408,6 +1408,14 @@ msgid "prior spread element is here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "parameter properties cannot be destructured"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "property declared using '{0}' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr ""
 

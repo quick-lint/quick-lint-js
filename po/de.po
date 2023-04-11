@@ -1634,6 +1634,18 @@ msgstr "try-Statement beginnt hier"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be destructured"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "property declared using '{0}' here"
+msgstr "Funktion wird hier deklariert"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

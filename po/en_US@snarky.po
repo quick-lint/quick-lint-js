@@ -1541,6 +1541,16 @@ msgstr "at least you tried"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be destructured"
+msgstr "static makes no sense in interfaces"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "property declared using '{0}' here"
+msgstr "Safari hates this"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

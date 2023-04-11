@@ -449,7 +449,13 @@ class expression::array final : public expression {
 
   explicit array(expression_arena::array_ptr<expression *> children,
                  source_code_span span) noexcept
-      : expression(kind), span_(span), children_(children) {}
+      : expression(kind), span_(span), children_(children) {
+    QLJS_ASSERT(span.string_view().substr(0, 1) == u8"["_sv);
+  }
+
+  source_code_span left_square_span() const {
+    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  }
 
   source_code_span span_;
   expression_arena::array_ptr<expression *> children_;
@@ -821,7 +827,13 @@ class expression::object final : public expression {
   explicit object(
       expression_arena::array_ptr<object_property_value_pair> entries,
       source_code_span span) noexcept
-      : expression(kind), span_(span), entries_(entries) {}
+      : expression(kind), span_(span), entries_(entries) {
+    QLJS_ASSERT(span.string_view().substr(0, 1) == u8"{"_sv);
+  }
+
+  source_code_span left_curly_span() const {
+    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  }
 
   source_code_span span_;
   expression_arena::array_ptr<object_property_value_pair> entries_;

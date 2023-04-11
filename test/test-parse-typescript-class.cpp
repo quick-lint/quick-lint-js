@@ -1711,6 +1711,62 @@ TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
   }
 }
 
+TEST_F(test_parse_typescript_class, parameter_property_cannot_destructure) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public [field1, field2]) {}\n"_sv
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    // TODO(strager): Assert that visit_property_declaration(field1) and
+    // visit_property_declaration(field2) occurred.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_param_decl(u8"field1"_sv),
+                                  func_param_decl(u8"field2"_sv),
+                                  class_decl(u8"C"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_parameter_property_cannot_be_destructured,  //
+                destructure_token,
+                u8"class C {\n  constructor(public "_sv.size(),
+                u8"["_sv,  //
+                property_keyword, u8"class C {\n  constructor("_sv.size(),
+                u8"public"_sv),
+        }));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public {field1, other: field2}) {}\n"_sv
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    // TODO(strager): Assert that visit_property_declaration(field1) and
+    // visit_property_declaration(field2) occurred.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_param_decl(u8"field1"_sv),
+                                  func_param_decl(u8"field2"_sv),
+                                  class_decl(u8"C"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_parameter_property_cannot_be_destructured,  //
+                destructure_token,
+                u8"class C {\n  constructor(public "_sv.size(),
+                u8"{"_sv,  //
+                property_keyword, u8"class C {\n  constructor("_sv.size(),
+                u8"public"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_class,
        parameter_property_is_not_allowed_in_javascript) {
   for (string8_view keyword :

@@ -1467,6 +1467,16 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be destructured"
+msgstr "propriedades de interfaces do TypeScript não podem ser 'static'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "property declared using '{0}' here"
+msgstr "função overloaded '{0}' declarada aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr "exportações de tipo do TypeScript não são permitidos em JavaScript"
 
