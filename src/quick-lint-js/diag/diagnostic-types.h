@@ -2326,6 +2326,13 @@
                   previous_spread))                                             \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_parameter_property_not_allowed_in_javascript, "E0371",    \
+      diagnostic_severity::error, { source_code_span property_keyword; },       \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript parameter properties are not "      \
+                                "allowed in JavaScript"),                       \
+              property_keyword))                                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_private_not_allowed_in_javascript, "E0222",               \
       diagnostic_severity::error, { source_code_span specifier; },              \
       MESSAGE(QLJS_TRANSLATABLE("'private' is not allowed in JavaScript"),      \

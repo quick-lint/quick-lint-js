@@ -1712,6 +1712,62 @@ TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
 }
 
 TEST_F(test_parse_typescript_class,
+       parameter_property_is_not_allowed_in_javascript) {
+  for (string8_view keyword :
+       {u8"readonly"_sv, u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" field) {}\n"_sv
+                           u8"}"_sv),
+                    javascript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_javascript,  //
+                  property_keyword, u8"class C {\n  constructor("_sv.size(),
+                  keyword),
+          }));
+    }
+  }
+
+  for (string8_view keyword :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" readonly field) {}\n"_sv
+                           u8"}"_sv),
+                    javascript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_javascript,  //
+                  property_keyword, u8"class C {\n  constructor("_sv.size(),
+                  keyword),
+          }))
+          << "only '" << out_string8(keyword)
+          << "' should report a diagnostic; 'readonly' should not have its own "
+             "diagnostic";
+    }
+  }
+}
+
+TEST_F(test_parse_typescript_class,
        parameter_property_can_be_named_contextual_keyword) {
   // TODO(#73): Disallow names 'private', 'yield', etc. because those are
   // not allowed in strict mode (and classes enforce strict mode).

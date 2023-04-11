@@ -1166,6 +1166,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript parameter properties are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript requires whitespace between '>' and '=' here"_translatable,
         {
             u8"TypeScript requires whitespace between '>' and '=' here",

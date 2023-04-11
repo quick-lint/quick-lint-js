@@ -1651,6 +1651,13 @@ msgstr "l'instruction try débute ici"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript parameter properties are not allowed in JavaScript"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

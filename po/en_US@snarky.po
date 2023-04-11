@@ -1541,6 +1541,11 @@ msgstr "at least you tried"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript parameter properties are not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

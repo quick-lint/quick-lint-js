@@ -1466,6 +1466,11 @@ msgid "prior spread element is here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript parameter properties are not allowed in JavaScript"
+msgstr "exportações de tipo do TypeScript não são permitidos em JavaScript"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'private' is not allowed in JavaScript"
 msgstr "'private' não é permitido em JavaScript"
 

@@ -117,6 +117,7 @@ const translation_table translation_data = {
         {0, 0, 0, 80, 0, 72},                //
         {0, 0, 0, 71, 0, 61},                //
         {0, 0, 0, 0, 0, 66},                 //
+        {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 80, 0, 56},                //
         {0, 0, 0, 58, 0, 48},                //
         {0, 0, 0, 77, 0, 63},                //
@@ -1839,6 +1840,7 @@ const translation_table translation_data = {
         u8"TypeScript optional parameter with type annotation requires parentheses\0"
         u8"TypeScript optional parameters are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
+        u8"TypeScript parameter properties are not allowed in JavaScript\0"
         u8"TypeScript requires whitespace between '>' and '=' here\0"
         u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
