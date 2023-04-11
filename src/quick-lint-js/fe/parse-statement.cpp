@@ -1876,9 +1876,65 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       this->skip();
     }
 
+    auto is_after_parameter_name = [this]() -> bool {
+      switch (this->peek().type) {
+      // function foo(paramName = def) {}
+      // function foo(paramName: any) {}   // TypeScript only.
+      // function foo(paramName) {}
+      case token_type::colon:
+      case token_type::comma:
+      case token_type::right_paren:
+        return true;
+
+      // constructor(paramName myField) {}  // TypeScript only.
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case token_type::identifier:
+      case token_type::kw_await:
+      case token_type::kw_yield:
+        return false;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+    };
+
+    switch (this->peek().type) {
+    // function foo(public) {}
+    // constructor(public myField) {}  // TypeScript only.
+    case token_type::kw_private:
+    case token_type::kw_protected:
+    case token_type::kw_public: {
+      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      if (is_after_parameter_name()) {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+      } else {
+        this->lexer_.commit_transaction(std::move(transaction));
+      }
+      break;
+    }
+
+    default:
+      break;
+    }
+
+    if (this->peek().type == token_type::kw_readonly) {
+      // function foo(readonly) {}
+      // constructor(readonly myField) {}         // TypeScript only.
+      // constructor(public readonly myField) {}  // TypeScript only.
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      if (is_after_parameter_name()) {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+      } else {
+        this->lexer_.commit_transaction(std::move(transaction));
+      }
+    }
+
     switch (this->peek().type) {
     QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
-      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
       [[fallthrough]];
     case token_type::kw_await:
       // TODO(#241): Disallow parameters named 'await' for async functions.

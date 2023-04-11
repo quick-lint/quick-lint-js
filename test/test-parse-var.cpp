@@ -1946,6 +1946,25 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      test_parser p(concat(u8"function f("_sv, name, u8": ParamType) {}"_sv),
+                    typescript_options);
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
+                  ElementsAreArray({
+                      "visit_variable_declaration",       // f
+                      "visit_enter_function_scope",       //
+                      "visit_variable_type_use",          // ParamType
+                      "visit_variable_declaration",       // (name)
+                      "visit_enter_function_scope_body",  // {
+                      "visit_exit_function_scope",        // }
+                  }));
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(name)}));
+    }
+
+    {
       test_parser p(concat(u8"(function "_sv, name, u8"() {})"_sv));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();

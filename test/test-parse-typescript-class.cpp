@@ -1605,6 +1605,159 @@ TEST_F(test_parse_typescript_class, implement_multiple_things) {
   EXPECT_THAT(p.variable_uses,
               ElementsAreArray({u8"Apple", u8"Banana", u8"Carrot"}));
 }
+
+TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_enter_class_scope",       // C
+                    "visit_enter_class_scope_body",  // {
+                    // TODO(strager): visit_property_declaration for 'field'.
+                    "visit_property_declaration",       // constructor
+                    "visit_enter_function_scope",       // constructor
+                    "visit_variable_declaration",       // field
+                    "visit_enter_function_scope_body",  // {
+                    "visit_exit_function_scope",        // }
+                    "visit_exit_class_scope",           // }
+                    "visit_variable_declaration",       // C
+                    "visit_end_of_module",
+                }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(protected field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(private field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field: FieldType) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"FieldType"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field = defaultValue) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"defaultValue"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(readonly field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  for (string8_view access_specifier :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    test_parser p(concat(u8"class C {\n"_sv
+                         u8"  constructor("_sv,
+                         access_specifier,
+                         u8" readonly field) {}\n"_sv
+                         u8"}"_sv),
+                  typescript_options);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       parameter_property_can_be_named_contextual_keyword) {
+  // TODO(#73): Disallow names 'private', 'yield', etc. because those are
+  // not allowed in strict mode (and classes enforce strict mode).
+  for (string8 keyword : contextual_keywords |
+                             dirty_set<string8>{u8"await", u8"yield"} |
+                             strict_only_reserved_keywords) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(public "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(public readonly "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(readonly "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+  }
+}
 }
 }
 
