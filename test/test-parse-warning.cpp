@@ -722,44 +722,24 @@ TEST_F(test_parse_warning,
                 question_question, strlen(u8"'hi' "), u8"??"_sv),
         }));
   }
-  {
-    test_parser p(u8"s.toLowerCase() ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"s ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"null ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"(foo) ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"{}.missingProp ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"{}['missingProp'] ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"await foo ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"void 42 ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"bar`hello` ?? false"_sv);
-    p.parse_and_visit_expression();
-  }
-  {
-    test_parser p(u8"this ?? false"_sv);
+  for (string8_view code : {
+           u8"s.toLowerCase() ?? false"_sv,
+           u8"s ?? false"_sv,
+           u8"null ?? false"_sv,
+           u8"(foo) ?? false"_sv,
+           u8"{}.missingProp ?? false"_sv,
+           u8"{}['missingProp'] ?? false"_sv,
+           u8"await foo ?? false"_sv,
+           u8"void 42 ?? false"_sv,
+           u8"bar`hello` ?? false"_sv,
+           u8"this ?? false"_sv,
+           u8"(2+2 && null) ?? false"_sv,
+           u8"(2+2 || null) ?? false"_sv,
+           u8"(2+2 , null) ?? false"_sv,
+           u8"(2+2 ?? null) ?? false"_sv
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
     p.parse_and_visit_expression();
   }
 }
