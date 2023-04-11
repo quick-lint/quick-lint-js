@@ -532,6 +532,7 @@ kbd.keystroke {
   padding: 5px;
   font-size: 0.8rem;
   max-width: 300px;
+  user-select: none;
   z-index: 100;
 }
 
