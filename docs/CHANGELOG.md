@@ -19,6 +19,8 @@ Semantic Versioning.
     * The `infer` operator is now recognized.
     * The `in` and `out` keywords for generic parameter variance are now
       recognized.
+    * Parameter properties (`constructor(public readonly name: string, public
+      age: number)`) are now recognized.
     * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
       '>' and '=' here").
     * `extends` in `interface` now allows generic arguments, such as in
