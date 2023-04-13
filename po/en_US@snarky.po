@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#
+# 
 #: benchmark/benchmark-translation.cpp
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "variable assigned before its declaration"
@@ -571,8 +571,7 @@ msgstr "be polite and say 'from'"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
 msgstr ""
-"what are you trying to do? This is a Unicode escape sequence, not a Wendy's "
-"🍔"
+"what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected '{{'"
@@ -753,17 +752,17 @@ msgstr "naked {0} 😊"
 # If you steal *anything* from this file, I'll stalk your social media,
 # find your address, come to your house when you're not home, hack into your
 # refigerator, and leave the following note:
-#
+# 
 # quick-lint-js is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # quick-lint-js is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 #: src/quick-lint-js/diag/diagnostic-types.h
@@ -880,8 +879,7 @@ msgstr "how did the grammar Nazi die? colon cancer."
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'?' creates a conditional expression"
-msgstr ""
-"do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
+msgstr "do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "missing condition for if statement"
@@ -1955,6 +1953,12 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "':' should be 'extends' instead"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid ""
+"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, "
+"use '(x!) == y' instead"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp
