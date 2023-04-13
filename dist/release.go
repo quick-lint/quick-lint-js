@@ -298,6 +298,15 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Create GitHub release",
+		Run: func() {
+			fmt.Printf("Create a GitHub release:")
+			fmt.Printf("$ go run dist/update-release-notes.go -AuthToken=YOUR_ACCESS_TOKEN\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
 		Title: "Update Arch Linux user repositories (AUR)",
 		Run: func() {
 			fmt.Printf("1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.\n")
