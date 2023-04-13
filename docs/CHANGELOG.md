@@ -10,6 +10,9 @@ Semantic Versioning.
 
 ### Added
 
+* quick-lint-js now recognizes [Deno][]'s global variables, including `Deno`.
+  This suppresses undesired [E0057][] ("use of undeclared variable") warnings.
+  This is controlled by the [`deno` global group][config-global-groups].
 * `if () {}` (without a condition) now reports [E0452][] ("empty parenthesis
   after control statement"). (Implemented by [Yunus][].)
 * `return x,` now reports [E0026][] ("missing operand for operator").
@@ -849,8 +852,12 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [Bun]: https://bun.sh/
+[Deno]: https://deno.land/
 [cli-language]: ../cli/#language
+[coc.nvim]: https://github.com/neoclide/coc.nvim
+[config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
+[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
@@ -879,10 +886,7 @@ Beta release.
 [Tony Sathre]: https://github.com/tonysathre
 [Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
-[coc.nvim]: https://github.com/neoclide/coc.nvim
-[config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [david doroz]: https://github.com/DaviddHub
-[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla

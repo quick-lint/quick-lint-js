@@ -9,6 +9,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
 // Last updated: Bun v0.1.4
+// Excludes ECMAScript globals.
 constexpr const char8 global_variables_bun[] =
     u8"AbortController\0"
     u8"AbortSignal\0"
@@ -71,6 +72,102 @@ constexpr const char8 global_variables_bun[] =
     u8"setInterval\0"
     u8"setTimeout\0"
     u8"unescape\0";
+
+// Last updated: Deno 1.31.1
+// Excludes ECMAScript globals.
+constexpr const char8 global_variables_deno[] =
+    u8"AbortController\0"
+    u8"AbortSignal\0"
+    u8"Blob\0"
+    u8"ByteLengthQueuingStrategy\0"
+    u8"CacheStorage\0"
+    u8"Cache\0"
+    u8"CloseEvent\0"
+    u8"CompressionStream\0"
+    u8"CountQueuingStrategy\0"
+    u8"CryptoKey\0"
+    u8"Crypto\0"
+    u8"CustomEvent\0"
+    u8"DOMException\0"
+    u8"DecompressionStream\0"
+    u8"Deno\0"
+    u8"ErrorEvent\0"
+    u8"EventTarget\0"
+    u8"Event\0"
+    u8"FileReader\0"
+    u8"File\0"
+    u8"FormData\0"
+    u8"Headers\0"
+    u8"Intl\0"
+    u8"Location\0"
+    u8"MessageChannel\0"
+    u8"MessageEvent\0"
+    u8"MessagePort\0"
+    u8"Navigator\0"
+    u8"PerformanceEntry\0"
+    u8"PerformanceMark\0"
+    u8"PerformanceMeasure\0"
+    u8"Performance\0"
+    u8"ProgressEvent\0"
+    u8"PromiseRejectionEvent\0"
+    u8"ReadableByteStreamController\0"
+    u8"ReadableStreamBYOBReader\0"
+    u8"ReadableStreamBYOBRequest\0"
+    u8"ReadableStreamDefaultController\0"
+    u8"ReadableStreamDefaultReader\0"
+    u8"ReadableStream\0"
+    u8"Request\0"
+    u8"Response\0"
+    u8"Storage\0"
+    u8"SubtleCrypto\0"
+    u8"TextDecoderStream\0"
+    u8"TextDecoder\0"
+    u8"TextEncoderStream\0"
+    u8"TextEncoder\0"
+    u8"TransformStreamDefaultController\0"
+    u8"TransformStream\0"
+    u8"URLPattern\0"
+    u8"URLSearchParams\0"
+    u8"URL\0"
+    u8"WebAssembly\0"
+    u8"WebSocket\0"
+    u8"Window\0"
+    u8"Worker\0"
+    u8"WritableStreamDefaultController\0"
+    u8"WritableStreamDefaultWriter\0"
+    u8"WritableStream\0"
+    u8"alert\0"
+    u8"atob\0"
+    u8"btoa\0"
+    u8"caches\0"
+    u8"clearInterval\0"
+    u8"clearTimeout\0"
+    u8"close\0"
+    u8"closed\0"
+    u8"confirm\0"
+    u8"console\0"
+    u8"crypto\0"
+    u8"escape\0"
+    u8"fetch\0"
+    u8"localStorage\0"
+    u8"location\0"
+    u8"navigator\0"
+    u8"onbeforeunload\0"
+    u8"onerror\0"
+    u8"onload\0"
+    u8"onunhandledrejection\0"
+    u8"onunload\0"
+    u8"performance\0"
+    u8"prompt\0"
+    u8"queueMicrotask\0"
+    u8"reportError\0"
+    u8"self\0"
+    u8"sessionStorage\0"
+    u8"setInterval\0"
+    u8"setTimeout\0"
+    u8"structuredClone\0"
+    u8"unescape\0"
+    u8"window\0";
 
 constexpr const char8 global_variables_ecmascript[] =
     // ECMA-262 18.1 Value Properties of the Global Object
@@ -370,6 +467,11 @@ const global_group global_groups[] = {
         .name = u8"bun",
         .globals = global_variables_bun,
         .globals_count = 61,
+    },
+    {
+        .name = u8"deno",
+        .globals = global_variables_deno,
+        .globals_count = 92,
     },
     {
         .name = u8"ecmascript",
