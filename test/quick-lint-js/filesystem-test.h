@@ -17,9 +17,6 @@ namespace quick_lint_js {
 // Crashes on failure.
 void delete_directory_recursive(const std::string& path);
 
-// Crashes on failure.
-void set_current_working_directory(const char* path);
-
 // Excludes '.' and '..'.
 //
 // Result is not necessarily sorted.
@@ -51,7 +48,7 @@ class filesystem_test {
       }
       this->old_working_directory_ = *cwd;
     }
-    quick_lint_js::set_current_working_directory(path);
+    set_current_working_directory_or_exit(path);
   }
 
   void clean_up_filesystem() {

@@ -66,6 +66,8 @@ result<void, platform_file_io_error> get_current_working_directory(
 result<void, platform_file_io_error> get_current_working_directory(
     std::wstring& out);
 #endif
+
+void set_current_working_directory_or_exit(const char* path);
 }
 
 #endif

@@ -11,6 +11,8 @@
 #include <unistd.h>
 
 namespace quick_lint_js {
+// TODO(strager): Reuse wait_for_process_exit from
+// <quick-lint-js/port/child-process.h>.
 void wait_for_process_exit(::pid_t pid) {
 retry:
   int status;

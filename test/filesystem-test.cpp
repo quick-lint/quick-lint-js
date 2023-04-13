@@ -117,18 +117,6 @@ void delete_directory_recursive(const std::string &path) {
 }
 #endif
 
-void set_current_working_directory(const char *path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::current_path(path);
-#else
-  if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
 std::vector<std::string> list_files_in_directory(const std::string &directory) {
   std::vector<std::string> files;
   auto visit_file = [&](const char *name) -> void { files.push_back(name); };

@@ -493,6 +493,18 @@ result<void, platform_file_io_error> get_current_working_directory(
   return {};
 }
 #endif
+
+void set_current_working_directory_or_exit(const char *path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::filesystem::current_path(path);
+#else
+  if (::chdir(path) != 0) {
+    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
+                 path, std::strerror(errno));
+    std::terminate();
+  }
+#endif
+}
 }
 
 #endif

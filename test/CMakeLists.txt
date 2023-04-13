@@ -37,7 +37,6 @@ quick_lint_js_add_executable(
   diag-matcher.cpp
   failing-diag-reporter.cpp
   fake-configuration-filesystem.cpp
-  filesystem-test.cpp
   parse-json.cpp
   parse-support.cpp
   quick-lint-js/array.h
@@ -198,6 +197,7 @@ target_link_libraries(
   quick-lint-js-boost-json
   quick-lint-js-lib
   quick-lint-js-lib-debug
+  quick-lint-js-test-lib
   quick-lint-js-typescript-test-lib
 )
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
@@ -283,11 +283,28 @@ if (ICU_FOUND)
   )
 endif ()
 
-find_package(PythonInterp 3.7)
-if (QUICK_LINT_JS_ENABLE_CLI AND PYTHONINTERP_FOUND)
+if (TARGET quick-lint-js)
+  quick_lint_js_add_executable(
+    quick-lint-js-test-cli
+    test-cli.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-test-cli
+    PRIVATE
+    gmock
+    gmock_main
+    gtest
+    quick-lint-js-lib
+    quick-lint-js-lib-debug
+    quick-lint-js-test-lib
+  )
+  if (QUICK_LINT_JS_HAVE_LIBUTIL)
+    target_link_libraries(quick-lint-js-test-cli PRIVATE util)
+  endif ()
+  add_dependencies(quick-lint-js-test-cli quick-lint-js)
   add_test(
     NAME quick-lint-js-test-cli
-    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test-cli.py
+    COMMAND quick-lint-js-test-cli
   )
   set_property(
     TEST quick-lint-js-test-cli

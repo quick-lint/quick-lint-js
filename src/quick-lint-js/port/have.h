@@ -122,18 +122,6 @@
 #endif
 #endif
 
-#if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
-#elif defined(__has_include)
-#if __has_include(<sys/wait.h>)
-#define QLJS_HAVE_SYS_WAIT_H 1
-#endif
-#elif defined(__unix__)
-#define QLJS_HAVE_SYS_WAIT_H 1
-#endif
-#if !defined(QLJS_HAVE_SYS_WAIT_H)
-#define QLJS_HAVE_SYS_WAIT_H 0
-#endif
-
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
 #if __has_include(<unistd.h>) && !defined(__EMSCRIPTEN__) && !defined(__MINGW32__)
@@ -144,6 +132,18 @@
 #endif
 #if !defined(QLJS_HAVE_UNISTD_H)
 #define QLJS_HAVE_UNISTD_H 0
+#endif
+
+#if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
+#elif defined(__has_include)
+#if __has_include(<sys/wait.h>) && !defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#elif QLJS_HAVE_UNISTD_H
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#if !defined(QLJS_HAVE_SYS_WAIT_H)
+#define QLJS_HAVE_SYS_WAIT_H 0
 #endif
 
 #if defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H) && \
@@ -542,6 +542,16 @@
 #else
 #define QLJS_HAVE_GETTHREADDESCRIPTION 0
 #endif
+#endif
+
+// QLJS_HAVE_POSIX_SPAWN is whether <spawn.h> and posix_spawn functions exist.
+#if !defined(QLJS_HAVE_POSIX_SPAWN) && defined(__has_include)
+#if __has_include(<spawn.h>) && !defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_POSIX_SPAWN 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_POSIX_SPAWN)
+#define QLJS_HAVE_POSIX_SPAWN 0
 #endif
 
 // Whether GCC's labels as values and computed goto statement extensions are

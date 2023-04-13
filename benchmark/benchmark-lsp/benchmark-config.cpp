@@ -40,6 +40,7 @@ std::vector<std::string_view> split(std::string_view s, char separator) {
   return result;
 }
 
+// TODO(strager): Reuse run_program from <quick-lint-js/port/child-process.h>.
 std::string run_program(std::vector<std::string> command,
                         std::optional<std::string> cwd) {
   pipe_fds program_output = make_pipe();
