@@ -295,15 +295,7 @@ benchmark_config benchmark_config::load() {
       benchmark_config_server{
           .name = "Rome",
           .program_name = "Rome",
-          .command = {"rome_lsp"},
-          .allow_incremental_changes = false,
-          .parallelize_open = false,
-          .workspace_configuration_json = R"({
-            "analysis": {
-              "enableCodeActions": false,
-              "enableDiagnostics": true
-            }
-          })",
+          .command = {"rome", "lsp-proxy"},
       },
 
       benchmark_config_server{
