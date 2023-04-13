@@ -6,7 +6,9 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
-## Unreleased
+## 2.13.0 (2023-04-13)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.13.0/)
 
 ### Added
 
