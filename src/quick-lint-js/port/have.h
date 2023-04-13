@@ -81,6 +81,47 @@
 #define QLJS_HAVE_SYS_STAT_H 0
 #endif
 
+// Whether <libutil.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_LIBUTIL_H) && QLJS_HAVE_LIBUTIL_H
+#elif defined(__has_include)
+#if __has_include(<libutil.h>)
+#define QLJS_HAVE_LIBUTIL_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_LIBUTIL_H)
+#define QLJS_HAVE_LIBUTIL_H 0
+#endif
+
+// Whether <pty.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_PTY_H) && QLJS_HAVE_PTY_H
+#elif defined(__has_include)
+#if __has_include(<pty.h>)
+#define QLJS_HAVE_PTY_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_PTY_H)
+#define QLJS_HAVE_PTY_H 0
+#endif
+
+// Whether <util.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_UTIL_H) && QLJS_HAVE_UTIL_H
+#elif defined(__has_include)
+#if __has_include(<util.h>)
+#define QLJS_HAVE_UTIL_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_UTIL_H)
+#define QLJS_HAVE_UTIL_H 0
+#endif
+
+#if !defined(QLJS_HAVE_FORKPTY)
+#if QLJS_HAVE_LIBUTIL_H || QLJS_HAVE_PTY_H || QLJS_HAVE_UTIL_H
+#define QLJS_HAVE_FORKPTY 1
+#else
+#define QLJS_HAVE_FORKPTY 0
+#endif
+#endif
+
 #if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
 #elif defined(__has_include)
 #if __has_include(<sys/wait.h>)

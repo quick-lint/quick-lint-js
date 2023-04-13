@@ -26,6 +26,10 @@
 #include <fcntl.h>
 #endif
 
+#if QLJS_HAVE_POLL
+#include <poll.h>
+#endif
+
 #if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
@@ -70,7 +74,21 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return failed_result(posix_file_io_error{errno});
+    int error = errno;
+    if (error == EIO) {
+#if QLJS_HAVE_POLL
+      // On Linux, with a master terminal, read() fails with EIO if the slave
+      // file descriptors are all closed. Detect this case using poll().
+      ::pollfd poll_fds[] = {
+          {.fd = this->fd_, .events = POLLHUP, .revents = 0},
+      };
+      int rc = ::poll(poll_fds, 1, /*timeout=*/0);
+      if (rc == 1 && (poll_fds[0].revents & POLLHUP) == POLLHUP) {
+        return file_read_result::end_of_file();
+      }
+#endif
+    }
+    return failed_result(posix_file_io_error{error});
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));
