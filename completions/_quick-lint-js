@@ -14,16 +14,19 @@ function _quick-lint-js() {
         local -a args
 
         args+=(
-        '(- *)'--help'[Print help message]'
-        '(- *)'--version'[Print version information]'
+        '(- *)'--help'[Print a help message and exit]'
+        '(- *)'--version'[Print version information and exit]'
         '(--lsp-server)*:file:_files'
-        '(--config-file --stdin --exit-fail-on --diagnostic-hyperlinks --output-format *)'--lsp-server'[Run quick-lint-js in LSP server mode]'
+        '(--config-file --stdin --exit-fail-on --diagnostic-hyperlinks --output-format --path-for-config-search --language *)'--lsp-server'[Run quick-lint-js in LSP server mode]'
         '(--lsp-server)--config-file=[Read configuration from a JSON file for later input files]:file:_files'
         '(--lsp-server)--stdin[Read standard input as a JavaScript file]'
         '(--lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: "all")]'
         '(--lsp-server)--output-format=[Format to print feedback]:format:((vim-qflist-json\:"machine-readable JSON which can be given to Vim'\''s setqflist function" gnu-like\:"a human-readable format similar to GCC" emacs-lisp\:"Emacs Lisp association list format"))'
         '(--lsp-server)--diagnostic-hyperlinks=[Control whether to hyperlink error codes or not]:when:((auto\:"shows error codes as hyperlinks only if the error output is a terminal" always\:"always shows error codes as hyperlinks" never\:"never shows error codes as hyperlinks"))'
+        '(--lsp-server)--path-for-config-search=[Use path as the file\’s path when searching for a configuration file]:file:_path_files'
+        '(--lsp-server)--language=[Interpret input files which are given later in the command line]:when:((default\:"infer the languageid from the file’s extension" javascript\:"the latest ECMAScript standard with proposed features" javascript-jsx\:"like javascript but with JSX (React) extensions" experimental-typescript\:"the latest TypeScript version. (EXPERIMENTAL)" experimental-typescript-jsx\:"like experimental-typescript but with JSX (React) extensions. (EXPERIMENTAL)"))'
         '--snarky[Add spice to your failures]'
+        '--debug-apps[Print a list of running quick-lint-js instances which have the debug app enabled]'
         '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
 
         _arguments -M "r:|[_]=* r:|=*" -S "${args[@]}" && ret=0
