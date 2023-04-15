@@ -4,21 +4,37 @@
 const fs = require("fs");
 
 const args = process.argv.slice(2);
-const releaseVersion = process.argv[3];
-const releaseDate = process.argv[5];
-const outputFile = process.argv[7];
+let releaseVersion;
+let releaseDate;
+let outputFile;
 
-if (!args.includes("-releaseVersion")) {
+args.forEach((arg, index) => {
+  switch (arg) {
+    case "-releaseVersion":
+      releaseVersion = args[index + 1];
+      break;
+    case "-releaseDate":
+      releaseDate = args[index + 1];
+      break;
+    case "-Out":
+      outputFile = args[index + 1];
+      break;
+    default:
+      break;
+  }
+});
+
+if (!releaseVersion) {
   console.log("error: missing -releaseVersion");
-  return 0;
+  process.exit(1);
 }
-if (!args.includes("-releaseDate")) {
+if (!releaseDate) {
   console.log("error: missing -releaseDate");
-  return 0;
+  process.exit(1);
 }
-if (!args.includes("-Out")) {
-  console.log("error: missing -Out");
-  return 0;
+if (!outputFile) {
+  console.log("error: missing -outputFile");
+  process.exit(1);
 }
 
 const releaseVersionRegex = /^\d+\.\d+\.\d+$/;
@@ -27,7 +43,7 @@ if (!releaseVersionRegex.test(releaseVersion)) {
     "error: invalid -releaseVersion; must match regular expression: " +
       releaseVersionRegex
   );
-  return 0;
+  process.exit(1);
 }
 
 const releasesDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,11 +52,11 @@ if (!releasesDateRegex.test(releaseDate)) {
     "error: invalid -releaseDate; must match regular expression: " +
       releasesDateRegex
   );
-  return 0;
+  process.exit(1);
 }
 
 let data = fs.readFileSync("quick-lint-js-template.json", "utf8");
-data = data.replace(/{version}/g, releaseVersion);
+data = data.replace(/\${version}/g, releaseVersion);
 data = data.replace(/\${releaseDate}/g, releaseDate);
 fs.writeFileSync(outputFile, data, "utf8");
 
