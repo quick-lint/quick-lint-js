@@ -187,6 +187,7 @@ typealias struct {
   lsp_document_type type;
   utf8_string uri;
   utf8_string text;
+  utf8_string language_id;
   // TODO(strager): utf8_string version_json;
   // TODO(strager): Lint settings.
 } := lsp_document_state;

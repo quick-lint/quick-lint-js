@@ -498,6 +498,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     this->config_fs_.open_document(document_path, &doc.doc);
 
     doc.doc.set_text(notification.text);
+    doc.language_id = notification.language_id;
     doc.version_json = notification.version_json;
   };
 

@@ -279,6 +279,9 @@ class LSPLogView {
 class LSPStateDetailsView {
   constructor(rootElement) {
     this._rootElement = rootElement;
+    this._documentLanguageIDElement = rootElement.querySelector(
+      "#lsp-state-language-id"
+    );
     this._documentTextElement = rootElement.querySelector(
       "#lsp-state-document-text"
     );
@@ -287,8 +290,10 @@ class LSPStateDetailsView {
   setState(doc) {
     if (doc === null) {
       this._documentTextElement.textContent = "";
+      this._documentLanguageIDElement.textContent = "";
     } else {
       this._documentTextElement.textContent = doc.text;
+      this._documentLanguageIDElement.textContent = doc.languageID;
     }
   }
 }

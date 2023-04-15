@@ -476,7 +476,11 @@ TEST(test_trace_reader, lsp_documents_event) {
 
                            // Document 0: text
                            0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                           'h', 'e', 'l', 'l', 'o'));
+                           'h', 'e', 'l', 'l', 'o',
+
+                           // Document 0: language ID
+                           0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                           'j', 's'));
   trace_reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
@@ -489,6 +493,7 @@ TEST(test_trace_reader, lsp_documents_event) {
   EXPECT_EQ(event.documents[0].type, parsed_lsp_document_type::lintable);
   EXPECT_EQ(event.documents[0].uri, u8"file:///f"_sv);
   EXPECT_EQ(event.documents[0].text, u8"hello"_sv);
+  EXPECT_EQ(event.documents[0].language_id, u8"js"_sv);
 }
 
 TEST(test_trace_reader, invalid_lsp_document_type) {
@@ -510,6 +515,9 @@ TEST(test_trace_reader, invalid_lsp_document_type) {
                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
                            // Document 0: text
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Document 0: language ID
                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
   trace_reader reader;
   reader.append_bytes(stream.data(), stream.size());

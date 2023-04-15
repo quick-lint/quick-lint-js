@@ -166,6 +166,7 @@ struct parsed_lsp_document_state {
   parsed_lsp_document_type type;
   string8 uri;
   string8 text;
+  string8 language_id;
 };
 
 struct parsed_lsp_documents_event {

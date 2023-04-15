@@ -112,6 +112,7 @@ struct trace_lsp_document_state {
   trace_lsp_document_type type;
   string8_view uri;
   string8_view text;
+  string8_view language_id;
 };
 
 struct trace_event_lsp_documents {

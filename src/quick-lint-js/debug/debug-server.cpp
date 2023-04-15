@@ -408,6 +408,7 @@ void debug_server::publish_lsp_documents_if_needed() {
           .type = doc->trace_type(),
           .uri = uri,
           .text = doc->doc.string().string_view(),
+          .language_id = to_string8_view(doc->language_id),
       });
     }
 

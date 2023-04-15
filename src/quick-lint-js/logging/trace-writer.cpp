@@ -96,6 +96,7 @@ void trace_writer::write_event_lsp_documents(
     });
     this->write_utf8_string(doc.uri);
     this->write_utf8_string(doc.text);
+    this->write_utf8_string(doc.language_id);
   }
 }
 

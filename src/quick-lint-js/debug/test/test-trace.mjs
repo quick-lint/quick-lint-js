@@ -463,6 +463,10 @@ describe("trace", () => {
       // Document 0: text
       0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
       ord('h'), ord('e'), ord('l'), ord('l'), ord('o'),
+
+      // Document 0: language ID
+      0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+      ord('j'), ord('s'),
     ]).buffer);
     expect(reader.error).toBeNull();
     expect(reader.pullNewEvents()).toEqual([
@@ -474,6 +478,7 @@ describe("trace", () => {
             type: TraceLSPDocumentType.LINTABLE,
             uri: "file:///f",
             text: "hello",
+            languageID: "js",
           },
         ],
       },
@@ -501,6 +506,9 @@ describe("trace", () => {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
       // Document 0: text
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Document 0: language ID
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ]).buffer);
     expect(reader.error).toBeInstanceOf(TraceReaderInvalidLSPDocumentType);

@@ -283,6 +283,7 @@ void trace_reader::parse_event(checked_binary_reader& r) {
           .type = read_lsp_document_type(),
           .uri = read_utf8_string(),
           .text = read_utf8_string(),
+          .language_id = read_utf8_string(),
       });
     }
     this->parsed_events_.push_back(parsed_trace_event{

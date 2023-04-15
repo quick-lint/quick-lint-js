@@ -404,6 +404,7 @@ TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
   std::unique_ptr<lsp_documents::lintable_document> example_doc =
       std::make_unique<lsp_documents::lintable_document>();
   example_doc->doc.set_text(u8"hello"_sv);
+  example_doc->language_id = "yabbascrip";
   example_doc->version_json = u8"123"_sv;
   documents.lock()->documents[u8"file:///example.js"] = std::move(example_doc);
   set_lsp_server_documents(&documents);
@@ -421,6 +422,7 @@ TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
       if (parsed_documents.size() > 0) {
         EXPECT_EQ(parsed_documents[0].uri, u8"file:///example.js"_sv);
         EXPECT_EQ(parsed_documents[0].text, u8"hello"_sv);
+        EXPECT_EQ(parsed_documents[0].language_id, u8"yabbascrip"_sv);
       }
 
       received_lsp_documents_event = true;
@@ -465,6 +467,7 @@ TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
       std::unique_ptr<lsp_documents::lintable_document> example_doc =
           std::make_unique<lsp_documents::lintable_document>();
       example_doc->doc.set_text(u8"hello"_sv);
+      example_doc->language_id = "yabbascrip";
       example_doc->version_json = u8"123"_sv;
       documents.lock()->documents[u8"file:///example.js"] =
           std::move(example_doc);
@@ -486,6 +489,7 @@ TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
       if (parsed_documents.size() > 0) {
         EXPECT_EQ(parsed_documents[0].uri, u8"file:///example.js"_sv);
         EXPECT_EQ(parsed_documents[0].text, u8"hello"_sv);
+        EXPECT_EQ(parsed_documents[0].language_id, u8"yabbascrip"_sv);
       }
 
       received_lsp_documents_event = true;

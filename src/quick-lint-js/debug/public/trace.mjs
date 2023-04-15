@@ -201,6 +201,7 @@ export class TraceReader {
               type: r.u8(),
               uri: r.utf8String(),
               text: r.utf8String(),
+              languageID: r.utf8String(),
             };
             if (doc.type > 2) {
               throw new TraceReaderInvalidLSPDocumentType();

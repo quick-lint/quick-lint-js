@@ -86,6 +86,7 @@ struct lsp_documents {
     document_type type;
 
     lsp_document_text doc;
+    std::string language_id;
     string8 version_json;
   };
 

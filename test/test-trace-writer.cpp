@@ -419,6 +419,7 @@ TEST(test_trace_writer, write_event_lsp_documents) {
           .type = trace_lsp_document_type::lintable,
           .uri = u8"file:///f"_sv,
           .text = u8"hello"_sv,
+          .language_id = u8"js"_sv,
       },
   };
   w.write_event_lsp_documents(trace_event_lsp_documents{
@@ -449,6 +450,10 @@ TEST(test_trace_writer, write_event_lsp_documents) {
                   // Document 0: text
                   0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
                   'h', 'e', 'l', 'l', 'o',
+
+                  // Document 0: langauge ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 's',
                   // clang-format on
               }));
 }
