@@ -737,6 +737,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"_translatable,
+        {
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+        },
+    },
+    {
         "'{0} []' is always '{1}'"_translatable,
         {
             u8"'{0} []' is always '{1}'",

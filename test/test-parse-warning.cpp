@@ -702,89 +702,89 @@ namespace quick_lint_js
                     equals_operator, strlen(u8"x === y || ({}) "), u8"!="_sv),
             }));
       }
+    }
 
-      TEST_F(test_parse_warning, warn_on_mistyped_strict_inequality_operator)
+    TEST_F(test_parse_warning, warn_on_mistyped_strict_inequality_operator)
+    {
       {
-        {
-          test_parser p(u8"x! == y"_sv, capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"x! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"'hello'! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"True! == False"_sv, capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"True! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"(x! == y) == z"_sv, capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"(x! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"x! == (y == z)"_sv, capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"x! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
-                        capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"if (length + 1! "), u8"=="_sv),
-              }));
-        }
-        {
-          test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
-                        capture_diags);
-          p.parse_and_visit_expression();
-          EXPECT_THAT(
-              p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, diag_mistyped_strict_inequality_operator,
-                      equals_operator, strlen(u8"if (typeof diagnostic.code! "),
-                      u8"=="_sv),
-              }));
-        }
+        test_parser p(u8"x! == y"_sv, capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"x! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"'hello'! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"True! == False"_sv, capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"True! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"(x! == y) == z"_sv, capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"(x! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"x! == (y == z)"_sv, capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"x! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
+                      capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"if (length + 1! "), u8"=="_sv),
+            }));
+      }
+      {
+        test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
+                      capture_diags);
+        p.parse_and_visit_expression();
+        EXPECT_THAT(
+            p.errors,
+            ElementsAreArray({
+                DIAG_TYPE_OFFSETS(
+                    p.code, diag_mistyped_strict_inequality_operator,
+                    equals_operator, strlen(u8"if (typeof diagnostic.code! "),
+                    u8"=="_sv),
+            }));
       }
     }
   }

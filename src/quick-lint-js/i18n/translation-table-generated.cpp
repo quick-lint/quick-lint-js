@@ -77,7 +77,8 @@ const translation_table translation_data = {
         {0, 0, 0, 48, 0, 38},                //
         {73, 31, 0, 54, 0, 38},              //
         {15, 14, 0, 13, 0, 13},              //
-        {0, 0, 0, 19, 0, 17},                //
+        {0, 0, 0, 0, 0, 17},                 //
+        {0, 0, 0, 19, 0, 99},                //
         {15, 38, 0, 25, 0, 25},              //
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
@@ -1803,6 +1804,7 @@ const translation_table translation_data = {
         u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
+        u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead\0"
         u8"'{0} []' is always '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
