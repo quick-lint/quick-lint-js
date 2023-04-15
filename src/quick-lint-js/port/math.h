@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_PORT_MATH_H
 #define QUICK_LINT_JS_PORT_MATH_H
 
+#include <cstdint>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
 
