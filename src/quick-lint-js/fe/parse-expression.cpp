@@ -1998,10 +1998,10 @@ namespace quick_lint_js
               });
         }
         this->skip();
+        this->warn_on_mistyped_strict_inequality_operator(bang_span); // next operator?
         binary_builder.replace_last(
             this->make_expression<expression::non_null_assertion>(
                 binary_builder.last_expression(), bang_span));
-        this->warn_on_mistyped_strict_inequality_operator(); // next operator?
       }
     }
 

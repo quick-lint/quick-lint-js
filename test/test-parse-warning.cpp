@@ -707,7 +707,7 @@ namespace quick_lint_js
     TEST_F(test_parse_warning, warn_on_mistyped_strict_inequality_operator)
     {
       {
-        test_parser p(u8"x! == y"_sv, capture_diags);
+        test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -718,7 +718,7 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
+        test_parser p(u8"'hello'! == 'world'"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -729,7 +729,7 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"True! == False"_sv, capture_diags);
+        test_parser p(u8"True! == False"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -740,7 +740,7 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"(x! == y) == z"_sv, capture_diags);
+        test_parser p(u8"(x! == y) == z"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -751,7 +751,7 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"x! == (y == z)"_sv, capture_diags);
+        test_parser p(u8"x! == (y == z)"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -763,7 +763,7 @@ namespace quick_lint_js
       }
       {
         test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
-                      capture_diags);
+                      typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
@@ -775,7 +775,7 @@ namespace quick_lint_js
       }
       {
         test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
-                      capture_diags);
+                      typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,

@@ -447,7 +447,7 @@ namespace quick_lint_js
                                        source_code_span op_span);
     void error_on_invalid_as_const(expression *, source_code_span as_const_span);
 
-    void warn_on_mistyped_strict_inequality_operator();
+    void warn_on_mistyped_strict_inequality_operator(source_code_span op_span);
 
     void error_on_class_statement(statement_kind statement_kind);
     void error_on_lexical_declaration(statement_kind statement_kind);
