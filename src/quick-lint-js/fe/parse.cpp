@@ -435,6 +435,7 @@ void parser::error_on_invalid_as_const(expression* ast,
   case expression_kind::dot:
   case expression_kind::array:
   case expression_kind::object:
+  case expression_kind::_template:
     break;
 
   case expression_kind::literal: {
