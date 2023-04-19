@@ -3504,8 +3504,15 @@ next_attribute:
 
       // <current attribute={expression}>
       case token_type::left_curly: {
+        const char8* left_curly_brace = this->peek().begin;
         this->lexer_.skip();
         expression* ast = this->parse_expression(v);
+        if (ast->kind() == expression_kind::_missing) {
+          const char8* right_curly_brace = this->peek().end;
+          this->diag_reporter_->report(diag_jsx_prop_is_missing_expression{
+              .left_brace_to_right_brace =
+                  source_code_span(left_curly_brace, right_curly_brace)});
+        }
         children.emplace_back(ast);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
         this->lexer_.skip_in_jsx();

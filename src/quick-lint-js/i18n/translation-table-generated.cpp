@@ -90,7 +90,8 @@ const translation_table translation_data = {
         {30, 33, 40, 30, 44, 33},            //
         {48, 16, 55, 35, 45, 48},            //
         {79, 39, 98, 87, 0, 65},             //
-        {0, 0, 0, 24, 0, 18},                //
+        {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 24, 0, 34},                //
         {0, 0, 0, 50, 0, 44},                //
         {21, 38, 23, 58, 0, 52},             //
         {0, 0, 0, 64, 0, 52},                //
@@ -1818,6 +1819,7 @@ const translation_table translation_data = {
         u8"C-style for loop is missing its third component\0"
         u8"C-style for loops have only three semicolon-separated components\0"
         u8"JSON syntax error\0"
+        u8"JSX prop is missing an expression\0"
         u8"React/JSX is not allowed in TypeScript code\0"
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"

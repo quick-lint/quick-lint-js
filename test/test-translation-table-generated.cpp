@@ -880,6 +880,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "JSX prop is missing an expression"_translatable,
+        {
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+        },
+    },
+    {
         "React/JSX is not allowed in TypeScript code"_translatable,
         {
             u8"React/JSX is not allowed in TypeScript code",

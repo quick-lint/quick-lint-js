@@ -1972,6 +1972,11 @@ msgid ""
 "use '(x!) == y' instead"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "JSX prop is missing an expression"
+msgstr "with påstående saknar '{1}' runt uttryck"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
