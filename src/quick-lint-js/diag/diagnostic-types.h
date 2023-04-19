@@ -2983,6 +2983,13 @@
       MESSAGE(QLJS_TRANSLATABLE("nullish coalescing operator does nothing "     \
                                 "when left operand is never null"),             \
               question_question))                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_jsx_prop_is_missing_expression, "E0376",                             \
+      diagnostic_severity::error,                                               \
+      { source_code_span left_brace_to_right_brace; },                          \
+      MESSAGE(QLJS_TRANSLATABLE("JSX prop is missing an expression"),           \
+              left_brace_to_right_brace))                                       \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
