@@ -166,6 +166,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/parse-visitor.h
   quick-lint-js/fe/parse.cpp
   quick-lint-js/fe/parse.h
+  quick-lint-js/fe/source-code-span-debug.cpp
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
   quick-lint-js/fe/token.cpp

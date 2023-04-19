@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
