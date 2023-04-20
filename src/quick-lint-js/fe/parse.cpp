@@ -551,17 +551,6 @@ namespace quick_lint_js
     }
   }
 
-  void parser::warn_on_mistyped_strict_inequality_operator(source_code_span op_span)
-  {
-    // op span is '!', check what is to the right of it
-    if (this->peek().type == token_type::equal_equal)
-    {
-      this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
-          .equals_operator = this->peek().span(), // Should it be something other than .equals_operator?
-      });
-    }
-  }
-
   void parser::check_compare_against_literal(expression *lhs, expression *rhs,
                                              source_code_span op_span)
   {

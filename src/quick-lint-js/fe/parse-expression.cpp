@@ -1998,7 +1998,11 @@ namespace quick_lint_js
               });
         }
         this->skip();
-        this->warn_on_mistyped_strict_inequality_operator(bang_span); // next operator?
+        if (this->peek().type == token_type::equal_equal) {
+          this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
+              .non_null_assertion = source_code_span(bang_span.begin(), this->peek().span().end()),
+            }); 
+        }
         binary_builder.replace_last(
             this->make_expression<expression::non_null_assertion>(
                 binary_builder.last_expression(), bang_span));

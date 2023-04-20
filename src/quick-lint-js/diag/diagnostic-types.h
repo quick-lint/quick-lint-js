@@ -2980,12 +2980,12 @@
     QLJS_DIAG_TYPE(                                                               \
         diag_mistyped_strict_inequality_operator, "E0373",                        \
         diagnostic_severity::warning,                                             \
-        { source_code_span equals_operator; },                                    \
+        { source_code_span non_null_assertion; },                                 \
         MESSAGE(QLJS_TRANSLATABLE(                                                \
                     "'x! == y' might be a typo for 'x !== y'. "                   \
                     "If a null assertion was intended, use "                      \
                     "'(x!) == y' instead"),                                       \
-                equals_operator))
+                non_null_assertion))
 
 /* END */
 
