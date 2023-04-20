@@ -2983,6 +2983,15 @@
       MESSAGE(QLJS_TRANSLATABLE("nullish coalescing operator does nothing "     \
                                 "when left operand is never null"),             \
               question_question))                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_mistyped_strict_inequality_operator, "E0373",                        \
+      diagnostic_severity::warning, { source_code_span non_null_assertion; },   \
+      MESSAGE(QLJS_TRANSLATABLE("'x! == y' might be a typo for 'x !== y'. "     \
+                                "If a null assertion was intended, use "        \
+                                "'(x!) == y' instead"),                         \
+              non_null_assertion))                                              \
+                                                                                \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
