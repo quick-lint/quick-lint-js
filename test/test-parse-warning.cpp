@@ -751,14 +751,14 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"x! == (y == z)"_sv, typescript_options, capture_diags);
+        test_parser p(u8"(x! == (y == z))"_sv, typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
             p.errors,
             ElementsAreArray({
                 DIAG_TYPE_OFFSETS(
                     p.code, diag_mistyped_strict_inequality_operator,
-                    equals_operator, strlen(u8"x! "), u8"=="_sv),
+                    equals_operator, strlen(u8"(x! "), u8"=="_sv),
             }));
       }
       {
@@ -774,7 +774,7 @@ namespace quick_lint_js
             }));
       }
       {
-        test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
+        test_parser p(u8"if (typeof diagnostic.code! == 'undefined')"_sv,
                       typescript_options, capture_diags);
         p.parse_and_visit_expression();
         EXPECT_THAT(
@@ -785,6 +785,16 @@ namespace quick_lint_js
                     equals_operator, strlen(u8"if (typeof diagnostic.code! "),
                     u8"=="_sv),
             }));
+      }
+      {
+        test_parser p(u8"(x!) == y"_sv,
+                      typescript_options);
+        p.parse_and_visit_expression();
+      }
+      {
+        test_parser p(u8"if ((x!) == y) {}"_sv,
+                      typescript_options);
+        p.parse_and_visit_expression();
       }
     }
   }

@@ -2002,6 +2002,7 @@ namespace quick_lint_js
         binary_builder.replace_last(
             this->make_expression<expression::non_null_assertion>(
                 binary_builder.last_expression(), bang_span));
+        goto next;
       }
     }
 

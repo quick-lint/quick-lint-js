@@ -2978,7 +2978,7 @@
         MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"), colon))     \
                                                                                   \
     QLJS_DIAG_TYPE(                                                               \
-        diag_mistyped_strict_inequality_operator, "E0371",                        \
+        diag_mistyped_strict_inequality_operator, "E0373",                        \
         diagnostic_severity::warning,                                             \
         { source_code_span equals_operator; },                                    \
         MESSAGE(QLJS_TRANSLATABLE(                                                \

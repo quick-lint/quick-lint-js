@@ -553,51 +553,11 @@ namespace quick_lint_js
 
   void parser::warn_on_mistyped_strict_inequality_operator(source_code_span op_span)
   {
-    // op span is "bang_span" (?)
-
-    // How do I go about doing this?
-    // supposedly this is to the left of a bang, I think...
-
-    // Pseudo code due to knowlege gaps:
-
-    // check if lhs is enclosed within ()
-    // if (lhs is enclosed within parentheses) {
-    //   then null assertion was intended.
-    //   return
-    // }
-    //
-    // else, then check if rhs is "==" operator (equals)
-    // if (rhs is '==' ) {
-    // then report error
-
-    // print(op_span.string_view()); **CANT USE** (how do I know what op_span is??)
-
-    string8_view string_span = op_span.string_view();
-    // if (string_span == u8" =="_sv)
-    // {
-    //   this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
-    //       .equals_operator = op_span,
-    //   });
-    // }
-    bool starts_with_right_paren = false;
-    int i = 0;
-    if (string_span[0] == u8"("_sv)
-    {
-      starts_with_right_paren = true;
-    }
-    while (string_span[i] != u8"!"_sv)
-    {
-      if (string_span[i] == u8")"_sv && starts_with_right_paren == true)
-      {
-        return; // non null assertion could be intended, do not warn (x)! == y
-      }
-      i++;
-    }
-    if (string_span[i] == u8" "_sv && string_span[i + 1] == u8"="_sv &&
-        string_span[i + 2] == u8"="_sv && string_span[i] == u8" "_sv)
+    // op span is '!', check what is to the right of it
+    if (this->peek().type == token_type::equal_equal)
     {
       this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
-          .equals_operator = op_span, // Should it be something other than .equals_operator?
+          .equals_operator = this->peek().span(), // Should it be something other than .equals_operator?
       });
     }
   }
