@@ -411,6 +411,7 @@ class parser {
                                                 source_code_span token);
 
   void error_on_sketchy_condition(expression *);
+  void warn_on_pointless_string_condition(expression::conditional* ast);
   void warn_on_comma_operator_in_conditional_statement(expression *);
   void warn_on_comma_operator_in_index(expression *, source_code_span);
   void error_on_pointless_string_compare(expression::binary_operator *);
@@ -687,11 +688,6 @@ class parser {
   void consume_semicolon_after_statement();
   template <class MissingSemicolonDiagnostic>
   void consume_semicolon();
-
-  void error_on_pointless_nullish_coalescing_operator(
-      expression::binary_operator *);
-
-  void check_lhs_for_null_potential(expression *, source_code_span op_span);
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
   void skip() noexcept { this->lexer_.skip(); }
