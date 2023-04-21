@@ -6,6 +6,21 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* Missing props in JSX tags now report [E0376][] ("JSX prop is missing an
+  expression"). (Implemented by [James Moles][].)
+* `! ==` (with a space) now reports [E0373][]. (Implemented by [daethtech][].)
+* `x == y ?? true` now reports [E0369][]. (Implemented by [Kate Conkright][].)
+
+### Fixed
+
+* TypeScript support (still experimental):
+  * '\`hello${world}\` as const' no longer falsely reports [E0291][].
+    (Fixed by [Leszek Nowicki][].)
+
 ## 2.13.0 (2023-04-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.13.0/)
@@ -872,10 +887,13 @@ Beta release.
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
+[James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
+[Kate Conkright]: https://github.com/applepie23
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
+[Leszek Nowicki]: https://github.com/leszek888
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
@@ -888,6 +906,7 @@ Beta release.
 [Tony Sathre]: https://github.com/tonysathre
 [Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
+[daethtech]: https://github.com/daethtech
 [david doroz]: https://github.com/DaviddHub
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
@@ -976,6 +995,7 @@ Beta release.
 [E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
+[E0291]: https://quick-lint-js.com/errors/E0291/
 [E0311]: https://quick-lint-js.com/errors/E0311/
 [E0325]: https://quick-lint-js.com/errors/E0325/
 [E0326]: https://quick-lint-js.com/errors/E0326/
@@ -989,6 +1009,9 @@ Beta release.
 [E0349]: https://quick-lint-js.com/errors/E0349/
 [E0356]: https://quick-lint-js.com/errors/E0356/
 [E0365]: https://quick-lint-js.com/errors/E0365/
+[E0369]: https://quick-lint-js.com/errors/E0369/
+[E0373]: https://quick-lint-js.com/errors/E0373/
+[E0376]: https://quick-lint-js.com/errors/E0376/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
