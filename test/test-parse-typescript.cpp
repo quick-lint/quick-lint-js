@@ -286,6 +286,17 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
                   typescript_options);
     p.parse_and_visit_statement();
   }
+  {
+    test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_mistyped_strict_inequality_operator,
+                non_null_assertion, strlen(u8"'hello'"), u8"! =="_sv),
+        }));
+  }
 }
 }
 }
