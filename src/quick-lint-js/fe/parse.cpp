@@ -334,6 +334,39 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
+void parser::warn_on_pointless_string_condition(
+    expression::conditional* ast) {
+  auto is_or_operator = [](string8_view s) {
+    return s == u8"||"_sv;
+  };
+
+  for (span_size i = 0; i < ast->child_count() + 1; i++) {
+    expression* lhs = ast->child(i)->without_paren();
+    expression* rhs = ast->child(i + 1)->without_paren();
+
+    if ((lhs->kind() == expression_kind::literal &&
+         rhs->kind() == expression_kind::literal) ){
+      source_code_span op_span = ast->operator_spans_[i];
+      if (!is_or_operator(op_span.string_view())) {
+        continue;
+      }
+      auto char_is_a_quote = [](const char8* s) {
+        return *s == '"' || *s == '\'' || *s == '`';
+      };
+
+      if (!char_is_a_quote(rhs->span().begin())) {
+        continue;
+      }
+
+      // string8_view literal1 = lhs->child_0()->variable_identifier().span().string_view();
+      // string8_view literal2 = rhs->span().string_view();
+
+      this->diag_reporter_->report(
+        diag_pointless_comp_against_string_expression_literal{op_span});
+    }
+  }
+}
+
 void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
   if (ast->kind() != expression_kind::binary_operator) return;
 
@@ -435,7 +468,6 @@ void parser::error_on_invalid_as_const(expression* ast,
   case expression_kind::dot:
   case expression_kind::array:
   case expression_kind::object:
-  case expression_kind::_template:
     break;
 
   case expression_kind::literal: {
@@ -732,82 +764,6 @@ void parser::consume_semicolon() {
       this->skip();
     }
     break;
-  }
-}
-
-void parser::error_on_pointless_nullish_coalescing_operator(
-    expression::binary_operator* ast) {
-  auto is_nullish_operator = [](string8_view s) -> bool {
-    return s == u8"??"_sv;
-  };
-
-  for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    source_code_span op_span = ast->operator_spans_[i];
-    if (is_nullish_operator(op_span.string_view())) {
-      if (i >= 1) {
-        // lhs is a multi-child expression
-        return;
-      } else {
-        this->check_lhs_for_null_potential(ast->child(i)->without_paren(),
-                                           op_span);
-      }
-    }
-  }
-}
-
-void parser::check_lhs_for_null_potential(expression* lhs,
-                                          source_code_span op_span) {
-  auto binary_operator_is_never_null =
-      [](expression::binary_operator* expr) -> bool {
-    // these 4 binary operators can resolve to a null value
-    string8_view can_resolve_to_null[4] = {u8"&&"_sv, u8"??"_sv, u8","_sv,
-                                           u8"||"_sv};
-    for (span_size i = 0; i < expr->child_count() - 1; i++) {
-      string8_view expr_op_span = expr->operator_spans_[i].string_view();
-      for (span_size j = 0; j < 4; j++) {
-        if (expr_op_span == can_resolve_to_null[j]) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
-  bool report_diag = false;
-  switch (lhs->kind()) {
-  case expression_kind::literal:
-    if (lhs->span().string_view() == u8"null"_sv) {
-      break;
-    }
-    if (lhs->span().string_view() == u8"undefined"_sv) {
-      break;
-    }
-    report_diag = true;
-    break;
-  case expression_kind::rw_unary_suffix:
-    report_diag = true;
-    break;
-  case expression_kind::unary_operator: {
-    auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
-    if (maybe_void_lhs->is_void_operator() == false) {
-      report_diag = true;
-    }
-    break;
-  }
-  case expression_kind::_typeof:
-    report_diag = true;
-    break;
-  case expression_kind::binary_operator: {
-    auto* operator_lhs = static_cast<expression::binary_operator*>(lhs);
-    report_diag = binary_operator_is_never_null(operator_lhs);
-    break;
-  }
-  default:
-    break;
-  }
-  if (report_diag == true) {
-    this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
-        .question_question = op_span});
   }
 }
 

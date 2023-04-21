@@ -2961,6 +2961,16 @@
               equals_operator, comparison_result))                              \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_comp_against_string_expression_literal, "E0373",           \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span or_operator;                                           \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("comparison with a non-empty string literal "   \
+                                " always returns '{1}'"),                       \
+              or_operator))                                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_unexpected_function_parameter_is_parenthesized, "E0349",             \
       diagnostic_severity::error,                                               \
       { source_code_span left_paren_to_right_paren; },                          \
@@ -2976,13 +2986,6 @@
       diag_unexpected_colon_after_generic_definition, "E0331",                  \
       diagnostic_severity::error, { source_code_span colon; },                  \
       MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"), colon))     \
-                                                                                \
-  QLJS_DIAG_TYPE(                                                               \
-      diag_pointless_nullish_coalescing_operator, "E0369",                      \
-      diagnostic_severity::warning, { source_code_span question_question; },    \
-      MESSAGE(QLJS_TRANSLATABLE("nullish coalescing operator does nothing "     \
-                                "when left operand is never null"),             \
-              question_question))                                               \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
