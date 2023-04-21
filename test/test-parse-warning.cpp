@@ -673,72 +673,21 @@ TEST_F(test_parse_warning,
   }
 }
 
-TEST_F(test_parse_warning, warn_on_pointless_nullish_coalescing_operator) {
+TEST_F(test_parse_warning, warn_on_pointless_string_literal_comparison) {
   {
-    test_parser p(u8"true ?? false"_sv, capture_diags);
+    test_parser p(u8"if('x' || 'y')"_sv, capture_diags);
     p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_pointless_comp_against_string_expression_literal,
+                              or_operator, strlen(u8"'x' "), u8"||"_sv),
+        }));
+  }
+}
+}
+}
 
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_pointless_nullish_coalescing_operator,
-                        question_question, strlen(u8"true "), u8"??"_sv),
-                }));
-  }
-  {
-    test_parser p(u8"(a < b) ?? false"_sv, capture_diags);
-    p.parse_and_visit_expression();
-
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_pointless_nullish_coalescing_operator,
-                        question_question, strlen(u8"(a < b) "), u8"??"_sv),
-                }));
-  }
-  {
-    test_parser p(u8"!b ?? false"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_pointless_nullish_coalescing_operator,
-                        question_question, strlen(u8"!b "), u8"??"_sv),
-                }));
-  }
-  {
-    test_parser p(u8"'hi' ?? true"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_pointless_nullish_coalescing_operator,
-                        question_question, strlen(u8"'hi' "), u8"??"_sv),
-                }));
-  }
-  for (string8_view code : {
-           u8"s.toLowerCase() ?? false"_sv,
-           u8"s ?? false"_sv,
-           u8"null ?? false"_sv,
-           u8"(foo) ?? false"_sv,
-           u8"{}.missingProp ?? false"_sv,
-           u8"{}['missingProp'] ?? false"_sv,
-           u8"await foo ?? false"_sv,
-           u8"void 42 ?? false"_sv,
-           u8"bar`hello` ?? false"_sv,
-           u8"this ?? false"_sv,
-           u8"(2+2 && null) ?? false"_sv,
-           u8"(2+2 || null) ?? false"_sv,
-           u8"(2+2 , null) ?? false"_sv,
-           u8"(2+2 ?? null) ?? false"_sv,
-       }) {
-    SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
-    p.parse_and_visit_expression();
-  }
-}
-}
-}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
