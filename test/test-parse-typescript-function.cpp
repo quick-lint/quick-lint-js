@@ -282,6 +282,23 @@ TEST_F(test_parse_typescript_function,
 }
 
 TEST_F(test_parse_typescript_function,
+       arrow_with_parameter_type_annotation_is_disallowed_in_javascript) {
+  {
+    test_parser p(u8"(p: T) => {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_type_annotations_not_allowed_in_javascript,  //
+                type_colon, strlen(u8"(p"), u8":"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
        arrow_with_complex_return_type_annotation_including_arrow) {
   {
     test_parser p(u8"((): (() => ReturnType) | Other => {})"_sv,

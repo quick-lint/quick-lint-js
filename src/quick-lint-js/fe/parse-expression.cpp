@@ -508,6 +508,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     // (x + y * z)
     expression* child = this->parse_expression(
         v, precedence{
+               .colon_type_annotation = allow_type_annotations::always,
                .trailing_identifiers = true,
                .colon_question_is_typescript_optional_with_type_annotation =
                    this->options_.typescript,
