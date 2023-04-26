@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -68,6 +69,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     this->error_on_pointless_compare_against_literal(
         static_cast<expression::binary_operator*>(ast));
     error_on_pointless_string_compare(
+        static_cast<expression::binary_operator*>(ast));
+    this->error_on_pointless_nullish_coalescing_operator(
         static_cast<expression::binary_operator*>(ast));
     break;
   case expression_kind::trailing_comma: {
@@ -1772,13 +1775,18 @@ next:
       break;
     } else {
       source_code_span bang_span = this->peek().span();
-      if (!this->options_.typescript) {
+      this->skip();
+      if (this->peek().type == token_type::equal_equal) {
+        this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
+            .non_null_assertion =
+                source_code_span(bang_span.begin(), this->peek().span().end()),
+        });
+      } else if (!this->options_.typescript) {
         this->diag_reporter_->report(
             diag_typescript_non_null_assertion_not_allowed_in_javascript{
                 .bang = bang_span,
             });
       }
-      this->skip();
       binary_builder.replace_last(
           this->make_expression<expression::non_null_assertion>(
               binary_builder.last_expression(), bang_span));
@@ -3496,8 +3504,15 @@ next_attribute:
 
       // <current attribute={expression}>
       case token_type::left_curly: {
+        const char8* left_curly_brace = this->peek().begin;
         this->lexer_.skip();
         expression* ast = this->parse_expression(v);
+        if (ast->kind() == expression_kind::_missing) {
+          const char8* right_curly_brace = this->peek().end;
+          this->diag_reporter_->report(diag_jsx_prop_is_missing_expression{
+              .left_brace_to_right_brace =
+                  source_code_span(left_curly_brace, right_curly_brace)});
+        }
         children.emplace_back(ast);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
         this->lexer_.skip_in_jsx();

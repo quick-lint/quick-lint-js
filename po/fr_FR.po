@@ -2130,6 +2130,22 @@ msgstr ""
 msgid "':' should be 'extends' instead"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid ""
+"nullish coalescing operator does nothing when left operand is never null"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid ""
+"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, "
+"use '(x!) == y' instead"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "JSX prop is missing an expression"
+msgstr "une instruction with nécessite '{1}' autour de l'expression"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

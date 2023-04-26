@@ -77,7 +77,8 @@ const translation_table translation_data = {
         {0, 0, 0, 48, 0, 38},                //
         {73, 31, 0, 54, 0, 38},              //
         {15, 14, 0, 13, 0, 13},              //
-        {0, 0, 0, 19, 0, 17},                //
+        {0, 0, 0, 0, 0, 17},                 //
+        {0, 0, 0, 19, 0, 99},                //
         {15, 38, 0, 25, 0, 25},              //
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
@@ -89,7 +90,8 @@ const translation_table translation_data = {
         {30, 33, 40, 30, 44, 33},            //
         {48, 16, 55, 35, 45, 48},            //
         {79, 39, 98, 87, 0, 65},             //
-        {0, 0, 0, 24, 0, 18},                //
+        {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 24, 0, 34},                //
         {0, 0, 0, 50, 0, 44},                //
         {21, 38, 23, 58, 0, 52},             //
         {0, 0, 0, 64, 0, 52},                //
@@ -355,7 +357,8 @@ const translation_table translation_data = {
         {0, 0, 0, 47, 0, 35},                //
         {52, 31, 25, 61, 21, 54},            //
         {0, 0, 0, 89, 0, 73},                //
-        {63, 34, 103, 64, 73, 50},           //
+        {0, 0, 0, 0, 0, 50},                 //
+        {63, 34, 103, 64, 73, 73},           //
         {69, 23, 79, 41, 51, 48},            //
         {40, 26, 61, 39, 56, 47},            //
         {27, 36, 29, 20, 30, 28},            //
@@ -1803,6 +1806,7 @@ const translation_table translation_data = {
         u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
+        u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead\0"
         u8"'{0} []' is always '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
@@ -1815,6 +1819,7 @@ const translation_table translation_data = {
         u8"C-style for loop is missing its third component\0"
         u8"C-style for loops have only three semicolon-separated components\0"
         u8"JSON syntax error\0"
+        u8"JSX prop is missing an expression\0"
         u8"React/JSX is not allowed in TypeScript code\0"
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
@@ -2081,6 +2086,7 @@ const translation_table translation_data = {
         u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"newline is not allowed between field name and '!'\0"
+        u8"nullish coalescing operator does nothing when left operand is never null\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"
         u8"object literal started here\0"

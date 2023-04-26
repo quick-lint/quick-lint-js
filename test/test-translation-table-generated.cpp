@@ -737,6 +737,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"_translatable,
+        {
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+        },
+    },
+    {
         "'{0} []' is always '{1}'"_translatable,
         {
             u8"'{0} []' is always '{1}'",
@@ -866,6 +877,17 @@ const translated_string test_translation_table[] = {
             u8"erreur de syntaxe JSON",
             u8"erro de sintaxe de JSON",
             u8"JSON syntax error",
+        },
+    },
+    {
+        "JSX prop is missing an expression"_translatable,
+        {
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
         },
     },
     {
@@ -3792,6 +3814,17 @@ const translated_string test_translation_table[] = {
             u8"newline is not allowed between field name and '!'",
             u8"quebra de linha n\u00e3o \u00e9 permitida entre o nome do campo e o '!'",
             u8"newline is not allowed between field name and '!'",
+        },
+    },
+    {
+        "nullish coalescing operator does nothing when left operand is never null"_translatable,
+        {
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
         },
     },
     {

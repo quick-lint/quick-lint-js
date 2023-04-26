@@ -672,6 +672,71 @@ TEST_F(test_parse_warning,
         }));
   }
 }
+
+TEST_F(test_parse_warning, warn_on_pointless_nullish_coalescing_operator) {
+  {
+    test_parser p(u8"true ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"true "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"(a < b) ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"(a < b) "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"!b ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"!b "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"'hi' ?? true"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"'hi' "), u8"??"_sv),
+                }));
+  }
+  for (string8_view code : {
+           u8"s.toLowerCase() ?? false"_sv,
+           u8"s ?? false"_sv,
+           u8"null ?? false"_sv,
+           u8"(foo) ?? false"_sv,
+           u8"{}.missingProp ?? false"_sv,
+           u8"{}['missingProp'] ?? false"_sv,
+           u8"await foo ?? false"_sv,
+           u8"void 42 ?? false"_sv,
+           u8"bar`hello` ?? false"_sv,
+           u8"this ?? false"_sv,
+           u8"(2+2 && null) ?? false"_sv,
+           u8"(2+2 || null) ?? false"_sv,
+           u8"(2+2 , null) ?? false"_sv,
+           u8"(2+2 ?? null) ?? false"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    p.parse_and_visit_expression();
+  }
+}
 }
 }
 

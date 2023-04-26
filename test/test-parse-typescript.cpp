@@ -194,6 +194,102 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
         }));
   }
 }
+
+TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
+  {
+    test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              non_null_assertion, strlen(u8"x"), u8"! =="_sv),
+        }));
+  }
+  {
+    test_parser p(u8"'hello'! == 'world'"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,
+                        non_null_assertion, strlen(u8"'hello'"), u8"! =="_sv),
+                }));
+  }
+  {
+    test_parser p(u8"(True! == False)"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,
+                        non_null_assertion, strlen(u8"(True"), u8"! =="_sv),
+                }));
+  }
+  {
+    test_parser p(u8"(x! == y) == z"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              non_null_assertion, strlen(u8"(x"), u8"! =="_sv),
+        }));
+  }
+  {
+    test_parser p(u8"(x! == (y == z))"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              non_null_assertion, strlen(u8"(x"), u8"! =="_sv),
+        }));
+  }
+  {
+    test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              non_null_assertion, strlen(u8"if (length + 1"),
+                              u8"! =="_sv),
+        }));
+  }
+  {
+    test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,
+                        non_null_assertion,
+                        strlen(u8"if (typeof diagnostic.code"), u8"! =="_sv),
+                }));
+  }
+  {
+    test_parser p(u8"(x!) == y"_sv, typescript_options);
+    p.parse_and_visit_statement();
+  }
+  {
+    test_parser p(u8"if ((x!) == y) {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+  }
+  {
+    test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,
+                        non_null_assertion, strlen(u8"'hello'"), u8"! =="_sv),
+                }));
+  }
+}
 }
 }
 

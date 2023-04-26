@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 447;
-constexpr std::size_t translation_table_string_table_size = 76557;
+constexpr std::uint16_t translation_table_mapping_table_size = 450;
+constexpr std::size_t translation_table_string_table_size = 76763;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -94,6 +94,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'type' cannot be used twice in import"sv,
           "'while' loop"sv,
           "'with' statement"sv,
+          "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"sv,
           "'{0} []' is always '{1}'"sv,
           "'{0}' found here"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
@@ -106,6 +107,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "C-style for loop is missing its third component"sv,
           "C-style for loops have only three semicolon-separated components"sv,
           "JSON syntax error"sv,
+          "JSX prop is missing an expression"sv,
           "React/JSX is not allowed in TypeScript code"sv,
           "React/JSX is not allowed in vanilla JavaScript code"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,
@@ -372,6 +374,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "newline is not allowed between 'async' and 'function'"sv,
           "newline is not allowed between 'async' and arrow function parameter list"sv,
           "newline is not allowed between field name and '!'"sv,
+          "nullish coalescing operator does nothing when left operand is never null"sv,
           "number literal contains consecutive underscores"sv,
           "number literal contains trailing underscore(s)"sv,
           "object literal started here"sv,

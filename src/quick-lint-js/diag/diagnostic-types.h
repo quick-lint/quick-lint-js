@@ -2976,6 +2976,29 @@
       diag_unexpected_colon_after_generic_definition, "E0331",                  \
       diagnostic_severity::error, { source_code_span colon; },                  \
       MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"), colon))     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_pointless_nullish_coalescing_operator, "E0369",                      \
+      diagnostic_severity::warning, { source_code_span question_question; },    \
+      MESSAGE(QLJS_TRANSLATABLE("nullish coalescing operator does nothing "     \
+                                "when left operand is never null"),             \
+              question_question))                                               \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_mistyped_strict_inequality_operator, "E0373",                        \
+      diagnostic_severity::warning, { source_code_span non_null_assertion; },   \
+      MESSAGE(QLJS_TRANSLATABLE("'x! == y' might be a typo for 'x !== y'. "     \
+                                "If a null assertion was intended, use "        \
+                                "'(x!) == y' instead"),                         \
+              non_null_assertion))                                              \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_jsx_prop_is_missing_expression, "E0376",                             \
+      diagnostic_severity::error,                                               \
+      { source_code_span left_brace_to_right_brace; },                          \
+      MESSAGE(QLJS_TRANSLATABLE("JSX prop is missing an expression"),           \
+              left_brace_to_right_brace))                                       \
+                                                                                \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
