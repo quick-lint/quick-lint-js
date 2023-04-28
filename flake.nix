@@ -1,7 +1,7 @@
 {
   inputs.flake-utils.url = github:numtide/flake-utils;
   outputs = { self, nixpkgs, flake-utils }:
-  flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+  flake-utils.lib.eachSystem flake-utils.lib.allSystems (system:
   let pkgs = nixpkgs.legacyPackages.${system};
   in rec {
     # Runs with nix build .#quick-lint-js
