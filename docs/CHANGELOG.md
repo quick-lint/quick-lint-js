@@ -17,6 +17,8 @@ Semantic Versioning.
 
 ### Fixed
 
+* Arrow functions with TypeScript parameter type annotations no longer report
+  confusing diagnostics in JavaScript mode. (Implemented by [Leszek Nowicki][].)
 * TypeScript support (still experimental):
   * '\`hello${world}\` as const' no longer falsely reports [E0291][].
     (Fixed by [Leszek Nowicki][].)
