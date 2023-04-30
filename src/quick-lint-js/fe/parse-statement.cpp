@@ -1774,7 +1774,10 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
               .init_kind = variable_init_kind::normal,
               .first_parameter_begin = first_parameter_begin,
           });
-      if (parameter->kind() == expression_kind::optional) {
+
+      if (parameter->kind() == expression_kind::optional ||
+          (parameter->kind() == expression_kind::type_annotated &&
+           parameter->child_0()->kind() == expression_kind::optional)) {
         previous_optional = true;
       } else if (previous_optional) {
         this->diag_reporter_->report(

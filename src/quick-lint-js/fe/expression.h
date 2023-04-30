@@ -1227,7 +1227,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *annotated = static_cast<const expression::type_annotated *>(this);
     return expression_arena::array_ptr<expression *>(&annotated->child_, 1);
   }
-
+  /* case expression_kind::variable : {
+    auto *variable = static_cast<const expression::variable *>(this);
+    return expression_arena::array_ptr<expression *>(&variable->child_1, 1);
+  }*/
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
