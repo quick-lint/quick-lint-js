@@ -7,7 +7,7 @@
       "channel": "stable",
       "date": "${releaseDate}",
       "os": "linux",
-      "arch": "",
+      "arch": "x86_64/amd64",
       "ext": "tar.gz",
       "download": "https://c.quick-lint-js.com/releases/${version}/manual/linux.tar.gz"
     },
@@ -40,7 +40,7 @@
       "channel": "stable",
       "date": "${releaseDate}",
       "os": "macos",
-      "arch": "",
+      "arch": "x86_64/amd64",
       "ext": "tar.gz",
       "download": "https://c.quick-lint-js.com/releases/${version}/manual/macos.tar.gz"
     },
@@ -62,7 +62,7 @@
       "channel": "stable",
       "date": "${releaseDate}",
       "os": "windows",
-      "arch": "",
+      "arch": "x86_64/amd64",
       "ext": "zip",
       "download": "https://c.quick-lint-js.com/releases/${version}/manual/windows.tar.gz"
     },
