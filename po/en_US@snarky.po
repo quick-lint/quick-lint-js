@@ -1170,7 +1170,6 @@ msgstr ""
 msgid "initializer starts here"
 msgstr "IIFE started here"
 
-# TODO(you) add another diagnostic that's more explicit about not allowing parameters
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "optional parameter cannot be followed by a required parameter"
