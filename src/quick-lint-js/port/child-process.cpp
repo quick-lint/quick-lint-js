@@ -349,11 +349,15 @@ run_program_result run_program(span<const char* const> command,
 
 namespace {
 #if QLJS_HAVE_UNISTD_H
+#if !QLJS_HAVE_NS_GET_ENVIRON
+extern "C" char** environ;
+#endif
+
 char** get_posix_environment() {
 #if QLJS_HAVE_NS_GET_ENVIRON
   return *::_NSGetEnviron();
 #else
-  return ::environ;
+  return environ;
 #endif
 }
 #endif
