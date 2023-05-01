@@ -3,17 +3,32 @@
 
 cmake_minimum_required(VERSION 3.10)
 include(CheckCXXSourceCompiles)
+include(CheckIncludeFileCXX)
 include(QuickLintJSCompiler)
 include(QuickLintJSTarget)
 
+check_include_file_cxx("libutil.h" QUICK_LINT_JS_HAVE_LIBUTIL_H)
+check_include_file_cxx("pty.h" QUICK_LINT_JS_HAVE_PTY_H)
+check_include_file_cxx("util.h" QUICK_LINT_JS_HAVE_UTIL_H)
+
+set(FORKPTY_SOURCE "
+    int main() {
+      pid_t rc = ::forkpty(nullptr, nullptr, nullptr, nullptr);
+      return (int)rc;
+    }")
+if (QUICK_LINT_JS_HAVE_LIBUTIL_H)
+  set(FORKPTY_SOURCE "#include <libutil.h>\n${FORKPTY_SOURCE}")
+endif ()
+if (QUICK_LINT_JS_HAVE_PTY_H)
+  set(FORKPTY_SOURCE "#include <pty.h>\n${FORKPTY_SOURCE}")
+endif ()
+if (QUICK_LINT_JS_HAVE_UTIL_H)
+  set(FORKPTY_SOURCE "#include <util.h>\n${FORKPTY_SOURCE}")
+endif ()
+
 set(OLD_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
 list(APPEND CMAKE_REQUIRED_LIBRARIES util)
-check_cxx_source_compiles(
-  "#include <pty.h>
-  int main() {
-    pid_t rc = ::forkpty(nullptr, nullptr, nullptr, nullptr);
-    return (int)rc;
-  }" QUICK_LINT_JS_HAVE_LIBUTIL)
+check_cxx_source_compiles("${FORKPTY_SOURCE}" QUICK_LINT_JS_HAVE_LIBUTIL)
 set(CMAKE_REQUIRED_LIBRARIES "${OLD_CMAKE_REQUIRED_LIBRARIES}")
 
 quick_lint_js_add_library(
