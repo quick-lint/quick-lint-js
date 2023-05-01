@@ -55,15 +55,20 @@ from a certificate authority (e.g. [SSL.com][]):
 
 1. Open Keychain Access.
 2. Right-click the private key.
+   * Note: The production certificate is called "quick-lint-js" (RSA 4096-bit).
 3. Choose "Request a Certificate From a Certificate Authority".
 4. Fill in the Common Name (CN) based on the CN provided by your certificate
    authority.
+   * Note: The production CN is "Matthew Glazar".
 5. Give the CSR to your certificate authority.
 6. Download the certificate chain .crt file, saving it to
    `dist/certificates/quick-lint-js.crt`.
-7. [Update the macOS code signing requirements file.][apple-csreq]
+7. Augment .crt file with certificates root CAs:
+   * `SSL_COM_ROOT_CERTIFICATION_AUTHORITY_RSA.crt`
+   * `Certum Trusted Network CA.pem`
+8. [Update the macOS code signing requirements file.][apple-csreq]
 
 [SSL.com]: https://www.ssl.com/
 [macos-create-ca]: https://www.simplified.guide/macos/keychain-ca-code-signing-create
 [macos-create-cert]: https://www.simplified.guide/macos/keychain-cert-code-signing-create
-[apple-csreq]: apple/README.md
+[apple-csreq]: ../dist/apple/README.md

@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import { TraceReader, TraceEventType } from "./trace.mjs";
+import { TraceReader, TraceEventType, TraceLSPDocumentType } from "./trace.mjs";
 
 let DEBUG_LSP_LOG = false;
 
@@ -153,6 +153,9 @@ class DebugServerSocket extends EventEmitter {
         case TraceEventType.PROCESS_ID:
           this.emit("processIDEvent", event);
           break;
+        case TraceEventType.LSP_DOCUMENTS:
+          this.emit("lspDocumentsEvent", event);
+          break;
         default:
           this.emit("unknownTraceEvent", event);
           break;
@@ -273,6 +276,103 @@ class LSPLogView {
   }
 }
 
+class LSPStateDetailsView {
+  constructor(rootElement) {
+    this._rootElement = rootElement;
+    this._documentLanguageIDElement = rootElement.querySelector(
+      "#lsp-state-language-id"
+    );
+    this._documentTextElement = rootElement.querySelector(
+      "#lsp-state-document-text"
+    );
+  }
+
+  setState(doc) {
+    if (doc === null) {
+      this._documentTextElement.textContent = "";
+      this._documentLanguageIDElement.textContent = "";
+    } else {
+      this._documentTextElement.textContent = doc.text;
+      this._documentLanguageIDElement.textContent = doc.languageID;
+    }
+  }
+}
+
+class LSPStateView {
+  constructor(rootElement) {
+    this._rootElement = rootElement;
+    this._documentListElement = rootElement.querySelector(
+      "#lsp-state-documents"
+    );
+    this._detailsView = new LSPStateDetailsView(
+      rootElement.querySelector("#lsp-state-details")
+    );
+
+    this._documentListElement.addEventListener("click", (event) => {
+      this._onClick(event);
+    });
+
+    this._elementToDocumentState = new Map();
+
+    this._selectedDocumentElement = null;
+    this._selectedDocumentURI = null;
+  }
+
+  setDocuments(_timestamp, documents) {
+    // TODO(strager): Preserve scroll and text selection.
+    this._documentListElement.replaceChildren();
+    this._elementToDocumentState.clear();
+
+    let selectedDocs = documents.filter(
+      (doc) => doc.uri === this._selectedDocumentURI
+    );
+    let selectedDoc = selectedDocs.length === 1 ? selectedDocs[0] : null;
+
+    for (let doc of documents) {
+      let element = document.createElement("li");
+      element.classList.add("lsp-document");
+      element.classList.toggle(
+        "lsp-unknown-document-type",
+        doc.type === TraceLSPDocumentType.UNKNOWN
+      );
+      element.textContent = doc.uri;
+
+      this._documentListElement.appendChild(element);
+      this._elementToDocumentState.set(element, doc);
+
+      if (doc === selectedDoc) {
+        element.classList.add("selected");
+        this._selectedDocumentElement = element;
+      }
+    }
+
+    this._detailsView.setState(selectedDoc);
+  }
+
+  _onClick(event) {
+    let element = event.target;
+    while (element !== document && element !== event.currentTarget) {
+      let doc = this._elementToDocumentState.get(element);
+      if (doc !== undefined) {
+        this._onMessageClicked(element, doc);
+        break;
+      }
+      element = element.parentNode;
+    }
+  }
+
+  _onMessageClicked(element, doc) {
+    if (this._selectedDocumentElement !== null) {
+      this._selectedDocumentElement.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    this._selectedDocumentElement = element;
+    this._selectedDocumentURI = doc.uri;
+
+    this._detailsView.setState(doc);
+  }
+}
+
 function createElementWithText(tagName, textContent) {
   let element = document.createElement(tagName);
   element.textContent = textContent;
@@ -280,6 +380,7 @@ function createElementWithText(tagName, textContent) {
 }
 
 let lspLog = new LSPLogView(document.getElementById("lsp-log"));
+let lspState = new LSPStateView(document.getElementById("lsp-state"));
 
 class ServerInfoView {
   constructor(rootElement) {
@@ -317,6 +418,9 @@ DebugServerSocket.connectAsync().then((socket) => {
   });
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
+  });
+  socket.on("lspDocumentsEvent", ({ timestamp, documents }) => {
+    lspState.setDocuments(timestamp, documents);
   });
   socket.on("vectorMaxSizeHistogramByOwner", ({ timestamp, entries }) => {
     for (let { owner, maxSizeEntries } of entries) {

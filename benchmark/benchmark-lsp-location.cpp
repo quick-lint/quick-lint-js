@@ -119,8 +119,8 @@ void benchmark_from_position_realisticish(::benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_from_position_realisticish)->Arg(1)->Arg(50);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

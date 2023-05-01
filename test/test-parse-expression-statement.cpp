@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -236,12 +236,17 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
 TEST_F(test_parse_expression_statement,
        statement_starting_with_binary_only_operator) {
   // '<' omitted. It is used for JSX.
+  // '/=' omitted. It starts a regular expression.
   for (string8_view op : {
-           u8"!="_sv,         u8"!=="_sv, u8"%"_sv,   u8"&"_sv,  u8"&&"_sv,
-           u8"*"_sv,          u8"**"_sv,  u8","_sv,   u8"<<"_sv, u8"<="_sv,
-           u8"="_sv,          u8"=="_sv,  u8"==="_sv, u8">"_sv,  u8">="_sv,
-           u8">>"_sv,         u8">>>"_sv, u8"??"_sv,  u8"^"_sv,  u8"in"_sv,
-           u8"instanceof"_sv, u8"|"_sv,
+           u8"!="_sv,         u8"!=="_sv, u8"%"_sv,    u8"%="_sv,
+           u8"&"_sv,          u8"&&"_sv,  u8"&&="_sv,  u8"&="_sv,
+           u8"*"_sv,          u8"**"_sv,  u8"**="_sv,  u8"*="_sv,
+           u8"+="_sv,         u8","_sv,   u8"-="_sv,   u8"<<"_sv,
+           u8"<<="_sv,        u8"<="_sv,  u8"="_sv,    u8"=="_sv,
+           u8"==="_sv,        u8">"_sv,   u8">="_sv,   u8">>"_sv,
+           u8">>="_sv,        u8">>>"_sv, u8">>>="_sv, u8"??"_sv,
+           u8"?\x3f="_sv,     u8"^"_sv,   u8"^="_sv,   u8"in"_sv,
+           u8"instanceof"_sv, u8"|"_sv,   u8"|="_sv,   u8"||="_sv,
        }) {
     test_parser p(concat(op, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
@@ -1640,6 +1645,80 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
                         left_paren_to_right_paren, 0, u8"()"_sv,              //
                         left_paren, 0, u8"("_sv,                              //
                         right_paren, strlen(u8"("), u8")"_sv),
+                }));
+  }
+}
+
+TEST_F(test_parse_expression_statement,
+       arrow_function_statement_requires_semicolon_or_asi) {
+  {
+    test_parser p(u8"() => {} foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"() => {}"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"() => {} //ASI\nfoo"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // foo
+                              "visit_end_of_module",              //
+                          }));
+  }
+
+  {
+    test_parser p(u8"async () => {} foo"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"async () => {}"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"async () => {} //ASI\nfoo"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_use",               // foo
+                              "visit_end_of_module",              //
+                          }));
+  }
+}
+
+TEST_F(test_parse_expression_statement,
+       parenthesized_expression_requires_semicolon_or_asi) {
+  {
+    test_parser p(u8"(2+2) foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"(2+2)"), u8""_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"if (true) { } else (2+2) foo"_sv, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"if (true) { } else (2+2)"), u8""_sv),
                 }));
   }
 }

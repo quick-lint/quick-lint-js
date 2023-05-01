@@ -5,7 +5,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/optional.h>
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -129,6 +129,10 @@ void variable_analyzer::visit_enter_class_scope_body(
   }
 }
 
+void variable_analyzer::visit_enter_conditional_type_scope() {
+  this->scopes_.push();
+}
+
 void variable_analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
 
 void variable_analyzer::visit_enter_for_scope() { this->scopes_.push(); }
@@ -180,6 +184,14 @@ void variable_analyzer::visit_exit_with_scope() {
 }
 
 void variable_analyzer::visit_exit_class_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+  this->scopes_.pop();
+}
+
+void variable_analyzer::visit_exit_conditional_type_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
@@ -509,7 +521,7 @@ void variable_analyzer::visit_end_of_module() {
     case used_variable_kind::_typeof:
     case used_variable_kind::assignment:
     case used_variable_kind::use:
-      QLJS_ASSERT(!global_scope.declared_variables.find(var.name));
+      QLJS_ASSERT(!global_scope.declared_variables.find_runtime(var.name));
       break;
     case used_variable_kind::type:
       QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));
@@ -815,6 +827,9 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
   case variable_kind::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
+  case variable_kind::_infer_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   case variable_kind::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
@@ -908,6 +923,7 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   case vk::_const:
   case vk::_function:
   case vk::_let:
+  case vk::_namespace:
   case vk::_var:
     QLJS_ASSERT(kind != vk::_arrow_parameter);
     QLJS_ASSERT(kind != vk::_catch);
@@ -935,7 +951,7 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   case vk::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
-  case vk::_namespace:
+  case vk::_infer_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_type_alias:
@@ -954,30 +970,41 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
   bool other_kind_is_parameter = is_parameter(other_kind);
 
   bool redeclaration_ok =
-      (other_kind == vk::_function && kind_is_parameter) ||
-      (other_kind == vk::_function && kind == vk::_function) ||
-      (other_kind_is_parameter && kind == vk::_function) ||
-      (other_kind == vk::_var && kind == vk::_function) ||
-      (other_kind_is_parameter && kind_is_parameter) ||
-      (other_kind == vk::_catch && kind == vk::_enum) ||
-      (other_kind == vk::_catch && kind == vk::_var) ||
-      (other_kind == vk::_function && kind == vk::_var) ||
-      (other_kind_is_parameter && kind == vk::_var) ||
-      (other_kind == vk::_var && kind == vk::_var) ||
-      (other_kind == vk::_function &&
-       already_declared_declaration_scope ==
-           declared_variable_scope::declared_in_descendant_scope) ||
+      // clang-format off
+      (kind == vk::_class     && other_kind == vk::_interface) ||
+      (kind == vk::_const     && other_kind == vk::_namespace) ||
+      (kind == vk::_enum      && other_kind == vk::_catch) ||
+      (kind == vk::_enum      && other_kind == vk::_enum) ||
+      (kind == vk::_enum      && other_kind == vk::_namespace) ||
+      (kind == vk::_function  && other_kind == vk::_function) ||
+      (kind == vk::_function  && other_kind == vk::_var) ||
+      (kind == vk::_function  && other_kind_is_parameter) ||
+      (kind == vk::_import    && other_kind == vk::_interface) ||
+      (kind == vk::_interface && other_kind == vk::_class) ||
+      (kind == vk::_interface && other_kind == vk::_import) ||
+      (kind == vk::_interface && other_kind == vk::_interface) ||
+      (kind == vk::_interface && !is_type(other_kind)) ||
+      (kind == vk::_let       && other_kind == vk::_namespace) ||
+      (kind == vk::_namespace && other_kind == vk::_const) ||
+      (kind == vk::_namespace && other_kind == vk::_enum) ||
+      (kind == vk::_namespace && other_kind == vk::_let) ||
+      (kind == vk::_namespace && other_kind == vk::_var) ||
+      (kind == vk::_var       && other_kind == vk::_catch) ||
+      (kind == vk::_var       && other_kind == vk::_function) ||
+      (kind == vk::_var       && other_kind == vk::_namespace) ||
+      (kind == vk::_var       && other_kind == vk::_var) ||
+      (kind == vk::_var       && other_kind_is_parameter) ||
+      (kind_is_parameter      && other_kind == vk::_function) ||
+      (kind_is_parameter      && other_kind_is_parameter) ||
+      (!is_type(kind)         && other_kind == vk::_interface) ||
+      // clang-format on
       (kind == vk::_function &&
        newly_declared_declaration_scope ==
            declared_variable_scope::declared_in_descendant_scope) ||
-      (other_kind == vk::_interface && kind == vk::_interface) ||
-      (other_kind == vk::_interface && kind == vk::_class) ||
-      (other_kind == vk::_class && kind == vk::_interface) ||
-      (other_kind == vk::_interface && kind == vk::_import) ||
-      (other_kind == vk::_import && kind == vk::_interface) ||
-      (other_kind == vk::_interface && !is_type(kind)) ||
-      (!is_type(other_kind) && kind == vk::_interface) ||
-      (other_kind == vk::_enum && kind == vk::_enum);
+      (other_kind == vk::_function &&
+       already_declared_declaration_scope ==
+           declared_variable_scope::declared_in_descendant_scope) ||
+      false;
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(
@@ -1170,6 +1197,7 @@ bool is_runtime(variable_kind kind) noexcept {
     return true;
   case variable_kind::_generic_parameter:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_type_alias:
     return false;
@@ -1185,6 +1213,7 @@ bool is_type(variable_kind kind) noexcept {
   case variable_kind::_import:
   case variable_kind::_import_alias:
   case variable_kind::_import_type:
+  case variable_kind::_infer_type:
   case variable_kind::_interface:
   case variable_kind::_namespace:
   case variable_kind::_type_alias:

@@ -20,7 +20,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: version
         run: ${{ matrix.vim.version_command }}
@@ -32,14 +32,14 @@ jobs:
         run: ./plugin/vim/create-archive
 
       - name: upload archive to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: web-demo-dist-${{ github.sha }}
           path: plugin/vim/quick-lint-js-vim.zip
       - name: upload archive to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: plugin/vim/quick-lint-js-vim.zip

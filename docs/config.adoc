@@ -154,6 +154,9 @@ This group is not enabled by default.
 This group is enabled by default.
 *bun*:: globals defined by the Bun JavaScript runtime, including *Bun*, *fetch*, and *console*.
 This group is enabled by default.
+*deno*:: globals defined by the Deno JavaScript runtime, including *Deno*, *fetch*, and *console*.
+This group is enabled by default.
+(Introduced in version 2.13.0.)
 *ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
 This group is enabled by default.
 *jasmine*:: globals defined by the Jasmine test framework, including *describe*, *it*, and *expect*.
@@ -166,6 +169,9 @@ This group is enabled by default.
 This group is enabled by default.
 *node.js-es*:: globals defined by Node.js for ES modules, including *console* and *process*.
 This group is enabled by default.
+*typescript*:: global types defined by TypeScript, including *Readonly* and *NonNullable*.
+This group is enabled by default.
+(Introduced in version 2.12.0.)
 *quickjs*:: globals defined by QuickJS, including *console* and *scriptArgs*.
 This group is enabled by default.
 (Introduced in version 2.11.0.)

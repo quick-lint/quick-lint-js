@@ -3,8 +3,10 @@
 void mg_rpc_add(struct mg_rpc **head, struct mg_str method,
                 void (*fn)(struct mg_rpc_req *), void *fn_data) {
   struct mg_rpc *rpc = (struct mg_rpc *) calloc(1, sizeof(*rpc));
-  rpc->method = mg_strdup(method), rpc->fn = fn, rpc->fn_data = fn_data;
-  rpc->next = *head, *head = rpc;
+  if (rpc != NULL) {
+    rpc->method = mg_strdup(method), rpc->fn = fn, rpc->fn_data = fn_data;
+    rpc->next = *head, *head = rpc;
+  }
 }
 
 void mg_rpc_del(struct mg_rpc **head, void (*fn)(struct mg_rpc_req *)) {
@@ -84,6 +86,7 @@ static size_t print_methods(mg_pfn_t pfn, void *pfn_data, va_list *ap) {
   struct mg_rpc *h, **head = (struct mg_rpc **) va_arg(*ap, void **);
   size_t len = 0;
   for (h = *head; h != NULL; h = h->next) {
+    if (h->method.len == 0) continue;  // Ignore response handler
     len += mg_xprintf(pfn, pfn_data, "%s%.*Q", h == *head ? "" : ",",
                       (int) h->method.len, h->method.ptr);
   }

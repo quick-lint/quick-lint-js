@@ -19,7 +19,7 @@ all_versions: typing.List[Version] = sorted(
 error_code_file_paths = [
     "src/quick-lint-js/error.h",
     "src/quick-lint-js/diagnostic-types.h",
-    "src/quick-lint-js/fe/diagnostic-types.h",
+    "src/quick-lint-js/diag/diagnostic-types.h",
 ]
 
 

@@ -2,8 +2,8 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 
@@ -48,7 +48,7 @@ void token::report_errors_for_escape_sequences_in_template(
   }
 }
 
-const char* to_string(token_type type) {
+[[gnu::noinline]] const char* to_string(token_type type) {
 #define QLJS_CASE(t)  \
   case token_type::t: \
     return #t;
@@ -80,86 +80,6 @@ const char* to_string(token_type type) {
     QLJS_CASE(greater_greater_greater_equal)
     QLJS_CASE(identifier)
     QLJS_CASE(incomplete_template)
-    QLJS_CASE(kw_abstract)
-    QLJS_CASE(kw_any)
-    QLJS_CASE(kw_as)
-    QLJS_CASE(kw_assert)
-    QLJS_CASE(kw_asserts)
-    QLJS_CASE(kw_async)
-    QLJS_CASE(kw_await)
-    QLJS_CASE(kw_bigint)
-    QLJS_CASE(kw_boolean)
-    QLJS_CASE(kw_break)
-    QLJS_CASE(kw_case)
-    QLJS_CASE(kw_catch)
-    QLJS_CASE(kw_class)
-    QLJS_CASE(kw_const)
-    QLJS_CASE(kw_constructor)
-    QLJS_CASE(kw_continue)
-    QLJS_CASE(kw_debugger)
-    QLJS_CASE(kw_declare)
-    QLJS_CASE(kw_default)
-    QLJS_CASE(kw_delete)
-    QLJS_CASE(kw_do)
-    QLJS_CASE(kw_else)
-    QLJS_CASE(kw_enum)
-    QLJS_CASE(kw_export)
-    QLJS_CASE(kw_extends)
-    QLJS_CASE(kw_false)
-    QLJS_CASE(kw_finally)
-    QLJS_CASE(kw_for)
-    QLJS_CASE(kw_from)
-    QLJS_CASE(kw_function)
-    QLJS_CASE(kw_get)
-    QLJS_CASE(kw_global)
-    QLJS_CASE(kw_if)
-    QLJS_CASE(kw_implements)
-    QLJS_CASE(kw_import)
-    QLJS_CASE(kw_in)
-    QLJS_CASE(kw_infer)
-    QLJS_CASE(kw_instanceof)
-    QLJS_CASE(kw_interface)
-    QLJS_CASE(kw_intrinsic)
-    QLJS_CASE(kw_is)
-    QLJS_CASE(kw_keyof)
-    QLJS_CASE(kw_let)
-    QLJS_CASE(kw_module)
-    QLJS_CASE(kw_namespace)
-    QLJS_CASE(kw_never)
-    QLJS_CASE(kw_new)
-    QLJS_CASE(kw_null)
-    QLJS_CASE(kw_number)
-    QLJS_CASE(kw_object)
-    QLJS_CASE(kw_of)
-    QLJS_CASE(kw_out)
-    QLJS_CASE(kw_override)
-    QLJS_CASE(kw_package)
-    QLJS_CASE(kw_private)
-    QLJS_CASE(kw_protected)
-    QLJS_CASE(kw_public)
-    QLJS_CASE(kw_readonly)
-    QLJS_CASE(kw_require)
-    QLJS_CASE(kw_return)
-    QLJS_CASE(kw_set)
-    QLJS_CASE(kw_static)
-    QLJS_CASE(kw_string)
-    QLJS_CASE(kw_super)
-    QLJS_CASE(kw_switch)
-    QLJS_CASE(kw_symbol)
-    QLJS_CASE(kw_this)
-    QLJS_CASE(kw_throw)
-    QLJS_CASE(kw_true)
-    QLJS_CASE(kw_try)
-    QLJS_CASE(kw_type)
-    QLJS_CASE(kw_typeof)
-    QLJS_CASE(kw_undefined)
-    QLJS_CASE(kw_unique)
-    QLJS_CASE(kw_unknown)
-    QLJS_CASE(kw_var)
-    QLJS_CASE(kw_void)
-    QLJS_CASE(kw_while)
-    QLJS_CASE(kw_with)
-    QLJS_CASE(kw_yield)
     QLJS_CASE(left_curly)
     QLJS_CASE(left_paren)
     QLJS_CASE(left_square)
@@ -199,6 +119,10 @@ const char* to_string(token_type type) {
     QLJS_CASE(star_star_equal)
     QLJS_CASE(string)
     QLJS_CASE(tilde)
+
+#define QLJS_KEYWORD(k) QLJS_CASE(kw_##k)
+    QLJS_X_KEYWORDS
+#undef QLJS_KEYWORD
   }
   return "???";
 }

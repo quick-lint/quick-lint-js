@@ -156,6 +156,40 @@
   #lsp-log .lsp-params dd {
     white-space: pre;
   }
+
+  #lsp-state {
+    display: grid;
+    grid-template-areas: "documents details";
+    grid-template-columns: 30% auto;
+  }
+  #lsp-state #lsp-state-documents {
+    grid-area: documents;
+  }
+  #lsp-state #lsp-state-details {
+    grid-area: details;
+  }
+
+  #lsp-state ul {
+    margin: 0;
+    padding: 0;
+  }
+  #lsp-state li {
+    list-style-type: none;
+  }
+
+  #lsp-state .lsp-document {
+    background-color: #113311;
+    border-radius: 0.5rem;
+    margin: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  #lsp-state .lsp-document {
+    border: 2px solid transparent;
+  }
+  #lsp-state .lsp-document.selected {
+    border-color: #999999;
+  }
 </style>
 
 <body>
@@ -164,6 +198,7 @@
       <ul class="tab-bar">
         <li><a href="#/server-info">info</a></li>
         <li><a href="#/lsp-log">LSP log</a></li>
+        <li><a href="#/lsp-state">LSP state</a></li>
         <li><a href="#/vector-profile">vector profile</a></li>
       </ul>
     </nav>
@@ -178,6 +213,17 @@
       <ol id="lsp-log-data"></ol>
       <div id="lsp-log-details">
         <dl id="lsp-log-params"></dl>
+      </div>
+    </section>
+
+    <section id="lsp-state" class="tab">
+      <ul id="lsp-state-documents"></ul>
+      <div id="lsp-state-details">
+        <dl>
+          <dt>Language ID</dt>
+          <dd id="lsp-state-language-id"></dd>
+        </dl>
+        <pre id="lsp-state-document-text"></pre>
       </div>
     </section>
 

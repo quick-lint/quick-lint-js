@@ -6,6 +6,134 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* Missing props in JSX tags now report [E0376][] ("JSX prop is missing an
+  expression"). (Implemented by [James Moles][].)
+* `! ==` (with a space) now reports [E0373][]. (Implemented by [daethtech][].)
+* `x == y ?? true` now reports [E0369][]. (Implemented by [Kate Conkright][].)
+
+### Fixed
+
+* Arrow functions with TypeScript parameter type annotations no longer report
+  confusing diagnostics in JavaScript mode. (Implemented by [Leszek Nowicki][].)
+* TypeScript support (still experimental):
+  * '\`hello${world}\` as const' no longer falsely reports [E0291][].
+    (Fixed by [Leszek Nowicki][].)
+
+## 2.13.0 (2023-04-13)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.13.0/)
+
+### Added
+
+* quick-lint-js now recognizes [Deno][]'s global variables, including `Deno`.
+  This suppresses undesired [E0057][] ("use of undeclared variable") warnings.
+  This is controlled by the [`deno` global group][config-global-groups].
+* `if () {}` (without a condition) now reports [E0452][] ("empty parenthesis
+  after control statement"). (Implemented by [Yunus][].)
+* `return x,` now reports [E0026][] ("missing operand for operator").
+  (Implemented by [Tom Binford][].)
+* TypeScript support (still experimental):
+    * The `satisfies` operator is now recognized.
+    * The `infer` operator is now recognized.
+    * The `in` and `out` keywords for generic parameter variance are now
+      recognized.
+    * Parameter properties (`constructor(public readonly name: string, public
+      age: number)`) are now recognized.
+    * `C<T>=y;` now reports [E0365][] ("TypeScript requires whitespace between
+      '>' and '=' here").
+    * `extends` in `interface` now allows generic arguments, such as in
+      `interface I extends T<U> {}`.
+    * `extends` in `interface` now allows nested namespaces, such as in
+      `interface I extends ns1.ns2.ns3.I {}`.
+* FreeBSD: `quick-lint-js --debug-apps` now works. (Implemented by [Nico
+  Sonack][].)
+
+### Fixed
+
+* Fixed several false errors:
+  * `do while (x); while (y);` no longer falsely reports [E0101][] ("missing
+    body for do-while loop").
+  * `{ var async; async }` no longer falsely reports [E0054][] ("unexpected
+    token").
+  * `async[x]` no longer falsely reports [E0054][] ("unexpected token").
+  * `await x ? y : z` no longer falsely reports [E0311][] ("missing parentheses
+    around parameter").
+  * `if (c) async () => {}; else {}` no longer falsely reports [E0065][]
+    ("'else' has no corresponding 'if'").
+  * `class A extends await {}` no longer falsely reports [E0111][] ("missing
+    body for class").
+  * `class A extends await() {}` no longer falsely reports [E0176][] ("missing
+    arrow operator for arrow function").
+  * `do if (c) {} else (b); while (d);` no longer falsely reports [E0103][]
+    ("missing 'while (condition)' for do-while statement").
+* `if (c) {} else (b) d;` now correctly reports [E0027][] ("missing semicolon
+  after statement").
+* The CLI's `--output-format=gnu-like` output (default) no longer prints
+  terminal escape sequences for "dumb" terminals (where `TERM=dumb`). (Fixed by
+  [wagner riffel][].)
+* FreeBSD: The quick-lint-js-licenses.txt file is now populated correctly.
+* TypeScript support (still experimental):
+    * `let x: C<T>=y;` no longer falsely reports an error.
+    * `class A extends B<C> {}` no longer falsely reports an error.
+    * `T extends keyof O ? A : B` no longer falsely reports an error.
+
+### Changed
+
+* Cross compiling now requires you to build with
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` for the build machine then with
+  `QUICK_LINT_JS_USE_BUILD_TOOLS` for the target machine. See the
+  [cross-compiling documentation][cross-compiling-quick-lint-js] for details.
+* Code signing certificate has been refreshed. The old certificate expires on
+  April 18, 2023 (PDT) and the new certificate expires on April 17, 2024 (PDT).
+  The public key is the same between the two certificates:
+  `7ea531a42cd3e7161b6951f93d83449546e90722` (SHA1).
+
+## 2.12.0 (2023-03-08)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.12.0/)
+
+### Added
+
+* `array[i, j]` now reports [E0450][] ("misleading use of ',' operator in
+  index") (implemented by [Yunus][]).
+* `while (x > 0, y > 0)` now reports [E0451][] ("misleading use of ',' operator
+  in conditional statement") (implemented by [Yunus][]).
+* Improvements to experimental TypeScript support:
+  * Type variables such as `Readonly<T>` and `IArguments` are now recognized by
+    the new `typescript` global group which is enabled by default.
+  * `declare` is now supported.
+  * The old-style `module` syntax for namespaces is now supported.
+
+### Fixed
+
+* Fixed [E0062][] being reported when [E0061][] should be reported instead
+  (fixed by [Yunus][]).
+* TypeScript `namespace` without a body now reports [E0356][] instead of
+  crashing with an assertion failure.
+
+### Changed
+
+* quick-lint-js' build system now optionally creates executes and runs them
+  during the build. This behavior is controlled by the
+  `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` and `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake
+  variables.
+  * For most people, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is enabled by default
+    and should work without extra configuration. No action is needed.
+  * When cross-compiling, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is disabled.
+    Currently, `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` is optional, so this should
+    behave as before. However, in the future, either
+    `QUICK_LINT_JS_ENABLE_BUILD_TOOLS` or `QUICK_LINT_JS_USE_BUILD_TOOLS` will
+    be required.
+  * If you need to configure the build tools specially, or if you want to build
+    the build tools when cross-compiling, you must use the
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` CMake variable. See the [cross-compiling
+    documentation][cross-compiling-quick-lint-js] for instructions on using
+    `QUICK_LINT_JS_USE_BUILD_TOOLS` correctly.
+
 ## 2.11.0 (2023-01-31)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.11.0/)
@@ -743,7 +871,12 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [Bun]: https://bun.sh/
+[Deno]: https://deno.land/
 [cli-language]: ../cli/#language
+[coc.nvim]: https://github.com/neoclide/coc.nvim
+[config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
+[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
@@ -756,10 +889,13 @@ Beta release.
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
+[James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
+[Kate Conkright]: https://github.com/applepie23
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
+[Leszek Nowicki]: https://github.com/leszek888
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
@@ -768,12 +904,12 @@ Beta release.
 [Roland Strasser]: https://github.com/rol1510
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
+[Tom Binford]: https://github.com/TomBinford
 [Tony Sathre]: https://github.com/tonysathre
+[Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
-[coc.nvim]: https://github.com/neoclide/coc.nvim
-[config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[daethtech]: https://github.com/daethtech
 [david doroz]: https://github.com/DaviddHub
-[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla
@@ -798,10 +934,15 @@ Beta release.
 [E0057]: https://quick-lint-js.com/errors/E0057/
 [E0059]: https://quick-lint-js.com/errors/E0059/
 [E0060]: https://quick-lint-js.com/errors/E0060/
+[E0061]: https://quick-lint-js.com/errors/E0061/
+[E0062]: https://quick-lint-js.com/errors/E0062/
+[E0065]: https://quick-lint-js.com/errors/E0065/
 [E0069]: https://quick-lint-js.com/errors/E0069/
 [E0073]: https://quick-lint-js.com/errors/E0073/
 [E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
+[E0101]: https://quick-lint-js.com/errors/E0101/
+[E0103]: https://quick-lint-js.com/errors/E0103/
 [E0104]: https://quick-lint-js.com/errors/E0104/
 [E0106]: https://quick-lint-js.com/errors/E0106/
 [E0108]: https://quick-lint-js.com/errors/E0108/
@@ -856,6 +997,8 @@ Beta release.
 [E0279]: https://quick-lint-js.com/errors/E0279/
 [E0286]: https://quick-lint-js.com/errors/E0286/
 [E0287]: https://quick-lint-js.com/errors/E0287/
+[E0291]: https://quick-lint-js.com/errors/E0291/
+[E0311]: https://quick-lint-js.com/errors/E0311/
 [E0325]: https://quick-lint-js.com/errors/E0325/
 [E0326]: https://quick-lint-js.com/errors/E0326/
 [E0327]: https://quick-lint-js.com/errors/E0327/
@@ -866,4 +1009,12 @@ Beta release.
 [E0347]: https://quick-lint-js.com/errors/E0347/
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
+[E0356]: https://quick-lint-js.com/errors/E0356/
+[E0365]: https://quick-lint-js.com/errors/E0365/
+[E0369]: https://quick-lint-js.com/errors/E0369/
+[E0373]: https://quick-lint-js.com/errors/E0373/
+[E0376]: https://quick-lint-js.com/errors/E0376/
+[E0450]: https://quick-lint-js.com/errors/E0450/
+[E0451]: https://quick-lint-js.com/errors/E0451/
+[E0452]: https://quick-lint-js.com/errors/E0452/
 [E0707]: https://quick-lint-js.com/errors/E0707/

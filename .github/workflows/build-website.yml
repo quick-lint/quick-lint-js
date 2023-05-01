@@ -19,16 +19,16 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: setup emsdk cache
         id: cache-system-libraries
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{env.EM_CACHE_FOLDER}}
           key: ${{env.EM_VERSION}}-${{ runner.os }}
 
-      - uses: quick-lint/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v12
         with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
@@ -42,8 +42,8 @@ jobs:
 
       - name: get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
+        run: printf 'dir=%s\n' "$(yarn cache dir)" >>"${GITHUB_OUTPUT}"
+      - uses: actions/cache@v3
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -108,7 +108,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: website-${{ github.sha }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: website.zip

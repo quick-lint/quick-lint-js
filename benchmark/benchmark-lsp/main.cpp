@@ -220,9 +220,8 @@ namespace {
 parsed_args parse_arguments(int argc, char** argv) {
   auto read_number = [](const char* arg_value) {
     int output_number;
-    from_chars_result result = from_chars(
-        &arg_value[0], &arg_value[std::strlen(arg_value)], output_number);
-    if (*result.ptr != '\0' || result.ec != std::errc{}) {
+    if (parse_integer_exact(std::string_view(arg_value), output_number) !=
+        parse_integer_exact_error::ok) {
       std::fprintf(stderr, "error: failed to parse number: %s\n", arg_value);
       std::exit(2);
     }

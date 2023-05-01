@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -343,6 +343,128 @@ TEST_F(test_parse_warning,
 }
 
 TEST_F(test_parse_warning,
+       warn_on_comma_between_member_array_subscript_operators) {
+  {
+    test_parser p(u8"a[1, 2, 3]"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[1, 2"), u8","_sv, left_square, strlen(u8"a"),
+                u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a[pow(1, 2), 2]"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[pow(1, 2)"), u8","_sv, left_square,
+                strlen(u8"a"), u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a[b[1967, 1975]]"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_index_operation,
+                comma, strlen(u8"a[b[1967"), u8","_sv, left_square,
+                strlen(u8"a[b"), u8"["_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"a = [1, 2, 3]"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_warning, warn_on_comma_operator_in_conditional_statement) {
+  {
+    test_parser p(u8"if(false, true){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"if(false"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"do{i++}while(i < 0, true)"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"do{i++}while(i < 0"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"do{i++}while(i < (0, true))"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"for(; i < 5, i < 3; ){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"for(; i < 5"), u8","_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"for(let i = 0, j = 0;;){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"for(i = 0, j = 0;;){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"for(;; ++i, ++j){}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"switch(cond1, cond2){case 1:break;}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_misleading_comma_operator_in_conditional_statement,
+                comma, strlen(u8"switch(cond1"), u8","_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_warning,
        warn_on_pointless_string_compare_complex_expressions) {
   {
     test_parser p(u8"if(s.toLowerCase() === 'BANANA') {}"_sv, capture_diags);
@@ -548,6 +670,71 @@ TEST_F(test_parse_warning,
                 p.code, diag_pointless_comp_against_object_literal,
                 equals_operator, strlen(u8"x === y || ({}) "), u8"!="_sv),
         }));
+  }
+}
+
+TEST_F(test_parse_warning, warn_on_pointless_nullish_coalescing_operator) {
+  {
+    test_parser p(u8"true ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"true "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"(a < b) ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"(a < b) "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"!b ?? false"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"!b "), u8"??"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"'hi' ?? true"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_pointless_nullish_coalescing_operator,
+                        question_question, strlen(u8"'hi' "), u8"??"_sv),
+                }));
+  }
+  for (string8_view code : {
+           u8"s.toLowerCase() ?? false"_sv,
+           u8"s ?? false"_sv,
+           u8"null ?? false"_sv,
+           u8"(foo) ?? false"_sv,
+           u8"{}.missingProp ?? false"_sv,
+           u8"{}['missingProp'] ?? false"_sv,
+           u8"await foo ?? false"_sv,
+           u8"void 42 ?? false"_sv,
+           u8"bar`hello` ?? false"_sv,
+           u8"this ?? false"_sv,
+           u8"(2+2 && null) ?? false"_sv,
+           u8"(2+2 || null) ?? false"_sv,
+           u8"(2+2 , null) ?? false"_sv,
+           u8"(2+2 ?? null) ?? false"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    p.parse_and_visit_expression();
   }
 }
 }

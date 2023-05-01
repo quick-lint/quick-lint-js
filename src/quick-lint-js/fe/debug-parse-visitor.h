@@ -44,6 +44,11 @@ class debug_parse_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_enter_conditional_type_scope() override {
+    this->output_->append_copy(u8"entered conditional scope\n"_sv);
+    this->output_->flush();
+  }
+
   void visit_enter_enum_scope() override {
     this->output_->append_copy(u8"entered enum scope\n"_sv);
     this->output_->flush();
@@ -101,6 +106,11 @@ class debug_parse_visitor final : public parse_visitor_base {
 
   void visit_exit_class_scope() override {
     this->output_->append_copy(u8"exited class scope\n"_sv);
+    this->output_->flush();
+  }
+
+  void visit_exit_conditional_type_scope() override {
+    this->output_->append_copy(u8"exited conditional scope\n"_sv);
     this->output_->flush();
   }
 

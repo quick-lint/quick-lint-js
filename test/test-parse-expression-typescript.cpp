@@ -7,7 +7,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/parse-support.h>
@@ -213,6 +213,27 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
+
+  {
+    test_parser p(u8"x as (y)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "as(var x)");
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
+  }
+}
+
+TEST_F(test_parse_expression_typescript, as_cannot_have_newline_before) {
+  {
+    test_parser p(u8"f\nas(T);"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // f
+                              "visit_variable_use",   // as
+                              "visit_variable_use",   // T
+                              "visit_end_of_module",  //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"f", u8"as", u8"T"}));
+  }
 }
 
 TEST_F(test_parse_expression_typescript,
@@ -225,8 +246,8 @@ TEST_F(test_parse_expression_typescript,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
-                as_keyword, strlen(u8"(x "), u8"as"_sv),
+                diag_typescript_as_or_satisfies_used_for_parameter_type_annotation,  //
+                bad_keyword, strlen(u8"(x "), u8"as"_sv),
         }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
@@ -240,7 +261,7 @@ TEST_F(test_parse_expression_typescript,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE(
-                diag_typescript_as_keyword_used_for_parameter_type_annotation),
+                diag_typescript_as_or_satisfies_used_for_parameter_type_annotation),
         }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv),
@@ -257,8 +278,8 @@ TEST_F(test_parse_expression_typescript,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
-                as_keyword, strlen(u8"function f(x "), u8"as"_sv),
+                diag_typescript_as_or_satisfies_used_for_parameter_type_annotation,  //
+                bad_keyword, strlen(u8"function f(x "), u8"as"_sv),
         }));
     EXPECT_THAT(
         p.variable_declarations,
@@ -281,6 +302,7 @@ TEST_F(test_parse_expression_typescript,
            u8"'string literal'",
            u8"\"string literal\"",
            u8"`untagged template`",
+           u8"`untagged template with ${expression}`",
            u8"42",
            u8"42.0",
            u8"42n",
@@ -335,6 +357,109 @@ TEST_F(test_parse_expression_typescript,
                         diag_typescript_as_const_with_non_literal_typeable,  //
                         expression, strlen(u8"("), u8"f()"_sv),
                 }));
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       satisfies_operator_not_allowed_in_javascript) {
+  {
+    test_parser p(u8"x satisfies y"_sv, javascript_options, capture_diags);
+    EXPECT_EQ(summarize(p.parse_expression()), "satisfies(var x)");
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_typescript_satisfies_not_allowed_in_javascript,  //
+                        satisfies_keyword, strlen(u8"x "), u8"satisfies"_sv),
+                }));
+  }
+}
+
+TEST_F(test_parse_expression_typescript, satisfies) {
+  {
+    test_parser p(u8"f(x satisfies T);"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_use",       // f
+                              "visit_variable_use",       // x
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f", u8"x"}));
+  }
+
+  {
+    test_parser p(u8"(lhs satisfies T) = rhs;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",    // T
+                              "visit_variable_use",         // rhs
+                              "visit_variable_assignment",  // lhs
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"rhs"}));
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"lhs"}));
+  }
+
+  {
+    test_parser p(u8"x satisfies y"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::satisfies);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x satisfies y"_sv));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
+  }
+
+  {
+    test_parser p(u8"x satisfies T ? y : z"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "cond(satisfies(var x), var y, var z)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
+  }
+
+  {
+    test_parser p(u8"x satisfies (y)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "satisfies(var x)");
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
+  }
+}
+
+TEST_F(test_parse_expression_typescript, satisfies_cannot_have_newline_before) {
+  {
+    test_parser p(u8"f\nsatisfies(T);"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // f
+                              "visit_variable_use",   // satisfies
+                              "visit_variable_use",   // T
+                              "visit_end_of_module",  //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"f", u8"satisfies", u8"T"}));
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       satisfies_is_not_allowed_in_function_parameter_list) {
+  {
+    test_parser p(u8"(x satisfies T) => {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_as_or_satisfies_used_for_parameter_type_annotation,  //
+                bad_keyword, strlen(u8"(x "), u8"satisfies"_sv),
+        }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
   }
 }
 }

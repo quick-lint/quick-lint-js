@@ -26,6 +26,44 @@ option(
   "${QUICK_LINT_JS_ENABLE_CLI_DEFAULT}"
 )
 
+set(
+  QUICK_LINT_JS_USE_BUILD_TOOLS
+  ""
+  CACHE
+  PATH
+  "Directory containing tools built by the quick-lint-js-code-gen-tools target. See http://quick-lint-js.com/contribute/build-from-source/cross-compiling/ for details."
+)
+
+set(QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT ON)
+if (QUICK_LINT_JS_USE_BUILD_TOOLS OR EMSCRIPTEN OR CMAKE_CROSSCOMPILING)
+  set(QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT OFF)
+endif ()
+option(
+  QUICK_LINT_JS_ENABLE_BUILD_TOOLS
+  "Compile tools which generate quick-lint-js source code and use them during the build"
+  "${QUICK_LINT_JS_ENABLE_BUILD_TOOLS_DEFAULT}"
+)
+
+if (EMSCRIPTEN)
+  # TODO(strager): Require QUICK_LINT_JS_USE_BUILD_TOOLS or
+  # QUICK_LINT_JS_ENABLE_BUILD_TOOLS for Emscripten builds.
+else ()
+  if (NOT (QUICK_LINT_JS_USE_BUILD_TOOLS OR QUICK_LINT_JS_ENABLE_BUILD_TOOLS))
+    set(MESSAGE "Neither QUICK_LINT_JS_USE_BUILD_TOOLS nor QUICK_LINT_JS_ENABLE_BUILD_TOOLS was specified.")
+    if (CMAKE_CROSSCOMPILING OR EMSCRIPTEN)
+      set(MESSAGE "${MESSAGE} QUICK_LINT_JS_ENABLE_BUILD_TOOLS was automatically disabled because you are cross-compiling.")
+    endif ()
+    set(MESSAGE "${MESSAGE} You should configure with QUICK_LINT_JS_ENABLE_BUILD_TOOLS=YES for your build machine and build quick-lint-js-build-tools,")
+    set(MESSAGE "${MESSAGE} then you should separately configure with QUICK_LINT_JS_USE_BUILD_TOOLS=(path to your first build) for your target machine.")
+    set(MESSAGE "${MESSAGE} See this cross-compiling documentation for details: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/")
+    message(FATAL_ERROR "${MESSAGE}")
+  endif ()
+endif ()
+
+if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS AND QUICK_LINT_JS_USE_BUILD_TOOLS)
+  message(FATAL_ERROR "QUICK_LINT_JS_ENABLE_BUILD_TOOLS and QUICK_LINT_JS_USE_BUILD_TOOLS were both specified, but are mutually exclusive. If QUICK_LINT_JS_USE_BUILD_TOOLS (${QUICK_LINT_JS_USE_BUILD_TOOLS}) is intended, set QUICK_LINT_JS_ENABLE_BUILD_TOOLS=NO.")
+endif ()
+
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   option(QUICK_LINT_JS_PRECOMPILE_HEADERS "Use CMake's target_precompile_headers" ON)
 else ()
@@ -119,6 +157,10 @@ find_package(PythonInterp 3.7)
 
 find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
+# 'tools' must come first because it optionally defines targets. Other
+# CMakeLists.txt files detect the presence of these targets.
+add_subdirectory(tools)
+
 if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
   include(vendor/benchmark.cmake)
 endif ()
@@ -141,7 +183,6 @@ add_subdirectory(plugin/vim)
 add_subdirectory(plugin/emacs)
 add_subdirectory(plugin/vscode)
 add_subdirectory(src)
-add_subdirectory(tools)
 add_subdirectory(website/wasm)
 add_subdirectory(completions)
 include(CTest)

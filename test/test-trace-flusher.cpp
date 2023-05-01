@@ -18,6 +18,7 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-metadata.h>
+#include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
@@ -25,7 +26,6 @@
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/trace-stream-reader-mock.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <thread>
@@ -54,48 +54,34 @@ class test_trace_flusher_directory_backend : public test_trace_flusher,
   std::string trace_dir = this->make_temporary_directory();
 };
 
-void read_trace_stream_file(const std::string& path,
-                            trace_stream_event_visitor& v) {
+std::vector<parsed_trace_event> read_trace_stream_file(
+    const std::string& path) {
   auto stream_file = read_file(path);
-  ASSERT_TRUE(stream_file.ok()) << stream_file.error_to_string();
-  trace_stream_reader reader(&v);
+  if (!stream_file.ok()) {
+    ADD_FAILURE() << stream_file.error_to_string();
+    return std::vector<parsed_trace_event>();
+  }
+  trace_reader reader;
   reader.append_bytes(stream_file->data(),
                       narrow_cast<std::size_t>(stream_file->size()));
+  return reader.pull_new_events();
 }
 
-struct trace_init_event_spy : trace_stream_event_visitor {
-  static std::vector<std::string> read_init_versions(
-      const std::string& stream_path) {
-    trace_init_event_spy v;
-    read_trace_stream_file(stream_path, v);
-    return v.init_versions;
-  }
-
-  void visit_error_invalid_magic() override {}
-  void visit_error_invalid_uuid() override {}
-  void visit_error_unsupported_compression_mode(std::uint8_t) override {}
-
-  void visit_packet_header(const packet_header&) override {}
-
-  void visit_init_event(const init_event& e) override {
-    this->init_versions.emplace_back(e.version);
-  }
-  void visit_vscode_document_opened_event(
-      const vscode_document_opened_event&) override {}
-  void visit_vscode_document_closed_event(
-      const vscode_document_closed_event&) override {}
-  void visit_vscode_document_changed_event(
-      const vscode_document_changed_event&) override {}
-  void visit_vscode_document_sync_event(
-      const vscode_document_sync_event&) override {}
-  void visit_lsp_client_to_server_message_event(
-      const lsp_client_to_server_message_event&) override {}
-  void visit_vector_max_size_histogram_by_owner_event(
-      const vector_max_size_histogram_by_owner_event&) override {}
-  void visit_process_id_event(const process_id_event&) override {}
-
+std::vector<std::string> get_init_versions(
+    const std::vector<parsed_trace_event>& events) {
   std::vector<std::string> init_versions;
-};
+  for (const parsed_trace_event& event : events) {
+    if (event.type == parsed_trace_event_type::init_event) {
+      init_versions.push_back(
+          std::string(to_string_view(event.init_event.version)));
+    }
+  }
+  return init_versions;
+}
+
+std::vector<std::string> read_init_versions(const std::string& stream_path) {
+  return get_init_versions(read_trace_stream_file(stream_path));
+}
 
 class spy_trace_flusher_backend final : public trace_flusher_backend {
  public:
@@ -142,22 +128,24 @@ class spy_trace_flusher_backend final : public trace_flusher_backend {
     return result;
   }
 
-  void read_thread_trace_stream(trace_flusher_thread_index thread_index,
-                                trace_stream_event_visitor& v) const {
+  std::vector<parsed_trace_event> parse_thread_trace_stream(
+      trace_flusher_thread_index thread_index) const {
     std::lock_guard<mutex> lock(this->mutex_);
     auto it = this->thread_states.find(thread_index);
-    ASSERT_NE(it, this->thread_states.end());
+    if (it == this->thread_states.end()) {
+      ADD_FAILURE() << "thread index " << thread_index << " is missing";
+      return std::vector<parsed_trace_event>();
+    }
     const thread_state& t = it->second;
-    trace_stream_reader reader(&v);
+    trace_reader reader;
     reader.append_bytes(t.written_data.data(),
                         narrow_cast<std::size_t>(t.written_data.size()));
+    return reader.pull_new_events();
   }
 
-  std::vector<std::string> read_thread_init_versions(
+  std::vector<std::string> get_thread_init_versions(
       trace_flusher_thread_index thread_index) const {
-    trace_init_event_spy v;
-    this->read_thread_trace_stream(thread_index, v);
-    return v.init_versions;
+    return get_init_versions(this->parse_thread_trace_stream(thread_index));
   }
 
   struct thread_state {
@@ -244,7 +232,7 @@ TEST_F(test_trace_flusher, enabling_after_register_begins_thread) {
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -257,7 +245,7 @@ TEST_F(test_trace_flusher, registering_after_enabling_begins_thread) {
   trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
   EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -272,9 +260,9 @@ TEST_F(test_trace_flusher,
 
   trace_flusher_thread_index thread_index = flusher.register_current_thread();
 
-  EXPECT_THAT(backend_1.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend_1.get_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
-  EXPECT_THAT(backend_2.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend_2.get_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -294,7 +282,7 @@ TEST_F(test_trace_flusher, write_event_after_enabling_and_registering) {
   writer->commit();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -314,7 +302,7 @@ TEST_F(test_trace_flusher, write_event_after_registering_and_enabling) {
   writer->commit();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -557,9 +545,9 @@ TEST_F(test_trace_flusher, write_events_from_multiple_threads) {
   other_thread.join();
   flusher.flush_sync();
 
-  EXPECT_THAT(backend.read_thread_init_versions(main_thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(main_thread_index),
               ElementsAre(::testing::_, "main thread"));
-  EXPECT_THAT(backend.read_thread_init_versions(other_thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(other_thread_index),
               ElementsAre(::testing::_, "other thread"));
 
   flusher.disable_all_backends();
@@ -584,20 +572,20 @@ TEST_F(test_trace_flusher,
   other_thread.join();
   flusher.flush_sync();
 
-  nice_mock_trace_stream_event_visitor main_v;
-  EXPECT_CALL(main_v, visit_packet_header(::testing::Field(
-                          &trace_stream_event_visitor::packet_header::thread_id,
-                          main_thread_id)));
-  backend.read_thread_trace_stream(main_thread_index, main_v);
+  std::vector<parsed_trace_event> main_thread_events =
+      backend.parse_thread_trace_stream(main_thread_index);
+  ASSERT_GE(main_thread_events.size(), 1);
+  EXPECT_EQ(main_thread_events[0].type, parsed_trace_event_type::packet_header);
+  EXPECT_EQ(main_thread_events[0].packet_header.thread_id, main_thread_id);
 
   ASSERT_TRUE(other_thread_id.has_value());
   EXPECT_NE(*other_thread_id, main_thread_id);
-  nice_mock_trace_stream_event_visitor other_v;
-  EXPECT_CALL(other_v,
-              visit_packet_header(::testing::Field(
-                  &trace_stream_event_visitor::packet_header::thread_id,
-                  *other_thread_id)));
-  backend.read_thread_trace_stream(other_thread_index, other_v);
+  std::vector<parsed_trace_event> other_thread_events =
+      backend.parse_thread_trace_stream(other_thread_index);
+  ASSERT_GE(other_thread_events.size(), 1);
+  EXPECT_EQ(other_thread_events[0].type,
+            parsed_trace_event_type::packet_header);
+  EXPECT_EQ(other_thread_events[0].packet_header.thread_id, *other_thread_id);
 
   flusher.disable_all_backends();
 }
@@ -643,12 +631,12 @@ TEST_F(test_trace_flusher,
 
   ASSERT_TRUE(other_thread_id.has_value());
   EXPECT_NE(*other_thread_id, get_current_thread_id());
-  nice_mock_trace_stream_event_visitor other_v;
-  EXPECT_CALL(other_v,
-              visit_packet_header(::testing::Field(
-                  &trace_stream_event_visitor::packet_header::thread_id,
-                  *other_thread_id)));
-  backend.read_thread_trace_stream(*other_thread_index, other_v);
+  std::vector<parsed_trace_event> other_thread_events =
+      backend.parse_thread_trace_stream(*other_thread_index);
+  ASSERT_GE(other_thread_events.size(), 1);
+  EXPECT_EQ(other_thread_events[0].type,
+            parsed_trace_event_type::packet_header);
+  EXPECT_EQ(other_thread_events[0].packet_header.thread_id, *other_thread_id);
 
   flusher.disable_all_backends();
 }
@@ -669,7 +657,7 @@ TEST_F(test_trace_flusher, unregistering_thread_flushes_committed_data) {
   flusher.unregister_current_thread();
   // NOTE(strager): We do not call flusher.flush_sync.
 
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -690,7 +678,7 @@ TEST_F(test_trace_flusher, flush_async_does_not_flush_on_current_thread) {
   writer->commit();
   flusher.flush_async();  // Flush the testing init event, but not now.
 
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(::testing::Not("testing")))
       << "creating the stream file should add an init event automatically (but "
          "not the testing init event)";
@@ -718,14 +706,14 @@ TEST_F(test_trace_flusher, flush_async_flushes_on_flusher_thread) {
 
   std::chrono::time_point deadline =
       std::chrono::steady_clock::now() + std::chrono::seconds(3);
-  while (backend.read_thread_init_versions(thread_index).size() <= 1) {
+  while (backend.get_thread_init_versions(thread_index).size() <= 1) {
     if (std::chrono::steady_clock::now() >= deadline) {
       ADD_FAILURE() << "timed out waiting for flusher thread to write to file";
       break;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(::testing::_, "testing"));
 
   flusher.disable_all_backends();
@@ -748,7 +736,7 @@ TEST_F(test_trace_flusher, flushing_disabled_does_nothing) {
   spy_trace_flusher_backend backend;
   flusher.enable_backend(&backend);
 
-  EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+  EXPECT_THAT(backend.get_thread_init_versions(thread_index),
               ElementsAre(QUICK_LINT_JS_VERSION_STRING));
 
   flusher.disable_all_backends();
@@ -789,10 +777,10 @@ TEST_F(test_trace_flusher,
   flusher.flush_sync();
 
   EXPECT_THAT(
-      backend_1.read_thread_init_versions(thread_index),
+      backend_1.get_thread_init_versions(thread_index),
       ElementsAre(::testing::_, "A: backend 1", "B: backend 1 and backend 2"));
   EXPECT_THAT(
-      backend_2.read_thread_init_versions(thread_index),
+      backend_2.get_thread_init_versions(thread_index),
       ElementsAre(::testing::_, "B: backend 1 and backend 2", "C: backend 2"));
 
   flusher.disable_all_backends();
@@ -816,7 +804,7 @@ TEST_F(test_trace_flusher, broadcast_to_many_backends_at_once) {
   flusher.flush_sync();
 
   for (spy_trace_flusher_backend& backend : backends) {
-    EXPECT_THAT(backend.read_thread_init_versions(thread_index),
+    EXPECT_THAT(backend.get_thread_init_versions(thread_index),
                 ElementsAre(::testing::_, "broadcast"));
   }
 
@@ -875,18 +863,15 @@ TEST_F(test_trace_flusher_directory_backend,
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
-  nice_mock_trace_stream_event_visitor v;
-  EXPECT_CALL(v, visit_packet_header(::testing::Field(
-                     &trace_stream_event_visitor::packet_header::thread_id,
-                     get_current_thread_id())));
-  EXPECT_CALL(v, visit_init_event(::testing::Field(
-                     &trace_stream_event_visitor::init_event::version,
-                     ::testing::StrEq(QUICK_LINT_JS_VERSION_STRING))));
-  EXPECT_CALL(v, visit_process_id_event(::testing::Field(
-                     &trace_stream_event_visitor::process_id_event::process_id,
-                     get_current_process_id())));
-  read_trace_stream_file(
-      this->trace_dir + "/thread" + std::to_string(thread_index), v);
+  std::vector<parsed_trace_event> events = read_trace_stream_file(
+      this->trace_dir + "/thread" + std::to_string(thread_index));
+  EXPECT_EQ(events.size(), 3);
+  EXPECT_EQ(events[0].type, parsed_trace_event_type::packet_header);
+  EXPECT_EQ(events[0].packet_header.thread_id, get_current_thread_id());
+  EXPECT_EQ(events[1].type, parsed_trace_event_type::init_event);
+  EXPECT_EQ(events[1].init_event.version, QUICK_LINT_JS_VERSION_STRING_U8_SV);
+  EXPECT_EQ(events[2].type, parsed_trace_event_type::process_id_event);
+  EXPECT_EQ(events[2].process_id_event.process_id, get_current_process_id());
 
   flusher.disable_all_backends();
 }
@@ -925,14 +910,12 @@ TEST_F(test_trace_flusher_directory_backend,
   other_thread.join();
   flusher.flush_sync();
 
-  EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(
-          this->trace_dir + "/thread" + std::to_string(main_thread_index)),
-      ElementsAre(::testing::_, "main thread"));
-  EXPECT_THAT(
-      trace_init_event_spy::read_init_versions(
-          this->trace_dir + "/thread" + std::to_string(other_thread_index)),
-      ElementsAre(::testing::_, "other thread"));
+  EXPECT_THAT(read_init_versions(this->trace_dir + "/thread" +
+                                 std::to_string(main_thread_index)),
+              ElementsAre(::testing::_, "main thread"));
+  EXPECT_THAT(read_init_versions(this->trace_dir + "/thread" +
+                                 std::to_string(other_thread_index)),
+              ElementsAre(::testing::_, "other thread"));
 
   flusher.disable_all_backends();
 }

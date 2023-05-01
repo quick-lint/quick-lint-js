@@ -1,22 +1,7 @@
 /* Copyright(c) By Steve Reid <steve@edmweb.com> */
 /* 100% Public Domain */
-#include "sha1.h"
 #include "arch.h"
-
-/*
- * clang with std=-c99 uses __LITTLE_ENDIAN, by default
- * while for ex, RTOS gcc - LITTLE_ENDIAN, by default
- * it depends on __USE_BSD, but let's have everything
- */
-#if !defined(BYTE_ORDER) && defined(__BYTE_ORDER)
-#define BYTE_ORDER __BYTE_ORDER
-#ifndef LITTLE_ENDIAN
-#define LITTLE_ENDIAN __LITTLE_ENDIAN
-#endif /* LITTLE_ENDIAN */
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN __LITTLE_ENDIAN
-#endif /* BIG_ENDIAN */
-#endif /* BYTE_ORDER */
+#include "sha1.h"
 
 union char64long16 {
   unsigned char c[64];
@@ -26,11 +11,11 @@ union char64long16 {
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
 static uint32_t blk0(union char64long16 *block, int i) {
-/* Forrest: SHA expect BIG_ENDIAN, swap if LITTLE_ENDIAN */
-#if BYTE_ORDER == LITTLE_ENDIAN
-  block->l[i] =
-      (rol(block->l[i], 24) & 0xFF00FF00) | (rol(block->l[i], 8) & 0x00FF00FF);
-#endif
+  if (MG_BIG_ENDIAN) {
+  } else {
+    block->l[i] = (rol(block->l[i], 24) & 0xFF00FF00) |
+                  (rol(block->l[i], 8) & 0x00FF00FF);
+  }
   return block->l[i];
 }
 

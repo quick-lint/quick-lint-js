@@ -10,13 +10,14 @@
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/output-stream.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
+QLJS_WARNING_IGNORE_GCC("-Wshadow=compatible-local")
 QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 
 using namespace std::literals::string_view_literals;
@@ -127,9 +128,8 @@ options parse_options(int argc, char** argv) {
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
       o.has_vim_file_bufnr = true;
       int bufnr;
-      from_chars_result result =
-          from_chars(&arg_value[0], &arg_value[std::strlen(arg_value)], bufnr);
-      if (*result.ptr != '\0' || result.ec != std::errc{}) {
+      if (parse_integer_exact(std::string_view(arg_value), bufnr) !=
+          parse_integer_exact_error::ok) {
         o.error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
@@ -145,6 +145,8 @@ options parse_options(int argc, char** argv) {
     } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
                parser.match_flag_shorthand('h')) {
       o.help = true;
+    } else if (parser.match_flag_option("--debug-apps"sv, "--debug-apps"sv)) {
+      o.list_debug_apps = true;
     } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
                parser.match_flag_shorthand('v')) {
       o.version = true;

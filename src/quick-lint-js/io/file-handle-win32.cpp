@@ -28,6 +28,10 @@ bool windows_file_io_error::is_file_not_found_error() const noexcept {
   return this->error == ERROR_FILE_NOT_FOUND;
 }
 
+bool windows_file_io_error::is_not_a_directory_error() const noexcept {
+  return this->error == ERROR_DIRECTORY;
+}
+
 std::string windows_file_io_error::to_string() const {
   return windows_error_message(this->error);
 }

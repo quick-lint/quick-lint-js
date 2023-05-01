@@ -14,7 +14,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v2
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: configure
         run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .
@@ -32,14 +32,14 @@ jobs:
         run: ./plugin/emacs/create-archive
 
       - name: upload archive to workflow
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: web-demo-dist-${{ github.sha }}
           path: plugin/emacs/quick-lint-js-emacs.zip
       - name: upload archive to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@master
+        uses: quick-lint/sftp-upload@v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: plugin/emacs/quick-lint-js-emacs.zip

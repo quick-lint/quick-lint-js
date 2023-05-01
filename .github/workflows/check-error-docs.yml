@@ -10,13 +10,13 @@ on:
 jobs:
   check_format:
     name: check error docs
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - uses: quick-lint/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v12
         with:
           version: 2.0.4
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: C++ configure
         run: emcmake cmake -S . -B build -G Ninja

@@ -37,6 +37,7 @@ enum class variable_kind {
   _import_alias,               // TypeScript only
   _import_type,                // TypeScript only
   _index_signature_parameter,  // TypeScript only
+  _infer_type,                 // TypeScript only
   _interface,                  // TypeScript only
   _let,
   _namespace,   // TypeScript only

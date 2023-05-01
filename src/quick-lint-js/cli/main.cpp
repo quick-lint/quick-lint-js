@@ -16,15 +16,17 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/fe/diag-code-list.h>
+#include <quick-lint-js/debug/find-debug-server.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/reported-diag-statistics.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/linter.h>
-#include <quick-lint-js/fe/reported-diag-statistics.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/event-loop.h>
@@ -59,7 +61,8 @@ bool stderr_supports_terminal_escapes() {
 #if defined(_WIN32)
   return false;
 #else
-  return isatty(STDERR_FILENO);
+  const char *term = std::getenv("TERM");
+  return isatty(STDERR_FILENO) && term && term != "dumb"sv;
 #endif
 }
 
@@ -164,6 +167,7 @@ void init();
 
 linter_options get_linter_options_from_language(input_file_language);
 
+void list_debug_apps();
 void run_lsp_server();
 
 void print_help_message();
@@ -212,6 +216,10 @@ void run(options o) {
   }
   if (o.dump_errors(*file_output_stream::get_stderr())) {
     std::exit(EXIT_FAILURE);
+  }
+  if (o.list_debug_apps) {
+    list_debug_apps();
+    std::exit(EXIT_SUCCESS);
   }
   if (o.lsp_server) {
     run_lsp_server();
@@ -305,6 +313,37 @@ linter_options get_linter_options_from_language(input_file_language language) {
   return o;
 }
 
+void list_debug_apps() {
+  struct table_row {
+    std::string process_id;
+    std::string server_url;
+  };
+  std::vector<table_row> table;
+  for (const found_debug_server &s : find_debug_servers()) {
+    table.push_back(table_row{
+        .process_id = std::to_string(s.process_id),
+        .server_url =
+            concat("http://localhost:"sv,
+                   std::to_string(narrow_cast<int>(s.port_number)), "/"sv),
+    });
+  }
+
+  const char *process_id_column_header = "PROCESS ID";
+  int process_id_column_width =
+      narrow_cast<int>(std::strlen(process_id_column_header));
+  for (const table_row &row : table) {
+    process_id_column_width = std::max(process_id_column_width,
+                                       narrow_cast<int>(row.process_id.size()));
+  }
+
+  std::printf("%-*s  SERVER URL\n", process_id_column_width,
+              process_id_column_header);
+  for (const table_row &row : table) {
+    std::printf("%-*s  %s\n", process_id_column_width, row.process_id.c_str(),
+                row.server_url.c_str());
+  }
+}
+
 void run_lsp_server() {
 #if defined(_WIN32)
   windows_handle_file_ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
@@ -345,7 +384,8 @@ void run_lsp_server() {
       tracer->start_flushing_thread();
 
 #if QLJS_FEATURE_DEBUG_SERVER
-      this->debugger_->set_listen_address("http://localhost:8098");
+      // NOTE(strager): The debug server will run on a random port. You can
+      // query the port using the CLI: 'quick-lint-js --debug-apps'
       this->debugger_->start_server_thread();
       result<void, debug_server_io_error> start_result =
           this->debugger_->wait_for_server_start();

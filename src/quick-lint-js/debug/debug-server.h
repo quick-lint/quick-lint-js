@@ -11,10 +11,10 @@
 #include <atomic>
 #include <memory>
 #include <mongoose.h>
-#include <optional>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -56,49 +56,52 @@ class debug_server {
   result<void, debug_server_io_error> wait_for_server_start();
 
   // Precondition: wait_for_server_start was called and it succeeded.
-  std::string url() const;
-  std::string url(std::string_view path) const;
-  std::string websocket_url(std::string_view path) const;
+  std::string url();
+  std::string url(std::string_view path);
+  std::string websocket_url(std::string_view path);
+  std::uint16_t tcp_port_number();
 
+  void debug_probe_publish_lsp_documents();
   void debug_probe_publish_vector_profile();
 
  private:
+  struct shared_state;
+
   // Run on any thread:
   void wake_up_server_thread();
-  void wake_up_server_thread(std::unique_lock<mutex> &);
+  void wake_up_server_thread(lock_ptr<shared_state> &);
+
+  // Appends the host:port part of a URL to the given string.
+  void get_host_and_port(std::string &out);
 
   // Run on the server thread:
   void run_on_current_thread();
   void begin_closing_all_connections(::mg_mgr *);
   void http_server_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
+  void publish_lsp_documents_if_needed();
 
-  struct init_data {
-    // HACK(strager): Clang 11 with libstdc++ 12 requires a user-declared (not
-    // default) constructor. Otherwise, std::is_constructible_v<init_data>
-    // returns false, causing std::optional<init_data>::emplace() to not
-    // compile.
-    explicit init_data() {}
+  struct shared_state {
+    std::string requested_listen_address = "http://localhost:0";
 
-    std::string actual_listen_address;
+    // Written to by the server thread. Read by other threads.
+    ::mg_addr actual_listen_address;
     int wakeup_pipe = -1;
+    bool initialized = false;  // When true, actual_listen_address and
+                               // wakeup_pipe are valid.
+    std::string init_error;
+
+    std::uint16_t port_number() const;
   };
 
-  mutable mutex mutex_;
-
-  // Protected by mutex_.
-  std::string requested_listen_address_ = "http://localhost:0";
-
-  // Protected by mutex_. Written to by the server thread. Read by other
-  // threads.
-  std::optional<init_data> init_data_;
-  std::string init_error_;
+  synchronized<shared_state> state_;
 
   // Signalled by the server thread after init_data_ or init_error_ is set.
   mutable condition_variable initialized_;
 
   // Written to by other threads. Read by the server thread.
   std::atomic<bool> stop_server_thread_{false};
+  std::atomic<bool> need_publish_lsp_documents_{false};
   std::atomic<bool> need_publish_vector_profile_{false};
 
   // Used by other threads only:

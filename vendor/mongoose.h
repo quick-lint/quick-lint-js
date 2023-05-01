@@ -5,6 +5,7 @@ extern "C" {
 #include "mongoose/src/http.h"
 #include "mongoose/src/log.h"
 #include "mongoose/src/url.h"
+#include "mongoose/src/util.h"
 #include "mongoose/src/ws.h"
 }
 

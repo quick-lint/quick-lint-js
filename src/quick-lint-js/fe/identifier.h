@@ -16,14 +16,14 @@ class identifier {
   explicit identifier(source_code_span span) noexcept
       : span_begin_(span.begin()),
         normalized_begin_(this->span_begin_),
-        span_size_(narrow_cast<int>(span.end() - span.begin())),
+        span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
         normalized_size_(this->span_size_) {}
 
   explicit identifier(source_code_span span, string8_view normalized) noexcept
       : span_begin_(span.begin()),
         normalized_begin_(normalized.data()),
-        span_size_(narrow_cast<int>(span.end() - span.begin())),
-        normalized_size_(narrow_cast<int>(normalized.size())) {}
+        span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
+        normalized_size_(narrow_cast<unsigned>(normalized.size())) {}
 
   explicit identifier(source_code_span span,
                       const char8* normalized) noexcept = delete;
@@ -42,15 +42,14 @@ class identifier {
   // other words, the normalized name might be heap-allocated. Call span()
   // instead if you want pointers within the source code input.
   string8_view normalized_name() const noexcept {
-    return string8_view(this->normalized_begin_,
-                        narrow_cast<std::size_t>(this->normalized_size_));
+    return string8_view(this->normalized_begin_, this->normalized_size_);
   }
 
  private:
   const char8* span_begin_;
   const char8* normalized_begin_;
-  int span_size_;
-  int normalized_size_;
+  unsigned span_size_;
+  unsigned normalized_size_;
 };
 }
 

@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/io/file.h>
@@ -111,8 +111,8 @@ await a =>
 await a =>
 a
 )"_sv);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

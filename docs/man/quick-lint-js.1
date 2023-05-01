@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 2.11.0
+.\"    Source: quick-lint-js version ﻿ 2.13.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.11.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.13.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -42,11 +42,17 @@ quick-lint-js \- find bugs in JavaScript programs
 \fBquick\-lint\-js\fP [\fB\-\-output\-format\fP=\fIformat\fP] [<options>] \fIfile\fP [\fIfile\fP...]
 .br
 \fBquick\-lint\-js\fP \fB\-\-lsp\-server\fP [<options>]
+.br
+\fBquick\-lint\-js\fP \fB\-\-debug\-apps\fP
+.br
+\fBquick\-lint\-js\fP \fB\-\-help\fP
+.br
+\fBquick\-lint\-js\fP \fB\-\-version\fP
 .SH "DESCRIPTION"
 .sp
 \fBquick\-lint\-js\fP reads JavaScript files and reports syntax errors and other bugs.
 .sp
-This command has two modes:
+This command has three modes:
 .sp
 \fBquick\-lint\-js\fP [<options>] \fIfile\fP [\fIfile\fP...]
 .RS 4
@@ -61,6 +67,12 @@ LSP server mode.
 Use this mode to integrate with code editors supporting LSP.
 For more information, see
 \fBquick\-lint\-js\-lsp\fP(8).
+.RE
+.sp
+\fBquick\-lint\-js\fP \-\-debug\-apps, \fBquick\-lint\-js\fP \-\-help, \fBquick\-lint\-js\fP \-\-version
+.RS 4
+Information mode.
+Prints information about quick\-lint\-js then exits.
 .RE
 .SH "OPTIONS"
 .sp
@@ -342,6 +354,15 @@ Added in quick\-lint\-js version 2.5.0.
 Print a help message and exit.
 .sp
 The output format is not intended to be machine\-parsable and may change in the future.
+.RE
+.sp
+\fB\-\-debug\-apps\fP
+.RS 4
+Print a list of running quick\-lint\-js instances which have the debug app enabled.
+.sp
+The output format is not intended to be machine\-parsable and may change in the future.
+.sp
+\fB\-\-debug\-apps\fP is only supported on Linux, macOS, and Windows.
 .RE
 .sp
 \fB\-v\fP, \fB\-\-version\fP

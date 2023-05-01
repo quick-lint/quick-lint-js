@@ -118,8 +118,8 @@
         <p>
           Diagnostic types are listed in
           <a
-            href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/fe/diagnostic-types.h"
-            ><code>src/quick-lint-js/fe/diagnostic-types.h</code></a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/diag/diagnostic-types.h"
+            ><code>src/quick-lint-js/diag/diagnostic-types.h</code></a
           >. They look like this:
         </p>
         <blockquote>
@@ -256,7 +256,7 @@
           <figure class="build-error">
             <figcaption>Build errors with Clang</figcaption>
             <pre style="white-space: pre-wrap">
-src/quick-lint-js/fe/diagnostic.cpp:128:5: error: constexpr variable 'all_diagnostic_infos' must be initialized by a constant expression
+src/quick-lint-js/diag/diagnostic.cpp:128:5: error: constexpr variable 'all_diagnostic_infos' must be initialized by a constant expression
     all_diagnostic_infos[] = {
     ^                        ~
 src/quick-lint-js/i18n/translation-table-generated.h:444:3: note: subexpression not valid in a constant expression
@@ -266,7 +266,7 @@ src/quick-lint-js/assert.h:92:7: note: expanded from macro 'QLJS_CONSTEXPR_ASSER
       asm("");                     \
       ^
 <i>[snip]</i>
-src/quick-lint-js/fe/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIAG_TYPE'
+src/quick-lint-js/diag/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIAG_TYPE'
   info_for_diagnostic&lt;name&gt;::get(),
   ^
 1 error generated.</pre
@@ -276,15 +276,15 @@ src/quick-lint-js/fe/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIAG_
           <figure class="build-error">
             <figcaption>Build errors with GCC</figcaption>
             <pre style="white-space: pre-wrap">
-In file included from src/quick-lint-js/fe/diagnostic.cpp:7:
+In file included from src/quick-lint-js/diag/diagnostic.cpp:7:
 <i>[snip]</i>
 src/quick-lint-js/assert.h:92:7: error: inline assembly is not a constant expression
    92 |       asm("");                     \
       |       ^~~
 <i>[snip]</i>
-src/quick-lint-js/fe/diagnostic.cpp: At global scope:
-src/quick-lint-js/fe/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::diag_comparison_with_empty_string&gt;::get()’
-src/quick-lint-js/fe/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
+src/quick-lint-js/diag/diagnostic.cpp: At global scope:
+src/quick-lint-js/diag/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::diag_comparison_with_empty_string&gt;::get()’
+src/quick-lint-js/diag/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
   133 | };
       | ^</pre
             >
@@ -332,7 +332,7 @@ Changes not staged for commit:
         modified:   po/messages.pot
         modified:   po/pt_BR.po
         modified:   po/sv_SE.po
-        modified:   src/quick-lint-js/fe/diagnostic-types.h
+        modified:   src/quick-lint-js/diag/diagnostic-types.h
         modified:   src/quick-lint-js/i18n/translation-table-generated.cpp
         modified:   src/quick-lint-js/i18n/translation-table-generated.h
         modified:   test/test-translation-table-generated.cpp

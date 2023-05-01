@@ -11,7 +11,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
@@ -22,6 +22,7 @@
 
 namespace quick_lint_js {
 class diag_reporter;
+struct lex_tables;
 struct lexer_transaction;
 
 // A lexer reads JavaScript source code one token at a time.
@@ -288,6 +289,8 @@ class lexer {
                                           const char8* identifier_begin,
                                           identifier_kind);
 
+  void parse_non_ascii();
+
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment_body();
@@ -334,6 +337,8 @@ class lexer {
   monotonic_allocator allocator_{"lexer::allocator_"};
   linked_bump_allocator<alignof(void*)> transaction_allocator_{
       "lexer::transaction_allocator_"};
+
+  friend struct lex_tables;
 };
 
 struct lexer_transaction {

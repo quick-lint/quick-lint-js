@@ -24,6 +24,7 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
     QLJS_CASE(_import_alias)
     QLJS_CASE(_import_type)
     QLJS_CASE(_index_signature_parameter)
+    QLJS_CASE(_infer_type)
     QLJS_CASE(_interface)
     QLJS_CASE(_let)
     QLJS_CASE(_namespace)

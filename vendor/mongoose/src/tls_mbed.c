@@ -24,43 +24,31 @@ void mg_tls_free(struct mg_connection *c) {
   }
 }
 
-bool mg_sock_would_block(void);
-bool mg_sock_conn_reset(void);
-
 static int mg_net_send(void *ctx, const unsigned char *buf, size_t len) {
-  struct mg_connection *c = (struct mg_connection *) ctx;
-  int fd = (int) (size_t) c->fd;
-  int n = (int) send(fd, buf, len, 0);
-  MG_VERBOSE(("%lu n=%d, errno=%d", c->id, n, errno));
-  if (n < 0) {
-    if (mg_sock_would_block()) return MBEDTLS_ERR_SSL_WANT_WRITE;
-    if (mg_sock_conn_reset()) return MBEDTLS_ERR_NET_CONN_RESET;
-    return MBEDTLS_ERR_NET_SEND_FAILED;
-  }
-  return n;
+  long n = mg_io_send((struct mg_connection *) ctx, buf, len);
+  MG_VERBOSE(("%lu n=%ld e=%d", ((struct mg_connection *) ctx)->id, n, errno));
+  if (n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
+  if (n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
+  if (n == MG_IO_ERR) return MBEDTLS_ERR_NET_SEND_FAILED;
+  return (int) n;
 }
 
 static int mg_net_recv(void *ctx, unsigned char *buf, size_t len) {
-  struct mg_connection *c = (struct mg_connection *) ctx;
-  int n, fd = (int) (size_t) c->fd;
-  n = (int) recv(fd, buf, len, 0);
-  MG_VERBOSE(("%lu n=%d, errno=%d", c->id, n, errno));
-  if (n < 0) {
-    if (mg_sock_would_block()) return MBEDTLS_ERR_SSL_WANT_READ;
-    if (mg_sock_conn_reset()) return MBEDTLS_ERR_NET_CONN_RESET;
-    return MBEDTLS_ERR_NET_RECV_FAILED;
-  }
-  return n;
+  long n = mg_io_recv((struct mg_connection *) ctx, buf, len);
+  MG_VERBOSE(("%lu n=%ld", ((struct mg_connection *) ctx)->id, n));
+  if (n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
+  if (n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
+  if (n == MG_IO_ERR) return MBEDTLS_ERR_NET_RECV_FAILED;
+  return (int) n;
 }
 
 void mg_tls_handshake(struct mg_connection *c) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
-  int rc;
-  mbedtls_ssl_set_bio(&tls->ssl, c, mg_net_send, mg_net_recv, 0);
-  rc = mbedtls_ssl_handshake(&tls->ssl);
+  int rc = mbedtls_ssl_handshake(&tls->ssl);
   if (rc == 0) {  // Success
     MG_DEBUG(("%lu success", c->id));
     c->is_tls_hs = 0;
+    mg_call(c, MG_EV_TLS_HS, NULL);
   } else if (rc == MBEDTLS_ERR_SSL_WANT_READ ||
              rc == MBEDTLS_ERR_SSL_WANT_WRITE) {  // Still pending
     MG_VERBOSE(("%lu pending, %d%d %d (-%#x)", c->id, c->is_connecting,
@@ -78,7 +66,7 @@ static int mbed_rng(void *ctx, unsigned char *buf, size_t len) {
 
 static void debug_cb(void *c, int lev, const char *s, int n, const char *s2) {
   n = (int) strlen(s2) - 1;
-  MG_VERBOSE(("%lu %d %.*s", ((struct mg_connection *) c)->id, lev, n, s2));
+  MG_INFO(("%lu %d %.*s", ((struct mg_connection *) c)->id, lev, n, s2));
   (void) s;
 }
 
@@ -181,6 +169,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
   c->tls = tls;
   c->is_tls = 1;
   c->is_tls_hs = 1;
+  mbedtls_ssl_set_bio(&tls->ssl, c, mg_net_send, mg_net_recv, 0);
   if (c->is_client && c->is_resolving == 0 && c->is_connecting == 0) {
     mg_tls_handshake(c);
   }
@@ -197,12 +186,18 @@ size_t mg_tls_pending(struct mg_connection *c) {
 long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   long n = mbedtls_ssl_read(&tls->ssl, (unsigned char *) buf, len);
-  return n == 0 ? -1 : n == MBEDTLS_ERR_SSL_WANT_READ ? 0 : n;
+  if (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE)
+    return MG_IO_WAIT;
+  if (n <= 0) return MG_IO_ERR;
+  return n;
 }
 
 long mg_tls_send(struct mg_connection *c, const void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   long n = mbedtls_ssl_write(&tls->ssl, (unsigned char *) buf, len);
-  return n == 0 ? -1 : n == MBEDTLS_ERR_SSL_WANT_WRITE ? 0 : n;
+  if (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE)
+    return MG_IO_WAIT;
+  if (n <= 0) return MG_IO_ERR;
+  return n;
 }
 #endif

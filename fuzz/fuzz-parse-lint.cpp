@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>

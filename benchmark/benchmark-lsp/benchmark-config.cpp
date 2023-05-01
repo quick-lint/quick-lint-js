@@ -40,6 +40,7 @@ std::vector<std::string_view> split(std::string_view s, char separator) {
   return result;
 }
 
+// TODO(strager): Reuse run_program from <quick-lint-js/port/child-process.h>.
 std::string run_program(std::vector<std::string> command,
                         std::optional<std::string> cwd) {
   pipe_fds program_output = make_pipe();
@@ -294,15 +295,7 @@ benchmark_config benchmark_config::load() {
       benchmark_config_server{
           .name = "Rome",
           .program_name = "Rome",
-          .command = {"rome_lsp"},
-          .allow_incremental_changes = false,
-          .parallelize_open = false,
-          .workspace_configuration_json = R"({
-            "analysis": {
-              "enableCodeActions": false,
-              "enableDiagnostics": true
-            }
-          })",
+          .command = {"rome", "lsp-proxy"},
       },
 
       benchmark_config_server{

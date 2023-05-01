@@ -6,7 +6,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/lsp/lsp-uri.h>
-#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/util/integer.h>
 #include <string>
 #include <string_view>
 
@@ -55,12 +55,9 @@ std::string parse_file_from_lsp_uri_posix(string8_view uri) {
     }
     string8_view digits = uri.substr(0, 2);
     unsigned char c;
-    from_char8s_result parse_result =
-        from_char8s_hex(digits.data(), digits.data() + 2, c);
-    if (parse_result.ptr != digits.data() + 2) {
+    if (parse_integer_exact_hex(digits, c) != parse_integer_exact_error::ok) {
       return "";
     }
-    QLJS_ASSERT(parse_result.ec == std::errc());
     result.push_back(static_cast<char>(c));
     uri = uri.substr(2);
   }

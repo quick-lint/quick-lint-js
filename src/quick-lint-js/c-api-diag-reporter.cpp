@@ -8,7 +8,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/lsp/lsp-location.h>

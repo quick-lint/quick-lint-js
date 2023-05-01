@@ -37,9 +37,21 @@
 #include <quick-lint-js/port/windows.h>
 #endif
 
+#if QLJS_HAVE_LIBUTIL_H
+#include <util.h>
+#endif
+
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif
+
+#if QLJS_HAVE_UTIL_H
+#include <util.h>
+#endif
+
+#if QLJS_HAVE_PTY_H
+#include <pty.h>
 #endif
 
 using ::testing::AnyOf;
@@ -227,6 +239,39 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   writer_thread.join();
 }
+
+#if QLJS_HAVE_FORKPTY
+TEST_F(test_file, read_file_reads_from_pty_master) {
+  // Flush buffered Google Test output. Otherwise, the child inherits the buffer
+  // and Google Test output gets mixed in with our test string.
+  std::fflush(stdout);
+  std::fflush(stderr);
+
+  int tty_fd;
+  ::pid_t pid = ::forkpty(&tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
+                          /*winp=*/nullptr);
+  ASSERT_NE(pid, -1) << std::strerror(errno);
+  if (pid == 0) {
+    // Child.
+    ::ssize_t rc = ::write(STDOUT_FILENO, "hello", 5);
+    if (rc == -1) {
+      std::exit(1);
+    }
+    if (rc != 5) {
+      std::exit(2);
+    }
+    std::exit(0);
+  } else {
+    // Parent.
+    auto output = read_file(posix_fd_file_ref(tty_fd));
+    if (!output.ok()) {
+      ADD_FAILURE() << output.error_to_string();
+      return;
+    }
+    EXPECT_THAT(output->string_view(), u8"hello"_sv);
+  }
+}
+#endif
 }
 }
 

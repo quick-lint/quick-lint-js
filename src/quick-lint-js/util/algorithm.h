@@ -27,20 +27,10 @@ It find_first(It begin, It end, const T& needle) {
   return std::find(begin, end, needle);
 }
 
-// Like std::find, but the element must exist.
-//
-// Precondition: std::find(begin, end, needle) != end
-// Postcondition: result != end
-template <class It, class T>
-It find_existing(It begin, It end, const T& needle) {
-  It result = std::find(begin, end, needle);
-  QLJS_ASSERT(result != end);
-  return result;
-}
-
-template <class Range, class T>
-auto find_existing(Range&& haystack, const T& needle) {
-  return find_existing(std::begin(haystack), std::end(haystack), needle);
+template <class Range, class Predicate>
+auto find_first_if(Range&& haystack, Predicate&& predicate) {
+  return std::find_if(std::begin(haystack), std::end(haystack),
+                      std::forward<Predicate>(predicate));
 }
 
 // Like std::find, but the element must exist at most once.

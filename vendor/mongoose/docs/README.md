@@ -42,7 +42,7 @@ into the source code tree
 
 static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
   struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve local dir
-  if (ev == MG_EV_HTTP_MSG) mg_http_serve_dir(c, ev_data, &opts);
+  if (ev == MG_EV_HTTP_MSG) mg_http_serve_dir(c, (struct mg_http_message *)ev_data, &opts);
 }
 ...
 
@@ -138,7 +138,8 @@ enum {
   MG_EV_RESOLVE,     // Host name is resolved        NULL
   MG_EV_CONNECT,     // Connection established       NULL
   MG_EV_ACCEPT,      // Connection accepted          NULL
-  MG_EV_READ,        // Data received from socket    struct mg_str *
+  MG_EV_TLS_HS,      // TLS handshake succeeded      NULL
+  MG_EV_READ,        // Data received from socket    long *bytes_read
   MG_EV_WRITE,       // Data written to socket       long *bytes_written
   MG_EV_CLOSE,       // Connection closed            NULL
   MG_EV_HTTP_MSG,    // HTTP request/response        struct mg_http_message *
@@ -192,6 +193,28 @@ struct mg_connection {
 
 ## Best practices
 
+- Debug log. To increase debug verbosity, call `mg_log_set()`:
+  ```c
+  mg_log_set(MG_LL_DEBUG);
+  mg_mgr_init(&mgr);
+  ```
+  The `MG_INFO()`, `MG_DEBUG()` logging macros use `putchar()` by default,
+  i.e. they use standard C `stdout` stream. That works fine on the traditional
+  OS. In the embedded environment, in order to see debug output, two ways
+  are possible: IO retargeting or Mongoose log redirection. IO retargeting
+  can already be implemented by an embedded SDK - for example ESP32 SDK
+  redirects `printf()` to the UART0. Otherwise, IO retargeting can be
+  implemented manually, see
+  [guide](https://github.com/cpq/bare-metal-programming-guide#redirect-printf-to-uart)
+  for more details.
+  The alternative way is to redirect Mongoose logs:
+  ```c
+  void log_fn(char ch, void *param) {
+    output_a_single_character_to_UART(ch);
+  }
+  ...
+  mg_log_set_fn(log_fn, param);  // Use our custom log function
+  ```
 - If you need to perform any sort of initialisation of your connection,
   do it by catching `MG_EV_OPEN` event. That event is sent immediately
   after a connection has been allocated and added to the event manager,
@@ -255,6 +278,18 @@ struct mg_connection {
   By default, IO buffer allocation size `MG_IO_SIZE` is 2048: change it to 512
   to trim run-time per-connection memory consumption.
 
+## Architecture diagram
+
+In the Operating System environment, Mongoose uses BSD sockets API provided
+by the OS's TCP/IP stack:
+
+![](images/arch2.svg)
+
+In the embedded bare metal environment, Mongoose can utilise its own built-in
+stack with network drivers - i.e. it can run directly on top of the hardware:
+
+![](images/arch1.svg)
+
 ## Build options
 
 Mongoose source code ships in two files:
@@ -266,20 +301,22 @@ files to the application's source tree. The `mongoose.c` and `mongoose.h` files
 are actually an amalgamation - non-amalgamated sources can be found at
 https://github.com/cesanta/mongoose/tree/master/src
 
-Mongoose has two types of build constants (preprocessor definitions) that
-affect the build: a target architecture, and tunables. In order to set the
-option during build time, use the `-D OPTION` compiler flag:
+Mongoose has 3 types of build constants (preprocessor definitions) that affect
+the build: a target architecture/OS, target network stack, and tunables.  In
+order to set the option during build time, use the `-D OPTION` compiler flag:
 
 ```sh
-$ cc app0.c mongoose.c                                        # Use defaults!
-$ cc app1.c mongoose.c -D MG_ENABLE_IPV6=1                    # Build with IPv6 enabled
-$ cc app2.c mongoose.c -D MG_ARCH=MG_ARCH_FREERTOS_LWIP       # Set architecture
-$ cc app3.c mongoose.c -D MG_ENABLE_SSI=0 -D MG_IO_SIZE=8192  # Multiple options
+$ cc app.c mongoose.c                           # Use defaults!
+$ cc app.c mongoose.c -D MG_ENABLE_IPV6=1       # Build with IPv6 enabled
+$ cc app.c mongoose.c -D MG_ARCH=MG_ARCH_RTX    # Set architecture
+$ cc app.c mongoose.c -D MG_ENABLE_SSI=0 -D MG_IO_SIZE=8192  # Multiple options
 ```
 
-The list of supported architectures is defined in the [arch.h](https://github.com/cesanta/mongoose/blob/master/src/arch.h)
-header file. Normally, there is no need to explicitly specify the architecture.
-The architecture is guessed during the build, so setting it is not usually required.
+The list of supported architectures is defined in the
+[arch.h](https://github.com/cesanta/mongoose/blob/master/src/arch.h) header
+file. Normally, there is no need to explicitly specify the architecture.  The
+architecture is guessed during the build, so setting it is not usually
+required.
 
 | Name | Description |
 | ---- | ----------- |
@@ -287,16 +324,25 @@ The architecture is guessed during the build, so setting it is not usually requi
 |MG_ARCH_WIN32 | Windows systems |
 |MG_ARCH_ESP32 | Espressif's ESP32 |
 |MG_ARCH_ESP8266 | Espressif's ESP8266 |
-|MG_ARCH_FREERTOS_LWIP | All systems with FreeRTOS kernel and LwIP IP stack |
-|MG_ARCH_FREERTOS_TCP | All systems with FreeRTOS kernel and FreeRTOS-Plus-TCP IP stack |
+|MG_ARCH_FREERTOS | All systems with FreeRTOS kernel|
 |MG_ARCH_AZURERTOS | Microsoft Azure RTOS |
-|MG_ARCH_RTX_LWIP | Keil RTX with LWIP TCP/IP stack |
-|MG_ARCH_RTX | Keil RTX with MDK TCP/IP stack |
+|MG_ARCH_RTX | Keil RTX  |
 |MG_ARCH_ZEPHYR | Zephyr RTOS |
 |MG_ARCH_TIRTOS | TI RTOS |
 |MG_ARCH_RP2040 | RP2040 SDK |
 |MG_ARCH_NEWLIB | Bare ARM GCC |
 |MG_ARCH_CUSTOM | A custom architecture, discussed in the next section |
+
+The network stack constants are listed below. Note that if a network stack
+is not specified, then it is assumed that the target architecture supports
+standard BSD socket API.
+
+| Name | Default  | Description |
+| ---- | -------- | ----------- |
+|MG_ENABLE_LWIP | 0 | lwIP network stack |
+|MG_ENABLE_FREERTOS_TCP | 0 | Amazon FreeRTOS-Plus-TCP network stack |
+|MG_ENABLE_RL | 0 | Keil MDK network stack |
+|MG_ENABLE_MIP | 0 | Built-in Mongoose network stack |
 
 The other class of build constants is defined in
 [src/config.h](https://github.com/cesanta/mongoose/blob/master/src/config.h)
@@ -333,30 +379,33 @@ accordingly.
 
 ## Custom build
 
-A custom build should be used for cases which is not covered by the
+A custom build should be used for cases not covered by the
 existing architecture options (e.g., an embedded architecture that
 uses some proprietary RTOS and network stack). In order to build on such
 systems, follow the outline below:
 
 1. Add `-DMG_ARCH=MG_ARCH_CUSTOM` to your build flags.
 2. Create a file called `mongoose_custom.h`, with defines and includes that
-are relevant to your platform. Mongoose uses `bool` type, `MG_DIRSEP` define,
-and optionally other structures like `DIR *` depending on the functionality
-you have enabled - see previous section. Below is an example:
-
-```c
-#include <stdbool.h>
-#include <stdarg.h>
-
-#define MG_DIRSEP '/'
-#define MG_INT64_FMT "%lld"
-```
+   are relevant to your platform. Mongoose uses `bool` type, `MG_DIRSEP` define,
+   and optionally other structures like `DIR *` depending on the functionality
+   you have enabled - see previous section. Below is an example:
+   ```c
+   #include <stdbool.h>
+   #include <stdarg.h>
+ 
+   #define MG_DIRSEP '/'
+   #define MG_INT64_FMT "%lld"
+   ```
+   You can also add a `MG_ARCH` definition:
+   ```c
+   #define MG_ARCH MG_ARCH_CUSTOM
+   ```
 3. This step is optional, and only required if you intend to use a custom
    TCP/IP stack. To do that, you should:
   * Disable BSD socket API: in the `mongoose_custom.h`, add
-  ```c
-  #define MG_ENABLE_SOCKET 0
-  ```
+   ```c
+   #define MG_ENABLE_SOCKET 0
+   ```
   * Add an implementation of several internal API functions, like
   `mg_send()`, `mg_mgr_poll()`, etc. For the reference, take
   a look at the stub
@@ -376,11 +425,11 @@ This example is a simple HTTP server that serves both static and dynamic content
 static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
   if (ev == MG_EV_HTTP_MSG) {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-    if (mg_http_match_uri(hm, "/api/hello")) {
-      mg_http_reply(c, 200, "", "%s\n", "hi");  // Serve dynamic content
-    } else {
-      struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve
-      mg_http_serve_dir(c, ev_data, &opts);                 // static content
+    if (mg_http_match_uri(hm, "/api/hello")) {              // On /api/hello requests,
+      mg_http_reply(c, 200, "", "{%Q:%d}\n", "status", 1);  // Send dynamic JSON response
+    } else {                                                // For all other URIs,
+      struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve files
+      mg_http_serve_dir(c, hm, &opts);                      // From root_dir
     }
   }
 }
@@ -649,7 +698,7 @@ mg_send(c, "hi", 2);  // Append string "hi" to the output buffer
 
 ```c
 int mg_printf(struct mg_connection *, const char *fmt, ...);
-int mg_vprintf(struct mg_connection *, const char *fmt, va_list ap);
+int mg_vprintf(struct mg_connection *, const char *fmt, va_list *ap);
 ```
 
 Same as `mg_send()`, but formats data using `printf()` semantics. Return
@@ -670,27 +719,6 @@ Usage example:
 mg_printf(c, "Hello, %s!", "world"); // Add "Hello, world!" to output buffer
 ```
 
-### mg\_straddr
-
-```c
-char *mg_straddr(struct mg_addr *addr, char *buf, size_t len);
-```
-
-Write stringified IP address, associated with given connection to `buf` (maximum size `len`)
-
-Parameters:
-- `addr` - A address pointer
-- `buf` - A pointer to a buffer that will hold stringified address
-- `len` - A buffer size
-
-Return value: `buf` value
-
-Usage example:
-
-```c
-char buf[100];
-LOG(LL_INFO, ("%s", mg_straddr(&c->peer, buf, sizeof(buf))));
-```
 
 ### mg\_wrapfd()
 
@@ -736,28 +764,22 @@ Return value: created socket, or `-1` on error
 
 Usage example: see [examples/multi-threaded](https://github.com/cesanta/mongoose/tree/master/examples/multi-threaded).
 
-### mg\_mgr\_wakeup()
+### mg\_hello()
 
 ```c
-bool mg_mgr_wakeup(struct mg_connection *pipe, const void *buf, size_len len);
+void mg_hello(const char *url);
 ```
 
-Wake up an event manager that sleeps in `mg_mgr_poll()` call. This function
-must be called from a separate task/thread. A calling thread can pass
-some specific data to the IO thread via `buf`, `len`. The maximum value
-of `len` is limited by a maximum UDP datagram size, which is 64KiB. If you need
-to send a large data to the Mongoose thread, `malloc()` the data and send
-a pointer to it, not the data itself. The receiving event handler can receive
-a pointer, send a response, and call `free()`. Parameters:
+A convenience function that starts a simple web server on a given listening
+URL. This function does not return until a "/quit" request is received. A
+server handles the following URIs:
+
+- `/quit` - quit the server, and exit the function
+- `/debug` - set debug level, expect `{"level": 3}` as a POST payload
+- For all other URIs, `hi` is returned as a response
 
 Parameters:
-- `pipe` - a special connection created by the `mg_mkpipe()` call
-- `buf` - a data to send to the pipe connection. Use `""` if there is no data 
-- `len` - a data length
-
-Return value: `true` if data has been sent, `false` otherwise
-
-Usage example: see [examples/multi-threaded](https://github.com/cesanta/mongoose/tree/master/examples/multi-threaded).
+- `url` - a listening URL, for example `http://0.0.0.0:8000`
 
 
 ## HTTP
@@ -996,12 +1018,13 @@ void mg_http_serve_dir(struct mg_connection *c, struct mg_http_message *hm,
                        const struct mg_http_serve_opts *opts);
 ```
 
-Serve static files according to the given options. Note that in order to
-enable SSI, set a `-DMG_ENABLE_SSI=1` build flag.
+Serve static files according to the given options. Files can also be gzip compressed, including the directory index. All compressed files must end in `.gz` and there must not exist a file with the same name without the extension, otherwise it will take precedence; see [mg_http_serve_file()](#mg_http_serve_file)
+
+<span class="badge bg-warning">NOTE: </span> In order to enable SSI, you need to set the `-DMG_ENABLE_SSI=1` build flag.
 
 <span class="badge bg-danger">NOTE: </span> Avoid double dots `..` in
 the `root_dir`. If you need to
-reference an upper-level directory, use absolute path.
+reference an upper-level directory, use an absolute path.
 
 Parameters:
 - `c` - Connection to use
@@ -1033,7 +1056,7 @@ void mg_http_serve_file(struct mg_connection *c, struct mg_http_message *hm,
                         const char *path, struct mg_http_serve_opts *opts);
 ```
 
-Serve static file.
+Serve a static file. If a file with the filename specified in `path` does not exist, Mongoose tries appending `.gz`; and if such a file exists, it will serve it with a `Content-Encoding: gzip` header 
 
 <span class="badge bg-danger">NOTE: </span> `opts->root_dir` settings
 is ignored by this function.
@@ -1343,7 +1366,7 @@ Parameters:
 
 Return value: offset to the next chunk, or 0 if there are no more chunks.
 
-Usage example (or see [form upload tutorial](../tutorials/form-uploads/) ):
+Usage example (or see [form upload tutorial](../tutorials/file-uploads/) ):
 
 ```c
 struct mg_http_part part;
@@ -1403,18 +1426,50 @@ static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
 ```
 
 
-## Websocket
+## WebSocket
 
 ### struct mg\_ws\_message
 
 ```c
 struct mg_ws_message {
-  struct mg_str data; // Websocket message data
-  uint8_t flags;      // Websocket message flags
+  struct mg_str data; // WebSocket message data
+  uint8_t flags;      // WebSocket message flags
 };
 ```
 
-Structure represents the WebSocket message.
+This structure represents the WebSocket message, the `flags` element corresponds to the first byte as described in [RFC 6455 section 5.2](https://www.rfc-editor.org/rfc/rfc6455#section-5.2).
+
+#### WebSocket message type:
+
+To extract the message type from an incoming message, check the four LSBs in the `flags` element of the `struct mg_ws_message`.
+
+Possible WebSocket message types:
+
+```c
+#define WEBSOCKET_OP_CONTINUE 0
+#define WEBSOCKET_OP_TEXT 1
+#define WEBSOCKET_OP_BINARY 2
+#define WEBSOCKET_OP_CLOSE 8
+#define WEBSOCKET_OP_PING 9
+#define WEBSOCKET_OP_PONG 10
+```
+
+```c
+// Mongoose events handler
+void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
+  if (ev == MG_EV_WS_MSG) {
+    struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
+    msgtype = wm->flags & 0x0F;
+    if (msgtype == WEBSOCKET_OP_BINARY) {
+      // This is a binary data message
+    } else if (msgtype == WEBSOCKET_OP_TEXT) {
+      // This is a text data message
+    }
+  }
+}
+```
+
+To send a message, use the proper message type as described in [RFC 6455 section 5.6](https://www.rfc-editor.org/rfc/rfc6455#section-5.6) for data frames. when calling [mg_ws_send()](#mg_ws_send) or [mg_ws_printf()](#mg_ws_printf-mg_ws_vprintf) below
 
 ### mg\_ws\_connect()
 
@@ -1424,7 +1479,7 @@ struct mg_connection *mg_ws_connect(struct mg_mgr *mgr, const char *url,
                                     const char *fmt, ...);
 ```
 
-Create client Websocket connection.
+Create client WebSocket connection.
 
 Note: this function does not connect to peer, it allocates required resources and
  starts the connect process. Once peer is really connected, the `MG_EV_CONNECT` event is
@@ -1433,7 +1488,6 @@ Note: this function does not connect to peer, it allocates required resources an
 Parameters:
 - `mgr` - Event manager to use
 - `url` - Specifies remote URL, e.g. `http://google.com`
-- `opts` - MQTT options, with client ID, QoS, etc
 - `fn` - An event handler function
 - `fn_data` - An arbitrary pointer, which will be passed as `fn_data` when an
   event handler is called. This pointer is also stored in a connection
@@ -1457,9 +1511,9 @@ void mg_ws_upgrade(struct mg_connection *c, struct mg_http_message *,
                    const char *fmt, ...);
 ```
 
-Upgrade given HTTP connection to Websocket. The `fmt` is a printf-like
+Upgrade given HTTP connection to WebSocket. The `fmt` is a printf-like
 format string for the extra HTTP headers returned to the client in a
-Websocket handshake. Set `fmt` to `NULL` if no extra headers need to be passed.
+WebSocket handshake. Set `fmt` to `NULL` if no extra headers need to be passed.
 
 Parameters:
 - `c` - Connection to use
@@ -1486,26 +1540,15 @@ void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
 size_t mg_ws_send(struct mg_connection *c, const void *buf, size_t len, int op);
 ```
 
-Send data to websocket peer
+Send data to WebSocket peer
 
 Parameters:
 - `c` - Connection to use
 - `buf` - Data to send
 - `len` - Data size
-- `op` - Websocket message type
+- `op` - WebSocket message type, see [WebSocket message type](#websocket-message-type) above
 
 Return value: sent bytes count
-
-Possible Websocket message type:
-
-```c
-#define WEBSOCKET_OP_CONTINUE 0
-#define WEBSOCKET_OP_TEXT 1
-#define WEBSOCKET_OP_BINARY 2
-#define WEBSOCKET_OP_CLOSE 8
-#define WEBSOCKET_OP_PING 9
-#define WEBSOCKET_OP_PONG 10
-```
 
 Usage example:
 
@@ -1528,16 +1571,11 @@ size_t mg_ws_vprintf(struct mg_connection *, int op, const char *fmt, va_list *)
 
 Same as `mg_ws_send()`, but formats data using `printf()` semantics.
 
-<span class="badge bg-danger">NOTE: </span> See [mg\_ws\_send](#mg_ws_send)
-for the list of possible Websocket message types
-
-<span class="badge bg-danger">NOTE: </span> See [mg\_snprintf](#mg_snprintf-mg_vsnprintf)
-for the list of supported format specifiers
-
 Parameters:
 - `c` - Connection to use
-- `op` - Websocket message type
-- `fmt` - format string in `printf` semantics
+- `op` - WebSocket message type, see [WebSocket message type](#websocket-message-type) above
+- `fmt` - format string in `printf` semantics. see [mg\_snprintf](#mg_snprintf-mg_vsnprintf)
+for the list of supported format specifiers
 
 Return value: sent bytes count
 
@@ -2320,7 +2358,7 @@ Usage example:
 struct mg_str str1 = mg_str("hello");
 struct mg_str str2 = mg_strdup(str1);
 //...
-free(str2.ptr);
+free((void *)str2.ptr);
 ```
 
 
@@ -2561,6 +2599,8 @@ Supported format specifiers:
 - `q` - expect `char *`, outputs JSON-escaped string (extension)
 - `Q` - expect `char *`, outputs double-quoted JSON-escaped string (extension)
 - `H` - expect `int`, `void *`, outputs double-quoted hex string (extension)
+- `I` - expect `int` (4 or 6), `void *`, outputs IP address (extension)
+- `A` - expect `void *`, outputs hardware address (extension)
 - `V` - expect `int`, `void *`, outputs double-quoted base64 string (extension)
 - `M` - expect `mg_pfn_t`, calls another print function (extension)
 - `g`, `f` - expect `double`
@@ -2589,6 +2629,8 @@ mg_snprintf(buf, sizeof(buf), "%05x", 123);             // 00123
 mg_snprintf(buf, sizeof(buf), "%%-%3s", "a");           // %-  a
 mg_snprintf(buf, sizeof(buf), "hi, %Q", "a");           // hi, "a"
 mg_snprintf(buf, sizeof(buf), "r: %M, %d", f,1,2,7);    // r: 3, 7
+mg_snprintf(buf, sizeof(buf), "%I", 4, "abcd");         // 97.98.99.100
+mg_snprintf(buf, sizeof(buf), "%A", "abcdef");          // 61:62:63:64:65:66
 
 // Printing sub-function for %M specifier. Grabs two int parameters
 size_t f(void (*out)(char, void *), void *ptr, va_list *ap) {
@@ -2703,28 +2745,6 @@ struct mg_addr addr;
 if (mg_aton(mg_str("127.0.0.1"), &addr)) {
   // addr is now binary representation of 127.0.0.1 IP address
 }
-```
-
-### mg\_ntoa()
-
-```c
-char *mg_ntoa(const struct mg_addr *addr, char *buf, size_t len);
-```
-
-Stringify IP address `ipaddr` into a buffer `buf`, `len`
-
-Parameters:
-- `addr` - Address to stringify
-- `buf` - Pointer to output buffer
-- `len` - Output buffer size
-
-Return value: `buf` value
-
-Usage example:
-
-```c
-char buf[100];
-mg_ntoa(&c->peer, buf, sizeof(buf));
 ```
 
 ## JSON
@@ -3801,7 +3821,7 @@ isn't default port for URL protocol
 Usage example:
 
 ```c
-unsigned short port1 = mg_url_port("htts://myhost.com") // port1 is now 443 (default https port)
+unsigned short port1 = mg_url_port("https://myhost.com") // port1 is now 443 (default https port)
 unsigned short port2 = mg_url_port("127.0.0.1:567") // port2 is now 567
 ```
 
@@ -3941,7 +3961,7 @@ Parameters:
   - `0` - Disable logging
   - `1` - Log errors only
   - `2` - Log errors and info messages
-  - `3` - Log errors, into and debug messages
+  - `3` - Log errors, info and debug messages
   - `4` - Log everything
 
 Return value: None
@@ -4149,40 +4169,4 @@ Usage example:
 
 ```c
 mg_file_printf(&mg_fs_fat, "/test.txt", "%s\n", "hi");
-```
-
-### Packed filesystem
-
-A packed filesystem allow to "pack" filesystem into a C file which then can
-be compiled into the binary, forming a read-only file system.
-This makes it possible to serve files on devices with no
-filesystem. Even on devices with a filesystem, packing some files like Web UI
-can be beneficial to be resilient to filesystem errors.
-
-
-In order to use packed filesystem do the following:
-
-1. Build **pack** tool from test/pack.c:
-```sh
-$ cc -o pack pack.c
-```
-
-2. Convert list of files into single .c:
-```sh
-$ ./pack index.html style.css > packed_fs.c
-```
-
-3. Build your app with `packed_fs.c`:
-```sh
-$ cc mongoose.c app.c packed_fs.c -DMG_ENABLE_PACKED_FS=1
-```
-
-<img src="images/packed.svg" alt="packed filesystem" />
-
-4. In your application code:
-```c
-struct mg_http_serve_opts opts = {};  // Initialise empty options
-opts.fs = &mg_fs_packed;              // Use packed filesystem
-opts.root_dir = "/";                  // Set root directory
-mg_http_serve_dir(c, hm, &opts);      // Serve directory
 ```

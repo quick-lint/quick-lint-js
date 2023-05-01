@@ -49,4 +49,4 @@ might be error prone or downright incorrect.
 
 In practice, some `QLJS_HAVE_` macros need to be configured in the build system
 because the C++ preprocessor is not powerful enough. `QLJS_HAVE_CHARCONV_HEADER`
-is one example.
+is one historical example.

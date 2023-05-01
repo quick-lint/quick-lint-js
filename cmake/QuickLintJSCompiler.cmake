@@ -22,8 +22,6 @@ endfunction ()
 function (quick_lint_js_enable_char8_t_if_supported)
   check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
   if (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
-    set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE CACHE BOOL "Whether the -fchar8_t C++ flag works reliably")
-
     check_cxx_source_compiles(
       "#include <cstdio>
       #include <typeinfo>
@@ -42,6 +40,8 @@ function (quick_lint_js_enable_char8_t_if_supported)
           std::puts(typeid(char8_t).name());
           return 0;
         }" QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
+    else ()
+      set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE CACHE BOOL "Whether the -fchar8_t C++ flag works reliably")
     endif ()
 
     if (QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
@@ -106,6 +106,7 @@ function (quick_lint_js_set_cxx_standard)
   set(CMAKE_CXX_STANDARD_REQUIRED "${CMAKE_CXX_STANDARD_REQUIRED}" PARENT_SCOPE)
 
   quick_lint_js_use_new_msvc_preprocessor()
+  quick_lint_js_fix_cpluplus_macro()
 endfunction ()
 
 function (quick_lint_js_use_new_msvc_preprocessor)
@@ -120,6 +121,11 @@ function (quick_lint_js_use_new_msvc_preprocessor)
   quick_lint_js_get_supported_warning_options(/wd5105 WARNING_OPTIONS_TO_ADD)
   add_compile_options(${WARNING_OPTIONS_TO_ADD})
   add_definitions(-DWIN32_LEAN_AND_MEAN)
+endfunction ()
+
+function (quick_lint_js_fix_cpluplus_macro)
+  # https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=msvc-170
+  quick_lint_js_add_c_cxx_flag_if_supported(/Zc:__cplusplus QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR)
 endfunction ()
 
 function (quick_lint_js_add_warning_options_if_supported)
@@ -186,22 +192,6 @@ function (quick_lint_js_work_around_implicit_link_directories)
   set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "" PARENT_SCOPE)
 endfunction ()
 
-function (quick_lint_js_have_charconv OUT_VAR)
-  check_cxx_source_compiles(
-    "#include <charconv>
-    int main() {
-      char out[10];
-      int value = 42;
-      (void)std::to_chars(out, out + 10, value);
-      return 0;
-    }" QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS)
-  set(
-    "${OUT_VAR}"
-    "${QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS}"
-    PARENT_SCOPE
-  )
-endfunction ()
-
 function (quick_lint_js_add_c_cxx_flag_if_supported FLAG VAR)
   quick_lint_js_add_c_flag_if_supported("${FLAG}" "${VAR}_C")
   quick_lint_js_add_cxx_flag_if_supported("${FLAG}" "${VAR}_CXX")
@@ -218,6 +208,25 @@ function (quick_lint_js_add_cxx_flag_if_supported FLAG VAR)
   check_cxx_compiler_flag("${FLAG}" "${VAR}")
   if ("${${VAR}}")
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${FLAG}>)
+  endif ()
+endfunction ()
+
+function (quick_lint_js_target_add_c_cxx_flag_if_supported TARGET FLAG VAR)
+  quick_lint_js_target_add_c_flag_if_supported("${TARGET}" "${FLAG}" "${VAR}_C")
+  quick_lint_js_target_add_cxx_flag_if_supported("${TARGET}" "${FLAG}" "${VAR}_CXX")
+endfunction ()
+
+function (quick_lint_js_target_add_c_flag_if_supported TARGET FLAG VAR)
+  check_c_compiler_flag("${FLAG}" "${VAR}")
+  if ("${${VAR}}")
+    target_compile_options("${TARGET}" PRIVATE $<$<COMPILE_LANGUAGE:C>:${FLAG}>)
+  endif ()
+endfunction ()
+
+function (quick_lint_js_target_add_cxx_flag_if_supported TARGET FLAG VAR)
+  check_cxx_compiler_flag("${FLAG}" "${VAR}")
+  if ("${${VAR}}")
+    target_compile_options("${TARGET}" PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${FLAG}>)
   endif ()
 endfunction ()
 
@@ -241,6 +250,23 @@ function (quick_lint_js_enable_dead_code_stripping)
   quick_lint_js_add_c_cxx_flag_if_supported(-fdata-sections QUICK_LINT_JS_HAVE_FDATA_SECTIONS)
   quick_lint_js_add_c_cxx_flag_if_supported(-ffunction-sections QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS)
   quick_lint_js_add_cxx_linker_flag_if_supported(-Wl,--gc-sections QUICK_LINT_JS_HAVE_GC_SECTIONS)
+endfunction ()
+
+function (quick_lint_js_optimize_target_for_code_size TARGET)
+  quick_lint_js_target_add_c_cxx_flag_if_supported("${TARGET}" -Oz QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ)
+  if (QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ_C OR QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ_CXX)
+    return ()
+  endif ()
+
+  quick_lint_js_target_add_c_cxx_flag_if_supported("${TARGET}" -Os QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OS)
+  if (QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OS_C OR QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OS_CXX)
+    return ()
+  endif ()
+
+  quick_lint_js_target_add_c_cxx_flag_if_supported("${TARGET}" /O1 QUICK_LINT_JS_HAVE_OPTIMIZE_MSVC_O1)
+  if (QUICK_LINT_JS_HAVE_OPTIMIZE_MSVC_O1_C OR QUICK_LINT_JS_HAVE_OPTIMIZE_MSVC_O1_CXX)
+    return ()
+  endif ()
 endfunction ()
 
 function (quick_lint_js_enable_windows_unicode TARGET)

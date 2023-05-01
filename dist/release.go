@@ -15,9 +15,9 @@ import "path/filepath"
 import "regexp"
 import "runtime"
 import "strings"
+import "time"
 
-// Path to the 'dist' directory containing this file (sign-release.go).
-var DistPath string
+const RFC5322 string = time.RFC1123Z
 
 type Step struct {
 	Title string
@@ -27,6 +27,7 @@ type Step struct {
 var OldReleaseVersion string
 var ReleaseCommitHash string
 var ReleaseVersion string
+var ReleaseDate time.Time
 
 var ThreePartVersionRegexp *regexp.Regexp = regexp.MustCompile("\\b\\d+\\.\\d+\\.\\d+\\b")
 
@@ -76,11 +77,38 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Update 'version' file",
+		Run: func() {
+			if err := WriteVersionFile(VersionFileInfo{
+				VersionNumber: ReleaseVersion,
+				ReleaseDate:   ReleaseDate,
+			}); err != nil {
+				Stopf("failed to write version file: %v", err)
+			}
+		},
+	},
+
+	Step{
+		Title: "Update Debian changelogs",
+		Run: func() {
+			for _, changelogFilePath := range []string{
+				"dist/debian/debian/changelog-bionic",
+				"dist/debian/debian/changelog",
+			} {
+				if err := UpdateDebianChangelog(changelogFilePath, VersionFileInfo{
+					VersionNumber: ReleaseVersion,
+					ReleaseDate:   ReleaseDate,
+				}); err != nil {
+					Stopf("failed to update Debian changelog %s: %v", changelogFilePath, err)
+				}
+			}
+		},
+	},
+
+	Step{
 		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* dist/debian/debian/changelog-bionic\n")
-			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
@@ -88,7 +116,6 @@ var Steps []Step = []Step{
 			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
-			fmt.Printf("* version\n")
 			WaitForDone()
 		},
 	},
@@ -271,6 +298,15 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Create GitHub release",
+		Run: func() {
+			fmt.Printf("Create a GitHub release:")
+			fmt.Printf("$ go run dist/update-release-notes.go -AuthToken=YOUR_ACCESS_TOKEN\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
 		Title: "Update Arch Linux user repositories (AUR)",
 		Run: func() {
 			fmt.Printf("1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.\n")
@@ -355,14 +391,22 @@ func main() {
 	if !ok {
 		panic("could not determine path of .go file")
 	}
-	DistPath = filepath.Dir(scriptPath)
+	// Path to the 'dist' directory containing this file (release.go).
+	distPath := filepath.Dir(scriptPath)
+
+	err := os.Chdir(filepath.Join(distPath, ".."))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	startAtStepNumber := 0
+	releaseDateString := ""
 	listSteps := false
 	flag.BoolVar(&listSteps, "ListSteps", false, "")
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
 	flag.StringVar(&OldReleaseVersion, "OldReleaseVersion", "", "")
+	flag.StringVar(&releaseDateString, "ReleaseDate", "", "")
 	flag.Parse()
 	if listSteps {
 		ListSteps()
@@ -374,6 +418,16 @@ func main() {
 	}
 	ReleaseVersion = flag.Arg(0)
 	CurrentStepIndex = startAtStepNumber - 1
+
+	if releaseDateString == "" {
+		ReleaseDate = time.Now()
+	} else {
+		var err error
+		ReleaseDate, err = time.Parse(time.RFC3339, releaseDateString)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	if OldReleaseVersion == "" {
 		version := ReadVersionFile()
@@ -422,7 +476,7 @@ func Stopf(format string, a ...interface{}) {
 func Stop() {
 	fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
 	fmt.Printf("To resume, run:\n")
-	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
+	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s -ReleaseDate=%s", CurrentStepIndex+1, OldReleaseVersion, ReleaseDate.Format(time.RFC3339))
 	if ReleaseCommitHash != "" {
 		fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
 	}
@@ -434,7 +488,6 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	fileContents := make(map[string][]byte)
 
 	for _, path := range paths {
-		path = filepath.Join(DistPath, "..", path)
 		data, err := os.ReadFile(path)
 		if err != nil {
 			Stopf("failed to read file: %v", err)
@@ -503,19 +556,62 @@ func GetGitUncommittedChanges() []string {
 
 type VersionFileInfo struct {
 	VersionNumber string
-	ReleaseDate   string
+	ReleaseDate   time.Time
 }
 
 func ReadVersionFile() VersionFileInfo {
-	data, err := os.ReadFile(filepath.Join(DistPath, "..", "version"))
+	data, err := os.ReadFile("version")
 	if err != nil {
 		Stopf("failed to read version file: %v", err)
 	}
+	return ReadVersionFileData(data)
+}
+
+func ReadVersionFileData(data []byte) VersionFileInfo {
 	lines := StringLines(string(data))
+	releaseDate, err := time.ParseInLocation("2006-01-02", lines[1], time.Local)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return VersionFileInfo{
 		VersionNumber: lines[0],
-		ReleaseDate:   lines[1],
+		ReleaseDate:   releaseDate,
 	}
+}
+
+func WriteVersionFile(versionInfo VersionFileInfo) error {
+	versionText := fmt.Sprintf("%s\n%s\n", versionInfo.VersionNumber, versionInfo.ReleaseDate.Format("2006-01-02"))
+	fileMode := fs.FileMode(0644)
+	if err := os.WriteFile("version", []byte(versionText), fileMode); err != nil {
+		return err
+	}
+	return nil
+}
+
+func DebianChangelogEntry(versionInfo VersionFileInfo) string {
+	return fmt.Sprintf(
+		"quick-lint-js (%s-1) unstable; urgency=medium\n"+
+			"\n"+
+			"  * New release.\n"+
+			"\n"+
+			" -- Matthew \"strager\" Glazar <strager.nds@gmail.com>  %s\n"+
+			"\n", versionInfo.VersionNumber, versionInfo.ReleaseDate.Format(RFC5322))
+}
+
+func UpdateDebianChangelog(changelogFilePath string, versionInfo VersionFileInfo) error {
+	originalData, err := os.ReadFile(changelogFilePath)
+	if err != nil {
+		return err
+	}
+
+	newData := append([]byte(DebianChangelogEntry(versionInfo)), originalData...)
+
+	fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+	if err := os.WriteFile(changelogFilePath, newData, fileMode); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func StringLines(s string) []string {

@@ -46,7 +46,6 @@ namespace {
   return env.Undefined();
 }
 #endif
-}
 
 // Work around a bug in MinGW's dlltool when calling certain
 // N-API functions.
@@ -77,6 +76,7 @@ void work_around_dlltool_bug(::napi_env env) {
                                                         "mockKqueueErrors"));
 #endif
   return exports;
+}
 }
 }
 

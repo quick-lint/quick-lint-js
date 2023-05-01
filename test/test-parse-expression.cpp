@@ -9,7 +9,8 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/parse-support.h>
@@ -412,6 +413,15 @@ TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
     test_parser p(u8"typeof o ? 10 : 20"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(typeof(var o), literal, literal)");
+  }
+}
+
+TEST_F(test_parse_expression, parse_await_conditional_operator) {
+  {
+    test_parser p(u8"await a ? b : c"_sv);
+    auto guard = p.enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(await(var a), var b, var c)");
   }
 }
 
@@ -3885,6 +3895,15 @@ TEST_F(test_parse_expression, precedence) {
     SCOPED_TRACE(out_string8(code));
     for (const parser_options& options :
          {javascript_options, typescript_options}) {
+      if (options.typescript &&
+          (code == u8"a<b>=c"_sv || code == u8"a<b>>=c"_sv ||
+           code == u8"a<b>>>=c"_sv)) {
+        // HACK(strager): For TypeScript, "a<b>=c" is parsed as "a<b> =c", not
+        // as "a < b >= c". Don't test those here. See
+        // NOTE[typescript-generic-expression-token-splitting].
+        continue;
+      }
+
       test_parser p(code, options, capture_diags);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), expected_ast_summary);

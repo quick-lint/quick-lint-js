@@ -9,10 +9,10 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor-stack.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -236,6 +236,9 @@ class parser {
 
  private:
   void parse_and_visit_statement_block_no_scope(parse_visitor_base &v);
+  // Parses the closing '}', if present.
+  void parse_and_visit_statement_block_after_left_curly(
+      parse_visitor_base &v, source_code_span left_curly_span);
 
   enum class name_requirement {
     optional,
@@ -261,6 +264,9 @@ class parser {
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_abstract_function_parameters_and_body_no_scope(
+      parse_visitor_base &v, std::optional<source_code_span> name,
+      function_attributes attributes);
+  void parse_and_visit_declare_class_method_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
@@ -321,9 +327,20 @@ class parser {
   overload_signature_parse_result parse_end_of_typescript_overload_signature(
       const identifier &function_name);
 
-  void parse_and_visit_class(
-      parse_visitor_base &v, name_requirement require_name,
-      std::optional<source_code_span> abstract_keyword_span);
+  struct parse_class_options {
+    name_requirement require_name;
+    std::optional<source_code_span> abstract_keyword_span;
+    std::optional<source_code_span> declare_keyword_span;
+  };
+
+  struct parse_class_body_options {
+    source_code_span class_or_interface_keyword_span;
+    bool is_abstract;
+    bool is_declare;
+    bool is_interface;
+  };
+
+  void parse_and_visit_class(parse_visitor_base &v, parse_class_options);
   // Parse the 'class' keyword and the class's optional name.
   std::optional<identifier> parse_class_and_optional_name();
   // Parse any extends clauses after the class's name.
@@ -335,11 +352,9 @@ class parser {
                         source_code_span class_keyword_span,
                         name_requirement require_name);
   void parse_and_visit_class_body(parse_visitor_base &v,
-                                  source_code_span class_keyword_span,
-                                  bool is_abstract);
-  void parse_and_visit_class_or_interface_member(
-      parse_visitor_base &v, source_code_span class_or_interface_keyword_span,
-      bool is_interface, bool is_abstract);
+                                  parse_class_body_options);
+  void parse_and_visit_class_or_interface_member(parse_visitor_base &v,
+                                                 parse_class_body_options);
 
   void parse_and_visit_typescript_interface(
       parse_visitor_base &v, source_code_span interface_keyword_span);
@@ -352,7 +367,16 @@ class parser {
   void parse_and_visit_typescript_interface_reference(parse_visitor_base &v);
 
   void parse_and_visit_typescript_namespace(
-      parse_visitor_base &v, source_code_span namespace_keyword_span);
+      parse_visitor_base &v,
+      std::optional<source_code_span> export_keyword_span,
+      source_code_span namespace_keyword_span);
+  void parse_and_visit_typescript_namespace_head(
+      parse_visitor_base &v,
+      std::optional<source_code_span> export_keyword_span,
+      std::optional<source_code_span> declare_keyword_span,
+      source_code_span namespace_keyword_span);
+  void parse_and_visit_typescript_declare_namespace(
+      parse_visitor_base &v, source_code_span declare_keyword_span);
 
   void parse_and_visit_typescript_type_alias(parse_visitor_base &v,
                                              source_code_span type_token);
@@ -382,10 +406,13 @@ class parser {
   void parse_and_visit_with(parse_visitor_base &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-            bool CheckForSketchyConditions>
-  void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
+            bool CheckForSketchyConditions, bool CheckForCommaOperator>
+  void parse_and_visit_parenthesized_expression(parse_visitor_base &v,
+                                                source_code_span token);
 
   void error_on_sketchy_condition(expression *);
+  void warn_on_comma_operator_in_conditional_statement(expression *);
+  void warn_on_comma_operator_in_index(expression *, source_code_span);
   void error_on_pointless_string_compare(expression::binary_operator *);
   void error_on_pointless_compare_against_literal(
       expression::binary_operator *);
@@ -398,29 +425,39 @@ class parser {
   void error_on_function_statement(statement_kind statement_kind);
 
   void parse_and_visit_import(parse_visitor_base &v);
+  void parse_and_visit_import(
+      parse_visitor_base &v,
+      std::optional<source_code_span> declare_namespace_declare_keyword);
   void parse_and_visit_name_space_import(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_import(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_typescript_type_only_import(
       parse_visitor_base &v, source_code_span type_keyword);
 
   void parse_and_visit_export(parse_visitor_base &v);
+  void parse_and_visit_export(
+      parse_visitor_base &v,
+      std::optional<source_code_span> declare_namespace_declare_keyword);
   void parse_and_visit_named_exports(
       parse_visitor_base &v,
       std::optional<source_code_span> typescript_type_only_keyword,
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
-  void parse_and_visit_let_bindings(
-      parse_visitor_base &v, const token &declaring_token,
-      bool allow_in_operator, bool allow_const_without_initializer = false,
-      bool is_in_for_initializer = false);
+  struct parse_let_bindings_options {
+    const token &declaring_token;
+    bool allow_in_operator = true;
+    bool allow_const_without_initializer = false;
+    bool is_in_for_initializer = false;
+
+    // If set, refers to the TypeScript 'declare' keyword in 'declare var x;'
+    // for example.
+    std::optional<source_code_span> declare_keyword;
+
+    bool is_declare() const { return this->declare_keyword.has_value(); }
+  };
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(parse_visitor_base &v,
-                                    const token &declaring_token,
-                                    variable_kind declaration_kind,
-                                    bool allow_in_operator,
-                                    bool allow_const_without_initializer,
-                                    bool is_in_for_initializer);
+                                    const parse_let_bindings_options &);
   bool is_let_token_a_variable_reference(const token &following_token,
                                          bool allow_declarations) noexcept;
 
@@ -515,6 +552,17 @@ class parser {
     // If false, parse '?:' as the conditional operator with no expression in
     // between.
     bool colon_question_is_typescript_optional_with_type_annotation : 1 = false;
+
+    // Whether we are parsing the expression after 'extends' in a 'class'
+    // expression or statement.
+    //
+    // * true:  'T<U> {}' is TypeScript generic followed by curlies;
+    //   false: 'T<U> {}' is '<' and '>' binary expressions.
+    //
+    // * If in_async_function_ is false:
+    //   * true:  'await {}' is a variable named 'await' followed by curlies;
+    //     false: 'await {}' is an 'await' operator with an object literal.
+    bool in_class_extends_clause : 1 = false;
   };
 
   // binary_expression_builder helps in the creation of a
@@ -639,6 +687,11 @@ class parser {
   void consume_semicolon_after_statement();
   template <class MissingSemicolonDiagnostic>
   void consume_semicolon();
+
+  void error_on_pointless_nullish_coalescing_operator(
+      expression::binary_operator *);
+
+  void check_lhs_for_null_potential(expression *, source_code_span op_span);
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
   void skip() noexcept { this->lexer_.skip(); }
@@ -818,8 +871,14 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
+  bool in_typescript_namespace_ = false;
 
   bool in_typescript_only_construct_ = false;
+
+  // When parsing TypeScript 'infer', store visit_variable_declaration calls
+  // here. If typescript_infer_declaration_buffer_ is null, then we are in a
+  // context where 'infer' is disallowed.
+  buffering_visitor *typescript_infer_declaration_buffer_ = nullptr;
 
   // Cache of whether 'await' is an identifier or an operator. This cache is
   // used to avoid quadratic run-time in code like the following:
@@ -851,6 +910,8 @@ class parser {
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
+  using typescript_namespace_guard =
+      bool_guard<&parser::in_typescript_namespace_>;
 
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
@@ -867,6 +928,7 @@ class parser {
   [[nodiscard]] typescript_only_construct_guard
   enter_typescript_only_construct();
   [[nodiscard]] switch_guard enter_switch();
+  [[nodiscard]] typescript_namespace_guard enter_typescript_namespace();
 
   void parse_end_of_expression_statement();
   void parse_and_visit_return_statement(
@@ -882,21 +944,47 @@ class parser {
   parse_possible_label_result
   parse_and_visit_typescript_interface_or_namespace_or_type_statement(
       parse_visitor_base &v);
+
+  enum class parse_possible_declare_result {
+    declare_is_expression_or_loop_label,
+    parsed,
+  };
+
+  parse_possible_declare_result parse_and_visit_possible_declare_statement(
+      parse_visitor_base &v);
+
+  void parse_and_visit_declare_statement(parse_visitor_base &v,
+                                         source_code_span declare_keyword_span);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-          bool CheckForSketchyConditions>
-void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
+          bool CheckForSketchyConditions, bool CheckForCommaOperator>
+void parser::parse_and_visit_parenthesized_expression(
+    parse_visitor_base &v, source_code_span token_span) {
   bool have_expression_left_paren = this->peek().type == token_type::left_paren;
   if (have_expression_left_paren) {
+    source_code_span left_paren_span = this->peek().span();
     this->skip();
+
+    if (this->peek().type == token_type::right_paren) {
+      this->diag_reporter_->report(diag_empty_paren_after_control_statement{
+          .token = token_span,
+          .expected_expression =
+              source_code_span::unit(left_paren_span.end())});
+    }
   }
+
   const char8 *expression_begin = this->peek().begin;
 
   expression *ast = this->parse_expression(v);
   this->visit_expression(ast, v, variable_context::rhs);
+
   if constexpr (CheckForSketchyConditions) {
     this->error_on_sketchy_condition(ast);
+  }
+
+  if constexpr (CheckForCommaOperator) {
+    this->warn_on_comma_operator_in_conditional_statement(ast);
   }
 
   const char8 *expression_end = this->lexer_.end_of_previous_token();
@@ -924,6 +1012,8 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
 
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
+extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_declare_class_method>();
 extern template void
 parser::consume_semicolon<diag_missing_semicolon_after_field>();
 extern template void

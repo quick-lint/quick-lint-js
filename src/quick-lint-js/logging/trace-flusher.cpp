@@ -54,7 +54,8 @@ struct trace_flusher::registered_thread {
 trace_flusher::trace_flusher() = default;
 
 trace_flusher::~trace_flusher() {
-  QLJS_ASSERT(this->backends_.empty());
+  shared_state* state = this->state_.get_without_lock_unsafe();
+  QLJS_ASSERT(state->backends.empty());
 
   this->stop_flushing_thread();
 }
@@ -65,109 +66,106 @@ trace_flusher* trace_flusher::instance() {
 }
 
 void trace_flusher::enable_backend(trace_flusher_backend* backend) {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->enable_backend(lock, backend);
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->enable_backend(state, backend);
 }
 
-void trace_flusher::enable_backend(std::unique_lock<mutex>& lock,
+void trace_flusher::enable_backend(lock_ptr<shared_state>& state,
                                    trace_flusher_backend* backend) {
   QLJS_ASSERT(backend);
   // A single backend cannot be enabled twice.
-  QLJS_ASSERT(std::find(this->backends_.begin(), this->backends_.end(),
-                        backend) == this->backends_.end());
+  QLJS_ASSERT(std::find(state->backends.begin(), state->backends.end(),
+                        backend) == state->backends.end());
 
-  this->backends_.push_back(backend);
+  state->backends.push_back(backend);
 
-  for (auto& t : this->registered_threads_) {
-    this->enable_thread_writer(lock, *t, backend);
+  for (auto& t : state->registered_threads) {
+    this->enable_thread_writer(state, *t, backend);
   }
 }
 
 void trace_flusher::disable_backend(trace_flusher_backend* backend) {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->disable_backend(lock, backend);
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->disable_backend(state, backend);
 }
 
-void trace_flusher::disable_backend(std::unique_lock<mutex>&,
+void trace_flusher::disable_backend(lock_ptr<shared_state>& state,
                                     trace_flusher_backend* backend) {
   QLJS_ASSERT(backend);
   auto backend_it =
-      std::find(this->backends_.begin(), this->backends_.end(), backend);
-  QLJS_ASSERT(backend_it != this->backends_.end());
+      std::find(state->backends.begin(), state->backends.end(), backend);
+  QLJS_ASSERT(backend_it != state->backends.end());
 
-  for (auto& t : this->registered_threads_) {
+  for (auto& t : state->registered_threads) {
     backend->trace_thread_end(t->thread_index);
   }
 
-  this->backends_.erase(backend_it);
+  state->backends.erase(backend_it);
 
-  if (this->backends_.empty()) {
-    for (auto& t : this->registered_threads_) {
+  if (state->backends.empty()) {
+    for (auto& t : state->registered_threads) {
       t->thread_writer->store(nullptr);
     }
   }
 }
 
 void trace_flusher::disable_all_backends() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  while (!this->backends_.empty()) {
-    this->disable_backend(lock, this->backends_.back());
+  lock_ptr<shared_state> state = this->state_.lock();
+  while (!state->backends.empty()) {
+    this->disable_backend(state, state->backends.back());
   }
 }
 
-bool trace_flusher::is_enabled() const {
-  std::unique_lock<mutex> lock(this->mutex_);
-  return this->is_enabled(lock);
-}
+bool trace_flusher::is_enabled() { return this->state_.lock()->is_enabled(); }
 
-bool trace_flusher::is_enabled(std::unique_lock<mutex>&) const {
-  return !this->backends_.empty();
+bool trace_flusher::shared_state::is_enabled() {
+  return !this->backends.empty();
 }
 
 trace_flusher_thread_index trace_flusher::register_current_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
+  lock_ptr<shared_state> state = this->state_.lock();
   QLJS_ASSERT(this->thread_stream_writer_.load() == nullptr);
 
-  this->registered_threads_.push_back(std::make_unique<registered_thread>(
-      this, get_current_thread_id(), this->next_thread_index_++,
+  state->registered_threads.push_back(std::make_unique<registered_thread>(
+      this, get_current_thread_id(), state->next_thread_index++,
       &this->thread_stream_writer_));
-  registered_thread* t = this->registered_threads_.back().get();
+  registered_thread* t = state->registered_threads.back().get();
 
-  for (trace_flusher_backend* backend : this->backends_) {
-    this->enable_thread_writer(lock, *t, backend);
+  for (trace_flusher_backend* backend : state->backends) {
+    this->enable_thread_writer(state, *t, backend);
   }
 
   return t->thread_index;
 }
 
 void trace_flusher::unregister_current_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
+  lock_ptr<shared_state> state = this->state_.lock();
   auto registered_thread_it = find_unique_existing_if(
-      this->registered_threads_,
+      state->registered_threads,
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
   registered_thread& t = **registered_thread_it;
-  if (this->is_enabled(lock)) {
-    this->flush_one_thread_sync(lock, t);
+  if (state->is_enabled()) {
+    this->flush_one_thread_sync(state, t);
   }
-  for (trace_flusher_backend* backend : this->backends_) {
+  for (trace_flusher_backend* backend : state->backends) {
     backend->trace_thread_end(t.thread_index);
   }
-  this->registered_threads_.erase(registered_thread_it);
+  state->registered_threads.erase(registered_thread_it);
   this->thread_stream_writer_.store(nullptr);
 }
 
 void trace_flusher::unregister_all_threads() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  for (auto& t : this->registered_threads_) {
+  lock_ptr<shared_state> state = this->state_.lock();
+  for (auto& t : state->registered_threads) {
     t->thread_writer->store(nullptr);
-    if (this->is_enabled(lock)) {
-      this->flush_one_thread_sync(lock, *t);
+    if (state->is_enabled()) {
+      this->flush_one_thread_sync(state, *t);
     }
-    for (trace_flusher_backend* backend : this->backends_) {
+    for (trace_flusher_backend* backend : state->backends) {
       backend->trace_thread_end(t->thread_index);
     }
   }
-  this->registered_threads_.clear();
+  state->registered_threads.clear();
 }
 
 trace_writer* trace_flusher::trace_writer_for_current_thread() {
@@ -175,13 +173,13 @@ trace_writer* trace_flusher::trace_writer_for_current_thread() {
 }
 
 void trace_flusher::flush_sync() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->flush_sync(lock);
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->flush_sync(state);
 }
 
-void trace_flusher::flush_sync(std::unique_lock<mutex>& lock) {
-  for (auto& t : this->registered_threads_) {
-    this->flush_one_thread_sync(lock, *t);
+void trace_flusher::flush_sync(lock_ptr<shared_state>& state) {
+  for (auto& t : state->registered_threads) {
+    this->flush_one_thread_sync(state, *t);
   }
 }
 
@@ -190,10 +188,10 @@ void trace_flusher::flush_async() { this->flush_requested_cond_.notify_one(); }
 void trace_flusher::start_flushing_thread() {
   QLJS_ASSERT(!this->flushing_thread_.joinable());
   this->flushing_thread_.start([this]() {
-    std::unique_lock<mutex> lock(this->mutex_);
-    while (!this->stop_flushing_thread_) {
-      this->flush_sync(lock);
-      this->flush_requested_cond_.wait(lock);
+    lock_ptr<shared_state> state = this->state_.lock();
+    while (!state->stop_flushing_thread) {
+      this->flush_sync(state);
+      this->flush_requested_cond_.wait(state);
     }
   });
 }
@@ -201,41 +199,41 @@ void trace_flusher::start_flushing_thread() {
 void trace_flusher::stop_flushing_thread() {
   if (this->flushing_thread_.joinable()) {
     {
-      std::unique_lock<mutex> lock(this->mutex_);
-      this->stop_flushing_thread_ = true;
+      lock_ptr<shared_state> state = this->state_.lock();
+      state->stop_flushing_thread = true;
       this->flush_requested_cond_.notify_all();
     }
     this->flushing_thread_.join();
     {
-      std::unique_lock<mutex> lock(this->mutex_);
-      this->stop_flushing_thread_ = false;
+      lock_ptr<shared_state> state = this->state_.lock();
+      state->stop_flushing_thread = false;
     }
   }
 }
 
-void trace_flusher::flush_one_thread_sync(std::unique_lock<mutex>&,
+void trace_flusher::flush_one_thread_sync(lock_ptr<shared_state>& state,
                                           registered_thread& t) {
   // TODO(strager): Use writev if supported.
   t.stream_queue.take_committed(
       [&](span<const std::byte> data) {
-        for (trace_flusher_backend* backend : this->backends_) {
+        for (trace_flusher_backend* backend : state->backends) {
           backend->trace_thread_write_data(t.thread_index, data);
         }
       },
       [] {});
 }
 
-void trace_flusher::enable_thread_writer(std::unique_lock<mutex>& lock,
+void trace_flusher::enable_thread_writer(lock_ptr<shared_state>& state,
                                          registered_thread& t,
                                          trace_flusher_backend* backend) {
   backend->trace_thread_begin(t.thread_index);
-  this->write_thread_header_to_backend(lock, t, backend);
+  this->write_thread_header_to_backend(state, t, backend);
 
   t.thread_writer->store(&t.stream_writer);
 }
 
 void trace_flusher::write_thread_header_to_backend(
-    std::unique_lock<mutex>&, registered_thread& t,
+    lock_ptr<shared_state>&, registered_thread& t,
     trace_flusher_backend* backend) {
   // NOTE(strager): We use a temporary async_byte_queue instead of reusing
   // t.stream_queue so we can write to *just* this backend and not involve any

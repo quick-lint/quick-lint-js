@@ -139,6 +139,120 @@ TEST(test_temporary_directory,
   }
   EXPECT_THAT(files, ::testing::UnorderedElementsAre(*d1, *d2));
 }
+
+class test_directory : public ::testing::Test, protected filesystem_test {};
+
+TEST_F(test_directory, list_directory) {
+  std::string temp_dir = this->make_temporary_directory();
+
+  write_file_or_exit(temp_dir + "/file-1", u8""_sv);
+
+  create_directory_or_exit(temp_dir + "/dir-a");
+  write_file_or_exit(temp_dir + "/dir-a/file-2", u8""_sv);
+  create_directory_or_exit(temp_dir + "/dir-a/subdir");
+
+  create_directory_or_exit(temp_dir + "/dir-b");
+
+  write_file_or_exit(temp_dir + "/file-3", u8""_sv);
+
+  std::vector<std::string> visited_files;
+  auto visit_file = [&](const char* path) -> void {
+    visited_files.push_back(path);
+  };
+  result<void, platform_file_io_error> list =
+      list_directory(temp_dir.c_str(), visit_file);
+  ASSERT_TRUE(list.ok()) << list.error_to_string();
+
+  EXPECT_THAT(visited_files, ::testing::UnorderedElementsAreArray({
+                                 "file-1",
+                                 "dir-a",
+                                 "dir-b",
+                                 "file-3",
+                             }));
+}
+
+TEST_F(test_directory, list_directory_on_regular_file_fails) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file_or_exit(temp_dir + "/testfile", u8""_sv);
+
+  auto visit_file = [&](const char* path) -> void { ADD_FAILURE() << path; };
+  result<void, platform_file_io_error> list =
+      list_directory((temp_dir + "/testfile").c_str(), visit_file);
+  ASSERT_FALSE(list.ok());
+  SCOPED_TRACE(list.error_to_string());
+  EXPECT_TRUE(list.error().is_not_a_directory_error());
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(list.error().error, ENOTDIR);
+#elif QLJS_HAVE_WINDOWS_H
+  EXPECT_EQ(list.error().error, ERROR_DIRECTORY);
+#else
+#error "Unknown platform"
+#endif
+}
+
+TEST_F(test_directory, list_directory_recursively) {
+  std::string temp_dir = this->make_temporary_directory();
+
+  create_directory_or_exit(temp_dir + "/dir-a");
+  write_file_or_exit(temp_dir + "/dir-a/file-1", u8""_sv);
+  write_file_or_exit(temp_dir + "/dir-a/file-2", u8""_sv);
+
+  create_directory_or_exit(temp_dir + "/dir-a/subdir");
+  write_file_or_exit(temp_dir + "/dir-a/subdir/file-3", u8""_sv);
+
+  create_directory_or_exit(temp_dir + "/dir-b");
+  write_file_or_exit(temp_dir + "/dir-b/file-4", u8""_sv);
+
+  create_directory_or_exit(temp_dir + "/dir-c");
+
+  std::vector<std::string> visited_files;
+  auto visit_file = [&](const std::string& path) -> void {
+    visited_files.push_back(path);
+  };
+  auto on_error = [&](const platform_file_io_error& error,
+                      [[maybe_unused]] int depth) -> void {
+    ADD_FAILURE() << error.to_string();
+  };
+  list_directory_recursively(temp_dir.c_str(), visit_file, on_error);
+
+#define SEP QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR
+  EXPECT_THAT(visited_files,
+              ::testing::UnorderedElementsAreArray({
+                  temp_dir + SEP "dir-a" SEP "file-1",
+                  temp_dir + SEP "dir-a" SEP "file-2",
+                  temp_dir + SEP "dir-a" SEP "subdir" SEP "file-3",
+                  temp_dir + SEP "dir-b" SEP "file-4",
+              }));
+#undef SEP
+}
+
+TEST_F(test_directory, list_directory_recursively_on_regular_file_fails) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file_or_exit(temp_dir + "/testfile", u8""_sv);
+
+  auto visit_file = [&](const std::string& path) -> void {
+    ADD_FAILURE() << path;
+  };
+  bool did_error = false;
+  auto on_error = [&](const platform_file_io_error& error, int depth) -> void {
+    SCOPED_TRACE(error.to_string());
+    EXPECT_FALSE(did_error) << "on_error should only be called once";
+    did_error = true;
+    EXPECT_TRUE(error.is_not_a_directory_error());
+#if QLJS_HAVE_UNISTD_H
+    EXPECT_EQ(error.error, ENOTDIR);
+#elif QLJS_HAVE_WINDOWS_H
+    EXPECT_EQ(error.error, ERROR_DIRECTORY);
+#else
+#error "Unknown platform"
+#endif
+    EXPECT_EQ(depth, 0);
+  };
+  list_directory_recursively((temp_dir + "/testfile").c_str(), visit_file,
+                             on_error);
+
+  EXPECT_TRUE(did_error);
+}
 }
 }
 

@@ -10,6 +10,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <string_view>
 
@@ -101,6 +102,26 @@ struct trace_event_process_id {
   std::uint64_t process_id;
 };
 
+enum class trace_lsp_document_type : std::uint8_t {
+  unknown = 0,
+  config = 1,
+  lintable = 2,
+};
+
+struct trace_lsp_document_state {
+  trace_lsp_document_type type;
+  string8_view uri;
+  string8_view text;
+  string8_view language_id;
+};
+
+struct trace_event_lsp_documents {
+  static constexpr std::uint8_t id = 0x09;
+
+  std::uint64_t timestamp;
+  span<const trace_lsp_document_state> documents;
+};
+
 class trace_writer {
  public:
   explicit trace_writer(async_byte_queue*);
@@ -136,12 +157,16 @@ class trace_writer {
 
   void write_event_process_id(const trace_event_process_id&);
 
+  void write_event_lsp_documents(const trace_event_lsp_documents&);
+
  private:
   template <class Func>
   void append_binary(async_byte_queue::size_type size, Func&& callback);
 
   template <class StringWriter>
   void write_utf16le_string(void* string, StringWriter&);
+
+  void write_utf8_string(string8_view);
 
   async_byte_queue* out_;
 };

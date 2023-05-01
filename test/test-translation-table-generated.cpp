@@ -297,6 +297,171 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare class' cannot contain static block"_translatable,
+        {
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+            u8"'declare class' cannot contain static block",
+        },
+    },
+    {
+        "'declare class' fields cannot be initalized"_translatable,
+        {
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+            u8"'declare class' fields cannot be initalized",
+        },
+    },
+    {
+        "'declare class' methods cannot be marked 'async'"_translatable,
+        {
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+            u8"'declare class' methods cannot be marked 'async'",
+        },
+    },
+    {
+        "'declare class' methods cannot be marked as a generator"_translatable,
+        {
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+            u8"'declare class' methods cannot be marked as a generator",
+        },
+    },
+    {
+        "'declare class' methods cannot contain a body"_translatable,
+        {
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+            u8"'declare class' methods cannot contain a body",
+        },
+    },
+    {
+        "'declare function' cannot be marked 'async'"_translatable,
+        {
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+            u8"'declare function' cannot be marked 'async'",
+        },
+    },
+    {
+        "'declare function' cannot be marked as a generator"_translatable,
+        {
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+            u8"'declare function' cannot be marked as a generator",
+        },
+    },
+    {
+        "'declare function' cannot have a body"_translatable,
+        {
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+            u8"'declare function' cannot have a body",
+        },
+    },
+    {
+        "'declare function' here"_translatable,
+        {
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+            u8"'declare function' here",
+        },
+    },
+    {
+        "'declare namespace' cannot contain statements, only declarations"_translatable,
+        {
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+            u8"'declare namespace' cannot contain statements, only declarations",
+        },
+    },
+    {
+        "'declare namespace' starts here"_translatable,
+        {
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+            u8"'declare namespace' starts here",
+        },
+    },
+    {
+        "'declare {1}' cannot have initializer"_translatable,
+        {
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+            u8"'declare {1}' cannot have initializer",
+        },
+    },
+    {
+        "'declare {1}' started here"_translatable,
+        {
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+            u8"'declare {1}' started here",
+        },
+    },
+    {
+        "'declare' here"_translatable,
+        {
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+            u8"'declare' here",
+        },
+    },
+    {
+        "'declare' should not be written inside a 'declare namespace'"_translatable,
+        {
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+            u8"'declare' should not be written inside a 'declare namespace'",
+        },
+    },
+    {
         "'do-while' loop"_translatable,
         {
             u8"'do-while' loop",
@@ -316,6 +481,28 @@ const translated_string test_translation_table[] = {
             u8"'else' n'a pas de 'if' correspondant",
             u8"'else' n\u00e3o tem um 'if' correspondente",
             u8"'else' har ingen anh\u00f6rig 'if'",
+        },
+    },
+    {
+        "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"_translatable,
+        {
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+        },
+    },
+    {
+        "'export' keyword here"_translatable,
+        {
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
+            u8"'export' keyword here",
         },
     },
     {
@@ -382,6 +569,28 @@ const translated_string test_translation_table[] = {
             u8"'in' d\u00e9sactiv\u00e9 dans l'initialisation des boucles for de style C",
             u8"'in' n\u00e3o \u00e9 permitido em um inicializador de um for",
             u8"'in' \u00e4r otill\u00e5tet i C-stil for loop initierare",
+        },
+    },
+    {
+        "'infer' is only allowed between 'extends' and '?' in conditional types"_translatable,
+        {
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
+        },
+    },
+    {
+        "'out in' is not allowed; write 'in out' instead"_translatable,
+        {
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
+            u8"'out in' is not allowed; write 'in out' instead",
         },
     },
     {
@@ -528,6 +737,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"_translatable,
+        {
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
+        },
+    },
+    {
         "'{0} []' is always '{1}'"_translatable,
         {
             u8"'{0} []' is always '{1}'",
@@ -580,6 +800,17 @@ const translated_string test_translation_table[] = {
             u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"operador '{0}' n\u00e3o pode ser usado antes de '**' sem par\u00eanteses",
             u8"'{0}' operator cannot be used before '**' without parentheses",
+        },
+    },
+    {
+        "'{1}' statement starts here"_translatable,
+        {
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
+            u8"'{1}' statement starts here",
         },
     },
     {
@@ -649,6 +880,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "JSX prop is missing an expression"_translatable,
+        {
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+            u8"JSX prop is missing an expression",
+        },
+    },
+    {
         "React/JSX is not allowed in TypeScript code"_translatable,
         {
             u8"React/JSX is not allowed in TypeScript code",
@@ -693,6 +935,50 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript 'declare abstract class' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare class' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+            u8"TypeScript 'declare class' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare function' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+            u8"TypeScript 'declare function' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare {1}' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript 'implements' is not allowed in JavaScript"_translatable,
         {
             u8"TypeScript 'implements' is not allowed in JavaScript",
@@ -701,6 +987,17 @@ const translated_string test_translation_table[] = {
             u8"TypeScript 'implements' is not allowed in JavaScript",
             u8"'implements' n\u00e3o \u00e9 permitido em JavaScript",
             u8"TypeScript 'implements' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'satisfies' operator is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
+            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
         },
     },
     {
@@ -888,6 +1185,28 @@ const translated_string test_translation_table[] = {
             u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"propriedades opcionais do TypeScript n\u00e3o s\u00e3o permitidas em c\u00f3digo JavaScript",
             u8"TypeScript optional properties are not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript parameter properties are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+            u8"TypeScript parameter properties are not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript requires whitespace between '>' and '=' here"_translatable,
+        {
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
+            u8"TypeScript requires whitespace between '>' and '=' here",
         },
     },
     {
@@ -1276,6 +1595,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "assignment-asserted fields are not allowed in 'declare class'"_translatable,
+        {
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+            u8"assignment-asserted fields are not allowed in 'declare class'",
+        },
+    },
+    {
         "assignment-asserted fields are not supported in interfaces"_translatable,
         {
             u8"assignment-asserted fields are not supported in interfaces",
@@ -1328,6 +1658,17 @@ const translated_string test_translation_table[] = {
             u8"break ne peut pas \u00eatre utilis\u00e9 \u00e0 l'int\u00e9rieur d'une boucle ou d'une instruction switch",
             u8"break s\u00f3 pode ser usado dentro de um loop ou switch",
             u8"break kan enbart vara inuti en loop eller switch",
+        },
+    },
+    {
+        "cannot 'export default' from inside a 'declare namespace'"_translatable,
+        {
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a 'declare namespace'",
         },
     },
     {
@@ -1441,6 +1782,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot import a module from inside a 'declare namespace'"_translatable,
+        {
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+            u8"cannot import a module from inside a 'declare namespace'",
+        },
+    },
+    {
         "cannot import variable named keyword '{0}'"_translatable,
         {
             u8"cannot import variable named keyword '{0}'",
@@ -1482,6 +1834,17 @@ const translated_string test_translation_table[] = {
             u8"cannot use '...' on 'this' parameter",
             u8"n\u00e3o \u00e9 poss\u00edvel usar '...' no par\u00e2metro 'this'",
             u8"cannot use '...' on 'this' parameter",
+        },
+    },
+    {
+        "cannot use 'declare' keyword with 'import'"_translatable,
+        {
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
+            u8"cannot use 'declare' keyword with 'import'",
         },
     },
     {
@@ -1625,6 +1988,17 @@ const translated_string test_translation_table[] = {
             u8"variable constante d\u00e9clar\u00e9e ici",
             u8"vari\u00e1vel constante declarada aqui",
             u8"konstant variabel deklarerad h\u00e4r",
+        },
+    },
+    {
+        "containing 'declare namespace' starts here"_translatable,
+        {
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
+            u8"containing 'declare namespace' starts here",
         },
     },
     {
@@ -1845,6 +2219,17 @@ const translated_string test_translation_table[] = {
             u8"expected at least one parameter in generic parameter list",
             u8"esperado ao menos um par\u00e2metro na lista de par\u00e2metros gen\u00e9ricos",
             u8"expected at least one parameter in generic parameter list",
+        },
+    },
+    {
+        "expected expression after '('"_translatable,
+        {
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
+            u8"expected expression after '('",
         },
     },
     {
@@ -2310,6 +2695,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "index starts here"_translatable,
+        {
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+            u8"index starts here",
+        },
+    },
+    {
         "indexing requires an expression"_translatable,
         {
             u8"indexing requires an expression",
@@ -2552,6 +2948,28 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "misleading use of ',' operator in conditional statement"_translatable,
+        {
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+            u8"misleading use of ',' operator in conditional statement",
+        },
+    },
+    {
+        "misleading use of ',' operator in index"_translatable,
+        {
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+            u8"misleading use of ',' operator in index",
+        },
+    },
+    {
         "mismatched JSX tags; expected '</{1}>'"_translatable,
         {
             u8"mismatched JSX tags; expected '</{1}>'",
@@ -2714,6 +3132,17 @@ const translated_string test_translation_table[] = {
             u8"missing body for TypeScript interface",
             u8"falta o conte\u00fado da interface de TypeScript",
             u8"missing body for TypeScript interface",
+        },
+    },
+    {
+        "missing body for TypeScript namespace"_translatable,
+        {
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
+            u8"missing body for TypeScript namespace",
         },
     },
     {
@@ -3146,6 +3575,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "missing semicolon after 'declare class' method"_translatable,
+        {
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+            u8"missing semicolon after 'declare class' method",
+        },
+    },
+    {
         "missing semicolon after abstract method"_translatable,
         {
             u8"missing semicolon after abstract method",
@@ -3267,6 +3707,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "module with string name is only allowed at the top level"_translatable,
+        {
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+            u8"module with string name is only allowed at the top level",
+        },
+    },
+    {
         "move the 'extends' clause before 'implements' here"_translatable,
         {
             u8"move the 'extends' clause before 'implements' here",
@@ -3311,17 +3762,6 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "newline is not allowed after 'namespace'"_translatable,
-        {
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-            u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'namespace'",
-            u8"newline is not allowed after 'namespace'",
-        },
-    },
-    {
         "newline is not allowed after 'type'"_translatable,
         {
             u8"newline is not allowed after 'type'",
@@ -3330,6 +3770,17 @@ const translated_string test_translation_table[] = {
             u8"newline is not allowed after 'type'",
             u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'type'",
             u8"newline is not allowed after 'type'",
+        },
+    },
+    {
+        "newline is not allowed after '{0}'"_translatable,
+        {
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
+            u8"newline is not allowed after '{0}'",
         },
     },
     {
@@ -3363,6 +3814,17 @@ const translated_string test_translation_table[] = {
             u8"newline is not allowed between field name and '!'",
             u8"quebra de linha n\u00e3o \u00e9 permitida entre o nome do campo e o '!'",
             u8"newline is not allowed between field name and '!'",
+        },
+    },
+    {
+        "nullish coalescing operator does nothing when left operand is never null"_translatable,
+        {
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
+            u8"nullish coalescing operator does nothing when left operand is never null",
         },
     },
     {
@@ -3509,6 +3971,28 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "parameter properties cannot be destructured"_translatable,
+        {
+            u8"parameter properties cannot be destructured",
+            u8"parameter properties cannot be destructured",
+            u8"parameter properties cannot be destructured",
+            u8"parameter properties cannot be destructured",
+            u8"parameter properties cannot be destructured",
+            u8"parameter properties cannot be destructured",
+        },
+    },
+    {
+        "parentheses are required around 'infer {1}'"_translatable,
+        {
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+            u8"parentheses are required around 'infer {1}'",
+        },
+    },
+    {
         "prior spread element is here"_translatable,
         {
             u8"prior spread element is here",
@@ -3528,6 +4012,17 @@ const translated_string test_translation_table[] = {
             u8"les propri\u00e9t\u00e9s priv\u00e9es ne sont pas autoris\u00e9es dans les litt\u00e9raux objet",
             u8"propriedades privadas n\u00e3o s\u00e3o permitidas em objetos",
             u8"privata egenskaper \u00e4r inte till\u00e5tna i objektlitter\u00e4ler",
+        },
+    },
+    {
+        "property declared using '{0}' here"_translatable,
+        {
+            u8"property declared using '{0}' here",
+            u8"property declared using '{0}' here",
+            u8"property declared using '{0}' here",
+            u8"property declared using '{0}' here",
+            u8"property declared using '{0}' here",
+            u8"property declared using '{0}' here",
         },
     },
     {
@@ -3671,6 +4166,17 @@ const translated_string test_translation_table[] = {
             u8"virgule isol\u00e9e dans une instruction let",
             u8"v\u00edrgula extra em instru\u00e7\u00e3o let",
             u8"vilset komma i let p\u00e5st\u00e5ende",
+        },
+    },
+    {
+        "string module name is only allowed with 'declare module'"_translatable,
+        {
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
+            u8"string module name is only allowed with 'declare module'",
         },
     },
     {
@@ -4180,14 +4686,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "use ':' instead of 'as' to type a function parameter"_translatable,
+        "use ':' instead of '{0}' to type a function parameter"_translatable,
         {
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' instead of 'as' to type a function parameter",
-            u8"use ':' em vez de 'as' para definir o tipo de um par\u00e2metro de uma fun\u00e7\u00e3o",
-            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
+            u8"use ':' instead of '{0}' to type a function parameter",
         },
     },
     {

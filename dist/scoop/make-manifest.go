@@ -77,7 +77,7 @@ func Main() error {
 		return err
 	}
 
-	tmpl, err := template.New("quick-lint-js.template.js").Parse(string(TemplateManifestJSON))
+	tmpl, err := template.New("quick-lint-js.template.json").Parse(string(TemplateManifestJSON))
 	if err != nil {
 		return err
 	}

@@ -40,6 +40,11 @@ class multi_parse_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_enter_class_scope_body(class_name);
   }
 
+  void visit_enter_conditional_type_scope() override {
+    this->visitor_1_->visit_enter_conditional_type_scope();
+    this->visitor_2_->visit_enter_conditional_type_scope();
+  }
+
   void visit_enter_enum_scope() override {
     this->visitor_1_->visit_enter_enum_scope();
     this->visitor_2_->visit_enter_enum_scope();
@@ -98,6 +103,11 @@ class multi_parse_visitor final : public parse_visitor_base {
   void visit_exit_class_scope() override {
     this->visitor_1_->visit_exit_class_scope();
     this->visitor_2_->visit_exit_class_scope();
+  }
+
+  void visit_exit_conditional_type_scope() override {
+    this->visitor_1_->visit_exit_conditional_type_scope();
+    this->visitor_2_->visit_exit_conditional_type_scope();
   }
 
   void visit_exit_enum_scope() override {

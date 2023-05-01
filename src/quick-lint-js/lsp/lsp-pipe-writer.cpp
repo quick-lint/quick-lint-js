@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
-#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {

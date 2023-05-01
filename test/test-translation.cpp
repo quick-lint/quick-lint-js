@@ -3,10 +3,10 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-formatter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-formatter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>

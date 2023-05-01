@@ -117,67 +117,17 @@ void delete_directory_recursive(const std::string &path) {
 }
 #endif
 
-std::string get_current_working_directory() {
-#if QLJS_HAVE_STD_FILESYSTEM
-  return std::filesystem::current_path().string();
-#else
-  std::string cwd;
-  cwd.resize(PATH_MAX);
-  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
-    std::terminate();
-  }
-  return cwd;
-#endif
-}
-
-void set_current_working_directory(const char *path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::current_path(path);
-#else
-  if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
 std::vector<std::string> list_files_in_directory(const std::string &directory) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::vector<std::string> result;
-  for (auto &entry : std::filesystem::directory_iterator(directory)) {
-    result.push_back(entry.path().filename().string());
+  std::vector<std::string> files;
+  auto visit_file = [&](const char *name) -> void { files.push_back(name); };
+  result<void, platform_file_io_error> error =
+      list_directory(directory.c_str(), visit_file);
+  if (!error.ok()) {
+    std::fprintf(stderr, "fatal: failed to read directory %s: %s\n",
+                 directory.c_str(), std::strerror(errno));
+    std::abort();
   }
-  return result;
-#elif QLJS_HAVE_DIRENT_H
-  std::vector<std::string> result;
-  ::DIR *d = ::opendir(directory.c_str());
-  for (;;) {
-    errno = 0;
-    ::dirent *entry = ::readdir(d);
-    if (!entry) {
-      if (errno != 0) {
-        std::fprintf(stderr, "fatal: failed to read directory %s: %s\n",
-                     directory.c_str(), std::strerror(errno));
-        std::abort();
-      }
-      break;
-    }
-    bool is_dot_or_dot_dot =
-        entry->d_name[0] == '.' &&
-        (entry->d_name[1] == '\0' ||
-         (entry->d_name[1] == '.' && entry->d_name[2] == '\0'));
-    if (!is_dot_or_dot_dot) {
-      result.emplace_back(entry->d_name);
-    }
-  }
-  ::closedir(d);
-  return result;
-#else
-#error "Unsupported platform"
-#endif
+  return files;
 }
 }
 

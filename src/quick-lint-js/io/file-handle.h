@@ -25,6 +25,7 @@ struct windows_file_io_error {
   DWORD error;
 
   bool is_file_not_found_error() const noexcept;
+  bool is_not_a_directory_error() const noexcept;
 
   std::string to_string() const;
 
@@ -39,6 +40,7 @@ struct posix_file_io_error {
   int error;
 
   bool is_file_not_found_error() const noexcept;
+  bool is_not_a_directory_error() const noexcept;
 
   std::string to_string() const;
 

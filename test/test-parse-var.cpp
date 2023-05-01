@@ -12,7 +12,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -1946,6 +1946,25 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      test_parser p(concat(u8"function f("_sv, name, u8": ParamType) {}"_sv),
+                    typescript_options);
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
+                  ElementsAreArray({
+                      "visit_variable_declaration",       // f
+                      "visit_enter_function_scope",       //
+                      "visit_variable_type_use",          // ParamType
+                      "visit_variable_declaration",       // (name)
+                      "visit_enter_function_scope_body",  // {
+                      "visit_exit_function_scope",        // }
+                  }));
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(name)}));
+    }
+
+    {
       test_parser p(concat(u8"(function "_sv, name, u8"() {})"_sv));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
@@ -2044,6 +2063,49 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      test_parser p(concat(u8"{ "_sv, name, u8" }"_sv));
+      SCOPED_TRACE(p.code);
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_block_scope",  // {
+                                "visit_variable_use",       // (name)
+                                "visit_exit_block_scope",   // }
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
+      test_parser p(concat(u8"class A extends "_sv, name, u8" { }"_sv));
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_class_scope",       // { A
+                                "visit_variable_use",            // (name)
+                                "visit_enter_class_scope_body",  // { {
+                                "visit_exit_class_scope",        // }
+                                "visit_variable_declaration",    // A
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
+      // NOTE[extends-await-paren]: 'await() {}' used to trigger E0176 (missing
+      // arrow operator for arrow function).
+      test_parser p(concat(u8"class A extends "_sv, name, u8"() { }"_sv));
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_class_scope",       // { A
+                                "visit_variable_use",            // (name)
+                                "visit_enter_class_scope_body",  // { {
+                                "visit_exit_class_scope",        // }
+                                "visit_variable_declaration",    // A
+                            }));
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
       test_parser p(concat(name, u8".method();"_sv));
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
@@ -2051,6 +2113,18 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
                                 "visit_variable_use",  // (name)
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({name}));
+    }
+
+    {
+      test_parser p(concat(name, u8"[x];"_sv));
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_use",  // (name)
+                                "visit_variable_use",  // x
+                            }));
+      EXPECT_THAT(p.variable_uses,
+                  ElementsAreArray({string8_view(name), u8"x"_sv}));
     }
 
     for (string8 code : {

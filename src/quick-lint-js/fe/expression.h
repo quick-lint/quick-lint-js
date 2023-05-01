@@ -76,6 +76,7 @@ enum class expression_kind {
   private_variable,
   rw_unary_prefix,
   rw_unary_suffix,
+  satisfies,  // TypeScript only.
   spread,
   super,
   tagged_template_literal,
@@ -240,6 +241,7 @@ class expression {
   class private_variable;
   class rw_unary_prefix;
   class rw_unary_suffix;
+  class satisfies;
   class spread;
   class super;
   class tagged_template_literal;
@@ -447,7 +449,13 @@ class expression::array final : public expression {
 
   explicit array(expression_arena::array_ptr<expression *> children,
                  source_code_span span) noexcept
-      : expression(kind), span_(span), children_(children) {}
+      : expression(kind), span_(span), children_(children) {
+    QLJS_ASSERT(span.string_view().substr(0, 1) == u8"["_sv);
+  }
+
+  source_code_span left_square_span() const {
+    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  }
 
   source_code_span span_;
   expression_arena::array_ptr<expression *> children_;
@@ -657,12 +665,15 @@ class expression::index final : public expression {
   static constexpr expression_kind kind = expression_kind::index;
 
   explicit index(expression *container, expression *subscript,
+                 source_code_span left_square_span,
                  const char8 *subscript_end) noexcept
       : expression(kind),
         index_subscript_end_(subscript_end),
+        left_square_span(left_square_span),
         children_{container, subscript} {}
 
   const char8 *index_subscript_end_;
+  source_code_span left_square_span;
   std::array<expression *, 2> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::index>);
@@ -816,7 +827,13 @@ class expression::object final : public expression {
   explicit object(
       expression_arena::array_ptr<object_property_value_pair> entries,
       source_code_span span) noexcept
-      : expression(kind), span_(span), entries_(entries) {}
+      : expression(kind), span_(span), entries_(entries) {
+    QLJS_ASSERT(span.string_view().substr(0, 1) == u8"{"_sv);
+  }
+
+  source_code_span left_curly_span() const {
+    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  }
 
   source_code_span span_;
   expression_arena::array_ptr<object_property_value_pair> entries_;
@@ -917,6 +934,30 @@ class expression::rw_unary_suffix final : public expression {
   expression *child_;
 };
 static_assert(expression_arena::is_allocatable<expression::rw_unary_suffix>);
+
+class expression::satisfies final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::satisfies;
+
+  explicit satisfies(expression *child, source_code_span satisfies_span,
+                     const char8 *span_end) noexcept
+      : expression(kind),
+        child_(child),
+        satisfies_keyword_(satisfies_span.begin()),
+        span_end_(span_end) {
+    QLJS_ASSERT(satisfies_span.string_view() == u8"satisfies"_sv);
+  }
+
+  source_code_span satisfies_span() const noexcept {
+    return source_code_span(this->satisfies_keyword_,
+                            this->satisfies_keyword_ + 9);
+  }
+
+  expression *child_;
+  const char8 *satisfies_keyword_;
+  const char8 *span_end_;
+};
+static_assert(expression_arena::is_allocatable<expression::satisfies>);
 
 class expression::spread final
     : public expression::expression_with_prefix_operator_base {
@@ -1218,6 +1259,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(&rw_unary_suffix->child_,
                                                      1);
   }
+  case expression_kind::satisfies: {
+    auto *satisfies = static_cast<const expression::satisfies *>(this);
+    return expression_arena::array_ptr<expression *>(&satisfies->child_, 1);
+  }
   case expression_kind::tagged_template_literal:
     return static_cast<const expression::tagged_template_literal *>(this)
         ->tag_and_template_children_;
@@ -1386,6 +1431,10 @@ inline source_code_span expression::span() const noexcept {
     auto *suffix = static_cast<const rw_unary_suffix *>(this);
     return source_code_span(suffix->child_->span().begin(),
                             suffix->unary_operator_end_);
+  }
+  case expression_kind::satisfies: {
+    auto *s = static_cast<const satisfies *>(this);
+    return source_code_span(s->child_->span().begin(), s->span_end_);
   }
   case expression_kind::super:
     return static_cast<const super *>(this)->span_;

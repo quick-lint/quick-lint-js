@@ -40,8 +40,8 @@ BENCHMARK(benchmark_no_config_file)
     ->Arg(48)
     ->Arg(64);
 #endif
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

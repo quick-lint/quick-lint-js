@@ -39,6 +39,7 @@ class buffering_visitor final : public parse_visitor_base {
   void visit_enter_class_scope() override;
   void visit_enter_class_scope_body(
       const std::optional<identifier> &class_name) override;
+  void visit_enter_conditional_type_scope() override;
   void visit_enter_enum_scope() override;
   void visit_enter_for_scope() override;
   void visit_enter_function_scope() override;
@@ -51,6 +52,7 @@ class buffering_visitor final : public parse_visitor_base {
   void visit_exit_block_scope() override;
   void visit_exit_with_scope() override;
   void visit_exit_class_scope() override;
+  void visit_exit_conditional_type_scope() override;
   void visit_exit_enum_scope() override;
   void visit_exit_for_scope() override;
   void visit_exit_function_scope() override;
@@ -81,6 +83,7 @@ class buffering_visitor final : public parse_visitor_base {
     enter_class_scope,
     enter_class_scope_body_with_name,
     enter_class_scope_body_without_name,
+    enter_conditional_type_scope,
     enter_enum_scope,
     enter_for_scope,
     enter_function_scope,
@@ -93,6 +96,7 @@ class buffering_visitor final : public parse_visitor_base {
     exit_block_scope,
     exit_with_scope,
     exit_class_scope,
+    exit_conditional_type_scope,
     exit_enum_scope,
     exit_for_scope,
     exit_function_scope,

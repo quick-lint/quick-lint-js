@@ -5,9 +5,9 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -108,6 +108,7 @@ again:
     this->skip();
     goto again;
     break;
+
   // Type
   // ns.Type<T>
   case token_type::kw_abstract:
@@ -120,7 +121,6 @@ again:
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_global:
-  case token_type::kw_infer:
   case token_type::kw_intrinsic:
   case token_type::kw_is:
   case token_type::kw_module:
@@ -130,6 +130,7 @@ again:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::identifier: {
@@ -157,6 +158,80 @@ again:
     if (this->peek().type == token_type::less ||
         this->peek().type == token_type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
+    }
+    break;
+  }
+
+  // infer T  // Invalid.
+  // T extends infer U ? V : W
+  // T extends infer U extends X ? V : W
+  case token_type::kw_infer: {
+    source_code_span infer_keyword_span = this->peek().span();
+    this->skip();
+    switch (this->peek().type) {
+    case token_type::identifier:
+    case token_type::kw_abstract:
+    case token_type::kw_as:
+    case token_type::kw_assert:
+    case token_type::kw_asserts:
+    case token_type::kw_async:
+    case token_type::kw_constructor:
+    case token_type::kw_declare:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_global:
+    case token_type::kw_infer:
+    case token_type::kw_intrinsic:
+    case token_type::kw_is:
+    case token_type::kw_keyof:
+    case token_type::kw_module:
+    case token_type::kw_namespace:
+    case token_type::kw_of:
+    case token_type::kw_out:
+    case token_type::kw_override:
+    case token_type::kw_readonly:
+    case token_type::kw_require:
+    case token_type::kw_satisfies:
+    case token_type::kw_set:
+    case token_type::kw_type:
+    case token_type::kw_undefined:
+    case token_type::kw_unique:
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    identifier variable = this->peek().identifier_name();
+    this->skip();
+
+    if (this->typescript_infer_declaration_buffer_ == nullptr) {
+      this->diag_reporter_->report(
+          diag_typescript_infer_outside_conditional_type{
+              .infer_keyword = infer_keyword_span,
+          });
+    } else {
+      this->typescript_infer_declaration_buffer_->visit_variable_declaration(
+          variable, variable_kind::_infer_type, variable_init_kind::normal);
+    }
+
+    if (this->peek().type == token_type::left_square) {
+      // T extends infer U[] ? V : W  // Invalid.
+      this->diag_reporter_->report(diag_typescript_infer_requires_parentheses{
+          .infer_and_type = source_code_span(infer_keyword_span.begin(),
+                                             variable.span().end()),
+          .type = variable,
+      });
+    }
+
+    if (this->peek().type == token_type::kw_extends) {
+      // T extends infer U extends X ? V : W
+      //                   ^^^^^^^
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(
+          v, typescript_type_parse_options{
+                 .parse_question_as_invalid = false,
+             });
     }
     break;
   }
@@ -285,6 +360,7 @@ again:
     case token_type::kw_readonly:
     case token_type::kw_require:
     case token_type::kw_return:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_super:
     case token_type::kw_switch:
@@ -365,7 +441,7 @@ again:
   // keyof Type
   case token_type::kw_keyof:
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(v, parse_options);
     break;
 
   case token_type::comma:
@@ -419,14 +495,34 @@ again:
   if (this->peek().type == token_type::kw_extends) {
     // T extends T ? T : T
     this->skip();
-    this->parse_and_visit_typescript_type_expression(
-        v, typescript_type_parse_options{
-               .parse_question_as_invalid = false,
-           });
+
+    stacked_buffering_visitor infer_visitor =
+        this->buffering_visitor_stack_.push();
+
+    buffering_visitor *old_typescript_infer_declaration_buffer =
+        this->typescript_infer_declaration_buffer_;
+    this->fatal_parse_error_stack_.try_finally(
+        [&]() -> void {
+          this->typescript_infer_declaration_buffer_ = &infer_visitor.visitor();
+          this->parse_and_visit_typescript_type_expression(
+              v, typescript_type_parse_options{
+                     .parse_question_as_invalid = false,
+                 });
+        },
+        [&]() -> void {
+          this->typescript_infer_declaration_buffer_ =
+              old_typescript_infer_declaration_buffer;
+        });
+
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
     this->skip();
+
+    v.visit_enter_conditional_type_scope();
+    infer_visitor.visitor().move_into(v);
     this->parse_and_visit_typescript_type_expression(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    v.visit_exit_conditional_type_scope();
+
     this->skip();
     this->parse_and_visit_typescript_type_expression(v);
   }
@@ -1131,8 +1227,11 @@ void parser::parse_and_visit_typescript_generic_arguments(
   case token_type::greater:
     this->skip();
     break;
+  case token_type::greater_equal:
   case token_type::greater_greater:
+  case token_type::greater_greater_equal:
   case token_type::greater_greater_greater:
+  case token_type::greater_greater_greater_equal:
     this->lexer_.skip_as_greater();
     break;
   default:

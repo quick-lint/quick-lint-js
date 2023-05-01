@@ -38,18 +38,52 @@ class try_catch_stack {
       // this->raise() was called.
       catch_entry &c = this->catch_stack_.back();
       QLJS_ASSERT(c.exception.has_value());
-      ResultType result = std::move(catch_func)(std::move(*c.exception));
+      Exception exception = std::move(*c.exception);
       this->catch_stack_.pop_back();
+      ResultType result = std::move(catch_func)(std::move(exception));
       return result;
     }
   }
 
-  // If this->try_raise(e) was called by t in this->try_catch(t, c), then this
-  // function unwinds the stack and calls c(e).
+  template <class TryFunc, class FinallyFunc>
+  void try_finally(TryFunc &&try_func, FinallyFunc &&finally_func) {
+    if (this->catch_stack_.empty()) {
+      // Because the catch stack is empty, a call to this->raise_if_have_handler
+      // should return. If we called this->try_catch here, then a call to
+      // this->raise_if_have_handler would not return. Therefore, avoid calling
+      // this->try_catch.
+      std::move(try_func)();
+      std::move(finally_func)();
+    } else {
+      bool try_finished = false;
+      // HACK(strager): Dummy int is because try_catch does not support void.
+      this->try_catch<int>(
+          [&]() -> int {
+            std::move(try_func)();
+            try_finished = true;
+            std::move(finally_func)();
+            return 0;
+          },
+          [&](Exception &&e) -> int {
+            QLJS_ASSERT(!try_finished &&
+                        "finally_func should not call raise_if_have_handler");
+            std::move(finally_func)();
+            QLJS_ASSERT(!this->catch_stack_.empty());
+            this->raise_if_have_handler(std::move(e));
+            // We had a handler, so raise_if_have_handler should raise and not
+            // return.
+            QLJS_UNREACHABLE();
+            return 0;
+          });
+    }
+  }
+
+  // If this->raise_if_have_handler(e) was called by t in this->try_catch(t, c),
+  // then this function unwinds the stack and calls c(e).
   //
   // Otherwise, this function does nothing and returns. The caller is
   // responsible for figuring out what to do in this case.
-  void try_raise(Exception &&e) {
+  void raise_if_have_handler(Exception &&e) {
     if (!this->catch_stack_.empty()) {
       catch_entry &c = this->catch_stack_.back();
       c.exception.emplace(std::move(e));

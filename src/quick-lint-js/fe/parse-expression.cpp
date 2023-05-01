@@ -3,16 +3,17 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -69,6 +70,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
         static_cast<expression::binary_operator*>(ast));
     error_on_pointless_string_compare(
         static_cast<expression::binary_operator*>(ast));
+    this->error_on_pointless_nullish_coalescing_operator(
+        static_cast<expression::binary_operator*>(ast));
     break;
   case expression_kind::trailing_comma: {
     auto& trailing_comma_ast = static_cast<expression::trailing_comma&>(*ast);
@@ -114,6 +117,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
+  case expression_kind::satisfies:
   case expression_kind::spread:
   case expression_kind::unary_operator:
   case expression_kind::yield_many:
@@ -131,7 +135,10 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::index:
     this->visit_expression(ast->child_0(), v, variable_context::rhs);
     this->visit_expression(ast->child_1(), v, variable_context::rhs);
+    this->warn_on_comma_operator_in_index(
+        ast->child_1(), static_cast<expression::index*>(ast)->left_square_span);
     break;
+
   case expression_kind::jsx_element: {
     auto* element = static_cast<expression::jsx_element*>(ast);
     if (!element->is_intrinsic()) {
@@ -260,6 +267,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
   case expression_kind::as_type_assertion:
   case expression_kind::non_null_assertion:
   case expression_kind::paren:
+  case expression_kind::satisfies:
     this->maybe_visit_assignment(ast->child_0(), v);
     break;
   case expression_kind::variable:
@@ -292,6 +300,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   case token_type::kw_get:
   case token_type::kw_let:
   case token_type::kw_of:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static: {
     expression* ast = this->make_expression<expression::variable>(
@@ -499,6 +508,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     // (x + y * z)
     expression* child = this->parse_expression(
         v, precedence{
+               .colon_type_annotation = allow_type_annotations::always,
                .trailing_identifiers = true,
                .colon_question_is_typescript_optional_with_type_annotation =
                    this->options_.typescript,
@@ -643,6 +653,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
 
   QLJS_CASE_BINARY_ONLY_OPERATOR:
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
   case token_type::comma:
   case token_type::dot:
   case token_type::equal:
@@ -818,7 +829,8 @@ expression* parser::parse_async_expression_only(
     bool is_arrow_function = this->peek().type == token_type::equal_greater;
     bool is_arrow_function_without_arrow =
         !this->peek().has_leading_newline &&
-        this->peek().type == token_type::left_curly;
+        this->peek().type == token_type::left_curly &&
+        !prec.in_class_extends_clause /* See NOTE[extends-await-paren]. */;
     if (is_arrow_function || is_arrow_function_without_arrow) {
       this->lexer_.commit_transaction(std::move(transaction));
       if (newline_after_async) {
@@ -1011,11 +1023,17 @@ expression* parser::parse_async_expression_only(
 
     std::optional<source_code_span> optional_question_span;
     if (this->peek().type == token_type::question) {
-      // async param? => {}  // Invalid.
-      optional_question_span = this->peek().span();
-      parameters[0] = this->make_expression<expression::optional>(
-          parameters[0], *optional_question_span);
-      this->skip();
+      if (is_await) {
+        // await a ? b : c
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto await_operator;
+      } else {
+        // async param? => {}  // Invalid.
+        optional_question_span = this->peek().span();
+        parameters[0] = this->make_expression<expression::optional>(
+            parameters[0], *optional_question_span);
+        this->skip();
+      }
     }
 
     std::optional<source_code_span> type_colon_span;
@@ -1213,11 +1231,20 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
         [[fallthrough]];
       case token_type::complete_template:
       case token_type::incomplete_template:
-      case token_type::left_paren:
       case token_type::left_square:
       case token_type::minus:
       case token_type::plus:
         return !this->in_top_level_;
+
+      // class A extends await(){} // Identifier. See NOTE[extends-await-paren].
+      // await (x);                // Ambiguous.
+      case token_type::left_paren:
+        return prec.in_class_extends_clause || !this->in_top_level_;
+
+      // class A extends await { }  // Identifier.
+      // await {};                  // Operator.
+      case token_type::left_curly:
+        return prec.in_class_extends_clause;
 
       case token_type::dot_dot_dot:
       case token_type::identifier:
@@ -1231,7 +1258,6 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
-      case token_type::left_curly:
       case token_type::number:
       case token_type::private_identifier:
       case token_type::regexp:
@@ -1289,7 +1315,8 @@ next:
                   .colon_question_is_typescript_optional_with_type_annotation =
                       prec.colon_question_is_typescript_optional_with_type_annotation,
               }));
-      if (rhs->kind() == expression_kind::_invalid) {
+      if (rhs->kind() == expression_kind::_invalid ||
+          rhs->kind() == expression_kind::_missing) {
         this->diag_reporter_->report(
             diag_missing_operand_for_operator{comma_span});
       }
@@ -1409,7 +1436,6 @@ next:
             case token_type::complete_template:
             case token_type::dot:
             case token_type::end_of_file:
-            case token_type::equal:
             case token_type::incomplete_template:
             case token_type::kw_break:
             case token_type::kw_case:
@@ -1439,6 +1465,39 @@ next:
             case token_type::semicolon:
               parsed_as_generic_arguments = true;
               return true;
+
+            case token_type::left_curly:  // class A extends B<C> {}
+              if (prec.in_class_extends_clause) {
+                parsed_as_generic_arguments = true;
+                return true;
+              } else {
+                return false;
+              }
+
+            // C<T> = rhs;
+            // C<T>= rhs;   // Invalid.
+            // A<B<C<D>>> = rhs;
+            // A<B<C<D>>>= rhs;   // Invalid.
+            case token_type::equal: {
+              bool was_split_token = this->peek().begin[-1] == u8'>';
+              if (was_split_token) {
+                // NOTE[typescript-generic-expression-token-splitting]:
+                // parse_and_visit_typescript_generic_arguments split '>=' into
+                // '>' and '=', or split '>>>=' into '>' and '>' and '>' and
+                // '='. TypeScript's compiler does not split in this situation,
+                // so it does not treat the code as having a generic argument
+                // list.
+
+                this->diag_reporter_->report(
+                    diag_typescript_requires_space_between_greater_and_equal{
+                        .greater_equal = source_code_span(
+                            this->peek().begin - 1, this->peek().end),
+                    });
+              }
+
+              parsed_as_generic_arguments = true;
+              return true;
+            }
 
             default:
               return false;
@@ -1717,13 +1776,18 @@ next:
       break;
     } else {
       source_code_span bang_span = this->peek().span();
-      if (!this->options_.typescript) {
+      this->skip();
+      if (this->peek().type == token_type::equal_equal) {
+        this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
+            .non_null_assertion =
+                source_code_span(bang_span.begin(), this->peek().span().end()),
+        });
+      } else if (!this->options_.typescript) {
         this->diag_reporter_->report(
             diag_typescript_non_null_assertion_not_allowed_in_javascript{
                 .bang = bang_span,
             });
       }
-      this->skip();
       binary_builder.replace_last(
           this->make_expression<expression::non_null_assertion>(
               binary_builder.last_expression(), bang_span));
@@ -2024,27 +2088,42 @@ next:
   //
   // x as Type    // TypeScript only.
   // {} as const  // TypeScript only.
-  case token_type::kw_as: {
+  case token_type::kw_as:
+  case token_type::kw_satisfies: {
     if (this->peek().has_leading_newline) {
       // ASI. End this expression.
       break;
     }
 
-    source_code_span as_span = this->peek().span();
+    source_code_span operator_span = this->peek().span();
     if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          diag_typescript_as_type_assertion_not_allowed_in_javascript{
-              .as_keyword = as_span,
-          });
+      switch (this->peek().type) {
+      case token_type::kw_as:
+        this->diag_reporter_->report(
+            diag_typescript_as_type_assertion_not_allowed_in_javascript{
+                .as_keyword = operator_span,
+            });
+        break;
+      case token_type::kw_satisfies:
+        this->diag_reporter_->report(
+            diag_typescript_satisfies_not_allowed_in_javascript{
+                .satisfies_keyword = operator_span,
+            });
+        break;
+      default:
+        QLJS_UNREACHABLE();
+      }
     }
+    bool is_as = this->peek().type == token_type::kw_as;
     this->skip();
 
-    bool is_as_const = this->peek().type == token_type::kw_const;
+    bool is_as_const = is_as && this->peek().type == token_type::kw_const;
     if (is_as_const) {
       // {} as const
       this->skip();
     } else {
       // x as Type
+      // x satisfies Type
       this->parse_and_visit_typescript_type_expression(
           v,
           typescript_type_parse_options{
@@ -2059,11 +2138,14 @@ next:
     if (is_as_const) {
       this->error_on_invalid_as_const(
           child,
-          /*as_const_span=*/source_code_span(as_span.begin(), type_end));
+          /*as_const_span=*/source_code_span(operator_span.begin(), type_end));
     }
-    binary_builder.replace_last(
-        this->make_expression<expression::as_type_assertion>(child, as_span,
-                                                             type_end));
+    expression* expr =
+        is_as ? this->make_expression<expression::as_type_assertion>(
+                    child, operator_span, type_end)
+              : this->make_expression<expression::satisfies>(
+                    child, operator_span, type_end);
+    binary_builder.replace_last(expr);
     goto next;
   }
 
@@ -2182,6 +2264,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
+  case expression_kind::satisfies:
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
   case expression_kind::this_variable:
@@ -2388,7 +2471,8 @@ expression* parser::parse_index_expression_remainder(parse_visitor_base& v,
     end = this->lexer_.end_of_previous_token();
     break;
   }
-  return this->make_expression<expression::index>(lhs, subscript, end);
+  return this->make_expression<expression::index>(lhs, subscript,
+                                                  left_square_span, end);
 }
 
 expression_arena::vector<expression*>
@@ -3121,9 +3205,12 @@ expression* parser::parse_class_expression(parse_visitor_base& v) {
   v.visit_enter_class_scope_body(class_name);
 
   if (this->peek().type == token_type::left_curly) {
-    this->parse_and_visit_class_body(v,
-                                     /*class_keyword_span=*/class_keyword_span,
-                                     /*is_abstract=*/false);
+    this->parse_and_visit_class_body(
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = class_keyword_span,
+               .is_abstract = false,
+               .is_interface = false,
+           });
   } else {
     this->diag_reporter_->report(diag_missing_body_for_class{
         .class_keyword_and_name_and_heritage = source_code_span(
@@ -3418,8 +3505,15 @@ next_attribute:
 
       // <current attribute={expression}>
       case token_type::left_curly: {
+        const char8* left_curly_brace = this->peek().begin;
         this->lexer_.skip();
         expression* ast = this->parse_expression(v);
+        if (ast->kind() == expression_kind::_missing) {
+          const char8* right_curly_brace = this->peek().end;
+          this->diag_reporter_->report(diag_jsx_prop_is_missing_expression{
+              .left_brace_to_right_brace =
+                  source_code_span(left_curly_brace, right_curly_brace)});
+        }
         children.emplace_back(ast);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
         this->lexer_.skip_in_jsx();
@@ -3898,6 +3992,9 @@ try_again:
     break;
   case expression_kind::optional:
     ast = static_cast<expression::optional*>(ast)->child_;
+    goto try_again;
+  case expression_kind::satisfies:
+    ast = static_cast<expression::satisfies*>(ast)->child_;
     goto try_again;
   case expression_kind::type_annotated:
     // TODO(strager): Distinguish between the following:

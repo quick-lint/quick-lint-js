@@ -4,6 +4,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/ascii.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 
@@ -23,17 +24,17 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-std::string parent_path(std::string&& path) {
-#if QLJS_HAVE_DIRNAME
-  return ::dirname(path.data());
-#elif defined(QLJS_HAVE_WINDOWS_H)
-  HRESULT result;
-
-  if (path == R"(\\?\)"sv || path == R"(\\?)"sv) {
-    // Invalid path. Leave as-is.
-    return path;
+namespace {
+void remove_trailing_slashes(std::string_view& path) {
+  std::size_t end_index =
+      path.find_last_not_of(QLJS_ALL_PATH_DIRECTORY_SEPARATORS);
+  if (end_index != std::string_view::npos) {
+    path = path.substr(0, end_index + 1);
   }
+}
 
+#if QLJS_HAVE_WINDOWS_H
+std::wstring wide_path_with_backslashes(const std::string& path) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
@@ -47,8 +48,12 @@ std::string parent_path(std::string&& path) {
     }
   }
 
+  return std::move(*wpath);
+}
+
+void safely_remove_trailing_backslashes(std::wstring& path) {
 remove_backslash:
-  result = ::PathCchRemoveBackslash(wpath->data(), wpath->size() + 1);
+  HRESULT result = ::PathCchRemoveBackslash(path.data(), path.size() + 1);
   switch (result) {
   case S_OK:
     // PathCchRemoveBackslash removes only one backslash. Make sure we remove
@@ -65,8 +70,26 @@ remove_backslash:
     QLJS_UNIMPLEMENTED();
     break;
   }
+  path.resize(std::wcslen(path.data()));
+}
+#endif
+}
 
-  result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
+std::string parent_path(std::string&& path) {
+#if QLJS_HAVE_DIRNAME
+  return ::dirname(path.data());
+#elif QLJS_HAVE_WINDOWS_H
+  HRESULT result;
+
+  if (path == R"(\\?\)"sv || path == R"(\\?)"sv) {
+    // Invalid path. Leave as-is.
+    return path;
+  }
+
+  std::wstring wpath = wide_path_with_backslashes(path);
+  safely_remove_trailing_backslashes(wpath);
+
+  result = ::PathCchRemoveFileSpec(wpath.data(), wpath.size() + 1);
   switch (result) {
   case S_OK:
     break;
@@ -82,13 +105,13 @@ remove_backslash:
     break;
   }
 
-  wpath->resize(std::wcslen(wpath->data()));
-  if (wpath->empty()) {
+  wpath.resize(std::wcslen(wpath.data()));
+  if (wpath.empty()) {
     return ".";
   }
 
   // Convert '\' back into '/' if necessary.
-  std::string result_with_backslashes = std::filesystem::path(*wpath).string();
+  std::string result_with_backslashes = std::filesystem::path(wpath).string();
 #if !(defined(NDEBUG) && NDEBUG)
   {
     std::string path_with_backslashes = path;
@@ -104,6 +127,38 @@ remove_backslash:
 
   return path.substr(0, result_with_backslashes.size());
 #endif
+}
+
+std::string_view path_file_name(std::string_view path) {
+#if QLJS_HAVE_WINDOWS_H
+  {
+    if (path == R"(\\?\)"sv || path == R"(\\?)"sv) {
+      // Invalid path.
+      return ""sv;
+    }
+
+    // Remove a drive (such as "C:") if present.
+    if (path.size() >= 2 && path[1] == ':' && is_ascii_alpha(path[0])) {
+      path.remove_prefix(2);
+    }
+
+    // TODO(strager): Avoid this std::string copy.
+    std::wstring temp_path = wide_path_with_backslashes(std::string(path));
+    safely_remove_trailing_backslashes(temp_path);
+    if (::PathCchIsRoot(temp_path.c_str())) {
+      return ""sv;
+    }
+  }
+#endif
+
+  remove_trailing_slashes(path);
+
+  std::size_t last_slash_index =
+      path.find_last_of(QLJS_ALL_PATH_DIRECTORY_SEPARATORS);
+  if (last_slash_index == std::string_view::npos) {
+    return path;
+  }
+  return path.substr(last_slash_index + 1);
 }
 }
 

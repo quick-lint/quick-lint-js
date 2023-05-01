@@ -6,9 +6,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -110,8 +110,9 @@ parse_statement:
     } else {
       // Variable declaration.
       this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_let_bindings(v, let_token,
-                                         /*allow_in_operator=*/true);
+      this->parse_and_visit_let_bindings(v, parse_let_bindings_options{
+                                                .declaring_token = let_token,
+                                            });
       this->consume_semicolon_after_statement();
     }
     break;
@@ -139,8 +140,10 @@ parse_statement:
       // abstract class C {}
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_class(
-          v, /*require_name=*/name_requirement::required_for_statement,
-          /*abstract_keyword_span=*/abstract_token);
+          v, parse_class_options{
+                 .require_name = name_requirement::required_for_statement,
+                 .abstract_keyword_span = abstract_token,
+             });
       break;
 
     // abstract:  // Label.
@@ -153,56 +156,17 @@ parse_statement:
     break;
   }
 
+  // declare class C {}  // TypeScript only.
   // declare enum E {}  // TypeScript only.
   // declare = 42;
-  case token_type::kw_declare: {
-    lexer_transaction transaction = this->lexer_.begin_transaction();
-    this->skip();
-    switch (this->peek().type) {
-    // declare enum E {}
-    //
-    // declare  // ASI
-    // enum E {}
-    case token_type::kw_enum:
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // enum E {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-
-      // declare enum E {}
-      this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
-      break;
-
-    // declare const enum E {}
-    //
-    // declare  // ASI
-    // const enum E {}
-    case token_type::kw_const:
-      if (this->peek().has_leading_newline) {
-        // declare  // ASI
-        // const enum E {}
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-      this->lexer_.commit_transaction(std::move(transaction));
-
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_enum);
-      this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
-      break;
-
-    // declare:  // Label.
-    // declare();
-    case token_type::colon:
-    default:
-      this->lexer_.roll_back_transaction(std::move(transaction));
+  case token_type::kw_declare:
+    switch (this->parse_and_visit_possible_declare_statement(v)) {
+    case parse_possible_declare_result::declare_is_expression_or_loop_label:
       goto parse_loop_label_or_expression_starting_with_identifier;
+    case parse_possible_declare_result::parsed:
+      break;
     }
     break;
-  }
 
     // async function f() {}
     // async = 42;
@@ -245,17 +209,20 @@ parse_statement:
     case token_type::kw_in:
     case token_type::kw_yield:
     case token_type::left_paren:
+    case token_type::left_square:
     case token_type::less:
     case token_type::minus:
     case token_type::minus_minus:
     case token_type::plus:
     case token_type::plus_plus:
     case token_type::question:
+    case token_type::right_curly:
     case token_type::semicolon:
     case token_type::slash: {
       expression *ast =
           this->parse_async_expression(v, async_token, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
+      this->consume_semicolon_after_statement();
       break;
     }
 
@@ -301,6 +268,8 @@ parse_statement:
     // [1, 2, 3].forEach(x => console.log(x));
     // ^ x  // invalid expression
   QLJS_CASE_BINARY_ONLY_OPERATOR:
+  QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
   case token_type::bang:
   case token_type::comma:
   case token_type::complete_template:
@@ -408,7 +377,6 @@ parse_statement:
   case token_type::kw_intrinsic:
   case token_type::kw_is:
   case token_type::kw_keyof:
-  case token_type::kw_module:
   case token_type::kw_never:
   case token_type::kw_number:
   case token_type::kw_object:
@@ -417,6 +385,7 @@ parse_statement:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_string:
@@ -459,6 +428,7 @@ parse_statement:
   // interface * x;
   // interface I {}   // TypeScript only.
   case token_type::kw_interface:
+  case token_type::kw_module:
   case token_type::kw_namespace:
   case token_type::kw_type:
     switch (
@@ -482,9 +452,10 @@ parse_statement:
     // class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
-        v,
-        /*require_name=*/name_requirement::required_for_statement,
-        /*abstract_keyword_span=*/std::nullopt);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = std::nullopt,
+           });
     break;
 
     // switch (x) { default: ; }
@@ -657,11 +628,14 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
 
   // type T = number;  // TypeScript only.
   //
+  // namespace 'my namespace name' {}  // Invalid.
+  //
   // type  // ASI
   // f();
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::kw_await:
   case token_type::identifier:
+  case token_type::string:
     if (this->peek().has_leading_newline) {
       bool is_expression = true;
       if (initial_keyword.type == token_type::kw_interface) {
@@ -692,7 +666,8 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
               });
         }
       }
-      if (initial_keyword.type == token_type::kw_namespace) {
+      if (initial_keyword.type == token_type::kw_module ||
+          initial_keyword.type == token_type::kw_namespace) {
         lexer_transaction inner_transaction = this->lexer_.begin_transaction();
         this->skip();
         if (this->peek().type == token_type::left_curly &&
@@ -714,8 +689,11 @@ parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
     case token_type::kw_interface:
       this->parse_and_visit_typescript_interface(v, initial_keyword.span());
       break;
+    case token_type::kw_module:
     case token_type::kw_namespace:
-      this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
+      this->parse_and_visit_typescript_namespace(
+          v,
+          /*export_keyword_span=*/std::nullopt, initial_keyword.span());
       break;
     case token_type::kw_type:
       this->parse_and_visit_typescript_type_alias(v, initial_keyword.span());
@@ -856,6 +834,12 @@ void parser::parse_end_of_expression_statement() {
 }
 
 void parser::parse_and_visit_export(parse_visitor_base &v) {
+  this->parse_and_visit_export(v, /*declare_keyword_span=*/std::nullopt);
+}
+
+void parser::parse_and_visit_export(
+    parse_visitor_base &v,
+    std::optional<source_code_span> declare_namespace_declare_keyword) {
   QLJS_ASSERT(this->peek().type == token_type::kw_export);
   source_code_span export_token_span = this->peek().span();
   this->skip();
@@ -865,6 +849,12 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   switch (this->peek().type) {
     // export default class C {}
   case token_type::kw_default:
+    if (declare_namespace_declare_keyword.has_value()) {
+      this->diag_reporter_->report(diag_declare_namespace_cannot_export_default{
+          .default_keyword = this->peek().span(),
+          .declare_keyword = *declare_namespace_declare_keyword,
+      });
+    }
     this->skip();
     switch (this->peek().type) {
       // export default async function f() {}
@@ -888,9 +878,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
 
     // export default class C {}
     case token_type::kw_class:
-      this->parse_and_visit_class(v,
-                                  /*require_name=*/name_requirement::optional,
-                                  /*abstract_keyword_span=*/std::nullopt);
+      this->parse_and_visit_class(
+          v, parse_class_options{
+                 .require_name = name_requirement::optional,
+                 .abstract_keyword_span = std::nullopt,
+             });
       break;
 
     // export default abstract class C {}
@@ -908,9 +900,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
         // export default abstract class C {}
         this->lexer_.commit_transaction(std::move(transaction));
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
-        this->parse_and_visit_class(v,
-                                    /*require_name=*/name_requirement::optional,
-                                    /*abstract_keyword_span=*/abstract_keyword);
+        this->parse_and_visit_class(
+            v, parse_class_options{
+                   .require_name = name_requirement::optional,
+                   .abstract_keyword_span = abstract_keyword,
+               });
       }
       break;
     }
@@ -933,8 +927,10 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       this->diag_reporter_->report(diag_cannot_export_default_variable{
           .declaring_token = declaring_token.span(),
       });
-      this->parse_and_visit_let_bindings(v, declaring_token,
-                                         /*allow_in_operator=*/true);
+      this->parse_and_visit_let_bindings(v,
+                                         parse_let_bindings_options{
+                                             .declaring_token = declaring_token,
+                                         });
       break;
     }
 
@@ -976,6 +972,12 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       }
     }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
+    if (declare_namespace_declare_keyword.has_value()) {
+      this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
+          .importing_keyword = this->peek().span(),
+          .declare_keyword = *declare_namespace_declare_keyword,
+      });
+    }
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
     this->skip();
@@ -996,6 +998,13 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
         /*out_exported_bad_tokens=*/&exported_bad_tokens);
     if (this->peek().type == token_type::kw_from) {
       // export {a, b, c} from "module";
+      if (declare_namespace_declare_keyword.has_value()) {
+        this->diag_reporter_->report(
+            diag_declare_namespace_cannot_import_module{
+                .importing_keyword = this->peek().span(),
+                .declare_keyword = *declare_namespace_declare_keyword,
+            });
+      }
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
       this->skip();
@@ -1030,30 +1039,44 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   }
 
     // export async function f() {}
-  case token_type::kw_async: {
-    const char8 *async_token_begin = this->peek().begin;
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
-    this->parse_and_visit_function_declaration(
-        v, function_attributes::async,
-        /*begin=*/async_token_begin,
-        /*require_name=*/name_requirement::required_for_export);
+  case token_type::kw_async:
+    if (declare_namespace_declare_keyword.has_value()) {
+      // declare namespace ns { export async function f(); }
+      this->parse_and_visit_declare_statement(
+          v, *declare_namespace_declare_keyword);
+    } else {
+      const char8 *async_token_begin = this->peek().begin;
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::async,
+          /*begin=*/async_token_begin,
+          /*require_name=*/name_requirement::required_for_export);
+    }
     break;
-  }
 
     // export function f() {}
   case token_type::kw_function:
-    this->parse_and_visit_function_declaration(
-        v, function_attributes::normal,
-        /*begin=*/this->peek().begin,
-        /*require_name=*/name_requirement::required_for_export);
+    if (declare_namespace_declare_keyword.has_value()) {
+      // declare namespace ns { export function f(); }
+      this->parse_and_visit_declare_statement(
+          v, *declare_namespace_declare_keyword);
+    } else {
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::normal,
+          /*begin=*/this->peek().begin,
+          /*require_name=*/name_requirement::required_for_export);
+    }
     break;
 
   // export class C {}
   case token_type::kw_class:
     this->parse_and_visit_class(
-        v, /*require_name=*/name_requirement::required_for_export,
-        /*abstract_keyword_span=*/std::nullopt);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_export,
+               .abstract_keyword_span = std::nullopt,
+               .declare_keyword_span = declare_namespace_declare_keyword,
+           });
     break;
 
   // export abstract class C {}
@@ -1068,8 +1091,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
           });
     }
     this->parse_and_visit_class(
-        v, /*require_name=*/name_requirement::required_for_export,
-        /*abstract_keyword_span=*/abstract_keyword);
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_export,
+               .abstract_keyword_span = abstract_keyword,
+               .declare_keyword_span = declare_namespace_declare_keyword,
+           });
     break;
   }
 
@@ -1078,7 +1104,14 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   case token_type::kw_const:
   case token_type::kw_let:
   case token_type::kw_var:
-    this->parse_and_visit_variable_declaration_statement(v);
+    if (declare_namespace_declare_keyword.has_value()) {
+      // declare namespace ns { export let x; }
+      // declare namespace ns { export const enum E {} }
+      this->parse_and_visit_declare_statement(
+          v, *declare_namespace_declare_keyword);
+    } else {
+      this->parse_and_visit_variable_declaration_statement(v);
+    }
     break;
 
   // export interface I {}  // TypeScript only.
@@ -1125,16 +1158,29 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     break;
 
   // export namespace ns {}  // TypeScript only.
+  case token_type::kw_module:
   case token_type::kw_namespace: {
-    source_code_span namespace_keyword = this->peek().span();
-    this->skip();
-    this->parse_and_visit_typescript_namespace(v, namespace_keyword);
+    if (declare_namespace_declare_keyword.has_value()) {
+      // declare namespace ns { export namespace subns {} }
+      this->parse_and_visit_typescript_declare_namespace(
+          v, *declare_namespace_declare_keyword);
+    } else {
+      // export namespace ns {}
+      source_code_span namespace_keyword = this->peek().span();
+      this->skip();
+      this->parse_and_visit_typescript_namespace(
+          v,
+          /*export_keyword_span=*/export_token_span, namespace_keyword);
+    }
     break;
   }
 
   // export enum E {}  // TypeScript only.
   case token_type::kw_enum:
-    this->parse_and_visit_typescript_enum(v, enum_kind::normal);
+    this->parse_and_visit_typescript_enum(
+        v, declare_namespace_declare_keyword.has_value()
+               ? enum_kind::declare_enum
+               : enum_kind::normal);
     break;
 
     // export stuff;    // Invalid.
@@ -1157,6 +1203,26 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     }
     this->visit_expression(ast, v, variable_context::rhs);
     this->consume_semicolon_after_statement();
+    break;
+  }
+
+  // export = foo;                // TypeScript only.
+  // export = 2 + foo.bar.baz();  // TypeScript only.
+  case token_type::equal: {
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_export_equal_not_allowed_in_javascript{
+              .equal = this->peek().span(),
+              .export_keyword = export_token_span,
+          });
+    }
+    this->skip();
+    expression *ast = this->parse_expression(v);
+    if (ast->kind() == expression_kind::variable) {
+      v.visit_variable_export_use(ast->variable_identifier());
+    } else {
+      this->visit_expression(ast, v, variable_context::rhs);
+    }
     break;
   }
 
@@ -1214,6 +1280,34 @@ void parser::parse_and_visit_typescript_generic_parameters(
   }
 
 next_parameter:
+  std::optional<identifier> in_keyword;
+  std::optional<identifier> out_keyword;
+
+  if (this->peek().type == token_type::kw_in) {
+    // <in T>
+    // <in out T>
+    in_keyword = this->peek().identifier_name();
+    this->skip();
+  }
+
+  if (this->peek().type == token_type::kw_out) {
+    // <out T>
+    // <out>
+    out_keyword = this->peek().identifier_name();
+    this->skip();
+
+    if (!in_keyword.has_value() && this->peek().type == token_type::kw_in) {
+      // <out in T>  // Invalid.
+      in_keyword = this->peek().identifier_name();
+      this->diag_reporter_->report(
+          diag_typescript_variance_keywords_in_wrong_order{
+              .in_keyword = in_keyword->span(),
+              .out_keyword = out_keyword->span(),
+          });
+      this->skip();
+    }
+  }
+
   std::optional<identifier> parameter_name;
   switch (this->peek().type) {
   case token_type::identifier:
@@ -1239,6 +1333,7 @@ next_parameter:
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::kw_undefined:
@@ -1247,8 +1342,18 @@ next_parameter:
     this->skip();
     break;
 
-  default:
+  case token_type::kw_in:
     QLJS_PARSER_UNIMPLEMENTED();
+    break;
+
+  default:
+    if (out_keyword.has_value()) {
+      // <out>
+      parameter_name = out_keyword;
+      out_keyword = std::nullopt;
+    } else {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
     break;
   }
 
@@ -1315,7 +1420,11 @@ void parser::parse_and_visit_statement_block_no_scope(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   source_code_span left_curly_span = this->peek().span();
   this->skip();
+  this->parse_and_visit_statement_block_after_left_curly(v, left_curly_span);
+}
 
+void parser::parse_and_visit_statement_block_after_left_curly(
+    parse_visitor_base &v, source_code_span left_curly_span) {
   for (;;) {
     bool parsed_statement = this->parse_and_visit_statement(
         v, parse_statement_type::any_statement_in_block);
@@ -1498,11 +1607,8 @@ void parser::parse_and_visit_function_declaration(
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
           attributes, source_code_span(function_token_begin, function_end));
-      expression *full_expression =
-          this->parse_expression_remainder(v, function, precedence{});
-      this->visit_expression(full_expression, v, variable_context::rhs);
 
-      if (full_expression == function) {
+      if (this->peek().type != token_type::left_paren) {
         this->diag_reporter_->report(diag_missing_name_in_function_statement{
             .where = source_code_span(function_token_begin, left_paren_end),
         });
@@ -1512,7 +1618,11 @@ void parser::parse_and_visit_function_declaration(
                 .where = source_code_span(function_token_begin, left_paren_end),
                 .function = source_code_span(begin, function->span().end()),
             });
+        expression *full_expression =
+            this->parse_expression_remainder(v, function, precedence{});
+        this->visit_expression(full_expression, v, variable_context::rhs);
       }
+
       break;
     }
 
@@ -1595,6 +1705,33 @@ void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
     this->parse_and_visit_statement_block_no_scope(v);
     break;
   }
+}
+
+void parser::parse_and_visit_declare_class_method_parameters_and_body(
+    parse_visitor_base &v, std::optional<source_code_span> name,
+    function_attributes attributes) {
+  v.visit_enter_function_scope();
+  function_guard guard = this->enter_function(attributes);
+  function_parameter_parse_result result =
+      this->parse_and_visit_function_parameters(v, name);
+  switch (result) {
+  case function_parameter_parse_result::missing_parameters_ignore_body:
+  case function_parameter_parse_result::parsed_parameters_missing_body:
+    this->consume_semicolon<
+        diag_missing_semicolon_after_declare_class_method>();
+    break;
+
+  case function_parameter_parse_result::parsed_parameters:
+  case function_parameter_parse_result::missing_parameters:
+    this->diag_reporter_->report(
+        diag_declare_class_methods_cannot_contain_bodies{
+            .body_start = this->peek().span(),
+        });
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    break;
+  }
+  v.visit_exit_function_scope();
 }
 
 void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
@@ -1740,9 +1877,86 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       this->skip();
     }
 
+    auto is_after_parameter_name = [this]() -> bool {
+      switch (this->peek().type) {
+      // function foo(paramName = def) {}
+      // function foo(paramName: any) {}   // TypeScript only.
+      // function foo(paramName) {}
+      case token_type::colon:
+      case token_type::comma:
+      case token_type::right_paren:
+        return true;
+
+      // constructor(paramName myField) {}    // TypeScript only.
+      // constructor(paramName [myField]) {}  // Invalid.
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case token_type::identifier:
+      case token_type::kw_await:
+      case token_type::kw_yield:
+      case token_type::left_curly:
+      case token_type::left_square:
+        return false;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+    };
+
+    std::optional<source_code_span> parameter_property_keyword = std::nullopt;
+    switch (this->peek().type) {
+    // function foo(public) {}
+    // constructor(public myField) {}  // TypeScript only.
+    case token_type::kw_private:
+    case token_type::kw_protected:
+    case token_type::kw_public: {
+      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+      source_code_span accessor_span = this->peek().span();
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      if (is_after_parameter_name()) {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+      } else {
+        if (!this->options_.typescript) {
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_not_allowed_in_javascript{
+                  .property_keyword = accessor_span,
+              });
+        }
+        parameter_property_keyword = accessor_span;
+        this->lexer_.commit_transaction(std::move(transaction));
+      }
+      break;
+    }
+
+    default:
+      break;
+    }
+
+    if (this->peek().type == token_type::kw_readonly) {
+      // function foo(readonly) {}
+      // constructor(readonly myField) {}         // TypeScript only.
+      // constructor(public readonly myField) {}  // TypeScript only.
+      source_code_span readonly_span = this->peek().span();
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      if (is_after_parameter_name()) {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+      } else {
+        if (!this->options_.typescript &&
+            !parameter_property_keyword.has_value()) {
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_not_allowed_in_javascript{
+                  .property_keyword = readonly_span,
+              });
+        }
+        parameter_property_keyword = readonly_span;
+        this->lexer_.commit_transaction(std::move(transaction));
+      }
+    }
+
     switch (this->peek().type) {
     QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
-      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
       [[fallthrough]];
     case token_type::kw_await:
       // TODO(#241): Disallow parameters named 'await' for async functions.
@@ -1766,6 +1980,34 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
                  .colon_question_is_typescript_optional_with_type_annotation =
                      true,
              });
+      switch (parameter->kind()) {
+      case expression_kind::array:
+        if (parameter_property_keyword.has_value()) {
+          // constructor(private [field])  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_cannot_be_destructured{
+                  .destructure_token =
+                      static_cast<const expression::array *>(parameter)
+                          ->left_square_span(),
+                  .property_keyword = *parameter_property_keyword,
+              });
+        }
+        break;
+      case expression_kind::object:
+        if (parameter_property_keyword.has_value()) {
+          // constructor(private {field})  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_cannot_be_destructured{
+                  .destructure_token =
+                      static_cast<const expression::object *>(parameter)
+                          ->left_curly_span(),
+                  .property_keyword = *parameter_property_keyword,
+              });
+        }
+        break;
+      default:
+        break;
+      }
       this->visit_binding_element(
           parameter, v,
           binding_element_info{
@@ -1926,7 +2168,8 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_switch_condition,
         diag_expected_parenthesis_around_switch_condition,
-        /*CheckForSketchyConditions=*/false>(v);
+        /*CheckForSketchyConditions=*/false,
+        /*CheckForCommaOperator=*/true>(v, switch_token_span);
   }
 
   switch (this->peek().type) {
@@ -2019,7 +2262,32 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_typescript_namespace(
-    parse_visitor_base &v, source_code_span namespace_keyword_span) {
+    parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
+    source_code_span namespace_keyword_span) {
+  this->parse_and_visit_typescript_namespace_head(
+      v,
+      /*export_keyword_span=*/export_keyword_span,
+      /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
+
+  typescript_namespace_guard g = this->enter_typescript_namespace();
+
+  if (this->peek().type != token_type::left_curly) {
+    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
+    });
+    return;
+  }
+
+  v.visit_enter_namespace_scope();
+  this->parse_and_visit_statement_block_no_scope(v);
+  v.visit_exit_namespace_scope();
+}
+
+void parser::parse_and_visit_typescript_namespace_head(
+    parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
+    std::optional<source_code_span> declare_keyword_span,
+    source_code_span namespace_keyword_span) {
   if (this->peek().has_leading_newline) {
     this->diag_reporter_->report(
         diag_newline_not_allowed_after_namespace_keyword{
@@ -2034,6 +2302,7 @@ void parser::parse_and_visit_typescript_namespace(
   }
 
   switch (this->peek().type) {
+  // namespace ns { }
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
     v.visit_variable_declaration(this->peek().identifier_name(),
@@ -2042,13 +2311,115 @@ void parser::parse_and_visit_typescript_namespace(
     this->skip();
     break;
 
+  // module 'my namespace' { }
+  // namespace 'ns' { }         // Invalid.
+  case token_type::string: {
+    bool namespace_keyword_is_module =
+        namespace_keyword_span.string_view()[0] == u8'm';
+    if (!namespace_keyword_is_module || !declare_keyword_span.has_value() ||
+        export_keyword_span.has_value()) {
+      this->diag_reporter_->report(
+          diag_string_namespace_name_is_only_allowed_with_declare_module{
+              .module_name = this->peek().span(),
+          });
+    } else if (this->in_typescript_namespace_) {
+      this->diag_reporter_->report(
+          diag_string_namespace_name_is_only_allowed_at_top_level{
+              .module_name = this->peek().span(),
+          });
+    }
+    this->skip();
+    break;
+  }
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+}
+
+void parser::parse_and_visit_typescript_declare_namespace(
+    parse_visitor_base &v, source_code_span declare_keyword_span) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_module ||
+              this->peek().type == token_type::kw_namespace);
+  source_code_span namespace_keyword_span = this->peek().span();
+  this->skip();
+  this->parse_and_visit_typescript_namespace_head(
+      v,
+      /*export_keyword_span=*/std::nullopt,
+      /*declare_keyword_span=*/declare_keyword_span, namespace_keyword_span);
+
+  typescript_namespace_guard g = this->enter_typescript_namespace();
+
+  if (this->peek().type != token_type::left_curly) {
+    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
+    });
+    return;
+  }
+  source_code_span left_curly_span = this->peek().span();
+  this->skip();
 
   v.visit_enter_namespace_scope();
-  this->parse_and_visit_statement_block_no_scope(v);
+  for (;;) {
+    switch (this->peek().type) {
+    // TODO(strager): Deduplicate list with
+    // parse_and_visit_possible_declare_statement.
+    case token_type::kw_abstract:
+    case token_type::kw_async:
+    case token_type::kw_class:
+    case token_type::kw_const:
+    case token_type::kw_enum:
+    case token_type::kw_function:
+    case token_type::kw_import:
+    case token_type::kw_let:
+    case token_type::kw_module:
+    case token_type::kw_namespace:
+    case token_type::kw_var:
+      this->parse_and_visit_declare_statement(v, declare_keyword_span);
+      break;
+
+    case token_type::kw_export:
+      this->parse_and_visit_export(v, declare_keyword_span);
+      break;
+
+    case token_type::right_curly:
+      this->skip();
+      goto done;
+
+    case token_type::end_of_file:
+      this->diag_reporter_->report(diag_unclosed_code_block{
+          .block_open = left_curly_span,
+      });
+      goto done;
+
+    case token_type::kw_declare: {
+      this->diag_reporter_->report(
+          diag_declare_keyword_is_not_allowed_inside_declare_namespace{
+              .declare_keyword = this->peek().span(),
+              .declare_namespace_declare_keyword = declare_keyword_span,
+          });
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
+      QLJS_ASSERT(parsed_statement);
+      break;
+    }
+
+    default: {
+      this->diag_reporter_->report(
+          diag_declare_namespace_cannot_contain_statement{
+              .first_statement_token = this->peek().span(),
+              .declare_keyword = declare_keyword_span,
+          });
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
+      QLJS_ASSERT(parsed_statement);
+      break;
+    }
+    }
+  }
+done:
   v.visit_exit_namespace_scope();
 }
 
@@ -2115,6 +2486,7 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
   case token_type::kw_override:
   case token_type::kw_readonly:
   case token_type::kw_require:
+  case token_type::kw_satisfies:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::kw_unique:
@@ -2362,6 +2734,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
+  case expression_kind::satisfies:
   case expression_kind::spread:
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
@@ -2562,31 +2935,31 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   source_code_span do_token_span = this->peek().span();
   this->skip();
 
-  switch (this->peek().type) {
-  default: {
-    this->error_on_class_statement(statement_kind::do_while_loop);
-    this->error_on_function_statement(statement_kind::do_while_loop);
-    this->error_on_lexical_declaration(statement_kind::do_while_loop);
-    bool parsed_statement = this->parse_and_visit_statement(v);
-    if (!parsed_statement) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    break;
-  }
-  case token_type::kw_while:
-    this->diag_reporter_->report(diag_missing_body_for_do_while_statement{
-        .do_token = do_token_span,
-    });
-    break;
+  bool body_is_while = this->peek().type == token_type::kw_while;
+
+  this->error_on_class_statement(statement_kind::do_while_loop);
+  this->error_on_function_statement(statement_kind::do_while_loop);
+  this->error_on_lexical_declaration(statement_kind::do_while_loop);
+  bool parsed_statement = this->parse_and_visit_statement(v);
+  if (!parsed_statement) {
+    QLJS_PARSER_UNIMPLEMENTED();
   }
 
   if (this->peek().type != token_type::kw_while) {
-    this->diag_reporter_->report(
-        diag_missing_while_and_condition_for_do_while_statement{
-            .do_token = do_token_span,
-            .expected_while =
-                source_code_span::unit(this->lexer_.end_of_previous_token()),
-        });
+    if (body_is_while) {
+      // { do while (cond); }  // Invalid
+      this->diag_reporter_->report(diag_missing_body_for_do_while_statement{
+          .do_token = do_token_span,
+      });
+    } else {
+      // do { } if (cond);  // Invalid
+      this->diag_reporter_->report(
+          diag_missing_while_and_condition_for_do_while_statement{
+              .do_token = do_token_span,
+              .expected_while =
+                  source_code_span::unit(this->lexer_.end_of_previous_token()),
+          });
+    }
     return;
   }
   this->skip();
@@ -2594,7 +2967,8 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   this->parse_and_visit_parenthesized_expression<
       diag_expected_parentheses_around_do_while_condition,
       diag_expected_parenthesis_around_do_while_condition,
-      /*CheckForSketchyConditions=*/true>(v);
+      /*CheckForSketchyConditions=*/true,
+      /*CheckForCommaOperator=*/true>(v, do_token_span);
 
   if (this->peek().type == token_type::semicolon) {
     this->skip();
@@ -2628,6 +3002,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
           expression *ast = this->parse_expression(v);
           this->visit_expression(ast, v, variable_context::rhs);
           this->error_on_sketchy_condition(ast);
+          this->warn_on_comma_operator_in_conditional_statement(ast);
         }
 
         switch (this->peek().type) {
@@ -2799,10 +3174,12 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->skip();  // Re-parse 'let'.
         this->parse_and_visit_let_bindings(
-            lhs.visitor(), declaring_token,
-            /*allow_in_operator=*/false,
-            /*allow_const_without_initializer=*/false,
-            /*is_in_for_initializer=*/true);
+            lhs.visitor(), parse_let_bindings_options{
+                               .declaring_token = declaring_token,
+                               .allow_in_operator = false,
+                               .allow_const_without_initializer = false,
+                               .is_in_for_initializer = true,
+                           });
         break;
       }
     } else {
@@ -2810,10 +3187,12 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       // for (let x of xs) {}
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_let_bindings(
-          lhs.visitor(), declaring_token,
-          /*allow_in_operator=*/false,
-          /*allow_const_without_initializer=*/true,
-          /*is_in_for_initializer=*/true);
+          lhs.visitor(), parse_let_bindings_options{
+                             .declaring_token = declaring_token,
+                             .allow_in_operator = false,
+                             .allow_const_without_initializer = true,
+                             .is_in_for_initializer = true,
+                         });
     }
     switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -3003,7 +3382,8 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_while_condition,
         diag_expected_parenthesis_around_while_condition,
-        /*CheckForSketchyConditions=*/true>(v);
+        /*CheckForSketchyConditions=*/true,
+        /*CheckForCommaOperator=*/true>(v, while_token_span);
   }
 
   this->error_on_class_statement(statement_kind::while_loop);
@@ -3021,12 +3401,14 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
 
 void parser::parse_and_visit_with(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_with);
+  source_code_span with_token_span = this->peek().span();
   this->skip();
 
   this->parse_and_visit_parenthesized_expression<
       diag_expected_parentheses_around_with_expression,
       diag_expected_parenthesis_around_with_expression,
-      /*CheckForSketchyConditions=*/false>(v);
+      /*CheckForSketchyConditions=*/false,
+      /*CheckForCommaOperator=*/false>(v, with_token_span);
 
   this->error_on_class_statement(statement_kind::with_statement);
   this->error_on_function_statement(statement_kind::with_statement);
@@ -3055,7 +3437,8 @@ void parser::parse_and_visit_if(parse_visitor_base &v) {
     this->parse_and_visit_parenthesized_expression<
         diag_expected_parentheses_around_if_condition,
         diag_expected_parenthesis_around_if_condition,
-        /*CheckForSketchyConditions=*/true>(v);
+        /*CheckForSketchyConditions=*/true,
+        /*CheckForCommaOperator=*/true>(v, if_token_span);
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {
@@ -3107,19 +3490,31 @@ parse_maybe_else:
     } else {
       parse_and_visit_body();
     }
-    bool has_left_curly = this->peek().type == token_type::left_curly;
-    if (!this->peek().has_leading_newline && has_left_paren && has_left_curly) {
-      // if (cond) {} else (cond) {} // Invalid
-      this->diag_reporter_->report(diag_missing_if_after_else{
-          .expected_if = source_code_span::unit(end_of_else),
-      });
-      parse_and_visit_body();
-      goto parse_maybe_else;
+    if (has_left_paren) {
+      bool has_left_curly = this->peek().type == token_type::left_curly;
+      if (!this->peek().has_leading_newline && has_left_curly) {
+        // if (cond) {} else (cond) {} // Invalid
+        this->diag_reporter_->report(diag_missing_if_after_else{
+            .expected_if = source_code_span::unit(end_of_else),
+        });
+        parse_and_visit_body();
+        goto parse_maybe_else;
+      } else {
+        // if (cond) {} else (expr);
+        this->consume_semicolon_after_statement();
+      }
     }
   }
 }
 
 void parser::parse_and_visit_import(parse_visitor_base &v) {
+  this->parse_and_visit_import(
+      v, /*declare_namespace_declare_keyword=*/std::nullopt);
+}
+
+void parser::parse_and_visit_import(
+    parse_visitor_base &v,
+    std::optional<source_code_span> declare_namespace_declare_keyword) {
   QLJS_ASSERT(this->peek().type == token_type::kw_import);
   source_code_span import_span = this->peek().span();
   this->skip();
@@ -3237,6 +3632,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     case token_type::kw_get:
     case token_type::kw_let:
     case token_type::kw_of:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_static:
     case token_type::kw_type:
@@ -3337,6 +3733,14 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
         if (this->peek().type == token_type::left_paren &&
             namespace_name.normalized_name() == u8"require"_sv) {
           // import fs = require("fs");
+          if (declare_namespace_declare_keyword.has_value()) {
+            this->diag_reporter_->report(
+                diag_declare_namespace_cannot_import_module{
+                    .importing_keyword = import_span,
+                    .declare_keyword = *declare_namespace_declare_keyword,
+                });
+          }
+
           this->skip();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
           this->skip();
@@ -3379,21 +3783,31 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     return;
   }
 
-  if (this->peek().type != token_type::string) {
-    switch (this->peek().type) {
-    QLJS_CASE_KEYWORD:
-    case token_type::identifier:
-      this->diag_reporter_->report(diag_cannot_import_from_unquoted_module{
-          .import_name = this->peek().identifier_name(),
+  switch (this->peek().type) {
+  // import fs from 'fs';
+  case token_type::string:
+    if (declare_namespace_declare_keyword.has_value()) {
+      this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
+          .importing_keyword = import_span,
+          .declare_keyword = *declare_namespace_declare_keyword,
       });
-      break;
-
-    default:
-      QLJS_PARSER_UNIMPLEMENTED();
-      break;
     }
+    this->skip();
+    break;
+
+  // import foo from bar;  // Invalid.
+  QLJS_CASE_KEYWORD:
+  case token_type::identifier:
+    this->diag_reporter_->report(diag_cannot_import_from_unquoted_module{
+        .import_name = this->peek().identifier_name(),
+    });
+    this->skip();
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
   }
-  this->skip();
 
   this->consume_semicolon_after_statement();
 }
@@ -3644,6 +4058,7 @@ void parser::parse_and_visit_named_exports(
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
+      case token_type::kw_satisfies:
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_type:
@@ -3774,19 +4189,20 @@ void parser::parse_and_visit_variable_declaration_statement(
       declaring_token.type == token_type::kw_const) {
     this->parse_and_visit_typescript_enum(v, enum_kind::const_enum);
   } else {
-    this->parse_and_visit_let_bindings(v, declaring_token,
-                                       /*allow_in_operator=*/true);
+    this->parse_and_visit_let_bindings(v,
+                                       parse_let_bindings_options{
+                                           .declaring_token = declaring_token,
+                                       });
     this->consume_semicolon_after_statement();
   }
 }
 
-void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          const token &declaring_token,
-                                          bool allow_in_operator,
-                                          bool allow_const_without_initializer,
-                                          bool is_in_for_initializer) {
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
+void parser::parse_and_visit_let_bindings(
+    parse_visitor_base &v, const parse_let_bindings_options &options) {
   variable_kind declaration_kind;
-  switch (declaring_token.type) {
+  switch (options.declaring_token.type) {
   case token_type::kw_const:
     declaration_kind = variable_kind::_const;
     break;
@@ -3801,22 +4217,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     declaration_kind = variable_kind::_let;
     break;
   }
-  this->parse_and_visit_let_bindings(
-      v, declaring_token, declaration_kind,
-      /*allow_in_operator=*/allow_in_operator,
-      /*allow_const_without_initializer=*/allow_const_without_initializer,
-      /*is_in_for_initializer=*/is_in_for_initializer);
-}
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          const token &declaring_token,
-                                          variable_kind declaration_kind,
-                                          bool allow_in_operator,
-                                          bool allow_const_without_initializer,
-                                          bool is_in_for_initializer) {
-  source_code_span let_span = declaring_token.span();
+  source_code_span let_span = options.declaring_token.span();
   bool first_binding = true;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
@@ -3884,6 +4286,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     case token_type::kw_get:
     case token_type::kw_let:
     case token_type::kw_of:
+    case token_type::kw_satisfies:
     case token_type::kw_set:
     case token_type::kw_static: {
       expression *variable = this->make_expression<expression::variable>(
@@ -3901,17 +4304,27 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::equal: {
         token equal_token = this->peek();
+        if (options.declare_keyword.has_value()) {
+          this->diag_reporter_->report(diag_declare_var_cannot_have_initializer{
+              .equal = equal_token.span(),
+              .declare_keyword = *options.declare_keyword,
+              .declaring_token = options.declaring_token.span(),
+          });
+        }
+
         auto *assignment_ast = static_cast<expression::assignment *>(
             this->parse_expression_remainder(
                 v, variable,
-                precedence{.commas = false, .in_operator = allow_in_operator}));
+                precedence{.commas = false,
+                           .in_operator = options.allow_in_operator}));
 
-        if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
+        if (options.is_in_for_initializer &&
+            this->peek().type == token_type::kw_in) {
           // for (var x = "initial" in obj)
           // for (let x = "prop" in obj)  // Invalid.
           // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
           source_code_span in_token_span = this->peek().span();
-          QLJS_ASSERT(!allow_in_operator);
+          QLJS_ASSERT(!options.allow_in_operator);
 
           // FIXME(#831): v should not be used here. We should use a
           // buffering_visitor.
@@ -3940,7 +4353,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                           .equal_token = equal_token.span()});
                 }
               });
-        } else if (is_in_for_initializer &&
+        } else if (options.is_in_for_initializer &&
                    this->peek().type == token_type::kw_of) {
           // for (var x = "initial" of obj)  // Invalid.
           this->diag_reporter_->report(
@@ -3952,7 +4365,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
             assignment_ast, v,
             binding_element_info{
                 .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::initialized_with_equals,
             });
         break;
@@ -3972,7 +4385,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
               variable, v,
               binding_element_info{
                   .declaration_kind = declaration_kind,
-                  .declaring_token = declaring_token.span(),
+                  .declaring_token = options.declaring_token.span(),
                   .init_kind = variable_init_kind::normal,
               });
           this->lexer_.insert_semicolon();
@@ -3984,12 +4397,13 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                 source_code_span::unit(this->lexer_.end_of_previous_token()),
         });
         this->parse_and_visit_expression(
-            v, precedence{.commas = false, .in_operator = allow_in_operator});
+            v, precedence{.commas = false,
+                          .in_operator = options.allow_in_operator});
         this->visit_binding_element(
             variable, v,
             binding_element_info{
                 .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaring_token = options.declaring_token.span(),
                 // TODO(strager): Would initialized_with_equals make more sense?
                 .init_kind = variable_init_kind::normal,
             });
@@ -4000,7 +4414,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         // let x, y;
       default:
         if (declaration_kind == variable_kind::_const) {
-          if (!allow_const_without_initializer) {
+          if (!options.allow_const_without_initializer &&
+              !options.is_declare()) {
             this->diag_reporter_->report(
                 diag_missing_initializer_in_const_declaration{
                     .variable_name = variable->span()});
@@ -4010,7 +4425,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
             variable, v,
             binding_element_info{
                 .declaration_kind = declaration_kind,
-                .declaring_token = declaring_token.span(),
+                .declaring_token = options.declaring_token.span(),
                 .init_kind = variable_init_kind::normal,
             });
         break;
@@ -4030,14 +4445,16 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
     case token_type::left_curly:
     case token_type::left_square: {
       expression *ast = this->parse_expression(
-          v, precedence{.commas = false, .in_operator = allow_in_operator});
+          v, precedence{.commas = false,
+                        .in_operator = options.allow_in_operator});
       // TODO(strager): Report error if initializer is missing.
-      this->visit_binding_element(ast, v,
-                                  binding_element_info{
-                                      .declaration_kind = declaration_kind,
-                                      .declaring_token = declaring_token.span(),
-                                      .init_kind = variable_init_kind::normal,
-                                  });
+      this->visit_binding_element(
+          ast, v,
+          binding_element_info{
+              .declaration_kind = declaration_kind,
+              .declaring_token = options.declaring_token.span(),
+              .init_kind = variable_init_kind::normal,
+          });
       break;
     }
 
@@ -4060,7 +4477,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
             });
         this->skip();
         this->parse_and_visit_expression(
-            v, precedence{.commas = false, .in_operator = allow_in_operator});
+            v, precedence{.commas = false,
+                          .in_operator = options.allow_in_operator});
         break;
 
         // let if (x) {}    // Invalid.
@@ -4116,7 +4534,8 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
       });
       this->skip();
       this->parse_and_visit_expression(
-          v, precedence{.commas = false, .in_operator = allow_in_operator});
+          v, precedence{.commas = false,
+                        .in_operator = options.allow_in_operator});
       break;
 
     case token_type::semicolon:
@@ -4318,10 +4737,21 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   case expression_kind::as_type_assertion: {
     auto *assertion = static_cast<const expression::as_type_assertion *>(ast);
     this->diag_reporter_->report(
-        diag_typescript_as_keyword_used_for_parameter_type_annotation{
-            .as_keyword = assertion->as_span(),
+        diag_typescript_as_or_satisfies_used_for_parameter_type_annotation{
+            .bad_keyword = assertion->as_span(),
         });
     this->visit_binding_element(assertion->child_, v, info);
+    break;
+  }
+
+  // function f(x satisfies T) {}  // Invalid.
+  case expression_kind::satisfies: {
+    auto *s = static_cast<const expression::satisfies *>(ast);
+    this->diag_reporter_->report(
+        diag_typescript_as_or_satisfies_used_for_parameter_type_annotation{
+            .bad_keyword = s->satisfies_span(),
+        });
+    this->visit_binding_element(s->child_, v, info);
     break;
   }
 
@@ -4436,6 +4866,267 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     this->visit_binding_element(annotated->child_, v, info);
     break;
   }
+  }
+}
+
+parser::parse_possible_declare_result
+parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+  source_code_span declare_keyword_span = this->peek().span();
+  this->skip();
+
+  if (this->peek().has_leading_newline) {
+    // declare  // ASI
+    // enum E {}
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return parse_possible_declare_result::declare_is_expression_or_loop_label;
+  }
+
+  switch (this->peek().type) {
+  case token_type::kw_abstract:
+  case token_type::kw_async:
+  case token_type::kw_class:
+  case token_type::kw_const:
+  case token_type::kw_enum:
+  case token_type::kw_interface:
+  case token_type::kw_function:
+  case token_type::kw_let:
+  case token_type::kw_module:
+  case token_type::kw_type:
+  case token_type::kw_var:
+  case token_type::kw_namespace:
+    this->lexer_.commit_transaction(std::move(transaction));
+    this->parse_and_visit_declare_statement(v, declare_keyword_span);
+    return parse_possible_declare_result::parsed;
+
+  // declare import fs from 'fs';  // Invalid.
+  // declare import ns = otherns;  // Invalid.
+  case token_type::kw_import:
+    this->lexer_.commit_transaction(std::move(transaction));
+    this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
+        .declare_keyword = declare_keyword_span,
+    });
+    this->parse_and_visit_import(
+        v, /*declare_namespace_declare_keyword=*/std::nullopt);
+    return parse_possible_declare_result::parsed;
+
+  // declare:  // Label.
+  // declare();
+  case token_type::colon:
+  default:
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return parse_possible_declare_result::declare_is_expression_or_loop_label;
+  }
+}
+
+void parser::parse_and_visit_declare_statement(
+    parse_visitor_base &v, source_code_span declare_keyword_span) {
+  function_attributes func_attributes = function_attributes::normal;
+
+  switch (this->peek().type) {
+  // declare enum E {}
+  case token_type::kw_enum:
+    // declare enum E {}
+    this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
+    break;
+
+  // declare const enum E {}
+  // declare const myVariable: any;
+  case token_type::kw_const: {
+    token const_keyword = this->peek();
+    this->skip();
+    if (this->peek().type == token_type::kw_enum) {
+      // declare const enum E {}
+      this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
+    } else {
+      // declare const myVariable: any;
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
+            .declare_keyword = declare_keyword_span,
+            .declaring_token = const_keyword.span(),
+        });
+      }
+      this->parse_and_visit_let_bindings(
+          v, parse_let_bindings_options{
+                 .declaring_token = const_keyword,
+                 .declare_keyword = declare_keyword_span,
+             });
+      this->consume_semicolon_after_statement();
+    }
+    break;
+  }
+
+  // declare class C {}
+  case token_type::kw_class:
+    this->parse_and_visit_class(
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = std::nullopt,
+               .declare_keyword_span = declare_keyword_span,
+           });
+    break;
+
+  // declare abstract class C {}
+  //
+  // declare abstract
+  // class C {}        // Invalid.
+  case token_type::kw_abstract: {
+    source_code_span abstract_token = this->peek().span();
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
+    if (this->peek().has_leading_newline) {
+      this->diag_reporter_->report(
+          diag_newline_not_allowed_after_abstract_keyword{
+              .abstract_keyword = abstract_token,
+          });
+    }
+    this->parse_and_visit_class(
+        v, parse_class_options{
+               .require_name = name_requirement::required_for_statement,
+               .abstract_keyword_span = abstract_token,
+               .declare_keyword_span = declare_keyword_span,
+           });
+    break;
+  }
+
+  // declare var x;
+  // declare let y, z;
+  case token_type::kw_let:
+  case token_type::kw_var: {
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
+          .declare_keyword = declare_keyword_span,
+          .declaring_token = this->peek().span(),
+      });
+    }
+    token declaring_token = this->peek();
+    this->skip();
+    this->parse_and_visit_let_bindings(
+        v, parse_let_bindings_options{
+               .declaring_token = declaring_token,
+               .declare_keyword = declare_keyword_span,
+           });
+    this->consume_semicolon_after_statement();
+    break;
+  }
+
+  // declare type T = U;
+  case token_type::kw_type: {
+    source_code_span type_keyword_span = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_type_alias(v, type_keyword_span);
+    break;
+  }
+
+  // declare interface I { }
+  case token_type::kw_interface: {
+    source_code_span interface_keyword_span = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_interface(v, interface_keyword_span);
+    break;
+  }
+
+  // declare async function f(); // Invalid.
+  case token_type::kw_async:
+    this->diag_reporter_->report(diag_declare_function_cannot_be_async{
+        .async_keyword = this->peek().span(),
+    });
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
+    func_attributes = function_attributes::async;
+    goto parse_declare_function;
+
+  // declare function f();
+  parse_declare_function:
+  case token_type::kw_function: {
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_declare_function_not_allowed_in_javascript{
+              .declare_keyword = declare_keyword_span,
+          });
+    }
+    this->skip();
+
+    std::optional<source_code_span> generator_star =
+        this->parse_generator_star(&func_attributes);
+    if (generator_star.has_value()) {
+      this->diag_reporter_->report(diag_declare_function_cannot_be_generator{
+          .star = *generator_star,
+      });
+    }
+
+    std::optional<source_code_span> function_name_span;
+    switch (this->peek().type) {
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case token_type::kw_await:
+    case token_type::kw_yield:
+    case token_type::identifier: {
+      identifier function_name = this->peek().identifier_name();
+      v.visit_variable_declaration(function_name, variable_kind::_function,
+                                   variable_init_kind::normal);
+      function_name_span = function_name.span();
+      this->skip();
+      break;
+    }
+
+    default:
+      break;
+    }
+
+    if (!function_name_span.has_value()) {
+      this->diag_reporter_->report(diag_missing_name_in_function_statement{
+          .where = source_code_span::unit(this->peek().begin),
+      });
+    }
+
+    v.visit_enter_function_scope();
+    {
+      function_guard guard = this->enter_function(func_attributes);
+      function_parameter_parse_result result =
+          this->parse_and_visit_function_parameters(v, function_name_span);
+      switch (result) {
+      case function_parameter_parse_result::parsed_parameters:
+      case function_parameter_parse_result::missing_parameters:
+        this->diag_reporter_->report(diag_declare_function_cannot_have_body{
+            .body_start = this->peek().span(),
+            .declare_keyword = declare_keyword_span,
+        });
+        v.visit_enter_function_scope_body();
+        this->parse_and_visit_statement_block_no_scope(v);
+        break;
+
+      case function_parameter_parse_result::missing_parameters_ignore_body:
+      case function_parameter_parse_result::parsed_parameters_missing_body:
+        this->consume_semicolon_after_statement();
+        break;
+      }
+    }
+    v.visit_exit_function_scope();
+
+    break;
+  }
+
+  // declare namespace ns {}
+  case token_type::kw_module:
+  case token_type::kw_namespace:
+    this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
+    break;
+
+  // declare namespace ns { import a = b; }
+  // declare namespace ns { import a from "b"; }  // Invalid.
+  case token_type::kw_import:
+    // NOTE(strager): 'declare import a from "b";' is handled by
+    // parse_and_visit_possible_declare_statement.
+    this->parse_and_visit_import(
+        v, /*declare_namespace_declare_keyword=*/declare_keyword_span);
+    break;
+
+  // declare:  // Label.
+  // declare();
+  case token_type::colon:
+  default:
+    QLJS_ASSERT(false);
+    break;
   }
 }
 }

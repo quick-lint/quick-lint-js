@@ -6,8 +6,8 @@
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/cli/options.h>
-#include <quick-lint-js/fe/diag-code-list.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diag-code-list.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
@@ -56,6 +56,7 @@ TEST(test_options, default_options_with_no_files) {
   options o = parse_options_no_errors({});
   EXPECT_FALSE(o.print_parser_visits);
   EXPECT_FALSE(o.help);
+  EXPECT_FALSE(o.list_debug_apps);
   EXPECT_FALSE(o.version);
   EXPECT_FALSE(o.lsp_server);
   EXPECT_EQ(o.output_format, output_format::default_format);
@@ -543,6 +544,11 @@ TEST(test_options, print_help) {
     options o = parse_options_no_errors({"-h"});
     EXPECT_TRUE(o.help);
   }
+}
+
+TEST(test_options, list_debug_apps) {
+  options o = parse_options_no_errors({"--debug-apps"});
+  EXPECT_TRUE(o.list_debug_apps);
 }
 
 TEST(test_options, print_version) {

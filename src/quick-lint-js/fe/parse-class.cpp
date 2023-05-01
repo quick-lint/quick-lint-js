@@ -6,9 +6,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/vector.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -22,17 +22,29 @@
 #include <utility>
 
 namespace quick_lint_js {
-void parser::parse_and_visit_class(
-    parse_visitor_base &v, parser::name_requirement require_name,
-    std::optional<source_code_span> abstract_keyword_span) {
+void parser::parse_and_visit_class(parse_visitor_base &v,
+                                   parse_class_options options) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   source_code_span class_keyword_span = this->peek().span();
 
-  if (abstract_keyword_span.has_value() && !this->options_.typescript) {
+  bool is_abstract_in_javascript =
+      options.abstract_keyword_span.has_value() && !this->options_.typescript;
+  bool is_declare_in_javascript =
+      options.declare_keyword_span.has_value() && !this->options_.typescript;
+  if (is_abstract_in_javascript && is_declare_in_javascript) {
+    this->diag_reporter_->report(
+        diag_declare_abstract_class_not_allowed_in_javascript{
+            .declare_keyword = *options.declare_keyword_span,
+        });
+  } else if (is_abstract_in_javascript) {
     this->diag_reporter_->report(
         diag_typescript_abstract_class_not_allowed_in_javascript{
-            .abstract_keyword = *abstract_keyword_span,
+            .abstract_keyword = *options.abstract_keyword_span,
         });
+  } else if (is_declare_in_javascript) {
+    this->diag_reporter_->report(diag_declare_class_not_allowed_in_javascript{
+        .declare_keyword = *options.declare_keyword_span,
+    });
   }
 
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
@@ -44,9 +56,12 @@ void parser::parse_and_visit_class(
   switch (this->peek().type) {
   case token_type::left_curly:
     this->parse_and_visit_class_body(
-        v,
-        /*class_keyword_span=*/class_keyword_span,
-        /*is_abstract=*/abstract_keyword_span.has_value());
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = class_keyword_span,
+               .is_abstract = options.abstract_keyword_span.has_value(),
+               .is_declare = options.declare_keyword_span.has_value(),
+               .is_interface = false,
+           });
     break;
 
   default:
@@ -58,7 +73,8 @@ void parser::parse_and_visit_class(
   }
   v.visit_exit_class_scope();
 
-  this->visit_class_name(v, class_name, class_keyword_span, require_name);
+  this->visit_class_name(v, class_name, class_keyword_span,
+                         options.require_name);
 }
 
 std::optional<identifier> parser::parse_class_and_optional_name() {
@@ -159,6 +175,7 @@ void parser::parse_and_visit_class_extends(parse_visitor_base &v) {
   this->parse_and_visit_expression(v, precedence{
                                           .commas = false,
                                           .trailing_curly_is_arrow_body = false,
+                                          .in_class_extends_clause = true,
                                       });
 }
 
@@ -207,19 +224,15 @@ void parser::visit_class_name(parse_visitor_base &v,
 }
 
 void parser::parse_and_visit_class_body(parse_visitor_base &v,
-                                        source_code_span class_keyword_span,
-                                        bool is_abstract) {
+                                        parse_class_body_options options) {
+  QLJS_ASSERT(!options.is_interface);
   class_guard g = this->enter_class();
 
   source_code_span left_curly_span = this->peek().span();
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_class_or_interface_member(
-        v,
-        /*class_or_interface_keyword_span=*/class_keyword_span,
-        /*is_interface=*/false,
-        /*is_abstract=*/is_abstract);
+    this->parse_and_visit_class_or_interface_member(v, options);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_class_block{
           .block_open = left_curly_span,
@@ -233,23 +246,25 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v,
 }
 
 void parser::parse_and_visit_class_or_interface_member(
-    parse_visitor_base &v, source_code_span class_or_interface_keyword_span,
-    bool is_interface, bool is_abstract) {
+    parse_visitor_base &v, parse_class_body_options options) {
   struct class_parser {
     explicit class_parser(parser *p, parse_visitor_base &v,
                           source_code_span class_or_interface_keyword_span,
-                          bool is_interface, bool is_abstract)
+                          bool is_interface, bool is_abstract,
+                          const parse_class_body_options &options)
         : p(p),
           v(v),
           class_or_interface_keyword_span(class_or_interface_keyword_span),
           is_interface(is_interface),
-          is_abstract(is_abstract) {}
+          is_abstract(is_abstract),
+          is_declare(options.is_declare) {}
 
     parser *p;
     parse_visitor_base &v;
     source_code_span class_or_interface_keyword_span;
     bool is_interface;
     bool is_abstract;
+    bool is_declare;
 
     std::optional<identifier> last_ident;
 
@@ -531,9 +546,14 @@ void parser::parse_and_visit_class_or_interface_member(
         if (modifiers.size() == 1 &&
             modifiers[0].type == token_type::kw_static) {
           // class C { static { } }
-          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
           v.visit_enter_block_scope();
-          p->parse_and_visit_statement_block_no_scope(v);
+          source_code_span left_curly_span = p->peek().span();
+          p->skip();
+
+          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
+
+          p->parse_and_visit_statement_block_after_left_curly(v,
+                                                              left_curly_span);
           v.visit_exit_block_scope();
         } else {
           // class C { {  // Invalid.
@@ -719,7 +739,10 @@ void parser::parse_and_visit_class_or_interface_member(
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
-        if (is_abstract_method) {
+        if (is_declare) {
+          p->parse_and_visit_declare_class_method_parameters_and_body(
+              v, property_name_span, attributes);
+        } else if (is_abstract_method) {
           v.visit_enter_function_scope();
           p->parse_and_visit_abstract_function_parameters_and_body_no_scope(
               v, property_name_span, attributes);
@@ -851,7 +874,15 @@ void parser::parse_and_visit_class_or_interface_member(
                 .equal = p->peek().span(),
             });
       }
-      if (p->options_.typescript && !is_interface && bang) {
+      if (is_declare && !is_interface && !bang) {
+        // Don't report if we found a bang. We already reported
+        // diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class.
+        p->diag_reporter_->report(
+            diag_declare_class_fields_cannot_have_initializers{
+                .equal = p->peek().span(),
+            });
+      }
+      if (p->options_.typescript && !is_interface && !is_declare && bang) {
         p->diag_reporter_->report(
             diag_typescript_assignment_asserted_field_cannot_have_initializer{
                 .equal = p->peek().span(),
@@ -932,6 +963,18 @@ void parser::parse_and_visit_class_or_interface_member(
                 .static_token = static_modifier.span,
             });
       }
+      if (is_declare && !is_interface) {
+        if (p->peek().type == token_type::right_curly) {
+          // static { }
+          // An empty static block is legal.
+        } else {
+          // static { someStatement(); }
+          p->diag_reporter_->report(
+              diag_typescript_declare_class_cannot_contain_static_block_statement{
+                  .static_token = static_modifier.span,
+              });
+        }
+      }
     }
 
     void error_if_invalid_assignment_assertion() {
@@ -945,6 +988,11 @@ void parser::parse_and_visit_class_or_interface_member(
         } else if (is_interface) {
           p->diag_reporter_->report(
               diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
+                  .bang = assignment_assertion_modifier->span,
+              });
+        } else if (is_declare) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class{
                   .bang = assignment_assertion_modifier->span,
               });
         }
@@ -1121,6 +1169,20 @@ void parser::parse_and_visit_class_or_interface_member(
           });
         }
       }
+      if (is_declare) {
+        if (const modifier *async_modifier =
+                find_modifier(token_type::kw_async)) {
+          p->diag_reporter_->report(diag_declare_class_methods_cannot_be_async{
+              .async_keyword = async_modifier->span,
+          });
+        }
+        if (const modifier *star_modifier = find_modifier(token_type::star)) {
+          p->diag_reporter_->report(
+              diag_declare_class_methods_cannot_be_generators{
+                  .star = star_modifier->span,
+              });
+        }
+      }
 
       const modifier *abstract_modifier =
           find_modifier(token_type::kw_abstract);
@@ -1159,8 +1221,8 @@ void parser::parse_and_visit_class_or_interface_member(
       return nullptr;
     }
   };
-  class_parser state(this, v, class_or_interface_keyword_span, is_interface,
-                     is_abstract);
+  class_parser state(this, v, options.class_or_interface_keyword_span,
+                     options.is_interface, options.is_abstract, options);
   state.parse_stuff();
 }
 
@@ -1208,6 +1270,7 @@ void parser::parse_and_visit_typescript_interface(
   case token_type::kw_readonly:
   case token_type::kw_require:
   case token_type::kw_set:
+  case token_type::kw_satisfies:
   case token_type::kw_type:
   case token_type::kw_unique:
   interface_name:
@@ -1265,13 +1328,21 @@ void parser::parse_and_visit_typescript_interface_reference(
 
   if (this->peek().type == token_type::dot) {
     // extends mynamespace.MyInterface
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    this->skip();
+    // extends ns.subns.I
+    while (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+    }
     v.visit_variable_namespace_use(ident);
   } else {
     // extends MyInterface
     v.visit_variable_type_use(ident);
+  }
+
+  if (this->peek().type == token_type::less) {
+    // extends SomeType<Arg>
+    this->parse_and_visit_typescript_generic_arguments(v);
   }
 }
 
@@ -1283,10 +1354,12 @@ void parser::parse_and_visit_typescript_interface_body(
 
   while (this->peek().type != token_type::right_curly) {
     this->parse_and_visit_class_or_interface_member(
-        v,
-        /*class_or_interface_keyword_span=*/interface_keyword_span,
-        /*is_interface=*/true,
-        /*is_abstract=*/false);
+        v, parse_class_body_options{
+               .class_or_interface_keyword_span = interface_keyword_span,
+               .is_abstract = false,
+               .is_declare = false,
+               .is_interface = true,
+           });
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_interface_block{
           .block_open = left_curly_span,

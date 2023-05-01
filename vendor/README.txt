@@ -100,17 +100,24 @@ consumption:
 * mongoose/docs/
 * mongoose/src/
 
-Copyright: Copyright (c) 2004-2013 Sergey Lyubka; Copyright (c) 2013-2021 Cesanta Software Limited; All rights reserved
-Download URL: https://github.com/cesanta/mongoose/archive/refs/tags/7.8.tar.gz
-Download date: October 14, 2022
-Git commit: 0a265e79a67d7bfcdca27f2ccb98ccb474677ec6
+Additionally, the following patches have been manually applied:
+
+* mongoose-mg_print_ip_port.patch
+* mongoose-error-handling.patch
+* mongoose-windows-SO_EXCLUSIVEADDRUSE.patch
+* mongoose-windows-timeout.patch
+
+Copyright: Copyright (c) 2004-2013 Sergey Lyubka; Copyright (c) 2013-2023 Cesanta Software Limited; All rights reserved
+Download URL: https://github.com/cesanta/mongoose/archive/refs/tags/7.9.tar.gz
+Download date: March 16, 2023
+Git commit: 4236405b90e051310aadda818e21c811e404b4d8
 License file: mongoose/LICENSE
 License type: GPL-2.0-only
 Location: mongoose
 Project URL: https://mongoose.ws/
-Release URL: https://github.com/cesanta/mongoose/releases/tag/7.8
-Release date: August 28, 2022
-Version: 7.8
+Release URL: https://github.com/cesanta/mongoose/releases/tag/7.9
+Release date: January 20, 2023
+Version: 7.9
 
 ## node
 

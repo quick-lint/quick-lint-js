@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
@@ -116,8 +116,8 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_undeclared_variable_references);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

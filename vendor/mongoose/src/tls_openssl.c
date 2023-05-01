@@ -90,11 +90,13 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
     }
   }
   if (opts->ciphers != NULL) SSL_set_cipher_list(tls->ssl, opts->ciphers);
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
   if (opts->srvname.len > 0) {
     char *s = mg_mprintf("%.*s", (int) opts->srvname.len, opts->srvname.ptr);
     SSL_set1_host(tls->ssl, s);
     free(s);
   }
+#endif
   c->tls = tls;
   c->is_tls = 1;
   c->is_tls_hs = 1;
@@ -116,6 +118,7 @@ void mg_tls_handshake(struct mg_connection *c) {
   if (rc == 1) {
     MG_DEBUG(("%lu success", c->id));
     c->is_tls_hs = 0;
+    mg_call(c, MG_EV_TLS_HS, NULL);
   } else {
     int code = mg_tls_err(tls, rc);
     if (code != 0) mg_error(c, "tls hs: rc %d, err %d", rc, code);
@@ -139,12 +142,16 @@ size_t mg_tls_pending(struct mg_connection *c) {
 long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   int n = SSL_read(tls->ssl, buf, (int) len);
-  return n == 0 ? -1 : n < 0 && mg_tls_err(tls, n) == 0 ? 0 : n;
+  if (n < 0 && mg_tls_err(tls, n) == 0) return MG_IO_WAIT;
+  if (n <= 0) return MG_IO_ERR;
+  return n;
 }
 
 long mg_tls_send(struct mg_connection *c, const void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   int n = SSL_write(tls->ssl, buf, (int) len);
-  return n == 0 ? -1 : n < 0 && mg_tls_err(tls, n) == 0 ? 0 : n;
+  if (n < 0 && mg_tls_err(tls, n) == 0) return MG_IO_WAIT;
+  if (n <= 0) return MG_IO_ERR;
+  return n;
 }
 #endif

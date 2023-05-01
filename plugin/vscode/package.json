@@ -2,7 +2,7 @@
   "name": "quick-lint-js",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
-  "version": "2.11.0",
+  "version": "2.13.0",
   "license": "SEE LICENSE IN LICENSE",
   "categories": [
     "Linters"
@@ -78,9 +78,9 @@
     "test": "node test/run-vscode-tests.js"
   },
   "devDependencies": {
-    "@vscode/test-electron": "2.1.5",
+    "@vscode/test-electron": "2.3.0",
     "colors": "1.4.0",
-    "prettier": "2.7.1",
-    "vsce": "2.11.0"
+    "prettier": "2.8.4",
+    "vsce": "2.15.0"
   }
 }

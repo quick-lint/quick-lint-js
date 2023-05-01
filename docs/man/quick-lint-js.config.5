@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 2.11.0
+.\"    Source: quick-lint-js version ﻿ 2.13.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 2.11.0" "\ \&"
+.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 2.13.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -321,6 +321,13 @@ globals defined by the Bun JavaScript runtime, including \fBBun\fP, \fBfetch\fP,
 This group is enabled by default.
 .RE
 .sp
+\fBdeno\fP
+.RS 4
+globals defined by the Deno JavaScript runtime, including \fBDeno\fP, \fBfetch\fP, and \fBconsole\fP.
+This group is enabled by default.
+(Introduced in version 2.13.0.)
+.RE
+.sp
 \fBecmascript\fP
 .RS 4
 globals defined by the latest ECMAScript (JavaScript) standard, including \fBObject\fP and \fBNaN\fP.
@@ -355,6 +362,13 @@ This group is enabled by default.
 .RS 4
 globals defined by Node.js for ES modules, including \fBconsole\fP and \fBprocess\fP.
 This group is enabled by default.
+.RE
+.sp
+\fBtypescript\fP
+.RS 4
+global types defined by TypeScript, including \fBReadonly\fP and \fBNonNullable\fP.
+This group is enabled by default.
+(Introduced in version 2.12.0.)
 .RE
 .sp
 \fBquickjs\fP

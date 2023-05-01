@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -838,6 +838,34 @@ TEST_F(test_parse_jsx, attribute_checking_ignores_user_components) {
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_jsx, prop_needs_an_expression) {
+  {
+    test_parser p(u8"c = <MyComponent custom={}></MyComponent>;"_sv,
+                  jsx_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_jsx_prop_is_missing_expression,
+                              left_brace_to_right_brace,
+                              strlen(u8"c = <MyComponent custom="), u8"{}"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"c = <MyComponent custom={ }></MyComponent>;"_sv,
+                  jsx_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_jsx_prop_is_missing_expression,
+                              left_brace_to_right_brace,
+                              strlen(u8"c = <MyComponent custom="), u8"{ }"_sv),
+        }));
   }
 }
 }

@@ -81,16 +81,45 @@
 #define QLJS_HAVE_SYS_STAT_H 0
 #endif
 
-#if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
+// Whether <libutil.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_LIBUTIL_H) && QLJS_HAVE_LIBUTIL_H
 #elif defined(__has_include)
-#if __has_include(<sys/wait.h>)
-#define QLJS_HAVE_SYS_WAIT_H 1
+#if __has_include(<libutil.h>)
+#define QLJS_HAVE_LIBUTIL_H 1
 #endif
-#elif defined(__unix__)
-#define QLJS_HAVE_SYS_WAIT_H 1
 #endif
-#if !defined(QLJS_HAVE_SYS_WAIT_H)
-#define QLJS_HAVE_SYS_WAIT_H 0
+#if !defined(QLJS_HAVE_LIBUTIL_H)
+#define QLJS_HAVE_LIBUTIL_H 0
+#endif
+
+// Whether <pty.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_PTY_H) && QLJS_HAVE_PTY_H
+#elif defined(__has_include)
+#if __has_include(<pty.h>)
+#define QLJS_HAVE_PTY_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_PTY_H)
+#define QLJS_HAVE_PTY_H 0
+#endif
+
+// Whether <util.h>, which contains forkpty, exists.
+#if defined(QLJS_HAVE_UTIL_H) && QLJS_HAVE_UTIL_H
+#elif defined(__has_include)
+#if __has_include(<util.h>)
+#define QLJS_HAVE_UTIL_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_UTIL_H)
+#define QLJS_HAVE_UTIL_H 0
+#endif
+
+#if !defined(QLJS_HAVE_FORKPTY)
+#if QLJS_HAVE_LIBUTIL_H || QLJS_HAVE_PTY_H || QLJS_HAVE_UTIL_H
+#define QLJS_HAVE_FORKPTY 1
+#else
+#define QLJS_HAVE_FORKPTY 0
+#endif
 #endif
 
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
@@ -103,6 +132,18 @@
 #endif
 #if !defined(QLJS_HAVE_UNISTD_H)
 #define QLJS_HAVE_UNISTD_H 0
+#endif
+
+#if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
+#elif defined(__has_include)
+#if __has_include(<sys/wait.h>) && !defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#elif QLJS_HAVE_UNISTD_H
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#if !defined(QLJS_HAVE_SYS_WAIT_H)
+#define QLJS_HAVE_SYS_WAIT_H 0
 #endif
 
 #if defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H) && \
@@ -271,17 +312,6 @@
 #else
 #define QLJS_HAVE_WRITEV 0
 #endif
-#endif
-
-#if !defined(QLJS_HAVE_CHARCONV_HEADER) && defined(__has_include)
-// std::to_chars on libc++ version 7.0.0 is buggy on macOS x86_64.
-#if __has_include(<charconv>) && \
-    !(defined(_LIBCPP_VERSION) && _LIBCPP_VERSION <= 7000)
-#define QLJS_HAVE_CHARCONV_HEADER 1
-#endif
-#endif
-#if !defined(QLJS_HAVE_CHARCONV_HEADER)
-#define QLJS_HAVE_CHARCONV_HEADER 0
 #endif
 
 #if !defined(QLJS_HAVE_ARM_NEON)
@@ -472,6 +502,65 @@
 #define QLJS_HAVE_FILE_NAME_MACRO 1
 #else
 #define QLJS_HAVE_FILE_NAME_MACRO 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_INT128)
+#if defined(__SIZEOF_INT128__) && __SIZEOF_INT128__
+#define QLJS_HAVE_INT128 1
+#else
+#define QLJS_HAVE_INT128 0
+#endif
+#endif
+
+// QLJS_HAVE_INTRIN_H is whether MSVC's <intrin.h> is supported.
+#if !defined(QLJS_HAVE_INTRIN_H)
+#if defined(_MSC_VER)
+#define QLJS_HAVE_INTRIN_H 1
+#else
+#define QLJS_HAVE_INTRIN_H 0
+#endif
+#endif
+
+// QLJS_HAVE_UMULH is whether MSVC's __umulh intrinsic from <intrin.h> is
+// supported.
+#if !defined(QLJS_HAVE_UMULH)
+#if QLJS_HAVE_INTRIN_H &&                                         \
+    (defined(_M_AMD64) || defined(_M_X64) || defined(_M_ARM64) || \
+     defined(__x86_64__) || defined(__aarch64__))
+#define QLJS_HAVE_UMULH 1
+#else
+#define QLJS_HAVE_UMULH 0
+#endif
+#endif
+
+// GetThreadDescription is available in newer Windows SDKs
+// but not in MinGW (at the time of writing).
+#if !defined(QLJS_HAVE_GETTHREADDESCRIPTION)
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define QLJS_HAVE_GETTHREADDESCRIPTION 1
+#else
+#define QLJS_HAVE_GETTHREADDESCRIPTION 0
+#endif
+#endif
+
+// QLJS_HAVE_POSIX_SPAWN is whether <spawn.h> and posix_spawn functions exist.
+#if !defined(QLJS_HAVE_POSIX_SPAWN) && defined(__has_include)
+#if __has_include(<spawn.h>) && !defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_POSIX_SPAWN 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_POSIX_SPAWN)
+#define QLJS_HAVE_POSIX_SPAWN 0
+#endif
+
+// Whether GCC's labels as values and computed goto statement extensions are
+// supported.
+#if !defined(QLJS_HAVE_GNU_COMPUTED_GOTO)
+#if defined(__GNUC__)
+#define QLJS_HAVE_GNU_COMPUTED_GOTO 1
+#else
+#define QLJS_HAVE_GNU_COMPUTED_GOTO 0
 #endif
 #endif
 

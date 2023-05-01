@@ -12,7 +12,7 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <string>

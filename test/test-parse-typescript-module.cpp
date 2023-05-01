@@ -9,8 +9,8 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/dirty-set.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -649,13 +649,69 @@ TEST_F(test_parse_typescript_module, export_namespace) {
     test_parser p(u8"export namespace ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",   // I
+                              "visit_variable_declaration",   // ns
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"export module ns {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_module,
+       exported_namespace_cannot_have_string_name) {
+  {
+    test_parser p(u8"export namespace 'my name space' {}"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"export namespace "),
+                u8"'my name space'"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"export module 'my name space' {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_with_declare_module,
+                module_name, strlen(u8"export module "),
+                u8"'my name space'"_sv),
+        }));
   }
 }
 
@@ -767,6 +823,97 @@ TEST_F(test_parse_typescript_module, export_import_alias) {
 
 // TODO(#795): Report an error for other kinds of 'export import', such as
 // 'export import fs from "fs";'.
+
+TEST_F(test_parse_typescript_module,
+       import_cannot_be_used_with_declare_keyword) {
+  {
+    test_parser p(u8"declare import fs from 'fs';"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // fs
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              diag_import_cannot_have_declare_keyword,  //
+                              declare_keyword, 0, u8"declare"_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"namespace ns { declare import fs from 'fs'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE(diag_import_cannot_have_declare_keyword),
+                }));
+  }
+}
+
+TEST_F(test_parse_typescript_module,
+       export_equal_is_not_allowed_in_javascript) {
+  {
+    test_parser p(u8"export = foo;"_sv, javascript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_end_of_module",        //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_export_equal_not_allowed_in_javascript,  //
+                equal, strlen(u8"export "), u8"="_sv, export_keyword, 0,
+                u8"export"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_module, export_equal_with_identifier) {
+  {
+    test_parser p(u8"export = foo;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_end_of_module",        //
+                          }));
+  }
+}
+
+TEST_F(test_parse_typescript_module, export_equal_with_expression) {
+  {
+    test_parser p(u8"export = foo.bar;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+
+  {
+    test_parser p(u8"export = new foo();"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+
+  {
+    test_parser p(u8"export = (foo);"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // foo
+                              "visit_end_of_module",  //
+                          }));
+  }
+}
 }
 }
 

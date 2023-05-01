@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_FAILING_DIAG_REPORTER_H
 #define QUICK_LINT_JS_FAILING_DIAG_REPORTER_H
 
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 
 namespace quick_lint_js {
 // Fails the test if any error is reported.

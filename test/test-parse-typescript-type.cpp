@@ -12,7 +12,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -45,7 +45,7 @@ TEST_F(test_parse_typescript_type, direct_type_reference) {
 TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   for (string8 keyword :
        contextual_keywords - typescript_builtin_type_keywords -
-           typescript_special_type_keywords -
+           typescript_special_type_keywords - typescript_type_only_keywords -
            dirty_set<string8>{
                // NOTE(strager): keyof is omitted on purpose because of
                // ambiguities in the grammar:
@@ -115,7 +115,9 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns", u8"T"}));
   }
+}
 
+TEST_F(test_parse_typescript_type, less_less_token_is_split) {
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
     test_parser p(u8"C<<T>() => ReturnType>"_sv, typescript_options);
@@ -131,7 +133,9 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
   }
+}
 
+TEST_F(test_parse_typescript_type, greater_greater_token_is_split) {
   {
     SCOPED_TRACE("'>>' should be split into two tokens");
     test_parser p(u8"A<B<C>>"_sv, typescript_options);
@@ -156,6 +160,55 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"A", u8"B", u8"C", u8"D"}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
+  {
+    SCOPED_TRACE("'>=' should be split into two tokens");
+    test_parser p(u8"let x: A<B>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"y"}));
+  }
+
+  {
+    SCOPED_TRACE("'>>=' should be split into three tokens");
+    test_parser p(u8"let x: A<B<C>>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_type_use",     // C
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"A", u8"B", u8"C", u8"y"}));
+  }
+
+  {
+    SCOPED_TRACE("'>>>=' should be split into four tokens");
+    test_parser p(u8"let x: A<B<C<D>>>= y"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // A
+                              "visit_variable_type_use",     // B
+                              "visit_variable_type_use",     // C
+                              "visit_variable_type_use",     // D
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"A", u8"B", u8"C", u8"D", u8"y"}));
   }
 }
 
@@ -2178,9 +2231,11 @@ TEST_F(test_parse_typescript_type, extends_condition) {
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",  // Derived
-                              "visit_variable_type_use",  // Base
-                              "visit_variable_type_use",  // TrueType
+                              "visit_variable_type_use",             // Derived
+                              "visit_variable_type_use",             // Base
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
                               "visit_variable_type_use",  // FalseType
                           }));
     EXPECT_THAT(
@@ -2197,6 +2252,205 @@ TEST_F(test_parse_typescript_type, extends_condition) {
         p.variable_uses,
         ElementsAreArray({u8"Derived", u8"DK", u8"Base", u8"BK", u8"TrueType",
                           u8"TK", u8"FalseType", u8"FK"}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
+  {
+    test_parser p(u8"MyType extends infer T ? TrueType : FalseType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // T
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",  // FalseType
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"MyType", u8"TrueType", u8"FalseType"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    test_parser p(u8"MyType extends infer T | U ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType", u8"U"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    test_parser p(u8"MyType extends (infer T)[] ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    test_parser p(
+        u8"MyType extends [infer A, infer B, infer C] ? true : false"_sv,
+        typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // A
+                              "visit_variable_declaration",          // B
+                              "visit_variable_declaration",          // C
+                              "visit_exit_conditional_type_scope",   //
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({infer_type_decl(u8"A"), infer_type_decl(u8"B"),
+                          infer_type_decl(u8"C")}));
+  }
+
+  {
+    test_parser p(
+        u8"MyType extends (OtherType extends infer T ? infer U : InnerFalse) ? OuterTrue : OuterFalse"_sv,
+        typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // MyType
+                              "visit_variable_type_use",  // OtherType
+                              "visit_enter_conditional_type_scope",  // (inner)
+                              "visit_variable_declaration",          // T
+                              "visit_exit_conditional_type_scope",   // (inner)
+                              "visit_variable_type_use",  // InnerFalse
+                              "visit_enter_conditional_type_scope",  // (inner)
+                              "visit_variable_declaration",          // U
+                              "visit_variable_type_use",            // OuterTrue
+                              "visit_exit_conditional_type_scope",  // (inner)
+                              "visit_variable_type_use",  // OuterFalse
+                          }));
+    EXPECT_THAT(
+        p.variable_uses,
+        ElementsAreArray({u8"MyType"_sv, u8"OtherType"_sv, u8"InnerFalse"_sv,
+                          u8"OuterTrue"_sv, u8"OuterFalse"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {infer_type_decl(u8"T"_sv), infer_type_decl(u8"U"_sv)}));
+  }
+
+  {
+    test_parser p(u8"MyType extends infer T extends U ? true : false"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // MyType
+                              "visit_variable_type_use",             // U
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // T
+                              "visit_exit_conditional_type_scope",   //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"_sv, u8"U"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, keyof_in_extends_is_allowed) {
+  {
+    test_parser p(u8"T extends keyof O ? TrueType : FalseType"_sv,
+                  typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // T
+                              "visit_variable_type_use",             // O
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",  // FalseType
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray(
+                    {u8"T"_sv, u8"O"_sv, u8"TrueType"_sv, u8"FalseType"_sv}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
+  for (string8_view keyword :
+       (contextual_keywords - typescript_builtin_type_keywords -
+        typescript_special_type_keywords -
+        dirty_set<string8>{
+            u8"let",
+            u8"static",
+            u8"yield",
+        }) |
+           dirty_set<string8>{
+               // TODO(strager): Put 'async' in contextual_keywords.
+               u8"async",
+               // TypeScript allows 'infer undefined'.
+               u8"undefined",
+           }) {
+    padded_string code(concat(u8"MyType extends infer "_sv, keyword,
+                              u8" ? TrueType : FalseType"_sv));
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(keyword)}));
+  }
+}
+
+TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
+  {
+    test_parser p(u8"infer T"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty())
+        << "'infer T' should not declare or use 'T'";
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_infer_outside_conditional_type,
+                        infer_keyword, 0, u8"infer"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"infer T extends U"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // U
+                          }))
+        << "'infer T' should not declare or use 'T'";
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"_sv}));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_typescript_infer_outside_conditional_type,
+                        infer_keyword, 0, u8"infer"_sv),
+                }));
+  }
+}
+
+TEST_F(test_parse_typescript_type, conditional_type_with_invalid_infer) {
+  {
+    test_parser p(u8"A extends infer T[] ? B : C"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",             // A
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // T
+                              "visit_variable_type_use",             // B
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",             // C
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_typescript_infer_requires_parentheses,      //
+                infer_and_type, strlen(u8"A extends "), u8"infer T"_sv,  //
+                type, strlen(u8"A extends infer "), u8"T"_sv),
+        }));
   }
 }
 

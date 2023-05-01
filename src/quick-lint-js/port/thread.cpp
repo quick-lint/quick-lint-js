@@ -55,6 +55,11 @@ void condition_variable::wait(std::unique_lock<mutex>&) {
   QLJS_CRASH_ALLOWING_CORE_DUMP();
 }
 
+void condition_variable::wait_raw(mutex*) {
+  // For single-threaded programs, wait_raw() would hang. Let's crash instead.
+  QLJS_CRASH_ALLOWING_CORE_DUMP();
+}
+
 void condition_variable::notify_one() {}
 
 void condition_variable::notify_all() {}
@@ -110,9 +115,13 @@ condition_variable::condition_variable() {
 condition_variable::~condition_variable() = default;
 
 void condition_variable::wait(std::unique_lock<mutex>& lock) {
-  ::BOOL ok = ::SleepConditionVariableSRW(
-      &this->cond_var_handle_, &lock.mutex()->mutex_handle_,
-      /*dwMilliseconds=*/INFINITE, /*Flags=*/0);
+  this->wait_raw(lock.mutex());
+}
+
+void condition_variable::wait_raw(mutex* lock) {
+  ::BOOL ok =
+      ::SleepConditionVariableSRW(&this->cond_var_handle_, &lock->mutex_handle_,
+                                  /*dwMilliseconds=*/INFINITE, /*Flags=*/0);
   QLJS_ALWAYS_ASSERT(ok);
 }
 
@@ -183,8 +192,11 @@ condition_variable::~condition_variable() {
 }
 
 void condition_variable::wait(std::unique_lock<mutex>& lock) {
-  int rc = ::pthread_cond_wait(&this->cond_var_handle_,
-                               &lock.mutex()->mutex_handle_);
+  this->wait_raw(lock.mutex());
+}
+
+void condition_variable::wait_raw(mutex* lock) {
+  int rc = ::pthread_cond_wait(&this->cond_var_handle_, &lock->mutex_handle_);
   QLJS_ALWAYS_ASSERT(rc == 0);
 }
 

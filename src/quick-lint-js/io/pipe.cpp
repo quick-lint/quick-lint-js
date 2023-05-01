@@ -48,7 +48,10 @@ pipe_fds make_pipe() {
 pipe_fds make_pipe() {
   HANDLE readPipe;
   HANDLE writePipe;
-  if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/nullptr,
+  ::SECURITY_ATTRIBUTES attributes = {};
+  attributes.nLength = sizeof(attributes);
+  attributes.bInheritHandle = true;
+  if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/&attributes,
                     /*nSize=*/0)) {
     std::fprintf(stderr, "error: failed to create pipe: %s\n",
                  windows_last_error_message().c_str());

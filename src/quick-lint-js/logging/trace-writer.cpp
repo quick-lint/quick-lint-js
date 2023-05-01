@@ -82,6 +82,28 @@ void trace_writer::write_event_process_id(const trace_event_process_id& event) {
     w.u64_le(event.process_id);
   });
 }
+
+void trace_writer::write_event_lsp_documents(
+    const trace_event_lsp_documents& event) {
+  this->append_binary(8 + 1 + 8, [&](binary_writer& w) {
+    w.u64_le(event.timestamp);
+    w.u8(event.id);
+    w.u64_le(narrow_cast<std::uint64_t>(event.documents.size()));
+  });
+  for (const trace_lsp_document_state& doc : event.documents) {
+    this->append_binary(1, [&](binary_writer& w) {
+      w.u8(static_cast<std::uint8_t>(doc.type));
+    });
+    this->write_utf8_string(doc.uri);
+    this->write_utf8_string(doc.text);
+    this->write_utf8_string(doc.language_id);
+  }
+}
+
+void trace_writer::write_utf8_string(string8_view s) {
+  this->append_binary(8, [&](binary_writer& w) { w.u64_le(s.size()); });
+  this->out_->append_copy(s.data(), s.size());
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/fe/source-code-span.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -8,9 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/hash-map.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
-#include <quick-lint-js/fe/diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/jsx.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse.h>
@@ -98,6 +99,11 @@ parser::enter_typescript_only_construct() {
 
 parser::switch_guard parser::enter_switch() {
   return switch_guard(this, std::exchange(this->in_switch_statement_, true));
+}
+
+parser::typescript_namespace_guard parser::enter_typescript_namespace() {
+  return typescript_namespace_guard(
+      this, std::exchange(this->in_typescript_namespace_, true));
 }
 
 parser::binary_expression_builder::binary_expression_builder(
@@ -328,6 +334,41 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
+void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
+  if (ast->kind() != expression_kind::binary_operator) return;
+
+  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+
+  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
+  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    source_code_span op_span = binary_operator->operator_spans_[i];
+    if (is_comma(op_span.string_view())) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_conditional_statement{.comma =
+                                                                      op_span});
+      return;
+    }
+  }
+}
+
+void parser::warn_on_comma_operator_in_index(expression* ast,
+                                             source_code_span left_square) {
+  if (ast->kind() != expression_kind::binary_operator) return;
+
+  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+
+  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
+  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    source_code_span op_span = binary_operator->operator_spans_[i];
+    if (is_comma(op_span.string_view())) {
+      this->diag_reporter_->report(
+          diag_misleading_comma_operator_in_index_operation{
+              .comma = op_span, .left_square = left_square});
+      return;
+    }
+  }
+}
+
 void parser::error_on_pointless_string_compare(
     expression::binary_operator* ast) {
   auto is_comparison_operator = [](string8_view s) {
@@ -394,6 +435,7 @@ void parser::error_on_invalid_as_const(expression* ast,
   case expression_kind::dot:
   case expression_kind::array:
   case expression_kind::object:
+  case expression_kind::_template:
     break;
 
   case expression_kind::literal: {
@@ -693,8 +735,86 @@ void parser::consume_semicolon() {
   }
 }
 
+void parser::error_on_pointless_nullish_coalescing_operator(
+    expression::binary_operator* ast) {
+  auto is_nullish_operator = [](string8_view s) -> bool {
+    return s == u8"??"_sv;
+  };
+
+  for (span_size i = 0; i < ast->child_count() - 1; i++) {
+    source_code_span op_span = ast->operator_spans_[i];
+    if (is_nullish_operator(op_span.string_view())) {
+      if (i >= 1) {
+        // lhs is a multi-child expression
+        return;
+      } else {
+        this->check_lhs_for_null_potential(ast->child(i)->without_paren(),
+                                           op_span);
+      }
+    }
+  }
+}
+
+void parser::check_lhs_for_null_potential(expression* lhs,
+                                          source_code_span op_span) {
+  auto binary_operator_is_never_null =
+      [](expression::binary_operator* expr) -> bool {
+    // these 4 binary operators can resolve to a null value
+    string8_view can_resolve_to_null[4] = {u8"&&"_sv, u8"??"_sv, u8","_sv,
+                                           u8"||"_sv};
+    for (span_size i = 0; i < expr->child_count() - 1; i++) {
+      string8_view expr_op_span = expr->operator_spans_[i].string_view();
+      for (span_size j = 0; j < 4; j++) {
+        if (expr_op_span == can_resolve_to_null[j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  bool report_diag = false;
+  switch (lhs->kind()) {
+  case expression_kind::literal:
+    if (lhs->span().string_view() == u8"null"_sv) {
+      break;
+    }
+    if (lhs->span().string_view() == u8"undefined"_sv) {
+      break;
+    }
+    report_diag = true;
+    break;
+  case expression_kind::rw_unary_suffix:
+    report_diag = true;
+    break;
+  case expression_kind::unary_operator: {
+    auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
+    if (maybe_void_lhs->is_void_operator() == false) {
+      report_diag = true;
+    }
+    break;
+  }
+  case expression_kind::_typeof:
+    report_diag = true;
+    break;
+  case expression_kind::binary_operator: {
+    auto* operator_lhs = static_cast<expression::binary_operator*>(lhs);
+    report_diag = binary_operator_is_never_null(operator_lhs);
+    break;
+  }
+  default:
+    break;
+  }
+  if (report_diag == true) {
+    this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+        .question_question = op_span});
+  }
+}
+
 template void
 parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
+template void
+parser::consume_semicolon<diag_missing_semicolon_after_declare_class_method>();
 template void parser::consume_semicolon<diag_missing_semicolon_after_field>();
 template void
 parser::consume_semicolon<diag_missing_semicolon_after_interface_method>();
@@ -725,7 +845,7 @@ void parser::roll_back_transaction(parser_transaction&& transaction) {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
-  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
       this->peek().span(),
       fatal_parse_error_kind::unexpected_token,
   });
@@ -744,7 +864,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 }
 
 void parser::crash_on_depth_limit_exceeded() {
-  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
       this->peek().span(),
       fatal_parse_error_kind::depth_limit_exceeded,
   });

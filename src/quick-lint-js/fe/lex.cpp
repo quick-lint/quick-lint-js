@@ -11,18 +11,18 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/fe/buffering-diag-reporter.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string>
@@ -151,6 +151,7 @@ void lexer::parse_bom_before_shebang() {
 
 bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
+
   switch (this->input_[0]) {
   QLJS_CASE_DECIMAL_DIGIT:
     this->last_token_.type = token_type::number;
@@ -228,27 +229,11 @@ bool lexer::try_parse_current_token() {
   }
 
   // Non-ASCII or control character.
-  default: {
-    decode_utf_8_result character = decode_utf_8(padded_string_view(
-        this->input_, this->original_input_.null_terminator()));
-    if (character.code_point == left_single_quote ||
-        character.code_point == right_single_quote ||
-        character.code_point == left_double_quote ||
-        character.code_point == right_double_quote) {
-      this->input_ = this->parse_smart_quote_string_literal(character);
-      this->last_token_.type = token_type::string;
-      this->last_token_.end = this->input_;
-    } else {
-      parsed_identifier ident = this->parse_identifier_slow(
-          this->input_, this->input_, identifier_kind::javascript);
-      this->input_ = ident.after;
-      this->last_token_.normalized_identifier = ident.normalized;
-      this->last_token_.end = ident.after;
-      this->last_token_.type = token_type::identifier;
-    }
+  default:
+    this->parse_non_ascii();
     break;
-  }
 
+  // NOTE[one-byte-symbols]:
   case '(':
   case ')':
   case ',':
@@ -338,30 +323,6 @@ bool lexer::try_parse_current_token() {
     this->last_token_.end = this->input_;
     break;
 
-  case '<':
-    if (this->input_[1] == '!' && this->input_[2] == '-' &&
-        this->input_[3] == '-') {
-      this->input_ += 4;
-      this->skip_line_comment_body();
-      return false;
-    } else if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::less_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '<') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::less_less_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::less_less;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::less;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
   case '>':
     if (this->input_[1] == '=') {
       this->last_token_.type = token_type::greater_equal;
@@ -398,6 +359,90 @@ bool lexer::try_parse_current_token() {
       this->input_ += 2;
     } else {
       this->last_token_.type = token_type::plus;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '^':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::circumflex_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::circumflex;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '%':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::percent_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::percent;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '&':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::ampersand_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '&') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::ampersand_ampersand_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::ampersand_ampersand;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::ampersand;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '|':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::pipe_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '|') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::pipe_pipe_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::pipe_pipe;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::pipe;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '<':
+    if (this->input_[1] == '!' && this->input_[2] == '-' &&
+        this->input_[3] == '-') {
+      this->input_ += 4;
+      this->skip_line_comment_body();
+      return false;
+    } else if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::less_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '<') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::less_less_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::less_less;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::less;
       this->input_ += 1;
     }
     this->last_token_.end = this->input_;
@@ -480,66 +525,6 @@ bool lexer::try_parse_current_token() {
       return false;
     } else {
       this->last_token_.type = token_type::slash;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '^':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::circumflex_equal;
-      this->input_ += 2;
-    } else {
-      this->last_token_.type = token_type::circumflex;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '%':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::percent_equal;
-      this->input_ += 2;
-    } else {
-      this->last_token_.type = token_type::percent;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '&':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::ampersand_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '&') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::ampersand_ampersand_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::ampersand_ampersand;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::ampersand;
-      this->input_ += 1;
-    }
-    this->last_token_.end = this->input_;
-    break;
-
-  case '|':
-    if (this->input_[1] == '=') {
-      this->last_token_.type = token_type::pipe_equal;
-      this->input_ += 2;
-    } else if (this->input_[1] == '|') {
-      if (this->input_[2] == '=') {
-        this->last_token_.type = token_type::pipe_pipe_equal;
-        this->input_ += 3;
-      } else {
-        this->last_token_.type = token_type::pipe_pipe;
-        this->input_ += 2;
-      }
-    } else {
-      this->last_token_.type = token_type::pipe;
       this->input_ += 1;
     }
     this->last_token_.end = this->input_;
@@ -1010,6 +995,15 @@ void lexer::skip_less_less_as_less() {
 
 void lexer::skip_as_greater() {
   switch (this->last_token_.type) {
+  case token_type::greater_equal:
+    this->last_token_.type = token_type::equal;
+    break;
+  case token_type::greater_greater_equal:
+    this->last_token_.type = token_type::greater_equal;
+    break;
+  case token_type::greater_greater_greater_equal:
+    this->last_token_.type = token_type::greater_greater_equal;
+    break;
   case token_type::greater_greater:
     this->last_token_.type = token_type::greater;
     break;
@@ -1590,11 +1584,16 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
   }
   char32_t code_point;
-  from_char8s_result parse_result =
-      from_char8s_hex(code_point_hex_begin, code_point_hex_end, code_point);
-  QLJS_ALWAYS_ASSERT(parse_result.ptr == code_point_hex_end);
-  if (parse_result.ec == std::errc::result_out_of_range) {
+  switch (parse_integer_exact_hex(
+      make_string_view(code_point_hex_begin, code_point_hex_end), code_point)) {
+  case parse_integer_exact_error::ok:
+    break;
+  case parse_integer_exact_error::out_of_range:
     code_point = 0x110000;
+    break;
+  case parse_integer_exact_error::invalid:
+    QLJS_UNREACHABLE();
+    break;
   }
   if (code_point >= 0x110000) {
     reporter->report(diag_escaped_code_point_in_unicode_out_of_range{
@@ -1832,6 +1831,26 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   };
 }
 QLJS_WARNING_POP
+
+void lexer::parse_non_ascii() {
+  decode_utf_8_result character = decode_utf_8(padded_string_view(
+      this->input_, this->original_input_.null_terminator()));
+  if (character.code_point == left_single_quote ||
+      character.code_point == right_single_quote ||
+      character.code_point == left_double_quote ||
+      character.code_point == right_double_quote) {
+    this->input_ = this->parse_smart_quote_string_literal(character);
+    this->last_token_.type = token_type::string;
+    this->last_token_.end = this->input_;
+  } else {
+    parsed_identifier ident = this->parse_identifier_slow(
+        this->input_, this->input_, identifier_kind::javascript);
+    this->input_ = ident.after;
+    this->last_token_.normalized_identifier = ident.normalized;
+    this->last_token_.end = ident.after;
+    this->last_token_.type = token_type::identifier;
+  }
+}
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
@@ -2180,6 +2199,7 @@ bool lexer::is_hex_digit(char8 c) {
 }
 
 bool lexer::is_initial_identifier_byte(char8 byte) {
+  // TODO(strager): Reuse lex_tables::initial_character_class?
   switch (static_cast<std::uint8_t>(byte)) {
   QLJS_CASE_IDENTIFIER_START:
     // clang-format off

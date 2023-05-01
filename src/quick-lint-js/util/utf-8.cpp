@@ -10,7 +10,7 @@ namespace quick_lint_js {
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 char8* encode_utf_8(char32_t code_point, char8* out) {
   auto append = [&out](char32_t x) -> void {
-    QLJS_ASSERT(x <= 0x100);
+    QLJS_ASSERT(x <= 0xff);
     *out = static_cast<char8>(x);
     ++out;
   };

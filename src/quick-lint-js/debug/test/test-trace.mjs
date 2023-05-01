@@ -4,8 +4,10 @@
 import assert from "assert";
 import {
   TraceEventType,
+  TraceLSPDocumentType,
   TraceReader,
   TraceReaderInvalidCompressionMode,
+  TraceReaderInvalidLSPDocumentType,
   TraceReaderInvalidMagic,
   TraceReaderInvalidUUID,
   TraceReaderSizeTooLarge,
@@ -435,6 +437,82 @@ describe("trace", () => {
         processID: 0x0123n,
       },
     ]);
+  });
+
+  it("LSP documents", () => {
+    let reader = new TraceReader();
+    reader.appendBytes(examplePacketHeader);
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Event ID
+      0x09,
+
+      // Document count
+      0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Document 0: type
+      0x02,
+
+      // Document 0: URI
+      0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+      ord('f'), ord('i'), ord('l'), ord('e'), ord(':'), ord('/'), ord('/'), ord('/'), ord('f'),
+
+      // Document 0: text
+      0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+      ord('h'), ord('e'), ord('l'), ord('l'), ord('o'),
+
+      // Document 0: language ID
+      0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+      ord('j'), ord('s'),
+    ]).buffer);
+    expect(reader.error).toBeNull();
+    expect(reader.pullNewEvents()).toEqual([
+      {
+        timestamp: 0x5678n,
+        eventType: TraceEventType.LSP_DOCUMENTS,
+        documents: [
+          {
+            type: TraceLSPDocumentType.LINTABLE,
+            uri: "file:///f",
+            text: "hello",
+            languageID: "js",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("invalid LSP document type", () => {
+    let reader = new TraceReader();
+    reader.appendBytes(examplePacketHeader);
+    // prettier-ignore
+    reader.appendBytes(new Uint8Array([
+      // Timestamp
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Event ID
+      0x09,
+
+      // Document count
+      0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Document 0: type
+      0x69,
+
+      // Document 0: URI
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Document 0: text
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      // Document 0: language ID
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ]).buffer);
+    expect(reader.error).toBeInstanceOf(TraceReaderInvalidLSPDocumentType);
+    expect(reader.pullNewEvents()).toEqual([]);
   });
 
   it("many messages", () => {

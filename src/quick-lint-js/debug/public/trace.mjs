@@ -10,6 +10,13 @@ export const TraceEventType = {
   LSP_CLIENT_TO_SERVER_MESSAGE: 6,
   VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER: 7,
   PROCESS_ID: 8,
+  LSP_DOCUMENTS: 9,
+};
+
+export const TraceLSPDocumentType = {
+  UNKNOWN: 0,
+  CONFIG: 1,
+  LINTABLE: 2,
 };
 
 // Reads quick-lint-js trace streams as documented in docs/TRACING.md.
@@ -186,6 +193,25 @@ export class TraceReader {
           return;
         }
 
+        case TraceEventType.LSP_DOCUMENTS: {
+          let documentCount = r.u64BigInt();
+          let documents = [];
+          for (let i = 0n; i < documentCount; ++i) {
+            let doc = {
+              type: r.u8(),
+              uri: r.utf8String(),
+              text: r.utf8String(),
+              languageID: r.utf8String(),
+            };
+            if (doc.type > 2) {
+              throw new TraceReaderInvalidLSPDocumentType();
+            }
+            documents.push(doc);
+          }
+          this._event({ timestamp, eventType, documents });
+          return;
+        }
+
         default:
           throw new TraceReaderUnknownEventType();
       }
@@ -322,6 +348,12 @@ export class TraceReaderInvalidUUID extends TraceReaderError {
 export class TraceReaderInvalidCompressionMode extends TraceReaderError {
   constructor() {
     super("invalid compression mode");
+  }
+}
+
+export class TraceReaderInvalidLSPDocumentType extends TraceReaderError {
+  constructor() {
+    super("invalid LSP document type");
   }
 }
 

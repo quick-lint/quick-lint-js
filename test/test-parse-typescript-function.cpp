@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -278,6 +278,23 @@ TEST_F(test_parse_typescript_function,
                                   arrow_param_decl(u8"param"_sv),
                                   func_type_param_decl(u8"returnParam"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
+TEST_F(test_parse_typescript_function,
+       arrow_with_parameter_type_annotation_is_disallowed_in_javascript) {
+  {
+    test_parser p(u8"(p: T) => {}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_type_annotations_not_allowed_in_javascript,  //
+                type_colon, strlen(u8"(p"), u8":"_sv),
+        }));
   }
 }
 
@@ -811,8 +828,8 @@ TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
 TEST_F(test_parse_typescript_function,
        optional_parameter_followed_by_required) {
   {
-    test_parser p(u8"(param1?, param2) => ReturnType"_sv,
-                  typescript_options, capture_diags);
+    test_parser p(u8"(param1?, param2) => ReturnType"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
@@ -826,15 +843,16 @@ TEST_F(test_parse_typescript_function,
 TEST_F(test_parse_typescript_function,
        optional_parameter_followed_by_required_type_annotated) {
   {
-    test_parser p(u8"(param1?: number, param2: number) => ReturnType"_sv, typescript_options,
-                  capture_diags);
+    test_parser p(u8"(param1?: number, param2: number) => ReturnType"_sv,
+                  typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code,
             diag_optional_parameter_cannot_be_followed_by_required_parameter,
-            required_parameter, strlen(u8"(param1?: number, "), u8"param2: number")));
+            required_parameter, strlen(u8"(param1?: number, "),
+            u8"param2: number")));
   }
 }
 

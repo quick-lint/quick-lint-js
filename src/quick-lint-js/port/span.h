@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <vector>
 
 namespace quick_lint_js {
 using span_size = std::ptrdiff_t;
@@ -31,6 +32,12 @@ class span {
   explicit span(const std::array<std::remove_const_t<T>, N> &data) noexcept
       : data_(data.data()), size_(N) {}
 
+  template <std::size_t N>
+  explicit span(T (&data)[N]) noexcept : data_(data), size_(N) {}
+
+  explicit span(const std::vector<std::remove_const_t<T>> &data) noexcept
+      : data_(data.data()), size_(narrow_cast<span_size>(data.size())) {}
+
   explicit span(T *data, size_type size) noexcept : data_(data), size_(size) {}
 
   explicit span(T *begin, T *end) noexcept
@@ -49,6 +56,7 @@ class span {
   T *data() const noexcept { return this->data_; }
 
   size_type size() const noexcept { return this->size_; }
+  size_type byte_size() const noexcept { return this->size_ * sizeof(T); }
 
   T *begin() const noexcept { return this->data_; }
   T *end() const noexcept { return this->data_ + this->size_; }

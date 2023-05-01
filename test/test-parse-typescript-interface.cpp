@@ -9,8 +9,8 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/dirty-set.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -118,18 +118,33 @@ TEST_F(test_parse_typescript_interface, extends) {
 }
 
 TEST_F(test_parse_typescript_interface, extends_interface_from_namespace) {
-  test_parser p(u8"interface I extends ns.A {}"_sv, typescript_options,
-                capture_diags);
-  p.parse_and_visit_module();
-  EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_variable_declaration",    // I
-                            "visit_enter_interface_scope",   // I
-                            "visit_variable_namespace_use",  // ns
-                            "visit_exit_interface_scope",    // I
-                            "visit_end_of_module",
-                        }));
-  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
-  EXPECT_THAT(p.errors, IsEmpty());
+  {
+    test_parser p(u8"interface I extends ns.A {}"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // I
+                              "visit_enter_interface_scope",   // I
+                              "visit_variable_namespace_use",  // ns
+                              "visit_exit_interface_scope",    // I
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+
+  {
+    test_parser p(u8"interface I extends ns.subns.A {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // I
+                              "visit_enter_interface_scope",   // I
+                              "visit_variable_namespace_use",  // ns
+                              "visit_exit_interface_scope",    // I
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"_sv}));
+  }
 }
 
 TEST_F(test_parse_typescript_interface, extends_multiple_things) {
@@ -147,6 +162,20 @@ TEST_F(test_parse_typescript_interface, extends_multiple_things) {
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
   EXPECT_THAT(p.errors, IsEmpty());
+}
+
+TEST_F(test_parse_typescript_interface, extends_generic) {
+  test_parser p(u8"interface I extends A<B> {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            "visit_variable_type_use",      // A
+                            "visit_variable_type_use",      // B
+                            "visit_exit_interface_scope",   // I
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
 }
 
 TEST_F(test_parse_typescript_interface, unclosed_interface_statement) {
@@ -1556,6 +1585,22 @@ TEST_F(test_parse_typescript_interface, generic_interface) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
                     {interface_decl(u8"I"_sv), generic_param_decl(u8"T"_sv)}));
+  }
+
+  {
+    test_parser p(u8"interface I<T> extends T {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  // I
+                              "visit_variable_declaration",   // T
+                              "visit_variable_type_use",      // T
+                              "visit_exit_interface_scope",   // I
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {interface_decl(u8"I"_sv), generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
   }
 }
 

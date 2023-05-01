@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -60,6 +60,19 @@ TEST_F(test_parse_loop, do_while) {
                               "visit_variable_use",       // a
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // b
+                              "visit_variable_use",       // c
+                          }));
+  }
+
+  {
+    // 'while(a)' is the body of 'do'-'while(b)'.
+    test_parser p(u8"do while(a) {b;} while(c);"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",       // a
+                              "visit_enter_block_scope",  // {
+                              "visit_variable_use",       // b
+                              "visit_exit_block_scope",   // }
                               "visit_variable_use",       // c
                           }));
   }
@@ -170,6 +183,22 @@ TEST_F(test_parse_loop, do_while_without_body) {
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_body_for_do_while_statement,  //
                         do_token, 0, u8"do"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"{ do while (cond); }"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_block_scope",  // {
+                              "visit_variable_use",       // cond
+                              "visit_exit_block_scope",   // }
+                          }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, diag_missing_body_for_do_while_statement,  //
+                        do_token, strlen(u8"{ "), u8"do"_sv),
                 }));
   }
 }

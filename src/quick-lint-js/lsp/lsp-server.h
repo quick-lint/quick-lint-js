@@ -14,10 +14,11 @@
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
@@ -27,11 +28,13 @@
 #include <quick-lint-js/simdjson-fwd.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <vector>
 
 namespace quick_lint_js {
 class byte_buffer;
+class linting_lsp_server_handler;
 class lsp_linter;
 class trace_flusher_directory_backend;
 struct watch_io_error;
@@ -48,16 +51,76 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
-  void open_document(const std::string&, document<lsp_locator>*);
+  void open_document(const std::string&, lsp_document_text*);
   void close_document(const std::string&);
 
  private:
   configuration_filesystem* underlying_fs_;
-  hash_map<std::string, document<lsp_locator>*> overlaid_documents_;
+
+  // See NOTE[lsp_documents thread safety].
+  hash_map<std::string, lsp_document_text*> overlaid_documents_;
 };
 
 struct linting_lsp_server_config {
   std::string tracing_directory;
+};
+
+struct lsp_documents {
+  enum class document_type {
+    config,    // config_document
+    lintable,  // lintable_document
+    unknown,   // unknown_document
+  };
+
+  struct document_base {
+    explicit document_base(document_type type);
+
+    virtual ~document_base() = default;
+
+    virtual void on_config_file_changed(linting_lsp_server_handler&,
+                                        string8_view document_uri,
+                                        const configuration_change&) = 0;
+
+    trace_lsp_document_type trace_type() const;
+
+    document_type type;
+
+    lsp_document_text doc;
+    std::string language_id;
+    string8 version_json;
+  };
+
+  // quick-lint-js.config
+  struct config_document final : document_base {
+    explicit config_document();
+
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+  };
+
+  // .js file
+  struct lintable_document final : document_base {
+    explicit lintable_document();
+
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+
+    configuration* config;
+    linter_options lint_options;
+  };
+
+  struct unknown_document final : document_base {
+    explicit unknown_document();
+
+    void on_config_file_changed(linting_lsp_server_handler&,
+                                string8_view document_uri,
+                                const configuration_change&) override;
+  };
+
+  // Key: URI
+  hash_map<string8, std::unique_ptr<document_base> > documents;
 };
 
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
@@ -93,48 +156,6 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   void add_watch_io_errors(const std::vector<watch_io_error>&);
 
  private:
-  struct document_base {
-    virtual ~document_base() = default;
-
-    virtual void on_text_changed(linting_lsp_server_handler&,
-                                 string8_view document_uri_json) = 0;
-    virtual void on_config_file_changed(linting_lsp_server_handler&,
-                                        string8_view document_uri,
-                                        const configuration_change&) = 0;
-
-    document<lsp_locator> doc;
-    string8 version_json;
-  };
-
-  // quick-lint-js.config
-  struct config_document final : document_base {
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
-    void on_config_file_changed(linting_lsp_server_handler&,
-                                string8_view document_uri,
-                                const configuration_change&) override;
-  };
-
-  // .js file
-  struct lintable_document final : document_base {
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
-    void on_config_file_changed(linting_lsp_server_handler&,
-                                string8_view document_uri,
-                                const configuration_change&) override;
-
-    configuration* config;
-    linter_options lint_options;
-  };
-
-  struct unknown_document final : document_base {
-    void on_text_changed(linting_lsp_server_handler&,
-                         string8_view document_uri_json) override;
-    void on_config_file_changed(linting_lsp_server_handler&,
-                                string8_view document_uri,
-                                const configuration_change&) override;
-  };
-
   void handle_initialize_request(::simdjson::ondemand::object& request,
                                  string8_view id_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
@@ -178,6 +199,7 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
       ::simdjson::ondemand::object& request);
 
   void handle_config_file_changes(
+      lock_ptr<lsp_documents>& documents,
       const std::vector<configuration_change>& config_changes);
 
   void get_config_file_diagnostics_notification(loaded_config_file*,
@@ -197,11 +219,11 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
     // If a range is not provided, the document's text is entirely replaced.
     std::optional<lsp_range> range;
   };
-  static void apply_document_changes(document<lsp_locator>& doc,
+  static void apply_document_changes(lsp_document_text& doc,
                                      ::simdjson::ondemand::array& changes);
-  static void apply_document_change(document<lsp_locator>& doc,
+  static void apply_document_change(lsp_document_text& doc,
                                     ::simdjson::ondemand::object& raw_change);
-  static void apply_document_change(document<lsp_locator>& doc,
+  static void apply_document_change(lsp_document_text& doc,
                                     const lsp_document_change& change);
 
   void write_method_not_found_error_response(string8_view request_id_json);
@@ -210,7 +232,12 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   configuration_loader config_loader_;
   configuration default_config_;
   lsp_linter& linter_;
-  hash_map<string8, std::unique_ptr<document_base> > documents_;
+
+  // NOTE[lsp_documents thread safety]: lsp_documents can only be modified on
+  // the LSP server thread. Therefore, it is safe to read without taking the
+  // lock. lsp_overlay_configuration_filesystem reads without taking the lock.
+  synchronized<lsp_documents> documents_;
+
   outgoing_json_rpc_message_queue outgoing_messages_;
   linting_lsp_server_config server_config_;
   lsp_workspace_configuration workspace_configuration_;
@@ -219,6 +246,8 @@ class linting_lsp_server_handler final : public json_rpc_message_handler {
   bool shutdown_requested_ = false;
 
   friend class lsp_linter;
+  friend struct lsp_documents::config_document;
+  friend struct lsp_documents::lintable_document;
 };
 
 class lsp_linter {
@@ -237,8 +266,8 @@ class lsp_linter {
                     string8_view version_json,
                     outgoing_json_rpc_message_queue&) = 0;
 
-  void lint(linting_lsp_server_handler::lintable_document&,
-            string8_view uri_json, outgoing_json_rpc_message_queue&);
+  void lint(lsp_documents::lintable_document&, string8_view uri_json,
+            outgoing_json_rpc_message_queue&);
 };
 
 class lsp_javascript_linter final : public lsp_linter {
@@ -254,6 +283,17 @@ class lsp_javascript_linter final : public lsp_linter {
                                 padded_string_view code,
                                 byte_buffer& diagnostics_json);
 };
+
+// Returns the lsp_documents for the last-created linting_lsp_server_handler.
+//
+// Might return nullptr.
+//
+// In tests, the returned pointer might change. In production, once the returned
+// pointer returns non-null, it will not change.
+synchronized<lsp_documents>* get_lsp_server_documents();
+
+// For testing only.
+void set_lsp_server_documents(synchronized<lsp_documents>*);
 }
 
 #endif

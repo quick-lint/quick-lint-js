@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://quick-lint-js.com/config/quick-lint-js-config-schema",
+
+  "title": "quick-lint-js configuration",
+  "description": "The quick-lint-js CLI and quick-lint-js editor plugins, can be configured using a quick-lint-js.config file. Refer https://quick-lint-js.com/config for more details.",
+
+  "type": "object",
+
+  "properties": {
+    "globals": {
+      "description": "Global variables which programs can use. It tells quick-lint-js what global variables to assume exist. If the global variables you want are from a popular platform or library, you might want to use 'global-groups' instead.",
+      "type": "object",
+
+      "patternProperties": {
+        "^.+$": {
+          "anyOf": [
+            {
+              "description": "If the value is true, then the variable is defined, and the variable is shadowable and writable. If the value is false, then the variable is not defined, even if a group listed in global-groups would otherwise define the variable.",
+              "type": "boolean"
+            },
+            {
+              "description": "Specifies whether a global variable can be shadowed or can be assigned to.",
+              "type": "object",
+
+              "properties": {
+                "shadowable": {
+                  "description": "If true, the variable can redefined in the program’s outer-most scope. If false, the variable cannot be redefined in the program’s outer-most scope.",
+                  "type": "boolean",
+                  "default": true
+                },
+                "writable": {
+                  "description": "If true, the variable can be assigned to. If false, the variable cannot be assigned to.",
+                  "type": "boolean",
+                  "default": true
+
+                }    
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "global-groups": {
+      "anyOf": [
+        {
+          "description": "If true or not present, then it’s as if the value was an array of default group names. If false, then no global variables are defined aside from those listed in the 'globals'.",
+          "type": "boolean"
+        },
+        {
+          "description": "Pre-defined categories of global variables which programs can use.",
+          "type": "array",
+          "default": ["browser", "bun", "ecmascript", "jasmine", "jest", "jquery", "node.js", "node.js-es", "quickjs", "web-worker"],
+          "items": {
+            "type": "string",
+            "enum": ["literally-anything", "browser", "bun", "ecmascript", "jasmine", "jest", "jquery", "node.js", "node.js-es", "quickjs", "web-worker"]
+          },
+          "uniqueItems": true
+        }
+      ]
+    }
+  }
+}

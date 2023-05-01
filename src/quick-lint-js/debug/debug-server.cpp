@@ -11,22 +11,25 @@
 #include <cstring>
 #include <map>
 #include <mongoose.h>
-#include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/debug/debug-server-fs.h>
 #include <quick-lint-js/debug/debug-server.h>
+#include <quick-lint-js/debug/find-debug-server.h>
 #include <quick-lint-js/debug/mongoose.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/instance-tracker.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <string_view>
 
@@ -45,9 +48,9 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
 
   void trace_thread_write_data(trace_flusher_thread_index thread_index,
                                span<const std::byte> data) override {
-    std::lock_guard<mutex> lock(this->mutex_);
+    lock_ptr thread_queues = this->thread_queues_.lock();
 
-    async_byte_queue &queue = this->thread_queues_[thread_index];
+    async_byte_queue &queue = (*thread_queues)[thread_index];
     queue.append_copy(data.data(), narrow_cast<std::size_t>(data.size()));
     queue.commit();
     server_->wake_up_server_thread();
@@ -55,9 +58,9 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
 
   // Called on the server thread.
   void flush_if_needed() {
-    std::lock_guard<mutex> lock(this->mutex_);
+    lock_ptr thread_queues = this->thread_queues_.lock();
 
-    for (auto &[thread_index, queue] : this->thread_queues_) {
+    for (auto &[thread_index, queue] : *thread_queues) {
       std::size_t total_message_size = 0;
 
       {
@@ -92,10 +95,8 @@ class trace_flusher_websocket_backend final : public trace_flusher_backend {
   ::mg_connection *const connection_;
   debug_server *const server_;
 
-  // Protected by mutex_:
-  hash_map<trace_flusher_thread_index, async_byte_queue> thread_queues_;
-
-  mutex mutex_;
+  synchronized<hash_map<trace_flusher_thread_index, async_byte_queue>>
+      thread_queues_;
 
   friend class debug_server;
 };
@@ -127,35 +128,37 @@ debug_server::~debug_server() {
 void debug_server::set_listen_address(std::string_view address) {
   QLJS_ASSERT(!this->server_thread_.joinable());
 
-  this->requested_listen_address_ = address;
+  this->state_.lock()->requested_listen_address = address;
 }
 
 void debug_server::start_server_thread() {
   QLJS_ASSERT(!this->server_thread_.joinable());
 
-  this->init_data_.reset();
-  this->init_error_.clear();
+  {
+    lock_ptr<shared_state> state = this->state_.lock();
+    state->initialized = false;
+    state->init_error.clear();
+  }
 
   this->server_thread_ = thread([this] { this->run_on_current_thread(); });
 }
 
 void debug_server::stop_server_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
+  lock_ptr<shared_state> state = this->state_.lock();
   this->stop_server_thread_ = true;
-  this->wake_up_server_thread(lock);
+  this->wake_up_server_thread(state);
 
   this->did_wait_for_server_start_ = false;
 }
 
 result<void, debug_server_io_error> debug_server::wait_for_server_start() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->initialized_.wait(lock, [&] {
-    return this->init_data_.has_value() || !this->init_error_.empty();
-  });
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->initialized_.wait(
+      state, [&] { return state->initialized || !state->init_error.empty(); });
 
-  if (!this->init_error_.empty()) {
+  if (!state->init_error.empty()) {
     return failed_result(debug_server_io_error{
-        .error_message = this->init_error_,
+        .error_message = state->init_error,
     });
   }
 
@@ -163,34 +166,38 @@ result<void, debug_server_io_error> debug_server::wait_for_server_start() {
   return {};
 }
 
-std::string debug_server::url() const { return this->url("/"sv); }
+std::string debug_server::url() { return this->url("/"sv); }
 
-std::string debug_server::url(std::string_view path) const {
+std::string debug_server::url(std::string_view path) {
   QLJS_ASSERT(this->did_wait_for_server_start_);
 
   std::string result;
   result.reserve(path.size() + 100);
   result += "http://"sv;
-  {
-    std::lock_guard<mutex> lock(this->mutex_);
-    result += this->init_data_->actual_listen_address;
-  }
+  this->get_host_and_port(result);
   result += path;
   return result;
 }
 
-std::string debug_server::websocket_url(std::string_view path) const {
+std::string debug_server::websocket_url(std::string_view path) {
   QLJS_ASSERT(this->did_wait_for_server_start_);
 
   std::string result;
   result.reserve(path.size() + 100);
   result += "ws://"sv;
-  {
-    std::lock_guard<mutex> lock(this->mutex_);
-    result += this->init_data_->actual_listen_address;
-  }
+  this->get_host_and_port(result);
   result += path;
   return result;
+}
+
+std::uint16_t debug_server::tcp_port_number() {
+  QLJS_ASSERT(this->did_wait_for_server_start_);
+  return this->state_.lock()->port_number();
+}
+
+void debug_server::debug_probe_publish_lsp_documents() {
+  this->need_publish_lsp_documents_ = true;
+  this->wake_up_server_thread();
 }
 
 void debug_server::debug_probe_publish_vector_profile() {
@@ -199,17 +206,26 @@ void debug_server::debug_probe_publish_vector_profile() {
 }
 
 void debug_server::wake_up_server_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
-  this->wake_up_server_thread(lock);
+  lock_ptr<shared_state> state = this->state_.lock();
+  this->wake_up_server_thread(state);
 }
 
-void debug_server::wake_up_server_thread(std::unique_lock<mutex> &) {
-  if (this->init_data_.has_value()) {
+void debug_server::wake_up_server_thread(lock_ptr<shared_state> &state) {
+  if (state->initialized) {
     char wakeup_signal[] = {0};
-    ::ssize_t rc = ::send(this->init_data_->wakeup_pipe, wakeup_signal,
-                          sizeof(wakeup_signal), /*flags=*/0);
+    long rc = ::send(state->wakeup_pipe, wakeup_signal, sizeof(wakeup_signal),
+                     /*flags=*/0);
     QLJS_ALWAYS_ASSERT(rc == 1);
   }
+}
+
+void debug_server::get_host_and_port(std::string &out) {
+  ::mg_addr address = this->state_.lock()->actual_listen_address;
+  ::mg_xprintf(
+      [](char c, void *user_data) -> void {
+        static_cast<std::string *>(user_data)->push_back(c);
+      },
+      &out, "%M", ::mg_print_ip_port, &address);
 }
 
 void debug_server::run_on_current_thread() {
@@ -217,43 +233,42 @@ void debug_server::run_on_current_thread() {
 
   mongoose_mgr mgr;
 
-  std::string connect_logs;
-  mongoose_begin_capturing_logs_on_current_thread(&connect_logs);
-  ::mg_connection *server_connection = ::mg_http_listen(
-      mgr.get(), this->requested_listen_address_.c_str(),
-      mongoose_callback<&debug_server::http_server_callback>(), this);
-  mongoose_stop_capturing_logs_on_current_thread();
-  if (!server_connection) {
-    std::lock_guard<mutex> lock(this->mutex_);
-    if (connect_logs.empty()) {
-      this->init_error_ = "unknown error in mg_http_listen";
-    } else {
-      this->init_error_ = std::move(connect_logs);
-    }
-    this->initialized_.notify_all();
-
-    trace_flusher::instance()->unregister_current_thread();
-    return;
-  }
-
   {
-    std::lock_guard<mutex> lock(this->mutex_);
-    QLJS_ASSERT(!this->init_data_.has_value());
-    this->init_data_.emplace();
+    lock_ptr<shared_state> state = this->state_.lock();
+
+    std::string connect_logs;
+    mongoose_begin_capturing_logs_on_current_thread(&connect_logs);
+    ::mg_connection *server_connection = ::mg_http_listen(
+        mgr.get(), state->requested_listen_address.c_str(),
+        mongoose_callback<&debug_server::http_server_callback>(), this);
+    mongoose_stop_capturing_logs_on_current_thread();
+    if (!server_connection) {
+      if (connect_logs.empty()) {
+        state->init_error = "unknown error in mg_http_listen";
+      } else {
+        state->init_error = std::move(connect_logs);
+      }
+      this->initialized_.notify_all();
+
+      trace_flusher::instance()->unregister_current_thread();
+      return;
+    }
+
+    QLJS_ASSERT(!state->initialized);
 
     // server_connection->loc is initialized synchronously, so we should be able
-    // to use c->loc now.
-    std::string &address = this->init_data_->actual_listen_address;
-    address.resize(100);
-    ::mg_straddr(&server_connection->loc, address.data(), address.size());
-    address.resize(std::strlen(address.c_str()));
+    // to use it now.
+    state->actual_listen_address = server_connection->loc;
 
-    this->init_data_->wakeup_pipe = ::mg_mkpipe(
+    register_current_thread_as_debug_server_thread(state->port_number());
+
+    state->wakeup_pipe = ::mg_mkpipe(
         mgr.get(), mongoose_callback<&debug_server::wakeup_pipe_callback>(),
         this,
         /*udp=*/false);
-    QLJS_ALWAYS_ASSERT(this->init_data_->wakeup_pipe != -1);
+    QLJS_ALWAYS_ASSERT(state->wakeup_pipe != -1);
 
+    state->initialized = true;
     this->initialized_.notify_all();
   }
 
@@ -301,8 +316,9 @@ void debug_server::http_server_callback(::mg_connection *c, int ev,
         this->tracer_backends_.back().get();
     trace_flusher::instance()->enable_backend(backend);
 
-    // Publish vector stats to the new client. (As a side effect, this also
-    // publishes vector stats to other connected clients, but that's okay.)
+    // Publish initial state to the new client. (As a side effect, this also
+    // publishes to other connected clients, but that's okay.)
+    this->debug_probe_publish_lsp_documents();
     this->debug_probe_publish_vector_profile();
     break;
   }
@@ -342,16 +358,19 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
 
       trace_writer *tw =
           trace_flusher::instance()->trace_writer_for_current_thread();
-      QLJS_ASSERT(tw);  // We registered this thread in run_on_current_thread.
-      tw->write_event_vector_max_size_histogram_by_owner(
-          trace_event_vector_max_size_histogram_by_owner{
-              .timestamp = 0,  // TODO(strager)
-              .histogram = &histogram,
-          });
-      tw->commit();
+      if (tw != nullptr) {
+        tw->write_event_vector_max_size_histogram_by_owner(
+            trace_event_vector_max_size_histogram_by_owner{
+                .timestamp = 0,  // TODO(strager)
+                .histogram = &histogram,
+            });
+        tw->commit();
+      }
       trace_flusher::instance()->flush_sync();
     }
 #endif
+
+    this->publish_lsp_documents_if_needed();
 
     for (auto &backend : this->tracer_backends_) {
       backend->flush_if_needed();
@@ -361,6 +380,49 @@ void debug_server::wakeup_pipe_callback(::mg_connection *c, int ev,
   default:
     break;
   }
+}
+
+void debug_server::publish_lsp_documents_if_needed() {
+  if (!this->need_publish_lsp_documents_.load()) {
+    return;
+  }
+  this->need_publish_lsp_documents_.store(false);
+
+  synchronized<lsp_documents> *documents_raw = get_lsp_server_documents();
+  if (documents_raw == nullptr) {
+    return;
+  }
+
+  trace_writer *tw =
+      trace_flusher::instance()->trace_writer_for_current_thread();
+  if (tw == nullptr) {
+    return;
+  }
+
+  std::vector<trace_lsp_document_state> document_states;
+  {
+    lock_ptr<lsp_documents> documents = documents_raw->lock();
+    document_states.reserve(documents->documents.size());
+    for (auto &[uri, doc] : documents->documents) {
+      document_states.push_back(trace_lsp_document_state{
+          .type = doc->trace_type(),
+          .uri = uri,
+          .text = doc->doc.string().string_view(),
+          .language_id = to_string8_view(doc->language_id),
+      });
+    }
+
+    tw->write_event_lsp_documents(trace_event_lsp_documents{
+        .timestamp = 0,  // TODO(strager)
+        .documents = span<const trace_lsp_document_state>(document_states),
+    });
+  }
+  tw->commit();
+  trace_flusher::instance()->flush_sync();
+}
+
+std::uint16_t debug_server::shared_state::port_number() const {
+  return ::mg_ntohs(this->actual_listen_address.port);
 }
 }
 

@@ -88,7 +88,6 @@ function getExtraIconAttributes(attributes) {
 let icons = {
   chocolatey: { path: "chocolatey.svg", alt: "Chocolatey" },
   "arch-linux": { path: "arch-linux.svg", alt: "Arch Linux" },
-  atom: { path: "atom.svg", alt: "Atom" },
   "cli-and-lsp-server": {
     path: "gnome-terminal.svg",
     alt: "CLI and LSP server",

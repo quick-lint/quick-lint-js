@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -707,6 +707,24 @@ TEST_F(test_parse_typescript_class, generic_classes_are_allowed_in_typescript) {
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({generic_param_decl(u8"T"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(u8"class C<T> extends Base<T> { }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_variable_declaration",    // T
+                              "visit_variable_type_use",       // T
+                              "visit_variable_use",            // Base
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"_sv), class_decl(u8"C"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"Base"_sv}));
   }
 }
 
@@ -1586,6 +1604,271 @@ TEST_F(test_parse_typescript_class, implement_multiple_things) {
                         }));
   EXPECT_THAT(p.variable_uses,
               ElementsAreArray({u8"Apple", u8"Banana", u8"Carrot"}));
+}
+
+TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_enter_class_scope",       // C
+                    "visit_enter_class_scope_body",  // {
+                    // TODO(strager): visit_property_declaration for 'field'.
+                    "visit_property_declaration",       // constructor
+                    "visit_enter_function_scope",       // constructor
+                    "visit_variable_declaration",       // field
+                    "visit_enter_function_scope_body",  // {
+                    "visit_exit_function_scope",        // }
+                    "visit_exit_class_scope",           // }
+                    "visit_variable_declaration",       // C
+                    "visit_end_of_module",
+                }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(protected field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(private field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field: FieldType) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"FieldType"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public field = defaultValue) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"defaultValue"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(readonly field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  for (string8_view access_specifier :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    test_parser p(concat(u8"class C {\n"_sv
+                         u8"  constructor("_sv,
+                         access_specifier,
+                         u8" readonly field) {}\n"_sv
+                         u8"}"_sv),
+                  typescript_options);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_class, parameter_property_cannot_destructure) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public [field1, field2]) {}\n"_sv
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    // TODO(strager): Assert that visit_property_declaration(field1) and
+    // visit_property_declaration(field2) occurred.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_param_decl(u8"field1"_sv),
+                                  func_param_decl(u8"field2"_sv),
+                                  class_decl(u8"C"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_parameter_property_cannot_be_destructured,  //
+                destructure_token,
+                u8"class C {\n  constructor(public "_sv.size(),
+                u8"["_sv,  //
+                property_keyword, u8"class C {\n  constructor("_sv.size(),
+                u8"public"_sv),
+        }));
+  }
+
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  constructor(public {field1, other: field2}) {}\n"_sv
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    // TODO(strager): Assert that visit_property_declaration(field1) and
+    // visit_property_declaration(field2) occurred.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({func_param_decl(u8"field1"_sv),
+                                  func_param_decl(u8"field2"_sv),
+                                  class_decl(u8"C"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_typescript_parameter_property_cannot_be_destructured,  //
+                destructure_token,
+                u8"class C {\n  constructor(public "_sv.size(),
+                u8"{"_sv,  //
+                property_keyword, u8"class C {\n  constructor("_sv.size(),
+                u8"public"_sv),
+        }));
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       parameter_property_is_not_allowed_in_javascript) {
+  for (string8_view keyword :
+       {u8"readonly"_sv, u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" field) {}\n"_sv
+                           u8"}"_sv),
+                    javascript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_javascript,  //
+                  property_keyword, u8"class C {\n  constructor("_sv.size(),
+                  keyword),
+          }));
+    }
+  }
+
+  for (string8_view keyword :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" readonly field) {}\n"_sv
+                           u8"}"_sv),
+                    javascript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_javascript,  //
+                  property_keyword, u8"class C {\n  constructor("_sv.size(),
+                  keyword),
+          }))
+          << "only '" << out_string8(keyword)
+          << "' should report a diagnostic; 'readonly' should not have its own "
+             "diagnostic";
+    }
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       parameter_property_can_be_named_contextual_keyword) {
+  // TODO(#73): Disallow names 'private', 'yield', etc. because those are
+  // not allowed in strict mode (and classes enforce strict mode).
+  for (string8 keyword : contextual_keywords |
+                             dirty_set<string8>{u8"await", u8"yield"} |
+                             strict_only_reserved_keywords) {
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(public "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(public readonly "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+
+    {
+      test_parser p(concat(u8"class C {\n"_sv
+                           u8"  constructor(readonly "_sv,
+                           keyword,
+                           u8") {}\n"_sv
+                           u8"}"_sv),
+                    typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(
+          p.variable_declarations,
+          ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
+    }
+  }
 }
 }
 }

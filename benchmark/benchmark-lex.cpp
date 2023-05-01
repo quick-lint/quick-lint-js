@@ -3,7 +3,7 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/port/char8.h>
 
@@ -174,8 +174,8 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 			// Add nodes directly
 			if ( toType( elem ) === "object" ) {
 )"_sv);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

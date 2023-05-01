@@ -27,6 +27,7 @@ authored portions of quick-lint-js:
 * Alessandro De Bellis; aledeb95@gmail.com; signed CLA-v1.md
 * Alex Via; alexviacoll@gmail.com; signed CLA-v1.md
 * Amir; amir77mafi@gmail.com; signed CLA-v1.md
+* Ang Kosal; angkosal@gmail.com; signed CLA-v1.md
 * Angel Avila; angel.j.avila@gmail.com; signed CLA-v1.md
 * Asaduzzaman Pavel; k1ngs.k1ngdom@live.com; signed CLA-v1.md
 * Biel A. P. (0xbiel); bielp07@gmail.com; signed CLA-v1.md
@@ -42,14 +43,17 @@ authored portions of quick-lint-js:
 * Guilherme Vasconcelos; signed CLA-v1.md
 * Harshit Aghera; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
+* James Moles; jamespmoles@gmail.com; signed CLA-v1.md
 * Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
 * Jenny "Jennipuff" Wheat
 * Jesus Gil; jesusgil.dev@gmail.com; signed CLA-v1.md
 * Jesús Eduardo; jeduardo.fuentes@alumnos.udg.mx; signed CLA-v1.md
 * Jimmy Qiu; bottlewater072@gmail.com; signed CLA-v1.md
 * Justin Welenofsky; welenofsky@gmail.com; signed CLA-v1.md
+* Kate Conkright; conkrigh@umich.edu; signed CLA-v1.md
 * Kim "Linden"; kim.lindbla@gmail.com; signed CLA-v1.md
 * Lee Wannacott; wannacottL@gmail.com; signed CLA-v1.md
+* Leszek Nowicki; nowickileszek88@gmail.com; signed CLA-v1.md
 * LiraNuna; signed CLA-v1.md
 * Matheus Phranco; matheusphranco@gmail.com; signed CLA-v1.md
 * Matheus Sousa; msamuel@aluno.puc-rio.br; signed CLA-v1.md
@@ -64,11 +68,14 @@ authored portions of quick-lint-js:
 * Sarah Schulte; sarah.schulte@samsara.com; signed CLA-v1.md
 * Sasha Krassovsky; warplane@hotmail.com; signed CLA-v1.md
 * Shivam Mehta; sm.cse17@gmail.com; signed CLA-v1.md
+* Tom Binford; tjbof123@gmail.com; signed CLA-v1.md
 * Tony Sathre; tony@ghostbit.org; signed CLA-v1.md
 * Youness Asserare; signed CLA-v1.md
+* Yunus; ynsmrycl2007@gmail.com; signed CLA-v1.md
 * alex-huff; alexanderhuff53@gmail.com; signed CLA-v1.md
 * catac; https://github.com/catac1; signed CLA-v1.md
 * clegoz; signed CLA-v1.md
+* daethtech; https://github.com/daethtech; signed CLA-v1.md
 * emadflash; signed CLA-v1.md
 * ooblegork; codyxvalley@mail.fresnostate.edu; signed CLA-v1.md
 * wagner riffel; w@104d.net; signed CLA-v1.md

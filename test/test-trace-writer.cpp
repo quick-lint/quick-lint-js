@@ -8,6 +8,7 @@
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/binary-writer.h>
 
 using ::testing::ElementsAreArray;
@@ -405,6 +406,54 @@ TEST(test_trace_writer, write_event_process_id) {
 
                   // Process ID
                   0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // clang-format on
+              }));
+}
+
+TEST(test_trace_writer, write_event_lsp_documents) {
+  async_byte_queue data;
+  trace_writer w(&data);
+
+  std::array<trace_lsp_document_state, 1> documents = {
+      trace_lsp_document_state{
+          .type = trace_lsp_document_type::lintable,
+          .uri = u8"file:///f"_sv,
+          .text = u8"hello"_sv,
+          .language_id = u8"js"_sv,
+      },
+  };
+  w.write_event_lsp_documents(trace_event_lsp_documents{
+      .timestamp = 0x5678,
+      .documents = span<const trace_lsp_document_state>(documents),
+  });
+
+  data.commit();
+  EXPECT_THAT(data.take_committed_string8(),
+              ElementsAreArray<std::uint8_t>({
+                  // clang-format off
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // Event ID
+                  0x09,
+
+                  // Document count
+                  0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // Document 0: type
+                  0x02,
+
+                  // Document 0: URI
+                  0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
+
+                  // Document 0: text
+                  0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'h', 'e', 'l', 'l', 'o',
+
+                  // Document 0: langauge ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 's',
                   // clang-format on
               }));
 }

@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
@@ -289,6 +289,58 @@ TEST_F(test_parse_typescript_generic, type_parameter_default_with_extends) {
   }
 }
 
+TEST_F(test_parse_typescript_generic, variance_specifiers) {
+  {
+    test_parser p(u8"<in T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+
+  {
+    test_parser p(u8"<out T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+
+  {
+    test_parser p(u8"<in out T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_generic, variance_specifiers_in_wrong_order) {
+  {
+    test_parser p(u8"<out in T>"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_typescript_variance_keywords_in_wrong_order,
+                in_keyword, strlen(u8"<out "), u8"in"_sv,  //
+                out_keyword, strlen(u8"<"), u8"out"_sv),
+        }));
+  }
+}
+
 TEST_F(test_parse_typescript_generic,
        parameters_can_be_named_contextual_keywords) {
   for (string8 name :
@@ -296,20 +348,56 @@ TEST_F(test_parse_typescript_generic,
            u8"await",
            u8"undefined",
        } | (contextual_keywords - typescript_builtin_type_keywords -
-            typescript_special_type_keywords -
+            typescript_special_type_keywords - typescript_type_only_keywords -
             dirty_set<string8>{
                 u8"let",
                 u8"static",
                 u8"yield",
             })) {
-    test_parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_typescript_generic_parameters();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",  // (name)
-                          }));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({generic_param_decl(name)}));
+    {
+      test_parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<in "_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<out "_sv, name, u8">"_sv), typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
+
+    {
+      test_parser p(concat(u8"<in out "_sv, name, u8">"_sv),
+                    typescript_options);
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_typescript_generic_parameters();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_variable_declaration",  // (name)
+                            }));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(name)}));
+    }
   }
 }
 
@@ -557,6 +645,10 @@ TEST_F(test_parse_typescript_generic,
   }
 }
 
+// FIXME(#690): On second thought, I think treating less-greater as operators by
+// default is a bad plan. TypeScript parses foo<T>{} as < and > operations, but
+// also has type errors when using > with an object literal or when mixing < and
+// >.
 TEST_F(test_parse_typescript_generic,
        less_and_greater_are_operators_by_default) {
   struct test_case {
@@ -594,6 +686,83 @@ TEST_F(test_parse_typescript_generic,
                                           "visit_enter_function_scope_body",  //
                                           "visit_exit_function_scope")))
         << "there should be no generic arguments (visit_variable_type_use)";
+  }
+}
+
+TEST_F(
+    test_parse_typescript_generic,
+    greater_equal_ending_generic_argument_list_requires_space_in_expression) {
+  // TypeScript does not split '>=' into '>' and '='. This will always result in
+  // an error:
+  //
+  // * (A<B >= Z) is always a type error because booleans ('A<B' and 'Z') cannot
+  //   be compared using >= in TypeScript.
+  // * (A<B<C >>= Z) is always a type error because 'A<B' and 'C' cannot be
+  //   compared using '<', and is always an error because you cannot assign to
+  //   'A<B<C'.
+  // * (A<B<C<D >>>= Z) is always an error like with (A<B<C >>= Z).
+  //
+  // quick-lint-js does split '>=', but it should report a helpful diagnostic
+  // (instead of ugly type errors like TypeScript emits).
+  //
+  // See NOTE[typescript-generic-expression-token-splitting].
+
+  {
+    test_parser p(u8"foo<T>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T"), u8">="_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"foo<T<U>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_type_use",  // U
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"U"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T<U>"), u8">="_sv),
+        }));
+  }
+
+  {
+    test_parser p(u8"foo<T<U<V>>>= rhs"_sv, typescript_options, capture_diags);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // T
+                              "visit_variable_type_use",  // U
+                              "visit_variable_type_use",  // V
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"T"_sv, u8"U"_sv, u8"V"_sv}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_requires_space_between_greater_and_equal,
+                greater_equal, strlen(u8"foo<T<U<V>>"), u8">="_sv),
+        }));
   }
 }
 

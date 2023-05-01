@@ -9,12 +9,16 @@
 
 #if defined(_WIN32)
 #define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "\\"
+#define QLJS_ALL_PATH_DIRECTORY_SEPARATORS "\\/"
 #else
 #define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "/"
+#define QLJS_ALL_PATH_DIRECTORY_SEPARATORS "/"
 #endif
 
 namespace quick_lint_js {
 std::string parent_path(std::string&&);
+
+std::string_view path_file_name(std::string_view);
 }
 
 #endif

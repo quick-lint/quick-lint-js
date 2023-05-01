@@ -18,6 +18,9 @@ struct global_declared_variable {
   // If false, the variable was already lexically declared in the module thus
   // cannot be declared by the user with 'let'.
   bool is_shadowable;
+  // If true, the variable is only visible in type expressions, not in normal
+  // expressions.
+  bool is_type_only;
 
   variable_kind kind() const noexcept;
 };
@@ -56,6 +59,8 @@ class global_declared_variable_set {
     bool is_writable;
     // See global_declared_variable::is_shadowable.
     bool is_shadowable;
+    // See global_declared_variable::is_type_only.
+    bool is_type_only;
   };
 
   hash_map<string8_view, variable_options> variables_;

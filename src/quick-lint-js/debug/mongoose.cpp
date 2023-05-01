@@ -7,7 +7,6 @@
 
 #include <cstddef>
 #include <mongoose.h>
-#include <mutex>
 #include <quick-lint-js/debug/mongoose.h>
 #include <string>
 

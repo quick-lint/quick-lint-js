@@ -9,9 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
@@ -40,12 +40,9 @@ lsp_message_parser_base::parse_message_headers(string8_view headers) {
     headers = header.remaining;
 
     if (header_is(header.name, u8"content-length"_sv)) {
-      const char8* header_value_end = &header.value.data()[header.value.size()];
       content_length.emplace();
-      from_char8s_result result =
-          from_char8s(header.value.data(), header_value_end, *content_length);
-      bool ok = result.ptr == header_value_end && result.ec == std::errc{};
-      if (ok) {
+      if (parse_integer_exact(header.value, *content_length) ==
+          parse_integer_exact_error::ok) {
         // We found the content-type header. No need to look at other headers;
         // we'd ignore them anyway.
         break;
