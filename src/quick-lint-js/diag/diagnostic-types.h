@@ -2985,7 +2985,7 @@
               question_question))                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_mistyped_strict_inequality_operator, "E0373",                        \
+      diag_bang_equal_equal_interpreted_as_non_null_assertion, "E0373",         \
       diagnostic_severity::warning,                                             \
       {                                                                         \
         source_code_span unexpected_space;                                      \

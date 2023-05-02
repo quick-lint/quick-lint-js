@@ -199,13 +199,15 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
   {
     test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_mistyped_strict_inequality_operator,  //
-                        unexpected_space, strlen(u8"x!"), u8" "_sv,        //
-                        bang, strlen(u8"x"), u8"!"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_bang_equal_equal_interpreted_as_non_null_assertion,  //
+                unexpected_space, strlen(u8"x!"), u8" "_sv,               //
+                bang, strlen(u8"x"), u8"!"_sv),
+        }));
   }
   {
     test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
@@ -214,22 +216,23 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              unexpected_space, strlen(u8"if (length + 1!"),
-                              u8" "_sv),
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_bang_equal_equal_interpreted_as_non_null_assertion,
+                unexpected_space, strlen(u8"if (length + 1!"), u8" "_sv),
         }));
   }
   {
     test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_mistyped_strict_inequality_operator,
-                        unexpected_space,
-                        strlen(u8"if (typeof diagnostic.code!"), u8" "_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, diag_bang_equal_equal_interpreted_as_non_null_assertion,
+                unexpected_space, strlen(u8"if (typeof diagnostic.code!"),
+                u8" "_sv),
+        }));
   }
 }
 
