@@ -1753,7 +1753,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_optional_parameter_cannot_be_followed_by_required_parameter,         \
-      "E0374", diagnostic_severity::error,                                      \
+      "E0375", diagnostic_severity::error,                                      \
       { source_code_span required_parameter; },                                 \
       MESSAGE(QLJS_TRANSLATABLE("optional parameter cannot be followed by a "   \
                                 "required parameter"),                          \
@@ -2993,12 +2993,23 @@
               question_question))                                               \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_mistyped_strict_inequality_operator, "E0373",                        \
-      diagnostic_severity::warning, { source_code_span non_null_assertion; },   \
-      MESSAGE(QLJS_TRANSLATABLE("'x! == y' might be a typo for 'x !== y'. "     \
-                                "If a null assertion was intended, use "        \
-                                "'(x!) == y' instead"),                         \
-              non_null_assertion))                                              \
+      diag_bang_equal_equal_interpreted_as_non_null_assertion, "E0373",         \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span unexpected_space;                                      \
+        source_code_span bang;                                                  \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected whitespace between '!' and '=='"),  \
+              unexpected_space)                                                 \
+          MESSAGE(QLJS_TRANSLATABLE("'!' here treated as the TypeScript "       \
+                                    "non-null assertion operator"),             \
+                  bang))                                                        \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_unexpected_space_between_bang_and_equal_equal, "E0374",              \
+      diagnostic_severity::error, { source_code_span unexpected_space; },       \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected whitespace between '!' and '=='"),  \
+              unexpected_space))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_jsx_prop_is_missing_expression, "E0376",                             \

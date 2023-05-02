@@ -1777,11 +1777,25 @@ next:
     } else {
       source_code_span bang_span = this->peek().span();
       this->skip();
-      if (this->peek().type == token_type::equal_equal) {
-        this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
-            .non_null_assertion =
-                source_code_span(bang_span.begin(), this->peek().span().end()),
-        });
+      source_code_span whitespace_after_bang(bang_span.end(),
+                                             this->peek().begin);
+      if (this->peek().type == token_type::equal_equal &&
+          is_plain_horizontal_whitespace(whitespace_after_bang)) {
+        // x! == y
+        if (this->options_.typescript) {
+          this->diag_reporter_->report(
+              diag_bang_equal_equal_interpreted_as_non_null_assertion{
+                  .unexpected_space = whitespace_after_bang,
+                  .bang = bang_span,
+              });
+        } else {
+          this->diag_reporter_->report(
+              diag_unexpected_space_between_bang_and_equal_equal{
+                  .unexpected_space = whitespace_after_bang,
+              });
+          // Parse as 'x == y' by skipping the '!'.
+          goto next;
+        }
       } else if (!this->options_.typescript) {
         this->diag_reporter_->report(
             diag_typescript_non_null_assertion_not_allowed_in_javascript{

@@ -741,17 +741,9 @@ void parser::error_on_pointless_nullish_coalescing_operator(
     return s == u8"??"_sv;
   };
 
-  for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    source_code_span op_span = ast->operator_spans_[i];
-    if (is_nullish_operator(op_span.string_view())) {
-      if (i >= 1) {
-        // lhs is a multi-child expression
-        return;
-      } else {
-        this->check_lhs_for_null_potential(ast->child(i)->without_paren(),
-                                           op_span);
-      }
-    }
+  source_code_span op_span = ast->operator_spans_[0];
+  if (is_nullish_operator(op_span.string_view())) {
+    this->check_lhs_for_null_potential(ast->child(0)->without_paren(), op_span);
   }
 }
 
@@ -764,10 +756,8 @@ void parser::check_lhs_for_null_potential(expression* lhs,
                                            u8"||"_sv};
     for (span_size i = 0; i < expr->child_count() - 1; i++) {
       string8_view expr_op_span = expr->operator_spans_[i].string_view();
-      for (span_size j = 0; j < 4; j++) {
-        if (expr_op_span == can_resolve_to_null[j]) {
-          return false;
-        }
+      if (contains(can_resolve_to_null, expr_op_span)) {
+        return false;
       }
     }
     return true;
@@ -776,20 +766,16 @@ void parser::check_lhs_for_null_potential(expression* lhs,
   bool report_diag = false;
   switch (lhs->kind()) {
   case expression_kind::literal:
-    if (lhs->span().string_view() == u8"null"_sv) {
-      break;
+    if (lhs->span().string_view() != u8"null"_sv) {
+      report_diag = true;
     }
-    if (lhs->span().string_view() == u8"undefined"_sv) {
-      break;
-    }
-    report_diag = true;
     break;
   case expression_kind::rw_unary_suffix:
     report_diag = true;
     break;
   case expression_kind::unary_operator: {
     auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
-    if (maybe_void_lhs->is_void_operator() == false) {
+    if (!maybe_void_lhs->is_void_operator()) {
       report_diag = true;
     }
     break;
@@ -805,7 +791,7 @@ void parser::check_lhs_for_null_potential(expression* lhs,
   default:
     break;
   }
-  if (report_diag == true) {
+  if (report_diag) {
     this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
         .question_question = op_span});
   }

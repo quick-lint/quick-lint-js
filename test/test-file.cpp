@@ -38,7 +38,7 @@
 #endif
 
 #if QLJS_HAVE_LIBUTIL_H
-#include <util.h>
+#include <libutil.h>
 #endif
 
 #if QLJS_HAVE_MKFIFO

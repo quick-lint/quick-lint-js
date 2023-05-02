@@ -2311,6 +2311,16 @@ bool lexer::is_newline_character(char32_t code_point) noexcept {
          code_point == U'\u2028' ||  // Line Separator
          code_point == U'\u2029';    // Paragraph Separator
 }
+
+bool is_plain_horizontal_whitespace(source_code_span span) {
+  string8_view sv = span.string_view();
+  for (char8 c : sv) {
+    if (!(c == u8' ' || c == u8'\t')) {
+      return false;
+    }
+  }
+  return true;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

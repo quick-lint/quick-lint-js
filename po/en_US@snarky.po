@@ -571,7 +571,8 @@ msgstr "be polite and say 'from'"
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
 msgstr ""
-"what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
+"what are you trying to do? This is a Unicode escape sequence, not a Wendy's "
+"🍔"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "expected '{{'"
@@ -879,7 +880,8 @@ msgstr "how did the grammar Nazi die? colon cancer."
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'?' creates a conditional expression"
-msgstr "do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
+msgstr ""
+"do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "missing condition for if statement"
@@ -1966,10 +1968,14 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid ""
-"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, "
-"use '(x!) == y' instead"
-msgstr ""
+#, fuzzy
+msgid "unexpected whitespace between '!' and '=='"
+msgstr "you forgot 'as' between '{1}' and '{2}'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'!' here treated as the TypeScript non-null assertion operator"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

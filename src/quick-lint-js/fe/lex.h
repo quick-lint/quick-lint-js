@@ -375,6 +375,8 @@ struct lexer_transaction {
   std::optional<buffering_diag_reporter> reporter;
   diag_reporter* old_diag_reporter;
 };
+
+bool is_plain_horizontal_whitespace(source_code_span span);
 }
 
 #endif
