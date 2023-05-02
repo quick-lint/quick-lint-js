@@ -6,8 +6,6 @@
 set -e
 set -u
 
-cd "$(dirname "${0}")/../.."
-
 variant=default
 output_directory=
 orig_file=
@@ -16,8 +14,8 @@ sign=
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
     --bionic) variant=bionic ;;
-    --orig) orig_file="${2}" ; shift ;;
-    --output-directory) output_directory="${2}" ; shift ;;
+    --orig) orig_file="$(realpath -- "${2}")" ; shift ;;
+    --output-directory) output_directory="$(realpath -- "${2}")" ; shift ;;
     --sign) sign=1 ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
@@ -30,6 +28,8 @@ if [ "${output_directory}" = "" ]; then
   printf 'error: missing --output-directory\n' >&2
   exit 2
 fi
+
+cd "$(dirname "${0}")/../.."
 
 package_version="$(head -n1 version)"
 debian_package_version="$(dpkg-parsechangelog --file ./dist/debian/debian/changelog --show-field Version)"
