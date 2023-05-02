@@ -2,6 +2,16 @@
 
 To get automatic completions for quick-lint-js's options you can install the provided shell completions.
 
+## Testing
+
+If you make changes to shell completions and want to test them, you can try all
+supported shells using [Nix][]:
+
+    $ nix run .#bash
+    $ nix run .#fish
+    $ nix run .#powershell
+    $ nix run .#zsh
+
 ## Zsh
 
 To install the completions for zsh, you can place the `completions/_quick-lint-js` file in any
@@ -61,3 +71,5 @@ Or copy the contents of `completions/quick-lint-js.ps1` into your `$profile` fil
 ```powershell
 Get-Content ./completions/quick-lint-js.ps1 | Out-File -Append $profile
 ```
+
+[Nix]: https://nixos.org/download.html

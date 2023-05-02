@@ -12,6 +12,12 @@
 #
 # $ # Run Neovim with quick-lint-js installed:
 # $ nix run .#simple-neovim-with-qljs
+#
+# $ # Test shell completions:
+# $ nix run .#bash
+# $ nix run .#fish
+# $ nix run .#powershell
+# $ nix run .#zsh
 
 {
   inputs.flake-utils.url = github:numtide/flake-utils;
@@ -28,6 +34,58 @@
           src = plugin/vim/quick-lint-js.vim;
           meta = packages.quick-lint-js.meta;
         };
+
+        # Bash shell for testing completions.
+        packages.bash = let
+          bashInit = pkgs.runCommand "bashInit" {
+            buildInputs = [ pkgs.bash-completion packages.quick-lint-js ];
+          } ''
+            {
+              export
+              printf ". ${pkgs.bash-completion}/share/bash-completion/bash_completion\n"
+              printf ". ${packages.quick-lint-js}/share/bash-completion/completions/quick-lint-js.bash\n"
+            } >"$out"
+          '';
+          in pkgs.writeShellScriptBin "quick-lint-js-bash" ''
+            ${pkgs.bashInteractive}/bin/bash --init-file ${bashInit}
+          '';
+
+        # Fish shell for testing completions.
+        packages.fish = pkgs.writeShellScriptBin "quick-lint-js-fish" ''
+          ${pkgs.fish}/bin/fish \
+            --no-config \
+            --init-command='set PATH ${packages.quick-lint-js}/bin $PATH' \
+            --init-command='set fish_complete_path ${packages.quick-lint-js}/share/fish/vendor_completions.d/ $fish_complete_path'
+        '';
+
+        # PowerShell shell for testing completions.
+        packages.powershell = pkgs.writeShellScriptBin "quick-lint-js-powershell" ''
+          ${pkgs.powershell}/bin/pwsh \
+            -NoExit \
+            -NoLogo \
+            -NoProfile \
+            -Command '
+              . ${packages.quick-lint-js}/share/powershell/completions/quick-lint-js.ps1
+              $env:PATH = "${packages.quick-lint-js}/bin:" + $env:PATH
+            '
+        '';
+
+        # Zsh shell for testing completions.
+        packages.zsh = let
+          zshDotDir = pkgs.runCommand "zshDotDir" {
+            buildInputs = [ packages.quick-lint-js ];
+          } ''
+            mkdir "$out"
+            {
+              export
+              printf 'fpath+=${packages.quick-lint-js}/share/zsh/site-functions\n'
+              printf 'autoload -Uz compinit\n'
+              printf 'compinit\n'
+            } >"$out/.zshrc"
+          '';
+          in pkgs.writeShellScriptBin "quick-lint-js-zsh" ''
+            ZDOTDIR=${zshDotDir} ${pkgs.zsh}/bin/zsh
+          '';
 
         packages.simple-neovim-with-qljs = pkgs.neovim.override {
           configure = {
