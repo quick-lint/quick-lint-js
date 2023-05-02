@@ -17,7 +17,8 @@ const translation_table translation_data = {
         {76, 89, 80, 58, 0, 61},             //
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
-        {31, 56, 0, 32, 0, 28},              //
+        {0, 0, 0, 0, 0, 28},                 //
+        {31, 56, 0, 32, 0, 63},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
         {79, 25, 30, 63, 49729, 66},         //
@@ -77,8 +78,7 @@ const translation_table translation_data = {
         {0, 0, 0, 48, 0, 38},                //
         {73, 31, 0, 54, 0, 38},              //
         {15, 14, 0, 13, 0, 13},              //
-        {0, 0, 0, 0, 0, 17},                 //
-        {0, 0, 0, 19, 0, 99},                //
+        {0, 0, 0, 19, 0, 17},                //
         {15, 38, 0, 25, 0, 25},              //
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
@@ -428,7 +428,8 @@ const translation_table translation_data = {
         {91, 38, 78, 83, 69, 76},            //
         {19, 34, 17, 17, 19, 17},            //
         {180, 42, 159, 156, 171, 156},       //
-        {92, 45, 78, 81, 70, 65},            //
+        {0, 0, 0, 0, 0, 65},                 //
+        {92, 45, 78, 81, 70, 43},            //
         {98, 37, 86, 82, 83, 77},            //
         {38, 35, 17, 23, 13, 14},            //
         {38, 27, 34, 28, 33, 27},            //
@@ -1746,6 +1747,7 @@ const translation_table translation_data = {
         u8"\"globals\" descriptor \"writable\" property must be a boolean\0"
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
+        u8"'!' here treated as the TypeScript non-null assertion operator\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
         u8"',' should be ';' instead\0"
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
@@ -1806,7 +1808,6 @@ const translation_table translation_data = {
         u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
-        u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead\0"
         u8"'{0} []' is always '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
@@ -2157,6 +2158,7 @@ const translation_table translation_data = {
         u8"unexpected token\0"
         u8"unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
         u8"unexpected token in variable declaration; expected variable name\0"
+        u8"unexpected whitespace between '!' and '=='\0"
         u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
         u8"unmatched '}'\0"
         u8"unmatched indexing bracket\0"

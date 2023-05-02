@@ -1783,6 +1783,7 @@ next:
           is_plain_horizontal_whitespace(whitespace_after_bang)) {
         this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
             .unexpected_space = whitespace_after_bang,
+            .bang = bang_span,
         });
       } else if (!this->options_.typescript) {
         this->diag_reporter_->report(

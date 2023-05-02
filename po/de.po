@@ -2116,10 +2116,16 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid ""
-"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, "
-"use '(x!) == y' instead"
+#, fuzzy
+msgid "unexpected whitespace between '!' and '=='"
+msgstr "'as' zwischen '{1}' und '{2}' erwartet"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'!' here treated as the TypeScript non-null assertion operator"
 msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

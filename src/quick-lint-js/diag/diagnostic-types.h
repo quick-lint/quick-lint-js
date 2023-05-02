@@ -2986,11 +2986,16 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_mistyped_strict_inequality_operator, "E0373",                        \
-      diagnostic_severity::warning, { source_code_span unexpected_space; },     \
-      MESSAGE(QLJS_TRANSLATABLE("'x! == y' might be a typo for 'x !== y'. "     \
-                                "If a null assertion was intended, use "        \
-                                "'(x!) == y' instead"),                         \
-              unexpected_space))                                                \
+      diagnostic_severity::warning,                                             \
+      {                                                                         \
+        source_code_span unexpected_space;                                      \
+        source_code_span bang;                                                  \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected whitespace between '!' and '=='"),  \
+              unexpected_space)                                                 \
+          MESSAGE(QLJS_TRANSLATABLE("'!' here treated as the TypeScript "       \
+                                    "non-null assertion operator"),             \
+                  bang))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_jsx_prop_is_missing_expression, "E0376",                             \

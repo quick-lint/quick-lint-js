@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 450;
-constexpr std::size_t translation_table_string_table_size = 76763;
+constexpr std::uint16_t translation_table_mapping_table_size = 451;
+constexpr std::size_t translation_table_string_table_size = 76770;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -34,6 +34,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor \"writable\" property must be a boolean"sv,
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
+          "'!' here treated as the TypeScript non-null assertion operator"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
           "',' should be ';' instead"sv,
           "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,
@@ -94,7 +95,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'type' cannot be used twice in import"sv,
           "'while' loop"sv,
           "'with' statement"sv,
-          "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"sv,
           "'{0} []' is always '{1}'"sv,
           "'{0}' found here"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
@@ -445,6 +445,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unexpected token"sv,
           "unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"sv,
           "unexpected token in variable declaration; expected variable name"sv,
+          "unexpected whitespace between '!' and '=='"sv,
           "unicode byte order mark (BOM) cannot appear before #! at beginning of script"sv,
           "unmatched '}'"sv,
           "unmatched indexing bracket"sv,

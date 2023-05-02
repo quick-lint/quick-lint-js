@@ -1896,10 +1896,14 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid ""
-"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, "
-"use '(x!) == y' instead"
-msgstr ""
+#, fuzzy
+msgid "unexpected whitespace between '!' and '=='"
+msgstr "'as' esperado entre '{1}' e '{2}'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "'!' here treated as the TypeScript non-null assertion operator"
+msgstr "aqui está o operador de asserção de atribuição"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

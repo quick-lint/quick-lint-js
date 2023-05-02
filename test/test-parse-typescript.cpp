@@ -199,12 +199,13 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
   {
     test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              unexpected_space, strlen(u8"x!"), u8" "_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,  //
+                        unexpected_space, strlen(u8"x!"), u8" "_sv,        //
+                        bang, strlen(u8"x"), u8"!"_sv),
+                }));
   }
   {
     test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,

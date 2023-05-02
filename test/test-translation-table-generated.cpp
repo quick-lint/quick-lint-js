@@ -77,6 +77,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'!' here treated as the TypeScript non-null assertion operator"_translatable,
+        {
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+            u8"'!' here treated as the TypeScript non-null assertion operator",
+        },
+    },
+    {
         "'**' operator cannot be used after unary '{1}' without parentheses"_translatable,
         {
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
@@ -734,17 +745,6 @@ const translated_string test_translation_table[] = {
             u8"'with' statement",
             u8"instru\u00e7\u00e3o 'with'",
             u8"'with' statement",
-        },
-    },
-    {
-        "'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead"_translatable,
-        {
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
-            u8"'x! == y' might be a typo for 'x !== y'. If a null assertion was intended, use '(x!) == y' instead",
         },
     },
     {
@@ -4595,6 +4595,17 @@ const translated_string test_translation_table[] = {
             u8"symbole inattendu dans une d\u00e9claration de variable ; nom de variable attendu",
             u8"token inesperado em uma declara\u00e7\u00e3o de vari\u00e1vel; esperado um nome de vari\u00e1vel",
             u8"of\u00f6rv\u00e4ntad token i variabel deklaration; f\u00f6rv\u00e4ntade variabel namn",
+        },
+    },
+    {
+        "unexpected whitespace between '!' and '=='"_translatable,
+        {
+            u8"unexpected whitespace between '!' and '=='",
+            u8"unexpected whitespace between '!' and '=='",
+            u8"unexpected whitespace between '!' and '=='",
+            u8"unexpected whitespace between '!' and '=='",
+            u8"unexpected whitespace between '!' and '=='",
+            u8"unexpected whitespace between '!' and '=='",
         },
     },
     {
