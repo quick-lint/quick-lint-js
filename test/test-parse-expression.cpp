@@ -3753,8 +3753,8 @@ TEST_F(test_parse_expression, whitespace_between_bang_and_equal) {
   {
     test_parser p(u8"x! == y"_sv, capture_diags);
     expression* ast = p.parse_expression();
-    // TODO(strager): Parse this the same as 'x !== y'.
-    EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
+    EXPECT_EQ(summarize(ast), "binary(var x, var y)")
+        << "'x! == y' should be parsed as 'x !== y'";
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
