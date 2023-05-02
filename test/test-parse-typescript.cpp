@@ -248,20 +248,6 @@ TEST_F(test_parse_typescript,
     p.parse_and_visit_statement();
   }
 }
-
-TEST_F(test_parse_typescript,
-       warn_on_mistyped_strict_inequality_operator_in_javascript) {
-  {
-    test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              unexpected_space, strlen(u8"'hello'!"), u8" "_sv),
-        }));
-  }
-}
 }
 }
 

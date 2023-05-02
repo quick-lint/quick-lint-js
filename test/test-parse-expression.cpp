@@ -3749,6 +3749,22 @@ TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
   }
 }
 
+TEST_F(test_parse_expression, whitespace_between_bang_and_equal) {
+  {
+    test_parser p(u8"x! == y"_sv, capture_diags);
+    expression* ast = p.parse_expression();
+    // TODO(strager): Parse this the same as 'x !== y'.
+    EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code, diag_mistyped_strict_inequality_operator,  //
+                        unexpected_space, strlen(u8"x!"), u8" "_sv,        //
+                        bang, strlen(u8"x"), u8"!"_sv),
+                }));
+  }
+}
+
 TEST_F(test_parse_expression, precedence) {
   enum class level_type {
     // Left-associative binary operator.
