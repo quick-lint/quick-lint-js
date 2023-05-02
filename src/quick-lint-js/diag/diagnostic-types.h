@@ -1753,7 +1753,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_optional_parameter_cannot_be_followed_by_required_parameter,         \
-      "E0350", diagnostic_severity::error,                                      \
+      "E0374", diagnostic_severity::error,                                      \
       { source_code_span required_parameter; },                                 \
       MESSAGE(QLJS_TRANSLATABLE("optional parameter cannot be followed by a "   \
                                 "required parameter"),                          \
