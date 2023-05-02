@@ -1781,11 +1781,18 @@ next:
                                              this->peek().begin);
       if (this->peek().type == token_type::equal_equal &&
           is_plain_horizontal_whitespace(whitespace_after_bang)) {
-        this->diag_reporter_->report(
-            diag_bang_equal_equal_interpreted_as_non_null_assertion{
-                .unexpected_space = whitespace_after_bang,
-                .bang = bang_span,
-            });
+        if (this->options_.typescript) {
+          this->diag_reporter_->report(
+              diag_bang_equal_equal_interpreted_as_non_null_assertion{
+                  .unexpected_space = whitespace_after_bang,
+                  .bang = bang_span,
+              });
+        } else {
+          this->diag_reporter_->report(
+              diag_unexpected_space_between_bang_and_equal_equal{
+                  .unexpected_space = whitespace_after_bang,
+              });
+        }
       } else if (!this->options_.typescript) {
         this->diag_reporter_->report(
             diag_typescript_non_null_assertion_not_allowed_in_javascript{

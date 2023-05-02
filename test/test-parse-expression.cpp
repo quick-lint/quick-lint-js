@@ -3755,15 +3755,13 @@ TEST_F(test_parse_expression, whitespace_between_bang_and_equal) {
     expression* ast = p.parse_expression();
     // TODO(strager): Parse this the same as 'x !== y'.
     EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                diag_bang_equal_equal_interpreted_as_non_null_assertion,  //
-                unexpected_space, strlen(u8"x!"), u8" "_sv,               //
-                bang, strlen(u8"x"), u8"!"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        diag_unexpected_space_between_bang_and_equal_equal,  //
+                        unexpected_space, strlen(u8"x!"), u8" "_sv),         //
+                }));
   }
 }
 

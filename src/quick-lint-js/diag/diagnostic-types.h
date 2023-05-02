@@ -2998,6 +2998,12 @@
                   bang))                                                        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_unexpected_space_between_bang_and_equal_equal, "E0374",              \
+      diagnostic_severity::error, { source_code_span unexpected_space; },       \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected whitespace between '!' and '=='"),  \
+              unexpected_space))                                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_jsx_prop_is_missing_expression, "E0376",                             \
       diagnostic_severity::error,                                               \
       { source_code_span left_brace_to_right_brace; },                          \
