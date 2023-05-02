@@ -1777,7 +1777,9 @@ next:
     } else {
       source_code_span bang_span = this->peek().span();
       this->skip();
-      if (this->peek().type == token_type::equal_equal) {
+      if (this->peek().type == token_type::equal_equal &&
+          is_plain_horizontal_whitespace(
+              source_code_span(bang_span.end(), this->peek().begin))) {
         this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
             .non_null_assertion =
                 source_code_span(bang_span.begin(), this->peek().span().end()),

@@ -283,6 +283,14 @@ TEST_F(test_parse_typescript,
     test_parser p(u8"if ((x!) == y) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
   }
+  {
+    test_parser p(u8"x! /**/ == y"_sv, typescript_options);
+    p.parse_and_visit_statement();
+  }
+  {
+    test_parser p(u8"x!\n== y"_sv, typescript_options);
+    p.parse_and_visit_statement();
+  }
 }
 
 TEST_F(test_parse_typescript,
