@@ -756,10 +756,8 @@ void parser::check_lhs_for_null_potential(expression* lhs,
                                            u8"||"_sv};
     for (span_size i = 0; i < expr->child_count() - 1; i++) {
       string8_view expr_op_span = expr->operator_spans_[i].string_view();
-      for (span_size j = 0; j < 4; j++) {
-        if (expr_op_span == can_resolve_to_null[j]) {
-          return false;
-        }
+      if (contains(can_resolve_to_null, expr_op_span)) {
+        return false;
       }
     }
     return true;
