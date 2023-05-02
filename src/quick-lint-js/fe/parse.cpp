@@ -768,17 +768,16 @@ void parser::check_lhs_for_null_potential(expression* lhs,
   bool report_diag = false;
   switch (lhs->kind()) {
   case expression_kind::literal:
-    if (lhs->span().string_view() == u8"null"_sv) {
-      break;
+    if (lhs->span().string_view() != u8"null"_sv) {
+      report_diag = true;
     }
-    report_diag = true;
     break;
   case expression_kind::rw_unary_suffix:
     report_diag = true;
     break;
   case expression_kind::unary_operator: {
     auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
-    if (maybe_void_lhs->is_void_operator() == false) {
+    if (!maybe_void_lhs->is_void_operator()) {
       report_diag = true;
     }
     break;
@@ -794,7 +793,7 @@ void parser::check_lhs_for_null_potential(expression* lhs,
   default:
     break;
   }
-  if (report_diag == true) {
+  if (report_diag) {
     this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
         .question_question = op_span});
   }
