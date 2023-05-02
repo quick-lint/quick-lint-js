@@ -78,4 +78,5 @@ authored portions of quick-lint-js:
 * daethtech; https://github.com/daethtech; signed CLA-v1.md
 * emadflash; signed CLA-v1.md
 * ooblegork; codyxvalley@mail.fresnostate.edu; signed CLA-v1.md
+* oren; countoren@gmail.com; signed CLA-v1.md
 * wagner riffel; w@104d.net; signed CLA-v1.md
