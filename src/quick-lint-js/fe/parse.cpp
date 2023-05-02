@@ -771,9 +771,6 @@ void parser::check_lhs_for_null_potential(expression* lhs,
     if (lhs->span().string_view() == u8"null"_sv) {
       break;
     }
-    if (lhs->span().string_view() == u8"undefined"_sv) {
-      break;
-    }
     report_diag = true;
     break;
   case expression_kind::rw_unary_suffix:
