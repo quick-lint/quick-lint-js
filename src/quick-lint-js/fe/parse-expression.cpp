@@ -1777,12 +1777,12 @@ next:
     } else {
       source_code_span bang_span = this->peek().span();
       this->skip();
+      source_code_span whitespace_after_bang(bang_span.end(),
+                                             this->peek().begin);
       if (this->peek().type == token_type::equal_equal &&
-          is_plain_horizontal_whitespace(
-              source_code_span(bang_span.end(), this->peek().begin))) {
+          is_plain_horizontal_whitespace(whitespace_after_bang)) {
         this->diag_reporter_->report(diag_mistyped_strict_inequality_operator{
-            .non_null_assertion =
-                source_code_span(bang_span.begin(), this->peek().span().end()),
+            .unexpected_space = whitespace_after_bang,
         });
       } else if (!this->options_.typescript) {
         this->diag_reporter_->report(

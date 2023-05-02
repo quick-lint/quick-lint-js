@@ -2986,11 +2986,11 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_mistyped_strict_inequality_operator, "E0373",                        \
-      diagnostic_severity::warning, { source_code_span non_null_assertion; },   \
+      diagnostic_severity::warning, { source_code_span unexpected_space; },     \
       MESSAGE(QLJS_TRANSLATABLE("'x! == y' might be a typo for 'x !== y'. "     \
                                 "If a null assertion was intended, use "        \
                                 "'(x!) == y' instead"),                         \
-              non_null_assertion))                                              \
+              unexpected_space))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_jsx_prop_is_missing_expression, "E0376",                             \

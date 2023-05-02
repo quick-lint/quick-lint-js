@@ -203,29 +203,29 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              non_null_assertion, strlen(u8"x"), u8"! =="_sv),
+                              unexpected_space, strlen(u8"x!"), u8" "_sv),
         }));
   }
   {
     test_parser p(u8"'hello'! == 'world'"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_mistyped_strict_inequality_operator,
-                        non_null_assertion, strlen(u8"'hello'"), u8"! =="_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              unexpected_space, strlen(u8"'hello'!"), u8" "_sv),
+        }));
   }
   {
     test_parser p(u8"(True! == False)"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_mistyped_strict_inequality_operator,
-                        non_null_assertion, strlen(u8"(True"), u8"! =="_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              unexpected_space, strlen(u8"(True!"), u8" "_sv),
+        }));
   }
   {
     test_parser p(u8"(x! == y) == z"_sv, typescript_options, capture_diags);
@@ -234,7 +234,7 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              non_null_assertion, strlen(u8"(x"), u8"! =="_sv),
+                              unexpected_space, strlen(u8"(x!"), u8" "_sv),
         }));
   }
   {
@@ -244,7 +244,7 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              non_null_assertion, strlen(u8"(x"), u8"! =="_sv),
+                              unexpected_space, strlen(u8"(x!"), u8" "_sv),
         }));
   }
   {
@@ -255,8 +255,8 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
-                              non_null_assertion, strlen(u8"if (length + 1"),
-                              u8"! =="_sv),
+                              unexpected_space, strlen(u8"if (length + 1!"),
+                              u8" "_sv),
         }));
   }
   {
@@ -267,8 +267,8 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_mistyped_strict_inequality_operator,
-                        non_null_assertion,
-                        strlen(u8"if (typeof diagnostic.code"), u8"! =="_sv),
+                        unexpected_space,
+                        strlen(u8"if (typeof diagnostic.code!"), u8" "_sv),
                 }));
   }
 }
@@ -298,12 +298,12 @@ TEST_F(test_parse_typescript,
   {
     test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, diag_mistyped_strict_inequality_operator,
-                        non_null_assertion, strlen(u8"'hello'"), u8"! =="_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_mistyped_strict_inequality_operator,
+                              unexpected_space, strlen(u8"'hello'!"), u8" "_sv),
+        }));
   }
 }
 }
