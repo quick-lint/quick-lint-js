@@ -22,10 +22,16 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * '\`hello${world}\` as const' no longer falsely reports [E0291][].
     (Fixed by [Leszek Nowicki][].)
+* FreeBSD: quick-lint-js no longer fails to build.
 
 ## 2.13.0 (2023-04-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.13.0/)
+
+### Known issues
+
+* Building quick-lint-js on [FreeBSD is
+  broken](https://github.com/quick-lint/quick-lint-js/issues/999).
 
 ### Added
 
