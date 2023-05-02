@@ -198,7 +198,8 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
 TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
   {
     test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
