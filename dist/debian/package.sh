@@ -43,7 +43,14 @@ if [ -n "${orig_file}" ]; then
     have_orig_signature=1
   fi
 else
-  git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+  if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then
+    git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+  elif sl root 2>/dev/null >&2; then
+    sl archive --include path:/ --type tgz --prefix "quick-lint-js-${package_version}/" "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz"
+  else
+    printf 'error: could not detect version control system\n' >&2
+    exit 1
+  fi
 fi
 
 tar xzf "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" -C "${temp_dir}"
