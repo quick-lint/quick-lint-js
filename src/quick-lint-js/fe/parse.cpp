@@ -741,17 +741,9 @@ void parser::error_on_pointless_nullish_coalescing_operator(
     return s == u8"??"_sv;
   };
 
-  for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    source_code_span op_span = ast->operator_spans_[i];
-    if (is_nullish_operator(op_span.string_view())) {
-      if (i >= 1) {
-        // lhs is a multi-child expression
-        return;
-      } else {
-        this->check_lhs_for_null_potential(ast->child(i)->without_paren(),
-                                           op_span);
-      }
-    }
+  source_code_span op_span = ast->operator_spans_[0];
+  if (is_nullish_operator(op_span.string_view())) {
+    this->check_lhs_for_null_potential(ast->child(0)->without_paren(), op_span);
   }
 }
 
