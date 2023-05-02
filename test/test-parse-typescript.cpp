@@ -271,6 +271,10 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
                         strlen(u8"if (typeof diagnostic.code"), u8"! =="_sv),
                 }));
   }
+}
+
+TEST_F(test_parse_typescript,
+       mistyped_strict_inequality_operator_is_suppressable) {
   {
     test_parser p(u8"(x!) == y"_sv, typescript_options);
     p.parse_and_visit_statement();
@@ -279,6 +283,10 @@ TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
     test_parser p(u8"if ((x!) == y) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
   }
+}
+
+TEST_F(test_parse_typescript,
+       warn_on_mistyped_strict_inequality_operator_in_javascript) {
   {
     test_parser p(u8"'hello'! == 'world'"_sv, capture_diags);
     p.parse_and_visit_statement();
