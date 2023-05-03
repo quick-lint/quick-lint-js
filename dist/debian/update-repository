@@ -20,8 +20,11 @@ if ! [ -f apt-ftparchive.conf ]; then
 fi
 
 apt_suite=experimental
+archs=(amd64 arm64)
 
-mkdir -p "dists/${apt_suite}/main/binary-amd64/"
+for arch in "${archs[@]}"; do
+  mkdir -p "dists/${apt_suite}/main/binary-${arch}/"
+done
 mkdir -p "dists/${apt_suite}/main/dep11/"
 mkdir -p "dists/${apt_suite}/main/source/"
 mkdir -p appstream/
@@ -34,7 +37,9 @@ cp "appstream/export/data/${apt_suite}/main/"* "dists/${apt_suite}/main/dep11/"
 # file, apt/appstream on Pop!_OS and Linux Mint both don't
 # notice the Components file at all. Create an uncompressed
 # version so the compressed version is noticed.
-gunzip <"dists/${apt_suite}/main/dep11/Components-amd64.yml.gz" >"dists/${apt_suite}/main/dep11/Components-amd64.yml"
+for arch in "${archs[@]}"; do
+  gunzip <"dists/${apt_suite}/main/dep11/Components-${arch}.yml.gz" >"dists/${apt_suite}/main/dep11/Components-${arch}.yml"
+done
 
 apt-ftparchive --quiet release --config-file apt-ftparchive.conf "dists/${apt_suite}" >"dists/${apt_suite}/Release"
 

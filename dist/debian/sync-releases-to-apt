@@ -118,7 +118,7 @@ create_unsigned_apt_metadata_files() {
 
   scp -q "${ssh_args[@]}" apt-ftparchive.conf "${ssh_host}:${remote_debian_root}/apt-ftparchive.conf"
   scp -q "${ssh_args[@]}" asgen-config.json "${ssh_host}:${remote_debian_root}/asgen-config.json"
-  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_debian_root}" <update-repository
+  ssh "${ssh_args[@]}" "${ssh_host}" -- bash -s "${remote_debian_root}" <update-repository
 }
 
 sign_apt_metadata_files() {

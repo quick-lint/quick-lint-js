@@ -14,6 +14,8 @@ Semantic Versioning.
   expression"). (Implemented by [James Moles][].)
 * `! ==` (with a space) now reports [E0373][]. (Implemented by [daethtech][].)
 * `x == y ?? true` now reports [E0369][]. (Implemented by [Kate Conkright][].)
+* `apt install quick-lint-js` now works on ARM64 (AArch64) Debian and Ubuntu
+  installations.
 
 ### Fixed
 

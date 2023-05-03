@@ -11,7 +11,7 @@
   "Suites": {
     "experimental": {
       "sections": ["main"],
-      "architectures": ["amd64"]
+      "architectures": ["amd64", "arm64"]
     }
   },
   "Icons": {

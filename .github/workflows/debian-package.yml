@@ -8,11 +8,17 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  # TODO(strager): Also build ARM and AArch64 .deb-s.
+  # TODO(strager): Also build ARM (32-bit) .deb-s.
   build-deb:
-    name: build .deb
-    runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v5
+    name: build .deb ${{ matrix.os.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v5", build_env: "CC=gcc-9 CXX=g++-9"}
+          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", build_env: ""}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ matrix.os.docker_container }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -27,13 +33,13 @@ jobs:
         run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: build
-        run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh --bionic
+        run: ${{ matrix.os.build_env }} ./dist/debian/build.sh --bionic
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: quick-lint-js-deb-${{ github.sha }}
+          name: quick-lint-js-deb-${{ matrix.os.arch }}-${{ github.sha }}
           path: |
             dist/debian/build/quick-lint-js-dbgsym_*
             dist/debian/build/quick-lint-js-vim_*
@@ -48,22 +54,26 @@ jobs:
             dist/debian/build/quick-lint-js-vim_*
             dist/debian/build/quick-lint-js_*
           private-key: ${{ secrets.artifacts_key }}
-          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/${{ matrix.os.arch }}/
           user: ${{ secrets.artifacts_user }}
 
   test-deb:
-    name: test on ${{ matrix.os.name }}
+    name: test on ${{ matrix.os.name }} ${{ matrix.os.arch }}
     needs: build-deb
     strategy:
       fail-fast: false
       matrix:
         os:
-          - {runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
-          - {runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
+          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:buster", name: "Debian 10 Buster"}
+          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ubuntu:22.04", name: "Ubuntu 22.04 LTS Jammy"}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
 
@@ -83,7 +93,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: quick-lint-js-deb-${{ github.sha }}
+          name: quick-lint-js-deb-${{ matrix.os.arch }}-${{ github.sha }}
 
       - name: install quick-lint-js
         run: dpkg -i quick-lint-js_*.deb
