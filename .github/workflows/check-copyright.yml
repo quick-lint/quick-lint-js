@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  check_format:
+  check_copyright:
     name: check copyright
     runs-on: ubuntu-latest
     container: bash:5.2-alpine3.17
