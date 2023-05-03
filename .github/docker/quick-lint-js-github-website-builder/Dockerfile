@@ -14,10 +14,8 @@ RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         cmake \
-        gcc \
         ninja-build \
         python3.7 \
-        python3-pip \
         apache2 \ 
         rsync \ 
         zip \ 
@@ -27,8 +25,6 @@ RUN \
         nodejs
 
 RUN npm install -g yarn 
-
-RUN pip install bs4 requests 
 
 RUN \
     a2enmod deflate headers && \
