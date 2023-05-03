@@ -37,8 +37,8 @@ Files: vendor/googletest/googlemock/scripts/generator/*
 Copyright: Copyright 2008, Google Inc.
 License: Apache-2.0
 
-Files: vendor/googletest/googlemock/scripts/upload.py
-Copyright: Copyright 2008, Google Inc.
+Files: vendor/googletest/googletest/scripts/upload.py
+Copyright: Copyright 2007, Google Inc.
 License: Apache-2.0
 
 Files: vendor/simdjson/*
