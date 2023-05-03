@@ -11,7 +11,7 @@ jobs:
   check_format:
     name: check error docs
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-website-builder:v1
     steps:
       - uses: quick-lint/setup-emsdk@v12
         with:
