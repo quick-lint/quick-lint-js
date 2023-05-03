@@ -10,7 +10,10 @@ ssh_args=()
 ssh_host=github-ci@c.quick-lint-js.com
 remote_releases_root=/var/www/c.quick-lint-js.com/releases
 remote_debian_root=/var/www/c.quick-lint-js.com/debian
+remote_debian_root_testing=/var/www/c.quick-lint-js.com/debian-testing
 apt_suite=experimental
+
+testing=0
 
 clean_up() {
   if [ -e "${ssh_control_socket:-}" ]; then
@@ -26,7 +29,25 @@ trap clean_up EXIT
 cd "$(dirname "${0}")"
 temp_dir="$(mktemp -d)"
 
+parse_args() {
+  while [ "${#}" -gt 0 ]; do
+    case "${1}" in
+      --testing) testing=1 ;;
+      *)
+        printf 'error: unexpected argument: %s\n' "${1}" >&2
+        exit 1
+    esac
+    shift
+  done
+}
+
 main() {
+  parse_args "${@}"
+
+  if [ "${testing}" -ne 0 ]; then
+    remote_debian_root="${remote_debian_root_testing}"
+  fi
+
   # Speed up repeated SSH/SCP commands by reusing a single TCP connection to the
   # server.
   ssh_control_socket="${temp_dir}/ssh-control.socket"
@@ -75,7 +96,7 @@ sign_apt_metadata_files() {
   scp -q "${ssh_args[@]}" "${temp_dir}/InRelease" "${temp_dir}/Release.gpg" "${ssh_host}:${remote_debian_root}/dists/${apt_suite}/"
 }
 
-main
+main "${@}"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
