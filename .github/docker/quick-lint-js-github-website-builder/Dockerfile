@@ -13,16 +13,16 @@ RUN \
 RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        apache2 \
         cmake \
         ninja-build \
+        nodejs \
         python3.7 \
-        apache2 \
         rsync \
-        zip \
-        unzip \
         tar \
+        unzip \
         xz-utils \
-        nodejs
+        zip
 
 RUN npm install -g yarn
 
