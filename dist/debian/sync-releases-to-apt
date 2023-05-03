@@ -5,15 +5,18 @@
 
 set -e
 set -u
+shopt -s extglob
 
 ssh_args=()
 ssh_host=github-ci@c.quick-lint-js.com
+remote_builds_root=/var/www/c.quick-lint-js.com/builds
 remote_releases_root=/var/www/c.quick-lint-js.com/releases
 remote_debian_root=/var/www/c.quick-lint-js.com/debian
 remote_debian_root_testing=/var/www/c.quick-lint-js.com/debian-testing
 apt_suite=experimental
 
 testing=0
+extra_builds=()
 
 clean_up() {
   if [ -e "${ssh_control_socket:-}" ]; then
@@ -33,6 +36,15 @@ parse_args() {
   while [ "${#}" -gt 0 ]; do
     case "${1}" in
       --testing) testing=1 ;;
+
+      +([0-9a-f]))
+        if [ "${#1}" -ne 40 ]; then
+          printf 'error: expected full Git hash of build, but got %s\n' "${1}" >&2
+          exit 1
+        fi
+        extra_builds+=("${1}")
+        ;;
+
       *)
         printf 'error: unexpected argument: %s\n' "${1}" >&2
         exit 1
@@ -46,6 +58,10 @@ main() {
 
   if [ "${testing}" -ne 0 ]; then
     remote_debian_root="${remote_debian_root_testing}"
+  fi
+  if [ "${#extra_builds[@]}" -gt 0 ] && [ "${testing}" -eq 0 ]; then
+    printf 'error: extra builds are only allowed with --testing\n' >&2
+    exit 1
   fi
 
   # Speed up repeated SSH/SCP commands by reusing a single TCP connection to the
@@ -66,15 +82,23 @@ main() {
 copy_releases_to_debian_pool() {
   printf 'Populating Debian pool from releases ...\n' >&2
 
-  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_releases_root}" "${remote_debian_root}" <<'EOF'
+  ssh "${ssh_args[@]}" "${ssh_host}" -- bash -s "${remote_builds_root}" "${remote_releases_root}" "${remote_debian_root}" "${extra_builds[@]:+${extra_builds[@]}}" <<'EOF'
     set -e
     set -u
-    releases_root="${1}"
-    debian_root="${2}"
+
+    builds_root="${1}"
+    releases_root="${2}"
+    debian_root="${3}"
+    shift 3
+    extra_builds=("${@}")
+
     mkdir -p "${debian_root}/pool/"
     for release_path in "${releases_root}"/[0-9]*; do
       release="$(basename "${release_path}")"
       rsync -a "${release_path}/debian/" "${debian_root}/pool/${release}/"
+    done
+    for extra_build in "${extra_builds[@]:+${extra_builds[@]}}"; do
+      rsync -a "${builds_root}/${extra_build}/debian/" "${debian_root}/pool/${extra_build}/"
     done
 EOF
 }
