@@ -11,7 +11,7 @@ jobs:
   check_format:
     name: check copyright
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: bash:5.2-alpine3.17
     steps:
       - uses: actions/checkout@v3
 
