@@ -29,3 +29,17 @@ RUN npm install -g yarn
 RUN \
     a2enmod deflate headers && \
     sed -i -e 's/AllowOverride\ None/AllowOverride\ FileInfo/' /etc/apache2/apache2.conf
+
+ARG EMSDK_VERSION=3.1.37
+ARG EMSCRIPTEN_VERSION=2.0.4
+RUN \
+    cd /tmp && \
+    curl --location https://github.com/emscripten-core/emsdk/archive/${EMSDK_VERSION}.tar.gz | tar xz && \
+    mkdir -p /opt && \
+    mv /tmp/emsdk-${EMSDK_VERSION} /opt/emsdk && \
+    /opt/emsdk/emsdk install ${EMSCRIPTEN_VERSION} && \
+    /opt/emsdk/emsdk activate ${EMSCRIPTEN_VERSION}
+ENV \
+    EMSDK="/opt/emsdk" \
+    EMSDK_NODE="/opt/emsdk/node/15.14.0_64bit/bin/node" \
+    PATH="/opt/emsdk:/opt/emsdk/upstream/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
