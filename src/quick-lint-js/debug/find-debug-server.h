@@ -17,7 +17,7 @@ namespace quick_lint_js {
 //
 // A thread is automatically unregistered when it exits.
 //
-// NOTE[find-debug-server] for implementation details.
+// See NOTE[find-debug-server] for implementation details.
 void register_current_thread_as_debug_server_thread(std::uint16_t port_number);
 #endif
 
