@@ -14,14 +14,15 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-12, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fsanitize-address-use-after-scope -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 Release libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
-          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fsanitize-address-use-after-scope -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"}
+          - {runs_on: macos-12, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fsanitize-address-use-after-scope -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 Release libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fsanitize-address-use-after-scope -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-G Ninja", ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
+          # TODO(strager): Enable Ninja for this job.
           - {runs_on: ubuntu-latest, name: "GCC 8 dev", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-DQUICK_LINT_JS_FEATURE_DEBUG_SERVER=ON -DQUICK_LINT_JS_FEATURE_VECTOR_PROFILING=ON"}
           # TODO(strager): Also test MinGW-based builds.
           - {runs_on: windows-latest, name: "MSVC", CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: ""}
@@ -51,6 +52,10 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+
+      - name: install dependencies (Homebrew)
+        if: ${{ matrix.toolchain.homebrew_packages }}
+        run: brew install ${{ matrix.toolchain.homebrew_packages }}
 
       - name: configure
         run: |

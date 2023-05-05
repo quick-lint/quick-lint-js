@@ -14,10 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - {runs_on: macos-12, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a"}
-          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
+          - {runs_on: macos-12, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja"}
             # NOTE(strager): We test on Linux x86_64 in the build-extension job.
-          - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", platform_arch: "linux-arm64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: windows-2022, name: "Windows x86", platform_arch: "win32-ia32", test: true, CC: "c:/msys64/mingw32/bin/gcc.exe", CXX: "c:/msys64/mingw32/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-i686-gcc ninja", LDFLAGS: "-static"}
@@ -52,6 +52,9 @@ jobs:
         if: ${{ matrix.os.chocolatey_packages }}
         run: choco install --yes ${{ matrix.os.chocolatey_packages }}
         shell: powershell
+      - name: install dependencies (Homebrew)
+        if: ${{ matrix.os.homebrew_packages }}
+        run: brew install ${{ matrix.os.homebrew_packages }}
       - name: install dependencies (MSYS2)
         if: ${{ matrix.os.msys2_packages }}
         run: c:/msys64/usr/bin/pacman.exe --sync --noconfirm ${{ matrix.os.msys2_packages }}

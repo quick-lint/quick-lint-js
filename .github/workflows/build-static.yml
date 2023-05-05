@@ -14,9 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-12, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a"}
-          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
-          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v5", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: macos-12, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v5", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           # HACK(strager): -Wl,-allow-multiple-definition works around a GCC bug: https://sourceware.org/bugzilla/show_bug.cgi?id=12762
@@ -52,6 +52,9 @@ jobs:
         if: ${{ matrix.toolchain.chocolatey_packages }}
         run: choco install --yes ${{ matrix.toolchain.chocolatey_packages }}
         shell: powershell
+      - name: install dependencies (Homebrew)
+        if: ${{ matrix.toolchain.homebrew_packages }}
+        run: brew install ${{ matrix.toolchain.homebrew_packages }}
       - name: install dependencies (MSYS2)
         if: ${{ matrix.toolchain.msys2_packages }}
         run: c:/msys64/usr/bin/pacman.exe --sync --noconfirm ${{ matrix.toolchain.msys2_packages }}
