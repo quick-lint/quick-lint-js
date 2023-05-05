@@ -17,7 +17,7 @@ jobs:
           - {name: "Neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh"}
           - {name: "Vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh"}
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-vim:v1
     steps:
       - name: checkout
         uses: actions/checkout@v3
