@@ -14,15 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-12, name: "macOS Clang", CXX: clang++, CXXFLAGS: "-std=gnu++17 -O2"}
-          - {runs_on: ubuntu-latest, name: "Linux Clang 9 libc++", container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libc++ -O2"}
-          - {runs_on: ubuntu-latest, name: "Linux Clang 9 libstdc++", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libstdc++ -O2"}
-          - {runs_on: ubuntu-latest, name: "Linux GCC 10", "ghcr.io/quick-lint/quick-lint-js-github-gcc:v1", CXX: g++, CXXFLAGS: "-std=gnu++17 -O2"}
+          - {runs_on: macos-12, name: "macOS"}
+          - {runs_on: ubuntu-latest, name: "Linux", "ghcr.io/quick-lint/quick-lint-js-github-gcc:v1"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     container: ${{ matrix.toolchain.container }}
-    env:
-      CXX: ${{ matrix.toolchain.CXX }}
-      CXXFLAGS: ${{ matrix.toolchain.CXXFLAGS }}
 
     steps:
       - name: checkout
@@ -30,7 +25,7 @@ jobs:
 
       - name: build
         # Keep in sync with "single-command build" in website/public/contribute/build-from-source/.
-        run: '"${CXX}" ${CXXFLAGS} -o quick-lint-js -std=gnu++17 -I src -I vendor/boost -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/quick-lint-js/*.cpp src/quick-lint-js/*/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c vendor/simdjson/src/simdjson.cpp -pthread'
+        run: 'c++ -o quick-lint-js -std=gnu++17 -I src -I vendor/boost -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/quick-lint-js/*.cpp src/quick-lint-js/*/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c vendor/simdjson/src/simdjson.cpp -pthread'
 
       - name: test
         run: |
