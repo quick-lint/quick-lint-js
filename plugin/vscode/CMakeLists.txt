@@ -1,7 +1,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 include(QuickLintJSCopyright)
 include(QuickLintJSNodeJS)
 include(QuickLintJSTarget)
