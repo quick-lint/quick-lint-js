@@ -8,15 +8,14 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build-and-test:
-    name: ${{ matrix.os.name }}
+  build:
+    name: build ${{ matrix.os.name }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - {runs_on: macos-12, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
           - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja"}
-            # NOTE(strager): We test on Linux x86_64 in the build-extension job.
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", platform_arch: "linux-arm64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
@@ -76,15 +75,6 @@ jobs:
       - name: C++ install
         run: cmake --install build --component vscode-node --prefix plugin/vscode --strip
 
-      - name: JS configure
-        if: ${{ matrix.os.test }}
-        run: cd plugin/vscode && yarn
-      - name: JS test
-        if: ${{ matrix.os.test }}
-        run: |
-          cd plugin/vscode
-          yarn test --target ${{ matrix.os.platform_arch }}
-
       - name: upload build to workflow
         uses: actions/upload-artifact@v3
         with:
@@ -92,9 +82,78 @@ jobs:
           name: vscode-dist-${{ matrix.os.platform_arch }}
           path: plugin/vscode/dist/
 
-  build-extension:
+  test:
+    name: test ${{ matrix.os.name }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: macos-12, name: "macOS x86_64", platform_arch: "darwin-x64"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64"}
+          # FIXME(strager): For some reason, tests fail with the
+          # ghcr.io/quick-lint/quick-lint-js-github-builder Docker container.
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", xvfb: true}
+          - {runs_on: windows-2022, name: "Windows x86", platform_arch: "win32-ia32"}
+          - {runs_on: windows-2022, name: "Windows x64", platform_arch: "win32-x64"}
+          # TODO(strager): Also test Linux x86 32-bit.
+          # TODO(strager): Also test Linux ARM (32-bit and 64-bit).
+          # TODO(strager): Also test Windows ARM (32-bit and 64-bit).
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ matrix.os.docker_container }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: vscode-dist-linux-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v3
+        with:
+          name: vscode-dist-darwin-arm64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v3
+        with:
+          name: vscode-dist-darwin-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v3
+        with:
+          name: vscode-dist-win32-ia32
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v3
+        with:
+          name: vscode-dist-win32-x64
+          path: ./plugin/vscode/dist/
+
+      - name: configure
+        run: cd plugin/vscode && yarn
+      - name: test
+        shell: bash
+        run: |
+          run_xvfb=${{ fromJSON('[0, 1]')[matrix.os.xvfb] }}
+          if [ "${run_xvfb}" -ne 0 ]; then
+            DISPLAY=:1
+            export DISPLAY
+
+            type Xvfb  # Ensure Xvfb is installed.
+            Xvfb "${DISPLAY}" -screen 0 1024x768x24 &
+            sleep 0.1  # Wait for Xvfb to start.
+            printf 'Started Xvfb\n' >&2
+          fi
+
+          cd plugin/vscode
+          yarn test --target ${{ matrix.os.platform_arch }}
+
+          if [ "${run_xvfb}" -ne 0 ]; then
+            kill %1
+            wait || :
+          fi
+
+  vsix:
     name: VS Code .vsix
-    needs: build-and-test
+    needs: build
     runs-on: ubuntu-latest
     # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
     env:
@@ -140,28 +199,8 @@ jobs:
           name: vscode-dist-win32-arm64
           path: ./plugin/vscode/dist/
 
-      - name: JS configure
+      - name: configure
         run: cd plugin/vscode && yarn
-        # TODO(strager): Testing on Linux doesn't work inside a
-        # ghcr.io/quick-lint/quick-lint-js-github-builder Docker container. Fix
-        # the Docker image then move this testing on Linux into the
-        # build-and-test job.
-        # NOTE(strager): This only tests Linux x86_64, not other architectures.
-      - name: JS test (Linux)
-        run: |
-          DISPLAY=:1
-          export DISPLAY
-
-          type Xvfb  # Ensure Xvfb is installed.
-          Xvfb "${DISPLAY}" -screen 0 1024x768x24 &
-          sleep 0.1  # Wait for Xvfb to start.
-          printf 'Started Xvfb\n' >&2
-
-          cd plugin/vscode
-          yarn test --target linux-x64
-          kill %1
-          wait || :
-
       - name: create extension
         run: cd plugin/vscode && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
