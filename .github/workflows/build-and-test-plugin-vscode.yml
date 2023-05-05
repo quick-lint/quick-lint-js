@@ -91,8 +91,8 @@ jobs:
         os:
           - {runs_on: macos-12, name: "macOS x86_64", platform_arch: "darwin-x64"}
           - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64"}
-          # FIXME(strager): For some reason, tests fail with the
-          # ghcr.io/quick-lint/quick-lint-js-github-builder Docker container.
+          # FIXME(strager): For some reason, tests fail with the a Docker
+          # container.
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", xvfb: true}
           - {runs_on: windows-2022, name: "Windows x86", platform_arch: "win32-ia32"}
           - {runs_on: windows-2022, name: "Windows x64", platform_arch: "win32-x64"}
@@ -155,7 +155,7 @@ jobs:
     name: VS Code .vsix
     needs: build
     runs-on: ubuntu-latest
-    # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
+    # TODO(strager): Use a stable Docker image.
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:

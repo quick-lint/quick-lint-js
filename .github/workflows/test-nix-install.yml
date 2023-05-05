@@ -11,7 +11,7 @@ jobs:
   build-nix:
     name: test Nix install
     runs-on: ubuntu-latest
-    # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
+    # TODO(strager): Use a stable Docker image.
     steps:
       - name: checkout
         uses: actions/checkout@v3
