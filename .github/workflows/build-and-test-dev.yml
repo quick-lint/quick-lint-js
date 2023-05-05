@@ -21,6 +21,7 @@ jobs:
           - {docker_container: "fedora:35", name: "Fedora 35", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:36", name: "Fedora 36", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
+          - {docker_container: "ubuntu:22.04", name: "Ubuntu 22.04 LTS Jammy", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.toolchain.docker_container }}
