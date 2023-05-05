@@ -19,6 +19,7 @@ jobs:
           - {docker_container: "debian:bullseye", name: "Debian 11 Bullseye", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "debian:buster", name: "Debian 10 Buster", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:36", name: "Fedora 36", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+          - {docker_container: "fedora:38", name: "Fedora 38", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "ubuntu:22.04", name: "Ubuntu 22.04 LTS Jammy", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
     runs-on: ubuntu-latest
