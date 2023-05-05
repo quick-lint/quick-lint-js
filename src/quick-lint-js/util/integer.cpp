@@ -141,15 +141,16 @@ parse_integer_exact_error parse_integer_exact_generic(
     static constexpr T result_max = std::numeric_limits<T>::max();
 
     T result = 0;
+    constexpr T radix = static_cast<T>(Base::radix());
     for (Char c : s) {
       if (!Base::is_digit(c)) {
         return parse_integer_exact_error::invalid;
       }
-      if (result > result_max / Base::radix()) {
+      if (result > result_max / radix) {
         return parse_integer_exact_error::out_of_range;
       }
-      T new_result = static_cast<T>(result * Base::radix() +
-                                    static_cast<T>(Base::parse_digit(c)));
+      T new_result =
+          static_cast<T>(result * radix + static_cast<T>(Base::parse_digit(c)));
       if (new_result < result) {
         return parse_integer_exact_error::out_of_range;
       }
