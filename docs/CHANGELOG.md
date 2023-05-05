@@ -26,6 +26,12 @@ Semantic Versioning.
     (Fixed by [Leszek Nowicki][].)
 * FreeBSD: quick-lint-js no longer fails to build.
 
+### Changed
+
+* Ubuntu 18.04 LTS Bionic is no longer supported. It might happen to work, but it
+  is not extensively tested. Canonical is itself ending support for Bionic on
+  May 31, 2023, so please upgrade to Ubuntu 20.04 LTS or newer.
+
 ## 2.13.0 (2023-04-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.13.0/)

@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v5", build_env: "CC=gcc-9 CXX=g++-9"}
+          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v1", build_env: ""}
           - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", build_env: ""}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
