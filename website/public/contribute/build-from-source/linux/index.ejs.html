@@ -56,14 +56,6 @@
         </blockquote>
 
         <p>
-          For <strong>Ubuntu 18.04 Bionic</strong>, run the following command to
-          install all necessary dependencies:
-        </p>
-        <blockquote>
-          <pre><code class="shell-session"><kbd>sudo apt-get update &amp;&amp; sudo apt-get install cmake g++-8 ninja-build</kbd></code></pre>
-        </blockquote>
-
-        <p>
           For <strong>CentOS</strong>, run the following command to install all
           necessary dependencies:
         </p>
@@ -95,11 +87,6 @@
         </p>
         <blockquote>
           <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>mkdir build ; cd build ; cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd &quot;$OLDPWD&quot;</kbd></span></code></pre>
-        </blockquote>
-
-        <p>For Ubuntu 18.04 Bionic, instead run the following command:</p>
-        <blockquote>
-          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. ; cd &quot;$OLDPWD&quot;</kbd></span></code></pre>
         </blockquote>
 
         <h4>2. Build</h4>
