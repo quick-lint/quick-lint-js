@@ -11,7 +11,7 @@ jobs:
   check_format:
     name: check error docs
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-website-builder:v3
+    container: ghcr.io/quick-lint/quick-lint-js-github-website-builder:v4
     steps:
       - uses: actions/checkout@v3
 

@@ -43,3 +43,8 @@ ENV \
     EMSDK="/opt/emsdk" \
     EMSDK_NODE="/opt/emsdk/node/15.14.0_64bit/bin/node" \
     PATH="/opt/emsdk:/opt/emsdk/upstream/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+# Fill Emscripten's C++ standard library build cache.
+RUN \
+    echo 'int main(){}' >/tmp/cache-populator.cpp && \
+    em++ -o /tmp/cache-populator.wasm /tmp/cache-populator.cpp -flto -Os && \
+    rm /tmp/cache-populator.cpp /tmp/cache-populator.wasm
