@@ -8,7 +8,7 @@ jobs:
   tag-build:
     name: tag
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-clang-format:v1
     steps:
       - name: create tag file
         run: |
@@ -25,6 +25,15 @@ jobs:
 
       - name: checkout
         uses: actions/checkout@v3
+
+      # HACK(strager): Work around the following error from 'git ls-files' used
+      # by ./tools/format:
+      #
+      #     fatal: unsafe repository ('/__w/quick-lint-js/quick-lint-js' is owned by someone else)
+      #
+      # See also: https://github.com/actions/checkout/issues/760
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: get version
         id: getversion
