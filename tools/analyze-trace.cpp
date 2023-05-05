@@ -510,31 +510,35 @@ analyze_options parse_analyze_options(int argc, char** argv) {
     } else if (parser.match_flag_option("--check-document-consistency"sv,
                                         "--check"sv)) {
       o.check_document_consistency = true;
-    } else if (const char* arg_value = parser.match_option_with_value(
+    } else if (const char* document_id_string = parser.match_option_with_value(
                    "--dump-document-content"sv)) {
       errno = 0;
       char* end;
       unsigned long long document_id =
-          std::strtoull(arg_value, &end, /*base=*/0);
-      if (errno != 0 || end == arg_value || *end != '\0') {
-        std::fprintf(stderr, "error: malformed document ID: %s\n", arg_value);
+          std::strtoull(document_id_string, &end, /*base=*/0);
+      if (errno != 0 || end == document_id_string || *end != '\0') {
+        std::fprintf(stderr, "error: malformed document ID: %s\n",
+                     document_id_string);
         std::exit(2);
       }
       o.dump_document_content_document_id =
           narrow_cast<std::uint64_t>(document_id);
-    } else if (const char* arg_value =
+    } else if (const char* begin_event_index_string =
                    parser.match_option_with_value("--begin"sv)) {
-      if (parse_integer_exact(std::string_view(arg_value),
+      if (parse_integer_exact(std::string_view(begin_event_index_string),
                               o.begin_event_index) !=
           parse_integer_exact_error::ok) {
-        std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
+        std::fprintf(stderr, "error: unrecognized option: %s\n",
+                     begin_event_index_string);
         std::exit(2);
       }
-    } else if (const char* arg_value =
+    } else if (const char* end_event_index_string =
                    parser.match_option_with_value("--end"sv)) {
-      if (parse_integer_exact(std::string_view(arg_value), o.end_event_index) !=
+      if (parse_integer_exact(std::string_view(end_event_index_string),
+                              o.end_event_index) !=
           parse_integer_exact_error::ok) {
-        std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
+        std::fprintf(stderr, "error: unrecognized option: %s\n",
+                     end_event_index_string);
         std::exit(2);
       }
     } else {
