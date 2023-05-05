@@ -11,17 +11,17 @@ jobs:
   build:
     name: Emacs
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v2
+    container: ghcr.io/quick-lint/quick-lint-js-github-emacs:v1
     steps:
       - name: checkout
         uses: actions/checkout@v3
 
       - name: configure
-        run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .
+        run: cmake -DBUILD_TESTING=OFF -S . -B . -G Ninja
       - name: build
         run: cmake --build . --config Debug
       - name: install
-        run: sudo cmake --install . --config Debug
+        run: cmake --install . --config Debug
 
       - name: version
         run: emacs --version
