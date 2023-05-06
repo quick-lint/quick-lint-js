@@ -3960,6 +3960,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "parameter properties are not allowed in 'declare class'"_translatable,
+        {
+            u8"parameter properties are not allowed in 'declare class'",
+            u8"parameter properties are not allowed in 'declare class'",
+            u8"parameter properties are not allowed in 'declare class'",
+            u8"parameter properties are not allowed in 'declare class'",
+            u8"parameter properties are not allowed in 'declare class'",
+            u8"parameter properties are not allowed in 'declare class'",
+        },
+    },
+    {
         "parameter properties cannot be destructured"_translatable,
         {
             u8"parameter properties cannot be destructured",

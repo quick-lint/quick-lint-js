@@ -1663,6 +1663,11 @@ msgstr "fonction déclarée ici"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are not allowed in 'declare class'"
+msgstr "les propriétés privées ne sont pas autorisées dans les littéraux objet"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
@@ -2192,6 +2197,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "'declare' specified here"
+#~ msgstr "appel de fonction débuté ici"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

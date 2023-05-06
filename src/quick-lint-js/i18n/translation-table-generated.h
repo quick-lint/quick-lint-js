@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 451;
-constexpr std::size_t translation_table_string_table_size = 76770;
+constexpr std::uint16_t translation_table_mapping_table_size = 452;
+constexpr std::size_t translation_table_string_table_size = 76826;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -387,6 +387,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "optional tuple elements cannot come after spread elements"sv,
           "overloaded function '{0}' declared here"sv,
+          "parameter properties are not allowed in 'declare class'"sv,
           "parameter properties cannot be destructured"sv,
           "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,

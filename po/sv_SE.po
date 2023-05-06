@@ -1542,6 +1542,11 @@ msgstr "funktion deklarerad här"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are not allowed in 'declare class'"
+msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
@@ -2021,6 +2026,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "'declare' specified here"
+#~ msgstr "funktionkallelse startar här"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

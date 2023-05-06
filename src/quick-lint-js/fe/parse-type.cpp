@@ -607,7 +607,7 @@ void parser::
     parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
         parse_visitor_base &v) {
   this->parse_and_visit_function_parameters(
-      v, variable_kind::_function_type_parameter);
+      v, variable_kind::_function_type_parameter, parameter_list_options{});
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);

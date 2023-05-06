@@ -1646,6 +1646,11 @@ msgstr "Funktion wird hier deklariert"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are not allowed in 'declare class'"
+msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
@@ -2172,6 +2177,10 @@ msgstr "{1:singular} erwartet"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "hier"
+
+#, fuzzy
+#~ msgid "'declare' specified here"
+#~ msgstr "Funktionsaufruf beginnt hier"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

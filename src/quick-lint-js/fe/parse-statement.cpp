@@ -1714,7 +1714,11 @@ void parser::parse_and_visit_declare_class_method_parameters_and_body(
   v.visit_enter_function_scope();
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameter_list(v, name);
+      this->parse_and_visit_function_parameter_list(
+          v, name,
+          parameter_list_options{
+              .in_declare_class = true,
+          });
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1761,6 +1765,14 @@ void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
 parser::function_parameter_parse_result
 parser::parse_and_visit_function_parameter_list(
     parse_visitor_base &v, std::optional<source_code_span> name) {
+  return this->parse_and_visit_function_parameter_list(
+      v, name, parameter_list_options());
+}
+
+parser::function_parameter_parse_result
+parser::parse_and_visit_function_parameter_list(
+    parse_visitor_base &v, std::optional<source_code_span> name,
+    parameter_list_options options) {
   if (this->peek().type == token_type::star) {
     if (!name.has_value()) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -1796,7 +1808,7 @@ parser::parse_and_visit_function_parameter_list(
     this->skip();
 
     this->parse_and_visit_function_parameters(
-        v, variable_kind::_function_parameter);
+        v, variable_kind::_function_parameter, options);
 
     if (this->peek().type != token_type::right_paren) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -1862,8 +1874,9 @@ parser::parse_and_visit_function_parameter_list(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
-                                                 variable_kind parameter_kind) {
+void parser::parse_and_visit_function_parameters(
+    parse_visitor_base &v, variable_kind parameter_kind,
+    parameter_list_options options) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
   bool first_parameter = true;
   const char8 *first_parameter_begin = this->peek().begin;
@@ -1911,12 +1924,20 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       if (is_after_parameter_name()) {
         this->lexer_.roll_back_transaction(std::move(transaction));
       } else {
-        if (!this->options_.typescript &&
-            !parameter_property_keyword.has_value()) {
-          this->diag_reporter_->report(
-              diag_typescript_parameter_property_not_allowed_in_javascript{
-                  .property_keyword = accessor_span,
-              });
+        if (!parameter_property_keyword.has_value()) {
+          if (options.in_declare_class) {
+            // TODO(strager): Report the 'declare' keyword.
+            this->diag_reporter_->report(
+                diag_typescript_parameter_property_not_allowed_in_declare_class{
+                    .property_keyword = accessor_span,
+                });
+          }
+          if (!this->options_.typescript) {
+            this->diag_reporter_->report(
+                diag_typescript_parameter_property_not_allowed_in_javascript{
+                    .property_keyword = accessor_span,
+                });
+          }
         }
         parameter_property_keyword = accessor_span;
         this->lexer_.commit_transaction(std::move(transaction));

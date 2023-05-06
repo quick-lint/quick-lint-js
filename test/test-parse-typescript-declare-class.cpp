@@ -602,6 +602,62 @@ TEST_F(test_parse_typescript_declare_class,
                 }));
   }
 }
+
+TEST_F(test_parse_typescript_declare_class,
+       parameter_property_is_not_allowed_in_declare_class) {
+  for (string8_view keyword :
+       {u8"readonly"_sv, u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"declare class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" field);\n"_sv
+                           u8"}"_sv),
+                    typescript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_declare_class,  //
+                  property_keyword,
+                  u8"declare class C {\n  constructor("_sv.size(), keyword),
+          }));
+    }
+  }
+
+  for (string8_view keyword :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    {
+      test_parser p(concat(u8"declare class C {\n"_sv
+                           u8"  constructor("_sv,
+                           keyword,
+                           u8" readonly field);\n"_sv
+                           u8"}"_sv),
+                    typescript_options, capture_diags);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray(
+                      {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_OFFSETS(
+                  p.code,
+                  diag_typescript_parameter_property_not_allowed_in_declare_class,  //
+                  property_keyword,
+                  u8"declare class C {\n  constructor("_sv.size(), keyword),
+          }))
+          << "only '" << out_string8(keyword)
+          << "' should report a diagnostic; 'readonly' should not have its own "
+             "diagnostic";
+    }
+  }
+}
 }
 }
 

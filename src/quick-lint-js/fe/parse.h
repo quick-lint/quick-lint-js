@@ -273,16 +273,24 @@ class parser {
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
 
+  struct parameter_list_options {
+    bool in_declare_class = false;
+  };
+
   // Parse a function's parameter list, including the surrounding parentheses.
   // Tries to handle things like an extra function name before the parameter
   // list or a generator '*' before the parameter list.
   function_parameter_parse_result parse_and_visit_function_parameter_list(
       parse_visitor_base &v, std::optional<source_code_span> name);
+  function_parameter_parse_result parse_and_visit_function_parameter_list(
+      parse_visitor_base &v, std::optional<source_code_span> name,
+      parameter_list_options);
 
   // Parse a function's parameter list assuming the lexer points to the first
   // parameter (not '(').
   void parse_and_visit_function_parameters(parse_visitor_base &v,
-                                           variable_kind parameter_kind);
+                                           variable_kind parameter_kind,
+                                           parameter_list_options);
 
   std::optional<source_code_span> is_maybe_function_statement();
 
