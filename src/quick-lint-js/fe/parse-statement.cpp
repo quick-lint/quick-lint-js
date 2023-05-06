@@ -1504,7 +1504,8 @@ void parser::parse_and_visit_function_declaration(
     {
       function_guard guard = this->enter_function(attributes);
       function_parameter_parse_result result =
-          this->parse_and_visit_function_parameters(v, function_name.span());
+          this->parse_and_visit_function_parameter_list(v,
+                                                        function_name.span());
       switch (result) {
       case function_parameter_parse_result::parsed_parameters:
       case function_parameter_parse_result::missing_parameters:
@@ -1665,7 +1666,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
     function_attributes attributes) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameters(v, name);
+      this->parse_and_visit_function_parameter_list(v, name);
   switch (result) {
   case function_parameter_parse_result::parsed_parameters:
   case function_parameter_parse_result::missing_parameters:
@@ -1689,7 +1690,7 @@ void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
     function_attributes attributes) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameters(v, name);
+      this->parse_and_visit_function_parameter_list(v, name);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1713,7 +1714,7 @@ void parser::parse_and_visit_declare_class_method_parameters_and_body(
   v.visit_enter_function_scope();
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameters(v, name);
+      this->parse_and_visit_function_parameter_list(v, name);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1739,7 +1740,7 @@ void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
     function_attributes attributes) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameters(v, name);
+      this->parse_and_visit_function_parameter_list(v, name);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1758,7 +1759,7 @@ void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
 }
 
 parser::function_parameter_parse_result
-parser::parse_and_visit_function_parameters(
+parser::parse_and_visit_function_parameter_list(
     parse_visitor_base &v, std::optional<source_code_span> name) {
   if (this->peek().type == token_type::star) {
     if (!name.has_value()) {
@@ -1848,7 +1849,7 @@ parser::parse_and_visit_function_parameters(
           .function_async = this->peek().span(),
       });
       this->skip();
-      return this->parse_and_visit_function_parameters(v, name);
+      return this->parse_and_visit_function_parameter_list(v, name);
     }
     QLJS_PARSER_UNIMPLEMENTED();
     return function_parameter_parse_result::parsed_parameters;
@@ -5058,7 +5059,7 @@ void parser::parse_and_visit_declare_statement(
     {
       function_guard guard = this->enter_function(func_attributes);
       function_parameter_parse_result result =
-          this->parse_and_visit_function_parameters(v, function_name_span);
+          this->parse_and_visit_function_parameter_list(v, function_name_span);
       switch (result) {
       case function_parameter_parse_result::parsed_parameters:
       case function_parameter_parse_result::missing_parameters:
