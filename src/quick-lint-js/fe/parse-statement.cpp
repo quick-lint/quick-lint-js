@@ -1903,40 +1903,8 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
     };
 
     std::optional<source_code_span> parameter_property_keyword = std::nullopt;
-    switch (this->peek().type) {
-    // function foo(public) {}
-    // constructor(public myField) {}  // TypeScript only.
-    case token_type::kw_private:
-    case token_type::kw_protected:
-    case token_type::kw_public: {
-      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    auto parse_parameter_property_keyword = [&]() -> void {
       source_code_span accessor_span = this->peek().span();
-      lexer_transaction transaction = this->lexer_.begin_transaction();
-      this->skip();
-      if (is_after_parameter_name()) {
-        this->lexer_.roll_back_transaction(std::move(transaction));
-      } else {
-        if (!this->options_.typescript) {
-          this->diag_reporter_->report(
-              diag_typescript_parameter_property_not_allowed_in_javascript{
-                  .property_keyword = accessor_span,
-              });
-        }
-        parameter_property_keyword = accessor_span;
-        this->lexer_.commit_transaction(std::move(transaction));
-      }
-      break;
-    }
-
-    default:
-      break;
-    }
-
-    if (this->peek().type == token_type::kw_readonly) {
-      // function foo(readonly) {}
-      // constructor(readonly myField) {}         // TypeScript only.
-      // constructor(public readonly myField) {}  // TypeScript only.
-      source_code_span readonly_span = this->peek().span();
       lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
       if (is_after_parameter_name()) {
@@ -1946,12 +1914,30 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
             !parameter_property_keyword.has_value()) {
           this->diag_reporter_->report(
               diag_typescript_parameter_property_not_allowed_in_javascript{
-                  .property_keyword = readonly_span,
+                  .property_keyword = accessor_span,
               });
         }
-        parameter_property_keyword = readonly_span;
+        parameter_property_keyword = accessor_span;
         this->lexer_.commit_transaction(std::move(transaction));
       }
+    };
+    switch (this->peek().type) {
+    // function foo(public) {}
+    // constructor(public myField) {}  // TypeScript only.
+    case token_type::kw_private:
+    case token_type::kw_protected:
+    case token_type::kw_public:
+      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+      parse_parameter_property_keyword();
+      break;
+    default:
+      break;
+    }
+    if (this->peek().type == token_type::kw_readonly) {
+      // function foo(readonly) {}
+      // constructor(readonly myField) {}         // TypeScript only.
+      // constructor(public readonly myField) {}  // TypeScript only.
+      parse_parameter_property_keyword();
     }
 
     switch (this->peek().type) {
