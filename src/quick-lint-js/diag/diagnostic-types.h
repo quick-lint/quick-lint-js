@@ -2341,10 +2341,15 @@
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_parameter_property_not_allowed_in_declare_class,          \
       "E0375", diagnostic_severity::error,                                      \
-      { source_code_span property_keyword; },                                   \
+      {                                                                         \
+        source_code_span property_keyword;                                      \
+        source_code_span declare_keyword;                                       \
+      },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("parameter properties are not "                 \
                                 "allowed in 'declare class'"),                  \
-              property_keyword))                                                \
+              property_keyword)                                                 \
+          MESSAGE(QLJS_TRANSLATABLE("'declare' specified here"),                \
+                  declare_keyword))                                             \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_parameter_property_not_allowed_in_javascript, "E0371",    \

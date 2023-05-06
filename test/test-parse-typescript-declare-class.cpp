@@ -646,11 +646,12 @@ TEST_F(test_parse_typescript_declare_class,
       EXPECT_THAT(
           p.errors,
           ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
+              DIAG_TYPE_2_OFFSETS(
                   p.code,
                   diag_typescript_parameter_property_not_allowed_in_declare_class,  //
                   property_keyword,
-                  u8"declare class C {\n  constructor("_sv.size(), keyword),
+                  u8"declare class C {\n  constructor("_sv.size(), keyword,  //
+                  declare_keyword, 0, u8"declare"_sv),
           }))
           << "only '" << out_string8(keyword)
           << "' should report a diagnostic; 'readonly' should not have its own "

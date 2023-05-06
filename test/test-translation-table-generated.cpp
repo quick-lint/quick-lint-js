@@ -473,6 +473,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'declare' specified here"_translatable,
+        {
+            u8"'declare' specified here",
+            u8"'declare' specified here",
+            u8"'declare' specified here",
+            u8"'declare' specified here",
+            u8"'declare' specified here",
+            u8"'declare' specified here",
+        },
+    },
+    {
         "'do-while' loop"_translatable,
         {
             u8"'do-while' loop",

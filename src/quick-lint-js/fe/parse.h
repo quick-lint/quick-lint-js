@@ -268,13 +268,13 @@ class parser {
       function_attributes attributes);
   void parse_and_visit_declare_class_method_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes);
+      function_attributes attributes, source_code_span declare_keyword);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
 
   struct parameter_list_options {
-    bool in_declare_class = false;
+    std::optional<source_code_span> declare_class_keyword = std::nullopt;
   };
 
   // Parse a function's parameter list, including the surrounding parentheses.
@@ -353,7 +353,7 @@ class parser {
   struct parse_class_body_options {
     source_code_span class_or_interface_keyword_span;
     bool is_abstract;
-    bool is_declare;
+    std::optional<source_code_span> declare_keyword;
     bool is_interface;
   };
 

@@ -1482,6 +1482,11 @@ msgstr "propriedades privadas não são permitidas em objetos"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'declare' specified here"
+msgstr "'function' está aqui"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr "exportações de tipo do TypeScript não são permitidos em JavaScript"
 
@@ -1955,10 +1960,6 @@ msgstr "esperado {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "aqui"
-
-#, fuzzy
-#~ msgid "'declare' specified here"
-#~ msgstr "'function' está aqui"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

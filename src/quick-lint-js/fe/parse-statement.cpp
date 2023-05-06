@@ -1710,14 +1710,14 @@ void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
 
 void parser::parse_and_visit_declare_class_method_parameters_and_body(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes) {
+    function_attributes attributes, source_code_span declare_keyword) {
   v.visit_enter_function_scope();
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
       this->parse_and_visit_function_parameter_list(
           v, name,
           parameter_list_options{
-              .in_declare_class = true,
+              .declare_class_keyword = declare_keyword,
           });
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
@@ -1925,11 +1925,11 @@ void parser::parse_and_visit_function_parameters(
         this->lexer_.roll_back_transaction(std::move(transaction));
       } else {
         if (!parameter_property_keyword.has_value()) {
-          if (options.in_declare_class) {
-            // TODO(strager): Report the 'declare' keyword.
+          if (options.declare_class_keyword) {
             this->diag_reporter_->report(
                 diag_typescript_parameter_property_not_allowed_in_declare_class{
                     .property_keyword = accessor_span,
+                    .declare_keyword = *options.declare_class_keyword,
                 });
           }
           if (!this->options_.typescript) {

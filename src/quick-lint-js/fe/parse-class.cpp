@@ -59,7 +59,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
         v, parse_class_body_options{
                .class_or_interface_keyword_span = class_keyword_span,
                .is_abstract = options.abstract_keyword_span.has_value(),
-               .is_declare = options.declare_keyword_span.has_value(),
+               .declare_keyword = options.declare_keyword_span,
                .is_interface = false,
            });
     break;
@@ -257,14 +257,14 @@ void parser::parse_and_visit_class_or_interface_member(
           class_or_interface_keyword_span(class_or_interface_keyword_span),
           is_interface(is_interface),
           is_abstract(is_abstract),
-          is_declare(options.is_declare) {}
+          declare_keyword(options.declare_keyword) {}
 
     parser *p;
     parse_visitor_base &v;
     source_code_span class_or_interface_keyword_span;
     bool is_interface;
     bool is_abstract;
-    bool is_declare;
+    std::optional<source_code_span> declare_keyword;
 
     std::optional<identifier> last_ident;
 
@@ -739,9 +739,9 @@ void parser::parse_and_visit_class_or_interface_member(
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
-        if (is_declare) {
+        if (declare_keyword.has_value()) {
           p->parse_and_visit_declare_class_method_parameters_and_body(
-              v, property_name_span, attributes);
+              v, property_name_span, attributes, *declare_keyword);
         } else if (is_abstract_method) {
           v.visit_enter_function_scope();
           p->parse_and_visit_abstract_function_parameters_and_body_no_scope(
@@ -874,7 +874,7 @@ void parser::parse_and_visit_class_or_interface_member(
                 .equal = p->peek().span(),
             });
       }
-      if (is_declare && !is_interface && !bang) {
+      if (declare_keyword.has_value() && !is_interface && !bang) {
         // Don't report if we found a bang. We already reported
         // diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class.
         p->diag_reporter_->report(
@@ -882,7 +882,8 @@ void parser::parse_and_visit_class_or_interface_member(
                 .equal = p->peek().span(),
             });
       }
-      if (p->options_.typescript && !is_interface && !is_declare && bang) {
+      if (p->options_.typescript && !is_interface &&
+          !declare_keyword.has_value() && bang) {
         p->diag_reporter_->report(
             diag_typescript_assignment_asserted_field_cannot_have_initializer{
                 .equal = p->peek().span(),
@@ -963,7 +964,7 @@ void parser::parse_and_visit_class_or_interface_member(
                 .static_token = static_modifier.span,
             });
       }
-      if (is_declare && !is_interface) {
+      if (declare_keyword.has_value() && !is_interface) {
         if (p->peek().type == token_type::right_curly) {
           // static { }
           // An empty static block is legal.
@@ -990,7 +991,7 @@ void parser::parse_and_visit_class_or_interface_member(
               diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
                   .bang = assignment_assertion_modifier->span,
               });
-        } else if (is_declare) {
+        } else if (declare_keyword.has_value()) {
           p->diag_reporter_->report(
               diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class{
                   .bang = assignment_assertion_modifier->span,
@@ -1169,7 +1170,7 @@ void parser::parse_and_visit_class_or_interface_member(
           });
         }
       }
-      if (is_declare) {
+      if (declare_keyword.has_value()) {
         if (const modifier *async_modifier =
                 find_modifier(token_type::kw_async)) {
           p->diag_reporter_->report(diag_declare_class_methods_cannot_be_async{
@@ -1357,7 +1358,7 @@ void parser::parse_and_visit_typescript_interface_body(
         v, parse_class_body_options{
                .class_or_interface_keyword_span = interface_keyword_span,
                .is_abstract = false,
-               .is_declare = false,
+               .declare_keyword = std::nullopt,
                .is_interface = true,
            });
     if (this->peek().type == token_type::end_of_file) {

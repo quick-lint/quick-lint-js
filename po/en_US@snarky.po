@@ -1556,6 +1556,11 @@ msgstr "objects can't have privates 🤫"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "'declare' specified here"
+msgstr "IIFE started here"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
@@ -2022,10 +2027,6 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
-
-#, fuzzy
-#~ msgid "'declare' specified here"
-#~ msgstr "IIFE started here"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

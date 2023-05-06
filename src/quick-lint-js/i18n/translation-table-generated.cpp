@@ -53,7 +53,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 38},                 //
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 15},                 //
-        {71, 48, 0, 44, 0, 61},              //
+        {0, 0, 0, 0, 0, 61},                 //
+        {71, 48, 0, 44, 0, 25},              //
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 0, 0, 33},                 //
         {0, 0, 0, 0, 0, 91},                 //
@@ -1784,6 +1785,7 @@ const translation_table translation_data = {
         u8"'declare {1}' started here\0"
         u8"'declare' here\0"
         u8"'declare' should not be written inside a 'declare namespace'\0"
+        u8"'declare' specified here\0"
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead\0"
