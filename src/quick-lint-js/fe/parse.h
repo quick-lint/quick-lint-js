@@ -934,7 +934,8 @@ class parser {
 
   int depth_ = 0;
 
-  static constexpr const int stack_limit = 150;
+  // FIXME(strager): We should make this higher.
+  static constexpr const int stack_limit = 140;
 
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
