@@ -23,19 +23,21 @@ main() {
 
 install_tools() {
   if ! [ -f "${node_bin}/eshost" -a -f "${node_bin}/jsvu" ]; then
-    printf '%s\n' '{"dependencies": {"eshost-cli": "7.6.0", "jsvu": "*"}}' >"${HOME}/package.json"
+    printf '%s\n' '{"dependencies": {"eshost-cli": "9.0.0", "jsvu": "2.0.2"}}' >"${HOME}/package.json"
     (cd "${HOME}" && npm install --no-audit --no-optional --no-package-lock)
   fi
 }
 
 install_engines() {
   local jsvu="${HOME}/.jsvu"
-  if ! [ -f "${jsvu}/jsc" -a -f "${jsvu}/sm" -a -f "${jsvu}/v8" ]; then
+  if ! [ -f "${jsvu}/bin/jsc" -a -f "${jsvu}/bin/sm" -a -f "${jsvu}/bin/v8" ]; then
     "${node_bin}/jsvu" --engines=javascriptcore,spidermonkey,v8 --os=default
   fi
 
   if ! [ -f "${HOME}/.eshost-config.json" ]; then
-    "${node_bin}/eshost" --configure-jsvu
+    "${node_bin}/eshost" --add 'JavaScriptCore' jsc "${jsvu}/bin/javascriptcore"
+    "${node_bin}/eshost" --add 'SpiderMonkey' jsshell "${jsvu}/bin/spidermonkey"
+    "${node_bin}/eshost" --add 'V8' d8 "${jsvu}/bin/v8"
   fi
 }
 
