@@ -3982,6 +3982,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "parameter properties cannot be a rest parameter"_translatable,
+        {
+            u8"parameter properties cannot be a rest parameter",
+            u8"parameter properties cannot be a rest parameter",
+            u8"parameter properties cannot be a rest parameter",
+            u8"parameter properties cannot be a rest parameter",
+            u8"parameter properties cannot be a rest parameter",
+            u8"parameter properties cannot be a rest parameter",
+        },
+    },
+    {
         "parameter properties cannot be destructured"_translatable,
         {
             u8"parameter properties cannot be destructured",

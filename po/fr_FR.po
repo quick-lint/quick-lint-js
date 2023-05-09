@@ -1663,6 +1663,13 @@ msgstr "fonction déclarée ici"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be a rest parameter"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr "les propriétés privées ne sont pas autorisées dans les littéraux objet"
 

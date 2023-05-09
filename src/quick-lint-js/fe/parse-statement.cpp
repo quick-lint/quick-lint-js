@@ -1904,6 +1904,7 @@ void parser::parse_and_visit_function_parameters(
       // constructor(paramName [myField]) {}  // Invalid.
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case token_type::dot_dot_dot:
       case token_type::identifier:
       case token_type::kw_await:
       case token_type::kw_yield:
@@ -2008,6 +2009,17 @@ void parser::parse_and_visit_function_parameters(
                   .destructure_token =
                       static_cast<const expression::object *>(parameter)
                           ->left_curly_span(),
+                  .property_keyword = *parameter_property_keyword,
+              });
+        }
+        break;
+      case expression_kind::spread:
+        if (parameter_property_keyword.has_value()) {
+          // constructor(private ...field)  // Invalid.
+          this->diag_reporter_->report(
+              diag_typescript_parameter_property_cannot_be_rest{
+                  .spread = static_cast<const expression::spread *>(parameter)
+                                ->spread_operator_span(),
                   .property_keyword = *parameter_property_keyword,
               });
         }

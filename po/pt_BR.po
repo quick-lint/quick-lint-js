@@ -1477,6 +1477,11 @@ msgstr "função overloaded '{0}' declarada aqui"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be a rest parameter"
+msgstr "propriedades de interfaces do TypeScript não podem ser 'static'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr "propriedades privadas não são permitidas em objetos"
 

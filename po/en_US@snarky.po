@@ -1551,6 +1551,11 @@ msgstr "Safari hates this"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be a rest parameter"
+msgstr "static makes no sense in interfaces"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr "objects can't have privates 🤫"
 

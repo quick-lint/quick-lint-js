@@ -1416,6 +1416,10 @@ msgid "property declared using '{0}' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "parameter properties cannot be a rest parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr ""
 

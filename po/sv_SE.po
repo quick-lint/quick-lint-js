@@ -1542,6 +1542,11 @@ msgstr "funktion deklarerad här"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties cannot be a rest parameter"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
 

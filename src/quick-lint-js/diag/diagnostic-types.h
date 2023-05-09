@@ -2339,6 +2339,19 @@
                   property_keyword))                                            \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_parameter_property_cannot_be_rest, "E0377",               \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span spread;                                                \
+        source_code_span property_keyword;                                      \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "parameter properties cannot be a rest parameter"),           \
+              spread)                                                           \
+          MESSAGE(QLJS_TRANSLATABLE("property declared using '{0}' here"),      \
+                  property_keyword))                                            \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_parameter_property_not_allowed_in_declare_class,          \
       "E0375", diagnostic_severity::error,                                      \
       {                                                                         \
