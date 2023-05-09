@@ -12,10 +12,14 @@ Semantic Versioning.
 
 * Missing props in JSX tags now report [E0376][] ("JSX prop is missing an
   expression"). (Implemented by [James Moles][].)
-* `! ==` (with a space) now reports [E0373][]. (Implemented by [daethtech][].)
+* `! ==` (with a space) now reports [E0373][] or [E0374][]. (Implemented by
+  [daethtech][].)
 * `x == y ?? true` now reports [E0369][]. (Implemented by [Kate Conkright][].)
 * `apt install quick-lint-js` now works on ARM64 (AArch64) Debian and Ubuntu
   installations.
+* TypeScript support (still experimental):
+    * Certain invalid parameter properties (such as in `constructor(public {id,
+      name})`) now report diagnostics.
 
 ### Fixed
 
@@ -1027,6 +1031,7 @@ Beta release.
 [E0365]: https://quick-lint-js.com/errors/E0365/
 [E0369]: https://quick-lint-js.com/errors/E0369/
 [E0373]: https://quick-lint-js.com/errors/E0373/
+[E0374]: https://quick-lint-js.com/errors/E0374/
 [E0376]: https://quick-lint-js.com/errors/E0376/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
