@@ -1504,8 +1504,8 @@ void parser::parse_and_visit_function_declaration(
     {
       function_guard guard = this->enter_function(attributes);
       function_parameter_parse_result result =
-          this->parse_and_visit_function_parameter_list(v,
-                                                        function_name.span());
+          this->parse_and_visit_function_parameter_list(
+              v, function_name.span(), parameter_list_options());
       switch (result) {
       case function_parameter_parse_result::parsed_parameters:
       case function_parameter_parse_result::missing_parameters:
@@ -1604,7 +1604,7 @@ void parser::parse_and_visit_function_declaration(
       // user intended to include parentheses. Parse the function as an
       // expression instead of as a declaration.
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes);
+          v, /*name=*/std::nullopt, attributes, parameter_list_options());
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
           attributes, source_code_span(function_token_begin, function_end));
@@ -1632,13 +1632,13 @@ void parser::parse_and_visit_function_declaration(
           .function_keyword = function_token_span,
       });
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes);
+          v, /*name=*/std::nullopt, attributes, parameter_list_options());
       break;
     }
 
     case name_requirement::optional:
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes);
+          v, /*name=*/std::nullopt, attributes, parameter_list_options());
       break;
     }
     break;
@@ -1654,19 +1654,19 @@ void parser::parse_and_visit_function_declaration(
 
 void parser::parse_and_visit_function_parameters_and_body(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes) {
+    function_attributes attributes, parameter_list_options options) {
   v.visit_enter_function_scope();
-  this->parse_and_visit_function_parameters_and_body_no_scope(v, name,
-                                                              attributes);
+  this->parse_and_visit_function_parameters_and_body_no_scope(
+      v, name, attributes, options);
   v.visit_exit_function_scope();
 }
 
 void parser::parse_and_visit_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes) {
+    function_attributes attributes, parameter_list_options options) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameter_list(v, name);
+      this->parse_and_visit_function_parameter_list(v, name, options);
   switch (result) {
   case function_parameter_parse_result::parsed_parameters:
   case function_parameter_parse_result::missing_parameters:
@@ -1687,10 +1687,10 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
 
 void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes) {
+    function_attributes attributes, parameter_list_options options) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameter_list(v, name);
+      this->parse_and_visit_function_parameter_list(v, name, options);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1710,15 +1710,12 @@ void parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
 
 void parser::parse_and_visit_declare_class_method_parameters_and_body(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes, source_code_span declare_keyword) {
+    function_attributes attributes, parameter_list_options options) {
+  QLJS_ASSERT(options.declare_class_keyword.has_value());
   v.visit_enter_function_scope();
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameter_list(
-          v, name,
-          parameter_list_options{
-              .declare_class_keyword = declare_keyword,
-          });
+      this->parse_and_visit_function_parameter_list(v, name, options);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1741,10 +1738,10 @@ void parser::parse_and_visit_declare_class_method_parameters_and_body(
 
 void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
-    function_attributes attributes) {
+    function_attributes attributes, parameter_list_options options) {
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
-      this->parse_and_visit_function_parameter_list(v, name);
+      this->parse_and_visit_function_parameter_list(v, name, options);
   switch (result) {
   case function_parameter_parse_result::missing_parameters_ignore_body:
   case function_parameter_parse_result::parsed_parameters_missing_body:
@@ -1760,13 +1757,6 @@ void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
     this->parse_and_visit_statement_block_no_scope(v);
     break;
   }
-}
-
-parser::function_parameter_parse_result
-parser::parse_and_visit_function_parameter_list(
-    parse_visitor_base &v, std::optional<source_code_span> name) {
-  return this->parse_and_visit_function_parameter_list(
-      v, name, parameter_list_options());
 }
 
 parser::function_parameter_parse_result
@@ -1861,7 +1851,7 @@ parser::parse_and_visit_function_parameter_list(
           .function_async = this->peek().span(),
       });
       this->skip();
-      return this->parse_and_visit_function_parameter_list(v, name);
+      return this->parse_and_visit_function_parameter_list(v, name, options);
     }
     QLJS_PARSER_UNIMPLEMENTED();
     return function_parameter_parse_result::parsed_parameters;
@@ -5092,7 +5082,8 @@ void parser::parse_and_visit_declare_statement(
     {
       function_guard guard = this->enter_function(func_attributes);
       function_parameter_parse_result result =
-          this->parse_and_visit_function_parameter_list(v, function_name_span);
+          this->parse_and_visit_function_parameter_list(
+              v, function_name_span, parameter_list_options());
       switch (result) {
       case function_parameter_parse_result::parsed_parameters:
       case function_parameter_parse_result::missing_parameters:

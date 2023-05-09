@@ -253,35 +253,33 @@ class parser {
     missing_parameters,
   };
 
+  struct parameter_list_options {
+    std::optional<source_code_span> declare_class_keyword = std::nullopt;
+  };
+
   void parse_and_visit_function_declaration(parse_visitor_base &v,
                                             function_attributes attributes,
                                             const char8 *begin,
                                             name_requirement require_name);
   void parse_and_visit_function_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes);
+      function_attributes attributes, parameter_list_options);
   void parse_and_visit_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes);
+      function_attributes attributes, parameter_list_options);
   void parse_and_visit_abstract_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes);
+      function_attributes attributes, parameter_list_options);
   void parse_and_visit_declare_class_method_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes, source_code_span declare_keyword);
+      function_attributes attributes, parameter_list_options);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
-      function_attributes attributes);
-
-  struct parameter_list_options {
-    std::optional<source_code_span> declare_class_keyword = std::nullopt;
-  };
+      function_attributes attributes, parameter_list_options);
 
   // Parse a function's parameter list, including the surrounding parentheses.
   // Tries to handle things like an extra function name before the parameter
   // list or a generator '*' before the parameter list.
-  function_parameter_parse_result parse_and_visit_function_parameter_list(
-      parse_visitor_base &v, std::optional<source_code_span> name);
   function_parameter_parse_result parse_and_visit_function_parameter_list(
       parse_visitor_base &v, std::optional<source_code_span> name,
       parameter_list_options);

@@ -720,7 +720,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
     case token_type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
-          v, name, function_attributes::normal);
+          v, name, function_attributes::normal, parameter_list_options());
       v.visit_exit_function_scope();
       break;
 
@@ -895,7 +895,8 @@ void parser::parse_and_visit_typescript_object_type_expression(
     case token_type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
-          v, std::nullopt, function_attributes::normal);
+          v, std::nullopt, function_attributes::normal,
+          parameter_list_options());
       v.visit_exit_function_scope();
       break;
 

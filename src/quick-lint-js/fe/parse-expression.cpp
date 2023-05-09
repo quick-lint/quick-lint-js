@@ -2611,7 +2611,7 @@ expression* parser::parse_function_expression(parse_visitor_base& v,
       /*name=*/function_name.has_value()
           ? std::optional<source_code_span>(function_name->span())
           : std::nullopt,
-      attributes);
+      attributes, parameter_list_options());
   v.visit_exit_function_scope();
 
   const char8* span_end = this->lexer_.end_of_previous_token();
@@ -2694,7 +2694,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
           /*name=*/
           source_code_span(key_span_begin,
                            this->lexer_.end_of_previous_token()),
-          attributes);
+          attributes, parameter_list_options());
       break;
     }
     case token_type::right_curly:

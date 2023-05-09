@@ -525,12 +525,13 @@ void parser::parse_and_visit_class_or_interface_member(
           {
             function_attributes attributes =
                 function_attributes_from_modifiers(std::nullopt);
+            parameter_list_options param_options;
             if (is_interface) {
               p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-                  v, property_name_span, attributes);
+                  v, property_name_span, attributes, param_options);
             } else {
               p->parse_and_visit_function_parameters_and_body_no_scope(
-                  v, property_name_span, attributes);
+                  v, property_name_span, attributes, param_options);
               p->diag_reporter_->report(diag_missing_class_method_name{
                   .expected_name = property_name_span,
               });
@@ -738,23 +739,26 @@ void parser::parse_and_visit_class_or_interface_member(
 
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
+        parameter_list_options param_options = {
+            .declare_class_keyword = declare_keyword,
+        };
         bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
         if (declare_keyword.has_value()) {
           p->parse_and_visit_declare_class_method_parameters_and_body(
-              v, property_name_span, attributes, *declare_keyword);
+              v, property_name_span, attributes, param_options);
         } else if (is_abstract_method) {
           v.visit_enter_function_scope();
           p->parse_and_visit_abstract_function_parameters_and_body_no_scope(
-              v, property_name_span, attributes);
+              v, property_name_span, attributes, param_options);
           v.visit_exit_function_scope();
         } else if (is_interface) {
           v.visit_enter_function_scope();
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-              v, property_name_span, attributes);
+              v, property_name_span, attributes, param_options);
           v.visit_exit_function_scope();
         } else {
           p->parse_and_visit_function_parameters_and_body(
-              v, /*name=*/property_name_span, attributes);
+              v, /*name=*/property_name_span, attributes, param_options);
         }
         break;
       }
