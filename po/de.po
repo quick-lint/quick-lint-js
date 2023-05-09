@@ -1670,6 +1670,11 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are only allowed in class constructors"
+msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

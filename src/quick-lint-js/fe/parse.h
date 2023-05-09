@@ -255,6 +255,7 @@ class parser {
 
   struct parameter_list_options {
     std::optional<source_code_span> declare_class_keyword = std::nullopt;
+    bool is_class_constructor = false;
   };
 
   void parse_and_visit_function_declaration(parse_visitor_base &v,

@@ -3982,6 +3982,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "parameter properties are only allowed in class constructors"_translatable,
+        {
+            u8"parameter properties are only allowed in class constructors",
+            u8"parameter properties are only allowed in class constructors",
+            u8"parameter properties are only allowed in class constructors",
+            u8"parameter properties are only allowed in class constructors",
+            u8"parameter properties are only allowed in class constructors",
+            u8"parameter properties are only allowed in class constructors",
+        },
+    },
+    {
         "parameter properties cannot be a rest parameter"_translatable,
         {
             u8"parameter properties cannot be a rest parameter",

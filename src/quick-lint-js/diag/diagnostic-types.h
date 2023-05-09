@@ -2372,6 +2372,14 @@
               property_keyword))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_parameter_property_only_allowed_in_class_constructor,     \
+      "E0378", diagnostic_severity::error,                                      \
+      { source_code_span property_keyword; },                                   \
+      MESSAGE(QLJS_TRANSLATABLE("parameter properties are only "                \
+                                "allowed in class constructors"),               \
+              property_keyword))                                                \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_typescript_private_not_allowed_in_javascript, "E0222",               \
       diagnostic_severity::error, { source_code_span specifier; },              \
       MESSAGE(QLJS_TRANSLATABLE("'private' is not allowed in JavaScript"),      \

@@ -373,6 +373,7 @@ const translation_table translation_data = {
         {0, 0, 0, 68, 0, 58},                //
         {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 0, 0, 56},                 //
+        {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 48},                 //
         {0, 0, 0, 0, 0, 44},                 //
         {0, 0, 0, 0, 0, 44},                 //
@@ -2105,6 +2106,7 @@ const translation_table translation_data = {
         u8"optional tuple elements cannot come after spread elements\0"
         u8"overloaded function '{0}' declared here\0"
         u8"parameter properties are not allowed in 'declare class'\0"
+        u8"parameter properties are only allowed in class constructors\0"
         u8"parameter properties cannot be a rest parameter\0"
         u8"parameter properties cannot be destructured\0"
         u8"parentheses are required around 'infer {1}'\0"

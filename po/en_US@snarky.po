@@ -1571,6 +1571,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are only allowed in class constructors"
+msgstr "objects can't have privates 🤫"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

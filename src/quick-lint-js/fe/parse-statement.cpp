@@ -1916,6 +1916,12 @@ void parser::parse_and_visit_function_parameters(
         this->lexer_.roll_back_transaction(std::move(transaction));
       } else {
         if (!parameter_property_keyword.has_value()) {
+          if (!options.is_class_constructor) {
+            this->diag_reporter_->report(
+                diag_typescript_parameter_property_only_allowed_in_class_constructor{
+                    .property_keyword = accessor_span,
+                });
+          }
           if (options.declare_class_keyword) {
             this->diag_reporter_->report(
                 diag_typescript_parameter_property_not_allowed_in_declare_class{

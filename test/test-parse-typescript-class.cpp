@@ -1711,6 +1711,19 @@ TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
   }
 }
 
+TEST_F(test_parse_typescript_class,
+       parameter_property_in_constructor_named_with_escapes) {
+  test_parser p(
+      u8"class C {\n"_sv
+      u8"  \\u{63}onstructo\\u{72}(public readonly field) {}"_sv
+      u8"}"_sv,
+      typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(
+      p.variable_declarations,
+      ElementsAreArray({func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+}
+
 TEST_F(test_parse_typescript_class, parameter_property_cannot_destructure) {
   {
     test_parser p(
@@ -1893,6 +1906,31 @@ TEST_F(test_parse_typescript_class,
           p.variable_declarations,
           ElementsAreArray({func_param_decl(keyword), class_decl(u8"C"_sv)}));
     }
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       parameter_property_not_allowed_on_normal_method) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  notAConstructor(public field) {}\n"_sv
+        u8"}"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    // TODO(strager): Assert that visit_property_declaration(field) occurred.
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray(
+                    {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_typescript_parameter_property_only_allowed_in_class_constructor,  //
+                property_keyword, u8"class C {\n  notAConstructor("_sv.size(),
+                u8"public"_sv),
+        }));
   }
 }
 }

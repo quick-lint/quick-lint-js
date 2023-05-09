@@ -1562,6 +1562,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
+msgid "parameter properties are only allowed in class constructors"
+msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
 msgid "'private' is not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

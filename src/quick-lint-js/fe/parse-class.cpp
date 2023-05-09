@@ -741,6 +741,9 @@ void parser::parse_and_visit_class_or_interface_member(
             function_attributes_from_modifiers(property_name);
         parameter_list_options param_options = {
             .declare_class_keyword = declare_keyword,
+            .is_class_constructor =
+                property_name.has_value() &&
+                property_name->normalized_name() == u8"constructor"_sv,
         };
         bool is_abstract_method = this->find_modifier(token_type::kw_abstract);
         if (declare_keyword.has_value()) {
