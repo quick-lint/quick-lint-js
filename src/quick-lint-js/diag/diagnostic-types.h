@@ -3044,7 +3044,14 @@
       MESSAGE(QLJS_TRANSLATABLE("JSX prop is missing an expression"),           \
               left_brace_to_right_brace))                                       \
                                                                                 \
-  /* END */
+  QLJS_DIAG_TYPE(                                                               \
+      diag_keyword_contains_escape_characters, "E0379",                         \
+      diagnostic_severity::error,                                               \
+      { source_code_span escape_character_in_keyword;},                         \
+	    MESSAGE(QLJS_TRANSLATABLE("Keywords in Typescript does not allow"         \
+                            " escape characters"),                              \
+		  escape_character_in_keyword))                                             \
+/* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
 // in the past but no longer mean anything.

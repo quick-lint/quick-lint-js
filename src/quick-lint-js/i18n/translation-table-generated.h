@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 455;
-constexpr std::size_t translation_table_string_table_size = 76959;
+constexpr std::uint16_t translation_table_mapping_table_size = 456;
+constexpr std::size_t translation_table_string_table_size = 77015;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -109,6 +109,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "C-style for loops have only three semicolon-separated components"sv,
           "JSON syntax error"sv,
           "JSX prop is missing an expression"sv,
+          "Keywords in Typescript does not allow escape characters"sv,
           "React/JSX is not allowed in TypeScript code"sv,
           "React/JSX is not allowed in vanilla JavaScript code"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,

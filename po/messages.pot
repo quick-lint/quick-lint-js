@@ -1831,6 +1831,10 @@ msgstr ""
 msgid "JSX prop is missing an expression"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "Keywords in Typescript does not allow escape characters"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

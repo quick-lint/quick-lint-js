@@ -902,6 +902,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "Keywords in Typescript does not allow escape characters"_translatable,
+        {
+            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in Typescript does not allow escape characters",
+        },
+    },
+    {
         "React/JSX is not allowed in TypeScript code"_translatable,
         {
             u8"React/JSX is not allowed in TypeScript code",
