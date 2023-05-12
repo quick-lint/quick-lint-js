@@ -1952,6 +1952,36 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
         parameter_property_keyword = readonly_span;
         this->lexer_.commit_transaction(std::move(transaction));
       }
+
+      // constructor(readonly public value) {}  // Invalid
+      // constructor(public readonly value) {}  // Ok, TypeScript only
+      // constructor(readonly public) {}        // Ok, TypeScript only
+                                                // public used as identifier
+      if (this->options_.typescript) {
+        switch (this->peek().type) {
+          case token_type::kw_private:
+          case token_type::kw_public:
+          case token_type::kw_protected: {
+            source_code_span access_specifier_span = this->peek().span();
+            parser_transaction transaction = this->begin_transaction();
+            this->skip();
+
+            if (is_after_parameter_name()) {
+                this->roll_back_transaction(std::move(transaction));
+            } else {
+                this->commit_transaction(std::move(transaction));
+                this->diag_reporter_->report(
+                  diag_access_specifier_must_precede_other_modifiers{
+                  .second_modifier = access_specifier_span,
+                  .first_modifier = readonly_span
+                  });
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      }
     }
 
     switch (this->peek().type) {

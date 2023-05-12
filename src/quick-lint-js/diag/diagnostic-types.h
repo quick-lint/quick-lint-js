@@ -2976,6 +2976,15 @@
       diag_unexpected_colon_after_generic_definition, "E0331",                  \
       diagnostic_severity::error, { source_code_span colon; },                  \
       MESSAGE(QLJS_TRANSLATABLE("':' should be 'extends' instead"), colon))     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_access_specifier_must_precede_other_modifiers, "E0369",              \
+      diagnostic_severity::error, {                                             \
+        source_code_span second_modifier;                                       \
+        source_code_span first_modifier;                                        \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'{0}' access specifier must precede "          \
+                                "'{1}'"), second_modifier, first_modifier))     \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

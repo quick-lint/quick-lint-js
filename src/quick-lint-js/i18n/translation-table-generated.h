@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 447;
-constexpr std::size_t translation_table_string_table_size = 76557;
+constexpr std::uint16_t translation_table_mapping_table_size = 448;
+constexpr std::size_t translation_table_string_table_size = 76599;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -95,6 +95,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'while' loop"sv,
           "'with' statement"sv,
           "'{0} []' is always '{1}'"sv,
+          "'{0}' access specifier must precede '{1}'"sv,
           "'{0}' found here"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
           "'{0}' is not allowed on methods"sv,

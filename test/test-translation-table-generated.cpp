@@ -748,6 +748,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'{0}' access specifier must precede '{1}'"_translatable,
+        {
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+        },
+    },
+    {
         "'{0}' found here"_translatable,
         {
             u8"'{0}' found here",

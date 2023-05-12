@@ -1961,6 +1961,10 @@ msgstr ""
 msgid "':' should be 'extends' instead"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'{0}' access specifier must precede '{1}'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
