@@ -3058,6 +3058,17 @@
       MESSAGE(QLJS_TRANSLATABLE("JSX prop is missing an expression"),           \
               left_brace_to_right_brace))                                       \
                                                                                 \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_access_specifier_must_precede_other_modifiers, "E0380",              \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span second_modifier;                                       \
+        source_code_span first_modifier;                                        \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE("'{0}' access specifier must precede "          \
+                                "'{1}'"),                                       \
+              second_modifier, first_modifier))                                 \
+                                                                                \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

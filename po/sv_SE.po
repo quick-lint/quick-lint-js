@@ -2010,6 +2010,10 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 msgid "JSX prop is missing an expression"
 msgstr "with påstående saknar '{1}' runt uttryck"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'{0}' access specifier must precede '{1}'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

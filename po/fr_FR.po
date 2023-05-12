@@ -2183,6 +2183,10 @@ msgstr ""
 msgid "JSX prop is missing an expression"
 msgstr "une instruction with nécessite '{1}' autour de l'expression"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'{0}' access specifier must precede '{1}'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

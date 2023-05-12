@@ -80,7 +80,8 @@ const translation_table translation_data = {
         {73, 31, 0, 54, 0, 38},              //
         {15, 14, 0, 13, 0, 13},              //
         {0, 0, 0, 19, 0, 17},                //
-        {15, 38, 0, 25, 0, 25},              //
+        {0, 0, 0, 0, 0, 25},                 //
+        {15, 38, 0, 25, 0, 42},              //
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
         {69, 48, 0, 36, 0, 32},              //
@@ -1816,6 +1817,7 @@ const translation_table translation_data = {
         u8"'while' loop\0"
         u8"'with' statement\0"
         u8"'{0} []' is always '{1}'\0"
+        u8"'{0}' access specifier must precede '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
