@@ -834,11 +834,11 @@ TEST_F(test_parse_typescript_function,
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                      p.code,
-                      diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
-                      optional_parameter, strlen(u8"("), u8"param1?",
-                      required_parameter, strlen(u8"(param1?, "), u8"param2"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
+                optional_parameter, strlen(u8"("), u8"param1?",
+                required_parameter, strlen(u8"(param1?, "), u8"param2"),
         }));
   }
 }
@@ -852,12 +852,12 @@ TEST_F(test_parse_typescript_function,
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                      p.code,
-                      diag_optional_parameter_cannot_be_followed_by_required_parameter,   //
-                      optional_parameter, strlen(u8"("),
-                      u8"param1?: number", required_parameter, strlen(u8"(param1?: number, "),
-                      u8"param2: number"),
+            DIAG_TYPE_2_OFFSETS(
+                p.code,
+                diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
+                optional_parameter, strlen(u8"("), u8"param1?: number",
+                required_parameter, strlen(u8"(param1?: number, "),
+                u8"param2: number"),
         }));
   }
 }
