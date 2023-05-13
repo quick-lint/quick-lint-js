@@ -1,103 +1,75 @@
 {
   "releases": [
     {
-      "name": "linux.tar.gz",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "linux",
-      "arch": "x86_64/amd64",
-      "ext": "tar.gz",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/linux.tar.gz"
-    },
-    {
-      "name": "linux-aarch64.tar.gz",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "linux",
-      "arch": "aarch64",
-      "ext": "tar.gz",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/linux-aarch64.tar.gz"
-    },
-    {
-      "name": "linux-armhf.tar.gz",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "linux",
-      "arch": "armhf",
-      "ext": "tar.gz",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/linux-armhf.tar.gz"
-    },
-    {
-      "name": "macos.tar.gz",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "macos",
-      "arch": "x86_64/amd64",
-      "ext": "tar.gz",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/macos.tar.gz"
-    },
-    {
-      "name": "macos-aarch64.tar.gz",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "macos",
-      "arch": "aarch64",
-      "ext": "tar.gz",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/macos-aarch64.tar.gz"
-    },
-    {
-      "name": "windows.zip",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "windows",
-      "arch": "x86_64/amd64",
-      "ext": "zip",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/windows.tar.gz"
-    },
-    {
-      "name": "windows-arm.zip",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "windows",
-      "arch": "arm",
-      "ext": "zip",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/windows-arm.zip"
-    },
-    {
-      "name": "windows-arm64.zip",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "windows",
-      "arch": "arm64",
-      "ext": "zip",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/windows-arm64.zip"
-    },
-    {
-      "name": "windows-x86.zip",
-      "version": "${version}",
-      "lts": false,
-      "channel": "stable",
-      "date": "${releaseDate}",
-      "os": "windows",
-      "arch": "x86",
-      "ext": "zip",
-      "download": "https://c.quick-lint-js.com/releases/${version}/manual/windows-x86.zip"
+      "name": "linux.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "linux", "arch": "x86", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/linux.tar.gz"
+    },    {
+      "name": "linux.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "linux", "arch": "x64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/linux.tar.gz"
+    },    {
+      "name": "linux.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}", "os":
+      "linux", "arch": "amd64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/linux.tar.gz"
+    }, {
+      "name": "linux-aarch64.tar.gz", "version": "${version}",
+      "lts": false, "channel": "stable", "date": "${releaseDate}",
+      "os": "linux", "arch": "aarch64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/linux-aarch64.tar.gz"
+    }, {
+      "name": "linux-armhf.tar.gz", "version": "${version}",
+      "lts": false, "channel": "stable", "date": "${releaseDate}",
+      "os": "linux", "arch": "armhf", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/linux-armhf.tar.gz"
+    }, {
+      "name": "macos.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "macos", "arch": "x86", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/macos.tar.gz"
+    },    {
+      "name": "macos.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "macos", "arch": "x64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/macos.tar.gz"
+    },    {
+      "name": "macos.tar.gz", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}", "os":
+      "macos", "arch": "amd64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/macos.tar.gz"
+    }, {
+      "name": "macos-aarch64.tar.gz", "version": "${version}",
+      "lts": false, "channel": "stable", "date": "${releaseDate}",
+      "os": "macos", "arch": "aarch64", "ext": "tar.gz", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/macos-aarch64.tar.gz"
+    }, {
+      "name": "windows.zip", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "windows", "arch": "x64", "ext": "zip", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/windows.tar.gz"
+    },    {
+      "name": "windows.zip", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "windows", "arch": "amd64", "ext": "zip", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/windows.tar.gz"
+    }, {
+      "name": "windows-arm.zip", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "windows", "arch": "arm", "ext": "zip", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/windows-arm.zip"
+    }, {
+      "name": "windows-arm64.zip", "version": "${version}",
+      "lts": false, "channel": "stable", "date": "${releaseDate}",
+      "os": "windows", "arch": "arm64", "ext": "zip", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/windows-arm64.zip"
+    }, {
+      "name": "windows-x86.zip", "version": "${version}", "lts":
+      false, "channel": "stable", "date": "${releaseDate}",
+      "os": "windows", "arch": "x86", "ext": "zip", "download":
+      "https://c.quick-lint-js.com/releases/${version}/manual/windows-x86.zip"
     }
   ]
 }
