@@ -2023,13 +2023,13 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
           (parameter->kind() == expression_kind::type_annotated &&
            parameter->child_0()->kind() == expression_kind::optional)) {
         previous_optional_span = parameter->span();
-      } else if (previous_optional_span.has_value()) {
-        this->diag_reporter_->report(
+      } else {
+        if (previous_optional_span.has_value()) {
+          this->diag_reporter_->report(
             diag_optional_parameter_cannot_be_followed_by_required_parameter{
                 .optional_parameter = *previous_optional_span,
                 .required_parameter = parameter->span()});
-        previous_optional_span = std::nullopt;
-      } else {
+          }
         previous_optional_span = std::nullopt;
       }
       if (parameter->kind() == expression_kind::spread) {
