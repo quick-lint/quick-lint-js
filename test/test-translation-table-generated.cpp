@@ -1694,6 +1694,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "cannot be followed by a required parameter"_translatable,
+        {
+            u8"cannot be followed by a required parameter",
+            u8"cannot be followed by a required parameter",
+            u8"cannot be followed by a required parameter",
+            u8"cannot be followed by a required parameter",
+            u8"cannot be followed by a required parameter",
+            u8"cannot be followed by a required parameter",
+        },
+    },
+    {
         "cannot declare 'await' inside async function"_translatable,
         {
             u8"cannot declare 'await' inside async function",
@@ -3927,14 +3938,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "optional parameter cannot be followed by a required parameter"_translatable,
+        "optional parameter"_translatable,
         {
-            u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
-            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter",
+            u8"optional parameter",
+            u8"optional parameter",
+            u8"optional parameter",
+            u8"optional parameter",
+            u8"optional parameter",
         },
     },
     {

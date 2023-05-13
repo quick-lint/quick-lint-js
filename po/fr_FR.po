@@ -1241,7 +1241,12 @@ msgstr "appel de fonction débuté ici"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "optional parameter cannot be followed by a required parameter"
+msgid "optional parameter"
+msgstr "paramètre optionnel"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "cannot be followed by a required parameter"
 msgstr "un paramètre optionnel ne peut être suivi d'un paramètre requis"
 
 #: src/quick-lint-js/diag/diagnostic-types.h

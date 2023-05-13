@@ -164,7 +164,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 50},                 //
         {73, 51, 90, 53, 0, 58},             //
         {54, 29, 70, 63, 0, 47},             //
-        {66, 38, 70, 71, 49, 49},            //
+        {0, 0, 0, 0, 0, 49},                 //
+        {66, 38, 70, 71, 49, 43},            //
         {62, 81, 69, 64, 48, 45},            //
         {65, 37, 77, 68, 54, 49},            //
         {61, 28, 73, 69, 63, 57},            //
@@ -368,7 +369,7 @@ const translation_table translation_data = {
         {0, 0, 0, 71, 0, 62},                //
         {35, 37, 0, 76, 0, 68},              //
         {0, 0, 0, 0, 0, 25},                 //
-        {0, 0, 0, 29, 0, 62},                //
+        {0, 0, 0, 29, 0, 19},                //
         {0, 0, 0, 0, 0, 68},                 //
         {0, 0, 0, 68, 0, 58},                //
         {0, 0, 0, 0, 0, 40},                 //
@@ -1895,6 +1896,7 @@ const translation_table translation_data = {
         u8"cannot 'export default' from inside a 'declare namespace'\0"
         u8"cannot access private identifier outside class\0"
         u8"cannot assign to loop variable in for of/in loop\0"
+        u8"cannot be followed by a required parameter\0"
         u8"cannot declare 'await' inside async function\0"
         u8"cannot declare 'yield' inside generator function\0"
         u8"cannot declare and export variable with 'export default'\0"
@@ -2098,7 +2100,7 @@ const translation_table translation_data = {
         u8"only one comma is allowed between or after generic parameters\0"
         u8"only optional tuple elements can follow this optional tuple element\0"
         u8"opening '<{1}>' tag here\0"
-        u8"optional parameter cannot be followed by a required parameter\0"
+        u8"optional parameter\0"
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"optional tuple elements cannot come after spread elements\0"
         u8"overloaded function '{0}' declared here\0"
