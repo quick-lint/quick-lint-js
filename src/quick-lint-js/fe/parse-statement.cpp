@@ -2026,7 +2026,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v,
       } else if (previous_optional) {
         this->diag_reporter_->report(
             diag_optional_parameter_cannot_be_followed_by_required_parameter{
-                .optional_parameter = parameter->span()
+                .optional_parameter = parameter->span(),
                 .required_parameter = parameter->span()});
       }
       if (parameter->kind() == expression_kind::spread) {
