@@ -861,10 +861,10 @@ TEST_F(test_parse_typescript_function,
         }));
   }
 
-
   {
-    test_parser p(u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,
-                  typescript_options, capture_diags);
+    test_parser p(
+        u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,
+        typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,

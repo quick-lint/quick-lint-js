@@ -1758,8 +1758,11 @@
         source_code_span optional_parameter;                                    \
         source_code_span required_parameter;                                    \
       },                                                                        \
-      MESSAGE(QLJS_TRANSLATABLE("optional parameter cannot be followed by a required parameter"), optional_parameter)      \
-          MESSAGE(QLJS_TRANSLATABLE("this required parameter appears after the optional parameter"),         \
+      MESSAGE(QLJS_TRANSLATABLE("optional parameter cannot be followed by a "   \
+                                "required parameter"),                          \
+              optional_parameter)                                               \
+          MESSAGE(QLJS_TRANSLATABLE("this required parameter appears after "    \
+                                    "the optional parameter"),                  \
                   required_parameter))                                          \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
