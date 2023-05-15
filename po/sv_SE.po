@@ -1166,13 +1166,12 @@ msgstr "funktionkallelse startar här"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "optional parameter"
-msgstr "ogiltig funktions parameter"
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "kommatecken är inte tillåtet efter sprid parameter"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
-msgid "cannot be followed by a required parameter"
-msgstr "kommatecken är inte tillåtet efter sprid parameter"
+msgid "this required parameter appears after the optional parameter"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

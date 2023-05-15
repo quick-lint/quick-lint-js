@@ -1081,11 +1081,11 @@ msgid "initializer starts here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "optional parameter"
+msgid "optional parameter cannot be followed by a required parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot be followed by a required parameter"
+msgid "this required parameter appears after the optional parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h

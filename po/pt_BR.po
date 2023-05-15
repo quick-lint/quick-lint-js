@@ -1121,13 +1121,12 @@ msgstr "inicializador inicia aqui"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
-msgid "optional parameter"
-msgstr "parâmetro de função inválido"
+msgid "optional parameter cannot be followed by a required parameter"
+msgstr "vírgulas não são permitidas após parâmetro com spread"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-#, fuzzy
-msgid "cannot be followed by a required parameter"
-msgstr "vírgulas não são permitidas após parâmetro com spread"
+msgid "this required parameter appears after the optional parameter"
+msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"

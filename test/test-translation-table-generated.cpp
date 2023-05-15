@@ -1694,17 +1694,6 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "cannot be followed by a required parameter"_translatable,
-        {
-            u8"cannot be followed by a required parameter",
-            u8"cannot be followed by a required parameter",
-            u8"cannot be followed by a required parameter",
-            u8"cannot be followed by a required parameter",
-            u8"cannot be followed by a required parameter",
-            u8"cannot be followed by a required parameter",
-        },
-    },
-    {
         "cannot declare 'await' inside async function"_translatable,
         {
             u8"cannot declare 'await' inside async function",
@@ -3938,14 +3927,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "optional parameter"_translatable,
+        "optional parameter cannot be followed by a required parameter"_translatable,
         {
-            u8"optional parameter",
-            u8"optional parameter",
-            u8"optional parameter",
-            u8"optional parameter",
-            u8"optional parameter",
-            u8"optional parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
         },
     },
     {
@@ -4221,6 +4210,17 @@ const translated_string test_translation_table[] = {
             u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
+        },
+    },
+    {
+        "this required parameter appears after the optional parameter"_translatable,
+        {
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
         },
     },
     {
