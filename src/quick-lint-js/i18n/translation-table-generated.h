@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 455;
-constexpr std::size_t translation_table_string_table_size = 76959;
+constexpr std::uint16_t translation_table_mapping_table_size = 457;
+constexpr std::size_t translation_table_string_table_size = 77082;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -385,6 +385,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "only one comma is allowed between or after generic parameters"sv,
           "only optional tuple elements can follow this optional tuple element"sv,
           "opening '<{1}>' tag here"sv,
+          "optional parameter cannot be followed by a required parameter"sv,
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "optional tuple elements cannot come after spread elements"sv,
           "overloaded function '{0}' declared here"sv,
@@ -413,6 +414,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "switch statement is missing '{1}' around condition"sv,
           "switch statement needs parentheses around condition"sv,
           "this case will run instead"sv,
+          "this required parameter appears after the optional parameter"sv,
           "this tuple type is a named tuple type because at least one element has a name"sv,
           "this {0} looks fishy"sv,
           "this {1} looks fishy"sv,

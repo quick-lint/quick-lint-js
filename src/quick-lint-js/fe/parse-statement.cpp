@@ -1868,7 +1868,9 @@ void parser::parse_and_visit_function_parameters(
     parse_visitor_base &v, variable_kind parameter_kind,
     parameter_list_options options) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
+  std::optional<source_code_span> previous_optional_span = std::nullopt;
   bool first_parameter = true;
+
   const char8 *first_parameter_begin = this->peek().begin;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
@@ -2031,6 +2033,20 @@ void parser::parse_and_visit_function_parameters(
               .init_kind = variable_init_kind::normal,
               .first_parameter_begin = first_parameter_begin,
           });
+
+      if (parameter->kind() == expression_kind::optional ||
+          (parameter->kind() == expression_kind::type_annotated &&
+           parameter->child_0()->kind() == expression_kind::optional)) {
+        previous_optional_span = parameter->span();
+      } else {
+        if (previous_optional_span.has_value()) {
+          this->diag_reporter_->report(
+              diag_optional_parameter_cannot_be_followed_by_required_parameter{
+                  .optional_parameter = *previous_optional_span,
+                  .required_parameter = parameter->span()});
+        }
+        previous_optional_span = std::nullopt;
+      }
       if (parameter->kind() == expression_kind::spread) {
         last_parameter_spread_span = parameter->span();
       } else {
