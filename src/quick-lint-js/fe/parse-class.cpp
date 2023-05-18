@@ -46,7 +46,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
         .declare_keyword = *options.declare_keyword_span,
     });
   }
-
+  
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
 
   v.visit_enter_class_scope();
@@ -419,6 +419,11 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
+        if (p->options_.typescript) {
+          p->diag_reporter_->report(diag_keyword_contains_escape_characters{
+              .escape_character_in_keyword = p->peek().span()
+          });
+        }
         p->skip();
         parse_and_visit_field_or_method(property_name);
         break;
