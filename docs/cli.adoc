@@ -299,7 +299,7 @@ lib/index.js:1:20: error: variable used before declaration: language [E0058]
 lib/index.js:2:7: note: variable declared here [E0058]
 lib/index.js:3:1: error: assignment to const variable [E0003]
 lib/index.js:1:7: note: const variable declared here [E0003]
-lib/index.js:5:25: warning: use of undeclared variable: ocupation [E0057]
+lib/index.js:5:25: warning: use of undeclared variable: occupation [E0057]
 ----
 ____
 
