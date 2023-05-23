@@ -548,7 +548,7 @@ func GetGitUncommittedChanges() []string {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.Output()
 	if err != nil {
-		Stopf("failed to get Git commit hash: %v", err)
+		Stopf("failed to get uncommitted changes: %v", err)
 	}
 	changes := RemoveEmptyStrings(StringLines(string(stdout)))
 	return changes
