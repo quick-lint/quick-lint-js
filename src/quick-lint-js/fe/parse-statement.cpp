@@ -28,6 +28,12 @@
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
+bool parser::parse_and_visit_module_catching_fatal_parse_errors(
+    parse_visitor_base &v) {
+  return this->catch_fatal_parse_errors(
+      [this, &v] { this->parse_and_visit_module(v); });
+}
+
 void parser::parse_and_visit_module(parse_visitor_base &v) {
   bool done = false;
   while (!done) {
