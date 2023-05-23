@@ -35,7 +35,7 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Verifying checkout",
 		Run: func() {
-			uncommittedChanges := GetGitUncommittedChanges()
+			uncommittedChanges := GetUncommittedChanges()
 			if len(uncommittedChanges) > 0 {
 				fmt.Printf("fatal error: uncommitted changes in Git:\n")
 				for _, line := range uncommittedChanges {
@@ -145,7 +145,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("Create a commit.\n")
 			WaitForDone()
-			ReleaseCommitHash = GetCurrentGitCommitHash()
+			ReleaseCommitHash = GetCurrentCommitHash()
 		},
 	},
 
@@ -533,25 +533,47 @@ func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
 	return fileContent
 }
 
-func GetCurrentGitCommitHash() string {
-	cmd := exec.Command("git", "rev-parse", "@")
-	cmd.Stderr = os.Stderr
-	stdout, err := cmd.Output()
+func GetCurrentCommitHash() string {
+	commitHash, err := GetCurrentGitCommitHash()
 	if err != nil {
+		exitErr, ok := err.(*exec.ExitError)
+		if ok {
+			log.Printf("%s", exitErr.Stderr)
+		}
 		Stopf("failed to get Git commit hash: %v", err)
 	}
-	return strings.TrimSpace(string(stdout))
+	return commitHash
 }
 
-func GetGitUncommittedChanges() []string {
-	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
-	cmd.Stderr = os.Stderr
+func GetCurrentGitCommitHash() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "@")
 	stdout, err := cmd.Output()
 	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(stdout)), nil
+}
+
+func GetUncommittedChanges() []string {
+	changes, err := GetGitUncommittedChanges()
+	if err != nil {
+		exitErr, ok := err.(*exec.ExitError)
+		if ok {
+			log.Printf("%s", exitErr.Stderr)
+		}
 		Stopf("failed to get uncommitted changes: %v", err)
 	}
-	changes := RemoveEmptyStrings(StringLines(string(stdout)))
 	return changes
+}
+
+func GetGitUncommittedChanges() ([]string, error) {
+	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
+	stdout, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	changes := RemoveEmptyStrings(StringLines(string(stdout)))
+	return changes, nil
 }
 
 type VersionFileInfo struct {
