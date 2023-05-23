@@ -37,7 +37,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			uncommittedChanges := GetUncommittedChanges()
 			if len(uncommittedChanges) > 0 {
-				fmt.Printf("fatal error: uncommitted changes in Git:\n")
+				fmt.Printf("fatal error: uncommitted changes:\n")
 				for _, line := range uncommittedChanges {
 					fmt.Printf("  %s\n", line)
 				}
@@ -534,15 +534,25 @@ func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
 }
 
 func GetCurrentCommitHash() string {
-	commitHash, err := GetCurrentGitCommitHash()
-	if err != nil {
-		exitErr, ok := err.(*exec.ExitError)
-		if ok {
-			log.Printf("%s", exitErr.Stderr)
-		}
-		Stopf("failed to get Git commit hash: %v", err)
+	commitHash, gitErr := GetCurrentGitCommitHash()
+	if gitErr == nil {
+		return commitHash
 	}
-	return commitHash
+	commitHash, saplingErr := GetCurrentSaplingCommitHash()
+	if saplingErr == nil {
+		return commitHash
+	}
+
+	exitErr, ok := gitErr.(*exec.ExitError)
+	if ok {
+		log.Printf("Git: %s", exitErr.Stderr)
+	}
+	exitErr, ok = saplingErr.(*exec.ExitError)
+	if ok {
+		log.Printf("Sapling: %s", exitErr.Stderr)
+	}
+	Stopf("failed to get commit hash:\nGit: %v\nSapling: %v", gitErr, saplingErr)
+	return "(invalid)"
 }
 
 func GetCurrentGitCommitHash() (string, error) {
@@ -554,20 +564,49 @@ func GetCurrentGitCommitHash() (string, error) {
 	return strings.TrimSpace(string(stdout)), nil
 }
 
-func GetUncommittedChanges() []string {
-	changes, err := GetGitUncommittedChanges()
+func GetCurrentSaplingCommitHash() (string, error) {
+	cmd := exec.Command("sl", "log", "--template", "{node}", "--rev", ".")
+	stdout, err := cmd.Output()
 	if err != nil {
-		exitErr, ok := err.(*exec.ExitError)
-		if ok {
-			log.Printf("%s", exitErr.Stderr)
-		}
-		Stopf("failed to get uncommitted changes: %v", err)
+		return "", err
 	}
-	return changes
+	return strings.TrimSpace(string(stdout)), nil
+}
+
+func GetUncommittedChanges() []string {
+	changes, gitErr := GetGitUncommittedChanges()
+	if gitErr == nil {
+		return changes
+	}
+	changes, saplingErr := GetSaplingUncommittedChanges()
+	if saplingErr == nil {
+		return changes
+	}
+
+	exitErr, ok := gitErr.(*exec.ExitError)
+	if ok {
+		log.Printf("Git: %s", exitErr.Stderr)
+	}
+	exitErr, ok = saplingErr.(*exec.ExitError)
+	if ok {
+		log.Printf("Sapling: %s", exitErr.Stderr)
+	}
+	Stopf("failed to get uncommitted changes:\nGit: %v\nSapling: %v", gitErr, saplingErr)
+	return nil
 }
 
 func GetGitUncommittedChanges() ([]string, error) {
 	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
+	stdout, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	changes := RemoveEmptyStrings(StringLines(string(stdout)))
+	return changes, nil
+}
+
+func GetSaplingUncommittedChanges() ([]string, error) {
+	cmd := exec.Command("sl", "status", "--added", "--modified", "--removed")
 	stdout, err := cmd.Output()
 	if err != nil {
 		return nil, err
