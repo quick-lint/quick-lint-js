@@ -20,6 +20,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
     * Certain invalid parameter properties (such as in `constructor(public {id,
       name})`) now report diagnostics.
+    * `function f(a?, b) {}` now reports [E0379][]. (Implemented by [Alek
+      Lefebvre][].)
 
 ### Fixed
 
@@ -28,6 +30,9 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * '\`hello${world}\` as const' no longer falsely reports [E0291][].
     (Fixed by [Leszek Nowicki][].)
+* Windows: Fixed a build failure with MinGW GCC 13.1.0.
+* Shell completions are now up to date with the CLI. (Fixed by [Jake
+  Castelli][].)
 * FreeBSD: quick-lint-js no longer fails to build.
 
 ### Changed
@@ -907,6 +912,7 @@ Beta release.
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
+[Jake Castelli]: https://github.com/jakecastelli
 [James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
@@ -1033,6 +1039,7 @@ Beta release.
 [E0373]: https://quick-lint-js.com/errors/E0373/
 [E0374]: https://quick-lint-js.com/errors/E0374/
 [E0376]: https://quick-lint-js.com/errors/E0376/
+[E0379]: https://quick-lint-js.com/errors/E0379/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
