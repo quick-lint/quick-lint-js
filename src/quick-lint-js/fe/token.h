@@ -322,6 +322,7 @@ struct token {
   // If the token contains no escape sequences, .normalized_identifier is
   // equivalent to string8_view(.begin, .end).
   string8_view normalized_identifier;
+  bool contains_escape_sequence();
 
   union {
     // Used only if this is a reserved_keyword_with_escape_sequence token.
