@@ -1949,8 +1949,8 @@ TEST_F(test_parse_typescript_class,
           DIAG_TYPE_OFFSETS(
               p.code,
               diag_keyword_contains_escape_characters,  //
-              escape_character_in_keyword, u8"class C {\n  \\u{63}onstructor("_sv.size(), 
-              u8"\\u{63}"_sv),
+              escape_character_in_keyword, strlen(u8"class C {\n  "), 
+              u8"\\u{63}onstructor"_sv),
       }));
 }
 }

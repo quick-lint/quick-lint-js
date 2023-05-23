@@ -419,7 +419,8 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
-        if (p->options_.typescript) {
+        token current_token = p->peek();
+        if (p->options_.typescript && current_token.contains_escape_sequence()) {
           p->diag_reporter_->report(diag_keyword_contains_escape_characters{
               .escape_character_in_keyword = p->peek().span()
           });
