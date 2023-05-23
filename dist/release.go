@@ -300,7 +300,7 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Create GitHub release",
 		Run: func() {
-			fmt.Printf("Create a GitHub release:")
+			fmt.Printf("Create a GitHub release:\n")
 			fmt.Printf("$ go run dist/update-release-notes.go -AuthToken=YOUR_ACCESS_TOKEN\n")
 			WaitForDone()
 		},
