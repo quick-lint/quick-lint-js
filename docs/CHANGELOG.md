@@ -15,6 +15,13 @@ Semantic Versioning.
   documentation](https://quick-lint-js.com/docs/lsp/#_configuration) for
   details.
 
+### Fixed
+
+* Emacs (Flycheck): Using `C-x C-;` to comment a line now runs quick-lint-js
+  (instead of leaving old diagnostics on the screen). This requires that you
+  update your Emacs file: add `new-line` to the
+  `flycheck-check-syntax-automatically` variable.
+
 ## 2.14.0 (2023-05-22)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.14.0/)

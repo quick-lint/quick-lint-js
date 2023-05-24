@@ -167,7 +167,7 @@
                 (flycheck-mode))
               (flycheck-select-checker 'javascript-quicklintjs)
               (setq-local flycheck-idle-change-delay 0)
-              (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change)))
+              (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change new-line)))
 
               (custom-set-variables
                '(flycheck-javascript-quicklintjs-executable "${packages.quick-lint-js}/bin/quick-lint-js"))
