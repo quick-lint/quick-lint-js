@@ -1953,6 +1953,49 @@ TEST_F(test_parse_typescript_class,
               u8"\\u{63}onstructor"_sv),
       }));
 }
+
+TEST_F(test_parse_typescript_class, no_diag_for_more_than_one_escape) {
+  test_parser p(
+      u8"class C {\n"_sv
+      u8"  \\u{63}onstructo\\u{72}() {}"_sv  // equivalent to: constructor() {}
+      u8"}"_sv,
+      typescript_options, capture_diags);
+  p.parse_and_visit_statement();
+
+  EXPECT_THAT(
+      p.visits,
+      ElementsAreArray(
+          {"visit_enter_class_scope", "visit_enter_class_scope_body",
+           "visit_property_declaration", "visit_enter_function_scope",
+           "visit_enter_function_scope_body", "visit_exit_function_scope",
+           "visit_exit_class_scope", "visit_variable_declaration"}));
+}
+
+TEST_F(test_parse_typescript_class, class_keyword_with_escape_sequence_legal_in_js) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  \\u{63}onstructor() {}"_sv  // equivalent to: constructor() {}
+        u8"}"_sv,
+        javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_typescript_class,
+       interface_keyword_with_escape_sequence) {
+  {
+    test_parser p(
+        u8"class C {\n"_sv
+        u8"  \\u{63}onstructor() {}"_sv  // equivalent to: constructor() {}
+        u8"}"_sv,
+        javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
+                              DIAG_TYPE(diag_depth_limit_exceeded))));
+  }
+}
 }
 }
 
