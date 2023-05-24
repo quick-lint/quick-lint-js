@@ -6,6 +6,15 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* LSP server: quick-lint-js can now receive configuration options via the
+  `initialize` request. See [LSP configuration
+  documentation](https://quick-lint-js.com/docs/lsp/#_configuration) for
+  details.
+
 ## 2.14.0 (2023-05-22)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.14.0/)

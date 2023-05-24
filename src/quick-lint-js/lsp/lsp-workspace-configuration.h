@@ -43,6 +43,13 @@ class lsp_workspace_configuration {
   // LSP client.
   bool process_notification(::simdjson::ondemand::object settings);
 
+  // Handle params.initializationOptions.configuration from an initialize
+  // JSON-RPC request sent by the LSP client.
+  //
+  // This is custom to quick-lint-js and is not part of LSP itself.
+  bool process_initialization_options(
+      ::simdjson::ondemand::object initialization_options_configuration);
+
  private:
   struct item {
     string8_view name;

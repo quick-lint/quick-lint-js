@@ -285,6 +285,32 @@ Log raw LSP messages between the editor and quick\-lint\-js.
 A timestamped subdirectory is created inside the tracing directory containing binary log files.
 If null or an empty string, tracing is disabled.
 .RE
+.sp
+It is also possible to configure quick\-lint\-js using the \f(CRinitialize\fP request.
+To do so, set \f(CRinitializationOptions\fP to an object containing a \f(CRconfiguration\fP object containing the settings.
+For example, the following \f(CRinitialize\fP request sets \f(CRquick\-lint\-js.tracing\-directory\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "processId": null,
+    "rootUri": null,
+    "capabilities": {},
+    "initializationOptions": {
+      "configuration": {
+        "quick\-lint\-js.tracing\-directory": "/tmp/quick\-lint\-js\-logs"
+      }
+    }
+  }
+}
+.fam
+.fi
+.if n .RE
 .SH "SEE ALSO"
 .sp
 \fBquick\-lint\-js\fP(1)

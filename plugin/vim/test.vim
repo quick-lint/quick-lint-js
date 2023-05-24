@@ -17,6 +17,9 @@ endfunction
 function! s:test_all() abort
   call s:test_parse_command_output()
   call s:test_buffer_is_associated_with_file()
+  if has('nvim')
+    call s:test_nvim_lspconfig_update_initialization_options_from_settings()
+  endif
 endfunction
 
 function! s:test_parse_command_output() abort
@@ -102,6 +105,55 @@ function! s:test_buffer_is_associated_with_file() abort
   new
   call assert_false(quick_lint_js_ale#is_buffer_associated_with_file(bufnr('%')))
   call assert_true(quick_lint_js_ale#is_buffer_associated_with_file(l:file_buffer_number))
+endfunction
+
+function! s:test_nvim_lspconfig_update_initialization_options_from_settings() abort
+  lua << EOF
+    function assert_equal(actual, expected)
+      assert(actual == expected, "assertion failed\nexpected: " .. vim.inspect(expected) .. "\nactual:  " .. vim.inspect(actual))
+    end
+    function assert_tables_equal(actual, expected)
+      assert_equal(vim.inspect(actual), vim.inspect(expected))
+    end
+    local qljs = require('quick-lint-js')
+
+    local update_options = qljs.nvim_lspconfig_update_initialization_options_from_settings
+
+    -- Does nothing if there are no settings.
+    local initialize_params = {}
+    update_options(initialize_params, {})
+    assert_tables_equal(initialize_params, {})
+
+    -- Creates initializationOptions.configuration if missing.
+    initialize_params = {initializationOptions = {}}
+    update_options(initialize_params, {section = {setting = "value"}})
+    assert_tables_equal(initialize_params, {
+      initializationOptions = {
+        configuration = {["section.setting"] = "value"},
+      },
+    })
+
+    -- Creates initializationOptions and initializationOptions.configuration if
+    -- missing.
+    initialize_params = {}
+    update_options(initialize_params, {section = {setting = "value"}})
+    assert_tables_equal(initialize_params, {
+      initializationOptions = {
+        configuration = {["section.setting"] = "value"},
+      },
+    })
+
+    -- Does not overwrite existing entry in initializationOptions.configuration.
+    initialize_params = {initializationOptions = {
+        configuration = {["section.setting"] = "initvalue"},
+    }}
+    update_options(initialize_params, {section = {setting = "settingvalue"}})
+    assert_tables_equal(initialize_params, {
+      initializationOptions = {
+        configuration = {["section.setting"] = "initvalue"},
+      },
+    })
+EOF
 endfunction
 
 function! s:check_for_errors() abort
