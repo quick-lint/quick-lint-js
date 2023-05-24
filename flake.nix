@@ -12,6 +12,7 @@
 #
 # $ # Run Neovim with quick-lint-js installed:
 # $ nix run .#simple-neovim-with-qljs
+# $ nix run .#neovim-nvim-lspconfig
 #
 # $ # Test shell completions:
 # $ nix run .#bash
@@ -100,6 +101,25 @@
                 ];
                 # manually loadable by calling `:packadd $plugin-name`
                 opt = [ ];
+            };
+          };
+        };
+
+        # Neovim configured with quick-lint-js and nvim-lspconfig for testing.
+        packages.neovim-nvim-lspconfig = pkgs.neovim.override {
+          configure = {
+            customRC = ''
+              lua << EOF
+              require('lspconfig/quick_lint_js').setup {
+                cmd = {"${packages.quick-lint-js}/bin/quick-lint-js", "--lsp-server"},
+              }
+              EOF
+            '';
+            packages.myPackages = {
+              start = [
+                pkgs.vimPlugins.nvim-lspconfig
+                packages.vimPlugin
+              ];
             };
           };
         };
