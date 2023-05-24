@@ -14,6 +14,9 @@
 # $ nix run .#simple-neovim-with-qljs
 # $ nix run .#neovim-nvim-lspconfig
 #
+# $ # Run Emacs with quick-lint-js installed:
+# $ nix run .#emacs-flycheck
+#
 # $ # Test shell completions:
 # $ nix run .#bash
 # $ nix run .#fish
@@ -29,6 +32,18 @@
       in rec {
         # Runs with nix build .#quick-lint-js
         packages.quick-lint-js = pkgs.callPackage ./dist/nix/quick-lint-js.nix { };
+
+        packages.emacsPlugin = let epkgs = pkgs.emacs.pkgs; in epkgs.trivialBuild {
+          pname = "quick-lint-js";
+          src = plugin/emacs;
+          nativeBuildInputs = [
+            epkgs.eglot
+            epkgs.flycheck
+            epkgs.lsp-mode
+            epkgs.flymake
+          ];
+          meta = packages.quick-lint-js.meta;
+        };
 
         packages.vimPlugin = pkgs.vimUtils.buildVimPlugin {
           name = "quick-lint-js";
@@ -122,6 +137,42 @@
               ];
             };
           };
+        };
+
+        # Create a custom version of Emacs with the given list of packages and
+        # elisp settings.
+        makeCustomEmacsWith = { emacsConfig, packages }:
+          let
+            emacsConfigFile = pkgs.writeText "default.el" emacsConfig;
+            emacsConfigPackage = pkgs.runCommand "default.el" {} ''
+              mkdir -p $out/share/emacs/site-lisp
+              cp ${emacsConfigFile} $out/share/emacs/site-lisp/default.el
+            '';
+            emacs = pkgs.emacs.pkgs.withPackages (epkgs: packages epkgs ++ [ emacsConfigPackage ]);
+          in pkgs.writeShellScriptBin "emacs-custom" "exec ${emacs}/bin/emacs \"\${@}\"";
+
+        # Emacs configured with quick-lint-js and Flycheck for testing.
+        packages.emacs-flycheck = makeCustomEmacsWith {
+          packages = epkgs: [
+            packages.emacsPlugin
+            epkgs.flycheck
+          ];
+          emacsConfig = ''
+            (require 'flycheck-quicklintjs)
+
+            (defun my-flycheck-quicklintjs-setup ()
+              "Configure flycheck-quicklintjs."
+
+              (unless (bound-and-true-p flycheck-mode)
+                (flycheck-mode))
+              (flycheck-select-checker 'javascript-quicklintjs)
+              (setq-local flycheck-idle-change-delay 0)
+              (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change)))
+
+              (custom-set-variables
+               '(flycheck-javascript-quicklintjs-executable "${packages.quick-lint-js}/bin/quick-lint-js"))
+            (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)
+          '';
         };
 
         # Runs with nix build
