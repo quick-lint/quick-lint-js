@@ -1984,16 +1984,27 @@ TEST_F(test_parse_typescript_class, class_keyword_with_escape_sequence_legal_in_
 }
 
 TEST_F(test_parse_typescript_class,
-       interface_keyword_with_escape_sequence) {
+       interface_identifier_with_escape_sequence) {
   {
     test_parser p(
-        u8"class C {\n"_sv
-        u8"  \\u{63}onstructor() {}"_sv  // equivalent to: constructor() {}
+        u8"interface A {\n"_sv
+        u8"  \\u{63}:any"_sv
         u8"}"_sv,
-        javascript_options);
+        typescript_options);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
-                              DIAG_TYPE(diag_depth_limit_exceeded))));
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_typescript_class, interface_keyword_with_escape_sequence) {
+  {
+    test_parser p(
+        u8"interface A {\n"_sv
+        u8"  a:\\u{61}ny"_sv
+        u8"}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,IsEmpty());
   }
 }
 }
