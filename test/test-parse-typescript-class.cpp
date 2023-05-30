@@ -1034,6 +1034,51 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class,
+       access_specifiers_must_precede_other_modifiers_in_typescript) {
+  for (string8 access_specifier : {u8"public", u8"protected", u8"private"}) {
+    for (string8 other_modifier : {u8"static", u8"readonly"}) {
+      padded_string code(concat(u8"class C { "_sv, other_modifier, u8" "_sv,
+                                access_specifier, u8" public; }"_sv));
+      SCOPED_TRACE(code);
+      test_parser p(code.string_view(), typescript_options, capture_diags);
+      p.parse_and_visit_statement();
+
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_2_OFFSETS(
+                  p.code, diag_access_specifier_must_precede_other_modifiers,
+                  second_modifier,
+                  concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
+                  access_specifier,  //
+                  first_modifier, strlen(u8"class C { "), other_modifier),
+          }));
+    }
+  }
+
+  for (string8 access_specifier : {u8"public", u8"protected", u8"private"}) {
+    for (string8 other_modifier : {u8"static", u8"async"}) {
+      padded_string code(concat(u8"class C { "_sv, other_modifier, u8" "_sv,
+                                access_specifier, u8" method() {}; }"_sv));
+      SCOPED_TRACE(code);
+      test_parser p(code.string_view(), typescript_options, capture_diags);
+      p.parse_and_visit_statement();
+
+      EXPECT_THAT(
+          p.errors,
+          ElementsAreArray({
+              DIAG_TYPE_2_OFFSETS(
+                  p.code, diag_access_specifier_must_precede_other_modifiers,
+                  second_modifier,
+                  concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
+                  access_specifier,  //
+                  first_modifier, strlen(u8"class C { "), other_modifier),
+          }));
+    }
+  }
+}
+
+TEST_F(test_parse_typescript_class,
        method_return_type_annotations_are_disallowed_in_javascript) {
   {
     test_parser p(u8"class C { method(): T { } }"_sv, capture_diags);
@@ -1708,6 +1753,29 @@ TEST_F(test_parse_typescript_class, parameter_property_in_constructor) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
                     {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
+  }
+
+  for (string8_view access_specifier :
+       {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
+    test_parser p(concat(u8"class C {\n"_sv
+                         u8"  constructor(readonly "_sv,
+                         access_specifier,
+                         u8" public) {}\n"_sv
+                         u8"}"_sv),
+                  typescript_options, capture_diags);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, diag_access_specifier_must_precede_other_modifiers,
+                second_modifier, strlen(u8"class C {\n  constructor(readonly "),
+                access_specifier,  //
+                first_modifier, strlen(u8"class C {\n  constructor("),
+                u8"readonly"),
+        }));
   }
 }
 

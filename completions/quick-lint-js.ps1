@@ -7,11 +7,11 @@
     $Options = @(
         @{
             CompletionText = '--help'
-            ToolTip = 'Print help message'
+            ToolTip = 'Print a help message and exit'
         },
         @{
             CompletionText = '--version'
-            ToolTip = 'Print version information'
+            ToolTip = 'Print version information and exit'
         },
         @{
             CompletionText = '--lsp-server'
@@ -19,7 +19,7 @@
         },
         @{
             CompletionText = '--config-file='
-            ToolTip = 'Read configuration from a JSON file for later input files'
+            ToolTip = 'Read configuration options from file and apply them to input files which are given later in the command line'
         },
         @{
             CompletionText = '--stdin'
@@ -31,7 +31,7 @@
         },
         @{
             CompletionText = '--output-format='
-            ToolTip = "Format to print feedback format`n`nvim-qflist-json: machine-readable JSON which can be given to Vim's setqflist function`ngnu-like: a human-readable format similar to GCC`nemacs-lisp: Emacs Lisp association list format"
+            ToolTip = "Customize how errors are printed`n`nvim-qflist-json: machine-readable JSON which can be given to Vim's setqflist function`ngnu-like: a human-readable format similar to GCC`nemacs-lisp: Emacs Lisp association list format"
         },
         @{
             CompletionText = '--diagnostic-hyperlinks='
@@ -44,7 +44,20 @@
         @{
             CompletionText = '--vim-file-bufnr='
             ToolTip = 'Select a vim buffer for outputting feedback'
+        },
+        @{
+            CompletionText = '--path-for-config-search'
+            ToolTip = "For the input file or --stdin, use path as the file's path"
+        },
+        @{
+            CompletionText = '--language'
+            ToolTip = "Interpret input files which are given later in the command line as if they were written in languageid`n`ndefault: infer the languageid from the file’s extension`njavascript: the latest ECMAScript standard with proposed features`njavascript-jsx: like javascript but with JSX (React) extensions`nexperimental-typescript: the latest TypeScript version. (EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)`nexperimental-typescript-jsx: like experimental-typescript but with JSX (React) extensions. (EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)"
+        },
+        @{
+            CompletionText = '--debug-apps'
+            ToolTip = 'Print a list of running quick-lint-js instances which have the debug app enabled'
         }
+
     )
 
     $Options.Where({$_.CompletionText -like "$wordToComplete*"}) | ForEach-Object {

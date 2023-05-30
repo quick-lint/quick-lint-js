@@ -296,7 +296,25 @@ void linting_lsp_server_handler::add_watch_io_errors(
 }
 
 void linting_lsp_server_handler::handle_initialize_request(
-    ::simdjson::ondemand::object&, string8_view id_json) {
+    ::simdjson::ondemand::object& request, string8_view id_json) {
+  ::simdjson::ondemand::object params;
+  if (get_object(request, "params", &params)) {
+    ::simdjson::ondemand::object initialization_options;
+    if (get_object(params, "initializationOptions", &initialization_options)) {
+      ::simdjson::ondemand::object configuration;
+      if (get_object(initialization_options, "configuration", &configuration)) {
+        bool ok = this->workspace_configuration_.process_initialization_options(
+            configuration);
+        if (!ok) {
+          QLJS_DEBUG_LOG(
+              "failed to process configuration in initializationOptions\n");
+          // TODO(strager): Report an error.
+          return;
+        }
+      }
+    }
+  }
+
   byte_buffer& response_json = this->outgoing_messages_.new_message();
   response_json.append_copy(u8R"--({"id":)--"_sv);
   response_json.append_copy(id_json);

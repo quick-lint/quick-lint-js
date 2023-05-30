@@ -770,6 +770,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'{0}' access specifier must precede '{1}'"_translatable,
+        {
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+            u8"'{0}' access specifier must precede '{1}'",
+        },
+    },
+    {
         "'{0}' found here"_translatable,
         {
             u8"'{0}' found here",
@@ -3949,6 +3960,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "optional parameter cannot be followed by a required parameter"_translatable,
+        {
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+            u8"optional parameter cannot be followed by a required parameter",
+        },
+    },
+    {
         "optional parameter cannot have both '?' and initializer; remove '?'"_translatable,
         {
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
@@ -4254,6 +4276,17 @@ const translated_string test_translation_table[] = {
             u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
+        },
+    },
+    {
+        "this required parameter appears after the optional parameter"_translatable,
+        {
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
+            u8"this required parameter appears after the optional parameter",
         },
     },
     {

@@ -28,7 +28,7 @@
 ;;   ;; Run quick-lint-js program when the buffer is changed and when 'js-mode`
 ;;   ;; is loaded
 ;;   (setq-local flycheck-check-syntax-automatically
-;;               '(mode-enabled idle-change)))
+;;               '(mode-enabled idle-change new-line)))
 ;; (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)
 ;;
 

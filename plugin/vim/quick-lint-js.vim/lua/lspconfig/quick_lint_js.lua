@@ -20,7 +20,11 @@ local quick_lint_js_config = {
         root = dir
       end)
       return root
-    end
+    end,
+    before_init = function(initialize_params, config)
+      local qljs = require('quick-lint-js')
+      qljs.nvim_lspconfig_update_initialization_options_from_settings(initialize_params, config.settings)
+    end,
   },
   docs = {
     description = [[

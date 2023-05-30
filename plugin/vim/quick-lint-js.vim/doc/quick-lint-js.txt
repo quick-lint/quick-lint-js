@@ -7,7 +7,7 @@
 This file contains instructions for installing and using the quick-lint-js
 plugin.
 
-This plugin version is designed for quick-lint-js version 2.13.0. Older or
+This plugin version is designed for quick-lint-js version 2.14.0. Older or
 newer versions might or might not work.
 
 1. Installing quick-lint-js	|quick-lint-js-app-install|
@@ -245,6 +245,28 @@ files, add `"typescript"` and `"typescriptreact"` to `filetypes`
       filetypes = {
         "javascript", "javascriptreact",
         "typescript", "typescriptreact",
+      },
+    }
+
+settings.quick-lint-js.tracing-directory
+		*quick-lint-js-configure-nvim-lspconfig-tracing-directory*
+  Type: |String|
+  Default: `''`
+
+Set the `quick-lint-js.tracing-directory` LSP configuration to the path to a
+directory. quick-lint-js will store binary logs in the directory containing
+verbose debugging information for quick-lint-js contributors.
+
+For security reasons, we recommend leaving this variable at its default value
+(`''`). Because this option logs LSP activity, it will include every change
+you make to your JavaScript source files. Do not distribute the generated log
+files.
+
+    require('lspconfig/quick_lint_js').setup {
+      settings = {
+        ["quick-lint-js"] = {
+          ["tracing-directory"] = "/tmp/quick-lint-js-logs",
+        },
       },
     }
 
