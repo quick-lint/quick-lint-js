@@ -96,7 +96,7 @@ Usage example in your [Emacs initialization] file.
 
   ;; Run quick-lint-js program when the buffer is changed and when 'js-mode` is
   ;; loaded
-  (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change new-line)))
+  (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change)))
 (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)
 ```
 

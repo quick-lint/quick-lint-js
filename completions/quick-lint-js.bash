@@ -1,15 +1,11 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-_quick_lint_js_output_formats="gnu-like vim-qflist-json emacs-lisp"
-_quick_lint_js_diagnostic_hyperlink_modes="auto always never"
-_quick_lint_js_languages="default javascript javascript-jsx experimental-typescript experimental-typescript-jsx"
-
 _quick-lint-js () {
         local cur opts
         _init_completion -n = || return
 
-        opts="--help --version --lsp-server --config-file= --stdin --exit-fail-on= --output-format= --diagnostic-hyperlinks= --vim-file-bufnr= --language= --path-for-config-search= --snarky --debug-apps"
+        opts='--help --version --lsp-server --config-file= --stdin --exit-fail-on= --output-format= --diagnostic-hyperlinks= --vim-file-bufnr='
 
         case $cur in
                 --config-file=*)
@@ -18,30 +14,20 @@ _quick-lint-js () {
                         return
                         ;;
                 --output-format=*)
-                        COMPREPLY=($(compgen -W "${_quick_lint_js_output_formats}" -- "${cur#*=}"))
+                        COMPREPLY=($(compgen -W 'gnu-like vim-qflist-json emacs-lisp' -- "${cur#*=}"))
                         return
                         ;;
                 --diagnostic-hyperlinks=*)
-                        COMPREPLY=($(compgen -W "${_quick_lint_js_diagnostic_hyperlink_modes}" -- "${cur#*=}"))
+                        COMPREPLY=($(compgen -W 'auto always never' -- "${cur#*=}"))
                         return
                         ;;
                 --exit-fail-on=*|--vim-file-bufnr=*)
                         return
                         ;;
-                --path-for-config-search=*)
-                        _split_longopt
-                        _filedir
-                        return
-                        ;;
-                
-                --language=*)
-                        COMPREPLY=($(compgen -W "${_quick_lint_js_languages}" -- "${cur#*=}"))
-                        return
-                        ;;
         esac
 
         if [[ $cur == -* ]]; then
-                COMPREPLY=($(compgen -W "${opts}" -- $cur))
+                COMPREPLY=($(compgen -W '${opts}' -- $cur))
                 [[ ${COMPREPLY-} == *= ]] && compopt -o nospace
                 return
         else

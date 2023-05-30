@@ -28,12 +28,6 @@
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
-bool parser::parse_and_visit_module_catching_fatal_parse_errors(
-    parse_visitor_base &v) {
-  return this->catch_fatal_parse_errors(
-      [this, &v] { this->parse_and_visit_module(v); });
-}
-
 void parser::parse_and_visit_module(parse_visitor_base &v) {
   bool done = false;
   while (!done) {
@@ -1874,9 +1868,7 @@ void parser::parse_and_visit_function_parameters(
     parse_visitor_base &v, variable_kind parameter_kind,
     parameter_list_options options) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
-  std::optional<source_code_span> previous_optional_span = std::nullopt;
   bool first_parameter = true;
-
   const char8 *first_parameter_begin = this->peek().begin;
   for (;;) {
     std::optional<source_code_span> comma_span = std::nullopt;
@@ -1961,42 +1953,10 @@ void parser::parse_and_visit_function_parameters(
       break;
     }
     if (this->peek().type == token_type::kw_readonly) {
-      source_code_span readonly_span = this->peek().span();
-
       // function foo(readonly) {}
       // constructor(readonly myField) {}         // TypeScript only.
       // constructor(public readonly myField) {}  // TypeScript only.
       parse_parameter_property_keyword();
-
-      // constructor(readonly public value) {}  // Invalid
-      // constructor(public readonly value) {}  // Ok, TypeScript only
-      // constructor(readonly public) {}        // Ok, TypeScript only
-      //                                        // public used as identifier
-      if (this->options_.typescript) {
-        switch (this->peek().type) {
-        case token_type::kw_private:
-        case token_type::kw_public:
-        case token_type::kw_protected: {
-          source_code_span access_specifier_span = this->peek().span();
-          parser_transaction transaction = this->begin_transaction();
-          this->skip();
-
-          if (is_after_parameter_name()) {
-            this->roll_back_transaction(std::move(transaction));
-          } else {
-            this->commit_transaction(std::move(transaction));
-            this->diag_reporter_->report(
-                diag_access_specifier_must_precede_other_modifiers{
-                    .second_modifier = access_specifier_span,
-                    .first_modifier = readonly_span,
-                });
-          }
-          break;
-        }
-        default:
-          break;
-        }
-      }
     }
 
     switch (this->peek().type) {
@@ -2071,20 +2031,6 @@ void parser::parse_and_visit_function_parameters(
               .init_kind = variable_init_kind::normal,
               .first_parameter_begin = first_parameter_begin,
           });
-
-      if (parameter->kind() == expression_kind::optional ||
-          (parameter->kind() == expression_kind::type_annotated &&
-           parameter->child_0()->kind() == expression_kind::optional)) {
-        previous_optional_span = parameter->span();
-      } else {
-        if (previous_optional_span.has_value()) {
-          this->diag_reporter_->report(
-              diag_optional_parameter_cannot_be_followed_by_required_parameter{
-                  .optional_parameter = *previous_optional_span,
-                  .required_parameter = parameter->span()});
-        }
-        previous_optional_span = std::nullopt;
-      }
       if (parameter->kind() == expression_kind::spread) {
         last_parameter_spread_span = parameter->span();
       } else {

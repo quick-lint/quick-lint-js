@@ -104,11 +104,6 @@ bool lsp_workspace_configuration::process_notification(
   return true;
 }
 
-bool lsp_workspace_configuration::process_initialization_options(
-    ::simdjson::ondemand::object initialization_options_configuration) {
-  return this->process_notification(initialization_options_configuration);
-}
-
 lsp_workspace_configuration::item* lsp_workspace_configuration::find_item(
     string8_view name) {
   for (item& i : this->items_) {

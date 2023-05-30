@@ -105,26 +105,6 @@ communicated through `workspace/configuration`:
   A timestamped subdirectory is created inside the tracing directory containing binary log files.
   If null or an empty string, tracing is disabled.
 
-It is also possible to configure quick-lint-js using the `initialize` request.
-To do so, set `initializationOptions` to an object containing a `configuration` object containing the settings.
-For example, the following `initialize` request sets `quick-lint-js.tracing-directory`:
-
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "initialize",
-      "params": {
-        "processId": null,
-        "rootUri": null,
-        "capabilities": {},
-        "initializationOptions": {
-          "configuration": {
-            "quick-lint-js.tracing-directory": "/tmp/quick-lint-js-logs"
-          }
-        }
-      }
-    }
-
 ifdef::backend-manpage[]
 
 == See also

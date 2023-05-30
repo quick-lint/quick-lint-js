@@ -104,7 +104,10 @@ class parser {
   //
   // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
   bool parse_and_visit_module_catching_fatal_parse_errors(
-      parse_visitor_base &v);
+      parse_visitor_base &v) {
+    return this->catch_fatal_parse_errors(
+        [this, &v] { this->parse_and_visit_module(v); });
+  }
 
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
   // called.

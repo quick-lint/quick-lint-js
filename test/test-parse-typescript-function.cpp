@@ -826,60 +826,6 @@ TEST_F(test_parse_typescript_function, optional_parameter_in_function_type) {
 }
 
 TEST_F(test_parse_typescript_function,
-       optional_parameter_followed_by_required) {
-  {
-    test_parser p(u8"(param1?, param2) => ReturnType"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?",
-                required_parameter, strlen(u8"(param1?, "), u8"param2"),
-        }));
-  }
-}
-
-TEST_F(test_parse_typescript_function,
-       optional_parameter_followed_by_required_type_annotated) {
-  {
-    test_parser p(u8"(param1?: number, param2: number) => ReturnType"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?: number",
-                required_parameter, strlen(u8"(param1?: number, "),
-                u8"param2: number"),
-        }));
-  }
-
-  {
-    test_parser p(
-        u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                diag_optional_parameter_cannot_be_followed_by_required_parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?: number",
-                required_parameter, strlen(u8"(param1?: number, "),
-                u8"param2: number"),
-        }));
-  }
-}
-
-TEST_F(test_parse_typescript_function,
        optional_parameters_are_not_allowed_in_javascript) {
   {
     test_parser p(u8"(param?) => {}"_sv, javascript_options, capture_diags);

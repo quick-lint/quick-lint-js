@@ -10,24 +10,6 @@ Semantic Versioning.
 
 ### Added
 
-* LSP server: quick-lint-js can now receive configuration options via the
-  `initialize` request. See [LSP configuration
-  documentation](https://quick-lint-js.com/docs/lsp/#_configuration) for
-  details.
-
-### Fixed
-
-* Emacs (Flycheck): Using `C-x C-;` to comment a line now runs quick-lint-js
-  (instead of leaving old diagnostics on the screen). This requires that you
-  update your Emacs file: add `new-line` to the
-  `flycheck-check-syntax-automatically` variable.
-
-## 2.14.0 (2023-05-22)
-
-[Downloads](https://c.quick-lint-js.com/releases/2.14.0/)
-
-### Added
-
 * Missing props in JSX tags now report [E0376][] ("JSX prop is missing an
   expression"). (Implemented by [James Moles][].)
 * `! ==` (with a space) now reports [E0373][] or [E0374][]. (Implemented by
@@ -38,8 +20,6 @@ Semantic Versioning.
 * TypeScript support (still experimental):
     * Certain invalid parameter properties (such as in `constructor(public {id,
       name})`) now report diagnostics.
-    * `function f(a?, b) {}` now reports [E0379][]. (Implemented by [Alek
-      Lefebvre][].)
 
 ### Fixed
 
@@ -48,9 +28,6 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * '\`hello${world}\` as const' no longer falsely reports [E0291][].
     (Fixed by [Leszek Nowicki][].)
-* Windows: Fixed a build failure with MinGW GCC 13.1.0.
-* Shell completions are now up to date with the CLI. (Fixed by [Jake
-  Castelli][].)
 * FreeBSD: quick-lint-js no longer fails to build.
 
 ### Changed
@@ -930,7 +907,6 @@ Beta release.
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
-[Jake Castelli]: https://github.com/jakecastelli
 [James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
@@ -1057,7 +1033,6 @@ Beta release.
 [E0373]: https://quick-lint-js.com/errors/E0373/
 [E0374]: https://quick-lint-js.com/errors/E0374/
 [E0376]: https://quick-lint-js.com/errors/E0376/
-[E0379]: https://quick-lint-js.com/errors/E0379/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/

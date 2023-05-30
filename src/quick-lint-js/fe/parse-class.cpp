@@ -949,7 +949,6 @@ void parser::parse_and_visit_class_or_interface_member(
 
     void check_modifiers_for_field() {
       error_if_invalid_access_specifier();
-      error_if_access_specifier_not_first_in_field();
       error_if_readonly_in_not_typescript();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
@@ -960,7 +959,6 @@ void parser::parse_and_visit_class_or_interface_member(
       error_if_readonly_method();
       error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
-      error_if_access_specifier_not_first_in_method();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
       error_if_abstract_not_in_abstract_class();
@@ -1144,43 +1142,6 @@ void parser::parse_and_visit_class_or_interface_member(
             QLJS_UNREACHABLE();
             break;
           }
-        }
-      }
-    }
-
-    void error_if_access_specifier_not_first_in_field() {
-      if (p->options_.typescript && !modifiers.empty()) {
-        check_if_access_specifier_precedes_given_modifiers(
-            span<const token_type>({
-                token_type::kw_static,
-                token_type::kw_readonly,
-            }));
-      }
-    }
-
-    void error_if_access_specifier_not_first_in_method() {
-      if (p->options_.typescript && !modifiers.empty()) {
-        check_if_access_specifier_precedes_given_modifiers(
-            span<const token_type>({
-                token_type::kw_static,
-                token_type::kw_async,
-            }));
-      }
-    }
-
-    void check_if_access_specifier_precedes_given_modifiers(
-        span<const token_type> tokens) {
-      const modifier *access_specifier = find_access_specifier();
-
-      for (const token_type token : tokens) {
-        const modifier *m = find_modifier(token);
-
-        if (m && m < access_specifier) {
-          p->diag_reporter_->report(
-              diag_access_specifier_must_precede_other_modifiers{
-                  .second_modifier = access_specifier->span,
-                  .first_modifier = m->span,
-              });
         }
       }
     }

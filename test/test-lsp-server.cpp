@@ -303,34 +303,6 @@ TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
   EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");
 }
 
-TEST_F(test_linting_lsp_server, config_can_be_set_with_initialize_request) {
-  this->server->append(
-      make_message(u8R"({
-        "jsonrpc": "2.0",
-        "id": 100,
-        "method": "initialize",
-        "params": {
-          "processId": null,
-          "rootUri": null,
-          "capabilities": {},
-          "initializationOptions": {
-            "configuration": {
-              "quick-lint-js.tracing-directory": "/initial-tracing-directory"
-            }
-          }
-        }
-      })"_sv));
-  this->server->flush_error_responses(*this->client);
-  this->handler->flush_pending_notifications(*this->client);
-
-  std::vector< ::boost::json::object> responses = this->client->responses();
-  ASSERT_EQ(responses.size(), 1);
-  EXPECT_EQ(responses[0]["id"], 100);
-
-  linting_lsp_server_config& config = this->handler->server_config();
-  EXPECT_EQ(config.tracing_directory, "/initial-tracing-directory");
-}
-
 TEST_F(test_linting_lsp_server, did_change_configuration_notification) {
   this->server->append(
       make_message(u8R"({

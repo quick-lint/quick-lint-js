@@ -80,8 +80,7 @@ const translation_table translation_data = {
         {73, 31, 0, 54, 0, 38},              //
         {15, 14, 0, 13, 0, 13},              //
         {0, 0, 0, 19, 0, 17},                //
-        {0, 0, 0, 0, 0, 25},                 //
-        {15, 38, 0, 25, 0, 42},              //
+        {15, 38, 0, 25, 0, 25},              //
         {15, 17, 0, 22, 0, 17},              //
         {0, 0, 0, 46, 0, 50},                //
         {69, 48, 0, 36, 0, 32},              //
@@ -370,8 +369,7 @@ const translation_table translation_data = {
         {0, 0, 0, 32, 0, 35},                //
         {0, 0, 0, 71, 0, 62},                //
         {35, 37, 0, 76, 0, 68},              //
-        {0, 0, 0, 0, 0, 25},                 //
-        {0, 0, 0, 29, 0, 62},                //
+        {0, 0, 0, 29, 0, 25},                //
         {0, 0, 0, 0, 0, 68},                 //
         {0, 0, 0, 68, 0, 58},                //
         {0, 0, 0, 0, 0, 40},                 //
@@ -399,8 +397,7 @@ const translation_table translation_data = {
         {36, 33, 41, 34, 31, 57},            //
         {46, 25, 63, 57, 39, 51},            //
         {0, 0, 0, 0, 0, 52},                 //
-        {0, 0, 0, 0, 0, 27},                 //
-        {0, 0, 0, 61, 0, 61},                //
+        {0, 0, 0, 61, 0, 27},                //
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 0, 25, 0, 21},              //
         {33, 21, 74, 25, 44, 21},            //
@@ -1818,7 +1815,6 @@ const translation_table translation_data = {
         u8"'while' loop\0"
         u8"'with' statement\0"
         u8"'{0} []' is always '{1}'\0"
-        u8"'{0}' access specifier must precede '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
@@ -2108,7 +2104,6 @@ const translation_table translation_data = {
         u8"only one comma is allowed between or after generic parameters\0"
         u8"only optional tuple elements can follow this optional tuple element\0"
         u8"opening '<{1}>' tag here\0"
-        u8"optional parameter cannot be followed by a required parameter\0"
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"optional tuple elements cannot come after spread elements\0"
         u8"overloaded function '{0}' declared here\0"
@@ -2137,7 +2132,6 @@ const translation_table translation_data = {
         u8"switch statement is missing '{1}' around condition\0"
         u8"switch statement needs parentheses around condition\0"
         u8"this case will run instead\0"
-        u8"this required parameter appears after the optional parameter\0"
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"this {1} looks fishy\0"

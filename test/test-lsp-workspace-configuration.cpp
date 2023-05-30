@@ -238,63 +238,6 @@ TEST(test_lsp_workspace_configuration,
 
   EXPECT_FALSE(myitem_callback_called);
 }
-
-TEST(test_lsp_workspace_configuration,
-     initialization_options_calls_item_callbacks) {
-  lsp_workspace_configuration config;
-  bool myitem_callback_called = false;
-  config.add_item(u8"mysection.myitem"_sv,
-                  [&myitem_callback_called](std::string_view new_value) {
-                    myitem_callback_called = true;
-                    EXPECT_EQ(new_value, "hello");
-                  });
-
-  easy_simdjson_parser result(R"({"mysection.myitem": "hello"})"_padded);
-  ASSERT_EQ(result.error, ::simdjson::SUCCESS);
-  bool ok = config.process_initialization_options(result.value_object());
-  ASSERT_TRUE(ok);
-
-  EXPECT_TRUE(myitem_callback_called);
-}
-
-TEST(test_lsp_workspace_configuration,
-     initialization_options_ignores_extra_entries) {
-  lsp_workspace_configuration config;
-  int myitem_callback_called_count = 0;
-  config.add_item(u8"mysection.myitem"_sv,
-                  [&myitem_callback_called_count](std::string_view new_value) {
-                    myitem_callback_called_count += 1;
-                    EXPECT_EQ(new_value, "hello");
-                  });
-
-  easy_simdjson_parser result(
-      R"({"mysection.myitem": "hello", "mysection.extraitem": "hi"})"_padded);
-  ASSERT_EQ(result.error, ::simdjson::SUCCESS);
-  bool ok = config.process_initialization_options(result.value_object());
-  ASSERT_TRUE(ok);
-
-  EXPECT_EQ(myitem_callback_called_count, 1);
-}
-
-TEST(test_lsp_workspace_configuration,
-     initialization_options_does_not_call_callback_for_unnotified_items) {
-  lsp_workspace_configuration config;
-  bool myitem_callback_called = false;
-  config.add_item(u8"mysection.myitem"_sv, [&myitem_callback_called](
-                                               std::string_view new_value) {
-    myitem_callback_called = true;
-    ADD_FAILURE()
-        << "mysection.myitem callback should not have been called; new_value="
-        << new_value;
-  });
-
-  easy_simdjson_parser result(R"({})"_padded);
-  ASSERT_EQ(result.error, ::simdjson::SUCCESS);
-  bool ok = config.process_initialization_options(result.value_object());
-  ASSERT_TRUE(ok);
-
-  EXPECT_FALSE(myitem_callback_called);
-}
 }
 }
 
