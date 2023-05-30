@@ -1778,6 +1778,18 @@ TEST_F(test_parse_typescript_interface,
         }));
   }
 }
+
+TEST_F(test_parse_typescript_interface,
+       interface_keyword_with_escape_sequence) {
+  {
+    test_parser p(
+        u8"interface A {\n"_sv
+        u8"  \\u{63}onstructor();}"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
 }
 }
 

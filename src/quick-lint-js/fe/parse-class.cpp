@@ -422,6 +422,7 @@ void parser::parse_and_visit_class_or_interface_member(
         token current_token = p->peek();
         constexpr int single_occurence_of_escape = 1;
         constexpr char backslash = u8'\\';
+        // See NOTE[typescript-constructor-escape].
         if (p->options_.typescript &&
             current_token.contains_escape_sequence() &&
             this->is_interface == false &&

@@ -1934,8 +1934,12 @@ TEST_F(test_parse_typescript_class,
   }
 }
 
+// NOTE[typescript-constructor-escape]: The TypeScript compiler complains if
+// 'constructor' in a class contains an identifier escape sequence, despite
+// escapes being allowed in vanilla JavaScript. TypeScript does not complain if
+// there is more than one sequence, though.
 TEST_F(test_parse_typescript_class,
-       class_keyword_with_escape_sequence) {
+       constructor_keyword_with_escape_sequence) {
   test_parser p(
       u8"class C {\n"_sv
       u8"  \\u{63}onstructor() {}"_sv // equivalent to: constructor() {}
@@ -1971,7 +1975,8 @@ TEST_F(test_parse_typescript_class, no_diag_for_more_than_one_escape) {
            "visit_exit_class_scope", "visit_variable_declaration"}));
 }
 
-TEST_F(test_parse_typescript_class, class_keyword_with_escape_sequence_legal_in_js) {
+TEST_F(test_parse_typescript_class,
+       constructor_keyword_with_escape_sequence_legal_in_javascript) {
   {
     test_parser p(
         u8"class C {\n"_sv
@@ -1980,31 +1985,6 @@ TEST_F(test_parse_typescript_class, class_keyword_with_escape_sequence_legal_in_
         javascript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
-  }
-}
-
-TEST_F(test_parse_typescript_class,
-       interface_identifier_with_escape_sequence) {
-  {
-    test_parser p(
-        u8"interface A {\n"_sv
-        u8"  \\u{63}:any"_sv
-        u8"}"_sv,
-        typescript_options);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
-}
-
-TEST_F(test_parse_typescript_class, interface_keyword_with_escape_sequence) {
-  {
-    test_parser p(
-        u8"interface A {\n"_sv
-        u8"  a:\\u{61}ny"_sv
-        u8"}"_sv,
-        typescript_options);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,IsEmpty());
   }
 }
 }
