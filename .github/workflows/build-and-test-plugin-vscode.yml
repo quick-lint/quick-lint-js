@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: update $PATH
         if: ${{ matrix.os.msys2_packages }}
@@ -76,7 +76,7 @@ jobs:
         run: cmake --install build --component vscode-node --prefix plugin/vscode --strip
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: vscode-dist-${{ matrix.os.platform_arch }}
@@ -104,25 +104,25 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-linux-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-darwin-arm64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-darwin-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-ia32
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-x64
           path: ./plugin/vscode/dist/
@@ -160,41 +160,41 @@ jobs:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-linux-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-linux-arm
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-linux-arm64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-darwin-arm64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-darwin-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-ia32
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-x64
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-arm
           path: ./plugin/vscode/dist/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: vscode-dist-win32-arm64
           path: ./plugin/vscode/dist/
@@ -205,14 +205,14 @@ jobs:
         run: cd plugin/vscode && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: plugin-vscode-${{ github.sha }}
           path: plugin/vscode/*.vsix
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: plugin/vscode/*.vsix
