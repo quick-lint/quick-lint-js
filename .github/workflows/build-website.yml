@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: C++ configure
         run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -flto'
@@ -29,7 +29,7 @@ jobs:
       - name: get yarn cache directory path
         id: yarn-cache-dir-path
         run: printf 'dir=%s\n' "$(yarn cache dir)" >>"${GITHUB_OUTPUT}"
-      - uses: actions/cache@v3
+      - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -86,7 +86,7 @@ jobs:
           service apache2 start
           ./website/tools/check-links.mjs http://localhost/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         if: failure()
         with:
           name: apache-error-log
@@ -94,7 +94,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: website-${{ github.sha }}
@@ -102,7 +102,7 @@ jobs:
 
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: website.zip
