@@ -49,10 +49,9 @@ void token::report_errors_for_escape_sequences_in_template(
 }
 
 bool token::contains_escape_sequence() {
-  return
-      (this->normalized_identifier == identifier_name().span().string_view())
-          ? false
-          : true;
+  return (this->normalized_identifier == identifier_name().span().string_view())
+             ? false
+             : true;
 }
 
 [[gnu::noinline]] const char* to_string(token_type type) {
