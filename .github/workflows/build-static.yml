@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: update $PATH
         if: ${{ matrix.toolchain.msys2_packages }}
@@ -87,21 +87,21 @@ jobs:
           tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C temp/ quick-lint-js
       - name: bundle build into .zip
         if: ${{ matrix.toolchain.archive_extension == '.zip' }}
-        uses: quick-lint/action-zip@v1.1
+        uses: quick-lint/action-zip@26a249fb00d43ca98dad77a4b3838025fc226aa1 # v1.1
         with:
           dest: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
           files: usr/
           recursive: true
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
           path: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
@@ -143,7 +143,7 @@ jobs:
           uname -a || :
         shell: bash
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
       - name: unpack .zip build
@@ -164,37 +164,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-linux-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-linux-armhf-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-linux-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-macos-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-macos-aarch64-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-arm64-${{ github.sha }}
           path: ./
@@ -230,14 +230,14 @@ jobs:
         run: npm pack ./dist/npm
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-npm-${{ github.sha }}
           path: quick-lint-js-*.tgz
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js-*.tgz
@@ -263,7 +263,7 @@ jobs:
     runs-on: ${{ matrix.os.runs_on }}
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-npm-${{ github.sha }}
 
@@ -296,12 +296,12 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -310,14 +310,14 @@ jobs:
         run: go run ./dist/chocolatey/build.go -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.nupkg
 
       - name: upload package to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-chocolatey-${{ github.sha }}
           path: quick-lint-js.nupkg
       - name: upload package to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.nupkg
@@ -330,7 +330,7 @@ jobs:
     needs: package-chocolatey
     runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-chocolatey-${{ github.sha }}
       - name: install
@@ -345,12 +345,12 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-x86-${{ github.sha }}
           path: ./
@@ -359,14 +359,14 @@ jobs:
         run: go run ./dist/scoop/make-manifest.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.json
 
       - name: upload manifest to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-scoop-${{ github.sha }}
           path: quick-lint-js.json
       - name: upload manifest to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.json
@@ -380,8 +380,8 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: checkout
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
           path: ./
@@ -397,14 +397,14 @@ jobs:
         shell: bash
 
       - name: upload MSIX to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-msix-${{ github.sha }}
           path: quick-lint-js.msix
       - name: upload MSIX to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js.msix
@@ -419,8 +419,8 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
     steps:
       - name: checkout
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-msix-${{ github.sha }}
           path: ./
@@ -429,14 +429,14 @@ jobs:
         run: go run ./dist/winget/make-manifests.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -MSIX ./quick-lint-js.msix -OutDir winget-manifests
 
       - name: upload manifests to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-winget-${{ github.sha }}
           path: winget-manifests/
       - name: upload manifests to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: winget-manifests/*
