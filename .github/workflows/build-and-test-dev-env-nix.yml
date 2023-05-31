@@ -14,10 +14,10 @@ jobs:
     # TODO(strager): Use a stable Docker image.
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: install nix
-        uses: quick-lint/install-nix-action@v20
+        uses: quick-lint/install-nix-action@29bd9290ef037a3ecbdafe83cbd2185e9dd0fa0a # v20
         with:
           nix_path: nixpkgs=channel:nixpkgs-unstable
 
