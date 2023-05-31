@@ -45,7 +45,7 @@ jobs:
         run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: configure
         run: |
@@ -78,7 +78,7 @@ jobs:
             libgtest-dev
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: configure
         run: |
