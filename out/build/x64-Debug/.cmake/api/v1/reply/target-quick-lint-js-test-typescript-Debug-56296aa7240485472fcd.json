@@ -1,0 +1,586 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "tools/test-typescript/quick-lint-js-test-typescript.exe"
+		},
+		{
+			"path" : "tools/test-typescript/quick-lint-js-test-typescript.pdb"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"quick_lint_js_add_executable",
+			"target_link_libraries",
+			"add_compile_options",
+			"quick_lint_js_add_cxx_flag_if_supported",
+			"quick_lint_js_add_c_cxx_flag_if_supported",
+			"quick_lint_js_use_new_msvc_preprocessor",
+			"quick_lint_js_set_cxx_standard",
+			"quick_lint_js_fix_cpluplus_macro",
+			"quick_lint_js_configure_exception_handling",
+			"quick_lint_js_configure_rtti",
+			"add_definitions"
+		],
+		"files" : 
+		[
+			"cmake/QuickLintJSTarget.cmake",
+			"tools/test-typescript/CMakeLists.txt",
+			"src/CMakeLists.txt",
+			"cmake/QuickLintJSCompiler.cmake",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 8,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 8,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 288,
+				"parent" : 4
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 298,
+				"parent" : 4
+			},
+			{
+				"file" : 4
+			},
+			{
+				"command" : 7,
+				"file" : 4,
+				"line" : 143,
+				"parent" : 7
+			},
+			{
+				"command" : 6,
+				"file" : 3,
+				"line" : 108,
+				"parent" : 8
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 114,
+				"parent" : 9
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 197,
+				"parent" : 10
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 11
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 122,
+				"parent" : 9
+			},
+			{
+				"command" : 8,
+				"file" : 3,
+				"line" : 109,
+				"parent" : 8
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 128,
+				"parent" : 14
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 197,
+				"parent" : 15
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 16
+			},
+			{
+				"command" : 9,
+				"file" : 4,
+				"line" : 145,
+				"parent" : 7
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 67,
+				"parent" : 18
+			},
+			{
+				"command" : 10,
+				"file" : 4,
+				"line" : 146,
+				"parent" : 7
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 76,
+				"parent" : 20
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 21
+			},
+			{
+				"command" : 11,
+				"file" : 3,
+				"line" : 123,
+				"parent" : 9
+			},
+			{
+				"command" : 11,
+				"file" : 3,
+				"line" : 68,
+				"parent" : 18
+			},
+			{
+				"command" : 11,
+				"file" : 4,
+				"line" : 151,
+				"parent" : 7
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 12,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 13,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 19,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 22,
+					"fragment" : "/GR-"
+				},
+				{
+					"fragment" : "/YcC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 23,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 24,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/tools/test-typescript/."
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 3,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 12,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 13,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 19,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 22,
+					"fragment" : "/GR-"
+				},
+				{
+					"fragment" : "/YuC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 23,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 24,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/tools/test-typescript/."
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 3,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-typescript-test-lib::@f0fd8c404ad87e435fee"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-lib::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-tool-lib::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "simdjson::@860ceb1c92c4dba85bce"
+		}
+	],
+	"id" : "quick-lint-js-test-typescript::@f0fd8c404ad87e435fee",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--gc-sections",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "tools\\test-typescript\\quick-lint-js-typescript-test-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "src\\quick-lint-js-tool-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "vendor\\simdjson\\simdjson.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--gc-sections",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "pathcch.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "quick-lint-js-test-typescript",
+	"nameOnDisk" : "quick-lint-js-test-typescript.exe",
+	"paths" : 
+	{
+		"build" : "tools/test-typescript",
+		"source" : "tools/test-typescript"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1
+			]
+		},
+		{
+			"name" : "Precompile Header File",
+			"sourceIndexes" : 
+			[
+				2
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 0,
+			"compileGroupIndex" : 0,
+			"path" : "out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.cxx",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "tools/test-typescript/main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"path" : "out/build/x64-Debug/tools/test-typescript/CMakeFiles/quick-lint-js-test-typescript.dir/cmake_pch.hxx",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "EXECUTABLE"
+}

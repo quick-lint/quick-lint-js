@@ -1,0 +1,2002 @@
+{
+	"archive" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/machine:x64",
+				"role" : "flags"
+			}
+		]
+	},
+	"artifacts" : 
+	[
+		{
+			"path" : "src/quick-lint-js-lib.lib"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"quick_lint_js_add_library",
+			"add_custom_command",
+			"target_link_libraries",
+			"add_compile_options",
+			"quick_lint_js_add_cxx_flag_if_supported",
+			"quick_lint_js_add_c_cxx_flag_if_supported",
+			"quick_lint_js_use_new_msvc_preprocessor",
+			"quick_lint_js_set_cxx_standard",
+			"quick_lint_js_fix_cpluplus_macro",
+			"quick_lint_js_configure_exception_handling",
+			"quick_lint_js_configure_rtti",
+			"target_compile_definitions",
+			"add_definitions",
+			"target_include_directories",
+			"target_precompile_headers"
+		],
+		"files" : 
+		[
+			"cmake/QuickLintJSTarget.cmake",
+			"src/CMakeLists.txt",
+			"cmake/QuickLintJSCompiler.cmake",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 68,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 34,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 288,
+				"parent" : 0
+			},
+			{
+				"file" : 3
+			},
+			{
+				"command" : 8,
+				"file" : 3,
+				"line" : 143,
+				"parent" : 5
+			},
+			{
+				"command" : 7,
+				"file" : 2,
+				"line" : 108,
+				"parent" : 6
+			},
+			{
+				"command" : 6,
+				"file" : 2,
+				"line" : 114,
+				"parent" : 7
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 197,
+				"parent" : 8
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 210,
+				"parent" : 9
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 122,
+				"parent" : 7
+			},
+			{
+				"command" : 9,
+				"file" : 2,
+				"line" : 109,
+				"parent" : 6
+			},
+			{
+				"command" : 6,
+				"file" : 2,
+				"line" : 128,
+				"parent" : 12
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 197,
+				"parent" : 13
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 210,
+				"parent" : 14
+			},
+			{
+				"command" : 10,
+				"file" : 3,
+				"line" : 145,
+				"parent" : 5
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 67,
+				"parent" : 16
+			},
+			{
+				"command" : 11,
+				"file" : 3,
+				"line" : 146,
+				"parent" : 5
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 76,
+				"parent" : 18
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 210,
+				"parent" : 19
+			},
+			{
+				"command" : 12,
+				"file" : 1,
+				"line" : 324,
+				"parent" : 0
+			},
+			{
+				"command" : 12,
+				"file" : 1,
+				"line" : 338,
+				"parent" : 0
+			},
+			{
+				"command" : 12,
+				"file" : 1,
+				"line" : 282,
+				"parent" : 0
+			},
+			{
+				"command" : 13,
+				"file" : 2,
+				"line" : 123,
+				"parent" : 7
+			},
+			{
+				"command" : 13,
+				"file" : 2,
+				"line" : 68,
+				"parent" : 16
+			},
+			{
+				"command" : 13,
+				"file" : 3,
+				"line" : 151,
+				"parent" : 5
+			},
+			{
+				"command" : 14,
+				"file" : 1,
+				"line" : 287,
+				"parent" : 0
+			},
+			{
+				"command" : 15,
+				"file" : 1,
+				"line" : 307,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 10,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 11,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 20,
+					"fragment" : "/GR-"
+				},
+				{
+					"fragment" : "/YcC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 21,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 22,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 23,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 24,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 26,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 27,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					4
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 28,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 10,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 11,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 20,
+					"fragment" : "/GR-"
+				},
+				{
+					"fragment" : "/YuC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 21,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 22,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 23,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 24,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 26,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 27,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					4
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 28,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 28,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				4,
+				6,
+				8,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20,
+				22,
+				23,
+				24,
+				25,
+				27,
+				29,
+				32,
+				34,
+				45,
+				49,
+				51,
+				53,
+				55,
+				57,
+				59,
+				61,
+				63,
+				65,
+				68,
+				71,
+				74,
+				76,
+				77,
+				80,
+				82,
+				84,
+				85,
+				86,
+				88,
+				91,
+				93,
+				94,
+				95,
+				96,
+				98,
+				100,
+				101,
+				103,
+				105,
+				108,
+				110,
+				113,
+				120,
+				122,
+				123,
+				125,
+				127,
+				129,
+				131,
+				133,
+				135,
+				137,
+				140,
+				142,
+				143,
+				145,
+				147,
+				149,
+				151,
+				153,
+				155,
+				157,
+				159,
+				161,
+				163,
+				165,
+				167,
+				169,
+				173,
+				179,
+				181,
+				185,
+				188,
+				191,
+				198,
+				205,
+				207,
+				210
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-generate-lex-keyword::@b9a00e55f22b3d77656c"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "quick-lint-js-tool-lib::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "simdjson::@860ceb1c92c4dba85bce"
+		}
+	],
+	"id" : "quick-lint-js-lib::@145eef247bfb46b6828c",
+	"name" : "quick-lint-js-lib",
+	"nameOnDisk" : "quick-lint-js-lib.lib",
+	"paths" : 
+	{
+		"build" : "src",
+		"source" : "src"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				4,
+				6,
+				8,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20,
+				22,
+				23,
+				24,
+				25,
+				27,
+				29,
+				32,
+				34,
+				45,
+				49,
+				51,
+				53,
+				55,
+				57,
+				59,
+				61,
+				63,
+				65,
+				68,
+				71,
+				74,
+				76,
+				77,
+				80,
+				82,
+				84,
+				85,
+				86,
+				88,
+				91,
+				93,
+				94,
+				95,
+				96,
+				98,
+				100,
+				101,
+				103,
+				105,
+				108,
+				110,
+				113,
+				120,
+				122,
+				123,
+				125,
+				127,
+				129,
+				131,
+				133,
+				135,
+				137,
+				140,
+				142,
+				143,
+				145,
+				147,
+				149,
+				151,
+				153,
+				155,
+				157,
+				159,
+				161,
+				163,
+				165,
+				167,
+				169,
+				173,
+				179,
+				181,
+				185,
+				188,
+				191,
+				198,
+				205,
+				207,
+				210
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				3,
+				5,
+				7,
+				9,
+				11,
+				13,
+				15,
+				17,
+				19,
+				21,
+				26,
+				28,
+				30,
+				31,
+				33,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				46,
+				47,
+				48,
+				50,
+				52,
+				54,
+				56,
+				58,
+				60,
+				62,
+				64,
+				66,
+				67,
+				69,
+				70,
+				72,
+				73,
+				75,
+				78,
+				79,
+				81,
+				83,
+				87,
+				89,
+				90,
+				92,
+				97,
+				99,
+				102,
+				104,
+				106,
+				107,
+				109,
+				111,
+				112,
+				114,
+				115,
+				116,
+				117,
+				118,
+				119,
+				121,
+				124,
+				126,
+				128,
+				130,
+				132,
+				134,
+				136,
+				138,
+				139,
+				141,
+				144,
+				146,
+				148,
+				150,
+				152,
+				154,
+				156,
+				158,
+				160,
+				162,
+				164,
+				166,
+				168,
+				170,
+				171,
+				172,
+				174,
+				175,
+				176,
+				177,
+				178,
+				180,
+				182,
+				183,
+				184,
+				186,
+				187,
+				189,
+				190,
+				192,
+				193,
+				194,
+				195,
+				196,
+				197,
+				199,
+				200,
+				201,
+				202,
+				203,
+				204,
+				206,
+				208,
+				209,
+				211
+			]
+		},
+		{
+			"name" : "Precompile Header File",
+			"sourceIndexes" : 
+			[
+				212
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				213
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 0,
+			"compileGroupIndex" : 0,
+			"path" : "out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.cxx",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/boost.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/c-api-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/c-api-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/c-api.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/c-api.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/cli-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/cli-location.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/emacs-lisp-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/emacs-lisp-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/emacs-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/emacs-location.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/options.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/options.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/text-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/text-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/vim-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/vim-location.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/cli/vim-qflist-json-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/cli/vim-qflist-json-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/basic-configuration-filesystem.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/configuration/basic-configuration-filesystem.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/change-detecting-filesystem-inotify.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/change-detecting-filesystem-kqueue.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/change-detecting-filesystem-win32.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/change-detecting-filesystem.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/configuration/change-detecting-filesystem.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/configuration-loader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/configuration/configuration-loader.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/configuration/configuration.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/configuration/configuration.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/allocator.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/container/async-byte-queue.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/async-byte-queue.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/container/byte-buffer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/byte-buffer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/c-string-list.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/concat.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/hash-map.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/hash-set.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/hash.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/heap-function.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/linked-bump-allocator.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/linked-vector.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/optional.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/container/padded-string.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/padded-string.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/result.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/container/vector.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/debug/debug-probe.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/debug/debug-probe.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/debug/debug-server-fs.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/debug/debug-server-fs.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/debug/debug-server.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/debug/debug-server.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/debug/find-debug-server.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/debug/find-debug-server.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/debug/mongoose.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/debug/mongoose.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/diag/buffering-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/buffering-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/diag/diag-code-list.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/diag-code-list.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/diag/diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/diag/diagnostic-formatter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/diagnostic-formatter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/diagnostic-types.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/diag/diagnostic.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/diagnostic.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/diag/reported-diag-statistics.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/buffering-visitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/buffering-visitor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/expression.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/global-declared-variable-set.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/global-declared-variable-set.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/global-variables-browser-generated.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/global-variables.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/global-variables.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/identifier.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/jsx.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/jsx.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/keyword-lexer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/language.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"isGenerated" : true,
+			"path" : "src/quick-lint-js/fe/lex-keyword-generated.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/lex-unicode-generated.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/lex.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/lex.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/linter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/linter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/multi-parse-visitor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/null-visitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/null-visitor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/parse-class.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/parse-expression.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/parse-statement.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/parse-type.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/parse-visitor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/parse.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/parse.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/source-code-span-debug.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/source-code-span.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/source-code-span.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/token.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/token.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/fe/variable-analyzer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/fe/variable-analyzer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/feature.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/i18n/locale.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/i18n/locale.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/i18n/translation-table-generated.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/i18n/translation-table-generated.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/i18n/translation-table.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/i18n/translation.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/i18n/translation.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/event-loop-base.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/event-loop-kqueue.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/event-loop-poll.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/event-loop-win32.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/event-loop.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/file-canonical.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/file-canonical.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/file-handle-posix.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/file-handle-win32.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/file-handle.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/file-path.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/file-path.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/file.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/file.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/output-stream.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/output-stream.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/pipe-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/pipe-writer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/pipe.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/pipe.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/io/temporary-directory.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/io/temporary-directory.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/json.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/json.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/log.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/logger.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/logger.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/trace-flusher-directory-backend.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/trace-flusher.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/trace-flusher.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/trace-metadata.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/trace-metadata.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/trace-reader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/trace-reader.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/logging/trace-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/logging/trace-writer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-document-text.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-document-text.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-json-rpc-message-parser.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-json-rpc-message-parser.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-location.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-message-parser.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-message-parser.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-pipe-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-pipe-writer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-server.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-server.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-uri.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-uri.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/lsp-workspace-configuration.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/lsp-workspace-configuration.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/lsp/outgoing-json-rpc-message-queue.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/lsp/outgoing-json-rpc-message-queue.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/attribute.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/bit.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/port/child-process.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/child-process.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/consteval.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/crash.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/function-ref.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/max-align.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/port/memory-resource.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/memory-resource.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/port/process.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/process.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/simd.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/span.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/port/thread.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/thread.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/unreachable.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/port/windows-error.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/windows-error.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/port/windows.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/simdjson.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/simdjson.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/ascii.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/binary-reader.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/binary-writer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/cpp.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/instance-tracker.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/util/integer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/integer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/math-overflow.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/pointer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/synchronized.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/try-catch-stack.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/type-traits.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/util/utf-16.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/utf-16.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/util/utf-8.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/util/utf-8.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/version.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "src/quick-lint-js/web-demo-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "src/quick-lint-js/web-demo-location.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"path" : "out/build/x64-Debug/src/CMakeFiles/quick-lint-js-lib.dir/cmake_pch.hxx",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "src/quick-lint-js/fe/lex-keyword-generated.cpp.rule",
+			"sourceGroupIndex" : 3
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

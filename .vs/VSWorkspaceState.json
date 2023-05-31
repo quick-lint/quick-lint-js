@@ -1,0 +1,18 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\docs",
+    "\\docs\\errors",
+    "\\src\\quick-lint-js",
+    "\\src\\quick-lint-js\\fe"
+  ],
+  "SelectedNode": "\\docs\\man",
+  "PreviewInSolutionExplorer": false,
+  "OutputFoldersPerTargetSystem": {
+    "Local Machine": [
+      "out\\build\\x64-Debug",
+      "out\\install\\x64-Debug"
+    ]
+  }
+}

@@ -1,0 +1,847 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineSystem.cmake:204 (message)"
+      - "CMakeLists.txt:12 (project)"
+    message: |
+      The system is: Windows - 10.0.22621 - AMD64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:12 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.36.32532/bin/Hostx64/x64/cl.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      Microsoft (R) C/C++ Optimizing Compiler Version 19.36.32532 for x64
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+      
+      CMakeCCompilerId.c
+      Microsoft (R) Incremental Linker Version 14.36.32532.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+      
+      /out:CMakeCCompilerId.exe 
+      CMakeCCompilerId.obj 
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.exe"
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.obj"
+      
+      The C compiler identification is MSVC, found in:
+        C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/3.26.0-msvc3/CompilerIdC/CMakeCCompilerId.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:1153 (message)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:221 (CMAKE_DETERMINE_MSVC_SHOWINCLUDES_PREFIX)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:12 (project)"
+    message: |
+      Detecting C compiler /showIncludes prefix:
+        main.c
+        Note: including file: C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\ShowIncludes\\foo.h
+        
+      Found prefix "Note: including file: "
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:12 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.36.32532/bin/Hostx64/x64/cl.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      Microsoft (R) C/C++ Optimizing Compiler Version 19.36.32532 for x64
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+      
+      CMakeCXXCompilerId.cpp
+      Microsoft (R) Incremental Linker Version 14.36.32532.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+      
+      /out:CMakeCXXCompilerId.exe 
+      CMakeCXXCompilerId.obj 
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.exe"
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.obj"
+      
+      The CXX compiler identification is MSVC, found in:
+        C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/3.26.0-msvc3/CompilerIdCXX/CMakeCXXCompilerId.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:1153 (message)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:221 (CMAKE_DETERMINE_MSVC_SHOWINCLUDES_PREFIX)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:12 (project)"
+    message: |
+      Detecting CXX compiler /showIncludes prefix:
+        main.c
+        Note: including file: C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\ShowIncludes\\foo.h
+        
+      Found prefix "Note: including file: "
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:12 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-t9v2fx"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-t9v2fx"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-t9v2fx
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_f9595 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo   /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_f9595.dir\\CMakeCCompilerABI.c.obj /FdCMakeFiles\\cmTC_f9595.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-3.26\\Modules\\CMakeCCompilerABI.c"
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_f9595.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_f9595.dir\\CMakeCCompilerABI.c.obj  /out:cmTC_f9595.exe /implib:cmTC_f9595.lib /pdb:cmTC_f9595.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:12 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-mul3ct"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-mul3ct"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-mul3ct
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_15f3f && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_15f3f.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_15f3f.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-3.26\\Modules\\CMakeCXXCompilerABI.cpp"
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_15f3f.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_15f3f.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_15f3f.exe /implib:cmTC_15f3f.lib /pdb:cmTC_15f3f.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:201 (check_c_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:196 (quick_lint_js_add_c_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:114 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:108 (quick_lint_js_use_new_msvc_preprocessor)"
+      - "CMakeLists.txt:143 (quick_lint_js_set_cxx_standard)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_C"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-jhdemt"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-jhdemt"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_C"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-jhdemt
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_b188f && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -DQUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_C  /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd   /Zc:preprocessor /showIncludes /FoCMakeFiles\\cmTC_b188f.dir\\src.c.obj /FdCMakeFiles\\cmTC_b188f.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-jhdemt\\src.c
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_b188f.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_b188f.dir\\src.c.obj  /out:cmTC_b188f.exe /implib:cmTC_b188f.lib /pdb:cmTC_b188f.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:197 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:114 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:108 (quick_lint_js_use_new_msvc_preprocessor)"
+      - "CMakeLists.txt:143 (quick_lint_js_set_cxx_standard)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-i635zs"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-i635zs"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-i635zs
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_1af96 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /Zc:preprocessor /showIncludes /FoCMakeFiles\\cmTC_1af96.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_1af96.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-i635zs\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_1af96.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_1af96.dir\\src.cxx.obj  /out:cmTC_1af96.exe /implib:cmTC_1af96.lib /pdb:cmTC_1af96.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:150 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:121 (quick_lint_js_get_supported_warning_options)"
+      - "cmake/QuickLintJSCompiler.cmake:108 (quick_lint_js_use_new_msvc_preprocessor)"
+      - "CMakeLists.txt:143 (quick_lint_js_set_cxx_standard)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_WARNING_OPTION__WD5105"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ve8819"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ve8819"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_WARNING_OPTION__WD5105"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ve8819
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_025a6 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_WARNING_OPTION__WD5105  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /wd5105 /showIncludes /FoCMakeFiles\\cmTC_025a6.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_025a6.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-ve8819\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_025a6.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_025a6.dir\\src.cxx.obj  /out:cmTC_025a6.exe /implib:cmTC_025a6.lib /pdb:cmTC_025a6.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:23 (check_cxx_compiler_flag)"
+      - "CMakeLists.txt:144 (quick_lint_js_enable_char8_t_if_supported)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-9n2hbn"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-9n2hbn"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-9n2hbn
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_ddfb6 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_FCHAR8_T_FLAG  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -fchar8_t /showIncludes /FoCMakeFiles\\cmTC_ddfb6.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_ddfb6.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-9n2hbn\\src.cxx
+        cl : Command line warning D9002 : ignoring unknown option '-fchar8_t'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_ddfb6.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_ddfb6.dir\\src.cxx.obj  /out:cmTC_ddfb6.exe /implib:cmTC_ddfb6.lib /pdb:cmTC_ddfb6.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:70 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "CMakeLists.txt:145 (quick_lint_js_configure_exception_handling)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FNO_EXCEPTIONS"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-kx7ip3"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-kx7ip3"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FNO_EXCEPTIONS"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-kx7ip3
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_d3f46 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_FNO_EXCEPTIONS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -fno-exceptions /showIncludes /FoCMakeFiles\\cmTC_d3f46.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_d3f46.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-kx7ip3\\src.cxx
+        cl : Command line warning D9002 : ignoring unknown option '-fno-exceptions'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_d3f46.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_d3f46.dir\\src.cxx.obj  /out:cmTC_d3f46.exe /implib:cmTC_d3f46.lib /pdb:cmTC_d3f46.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:75 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "CMakeLists.txt:146 (quick_lint_js_configure_rtti)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FNO_RTTI"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-d2uc5d"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-d2uc5d"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FNO_RTTI"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-d2uc5d
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_279e6 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_FNO_RTTI  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -fno-rtti /showIncludes /FoCMakeFiles\\cmTC_279e6.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_279e6.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-d2uc5d\\src.cxx
+        cl : Command line warning D9002 : ignoring unknown option '-fno-rtti'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_279e6.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_279e6.dir\\src.cxx.obj  /out:cmTC_279e6.exe /implib:cmTC_279e6.lib /pdb:cmTC_279e6.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:76 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "CMakeLists.txt:146 (quick_lint_js_configure_rtti)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_GR_"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4bygq3"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4bygq3"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_GR_"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4bygq3
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_9dae4 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_GR_  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /GR- /showIncludes /FoCMakeFiles\\cmTC_9dae4.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_9dae4.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4bygq3\\src.cxx
+        cl : Command line warning D9025 : overriding '/GR' with '/GR-'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_9dae4.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_9dae4.dir\\src.cxx.obj  /out:cmTC_9dae4.exe /implib:cmTC_9dae4.lib /pdb:cmTC_9dae4.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:201 (check_c_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:196 (quick_lint_js_add_c_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:250 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "CMakeLists.txt:148 (quick_lint_js_enable_dead_code_stripping)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FDATA_SECTIONS_C"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-wcbey7"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-wcbey7"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FDATA_SECTIONS_C"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-wcbey7
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_d5f3f && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -DQUICK_LINT_JS_HAVE_FDATA_SECTIONS_C  /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd   -fdata-sections /showIncludes /FoCMakeFiles\\cmTC_d5f3f.dir\\src.c.obj /FdCMakeFiles\\cmTC_d5f3f.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-wcbey7\\src.c
+        cl : Command line warning D9002 : ignoring unknown option '-fdata-sections'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_d5f3f.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_d5f3f.dir\\src.c.obj  /out:cmTC_d5f3f.exe /implib:cmTC_d5f3f.lib /pdb:cmTC_d5f3f.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:197 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:250 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "CMakeLists.txt:148 (quick_lint_js_enable_dead_code_stripping)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FDATA_SECTIONS_CXX"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ffrbm7"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ffrbm7"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FDATA_SECTIONS_CXX"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ffrbm7
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_5990e && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_FDATA_SECTIONS_CXX  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -fdata-sections /showIncludes /FoCMakeFiles\\cmTC_5990e.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_5990e.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-ffrbm7\\src.cxx
+        cl : Command line warning D9002 : ignoring unknown option '-fdata-sections'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_5990e.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_5990e.dir\\src.cxx.obj  /out:cmTC_5990e.exe /implib:cmTC_5990e.lib /pdb:cmTC_5990e.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:201 (check_c_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:196 (quick_lint_js_add_c_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:251 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "CMakeLists.txt:148 (quick_lint_js_enable_dead_code_stripping)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_C"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ec5nxu"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ec5nxu"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_C"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-ec5nxu
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_b473c && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -DQUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_C  /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd   -ffunction-sections /showIncludes /FoCMakeFiles\\cmTC_b473c.dir\\src.c.obj /FdCMakeFiles\\cmTC_b473c.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-ec5nxu\\src.c
+        cl : Command line warning D9002 : ignoring unknown option '-ffunction-sections'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_b473c.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_b473c.dir\\src.c.obj  /out:cmTC_b473c.exe /implib:cmTC_b473c.lib /pdb:cmTC_b473c.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:208 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:197 (quick_lint_js_add_cxx_flag_if_supported)"
+      - "cmake/QuickLintJSCompiler.cmake:251 (quick_lint_js_add_c_cxx_flag_if_supported)"
+      - "CMakeLists.txt:148 (quick_lint_js_enable_dead_code_stripping)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_CXX"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-25e55z"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-25e55z"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_CXX"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-25e55z
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_57eb1 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS_CXX  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -ffunction-sections /showIncludes /FoCMakeFiles\\cmTC_57eb1.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_57eb1.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-25e55z\\src.cxx
+        cl : Command line warning D9002 : ignoring unknown option '-ffunction-sections'
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_57eb1.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_57eb1.dir\\src.cxx.obj  /out:cmTC_57eb1.exe /implib:cmTC_57eb1.lib /pdb:cmTC_57eb1.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "cmake/QuickLintJSCompiler.cmake:243 (check_cxx_source_compiles)"
+      - "cmake/QuickLintJSCompiler.cmake:252 (quick_lint_js_add_cxx_linker_flag_if_supported)"
+      - "CMakeLists.txt:148 (quick_lint_js_enable_dead_code_stripping)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_GC_SECTIONS"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tectu2"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tectu2"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_GC_SECTIONS"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tectu2
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_282e6 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_GC_SECTIONS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_282e6.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_282e6.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-tectu2\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_282e6.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_282e6.dir\\src.cxx.obj  /out:cmTC_282e6.exe /implib:cmTC_282e6.lib /pdb:cmTC_282e6.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  -Wl,--gc-sections  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "vendor/googletest/googletest/cmake/internal_utils.cmake:65 (find_package)"
+      - "vendor/googletest/googletest/CMakeLists.txt:93 (config_compiler_and_linker)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-sp9r6q"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-sp9r6q"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-sp9r6q
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_e237a && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -DCMAKE_HAVE_LIBC_PTHREAD  /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_e237a.dir\\src.c.obj /FdCMakeFiles\\cmTC_e237a.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-sp9r6q\\src.c
+        FAILED: CMakeFiles/cmTC_e237a.dir/src.c.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -DCMAKE_HAVE_LIBC_PTHREAD  /DWIN32 /D_WINDOWS /W3  /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_e237a.dir\\src.c.obj /FdCMakeFiles\\cmTC_e237a.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-sp9r6q\\src.c
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-sp9r6q\\src.c(1): fatal error C1083: Cannot open include file: 'pthread.h': No such file or directory
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckLibraryExists.cmake:71 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:175 (_threads_check_lib)"
+      - "vendor/googletest/googletest/cmake/internal_utils.cmake:65 (find_package)"
+      - "vendor/googletest/googletest/CMakeLists.txt:93 (config_compiler_and_linker)"
+    checks:
+      - "Looking for pthread_create in pthreads"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tpioyk"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tpioyk"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREADS_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tpioyk
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_2d753 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo   /DWIN32 /D_WINDOWS /W3 -DCHECK_FUNCTION_EXISTS=pthread_create /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_2d753.dir\\CheckFunctionExists.c.obj /FdCMakeFiles\\cmTC_2d753.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-tpioyk\\CheckFunctionExists.c
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_2d753.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_2d753.dir\\CheckFunctionExists.c.obj  /out:cmTC_2d753.exe /implib:cmTC_2d753.lib /pdb:cmTC_2d753.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthreads.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        FAILED: cmTC_2d753.exe 
+        cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_2d753.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_2d753.dir\\CheckFunctionExists.c.obj  /out:cmTC_2d753.exe /implib:cmTC_2d753.lib /pdb:cmTC_2d753.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthreads.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        LINK Pass 1: command "C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_2d753.dir\\CheckFunctionExists.c.obj /out:cmTC_2d753.exe /implib:cmTC_2d753.lib /pdb:cmTC_2d753.pdb /version:0.0 /machine:x64 /debug /INCREMENTAL /subsystem:console pthreads.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTFILE:CMakeFiles\\cmTC_2d753.dir/intermediate.manifest CMakeFiles\\cmTC_2d753.dir/manifest.res" failed (exit code 1104) with the following output:
+        LINK : fatal error LNK1104: cannot open file 'pthreads.lib'\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckLibraryExists.cmake:71 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/FindThreads.cmake:176 (_threads_check_lib)"
+      - "vendor/googletest/googletest/cmake/internal_utils.cmake:65 (find_package)"
+      - "vendor/googletest/googletest/CMakeLists.txt:93 (config_compiler_and_linker)"
+    checks:
+      - "Looking for pthread_create in pthread"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-rpas0f"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-rpas0f"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREAD_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-rpas0f
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_717f8 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo   /DWIN32 /D_WINDOWS /W3 -DCHECK_FUNCTION_EXISTS=pthread_create /Zi /Ob0 /Od /RTC1 -MDd /showIncludes /FoCMakeFiles\\cmTC_717f8.dir\\CheckFunctionExists.c.obj /FdCMakeFiles\\cmTC_717f8.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-rpas0f\\CheckFunctionExists.c
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_717f8.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_717f8.dir\\CheckFunctionExists.c.obj  /out:cmTC_717f8.exe /implib:cmTC_717f8.lib /pdb:cmTC_717f8.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthread.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        FAILED: cmTC_717f8.exe 
+        cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_717f8.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_717f8.dir\\CheckFunctionExists.c.obj  /out:cmTC_717f8.exe /implib:cmTC_717f8.lib /pdb:cmTC_717f8.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthread.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        LINK Pass 1: command "C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_717f8.dir\\CheckFunctionExists.c.obj /out:cmTC_717f8.exe /implib:cmTC_717f8.lib /pdb:cmTC_717f8.pdb /version:0.0 /machine:x64 /debug /INCREMENTAL /subsystem:console pthread.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTFILE:CMakeFiles\\cmTC_717f8.dir/intermediate.manifest CMakeFiles\\cmTC_717f8.dir/manifest.res" failed (exit code 1104) with the following output:
+        LINK : fatal error LNK1104: cannot open file 'pthread.lib'\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:150 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:136 (quick_lint_js_get_supported_warning_options)"
+      - "vendor/simdjson.cmake:25 (quick_lint_js_add_warning_options_if_supported)"
+      - "CMakeLists.txt:174 (include)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_WARNING_OPTION__WNO_ARRAY_BOUNDS"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-k5vn3o"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-k5vn3o"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_WARNING_OPTION__WNO_ARRAY_BOUNDS"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-k5vn3o
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_23b15 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_WARNING_OPTION__WNO_ARRAY_BOUNDS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -Wno-array-bounds /showIncludes /FoCMakeFiles\\cmTC_23b15.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_23b15.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-k5vn3o\\src.cxx
+        FAILED: CMakeFiles/cmTC_23b15.dir/src.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_WARNING_OPTION__WNO_ARRAY_BOUNDS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   -Wno-array-bounds /showIncludes /FoCMakeFiles\\cmTC_23b15.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_23b15.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-k5vn3o\\src.cxx
+        cl : Command line error D8021 : invalid numeric argument '/Wno-array-bounds'
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckIncludeFileCXX.cmake:94 (try_compile)"
+      - "test/CMakeLists.txt:10 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include libutil.h"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-cizyci"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-cizyci"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_LIBUTIL_H"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-cizyci
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_8903f && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_8903f.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_8903f.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-cizyci\\CheckIncludeFile.cxx
+        FAILED: CMakeFiles/cmTC_8903f.dir/CheckIncludeFile.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_8903f.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_8903f.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-cizyci\\CheckIncludeFile.cxx
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-cizyci\\CheckIncludeFile.cxx(1): fatal error C1083: Cannot open include file: 'libutil.h': No such file or directory
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckIncludeFileCXX.cmake:94 (try_compile)"
+      - "test/CMakeLists.txt:11 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include pty.h"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-l5mufv"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-l5mufv"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_PTY_H"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-l5mufv
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_17760 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_17760.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_17760.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-l5mufv\\CheckIncludeFile.cxx
+        FAILED: CMakeFiles/cmTC_17760.dir/CheckIncludeFile.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_17760.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_17760.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-l5mufv\\CheckIncludeFile.cxx
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-l5mufv\\CheckIncludeFile.cxx(1): fatal error C1083: Cannot open include file: 'pty.h': No such file or directory
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckIncludeFileCXX.cmake:94 (try_compile)"
+      - "test/CMakeLists.txt:12 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include util.h"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-37sy4r"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-37sy4r"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_UTIL_H"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-37sy4r
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_c70a2 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_c70a2.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_c70a2.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-37sy4r\\CheckIncludeFile.cxx
+        FAILED: CMakeFiles/cmTC_c70a2.dir/CheckIncludeFile.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_c70a2.dir\\CheckIncludeFile.cxx.obj /FdCMakeFiles\\cmTC_c70a2.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-37sy4r\\CheckIncludeFile.cxx
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-37sy4r\\CheckIncludeFile.cxx(1): fatal error C1083: Cannot open include file: 'util.h': No such file or directory
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "test/CMakeLists.txt:31 (check_cxx_source_compiles)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_LIBUTIL"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4cfmxz"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4cfmxz"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_LIBUTIL"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4cfmxz
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_c5d30 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_LIBUTIL  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_c5d30.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_c5d30.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx
+        FAILED: CMakeFiles/cmTC_c5d30.dir/src.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_LIBUTIL  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /showIncludes /FoCMakeFiles\\cmTC_c5d30.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_c5d30.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(3): error C2065: 'pid_t': undeclared identifier
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(3): error C2146: syntax error: missing ';' before identifier 'rc'
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(3): error C2065: 'rc': undeclared identifier
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(3): error C2039: 'forkpty': is not a member of '`global namespace''
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(3): error C3861: 'forkpty': identifier not found
+        C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4cfmxz\\src.cxx(4): error C2065: 'rc': undeclared identifier
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:59 (check_cxx_compiler_flag)"
+      - "test/CMakeLists.txt:234 (quick_lint_js_enable_bigobj_if_supported)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_BIGOBJ"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4rlxcs"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4rlxcs"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_BIGOBJ"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-4rlxcs
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_ab2a3 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_BIGOBJ  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /bigobj /showIncludes /FoCMakeFiles\\cmTC_ab2a3.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_ab2a3.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-4rlxcs\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_ab2a3.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_ab2a3.dir\\src.cxx.obj  /out:cmTC_ab2a3.exe /implib:cmTC_ab2a3.lib /pdb:cmTC_ab2a3.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:150 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:136 (quick_lint_js_get_supported_warning_options)"
+      - "test/CMakeLists.txt:251 (quick_lint_js_add_warning_options_if_supported)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_WARNING_OPTION__WD26495"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-h7egyq"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-h7egyq"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_WARNING_OPTION__WD26495"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-h7egyq
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_520f4 && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_WARNING_OPTION__WD26495  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /wd26495 /showIncludes /FoCMakeFiles\\cmTC_520f4.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_520f4.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-h7egyq\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_520f4.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_520f4.dir\\src.cxx.obj  /out:cmTC_520f4.exe /implib:cmTC_520f4.lib /pdb:cmTC_520f4.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.26/Modules/CheckCXXCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:150 (check_cxx_compiler_flag)"
+      - "cmake/QuickLintJSCompiler.cmake:136 (quick_lint_js_get_supported_warning_options)"
+      - "test/CMakeLists.txt:251 (quick_lint_js_add_warning_options_if_supported)"
+    checks:
+      - "Performing Test QUICK_LINT_JS_HAVE_WARNING_OPTION__WD26812"
+    directories:
+      source: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tmk7x0"
+      binary: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tmk7x0"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      CMAKE_MODULE_PATH: "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/cmake"
+    buildResult:
+      variable: "QUICK_LINT_JS_HAVE_WARNING_OPTION__WD26812"
+      cached: true
+      stdout: |
+        Change Dir: C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-tmk7x0
+        
+        Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe -v cmTC_ba7cb && [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DQUICK_LINT_JS_HAVE_WARNING_OPTION__WD26812  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd   /wd26812 /showIncludes /FoCMakeFiles\\cmTC_ba7cb.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_ba7cb.dir\\ /FS -c C:\\Users\\jaitj\\source\\repos\\jaitjacob\\quick-lint-js\\out\\build\\x64-Debug\\CMakeFiles\\CMakeScratch\\TryCompile-tmk7x0\\src.cxx
+        [2/2] cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\\cmTC_ba7cb.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100220~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_ba7cb.dir\\src.cxx.obj  /out:cmTC_ba7cb.exe /implib:cmTC_ba7cb.lib /pdb:cmTC_ba7cb.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        
+      exitCode: 0
+...

@@ -1,0 +1,1976 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "test/quick-lint-js-test.exe"
+		},
+		{
+			"path" : "test/quick-lint-js-test.pdb"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"quick_lint_js_add_executable",
+			"target_link_libraries",
+			"add_compile_options",
+			"quick_lint_js_add_cxx_flag_if_supported",
+			"quick_lint_js_add_c_cxx_flag_if_supported",
+			"quick_lint_js_use_new_msvc_preprocessor",
+			"quick_lint_js_set_cxx_standard",
+			"quick_lint_js_fix_cpluplus_macro",
+			"quick_lint_js_configure_exception_handling",
+			"quick_lint_js_configure_rtti",
+			"target_compile_options",
+			"quick_lint_js_enable_bigobj_if_supported",
+			"quick_lint_js_add_warning_options_if_supported",
+			"add_definitions",
+			"target_include_directories",
+			"target_precompile_headers"
+		],
+		"files" : 
+		[
+			"cmake/QuickLintJSTarget.cmake",
+			"test/CMakeLists.txt",
+			"src/CMakeLists.txt",
+			"cmake/QuickLintJSCompiler.cmake",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 49,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 8,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 204,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 288,
+				"parent" : 4
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 298,
+				"parent" : 4
+			},
+			{
+				"file" : 4
+			},
+			{
+				"command" : 7,
+				"file" : 4,
+				"line" : 143,
+				"parent" : 7
+			},
+			{
+				"command" : 6,
+				"file" : 3,
+				"line" : 108,
+				"parent" : 8
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 114,
+				"parent" : 9
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 197,
+				"parent" : 10
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 11
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 122,
+				"parent" : 9
+			},
+			{
+				"command" : 8,
+				"file" : 3,
+				"line" : 109,
+				"parent" : 8
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 128,
+				"parent" : 14
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 197,
+				"parent" : 15
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 16
+			},
+			{
+				"command" : 9,
+				"file" : 4,
+				"line" : 145,
+				"parent" : 7
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 67,
+				"parent" : 18
+			},
+			{
+				"command" : 10,
+				"file" : 4,
+				"line" : 146,
+				"parent" : 7
+			},
+			{
+				"command" : 4,
+				"file" : 3,
+				"line" : 76,
+				"parent" : 20
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 210,
+				"parent" : 21
+			},
+			{
+				"command" : 12,
+				"file" : 1,
+				"line" : 234,
+				"parent" : 0
+			},
+			{
+				"command" : 11,
+				"file" : 3,
+				"line" : 61,
+				"parent" : 23
+			},
+			{
+				"command" : 13,
+				"file" : 1,
+				"line" : 251,
+				"parent" : 0
+			},
+			{
+				"command" : 11,
+				"file" : 3,
+				"line" : 141,
+				"parent" : 25
+			},
+			{
+				"command" : 14,
+				"file" : 3,
+				"line" : 123,
+				"parent" : 9
+			},
+			{
+				"command" : 14,
+				"file" : 3,
+				"line" : 68,
+				"parent" : 18
+			},
+			{
+				"command" : 14,
+				"file" : 4,
+				"line" : 151,
+				"parent" : 7
+			},
+			{
+				"command" : 15,
+				"file" : 1,
+				"line" : 203,
+				"parent" : 0
+			},
+			{
+				"command" : 16,
+				"file" : 1,
+				"line" : 225,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 12,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 13,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 19,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 22,
+					"fragment" : "/GR-"
+				},
+				{
+					"backtrace" : 24,
+					"fragment" : "/bigobj"
+				},
+				{
+					"backtrace" : 26,
+					"fragment" : "/wd26495"
+				},
+				{
+					"backtrace" : 26,
+					"fragment" : "/wd26812"
+				},
+				{
+					"fragment" : "/YcC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 27,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 28,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 29,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 30,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/test/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/tools/test-typescript/."
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googlemock/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googlemock"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googletest/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googletest"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3,
+					3
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 31,
+					"header" : "<gmock/gmock.h>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<gtest/gtest.h>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<iostream>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd"
+				},
+				{
+					"backtrace" : 12,
+					"fragment" : "/Zc:preprocessor"
+				},
+				{
+					"backtrace" : 13,
+					"fragment" : "/wd5105"
+				},
+				{
+					"backtrace" : 17,
+					"fragment" : "/Zc:__cplusplus"
+				},
+				{
+					"backtrace" : 19,
+					"fragment" : "/EHc-s-"
+				},
+				{
+					"backtrace" : 22,
+					"fragment" : "/GR-"
+				},
+				{
+					"backtrace" : 24,
+					"fragment" : "/bigobj"
+				},
+				{
+					"backtrace" : 26,
+					"fragment" : "/wd26495"
+				},
+				{
+					"backtrace" : 26,
+					"fragment" : "/wd26812"
+				},
+				{
+					"fragment" : "/YuC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.hxx /FpC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/./cmake_pch.cxx.pch /FIC:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.hxx"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_CONTAINER_NO_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_EXCEPTION_MINI_BOOST"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "BOOST_NO_EXCEPTIONS"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_DEBUG_SERVER=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QLJS_FEATURE_VECTOR_PROFILING=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "QUICK_LINT_JS_VERSION=2.13.0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SIMDJSON_THREADS_ENABLED=1"
+				},
+				{
+					"backtrace" : 27,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 28,
+					"define" : "_HAS_EXCEPTIONS=0"
+				},
+				{
+					"backtrace" : 29,
+					"define" : "_WIN32_WINNT=0x0602"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 30,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/test/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/src/."
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/tools/test-typescript/."
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/boost"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googlemock/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googlemock"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googletest/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/googletest/googletest"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/vendor/simdjson/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3,
+					3
+				],
+				"standard" : "20"
+			},
+			"precompileHeaders" : 
+			[
+				{
+					"backtrace" : 31,
+					"header" : "<gmock/gmock.h>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<gtest/gtest.h>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<iostream>"
+				},
+				{
+					"backtrace" : 31,
+					"header" : "<simdjson.h>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cmath>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<cstring>"
+				},
+				{
+					"backtrace" : 3,
+					"header" : "<string>"
+				}
+			],
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108,
+				109,
+				110,
+				111,
+				112,
+				113,
+				114,
+				115,
+				116,
+				117,
+				118,
+				119,
+				120,
+				121,
+				122,
+				123,
+				124,
+				125,
+				126,
+				127,
+				128,
+				129,
+				130,
+				131,
+				132,
+				133,
+				134,
+				135,
+				136,
+				137,
+				138,
+				139,
+				140,
+				141,
+				142,
+				143,
+				144,
+				145,
+				146,
+				147,
+				148,
+				149,
+				150,
+				151
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "boost_json::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-typescript-test-lib::@f0fd8c404ad87e435fee"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "gmock::@142d12f48ced774b446c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-lib::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-lib-debug::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-tool-lib::@145eef247bfb46b6828c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "simdjson::@860ceb1c92c4dba85bce"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "gmock_main::@142d12f48ced774b446c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "gtest::@7686eca10ca0980a481c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-test-lib::@36f028580bb02cc8272a"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "quick-lint-js-boost-json::@145eef247bfb46b6828c"
+		}
+	],
+	"id" : "quick-lint-js-test::@36f028580bb02cc8272a",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--gc-sections",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "boost_json.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\gmockd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\gmock_maind.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\gtestd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-boost-json.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib-debug.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "test\\quick-lint-js-test-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "tools\\test-typescript\\quick-lint-js-typescript-test-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "boost_json.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\gmockd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\gtestd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib-debug.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "src\\quick-lint-js-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "src\\quick-lint-js-tool-lib.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "vendor\\simdjson\\simdjson.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--gc-sections",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "pathcch.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "quick-lint-js-test",
+	"nameOnDisk" : "quick-lint-js-test.exe",
+	"paths" : 
+	{
+		"build" : "test",
+		"source" : "test"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108,
+				109,
+				110,
+				111,
+				112,
+				113,
+				114,
+				115,
+				116,
+				117,
+				118,
+				119,
+				120,
+				121,
+				122,
+				123,
+				124,
+				125,
+				126,
+				127,
+				128,
+				129,
+				130,
+				131,
+				132,
+				133,
+				134,
+				135,
+				136,
+				137,
+				138,
+				139,
+				140,
+				141,
+				142,
+				143,
+				144,
+				145,
+				146,
+				147,
+				148,
+				149,
+				150,
+				151
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25
+			]
+		},
+		{
+			"name" : "Precompile Header File",
+			"sourceIndexes" : 
+			[
+				152
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 0,
+			"compileGroupIndex" : 0,
+			"path" : "out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.cxx",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/diag-collector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/diag-matcher.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/failing-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/fake-configuration-filesystem.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/parse-json.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/parse-support.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/array.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/characters.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/diag-collector.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/diag-matcher.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/dirty-set.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/failing-diag-reporter.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/file-matcher.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/gtest.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/mock-inotify.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/mock-kqueue.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/mock-win32.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/parse-json.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/parse-support.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/spy-lsp-endpoint-remote.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/spy-lsp-message-parser.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/spy-visitor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/test-translation-table-generated.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/tracking-memory-resource.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "test/quick-lint-js/variable-analyzer-support.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/spy-visitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-array.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-assert.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-async-byte-queue.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-bit.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-buffering-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-buffering-visitor-stack.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-buffering-visitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-byte-buffer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-c-api.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-c-string-list.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-cli-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-concat.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-configuration-loader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-configuration.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-crash.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-debug-server.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-diag-code-list.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-diag-code.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-diag-matcher.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-diagnostic-formatter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-diagnostic.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-dirty-set.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-emacs-lisp-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-emacs-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-event-loop.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-file-canonical.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-file-path.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-file.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-function-ref.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-heap-function.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-instance-tracker.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-integer-decimal.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-integer-hexadecimal.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-json.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lex.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-linked-bump-allocator.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-linked-vector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-locale.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-document-text.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-json-rpc-message-parser.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-message-parser.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-pipe-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-server.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-uri.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-lsp-workspace-configuration.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-math-overflow.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-math.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-narrow-cast.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-options.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-output-stream.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-padded-string.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-class.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-conditional-expression.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-expression-jsx.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-expression-statement.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-expression-typescript.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-expression.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-function.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-jsx.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-loop.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-module.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-statement.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-ambiguous.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-angle-type-assertion.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-class.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-class.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-function.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-interface.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-namespace.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-type.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-declare-var.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-enum.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-function.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-generic-arrow.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-generic.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-interface.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-module.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-namespace.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-this-parameters.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-type.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript-var.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-typescript.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-var.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse-warning.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-parse.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-pipe-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-result.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-simd.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-sorted-search.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-string-view.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-temporary-directory.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-text-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-thread.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-trace-flusher.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-trace-reader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-trace-writer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-tracking-memory-resource.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-translation-table-generated.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-translation.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-try-catch-stack.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-typescript-test.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-utf-16.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-utf-8.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-arguments.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-delete.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-enum.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-eval.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-globals.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-interface.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-multiple-declarations.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-namespace.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-parse.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-type.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-typeof.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer-unused-shadow.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-variable-analyzer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-vector-profiler.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-vector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-vim-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-vim-qflist-json-diag-reporter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-web-demo-location.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/test-write-integer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 1,
+			"path" : "test/variable-analyzer-support.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"path" : "out/build/x64-Debug/test/CMakeFiles/quick-lint-js-test.dir/cmake_pch.hxx",
+			"sourceGroupIndex" : 2
+		}
+	],
+	"type" : "EXECUTABLE"
+}

@@ -1,0 +1,801 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						3,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						33,
+						34
+					]
+				},
+				{
+					"build" : "tools",
+					"childIndexes" : 
+					[
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-tools-Debug-d14769211750d8004f3e.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "tools",
+					"targetIndexes" : 
+					[
+						36,
+						38,
+						39
+					]
+				},
+				{
+					"build" : "tools/test-typescript",
+					"jsonFile" : "directory-tools.test-typescript-Debug-b7b7b5ed031efb18187a.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "tools/test-typescript",
+					"targetIndexes" : 
+					[
+						46,
+						48
+					]
+				},
+				{
+					"build" : "vendor/googletest",
+					"childIndexes" : 
+					[
+						4
+					],
+					"jsonFile" : "directory-vendor.googletest-Debug-b26b8d1ca1a4c3055cc4.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "vendor/googletest"
+				},
+				{
+					"build" : "vendor/googletest/googlemock",
+					"childIndexes" : 
+					[
+						5
+					],
+					"jsonFile" : "directory-vendor.googletest.googlemock-Debug-c300305ebc5241b0c29f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "vendor/googletest/googlemock",
+					"targetIndexes" : 
+					[
+						29,
+						30
+					]
+				},
+				{
+					"build" : "vendor/googletest/googletest",
+					"jsonFile" : "directory-vendor.googletest.googletest-Debug-23613a2471f116d34ee8.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 3,
+					"source" : "vendor/googletest/googletest",
+					"targetIndexes" : 
+					[
+						31,
+						32
+					]
+				},
+				{
+					"build" : "vendor/simdjson",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-vendor.simdjson-Debug-d89f24ec4eccea7982c3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.9"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 4,
+					"source" : "vendor/simdjson",
+					"targetIndexes" : 
+					[
+						49
+					]
+				},
+				{
+					"build" : "dist",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-dist-Debug-66f72cf85503f8ac4480.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "dist"
+				},
+				{
+					"build" : "docs",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-docs-Debug-886530fff50d8bcf9d0e.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "docs"
+				},
+				{
+					"build" : "fuzz",
+					"jsonFile" : "directory-fuzz-Debug-32c979fe1285d33834b5.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "fuzz"
+				},
+				{
+					"build" : "plugin/vim",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-plugin.vim-Debug-6dffe31d561f5a9eb335.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "plugin/vim"
+				},
+				{
+					"build" : "plugin/emacs",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-plugin.emacs-Debug-1414a71bc9770aa10cd7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "plugin/emacs"
+				},
+				{
+					"build" : "plugin/vscode",
+					"jsonFile" : "directory-plugin.vscode-Debug-a612ede653b7fbe5f27c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "plugin/vscode"
+				},
+				{
+					"build" : "src",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-src-Debug-bc94b20280ba4fc6170e.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src",
+					"targetIndexes" : 
+					[
+						35,
+						37,
+						40,
+						41,
+						42,
+						47
+					]
+				},
+				{
+					"build" : "website/wasm",
+					"jsonFile" : "directory-website.wasm-Debug-d861ef09115e4e36a983.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "website/wasm"
+				},
+				{
+					"build" : "completions",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-completions-Debug-97a14134cf867a1c7367.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "completions"
+				},
+				{
+					"build" : "test",
+					"jsonFile" : "directory-test-Debug-f18be1977b403cfd1a50.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "test",
+					"targetIndexes" : 
+					[
+						43,
+						44,
+						45
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16
+					],
+					"name" : "quick-lint-js",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						33,
+						34,
+						35,
+						36,
+						37,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						44,
+						45,
+						46,
+						47,
+						48
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2
+					],
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "googletest-distribution",
+					"parentIndex" : 0
+				},
+				{
+					"childIndexes" : 
+					[
+						3
+					],
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "gmock",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						29,
+						30
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5
+					],
+					"name" : "gtest",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						31,
+						32
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6
+					],
+					"name" : "simdjson",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						49
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Continuous::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Continuous-Debug-4bc74f60085728ecb415.json",
+					"name" : "Continuous",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousBuild-Debug-59e7cbe7aac908c0e5b0.json",
+					"name" : "ContinuousBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousConfigure-Debug-8928574deb1ff2cf093f.json",
+					"name" : "ContinuousConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousCoverage-Debug-dfee7414af2bfbb13631.json",
+					"name" : "ContinuousCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousMemCheck-Debug-e1f2a0b8f5466a3331d9.json",
+					"name" : "ContinuousMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousStart-Debug-7d25bd2f70962936c50a.json",
+					"name" : "ContinuousStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousSubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousSubmit-Debug-2761c2486bda39449094.json",
+					"name" : "ContinuousSubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousTest-Debug-bf6143d31f418d022dea.json",
+					"name" : "ContinuousTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousUpdate-Debug-37b7c523650908197d8c.json",
+					"name" : "ContinuousUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Experimental::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Experimental-Debug-2c2973a5cf69f6189cb9.json",
+					"name" : "Experimental",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalBuild-Debug-c8e82693838799015cd2.json",
+					"name" : "ExperimentalBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalConfigure-Debug-33cdc844f54ce88f469f.json",
+					"name" : "ExperimentalConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalCoverage-Debug-7035a5167c4c26832c0e.json",
+					"name" : "ExperimentalCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalMemCheck-Debug-83f6e6873db1111fa187.json",
+					"name" : "ExperimentalMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalStart-Debug-a9969a1b79bf38ccb827.json",
+					"name" : "ExperimentalStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalSubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalSubmit-Debug-fd93969bdf99a7f31f67.json",
+					"name" : "ExperimentalSubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalTest-Debug-ddb112cd9764055bc686.json",
+					"name" : "ExperimentalTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalUpdate-Debug-da3e8b732fcdeca347fb.json",
+					"name" : "ExperimentalUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Nightly::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Nightly-Debug-25f7a8aa984b7b43c9d1.json",
+					"name" : "Nightly",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyBuild-Debug-ed94aa9051255e3c576c.json",
+					"name" : "NightlyBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyConfigure-Debug-d0e710f486c8116a6123.json",
+					"name" : "NightlyConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyCoverage-Debug-20f4c1548003acac982f.json",
+					"name" : "NightlyCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyMemCheck-Debug-2422e162a3eb144225a1.json",
+					"name" : "NightlyMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyMemoryCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyMemoryCheck-Debug-af570ea09e3c32abcdf6.json",
+					"name" : "NightlyMemoryCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyStart-Debug-eb0ec31b2ae49dd10abb.json",
+					"name" : "NightlyStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlySubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlySubmit-Debug-65098d92318a105832c2.json",
+					"name" : "NightlySubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyTest-Debug-93db3c24719d132022a2.json",
+					"name" : "NightlyTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyUpdate-Debug-7fbba0390bc33c877059.json",
+					"name" : "NightlyUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boost_json::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boost_json-Debug-e9c4c1c92519f9ee9874.json",
+					"name" : "boost_json",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "gmock::@142d12f48ced774b446c",
+					"jsonFile" : "target-gmock-Debug-54407b01aa8ce18d07a5.json",
+					"name" : "gmock",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "gmock_main::@142d12f48ced774b446c",
+					"jsonFile" : "target-gmock_main-Debug-edabdde19ec027df0219.json",
+					"name" : "gmock_main",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "gtest::@7686eca10ca0980a481c",
+					"jsonFile" : "target-gtest-Debug-e4122567d6b062ec5161.json",
+					"name" : "gtest",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "gtest_main::@7686eca10ca0980a481c",
+					"jsonFile" : "target-gtest_main-Debug-534b795b7f8daad1e397.json",
+					"name" : "gtest_main",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "node-hook::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-node-hook-Debug-21f3d0152dccde755e23.json",
+					"name" : "node-hook",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "node-napi-implib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-node-napi-implib-Debug-cac9f29747b7ec4ec00d.json",
+					"name" : "node-napi-implib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-Debug-5f524e4979f312d4aa4a.json",
+					"name" : "quick-lint-js",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "quick-lint-js-analyze-trace::@b9a00e55f22b3d77656c",
+					"jsonFile" : "target-quick-lint-js-analyze-trace-Debug-68cf41bf257818a3f741.json",
+					"name" : "quick-lint-js-analyze-trace",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js-boost-json::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-boost-json-Debug-82cf372cc505df6540dd.json",
+					"name" : "quick-lint-js-boost-json",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "quick-lint-js-build-tools::@b9a00e55f22b3d77656c",
+					"jsonFile" : "target-quick-lint-js-build-tools-Debug-bb2ffe17b4b11ca56b17.json",
+					"name" : "quick-lint-js-build-tools",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "quick-lint-js-generate-lex-keyword::@b9a00e55f22b3d77656c",
+					"jsonFile" : "target-quick-lint-js-generate-lex-keyword-Debug-3d978ec32a2eaec482b8.json",
+					"name" : "quick-lint-js-generate-lex-keyword",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js-lib::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-lib-Debug-bbaa9139785813541ca3.json",
+					"name" : "quick-lint-js-lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js-lib-debug::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-lib-debug-Debug-1ebe087538305f4b7f8d.json",
+					"name" : "quick-lint-js-lib-debug",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js-licenses::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-licenses-Debug-c489b1732ddefe6e8f52.json",
+					"name" : "quick-lint-js-licenses",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "quick-lint-js-test::@36f028580bb02cc8272a",
+					"jsonFile" : "target-quick-lint-js-test-Debug-7e1820ba3de6573cea3c.json",
+					"name" : "quick-lint-js-test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "quick-lint-js-test-cli::@36f028580bb02cc8272a",
+					"jsonFile" : "target-quick-lint-js-test-cli-Debug-19613ea3fea059d84f81.json",
+					"name" : "quick-lint-js-test-cli",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "quick-lint-js-test-lib::@36f028580bb02cc8272a",
+					"jsonFile" : "target-quick-lint-js-test-lib-Debug-07208b6d926c6743b293.json",
+					"name" : "quick-lint-js-test-lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "quick-lint-js-test-typescript::@f0fd8c404ad87e435fee",
+					"jsonFile" : "target-quick-lint-js-test-typescript-Debug-56296aa7240485472fcd.json",
+					"name" : "quick-lint-js-test-typescript",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "quick-lint-js-tool-lib::@145eef247bfb46b6828c",
+					"jsonFile" : "target-quick-lint-js-tool-lib-Debug-f296a556405ec3b36ac1.json",
+					"name" : "quick-lint-js-tool-lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "quick-lint-js-typescript-test-lib::@f0fd8c404ad87e435fee",
+					"jsonFile" : "target-quick-lint-js-typescript-test-lib-Debug-69e3ac8dbe132ef01f11.json",
+					"name" : "quick-lint-js-typescript-test-lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "simdjson::@860ceb1c92c4dba85bce",
+					"jsonFile" : "target-simdjson-Debug-1174292b302f880ecba3.json",
+					"name" : "simdjson",
+					"projectIndex" : 4
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js/out/build/x64-Debug",
+		"source" : "C:/Users/jaitj/source/repos/jaitjacob/quick-lint-js"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}
