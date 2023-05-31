@@ -15,7 +15,7 @@ jobs:
           printf 'Git-Commit: %s\nWebsite-URL: %s' ${{ github.sha }} 'https://quick-lint-js.com/' >README
       - name: upload tag file
         if: ${{ github.repository_owner == 'quick-lint' }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: README
@@ -24,7 +24,7 @@ jobs:
           user: ${{ secrets.artifacts_user }}
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       # HACK(strager): Work around the following error from 'git ls-files' used
       # by ./tools/format:
@@ -46,7 +46,7 @@ jobs:
           QLJS_VERSION: ${{ steps.getversion.outputs.QLJS_VERSION }}
       - name: upload source archive
         if: ${{ github.repository_owner == 'quick-lint' }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: quick-lint-js-${{ steps.getversion.outputs.QLJS_VERSION }}.tar.gz
