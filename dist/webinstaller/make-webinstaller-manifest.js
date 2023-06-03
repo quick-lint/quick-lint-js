@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 const fs = require("fs");
+const path = require("node:path");
 
 const args = process.argv.slice(2);
 let releaseVersion;
@@ -55,7 +56,10 @@ if (!releasesDateRegex.test(releaseDate)) {
   process.exit(1);
 }
 
-let data = fs.readFileSync("quick-lint-js-template.json", "utf8");
+let data = fs.readFileSync(
+  path.join(__dirname, "quick-lint-js-template.json"),
+  "utf8"
+);
 data = data.replace(/\${version}/g, releaseVersion);
 data = data.replace(/\${releaseDate}/g, releaseDate);
 fs.writeFileSync(outputFile, data, "utf8");
