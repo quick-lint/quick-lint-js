@@ -419,18 +419,7 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
-        // See NOTE[typescript-constructor-escape].
-        if (p->options_.typescript && !this->is_interface &&
-            p->peek().type == token_type::identifier &&
-            p->peek().normalized_identifier == u8"constructor"_sv &&
-            p->peek().contains_escape_sequence()) {
-          bool has_exactly_one_escape_sequence =
-              std::count(p->peek().begin, p->peek().end, u8'\\') == 1;
-          if (has_exactly_one_escape_sequence) {
-            p->diag_reporter_->report(diag_keyword_contains_escape_characters{
-                .escape_character_in_keyword = p->peek().span()});
-          }
-        }
+        this->warn_if_typescript_constructor_with_escape_sequence();
         p->skip();
         parse_and_visit_field_or_method(property_name);
         break;
@@ -592,6 +581,21 @@ void parser::parse_and_visit_class_or_interface_member(
       default:
         QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         break;
+      }
+    }
+
+    // See NOTE[typescript-constructor-escape].
+    void warn_if_typescript_constructor_with_escape_sequence() {
+      if (p->options_.typescript && !this->is_interface &&
+          p->peek().type == token_type::identifier &&
+          p->peek().normalized_identifier == u8"constructor"_sv &&
+          p->peek().contains_escape_sequence()) {
+        bool has_exactly_one_escape_sequence =
+            std::count(p->peek().begin, p->peek().end, u8'\\') == 1;
+        if (has_exactly_one_escape_sequence) {
+          p->diag_reporter_->report(diag_keyword_contains_escape_characters{
+              .escape_character_in_keyword = p->peek().span()});
+        }
       }
     }
 
