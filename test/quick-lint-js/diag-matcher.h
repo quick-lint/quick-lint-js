@@ -12,7 +12,6 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
-#include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
@@ -156,11 +155,9 @@ class offsets_matcher {
 
   ~offsets_matcher();
 
-  /*implicit*/ operator testing::Matcher<const identifier &>() const;
   /*implicit*/ operator testing::Matcher<const source_code_span &>() const;
 
  private:
-  class identifier_impl;
   class span_impl;
 
   padded_string_view code_;
@@ -175,11 +172,9 @@ class span_matcher {
  public:
   explicit span_matcher(const char8 *expected);
 
-  /*implicit*/ operator testing::Matcher<const identifier &>() const;
   /*implicit*/ operator testing::Matcher<const source_code_span &>() const;
 
  private:
-  class identifier_impl;
   class span_impl;
 
   const char8 *expected_;
@@ -189,11 +184,9 @@ class source_code_span_matcher {
  public:
   explicit source_code_span_matcher(source_code_span expected);
 
-  /*implicit*/ operator testing::Matcher<const identifier &>() const;
   /*implicit*/ operator testing::Matcher<const source_code_span &>() const;
 
  private:
-  class identifier_impl;
   class span_impl;
 
   source_code_span expected_;
@@ -205,7 +198,7 @@ struct diag_matcher_arg {
   std::size_t member_offset;
   diagnostic_arg_type member_type;
 
-  // member_type must be identifier or source_code_span.
+  // member_type must be source_code_span.
   source_code_span get_span(const void *error_object) const noexcept;
 };
 
@@ -226,7 +219,7 @@ struct diag_matcher_arg {
 class diag_matcher {
  public:
   struct field {
-    // Must be identifier or source_code_span.
+    // Must be source_code_span.
     diag_matcher_arg arg;
 
     cli_source_position::offset_type begin_offset;
@@ -273,7 +266,7 @@ class diag_matcher {
 class diag_spans_matcher {
  public:
   struct field {
-    // Must be identifier or source_code_span.
+    // Must be source_code_span.
     diag_matcher_arg arg;
 
     source_code_span expected;

@@ -54,31 +54,6 @@ class offsets_matcher::span_impl
   cli_source_position::offset_type end_offset_;
 };
 
-class offsets_matcher::identifier_impl
-    : public testing::MatcherInterface<const identifier &> {
- public:
-  explicit identifier_impl(padded_string_view code,
-                           cli_source_position::offset_type begin_offset,
-                           cli_source_position::offset_type end_offset)
-      : impl_(code, begin_offset, end_offset) {}
-
-  void DescribeTo(std::ostream *out) const override {
-    this->impl_.DescribeTo(out);
-  }
-
-  void DescribeNegationTo(std::ostream *out) const override {
-    this->impl_.DescribeNegationTo(out);
-  }
-
-  bool MatchAndExplain(const identifier &ident,
-                       testing::MatchResultListener *listener) const override {
-    return this->impl_.MatchAndExplain(ident.span(), listener);
-  }
-
- private:
-  span_impl impl_;
-};
-
 offsets_matcher::offsets_matcher(padded_string_view input,
                                  cli_source_position::offset_type begin_offset,
                                  cli_source_position::offset_type end_offset)
@@ -96,12 +71,6 @@ offsets_matcher::offsets_matcher(offsets_matcher &&) = default;
 offsets_matcher &offsets_matcher::operator=(offsets_matcher &&) = default;
 
 offsets_matcher::~offsets_matcher() = default;
-
-/*implicit*/ offsets_matcher::operator testing::Matcher<const identifier &>()
-    const {
-  return testing::Matcher<const identifier &>(
-      new identifier_impl(this->code_, this->begin_offset_, this->end_offset_));
-}
 
 /*implicit*/ offsets_matcher::operator testing::Matcher<
     const source_code_span &>() const {
@@ -135,34 +104,7 @@ class span_matcher::span_impl
   const char8 *expected_;
 };
 
-class span_matcher::identifier_impl
-    : public testing::MatcherInterface<const identifier &> {
- public:
-  explicit identifier_impl(const char8 *expected) : impl_(expected) {}
-
-  void DescribeTo(std::ostream *out) const override {
-    this->impl_.DescribeTo(out);
-  }
-
-  void DescribeNegationTo(std::ostream *out) const override {
-    this->impl_.DescribeNegationTo(out);
-  }
-
-  bool MatchAndExplain(const identifier &ident,
-                       testing::MatchResultListener *listener) const override {
-    return this->impl_.MatchAndExplain(ident.span(), listener);
-  }
-
- private:
-  span_impl impl_;
-};
-
 span_matcher::span_matcher(const char8 *expected) : expected_(expected) {}
-
-span_matcher::operator testing::Matcher<const identifier &>() const {
-  return testing::Matcher<const identifier &>(
-      new identifier_impl(this->expected_));
-}
 
 span_matcher::operator testing::Matcher<const source_code_span &>() const {
   return testing::Matcher<const source_code_span &>(
@@ -200,36 +142,8 @@ class source_code_span_matcher::span_impl
   source_code_span expected_;
 };
 
-class source_code_span_matcher::identifier_impl
-    : public testing::MatcherInterface<const identifier &> {
- public:
-  explicit identifier_impl(source_code_span expected) : impl_(expected) {}
-
-  void DescribeTo(std::ostream *out) const override {
-    this->impl_.DescribeTo(out);
-  }
-
-  void DescribeNegationTo(std::ostream *out) const override {
-    this->impl_.DescribeNegationTo(out);
-  }
-
-  bool MatchAndExplain(const identifier &ident,
-                       testing::MatchResultListener *listener) const override {
-    return this->impl_.MatchAndExplain(ident.span(), listener);
-  }
-
- private:
-  span_impl impl_;
-};
-
 source_code_span_matcher::source_code_span_matcher(source_code_span expected)
     : expected_(expected) {}
-
-source_code_span_matcher::operator testing::Matcher<const identifier &>()
-    const {
-  return testing::Matcher<const identifier &>(
-      new identifier_impl(this->expected_));
-}
 
 source_code_span_matcher::operator testing::Matcher<const source_code_span &>()
     const {
