@@ -621,7 +621,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
       }
       return this->make_expression<expression::_new>(
           this->expressions_.make_array(std::move(children)),
-          source_code_span(operator_span.begin(), target->span().end()));
+          source_code_span(operator_span.begin(), target->span_end()));
     }
 
     // new.target
@@ -1357,7 +1357,7 @@ next:
           this->diag_reporter_->report(
               diag_missing_parentheses_around_exponent_with_unary_lhs{
                   .exponent_expression = source_code_span(
-                      lhs->child_->span().begin(), rhs->span().end()),
+                      lhs->child_->span_begin(), rhs->span_end()),
                   .unary_operator = source_code_span(
                       lhs->unary_operator_begin_,
                       lhs->unary_operator_begin_ + strlen(u8"void")),
@@ -1380,7 +1380,7 @@ next:
         this->diag_reporter_->report(
             diag_missing_parentheses_around_exponent_with_unary_lhs{
                 .exponent_expression = source_code_span(
-                    lhs->child_->span().begin(), rhs->span().end()),
+                    lhs->child_->span_begin(), rhs->span_end()),
                 .unary_operator = lhs->unary_operator_span(),
             });
         break;
@@ -1392,7 +1392,7 @@ next:
         this->diag_reporter_->report(
             diag_missing_parentheses_around_exponent_with_unary_lhs{
                 .exponent_expression = source_code_span(
-                    lhs->child_->span().begin(), rhs->span().end()),
+                    lhs->child_->span_begin(), rhs->span_end()),
                 .unary_operator = lhs->unary_operator_span(),
             });
         break;
@@ -2234,7 +2234,7 @@ expression* parser::parse_arrow_function_expression_remainder(
     precedence prec) {
   const char8* parameter_list_begin = nullptr;
   if (parameters_expression->kind() == expression_kind::paren) {
-    parameter_list_begin = parameters_expression->span().begin();
+    parameter_list_begin = parameters_expression->span_begin();
     parameters_expression =
         static_cast<expression::paren*>(parameters_expression)->child_;
   }
@@ -2383,7 +2383,7 @@ expression* parser::parse_arrow_function_expression_remainder(
       // elsewhere.
     } else {
       // diag_unexpected_arrow_after_expression is reported elsewhere.
-      parameter_list_begin = parameters_expression->span().begin();
+      parameter_list_begin = parameters_expression->span_begin();
     }
     break;
   }
@@ -2391,7 +2391,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::dot:
   case expression_kind::literal:
     // The code is invalid. An error is reported elsewhere.
-    parameter_list_begin = parameters_expression->span().begin();
+    parameter_list_begin = parameters_expression->span_begin();
     break;
 
   case expression_kind::import:
@@ -2678,8 +2678,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     expression* rhs = this->parse_expression(v, precedence{.commas = false});
     if (missing_key) {
       this->diag_reporter_->report(diag_missing_key_for_object_entry{
-          .expression =
-              source_code_span(lhs->span().begin(), rhs->span().end()),
+          .expression = source_code_span(lhs->span_begin(), rhs->span_end()),
       });
     }
     entries.emplace_back(key, lhs, /*init=*/rhs,
@@ -3550,7 +3549,7 @@ next_attribute:
     expression* ast = this->parse_expression(v);
     if (ast->kind() != expression_kind::spread) {
       this->diag_reporter_->report(diag_missing_dots_for_attribute_spread{
-          .expected_dots = source_code_span::unit(ast->span().begin()),
+          .expected_dots = source_code_span::unit(ast->span_begin()),
       });
     }
     children.emplace_back(ast);

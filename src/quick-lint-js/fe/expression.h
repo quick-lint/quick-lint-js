@@ -278,6 +278,9 @@ class expression {
 
   source_code_span span() const noexcept;
 
+  const char8 *span_begin() const noexcept;
+  const char8 *span_end() const noexcept;
+
   function_attributes attributes() const noexcept;
 
  protected:
@@ -1459,6 +1462,14 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const yield_none *>(this)->span_;
   }
   QLJS_UNREACHABLE();
+}
+
+inline const char8 *expression::span_begin() const noexcept {
+  return this->span().begin();
+}
+
+inline const char8 *expression::span_end() const noexcept {
+  return this->span().end();
 }
 
 inline function_attributes expression::attributes() const noexcept {
