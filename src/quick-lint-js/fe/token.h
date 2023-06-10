@@ -311,10 +311,10 @@ struct token {
   // Precondition: This function was not previously called for the same token.
   void report_errors_for_escape_sequences_in_template(diag_reporter*) const;
 
-  token_type type;
-
   const char8* begin;
   const char8* end;
+
+  token_type type;
 
   bool has_leading_newline;
 
