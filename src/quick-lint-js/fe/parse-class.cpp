@@ -420,10 +420,10 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
         // See NOTE[typescript-constructor-escape].
-        if (p->options_.typescript &&
+        if (p->options_.typescript && !this->is_interface &&
             p->peek().type == token_type::identifier &&
             p->peek().normalized_identifier == u8"constructor"_sv &&
-            p->peek().contains_escape_sequence() && !this->is_interface) {
+            p->peek().contains_escape_sequence()) {
           bool has_exactly_one_escape_sequence =
               std::count(p->peek().begin, p->peek().end, u8'\\') == 1;
           if (has_exactly_one_escape_sequence) {
