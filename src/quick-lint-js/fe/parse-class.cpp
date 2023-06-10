@@ -424,8 +424,7 @@ void parser::parse_and_visit_class_or_interface_member(
         constexpr char backslash = u8'\\';
         // See NOTE[typescript-constructor-escape].
         if (p->options_.typescript &&
-            current_token.contains_escape_sequence() &&
-            this->is_interface == false &&
+            current_token.contains_escape_sequence() && !this->is_interface &&
             (std::count(p->peek().begin, p->peek().end, backslash) ==
              single_occurence_of_escape)) {
           p->diag_reporter_->report(diag_keyword_contains_escape_characters{
