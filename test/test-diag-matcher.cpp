@@ -125,15 +125,15 @@ TEST(test_diag_matcher, match_offsets_of_1_field_identifier) {
                         assignment, 1, u8"ello"_sv);
   EXPECT_TRUE(matcher.Matches(
       diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = identifier(source_code_span(&code[1], &code[5])),
+          .assignment = source_code_span(&code[1], &code[5]),
       })));
   EXPECT_FALSE(matcher.Matches(
       diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = identifier(source_code_span(&code[0], &code[5])),
+          .assignment = source_code_span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(matcher.Matches(
       diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = identifier(source_code_span(&code[0], &code[4])),
+          .assignment = source_code_span(&code[0], &code[4]),
       })));
 }
 

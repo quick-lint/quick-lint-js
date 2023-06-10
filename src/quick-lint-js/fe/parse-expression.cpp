@@ -704,7 +704,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   case token_type::private_identifier: {
     this->diag_reporter_->report(
         diag_cannot_refer_to_private_variable_without_object{
-            .private_identifier = this->peek().identifier_name(),
+            .private_identifier = this->peek().span(),
         });
     expression* ast = this->make_expression<expression::private_variable>(
         this->peek().identifier_name());
@@ -847,7 +847,7 @@ expression* parser::parse_async_expression_only(
           // async (await) => {}  // Invalid
           this->diag_reporter_->report(
               diag_cannot_declare_await_in_async_function{
-                  .name = parameter->variable_identifier(),
+                  .name = parameter->variable_identifier().span(),
               });
         }
       }
@@ -1006,7 +1006,7 @@ expression* parser::parse_async_expression_only(
     if (parameter_is_await && is_async) {
       // async await => {}  // Invalid
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-          .name = this->peek().identifier_name(),
+          .name = this->peek().span(),
       });
     }
 
@@ -1621,7 +1621,7 @@ next:
           !this->in_class_) {
         this->diag_reporter_->report(
             diag_cannot_access_private_identifier_outside_class{
-                .private_identifier = this->peek().identifier_name(),
+                .private_identifier = this->peek().span(),
             });
       }
       binary_builder.replace_last(this->make_expression<expression::dot>(
@@ -2006,7 +2006,7 @@ next:
     if (prec.trailing_identifiers) {
       const char8* expected_operator = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(diag_unexpected_identifier_in_expression{
-          .unexpected = this->peek().identifier_name(),
+          .unexpected = this->peek().span(),
       });
 
       // Behave as if a comma appeared before the identifier.
@@ -2771,7 +2771,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     case token_type::private_identifier:
       this->diag_reporter_->report(
           diag_private_properties_are_not_allowed_in_object_literals{
-              .private_identifier = this->peek().identifier_name(),
+              .private_identifier = this->peek().span(),
           });
       [[fallthrough]];
     // {key: value}
@@ -3039,7 +3039,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       case token_type::private_identifier:
         this->diag_reporter_->report(
             diag_private_properties_are_not_allowed_in_object_literals{
-                .private_identifier = this->peek().identifier_name(),
+                .private_identifier = this->peek().span(),
             });
         [[fallthrough]];
       // get method() {}
@@ -3158,7 +3158,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       case token_type::private_identifier:
         this->diag_reporter_->report(
             diag_private_properties_are_not_allowed_in_object_literals{
-                .private_identifier = this->peek().identifier_name(),
+                .private_identifier = this->peek().span(),
             });
         [[fallthrough]];
       // *method() {}

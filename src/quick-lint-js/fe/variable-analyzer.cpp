@@ -307,8 +307,10 @@ void variable_analyzer::declare_variable(
             declared_variable_scope::declared_in_descendant_scope &&
         used_var.kind == used_variable_kind::use) {
       this->diag_reporter_->report(
-          diag_function_call_before_declaration_in_block_scope{used_var.name,
-                                                               name});
+          diag_function_call_before_declaration_in_block_scope{
+              .use = used_var.name.span(),
+              .declaration = name.span(),
+          });
     }
     this->report_errors_for_variable_use(
         used_var, *declared,
@@ -321,8 +323,10 @@ void variable_analyzer::declare_variable(
     case used_variable_kind::use:
       if (kind == variable_kind::_class || kind == variable_kind::_const ||
           kind == variable_kind::_let) {
-        this->diag_reporter_->report(
-            diag_variable_used_before_declaration{used_var.name, name});
+        this->diag_reporter_->report(diag_variable_used_before_declaration{
+            .use = used_var.name.span(),
+            .declaration = name.span(),
+        });
       }
       break;
     case used_variable_kind::_delete:
@@ -334,8 +338,8 @@ void variable_analyzer::declare_variable(
     case used_variable_kind::type:
       if (kind == variable_kind::_generic_parameter) {
         this->diag_reporter_->report(diag_variable_used_before_declaration{
-            .use = used_var.name,
-            .declaration = name,
+            .use = used_var.name.span(),
+            .declaration = name.span(),
         });
       }
       // Use before declaration is normally legal for types.
@@ -440,7 +444,7 @@ void variable_analyzer::visit_variable_type_predicate_use(identifier name) {
   } else {
     this->diag_reporter_->report(
         diag_use_of_undeclared_parameter_in_type_predicate{
-            .name = name,
+            .name = name.span(),
         });
   }
 }
@@ -537,8 +541,8 @@ void variable_analyzer::visit_end_of_module() {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
-        this->diag_reporter_->report(
-            diag_assignment_to_undeclared_variable{used_var.name});
+        this->diag_reporter_->report(diag_assignment_to_undeclared_variable{
+            .assignment = used_var.name.span()});
         break;
       case used_variable_kind::_delete:
         // TODO(strager): Report a warning if the global variable is not
@@ -546,12 +550,12 @@ void variable_analyzer::visit_end_of_module() {
         break;
       case used_variable_kind::type:
         this->diag_reporter_->report(
-            diag_use_of_undeclared_type{used_var.name});
+            diag_use_of_undeclared_type{.name = used_var.name.span()});
         break;
       case used_variable_kind::_export:
       case used_variable_kind::use:
         this->diag_reporter_->report(
-            diag_use_of_undeclared_variable{used_var.name});
+            diag_use_of_undeclared_variable{.name = used_var.name.span()});
         break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -719,8 +723,9 @@ void variable_analyzer::propagate_variable_declarations_to_parent_scope() {
            already_declared_variable->kind == variable_kind::_let ||
            already_declared_variable->kind == variable_kind::_var)) {
         this->diag_reporter_->report(diag_unused_variable_shadows{
-            .shadowing_declaration = var.declaration,
-            .shadowed_declaration = already_declared_variable->declaration,
+            .shadowing_declaration = var.declaration.span(),
+            .shadowed_declaration =
+                already_declared_variable->declaration.span(),
         });
       }
     }
@@ -768,16 +773,21 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
   switch (kind) {
   case variable_kind::_const:
     if (is_global_variable) {
-      this->diag_reporter_->report(
-          diag_assignment_to_const_global_variable{assignment});
+      this->diag_reporter_->report(diag_assignment_to_const_global_variable{
+          .assignment = assignment.span()});
     } else {
       if (is_assigned_before_declaration) {
         this->diag_reporter_->report(
             diag_assignment_to_const_variable_before_its_declaration{
-                *declaration, assignment, kind});
+                .declaration = declaration->span(),
+                .assignment = assignment.span(),
+                .var_kind = kind,
+            });
       } else {
-        this->diag_reporter_->report(
-            diag_assignment_to_const_variable{*declaration, assignment, kind});
+        this->diag_reporter_->report(diag_assignment_to_const_variable{
+            .declaration = declaration->span(),
+            .assignment = assignment.span(),
+            .var_kind = kind});
       }
     }
     break;
@@ -786,8 +796,11 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
-    this->diag_reporter_->report(
-        diag_assignment_to_imported_variable{*declaration, assignment, kind});
+    this->diag_reporter_->report(diag_assignment_to_imported_variable{
+        .declaration = declaration->span(),
+        .assignment = assignment.span(),
+        .var_kind = kind,
+    });
 
     QLJS_WARNING_POP
     break;
@@ -806,7 +819,9 @@ void variable_analyzer::report_error_if_assignment_is_illegal(
       QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
       this->diag_reporter_->report(diag_assignment_before_variable_declaration{
-          .assignment = assignment, .declaration = *declaration});
+          .assignment = assignment.span(),
+          .declaration = declaration->span(),
+      });
 
       QLJS_WARNING_POP
     }
@@ -1007,11 +1022,14 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
       false;
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
-      this->diag_reporter_->report(
-          diag_redeclaration_of_global_variable{newly_declared_name});
+      this->diag_reporter_->report(diag_redeclaration_of_global_variable{
+          .redeclaration = newly_declared_name.span(),
+      });
     } else {
       this->diag_reporter_->report(diag_redeclaration_of_variable{
-          newly_declared_name, *already_declared});
+          .redeclaration = newly_declared_name.span(),
+          .original_declaration = already_declared->span(),
+      });
     }
   }
 }

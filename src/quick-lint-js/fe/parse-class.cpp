@@ -85,7 +85,7 @@ std::optional<identifier> parser::parse_class_and_optional_name() {
   case token_type::kw_await:
     if (this->in_async_function_) {
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-          .name = this->peek().identifier_name(),
+          .name = this->peek().span(),
       });
     }
     goto class_name;
@@ -1301,7 +1301,7 @@ void parser::parse_and_visit_typescript_interface(
   case token_type::kw_await:
     if (this->in_async_function_) {
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-          .name = this->peek().identifier_name(),
+          .name = this->peek().span(),
       });
     }
     goto interface_name;

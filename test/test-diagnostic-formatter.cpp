@@ -153,29 +153,6 @@ TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
   EXPECT_EQ(formatter.message, u8"this hello looks fishy\n");
 }
 
-TEST(test_diagnostic_formatter, message_with_extra_identifier_placeholder) {
-  const char8* code = u8"hello world";
-  struct test_diag {
-    source_code_span hello;
-    identifier world;
-  };
-  test_diag diag = {
-      .hello = source_code_span(&code[0], &code[5]),
-      .world = identifier(source_code_span(&code[6], &code[11])),
-  };
-
-  string_diagnostic_formatter formatter;
-  formatter.format_message(
-      "E9999"sv, diagnostic_severity::error,
-      QLJS_TRANSLATABLE("this {1} looks fishy"),
-      diagnostic_message_args{{
-          {offsetof(test_diag, hello), diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, world), diagnostic_arg_type::identifier},
-      }},
-      &diag);
-  EXPECT_EQ(formatter.message, u8"this world looks fishy\n");
-}
-
 TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
   const char8* code = u8"let me = be(free);";
   struct test_diag {

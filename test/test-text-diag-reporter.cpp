@@ -56,12 +56,12 @@ TEST_F(test_text_diag_reporter, change_source) {
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span::unit(&input_1[4 - 1]))});
+      source_code_span::unit(&input_1[4 - 1])});
 
   padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span::unit(&input_2[5 - 1]))});
+      source_code_span::unit(&input_2[5 - 1])});
 
   EXPECT_EQ(
       this->get_output(),
@@ -78,8 +78,9 @@ TEST_F(test_text_diag_reporter, assignment_before_variable_declaration) {
 
   this->make_reporter(&input).report(
       diag_assignment_before_variable_declaration{
-          .assignment = identifier(assignment_span),
-          .declaration = identifier(declaration_span)});
+          .assignment = assignment_span,
+          .declaration = declaration_span,
+      });
   EXPECT_EQ(
       this->get_output(),
       u8"FILE:1:1: error: variable assigned before its declaration [E0001]\n"
@@ -92,7 +93,7 @@ TEST_F(test_text_diag_reporter, assignment_to_const_global_variable) {
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
   this->make_reporter(&input).report(
-      diag_assignment_to_const_global_variable{identifier(infinity_span)});
+      diag_assignment_to_const_global_variable{infinity_span});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:4: error: assignment to const global variable [E0002]\n");
 }
@@ -119,7 +120,7 @@ TEST_F(test_text_diag_reporter, redeclaration_of_variable) {
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input).report(diag_redeclaration_of_variable{
-      identifier(redeclaration_span), identifier(original_declaration_span)});
+      redeclaration_span, original_declaration_span});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
             u8"FILE:1:5: note: variable already declared here [E0034]\n");
@@ -140,7 +141,7 @@ TEST_F(test_text_diag_reporter, use_of_undeclared_variable) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input).report(
-      diag_use_of_undeclared_variable{identifier(myvar_span)});
+      diag_use_of_undeclared_variable{myvar_span});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
 }
@@ -151,7 +152,7 @@ TEST_F(test_text_diag_reporter, use_of_undeclared_variable_escaped_error) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   this->make_reporter(&input, /*escape_errors=*/true)
-      .report(diag_use_of_undeclared_variable{identifier(myvar_span)});
+      .report(diag_use_of_undeclared_variable{myvar_span});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [" +
                 this->create_escape_error_code(u8"E0057") + u8"]\n");

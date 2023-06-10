@@ -220,7 +220,7 @@ again:
       this->diag_reporter_->report(diag_typescript_infer_requires_parentheses{
           .infer_and_type = source_code_span(infer_keyword_span.begin(),
                                              variable.span().end()),
-          .type = variable,
+          .type = variable.span(),
       });
     }
 

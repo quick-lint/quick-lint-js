@@ -55,8 +55,7 @@ TEST_F(test_vim_qflist_json_diag_reporter,
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
   reporter.report(diag_assignment_before_variable_declaration{
-      .assignment = identifier(assignment_span),
-      .declaration = identifier(declaration_span)});
+      .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -80,9 +79,9 @@ TEST_F(test_vim_qflist_json_diag_reporter, multiple_errors) {
 
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(diag_assignment_to_const_global_variable{identifier(a_span)});
-  reporter.report(diag_assignment_to_const_global_variable{identifier(b_span)});
-  reporter.report(diag_assignment_to_const_global_variable{identifier(c_span)});
+  reporter.report(diag_assignment_to_const_global_variable{a_span});
+  reporter.report(diag_assignment_to_const_global_variable{b_span});
+  reporter.report(diag_assignment_to_const_global_variable{c_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -97,7 +96,7 @@ TEST_F(test_vim_qflist_json_diag_reporter,
 
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
+  reporter.report(diag_assignment_to_const_global_variable{span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -117,7 +116,7 @@ TEST_F(test_vim_qflist_json_diag_reporter, errors_have_file_name_if_requested) {
 
     vim_qflist_json_diag_reporter reporter =
         this->make_reporter(&input, /*file_name=*/file_name);
-    reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
+    reporter.report(diag_assignment_to_const_global_variable{span});
     reporter.finish();
 
     ::boost::json::array qflist =
@@ -135,7 +134,7 @@ TEST_F(test_vim_qflist_json_diag_reporter,
 
   vim_qflist_json_diag_reporter reporter = this->make_reporter();
   reporter.set_source(&input, /*file_name=*/"hello.js", /*vim_bufnr=*/1337);
-  reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
+  reporter.report(diag_assignment_to_const_global_variable{span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -151,17 +150,17 @@ TEST_F(test_vim_qflist_json_diag_reporter, change_source) {
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span::unit(&input_1[4 - 1]))});
+      source_code_span::unit(&input_1[4 - 1])});
 
   padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span::unit(&input_2[5 - 1]))});
+      source_code_span::unit(&input_2[5 - 1])});
 
   padded_string input_3(u8"cccccccc"_sv);
   reporter.set_source(&input_3, /*vim_bufnr=*/2);
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span::unit(&input_3[6 - 1]))});
+      source_code_span::unit(&input_3[6 - 1])});
 
   reporter.finish();
 
@@ -190,8 +189,7 @@ TEST_F(test_vim_qflist_json_diag_reporter,
 
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(
-      diag_assignment_to_const_global_variable{identifier(infinity_span)});
+  reporter.report(diag_assignment_to_const_global_variable{infinity_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -216,8 +214,8 @@ TEST_F(test_vim_qflist_json_diag_reporter, redeclaration_of_variable) {
 
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_redeclaration_of_variable{
-      identifier(redeclaration_span), identifier(original_declaration_span)});
+  reporter.report(diag_redeclaration_of_variable{redeclaration_span,
+                                                 original_declaration_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -261,7 +259,7 @@ TEST_F(test_vim_qflist_json_diag_reporter, use_of_undeclared_variable) {
 
   vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
+  reporter.report(diag_use_of_undeclared_variable{myvar_span});
   reporter.finish();
 
   ::boost::json::array qflist =

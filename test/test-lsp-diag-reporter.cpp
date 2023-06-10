@@ -75,8 +75,7 @@ TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
-      .assignment = identifier(assignment_span),
-      .declaration = identifier(declaration_span)});
+      .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
@@ -101,8 +100,8 @@ TEST_F(test_lsp_diag_reporter, assignment_to_undeclared_variable) {
   ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_assignment_to_undeclared_variable{
-      .assignment = identifier(assignment_span)});
+  reporter.report(
+      diag_assignment_to_undeclared_variable{.assignment = assignment_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
@@ -126,9 +125,9 @@ TEST_F(test_lsp_diag_reporter, multiple_errors) {
   source_code_span c_span(&input[2], &input[3]);
 
   lsp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_assignment_to_const_global_variable{identifier(a_span)});
-  reporter.report(diag_assignment_to_const_global_variable{identifier(b_span)});
-  reporter.report(diag_assignment_to_const_global_variable{identifier(c_span)});
+  reporter.report(diag_assignment_to_const_global_variable{a_span});
+  reporter.report(diag_assignment_to_const_global_variable{b_span});
+  reporter.report(diag_assignment_to_const_global_variable{c_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();

@@ -176,20 +176,20 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
     const jsx_attribute& alias = alias_it->second;
     if (name.size() != alias.expected.size()) {
       this->diag_reporter_->report(diag_jsx_attribute_renamed_by_react{
-          .attribute_name = attribute_name,
+          .attribute_name = attribute_name.span(),
           .react_attribute_name = alias.expected,
       });
       return;
     } else if (is_event_attribute) {
       this->diag_reporter_->report(
           diag_jsx_event_attribute_should_be_camel_case{
-              .attribute_name = attribute_name,
+              .attribute_name = attribute_name.span(),
               .expected_attribute_name = alias.expected,
           });
       return;
     } else {
       this->diag_reporter_->report(diag_jsx_attribute_has_wrong_capitalization{
-          .attribute_name = attribute_name,
+          .attribute_name = attribute_name.span(),
           .expected_attribute_name = alias.expected,
       });
       return;
@@ -204,7 +204,7 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(diag_jsx_event_attribute_should_be_camel_case{
-        .attribute_name = attribute_name,
+        .attribute_name = attribute_name.span(),
         .expected_attribute_name = string8_view(fixed_name),
     });
     fixed_name.release();
@@ -221,7 +221,7 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
       if (alias_it->second.expected != name) {
         this->diag_reporter_->report(
             diag_jsx_attribute_has_wrong_capitalization{
-                .attribute_name = attribute_name,
+                .attribute_name = attribute_name.span(),
                 .expected_attribute_name = alias_it->second.expected,
             });
       }

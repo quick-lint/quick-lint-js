@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_H
 
 #include <iosfwd>
-#include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
@@ -35,7 +34,7 @@
 // * MESSAGE's first argument must be QLJS_TRANSLATABLE(...)
 // * MESSAGE's second argument must be a member variable of the *error_name*
 //   class (i.e. listed in *struct_body*)
-// * MESSAGE's second argument must have type *identifier* or *source_code_span*
+// * MESSAGE's second argument must have type *source_code_span*
 //
 // When removing a diagnostic from this list, add an entry to
 // QLJS_X_RESERVED_DIAG_TYPES.
@@ -134,8 +133,8 @@
       diag_assignment_before_variable_declaration, "E0001",                     \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier assignment;                                                  \
-        identifier declaration;                                                 \
+        source_code_span assignment;                                            \
+        source_code_span declaration;                                           \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("variable assigned before its declaration"),    \
               assignment)                                                       \
@@ -150,15 +149,15 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_assignment_to_const_global_variable, "E0002",                        \
-      diagnostic_severity::error, { identifier assignment; },                   \
+      diagnostic_severity::error, { source_code_span assignment; },             \
       MESSAGE(QLJS_TRANSLATABLE("assignment to const global variable"),         \
               assignment))                                                      \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_assignment_to_const_variable, "E0003", diagnostic_severity::error,   \
       {                                                                         \
-        identifier declaration;                                                 \
-        identifier assignment;                                                  \
+        source_code_span declaration;                                           \
+        source_code_span assignment;                                            \
         variable_kind var_kind;                                                 \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("assignment to const variable"), assignment)    \
@@ -169,8 +168,8 @@
       diag_assignment_to_imported_variable, "E0185",                            \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier declaration;                                                 \
-        identifier assignment;                                                  \
+        source_code_span declaration;                                           \
+        source_code_span assignment;                                            \
         variable_kind var_kind;                                                 \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("assignment to imported variable"),             \
@@ -182,8 +181,8 @@
       diag_assignment_to_const_variable_before_its_declaration, "E0004",        \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier declaration;                                                 \
-        identifier assignment;                                                  \
+        source_code_span declaration;                                           \
+        source_code_span assignment;                                            \
         variable_kind var_kind;                                                 \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
@@ -194,7 +193,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_assignment_to_undeclared_variable, "E0059",                          \
-      diagnostic_severity::warning, { identifier assignment; },                 \
+      diagnostic_severity::warning, { source_code_span assignment; },           \
       MESSAGE(QLJS_TRANSLATABLE("assignment to undeclared variable"),           \
               assignment))                                                      \
                                                                                 \
@@ -419,14 +418,14 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_access_private_identifier_outside_class, "E0208",             \
-      diagnostic_severity::error, { identifier private_identifier; },           \
+      diagnostic_severity::error, { source_code_span private_identifier; },     \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE("cannot access private identifier outside class"),  \
           private_identifier))                                                  \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_assign_to_variable_named_async_in_for_of_loop, "E0082",       \
-      diagnostic_severity::error, { identifier async_identifier; },             \
+      diagnostic_severity::error, { source_code_span async_identifier; },       \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE(                                                    \
               "assigning to 'async' in a for-of loop requires parentheses"),    \
@@ -434,7 +433,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_declare_await_in_async_function, "E0069",                     \
-      diagnostic_severity::error, { identifier name; },                         \
+      diagnostic_severity::error, { source_code_span name; },                   \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE("cannot declare 'await' inside async function"),    \
           name))                                                                \
@@ -460,7 +459,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_declare_yield_in_generator_function, "E0071",                 \
-      diagnostic_severity::error, { identifier name; },                         \
+      diagnostic_severity::error, { source_code_span name; },                   \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "cannot declare 'yield' inside generator function"),          \
               name))                                                            \
@@ -480,7 +479,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_export_variable_named_keyword, "E0144",                       \
-      diagnostic_severity::error, { identifier export_name; },                  \
+      diagnostic_severity::error, { source_code_span export_name; },            \
       MESSAGE(QLJS_TRANSLATABLE("cannot export variable named keyword '{0}'"),  \
               export_name))                                                     \
                                                                                 \
@@ -491,19 +490,19 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_import_variable_named_keyword, "E0145",                       \
-      diagnostic_severity::error, { identifier import_name; },                  \
+      diagnostic_severity::error, { source_code_span import_name; },            \
       MESSAGE(QLJS_TRANSLATABLE("cannot import variable named keyword '{0}'"),  \
               import_name))                                                     \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_import_from_unquoted_module, "E0235",                         \
-      diagnostic_severity::error, { identifier import_name; },                  \
+      diagnostic_severity::error, { source_code_span import_name; },            \
       MESSAGE(QLJS_TRANSLATABLE("missing quotes around module name '{0}'"),     \
               import_name))                                                     \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_cannot_refer_to_private_variable_without_object, "E0155",            \
-      diagnostic_severity::error, { identifier private_identifier; },           \
+      diagnostic_severity::error, { source_code_span private_identifier; },     \
       MESSAGE(QLJS_TRANSLATABLE("cannot reference private variables without "   \
                                 "object; use 'this.'"),                         \
               private_identifier))                                              \
@@ -1041,7 +1040,7 @@
       diag_jsx_attribute_has_wrong_capitalization, "E0192",                     \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier attribute_name;                                              \
+        source_code_span attribute_name;                                        \
         string8_view expected_attribute_name;                                   \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
@@ -1052,7 +1051,7 @@
       diag_jsx_attribute_renamed_by_react, "E0193",                             \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier attribute_name;                                              \
+        source_code_span attribute_name;                                        \
         string8_view react_attribute_name;                                      \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
@@ -1063,7 +1062,7 @@
       diag_jsx_event_attribute_should_be_camel_case, "E0191",                   \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier attribute_name;                                              \
+        source_code_span attribute_name;                                        \
         string8_view expected_attribute_name;                                   \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("event attributes must be camelCase: '{1}'"),   \
@@ -1778,7 +1777,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_private_properties_are_not_allowed_in_object_literals, "E0156",      \
-      diagnostic_severity::error, { identifier private_identifier; },           \
+      diagnostic_severity::error, { source_code_span private_identifier; },     \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "private properties are not allowed in object literals"),     \
               private_identifier))                                              \
@@ -1792,15 +1791,15 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_redeclaration_of_global_variable, "E0033",                           \
-      diagnostic_severity::error, { identifier redeclaration; },                \
+      diagnostic_severity::error, { source_code_span redeclaration; },          \
       MESSAGE(QLJS_TRANSLATABLE("redeclaration of global variable"),            \
               redeclaration))                                                   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_redeclaration_of_variable, "E0034", diagnostic_severity::error,      \
       {                                                                         \
-        identifier redeclaration;                                               \
-        identifier original_declaration;                                        \
+        source_code_span redeclaration;                                         \
+        source_code_span original_declaration;                                  \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("redeclaration of variable: {0}"),              \
               redeclaration)                                                    \
@@ -2122,7 +2121,7 @@
       diagnostic_severity::error,                                               \
       {                                                                         \
         source_code_span infer_and_type;                                        \
-        identifier type;                                                        \
+        source_code_span type;                                                  \
       },                                                                        \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE("parentheses are required around 'infer {1}'"),     \
@@ -2132,8 +2131,8 @@
       diag_typescript_function_overload_signature_must_have_same_name,          \
       "E0316", diagnostic_severity::error,                                      \
       {                                                                         \
-        identifier overload_name;                                               \
-        identifier function_name;                                               \
+        source_code_span overload_name;                                         \
+        source_code_span function_name;                                         \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "function overload signature must be named '{1}'"),           \
@@ -2724,8 +2723,8 @@
   QLJS_DIAG_TYPE(                                                               \
       diag_unused_variable_shadows, "E0196", diagnostic_severity::warning,      \
       {                                                                         \
-        identifier shadowing_declaration;                                       \
-        identifier shadowed_declaration;                                        \
+        source_code_span shadowing_declaration;                                 \
+        source_code_span shadowed_declaration;                                  \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("new variable shadows existing variable"),      \
               shadowing_declaration)                                            \
@@ -2773,7 +2772,7 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_unexpected_identifier_in_expression, "E0147",                        \
-      diagnostic_severity::error, { identifier unexpected; },                   \
+      diagnostic_severity::error, { source_code_span unexpected; },             \
       MESSAGE(                                                                  \
           QLJS_TRANSLATABLE(                                                    \
               "unexpected identifier in expression; missing operator before"),  \
@@ -2819,25 +2818,25 @@
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_use_of_undeclared_parameter_in_type_predicate, "E0315",              \
-      diagnostic_severity::error, { identifier name; },                         \
+      diagnostic_severity::error, { source_code_span name; },                   \
       MESSAGE(QLJS_TRANSLATABLE("{0} is not the name of a parameter"), name))   \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_use_of_undeclared_type, "E0214", diagnostic_severity::warning,       \
-      { identifier name; },                                                     \
+      { source_code_span name; },                                               \
       MESSAGE(QLJS_TRANSLATABLE("use of undeclared type: {0}"), name))          \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_use_of_undeclared_variable, "E0057", diagnostic_severity::warning,   \
-      { identifier name; },                                                     \
+      { source_code_span name; },                                               \
       MESSAGE(QLJS_TRANSLATABLE("use of undeclared variable: {0}"), name))      \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_variable_used_before_declaration, "E0058",                           \
       diagnostic_severity::error,                                               \
       {                                                                         \
-        identifier use;                                                         \
-        identifier declaration;                                                 \
+        source_code_span use;                                                   \
+        source_code_span declaration;                                           \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE("variable used before declaration: {0}"), use)  \
           MESSAGE(QLJS_TRANSLATABLE("variable declared here"), declaration))    \
@@ -2846,8 +2845,8 @@
       diag_function_call_before_declaration_in_block_scope, "E0077",            \
       diagnostic_severity::warning,                                             \
       {                                                                         \
-        identifier use;                                                         \
-        identifier declaration;                                                 \
+        source_code_span use;                                                   \
+        source_code_span declaration;                                           \
       },                                                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                                \
                   "function called before declaration in block scope: {0}"),    \

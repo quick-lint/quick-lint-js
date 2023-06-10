@@ -62,13 +62,15 @@ TEST(test_diagnostic, diagnostic_info) {
     EXPECT_EQ(
         info.message_args[0][0].offset(),
         offsetof(diag_function_call_before_declaration_in_block_scope, use));
-    EXPECT_EQ(info.message_args[0][0].type, diagnostic_arg_type::identifier);
+    EXPECT_EQ(info.message_args[0][0].type,
+              diagnostic_arg_type::source_code_span);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[1]),
               u8"function declared here"_sv);
     EXPECT_EQ(info.message_args[1][0].offset(),
               offsetof(diag_function_call_before_declaration_in_block_scope,
                        declaration));
-    EXPECT_EQ(info.message_args[1][0].type, diagnostic_arg_type::identifier);
+    EXPECT_EQ(info.message_args[1][0].type,
+              diagnostic_arg_type::source_code_span);
   }
 
   {

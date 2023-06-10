@@ -1032,7 +1032,7 @@ void parser::parse_and_visit_export(
         default:
           this->diag_reporter_->report(
               diag_cannot_export_variable_named_keyword{
-                  .export_name = exported_bad_token.identifier_name(),
+                  .export_name = exported_bad_token.span(),
               });
           break;
         }
@@ -1468,7 +1468,7 @@ void parser::parse_and_visit_function_declaration(
   case token_type::kw_await:
     if (this->in_async_function_) {
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-          .name = this->peek().identifier_name(),
+          .name = this->peek().span(),
       });
     }
     goto named_function;
@@ -1477,7 +1477,7 @@ void parser::parse_and_visit_function_declaration(
     if (this->in_generator_function_) {
       this->diag_reporter_->report(
           diag_cannot_declare_yield_in_generator_function{
-              .name = this->peek().identifier_name(),
+              .name = this->peek().span(),
           });
     }
     goto named_function;
@@ -1590,8 +1590,8 @@ void parser::parse_and_visit_function_declaration(
 
           this->diag_reporter_->report(
               diag_typescript_function_overload_signature_must_have_same_name{
-                  .overload_name = overload_name,
-                  .function_name = real_function_name,
+                  .overload_name = overload_name.span(),
+                  .function_name = real_function_name.span(),
               });
         }
       }
@@ -2555,7 +2555,7 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
   case token_type::kw_await:
     if (this->in_async_function_) {
       this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-          .name = this->peek().identifier_name(),
+          .name = this->peek().span(),
       });
     }
     break;
@@ -2859,7 +2859,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
         if (this->in_async_function_) {
           this->diag_reporter_->report(
               diag_cannot_declare_await_in_async_function{
-                  .name = this->peek().identifier_name(),
+                  .name = this->peek().span(),
               });
         }
         goto catch_identifier;
@@ -2868,7 +2868,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
         if (this->in_generator_function_) {
           this->diag_reporter_->report(
               diag_cannot_declare_yield_in_generator_function{
-                  .name = this->peek().identifier_name(),
+                  .name = this->peek().span(),
               });
         }
         goto catch_identifier;
@@ -3335,7 +3335,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
       // for (async of things) {}  // Invalid.
       this->diag_reporter_->report(
           diag_cannot_assign_to_variable_named_async_in_for_of_loop{
-              .async_identifier = async_token.identifier_name(),
+              .async_identifier = async_token.span(),
           });
 
       this->skip();
@@ -3583,7 +3583,7 @@ void parser::parse_and_visit_import(
     // import var from "module";  // Invalid.
   QLJS_CASE_STRICT_RESERVED_KEYWORD:
     this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
-        .import_name = this->peek().identifier_name(),
+        .import_name = this->peek().span(),
     });
     goto identifier;
 
@@ -3858,7 +3858,7 @@ void parser::parse_and_visit_import(
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
     this->diag_reporter_->report(diag_cannot_import_from_unquoted_module{
-        .import_name = this->peek().identifier_name(),
+        .import_name = this->peek().span(),
     });
     this->skip();
     break;
@@ -3900,7 +3900,7 @@ void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
     // import * as var from "module";  // Invalid.
   QLJS_CASE_STRICT_RESERVED_KEYWORD:
     this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
-        .import_name = this->peek().identifier_name(),
+        .import_name = this->peek().span(),
     });
     goto identifier;
 
@@ -4033,7 +4033,7 @@ void parser::parse_and_visit_named_exports(
         QLJS_CASE_STRICT_RESERVED_KEYWORD:
           this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
-                  .import_name = right_token.identifier_name(),
+                  .import_name = right_token.span(),
               });
           // FIXME(strager): Declaring a variable with a keyword name is
           // sketchy. Delete this?
@@ -4189,7 +4189,7 @@ void parser::parse_and_visit_named_exports(
         QLJS_CASE_STRICT_RESERVED_KEYWORD:
           this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
-                  .import_name = this->peek().identifier_name(),
+                  .import_name = this->peek().span(),
               });
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_import,
@@ -4315,7 +4315,7 @@ void parser::parse_and_visit_let_bindings(
       if (this->in_async_function_) {
         this->diag_reporter_->report(
             diag_cannot_declare_await_in_async_function{
-                .name = this->peek().identifier_name(),
+                .name = this->peek().span(),
             });
       }
       goto variable_name;
@@ -4324,7 +4324,7 @@ void parser::parse_and_visit_let_bindings(
       if (this->in_generator_function_) {
         this->diag_reporter_->report(
             diag_cannot_declare_yield_in_generator_function{
-                .name = this->peek().identifier_name(),
+                .name = this->peek().span(),
             });
       }
       goto variable_name;
@@ -4725,7 +4725,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     identifier ident(await->unary_operator_span());
     visit_variable_declaration(ident);
     this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
-        .name = ident,
+        .name = ident.span(),
     });
     break;
   }
@@ -4735,7 +4735,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     visit_variable_declaration(ident);
     this->diag_reporter_->report(
         diag_cannot_declare_yield_in_generator_function{
-            .name = ident,
+            .name = ident.span(),
         });
     break;
   }

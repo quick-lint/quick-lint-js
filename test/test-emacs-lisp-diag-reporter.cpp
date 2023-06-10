@@ -38,8 +38,7 @@ TEST_F(test_emacs_lisp_diag_reporter, assignment_before_variable_declaration) {
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
-      .assignment = identifier(assignment_span),
-      .declaration = identifier(declaration_span)});
+      .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -53,8 +52,7 @@ TEST_F(test_emacs_lisp_diag_reporter, assignment_to_const_global_variable) {
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
 
-  reporter.report(
-      diag_assignment_to_const_global_variable{identifier(infinity_span)});
+  reporter.report(diag_assignment_to_const_global_variable{infinity_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -84,8 +82,8 @@ TEST_F(test_emacs_lisp_diag_reporter, redeclaration_of_variable) {
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_redeclaration_of_variable{
-      identifier(redeclaration_span), identifier(original_declaration_span)});
+  reporter.report(diag_redeclaration_of_variable{redeclaration_span,
+                                                 original_declaration_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -101,8 +99,8 @@ TEST_F(test_emacs_lisp_diag_reporter,
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_redeclaration_of_variable{
-      identifier(redeclaration_span), identifier(original_declaration_span)});
+  reporter.report(diag_redeclaration_of_variable{redeclaration_span,
+                                                 original_declaration_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -127,7 +125,7 @@ TEST_F(test_emacs_lisp_diag_reporter, use_of_undeclared_variable) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
+  reporter.report(diag_use_of_undeclared_variable{myvar_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -141,7 +139,7 @@ TEST_F(test_emacs_lisp_diag_reporter,
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
   emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
+  reporter.report(diag_use_of_undeclared_variable{myvar_span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
