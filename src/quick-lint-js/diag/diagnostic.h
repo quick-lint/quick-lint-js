@@ -23,7 +23,6 @@
 #endif
 
 namespace quick_lint_js {
-class identifier;
 class source_code_span;
 enum class diag_type;
 enum class enum_kind;
@@ -40,7 +39,6 @@ enum class diagnostic_arg_type : std::uint8_t {
 
   char8,
   enum_kind,
-  identifier,
   source_code_span,
   statement_kind,
   string8_view,
@@ -110,11 +108,6 @@ template <>
 constexpr diagnostic_arg_type
 get_diagnostic_message_arg_type<enum_kind>() noexcept {
   return diagnostic_arg_type::enum_kind;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<identifier>() noexcept {
-  return diagnostic_arg_type::identifier;
 }
 template <>
 constexpr diagnostic_arg_type

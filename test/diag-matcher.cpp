@@ -242,8 +242,6 @@ source_code_span diag_matcher_arg::get_span(const void *error_object) const
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
-  case diagnostic_arg_type::identifier:
-    return static_cast<const identifier *>(member_data)->span();
   case diagnostic_arg_type::source_code_span:
     return *static_cast<const source_code_span *>(member_data);
 

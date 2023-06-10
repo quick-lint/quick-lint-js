@@ -76,9 +76,6 @@ source_code_span diagnostic_formatter_base::get_argument_source_code_span(
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case diagnostic_arg_type::identifier:
-    return reinterpret_cast<const identifier*>(arg_data)->span();
-
   case diagnostic_arg_type::source_code_span:
     return *reinterpret_cast<const source_code_span*>(arg_data);
 
@@ -100,9 +97,6 @@ string8_view diagnostic_formatter_base::expand_argument(
   switch (arg_type) {
   case diagnostic_arg_type::char8:
     return string8_view(reinterpret_cast<const char8*>(arg_data), 1);
-
-  case diagnostic_arg_type::identifier:
-    return reinterpret_cast<const identifier*>(arg_data)->span().string_view();
 
   case diagnostic_arg_type::source_code_span:
     return reinterpret_cast<const source_code_span*>(arg_data)->string_view();
@@ -132,7 +126,6 @@ string8_view diagnostic_formatter_base::expand_argument_headlinese(
         *reinterpret_cast<const statement_kind*>(arg_data)));
 
   case diagnostic_arg_type::char8:
-  case diagnostic_arg_type::identifier:
   case diagnostic_arg_type::invalid:
   case diagnostic_arg_type::source_code_span:
   case diagnostic_arg_type::string8_view:
@@ -156,7 +149,6 @@ string8_view diagnostic_formatter_base::expand_argument_singular(
     break;
 
   case diagnostic_arg_type::char8:
-  case diagnostic_arg_type::identifier:
   case diagnostic_arg_type::invalid:
   case diagnostic_arg_type::source_code_span:
   case diagnostic_arg_type::string8_view:
