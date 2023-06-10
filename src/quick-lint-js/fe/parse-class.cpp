@@ -419,17 +419,16 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
-        token current_token = p->peek();
         // See NOTE[typescript-constructor-escape].
         if (p->options_.typescript &&
-            current_token.type == token_type::identifier &&
-            current_token.normalized_identifier == u8"constructor"_sv &&
-            current_token.contains_escape_sequence() && !this->is_interface) {
+            p->peek().type == token_type::identifier &&
+            p->peek().normalized_identifier == u8"constructor"_sv &&
+            p->peek().contains_escape_sequence() && !this->is_interface) {
           bool has_exactly_one_escape_sequence =
               std::count(p->peek().begin, p->peek().end, u8'\\') == 1;
           if (has_exactly_one_escape_sequence) {
             p->diag_reporter_->report(diag_keyword_contains_escape_characters{
-                .escape_character_in_keyword = current_token.span()});
+                .escape_character_in_keyword = p->peek().span()});
           }
         }
         p->skip();

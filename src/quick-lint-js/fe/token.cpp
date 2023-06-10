@@ -49,7 +49,7 @@ void token::report_errors_for_escape_sequences_in_template(
   }
 }
 
-bool token::contains_escape_sequence() {
+bool token::contains_escape_sequence() const {
   return this->normalized_identifier != identifier_name().span().string_view();
 }
 
