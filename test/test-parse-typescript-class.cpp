@@ -2041,6 +2041,21 @@ TEST_F(test_parse_typescript_class, no_diag_for_more_than_one_escape) {
            "visit_exit_class_scope", "visit_variable_declaration"}));
 }
 
+TEST_F(
+    test_parse_typescript_class,
+    escape_in_contextual_keyword_property_name_is_allowed_in_typescript_except_constructor) {
+  for (string8_view keyword :
+       contextual_keywords - dirty_set<string8>{u8"constructor"}) {
+    test_parser p(
+        concat(u8"class C { "_sv, escape_first_character_in_keyword(keyword),
+               u8"() {} }"_sv),
+        typescript_options);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
+  }
+}
+
 TEST_F(test_parse_typescript_class,
        constructor_keyword_with_escape_sequence_legal_in_javascript) {
   {
