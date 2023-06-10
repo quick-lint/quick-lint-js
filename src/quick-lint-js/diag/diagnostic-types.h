@@ -3059,6 +3059,14 @@
               left_brace_to_right_brace))                                       \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_keyword_contains_escape_characters, "E0381",                         \
+      diagnostic_severity::error,                                               \
+      { source_code_span escape_character_in_keyword; },                        \
+      MESSAGE(QLJS_TRANSLATABLE("Keywords in Typescript does not allow"         \
+                                " escape characters"),                          \
+              escape_character_in_keyword))                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_access_specifier_must_precede_other_modifiers, "E0380",              \
       diagnostic_severity::error,                                               \
       {                                                                         \

@@ -2164,6 +2164,10 @@ msgid "JSX prop is missing an expression"
 msgstr "'{1}' fehlt um Ausdruck der with-Anweisung"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+msgid "Keywords in Typescript does not allow escape characters"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'{0}' access specifier must precede '{1}'"
 msgstr ""
 

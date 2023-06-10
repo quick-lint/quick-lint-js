@@ -419,6 +419,18 @@ void parser::parse_and_visit_class_or_interface_member(
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
+        token current_token = p->peek();
+        constexpr int single_occurence_of_escape = 1;
+        constexpr char backslash = u8'\\';
+        // See NOTE[typescript-constructor-escape].
+        if (p->options_.typescript &&
+            current_token.contains_escape_sequence() &&
+            this->is_interface == false &&
+            (std::count(p->peek().begin, p->peek().end, backslash) ==
+             single_occurence_of_escape)) {
+          p->diag_reporter_->report(diag_keyword_contains_escape_characters{
+              .escape_character_in_keyword = current_token.span()});
+        }
         p->skip();
         parse_and_visit_field_or_method(property_name);
         break;
