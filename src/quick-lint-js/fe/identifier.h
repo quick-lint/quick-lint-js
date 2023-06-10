@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
@@ -28,10 +29,13 @@ class identifier {
   explicit identifier(source_code_span span,
                       const char8* normalized) noexcept = delete;
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
   source_code_span span() const noexcept {
     return source_code_span(this->span_begin_,
                             this->span_begin_ + this->span_size_);
   }
+  QLJS_WARNING_POP
 
   // normalized_name returns the variable's name with escape sequences resolved.
   //
