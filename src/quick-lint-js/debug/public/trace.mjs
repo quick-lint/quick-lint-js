@@ -28,11 +28,18 @@ export class TraceReader {
 
   _queue = new Uint8Array();
 
-  appendBytes(buffer, offset = 0) {
+  /**
+   * @param {Uint8Array} bytes
+   * @param {number} offset
+   */
+  appendBytes(bytes, offset = 0) {
+    if (!(bytes instanceof Uint8Array)) {
+      throw new TypeError("appendBytes expects a Uint8Array");
+    }
     if (this.error !== null) {
       return;
     }
-    this._queueBytes(buffer, offset);
+    this._queueBytes(bytes, offset);
 
     let r = new TraceByteReader(this._queue.buffer, this._queue.byteOffset);
     let committedOffset = 0;
@@ -61,16 +68,19 @@ export class TraceReader {
     return events;
   }
 
-  _queueBytes(buffer, offset) {
+  /**
+   * @param {Uint8Array} bytes
+   */
+  _queueBytes(bytes, offset) {
     if (this._queue.byteLength > 0) {
       let newQueue = new Uint8Array(
-        this._queue.byteLength + buffer.byteLength - offset
+        this._queue.byteLength + bytes.byteLength - offset
       );
       newQueue.set(this._queue, 0);
-      newQueue.set(new Uint8Array(buffer, offset), this._queue.byteLength);
+      newQueue.set(bytes.subarray(offset), this._queue.byteLength);
       this._queue = newQueue;
     } else {
-      this._queue = new Uint8Array(buffer, offset);
+      this._queue = bytes.subarray(offset);
     }
   }
 

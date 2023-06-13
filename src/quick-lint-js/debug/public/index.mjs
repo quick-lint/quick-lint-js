@@ -108,6 +108,11 @@ class TraceProcessor extends EventEmitter {
     this.traceReaders = new Map(); // Key is the thread index.
   }
 
+  /**
+   * @param {number} threadIndex
+   * @param {Uint8Array} bytes
+   * @param {number} offset
+   */
   appendBytes(threadIndex, bytes, offset = 0) {
     let reader = this.traceReaders.get(threadIndex);
     if (reader === undefined) {
@@ -179,7 +184,7 @@ class DebugServerSocket extends TraceProcessor {
       0,
       /*littleEndian=*/ true
     );
-    this.appendBytes(threadIndex, messageData, 8);
+    this.appendBytes(threadIndex, new Uint8Array(messageData), 8);
   }
 
   static connectAsync() {
