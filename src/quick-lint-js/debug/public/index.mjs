@@ -68,6 +68,11 @@ class VectorProfileView {
       );
     }
   }
+
+  reset() {
+    this.maxSizeHistogramElementByOwner.clear();
+    this.element.replaceChildren();
+  }
 }
 
 let vectorProfileView = new VectorProfileView(
@@ -96,25 +101,14 @@ class EventEmitter {
   }
 }
 
-class DebugServerSocket extends EventEmitter {
-  constructor(webSocket) {
+class TraceProcessor extends EventEmitter {
+  constructor() {
     super();
 
-    this.webSocket = webSocket;
     this.traceReaders = new Map(); // Key is the thread index.
-
-    this.webSocket.addEventListener("message", (event) => {
-      this._onMessage(event);
-    });
   }
 
-  _onMessage(event) {
-    let messageData = event.data;
-    let threadIndex = new DataView(messageData).getBigUint64(
-      0,
-      /*littleEndian=*/ true
-    );
-
+  appendBytes(threadIndex, bytes, offset = 0) {
     let reader = this.traceReaders.get(threadIndex);
     if (reader === undefined) {
       reader = new TraceReader();
@@ -126,7 +120,7 @@ class DebugServerSocket extends EventEmitter {
       return;
     }
 
-    reader.appendBytes(messageData, 8);
+    reader.appendBytes(bytes, offset);
     for (let event of reader.pullNewEvents()) {
       switch (event.eventType) {
         case TraceEventType.INIT:
@@ -165,6 +159,27 @@ class DebugServerSocket extends EventEmitter {
     if (reader.error !== null) {
       this.emit("error", reader.error);
     }
+  }
+}
+
+class DebugServerSocket extends TraceProcessor {
+  constructor(webSocket) {
+    super();
+
+    this.webSocket = webSocket;
+
+    this.webSocket.addEventListener("message", (event) => {
+      this._onMessage(event);
+    });
+  }
+
+  _onMessage(event) {
+    let messageData = event.data;
+    let threadIndex = new DataView(messageData).getBigUint64(
+      0,
+      /*littleEndian=*/ true
+    );
+    this.appendBytes(threadIndex, messageData, 8);
   }
 
   static connectAsync() {
@@ -208,6 +223,10 @@ class LSPLogDetailsView {
       }
     }
   }
+
+  reset() {
+    this._paramsElement.replaceChildren();
+  }
 }
 
 class LSPLogView {
@@ -225,6 +244,13 @@ class LSPLogView {
     this._elementToMessage = new Map();
 
     this._selectedMessageElement = null;
+  }
+
+  reset() {
+    this._selectedMessageElement = null;
+    this._elementToMessage.clear();
+    this._dataElement.replaceChildren();
+    this._detailsView.reset();
   }
 
   addClientToServerMessage(_timestamp, json) {
@@ -302,6 +328,10 @@ class LSPStateDetailsView {
       }
     }
   }
+
+  reset() {
+    this.setState(null);
+  }
 }
 
 class LSPStateView {
@@ -375,6 +405,14 @@ class LSPStateView {
 
     this._detailsView.setState(doc);
   }
+
+  reset() {
+    this._elementToDocumentState.clear();
+    this._documentListElement.replaceChildren();
+    this._selectedDocumentElement = null;
+    this._selectedDocumentURI = null;
+    this._detailsView.reset();
+  }
 }
 
 class LSPReplayView {
@@ -431,6 +469,12 @@ class LSPReplayView {
     );
     this._currentStateView.setDocuments(/*timestamp=*/ null, documents);
   }
+
+  reset() {
+    this._replayLogBodyElement.replaceChildren();
+    this._replayer = new LSPReplayer();
+    this._currentStateView.reset();
+  }
 }
 
 function createElementWithText(tagName, textContent) {
@@ -463,38 +507,58 @@ class ServerInfoView {
   setVersion(value) {
     this._versionElement.textContent = value;
   }
+
+  reset() {
+    this.setProcessID("");
+    this.setVersion("");
+  }
 }
 
 let serverInfo = new ServerInfoView(document.getElementById("server-info"));
 
-DebugServerSocket.connectAsync().then((socket) => {
-  socket.on("error", (error) => {
+function connectTraceProcessorToViews(traceProcessor) {
+  traceProcessor.on("error", (error) => {
     console.error(error);
   });
-  socket.on("initEvent", ({ version }) => {
+  traceProcessor.on("initEvent", ({ version }) => {
     serverInfo.setVersion(version);
   });
-  socket.on("processIDEvent", ({ processID }) => {
+  traceProcessor.on("processIDEvent", ({ processID }) => {
     serverInfo.setProcessID(processID);
   });
-  socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
+  traceProcessor.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
     lspReplay.addClientToServerMessage(timestamp, body);
   });
-  socket.on("lspDocumentsEvent", ({ timestamp, documents }) => {
+  traceProcessor.on("lspDocumentsEvent", ({ timestamp, documents }) => {
     lspState.setDocuments(timestamp, documents);
   });
-  socket.on("vectorMaxSizeHistogramByOwner", ({ timestamp, entries }) => {
-    for (let { owner, maxSizeEntries } of entries) {
-      vectorProfileView.updateMaxSizeHistogram({
-        owner,
-        maxSizeEntries: maxSizeEntries.map((entry) => ({
-          maxSize: Number(entry.maxSize),
-          count: Number(entry.count),
-        })),
-      });
+  traceProcessor.on(
+    "vectorMaxSizeHistogramByOwner",
+    ({ timestamp, entries }) => {
+      for (let { owner, maxSizeEntries } of entries) {
+        vectorProfileView.updateMaxSizeHistogram({
+          owner,
+          maxSizeEntries: maxSizeEntries.map((entry) => ({
+            maxSize: Number(entry.maxSize),
+            count: Number(entry.count),
+          })),
+        });
+      }
     }
-  });
+  );
+}
+
+function resetViews() {
+  lspLog.reset();
+  lspReplay.reset();
+  lspState.reset();
+  serverInfo.reset();
+  vectorProfileView.reset();
+}
+
+DebugServerSocket.connectAsync().then((socket) => {
+  connectTraceProcessorToViews(socket);
 });
 
 class TabBarView {
@@ -529,6 +593,39 @@ new TabBarView(
   document.querySelector("#tool-bar .tab-bar"),
   document.querySelector("main.tabbed-container")
 );
+
+let attachTraceInputElement = document.querySelector(
+  "#attach-trace input[name=trace]"
+);
+attachTraceInputElement.addEventListener("change", (event) => {
+  resetViews();
+  let traceProcessor = new TraceProcessor();
+  connectTraceProcessorToViews(traceProcessor);
+
+  let files = [...event.target.files];
+  Promise.all(
+    files.map(
+      async (file, index) =>
+        await addTraceFileFromStreamAsync(traceProcessor, file.stream(), index)
+    )
+  )
+    .then(() => {
+      console.log("done processing attached files");
+    })
+    .catch((error) => {
+      console.error("error while processing attached files", error);
+    });
+});
+
+async function addTraceFileFromStreamAsync(
+  traceProcessor,
+  stream,
+  threadIndex
+) {
+  for await (let chunk of stream) {
+    traceProcessor.appendBytes(threadIndex, chunk);
+  }
+}
 
 if (DEBUG_LSP_LOG) {
   for (let view of [lspLog, lspReplay]) {

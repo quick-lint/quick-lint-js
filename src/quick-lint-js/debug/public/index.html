@@ -59,15 +59,33 @@
     );
   }
 
-  .tab-bar {
+  #tool-bar {
+    display: grid;
+    grid-template-areas: "tabs upload";
+  }
+  #tool-bar .tab-bar {
+    grid-area: tabs;
+  }
+  #tool-bar #attach-trace {
+    grid-area: upload;
+  }
+
+  #tool-bar #attach-trace {
+    align-self: center;
+    justify-self: end;
+  }
+
+  #tool-bar {
     --bottom-border-width: 1px;
     --active-background-color: #000000;
     --border-color: #ffffff;
 
+    border-bottom: var(--bottom-border-width) solid var(--border-color);
+  }
+  .tab-bar {
     display: flex;
     margin: 0;
     padding: 0 1rem;
-    border-bottom: var(--bottom-border-width) solid var(--border-color);
   }
   .tab-bar > li {
     list-style-type: none;
@@ -234,6 +252,9 @@
         <li><a href="#/lsp-replay">LSP replay</a></li>
         <li><a href="#/vector-profile">vector profile</a></li>
       </ul>
+      <form id="attach-trace">
+        <input type="file" name="trace" multiple />
+      </form>
     </nav>
   </header>
 
