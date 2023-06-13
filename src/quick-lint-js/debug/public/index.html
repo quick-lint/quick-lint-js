@@ -169,6 +169,24 @@
     grid-area: details;
   }
 
+  #lsp-replay {
+    display: grid;
+    grid-template-areas:
+      "documents details"
+      "log log";
+    grid-template-columns: 30% auto;
+    grid-template-rows: auto 30%;
+  }
+  #lsp-replay .lsp-documents {
+    grid-area: documents;
+  }
+  #lsp-replay .lsp-details {
+    grid-area: details;
+  }
+  #lsp-replay .lsp-replay-log {
+    grid-area: log;
+  }
+
   ul.lsp-documents {
     margin: 0;
     padding: 0;
@@ -190,6 +208,20 @@
   .lsp-document.selected {
     border-color: #999999;
   }
+
+  .lsp-replay-log {
+    overflow-y: scroll;
+  }
+  .lsp-replay-log table {
+    width: 100%;
+  }
+
+  .lsp-replay-log table tr td {
+    border: 1px solid transparent;
+  }
+  .lsp-replay-log table tr.selected td {
+    border-color: #999999;
+  }
 </style>
 
 <body>
@@ -199,6 +231,7 @@
         <li><a href="#/server-info">info</a></li>
         <li><a href="#/lsp-log">LSP log</a></li>
         <li><a href="#/lsp-state">LSP state</a></li>
+        <li><a href="#/lsp-replay">LSP replay</a></li>
         <li><a href="#/vector-profile">vector profile</a></li>
       </ul>
     </nav>
@@ -224,6 +257,27 @@
           <dd class="lsp-language-id"></dd>
         </dl>
         <pre class="lsp-document-text"></pre>
+      </div>
+    </section>
+
+    <section id="lsp-replay" class="tab">
+      <ul class="lsp-documents"></ul>
+      <div class="lsp-details">
+        <dl>
+          <dt>Language ID</dt>
+          <dd class="lsp-language-id"></dd>
+        </dl>
+        <pre class="lsp-document-text"></pre>
+      </div>
+      <div class="lsp-replay-log">
+        <table>
+          <thead>
+            <tr>
+              <th>method</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
 

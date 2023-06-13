@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import { LSPReplayer } from "./lsp-replay.mjs";
 import { TraceReader, TraceEventType, TraceLSPDocumentType } from "./trace.mjs";
 
 let DEBUG_LSP_LOG = false;
@@ -289,8 +290,16 @@ class LSPStateDetailsView {
       this._documentTextElement.textContent = "";
       this._documentLanguageIDElement.textContent = "";
     } else {
-      this._documentTextElement.textContent = doc.text;
-      this._documentLanguageIDElement.textContent = doc.languageID;
+      if (doc.text === LSPReplayer.UNKNOWN_DOCUMENT_TEXT) {
+        this._documentTextElement.textContent = "<unknown>";
+      } else {
+        this._documentTextElement.textContent = doc.text;
+      }
+      if (doc.languageID === LSPReplayer.UNKNOWN_DOCUMENT_LANGUAGE_ID) {
+        this._documentLanguageIDElement.textContent = "<unknown>";
+      } else {
+        this._documentLanguageIDElement.textContent = doc.languageID;
+      }
     }
   }
 }
@@ -328,7 +337,7 @@ class LSPStateView {
       element.classList.add("lsp-document");
       element.classList.toggle(
         "lsp-unknown-document-type",
-        doc.type === TraceLSPDocumentType.UNKNOWN
+        doc.type === TraceLSPDocumentType.UNKNOWN || doc.type === null
       );
       element.textContent = doc.uri;
 
@@ -368,6 +377,62 @@ class LSPStateView {
   }
 }
 
+class LSPReplayView {
+  constructor(rootElement) {
+    this._rootElement = rootElement;
+    this._currentStateView = new LSPStateView(rootElement);
+    this._replayer = new LSPReplayer();
+
+    this._replayLogBodyElement = rootElement.querySelector(
+      ".lsp-replay-log tbody"
+    );
+    this._replayLogBodyElement.addEventListener("click", (event) => {
+      this._onClickReplayLog(event);
+    });
+
+    this._selectedLogEntryElement = null;
+    this._selectedLogEntryIndex = null;
+  }
+
+  addClientToServerMessage(_timestamp, json) {
+    let message = JSON.parse(json);
+
+    let messageIndex = this._replayer.appendClientToServerMessage(message);
+
+    let tr = document.createElement("tr");
+    let td = document.createElement("td");
+    td.textContent = message.method;
+    tr.appendChild(td);
+    tr.dataset.messageIndex = messageIndex;
+    this._replayLogBodyElement.appendChild(tr);
+  }
+
+  _onClickReplayLog(event) {
+    let clickedLogEntryElement = event.target.closest("[data-message-index]");
+    if (clickedLogEntryElement === null) {
+      return;
+    }
+    this._onLogEntryClicked(
+      clickedLogEntryElement,
+      parseInt(clickedLogEntryElement.dataset.messageIndex, 10)
+    );
+  }
+
+  _onLogEntryClicked(element, logEntryIndex) {
+    if (this._selectedLogEntryElement !== null) {
+      this._selectedLogEntryElement.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    this._selectedLogEntryElement = element;
+    this._selectedLogEntryIndex = logEntryIndex;
+
+    let documents = this._replayer.getOpenedDocumentsBeforeMessageIndex(
+      logEntryIndex + 1
+    );
+    this._currentStateView.setDocuments(/*timestamp=*/ null, documents);
+  }
+}
+
 function createElementWithText(tagName, textContent) {
   let element = document.createElement(tagName);
   element.textContent = textContent;
@@ -376,6 +441,7 @@ function createElementWithText(tagName, textContent) {
 
 let lspLog = new LSPLogView(document.getElementById("lsp-log"));
 let lspState = new LSPStateView(document.getElementById("lsp-state"));
+let lspReplay = new LSPReplayView(document.getElementById("lsp-replay"));
 
 class ServerInfoView {
   constructor(rootElement) {
@@ -413,6 +479,7 @@ DebugServerSocket.connectAsync().then((socket) => {
   });
   socket.on("lspClientToServerMessageEvent", ({ timestamp, body }) => {
     lspLog.addClientToServerMessage(timestamp, body);
+    lspReplay.addClientToServerMessage(timestamp, body);
   });
   socket.on("lspDocumentsEvent", ({ timestamp, documents }) => {
     lspState.setDocuments(timestamp, documents);
@@ -464,18 +531,25 @@ new TabBarView(
 );
 
 if (DEBUG_LSP_LOG) {
-  for (let i = 0; i < 10; ++i) {
-    lspLog.addClientToServerMessage(
+  for (let view of [lspLog, lspReplay]) {
+    for (let i = 0; i < 10; ++i) {
+      view.addClientToServerMessage(
+        0,
+        `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4264}}}`
+      );
+      view.addClientToServerMessage(
+        0,
+        `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4265}}}`
+      );
+      view.addClientToServerMessage(
+        0,
+        `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4266}}}`
+      );
+    }
+
+    view.addClientToServerMessage(
       0,
-      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4264}}}`
-    );
-    lspLog.addClientToServerMessage(
-      0,
-      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4265}}}`
-    );
-    lspLog.addClientToServerMessage(
-      0,
-      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"console.log('hello world');\\n"}],"textDocument":{"uri":"file:///home/strager/Projects/quicklint-js/hello.js","version":4266}}}`
+      `{"method":"textDocument/didChange","jsonrpc":"2.0","params":{"contentChanges":[{"text":"x","range":{"start":{"character":0,"line":0},"end":{"character":1,"line":0}}}],"textDocument":{"uri":"file:///change-without-open.js","version":1}}}`
     );
   }
 }
