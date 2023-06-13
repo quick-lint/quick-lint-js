@@ -279,12 +279,9 @@ class LSPLogView {
 class LSPStateDetailsView {
   constructor(rootElement) {
     this._rootElement = rootElement;
-    this._documentLanguageIDElement = rootElement.querySelector(
-      "#lsp-state-language-id"
-    );
-    this._documentTextElement = rootElement.querySelector(
-      "#lsp-state-document-text"
-    );
+    this._documentLanguageIDElement =
+      rootElement.querySelector(".lsp-language-id");
+    this._documentTextElement = rootElement.querySelector(".lsp-document-text");
   }
 
   setState(doc) {
@@ -301,11 +298,9 @@ class LSPStateDetailsView {
 class LSPStateView {
   constructor(rootElement) {
     this._rootElement = rootElement;
-    this._documentListElement = rootElement.querySelector(
-      "#lsp-state-documents"
-    );
+    this._documentListElement = rootElement.querySelector(".lsp-documents");
     this._detailsView = new LSPStateDetailsView(
-      rootElement.querySelector("#lsp-state-details")
+      rootElement.querySelector(".lsp-details")
     );
 
     this._documentListElement.addEventListener("click", (event) => {

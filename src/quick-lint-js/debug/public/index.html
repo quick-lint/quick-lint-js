@@ -162,32 +162,32 @@
     grid-template-areas: "documents details";
     grid-template-columns: 30% auto;
   }
-  #lsp-state #lsp-state-documents {
+  #lsp-state .lsp-documents {
     grid-area: documents;
   }
-  #lsp-state #lsp-state-details {
+  #lsp-state .lsp-details {
     grid-area: details;
   }
 
-  #lsp-state ul {
+  ul.lsp-documents {
     margin: 0;
     padding: 0;
   }
-  #lsp-state li {
+  ul.lsp-documents li {
     list-style-type: none;
   }
 
-  #lsp-state .lsp-document {
+  .lsp-document {
     background-color: #113311;
     border-radius: 0.5rem;
     margin: 0.25rem;
     padding: 0.5rem;
   }
 
-  #lsp-state .lsp-document {
+  .lsp-document {
     border: 2px solid transparent;
   }
-  #lsp-state .lsp-document.selected {
+  .lsp-document.selected {
     border-color: #999999;
   }
 </style>
@@ -217,13 +217,13 @@
     </section>
 
     <section id="lsp-state" class="tab">
-      <ul id="lsp-state-documents"></ul>
-      <div id="lsp-state-details">
+      <ul class="lsp-documents"></ul>
+      <div class="lsp-details">
         <dl>
           <dt>Language ID</dt>
-          <dd id="lsp-state-language-id"></dd>
+          <dd class="lsp-language-id"></dd>
         </dl>
-        <pre id="lsp-state-document-text"></pre>
+        <pre class="lsp-document-text"></pre>
       </div>
     </section>
 
