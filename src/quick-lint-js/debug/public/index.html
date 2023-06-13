@@ -193,16 +193,19 @@
       "documents details"
       "log log";
     grid-template-columns: 30% auto;
-    grid-template-rows: auto 30%;
+    grid-template-rows: 70% 30%;
   }
   #lsp-replay .lsp-documents {
     grid-area: documents;
+    overflow-y: auto;
   }
   #lsp-replay .lsp-details {
     grid-area: details;
+    overflow-y: auto;
   }
   #lsp-replay .lsp-replay-log {
     grid-area: log;
+    overflow-y: scroll;
   }
 
   ul.lsp-documents {
@@ -227,9 +230,6 @@
     border-color: #999999;
   }
 
-  .lsp-replay-log {
-    overflow-y: scroll;
-  }
   .lsp-replay-log table {
     width: 100%;
   }
