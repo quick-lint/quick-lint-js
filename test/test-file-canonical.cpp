@@ -108,8 +108,8 @@ TEST_F(test_file_canonical,
   ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_SAME_FILE(canonical->path(), input_path);
-  EXPECT_FALSE(ends_with(canonical->path(), "/"));
-  EXPECT_FALSE(ends_with(canonical->path(), "\\"));
+  EXPECT_FALSE(ends_with(canonical->path(), "/"sv));
+  EXPECT_FALSE(ends_with(canonical->path(), "\\"sv));
 }
 
 TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
@@ -256,8 +256,8 @@ TEST_F(test_file_canonical, canonical_path_removes_trailing_dot_component) {
       canonicalize_path(input_path);
   ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
-  EXPECT_FALSE(ends_with(canonical->path(), "/.")) << canonical->path();
-  EXPECT_FALSE(ends_with(canonical->path(), "\\.")) << canonical->path();
+  EXPECT_FALSE(ends_with(canonical->path(), "/."sv)) << canonical->path();
+  EXPECT_FALSE(ends_with(canonical->path(), "\\."sv)) << canonical->path();
   EXPECT_SAME_FILE(canonical->path(), temp_dir);
 }
 

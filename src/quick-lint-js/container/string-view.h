@@ -23,10 +23,17 @@ inline bool starts_with(std::basic_string_view<Char> haystack,
   return haystack.substr(0, needle.size()) == needle;
 }
 
-inline bool ends_with(std::string_view haystack,
-                      std::string_view needle) noexcept {
+template <class Char>
+inline bool ends_with(std::basic_string_view<Char> haystack,
+                      std::basic_string_view<Char> needle) noexcept {
   return haystack.size() >= needle.size() &&
          haystack.substr(haystack.size() - needle.size()) == needle;
+}
+
+template <class Char>
+inline bool ends_with(std::basic_string<Char> haystack,
+                      std::basic_string_view<Char> needle) noexcept {
+  return ends_with(std::basic_string_view<Char>(haystack), needle);
 }
 
 inline bool ends_with(std::string_view haystack, char needle) noexcept {

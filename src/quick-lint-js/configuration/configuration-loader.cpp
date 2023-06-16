@@ -492,7 +492,7 @@ bool configuration_loader::is_config_file_path(
 #define QLJS_PREFERRED_PATH_SEPARATOR "/"
 #endif
   return ends_with(file_path,
-                   QLJS_PREFERRED_PATH_SEPARATOR "quick-lint-js.config");
+                   QLJS_PREFERRED_PATH_SEPARATOR "quick-lint-js.config"sv);
 }
 }
 

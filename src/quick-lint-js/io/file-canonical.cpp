@@ -23,6 +23,7 @@
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
+#include <string_view>
 
 #if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -45,6 +46,7 @@
 #endif
 
 using namespace std::literals::string_literals;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -111,7 +113,7 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
 
 #if QLJS_PATHS_POSIX
   std::string_view p(this->path_);
-  while (!ends_with(p, "/")) {
+  while (!ends_with(p, "/"sv)) {
     std::size_t slash_index = p.find_last_of("/");
     QLJS_ASSERT(slash_index != std::string::npos);
     if (slash_index == 0 || slash_index == 1) {
