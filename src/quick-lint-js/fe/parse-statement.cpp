@@ -1258,17 +1258,6 @@ void parser::parse_and_visit_export(
               .export_keyword = export_token_span,
           });
     }
-    if (this->peek().type == token_type::kw_import) {
-      // export declare import A = B;           // Invalid.
-      // export declare import {C} from "mod";  // Invalid.
-      //
-      // parse_and_visit_declare_statement doesn't report
-      // diag_import_cannot_have_declare_keyword for us. See
-      // NOTE[declare-import].
-      this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
-          .declare_keyword = declare_span,
-      });
-    }
     this->parse_and_visit_declare_statement(v, declare_span,
                                             /*is_directly_declared=*/true);
     break;
@@ -4999,9 +4988,6 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   // declare import ns = otherns;  // Invalid.
   case token_type::kw_import:
     this->lexer_.commit_transaction(std::move(transaction));
-    this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
-        .declare_keyword = declare_keyword_span,
-    });
     this->parse_and_visit_declare_statement(v, declare_keyword_span,
                                             /*is_directly_declared=*/true);
     return parse_possible_declare_result::parsed;
@@ -5218,19 +5204,22 @@ void parser::parse_and_visit_declare_statement(
     // NOTE[declare-import]: There are several cases for 'declare' and 'import':
     //
     // * 'declare namespace ns { import a = b; }':
-    //   This code is legal. The code below is called.
+    //   This code is legal.
     //
     // * 'declare import a from "b";':
-    //   parse_and_visit_possible_declare_statement reports
-    //   diag_import_cannot_have_declare_keyword. The code below is called.
+    //   We report diag_import_cannot_have_declare_keyword below.
     //
     // * 'declare namespace ns { import a from "b"; }':
     //   parse_and_visit_import (called below) reports
     //   diag_declare_namespace_cannot_import_module.
     //
     // * 'export declare import a from "b";':
-    //   parse_and_visit_export reports
-    //   diag_import_cannot_have_declare_keyword. The code below is called.
+    //   We report diag_import_cannot_have_declare_keyword below.
+    if (is_directly_declared) {
+      this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
+          .declare_keyword = declare_keyword_span,
+      });
+    }
     this->parse_and_visit_import(
         v, /*declare_namespace_declare_keyword=*/is_directly_declared
                ? std::optional<source_code_span>()
