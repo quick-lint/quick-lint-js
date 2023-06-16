@@ -967,8 +967,14 @@ class parser {
   parse_possible_declare_result parse_and_visit_possible_declare_statement(
       parse_visitor_base &v);
 
+  // is_directly_declared is true if declare_keyword_span appears immediately
+  // prior.
+  //
+  // is_directly_declared is false if declare_keyword_span refers to 'declare'
+  // in an enclosing 'declare namespace'.
   void parse_and_visit_declare_statement(parse_visitor_base &v,
-                                         source_code_span declare_keyword_span);
+                                         source_code_span declare_keyword_span,
+                                         bool is_directly_declared);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

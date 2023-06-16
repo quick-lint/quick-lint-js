@@ -1051,7 +1051,8 @@ void parser::parse_and_visit_export(
     if (declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export async function f(); }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword);
+          v, *declare_namespace_declare_keyword,
+          /*is_directly_declared=*/false);
     } else {
       const char8 *async_token_begin = this->peek().begin;
       this->skip();
@@ -1068,7 +1069,8 @@ void parser::parse_and_visit_export(
     if (declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export function f(); }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword);
+          v, *declare_namespace_declare_keyword,
+          /*is_directly_declared=*/false);
     } else {
       this->parse_and_visit_function_declaration(
           v, function_attributes::normal,
@@ -1116,7 +1118,8 @@ void parser::parse_and_visit_export(
       // declare namespace ns { export let x; }
       // declare namespace ns { export const enum E {} }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword);
+          v, *declare_namespace_declare_keyword,
+          /*is_directly_declared=*/false);
     } else {
       this->parse_and_visit_variable_declaration_statement(v);
     }
@@ -1273,7 +1276,8 @@ void parser::parse_and_visit_export(
       this->parse_and_visit_import(
           v, /*declare_namespace_declare_keyword=*/std::nullopt);
     } else {
-      this->parse_and_visit_declare_statement(v, declare_span);
+      this->parse_and_visit_declare_statement(v, declare_span,
+                                              /*is_directly_declared=*/true);
     }
     break;
   }
@@ -2475,7 +2479,8 @@ void parser::parse_and_visit_typescript_declare_namespace(
     case token_type::kw_module:
     case token_type::kw_namespace:
     case token_type::kw_var:
-      this->parse_and_visit_declare_statement(v, declare_keyword_span);
+      this->parse_and_visit_declare_statement(v, declare_keyword_span,
+                                              /*is_directly_declared=*/false);
       break;
 
     case token_type::kw_export:
@@ -4994,7 +4999,8 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_var:
   case token_type::kw_namespace:
     this->lexer_.commit_transaction(std::move(transaction));
-    this->parse_and_visit_declare_statement(v, declare_keyword_span);
+    this->parse_and_visit_declare_statement(v, declare_keyword_span,
+                                            /*is_directly_declared=*/true);
     return parse_possible_declare_result::parsed;
 
   // declare import fs from 'fs';  // Invalid.
@@ -5018,7 +5024,8 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_declare_statement(
-    parse_visitor_base &v, source_code_span declare_keyword_span) {
+    parse_visitor_base &v, source_code_span declare_keyword_span,
+    [[maybe_unused]] bool is_directly_declared) {
   function_attributes func_attributes = function_attributes::normal;
 
   switch (this->peek().type) {
