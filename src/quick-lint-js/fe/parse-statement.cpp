@@ -1265,20 +1265,12 @@ void parser::parse_and_visit_export(
       // parse_and_visit_declare_statement doesn't report
       // diag_import_cannot_have_declare_keyword for us. See
       // NOTE[declare-import].
-      //
-      // parse_and_visit_declare_statement also can't call
-      // parse_and_visit_import for us because it calls parse_and_visit_import
-      // with a declare_namespace_declare_keyword, but 'declare' does not come
-      // from a 'declare namespace'.
       this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
           .declare_keyword = declare_span,
       });
-      this->parse_and_visit_import(
-          v, /*declare_namespace_declare_keyword=*/std::nullopt);
-    } else {
-      this->parse_and_visit_declare_statement(v, declare_span,
-                                              /*is_directly_declared=*/true);
     }
+    this->parse_and_visit_declare_statement(v, declare_span,
+                                            /*is_directly_declared=*/true);
     break;
   }
 
@@ -5025,7 +5017,7 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
 
 void parser::parse_and_visit_declare_statement(
     parse_visitor_base &v, source_code_span declare_keyword_span,
-    [[maybe_unused]] bool is_directly_declared) {
+    bool is_directly_declared) {
   function_attributes func_attributes = function_attributes::normal;
 
   switch (this->peek().type) {
@@ -5237,9 +5229,11 @@ void parser::parse_and_visit_declare_statement(
     //
     // * 'export declare import a from "b";':
     //   parse_and_visit_export reports
-    //   diag_import_cannot_have_declare_keyword. The code below isn't called.
+    //   diag_import_cannot_have_declare_keyword. The code below is called.
     this->parse_and_visit_import(
-        v, /*declare_namespace_declare_keyword=*/declare_keyword_span);
+        v, /*declare_namespace_declare_keyword=*/is_directly_declared
+               ? std::optional<source_code_span>()
+               : declare_keyword_span);
     break;
 
   // declare:  // Label.
