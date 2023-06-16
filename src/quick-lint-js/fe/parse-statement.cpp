@@ -4967,26 +4967,22 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   }
 
   switch (this->peek().type) {
+  // declare class C { }
+  // declare import fs from 'fs';  // Invalid.
+  // declare import ns = otherns;  // Invalid.
   case token_type::kw_abstract:
   case token_type::kw_async:
   case token_type::kw_class:
   case token_type::kw_const:
   case token_type::kw_enum:
-  case token_type::kw_interface:
   case token_type::kw_function:
+  case token_type::kw_import:
+  case token_type::kw_interface:
   case token_type::kw_let:
   case token_type::kw_module:
+  case token_type::kw_namespace:
   case token_type::kw_type:
   case token_type::kw_var:
-  case token_type::kw_namespace:
-    this->lexer_.commit_transaction(std::move(transaction));
-    this->parse_and_visit_declare_statement(v, declare_keyword_span,
-                                            /*is_directly_declared=*/true);
-    return parse_possible_declare_result::parsed;
-
-  // declare import fs from 'fs';  // Invalid.
-  // declare import ns = otherns;  // Invalid.
-  case token_type::kw_import:
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(v, declare_keyword_span,
                                             /*is_directly_declared=*/true);
