@@ -110,6 +110,47 @@ TEST(test_variable_analyzer_multiple_declarations,
     }
   }
 }
+
+TEST(test_variable_analyzer_multiple_declarations,
+     type_alias_and_local_variable_do_not_conflict) {
+  const char8 type_declaration[] = u8"x";
+  const char8 var_declaration[] = u8"x";
+
+  for (variable_kind var_kind :
+       {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
+    SCOPED_TRACE(var_kind);
+
+    {
+      // type x = null;
+      // var x;
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_declaration(identifier_of(type_declaration),
+                                   variable_kind::_type_alias,
+                                   variable_init_kind::normal);
+      l.visit_variable_declaration(identifier_of(var_declaration), var_kind,
+                                   variable_init_kind::initialized_with_equals);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+
+    {
+      // var x;
+      // type x = null;
+      diag_collector v;
+      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_variable_declaration(identifier_of(var_declaration), var_kind,
+                                   variable_init_kind::initialized_with_equals);
+      l.visit_variable_declaration(identifier_of(type_declaration),
+                                   variable_kind::_type_alias,
+                                   variable_init_kind::normal);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+  }
+}
 }
 }
 
