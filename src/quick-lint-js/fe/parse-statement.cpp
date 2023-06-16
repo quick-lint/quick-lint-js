@@ -5002,8 +5002,8 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
     this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
         .declare_keyword = declare_keyword_span,
     });
-    this->parse_and_visit_import(
-        v, /*declare_namespace_declare_keyword=*/std::nullopt);
+    this->parse_and_visit_declare_statement(v, declare_keyword_span,
+                                            /*is_directly_declared=*/true);
     return parse_possible_declare_result::parsed;
 
   // declare:  // Label.
@@ -5211,6 +5211,7 @@ void parser::parse_and_visit_declare_statement(
     break;
 
   // export declare import a = b;                 // Invalid.
+  // declare import a from 'b';                   // Invalid.
   // declare namespace ns { import a = b; }
   // declare namespace ns { import a from "b"; }  // Invalid.
   case token_type::kw_import:
@@ -5221,7 +5222,7 @@ void parser::parse_and_visit_declare_statement(
     //
     // * 'declare import a from "b";':
     //   parse_and_visit_possible_declare_statement reports
-    //   diag_import_cannot_have_declare_keyword. The code below isn't called.
+    //   diag_import_cannot_have_declare_keyword. The code below is called.
     //
     // * 'declare namespace ns { import a from "b"; }':
     //   parse_and_visit_import (called below) reports
