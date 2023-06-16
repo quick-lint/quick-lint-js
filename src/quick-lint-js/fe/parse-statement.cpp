@@ -979,6 +979,8 @@ void parser::parse_and_visit_export(
     }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
     if (declare_namespace_declare_keyword.has_value()) {
+      // declare namespace ns { import a from "b"; }
+      // See NOTE[declare-import].
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
           .importing_keyword = this->peek().span(),
           .declare_keyword = *declare_namespace_declare_keyword,
@@ -1238,6 +1240,43 @@ void parser::parse_and_visit_export(
         .export_token = export_token_span,
     });
     break;
+
+  // export declare class C { }    // TypeScript only.
+  // export declare import A = B;  // Invalid.
+  case token_type::kw_declare: {
+    source_code_span declare_span = this->peek().span();
+    this->skip();
+    if (this->peek().has_leading_newline) {
+      // export declare   // (newline)
+      //   class C { }    // Invalid.
+      this->diag_reporter_->report(
+          diag_newline_not_allowed_after_export_declare{
+              .declare_keyword = declare_span,
+              .export_keyword = export_token_span,
+          });
+    }
+    if (this->peek().type == token_type::kw_import) {
+      // export declare import A = B;           // Invalid.
+      // export declare import {C} from "mod";  // Invalid.
+      //
+      // parse_and_visit_declare_statement doesn't report
+      // diag_import_cannot_have_declare_keyword for us. See
+      // NOTE[declare-import].
+      //
+      // parse_and_visit_declare_statement also can't call
+      // parse_and_visit_import for us because it calls parse_and_visit_import
+      // with a declare_namespace_declare_keyword, but 'declare' does not come
+      // from a 'declare namespace'.
+      this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
+          .declare_keyword = declare_span,
+      });
+      this->parse_and_visit_import(
+          v, /*declare_namespace_declare_keyword=*/std::nullopt);
+    } else {
+      this->parse_and_visit_declare_statement(v, declare_span);
+    }
+    break;
+  }
 
   default:
     this->diag_reporter_->report(diag_unexpected_token_after_export{
@@ -5172,11 +5211,26 @@ void parser::parse_and_visit_declare_statement(
     this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
     break;
 
+  // export declare import a = b;                 // Invalid.
   // declare namespace ns { import a = b; }
   // declare namespace ns { import a from "b"; }  // Invalid.
   case token_type::kw_import:
-    // NOTE(strager): 'declare import a from "b";' is handled by
-    // parse_and_visit_possible_declare_statement.
+    // NOTE[declare-import]: There are several cases for 'declare' and 'import':
+    //
+    // * 'declare namespace ns { import a = b; }':
+    //   This code is legal. The code below is called.
+    //
+    // * 'declare import a from "b";':
+    //   parse_and_visit_possible_declare_statement reports
+    //   diag_import_cannot_have_declare_keyword. The code below isn't called.
+    //
+    // * 'declare namespace ns { import a from "b"; }':
+    //   parse_and_visit_import (called below) reports
+    //   diag_declare_namespace_cannot_import_module.
+    //
+    // * 'export declare import a from "b";':
+    //   parse_and_visit_export reports
+    //   diag_import_cannot_have_declare_keyword. The code below isn't called.
     this->parse_and_visit_import(
         v, /*declare_namespace_declare_keyword=*/declare_keyword_span);
     break;

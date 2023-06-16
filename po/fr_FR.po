@@ -1170,6 +1170,12 @@ msgstr ""
 "',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed after 'export declare'"
+msgstr ""
+"',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 
@@ -2202,10 +2208,6 @@ msgstr ""
 
 #: test/test-diagnostic-formatter.cpp
 msgid "this {0} looks fishy"
-msgstr ""
-
-#: test/test-diagnostic-formatter.cpp
-msgid "this {1} looks fishy"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

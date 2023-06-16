@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11672, 20759, 31424, 0, 57304},  //
+        {1, 11639, 20705, 31370, 0, 57225},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -21,7 +21,7 @@ const translation_table translation_data = {
         {31, 56, 0, 32, 0, 63},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
-        {79, 25, 30, 63, 49729, 66},         //
+        {79, 25, 30, 63, 49650, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
@@ -354,7 +354,8 @@ const translation_table translation_data = {
         {0, 0, 0, 52, 0, 57},                //
         {69, 26, 0, 59, 0, 51},              //
         {0, 0, 0, 46, 0, 39},                //
-        {0, 0, 0, 51, 0, 40},                //
+        {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 51, 0, 46},                //
         {0, 0, 0, 52, 0, 41},                //
         {0, 0, 0, 0, 0, 36},                 //
         {0, 0, 0, 47, 0, 35},                //
@@ -402,7 +403,6 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 61, 0, 61},                //
         {50, 25, 0, 70, 0, 78},              //
-        {33, 21, 0, 25, 0, 21},              //
         {33, 21, 74, 25, 44, 21},            //
         {27, 19, 30, 29, 22, 26},            //
         {25, 50, 0, 36, 0, 23},              //
@@ -678,7 +678,6 @@ const translation_table translation_data = {
         u8"'{1}' fehlt um Bedingung der switch-Anweisung\0"
         u8"Klammern fehlen um Bedingung der switch-Anweisung\0"
         u8"dieses {0} sieht merkw\u00fcrdig aus\0"
-        u8"dieses {1} sieht merkw\u00fcrdig aus\0"
         u8"try-Statement beginnt hier\0"
         u8"Blockkommentar ohne Ende\0"
         u8"Klasse ohne Ende. '}' bis sp\u00e4testens zum Ende der Datei erwartet\0"
@@ -939,7 +938,6 @@ const translation_table translation_data = {
         u8"give the condition a hug\0"
         u8"give the condition a hug\0"
         u8"this {0} looks fishy\0"
-        u8"this {1} looks fishy\0"
         u8"at least you tried\0"
         u8"you accidentally commented out your whole program\0"
         u8"forgetting to close your class is unclassy\0"
@@ -1509,7 +1507,6 @@ const translation_table translation_data = {
         u8"instru\u00e7\u00e3o switch requer par\u00eanteses ao redor da condi\u00e7\u00e3o\0"
         u8"essa tupla \u00e9 uma named tuple porque ao menos um elemento tem um nome\0"
         u8"isso {0} parece suspeito\0"
-        u8"isso {1} parece suspeito\0"
         u8"instru\u00e7\u00e3o try iniciou aqui\0"
         u8"bloco de coment\u00e1rio n\u00e3o encerrado\0"
         u8"classe n\u00e3o encerrada; esperado '}'\0"
@@ -2092,6 +2089,7 @@ const translation_table translation_data = {
         u8"move the 'extends' clause before 'implements' here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
+        u8"newline is not allowed after 'export declare'\0"
         u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed after 'type'\0"
         u8"newline is not allowed after '{0}'\0"
@@ -2140,7 +2138,6 @@ const translation_table translation_data = {
         u8"this required parameter appears after the optional parameter\0"
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
-        u8"this {1} looks fishy\0"
         u8"try statement starts here\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"

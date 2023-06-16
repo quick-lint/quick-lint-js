@@ -1153,6 +1153,12 @@ msgstr ""
 "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed after 'export declare'"
+msgstr ""
+"Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 
@@ -2185,10 +2191,6 @@ msgid "this {0} looks fishy"
 msgstr "dieses {0} sieht merkwürdig aus"
 
 #: test/test-diagnostic-formatter.cpp
-msgid "this {1} looks fishy"
-msgstr "dieses {1} sieht merkwürdig aus"
-
-#: test/test-diagnostic-formatter.cpp
 msgid "free {1} and {0} {1} {2}"
 msgstr "freies {1} und {0} {1} {2}"
 
@@ -2211,6 +2213,9 @@ msgstr "{1:singular} erwartet"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "hier"
+
+#~ msgid "this {1} looks fishy"
+#~ msgstr "dieses {1} sieht merkwürdig aus"
 
 #, fuzzy
 #~ msgid "missing condition in '{1}' statement"

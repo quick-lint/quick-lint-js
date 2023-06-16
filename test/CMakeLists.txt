@@ -148,6 +148,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-declare-type.cpp
   test-parse-typescript-declare-var.cpp
   test-parse-typescript-enum.cpp
+  test-parse-typescript-export-declare.cpp
   test-parse-typescript-function.cpp
   test-parse-typescript-generic-arrow.cpp
   test-parse-typescript-generic.cpp

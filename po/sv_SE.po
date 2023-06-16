@@ -1102,6 +1102,11 @@ msgid "newline is not allowed after 'abstract'"
 msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "newline is not allowed after 'export declare'"
+msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 
@@ -2029,10 +2034,6 @@ msgstr ""
 
 #: test/test-diagnostic-formatter.cpp
 msgid "this {0} looks fishy"
-msgstr ""
-
-#: test/test-diagnostic-formatter.cpp
-msgid "this {1} looks fishy"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

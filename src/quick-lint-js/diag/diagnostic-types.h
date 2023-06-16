@@ -1650,6 +1650,17 @@
               abstract_keyword))                                                \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
+      diag_newline_not_allowed_after_export_declare, "E0382",                   \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span declare_keyword;                                       \
+        source_code_span export_keyword;                                        \
+      },                                                                        \
+      MESSAGE(                                                                  \
+          QLJS_TRANSLATABLE("newline is not allowed after 'export declare'"),   \
+          declare_keyword, export_keyword))                                     \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
       diag_newline_not_allowed_after_interface_keyword, "E0275",                \
       diagnostic_severity::error, { source_code_span interface_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'interface'"),    \

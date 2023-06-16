@@ -21,7 +21,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 459;
-constexpr std::size_t translation_table_string_table_size = 77180;
+constexpr std::size_t translation_table_string_table_size = 77126;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -371,6 +371,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "move the 'extends' clause before 'implements' here"sv,
           "new variable shadows existing variable"sv,
           "newline is not allowed after 'abstract'"sv,
+          "newline is not allowed after 'export declare'"sv,
           "newline is not allowed after 'interface'"sv,
           "newline is not allowed after 'type'"sv,
           "newline is not allowed after '{0}'"sv,
@@ -419,7 +420,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "this required parameter appears after the optional parameter"sv,
           "this tuple type is a named tuple type because at least one element has a name"sv,
           "this {0} looks fishy"sv,
-          "this {1} looks fishy"sv,
           "try statement starts here"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,

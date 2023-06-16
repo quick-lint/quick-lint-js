@@ -3784,6 +3784,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "newline is not allowed after 'export declare'"_translatable,
+        {
+            u8"newline is not allowed after 'export declare'",
+            u8"newline is not allowed after 'export declare'",
+            u8"newline is not allowed after 'export declare'",
+            u8"newline is not allowed after 'export declare'",
+            u8"newline is not allowed after 'export declare'",
+            u8"newline is not allowed after 'export declare'",
+        },
+    },
+    {
         "newline is not allowed after 'interface'"_translatable,
         {
             u8"newline is not allowed after 'interface'",
@@ -4309,17 +4320,6 @@ const translated_string test_translation_table[] = {
             u8"this {0} looks fishy",
             u8"isso {0} parece suspeito",
             u8"this {0} looks fishy",
-        },
-    },
-    {
-        "this {1} looks fishy"_translatable,
-        {
-            u8"this {1} looks fishy",
-            u8"dieses {1} sieht merkw\u00fcrdig aus",
-            u8"this {1} looks fishy",
-            u8"this {1} looks fishy",
-            u8"isso {1} parece suspeito",
-            u8"this {1} looks fishy",
         },
     },
     {
