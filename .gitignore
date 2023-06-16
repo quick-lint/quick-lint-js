@@ -8,3 +8,7 @@
 
 # Created by clangd after the project has been analyzed.
 /.cache/
+
+# Relevant only to Dev Environment on Windows
+/.vs
+/out/build/*
