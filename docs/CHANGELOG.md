@@ -23,6 +23,9 @@ Semantic Versioning.
   (instead of leaving old diagnostics on the screen). This requires that you
   update your Emacs file: add `new-line` to the
   `flycheck-check-syntax-automatically` variable.
+* TypeScript support (still experimental):
+  * `class A {} namespace A {}` no longer reports [E0034][] ("redeclaration of
+    variable").
 
 ## 2.14.0 (2023-05-22)
 

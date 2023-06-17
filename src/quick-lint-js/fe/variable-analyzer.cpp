@@ -1001,8 +1001,10 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
       (kind == vk::_interface  && !is_type(other_kind)) ||
       (kind == vk::_let        && other_kind == vk::_namespace) ||
       (kind == vk::_let        && other_kind == vk::_type_alias) ||
+      (kind == vk::_namespace  && other_kind == vk::_class) ||
       (kind == vk::_namespace  && other_kind == vk::_const) ||
       (kind == vk::_namespace  && other_kind == vk::_enum) ||
+      (kind == vk::_namespace  && other_kind == vk::_function) ||
       (kind == vk::_namespace  && other_kind == vk::_let) ||
       (kind == vk::_namespace  && other_kind == vk::_var) ||
       (kind == vk::_type_alias && other_kind == vk::_const) ||
