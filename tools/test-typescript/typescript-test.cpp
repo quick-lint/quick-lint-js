@@ -120,8 +120,12 @@ find_typescript_test_filename_metadata_directive(
 }
 }
 
-bool typescript_test_unit::should_parse_and_lint() const noexcept {
-  return !ends_with(string8_view(this->name), u8".json"_sv);
+std::optional<linter_options> typescript_test_unit::get_linter_options() const
+    noexcept {
+  if (ends_with(string8_view(this->name), u8".json"_sv)) {
+    return std::nullopt;
+  }
+  return linter_options{};
 }
 
 typescript_test_units extract_units_from_typescript_test(

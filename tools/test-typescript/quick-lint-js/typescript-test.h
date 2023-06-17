@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_TYPESCRIPT_TEST_H
 
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
 
@@ -13,7 +14,8 @@ struct typescript_test_unit {
   padded_string data;
   string8 name;
 
-  bool should_parse_and_lint() const noexcept;
+  // Returns std::nullopt if this file should not be parsed or linted.
+  std::optional<linter_options> get_linter_options() const noexcept;
 };
 
 using typescript_test_units = std::vector<typescript_test_unit>;

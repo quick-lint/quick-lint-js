@@ -157,7 +157,8 @@ TEST(test_typescript_test, json_file_is_not_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.ts");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_FALSE(units[1].should_parse_and_lint());
+    std::optional<linter_options> options = units[1].get_linter_options();
+    ASSERT_FALSE(options.has_value());
   }
 
   {
@@ -168,7 +169,8 @@ TEST(test_typescript_test, json_file_is_not_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_FALSE(units[0].should_parse_and_lint());
+    std::optional<linter_options> options = units[0].get_linter_options();
+    ASSERT_FALSE(options.has_value());
   }
 }
 
@@ -181,7 +183,8 @@ TEST(test_typescript_test, typescript_file_is_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.ts");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_TRUE(units[0].should_parse_and_lint());
+    std::optional<linter_options> options = units[0].get_linter_options();
+    ASSERT_TRUE(options.has_value());
   }
 
   {
@@ -192,7 +195,8 @@ TEST(test_typescript_test, typescript_file_is_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_TRUE(units[1].should_parse_and_lint());
+    std::optional<linter_options> options = units[1].get_linter_options();
+    ASSERT_TRUE(options.has_value());
   }
 }
 
@@ -205,7 +209,8 @@ TEST(test_typescript_test, typescript_react_file_is_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.tsx");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_TRUE(units[0].should_parse_and_lint());
+    std::optional<linter_options> options = units[0].get_linter_options();
+    ASSERT_TRUE(options.has_value());
   }
 
   {
@@ -216,7 +221,8 @@ TEST(test_typescript_test, typescript_react_file_is_linted) {
     typescript_test_units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
-    EXPECT_TRUE(units[1].should_parse_and_lint());
+    std::optional<linter_options> options = units[1].get_linter_options();
+    ASSERT_TRUE(options.has_value());
   }
 }
 }
