@@ -27,6 +27,13 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+constexpr string8_view ignored_tests[] = {
+    // This test errors even with the TypeScript compiler. Maybe one of the test
+    // directives causes its errors to be ignored by the test runner, but I
+    // can't tell which test directive would do this.
+    u8"/usedImportNotElidedInJs.ts"sv,
+};
+
 struct test_typescript_options {
   std::vector<const char*> test_case_paths;
 };
@@ -95,10 +102,23 @@ class expected_test_results {
   hash_set<std::string> test_cases_expecting_error_;
 };
 
+bool should_ignore_test(string8_view path) {
+  for (string8_view ignore_pattern : ignored_tests) {
+    if (ends_with(path, ignore_pattern)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void process_test_case_file(expected_test_results& expected_results,
                             const char* path) {
-  std::fprintf(stderr, "note: checking %s\n", path);
   string8_view path_view = to_string8_view(path);
+  if (should_ignore_test(path_view)) {
+    std::fprintf(stderr, "note: ignoring %s\n", path);
+    return;
+  }
+  std::fprintf(stderr, "note: checking %s\n", path);
   std::optional<expected_test_results::expectations> expected =
       expected_results.get_test_case_expectations(path);
   if (!expected.has_value()) {
