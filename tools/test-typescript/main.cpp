@@ -98,6 +98,7 @@ class expected_test_results {
 void process_test_case_file(expected_test_results& expected_results,
                             const char* path) {
   std::fprintf(stderr, "note: checking %s\n", path);
+  string8_view path_view = to_string8_view(path);
   std::optional<expected_test_results::expectations> expected =
       expected_results.get_test_case_expectations(path);
   if (!expected.has_value()) {
@@ -124,7 +125,7 @@ void process_test_case_file(expected_test_results& expected_results,
                                    /*escape_errors=*/false);
 
   for (typescript_test_unit& unit :
-       extract_units_from_typescript_test(std::move(*raw_source))) {
+       extract_units_from_typescript_test(std::move(*raw_source), path_view)) {
     if (unit.should_parse_and_lint()) {
       // TODO(strager): Indicate which unit we are looking at.
       text_reporter.set_source(&unit.data, path);

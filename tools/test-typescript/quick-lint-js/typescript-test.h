@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_TYPESCRIPT_TEST_H
 
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/port/char8.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -17,7 +18,8 @@ struct typescript_test_unit {
 
 using typescript_test_units = std::vector<typescript_test_unit>;
 
-typescript_test_units extract_units_from_typescript_test(padded_string&& file);
+typescript_test_units extract_units_from_typescript_test(
+    padded_string&& file, string8_view test_file_name);
 }
 
 #endif

@@ -124,11 +124,12 @@ bool typescript_test_unit::should_parse_and_lint() const noexcept {
   return !ends_with(string8_view(this->name), u8".json"_sv);
 }
 
-typescript_test_units extract_units_from_typescript_test(padded_string&& file) {
+typescript_test_units extract_units_from_typescript_test(
+    padded_string&& file, string8_view test_file_name) {
   typescript_test_units units;
 
   string8_view sv = file.string_view();
-  string8_view next_file_name = u8""_sv;
+  string8_view next_file_name = test_file_name;
   for (;;) {
     std::optional<typescript_test_metadata_directive> filename_directive =
         find_typescript_test_filename_metadata_directive(sv, 0);
