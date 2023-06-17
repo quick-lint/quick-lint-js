@@ -2392,6 +2392,11 @@ void parser::parse_and_visit_typescript_namespace_head(
                                  variable_kind::_namespace,
                                  variable_init_kind::normal);
     this->skip();
+    while (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+    }
     break;
 
   // module 'my namespace' { }

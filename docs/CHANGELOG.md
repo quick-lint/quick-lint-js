@@ -14,6 +14,8 @@ Semantic Versioning.
   `initialize` request. See [LSP configuration
   documentation](https://quick-lint-js.com/docs/lsp/#_configuration) for
   details.
+* TypeScript support (still experimental):
+  * `namespace A.B {}` syntax (with `.`) is now supported.
 
 ### Fixed
 

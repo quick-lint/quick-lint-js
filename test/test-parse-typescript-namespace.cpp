@@ -251,6 +251,34 @@ TEST_F(test_parse_typescript_namespace,
   }
 }
 
+TEST_F(test_parse_typescript_namespace,
+       namespace_name_can_contain_subnamespaces_with_Dot) {
+  {
+    test_parser p(u8"namespace ns.subns {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // ns
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace mainNamespace._.subSubNamespace.yup {}"_sv,
+                  typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",   // mainNamespace
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({namespace_decl(u8"mainNamespace"_sv)}));
+  }
+}
+
 TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
     test_parser p(u8"namespace ns { export function f() {} }"_sv,
