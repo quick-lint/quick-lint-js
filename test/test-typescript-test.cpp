@@ -186,6 +186,8 @@ TEST(test_typescript_test, typescript_file_is_linted) {
     ASSERT_EQ(units.size(), 2);
     std::optional<linter_options> options = units[0].get_linter_options();
     ASSERT_TRUE(options.has_value());
+    EXPECT_TRUE(options->typescript);
+    EXPECT_FALSE(options->jsx);
   }
 
   {
@@ -198,6 +200,8 @@ TEST(test_typescript_test, typescript_file_is_linted) {
     ASSERT_EQ(units.size(), 2);
     std::optional<linter_options> options = units[1].get_linter_options();
     ASSERT_TRUE(options.has_value());
+    EXPECT_TRUE(options->typescript);
+    EXPECT_FALSE(options->jsx);
   }
 }
 
@@ -212,6 +216,8 @@ TEST(test_typescript_test, typescript_react_file_is_linted) {
     ASSERT_EQ(units.size(), 2);
     std::optional<linter_options> options = units[0].get_linter_options();
     ASSERT_TRUE(options.has_value());
+    EXPECT_TRUE(options->typescript);
+    EXPECT_TRUE(options->jsx);
   }
 
   {
@@ -224,6 +230,8 @@ TEST(test_typescript_test, typescript_react_file_is_linted) {
     ASSERT_EQ(units.size(), 2);
     std::optional<linter_options> options = units[1].get_linter_options();
     ASSERT_TRUE(options.has_value());
+    EXPECT_TRUE(options->typescript);
+    EXPECT_TRUE(options->jsx);
   }
 }
 }

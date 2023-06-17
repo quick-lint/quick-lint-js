@@ -116,9 +116,6 @@ void process_test_case_file(expected_test_results& expected_results,
 
   global_declared_variable_set globals;
   globals.add_literally_everything();
-  linter_options options;
-  options.jsx = false;
-  options.typescript = true;
 
   memory_output_stream diags;
   text_diag_reporter text_reporter(translator(), &diags,
@@ -126,10 +123,11 @@ void process_test_case_file(expected_test_results& expected_results,
 
   for (typescript_test_unit& unit :
        extract_units_from_typescript_test(std::move(*raw_source), path_view)) {
-    if (unit.get_linter_options().has_value()) {
+    std::optional<linter_options> options = unit.get_linter_options();
+    if (options.has_value()) {
       // TODO(strager): Indicate which unit we are looking at.
       text_reporter.set_source(&unit.data, path);
-      parse_and_lint(&unit.data, text_reporter, globals, options);
+      parse_and_lint(&unit.data, text_reporter, globals, *options);
     }
   }
   diags.flush();
