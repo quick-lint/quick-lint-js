@@ -48,6 +48,35 @@ inline std::string_view remove_suffix_if_present(
   return s;
 }
 
+template <class Char>
+inline std::basic_string_view<Char> trim_start(
+    std::basic_string_view<Char> s,
+    std::basic_string_view<Char> character_set) noexcept {
+  std::size_t index = s.find_first_not_of(character_set);
+  if (index == std::basic_string_view<Char>::npos) {
+    index = s.size();
+  }
+  return s.substr(index);
+}
+
+template <class Char>
+inline std::basic_string_view<Char> trim_end(
+    std::basic_string_view<Char> s,
+    std::basic_string_view<Char> character_set) noexcept {
+  std::size_t index = s.find_last_not_of(character_set);
+  if (index == std::basic_string_view<Char>::npos) {
+    index = static_cast<std::size_t>(-1);
+  }
+  return s.substr(0, index + 1);
+}
+
+template <class Char>
+inline std::basic_string_view<Char> trim(
+    std::basic_string_view<Char> s,
+    std::basic_string_view<Char> character_set) noexcept {
+  return trim_start(trim_end(s, character_set), character_set);
+}
+
 inline bool contains(std::string_view haystack, std::string_view needle) {
   return haystack.find(needle) != haystack.npos;
 }

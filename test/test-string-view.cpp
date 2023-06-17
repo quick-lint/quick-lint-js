@@ -36,6 +36,24 @@ TEST(test_string_view, remove_suffix_if_present_present) {
   EXPECT_EQ(remove_suffix_if_present("suffix"sv, "suffix"sv), ""sv);
   EXPECT_EQ(remove_suffix_if_present("test suffix"sv, "suffix"sv), "test "sv);
 }
+
+TEST(test_string_view, trim_start) {
+  EXPECT_EQ(trim_start(""sv, " "sv), ""sv);
+  EXPECT_EQ(trim_start("xyz"sv, " "sv), "xyz"sv);
+  EXPECT_EQ(trim_start("x y z "sv, " "sv), "x y z "sv);
+
+  EXPECT_EQ(trim_start("  xyz"sv, " "sv), "xyz"sv);
+  EXPECT_EQ(trim_start("   "sv, " "sv), ""sv);
+}
+
+TEST(test_string_view, trim_end) {
+  EXPECT_EQ(trim_end(""sv, " "sv), ""sv);
+  EXPECT_EQ(trim_end("xyz"sv, " "sv), "xyz"sv);
+  EXPECT_EQ(trim_end(" x y z"sv, " "sv), " x y z"sv);
+
+  EXPECT_EQ(trim_end("xyz  "sv, " "sv), "xyz"sv);
+  EXPECT_EQ(trim_end("   "sv, " "sv), ""sv);
+}
 }
 }
 

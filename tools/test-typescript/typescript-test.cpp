@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/typescript-test.h>
 #include <quick-lint-js/util/algorithm.h>
@@ -17,6 +18,7 @@ struct typescript_test_metadata_directive {
   std::size_t start_index;
   std::size_t end_index;
   string8_view metadata_name;
+  string8_view metadata_value;
 
   bool is_filename_metadata() {
     return ranges_equal(metadata_name, u8"filename"_sv, [](char8 x, char8 y) {
@@ -77,11 +79,16 @@ find_typescript_test_metadata_directive(string8_view sv,
     return std::nullopt;
   }
 
+  std::size_t metadata_value_begin_index = colon_index + 1;
   std::size_t directive_terminator_index =
-      sv.find_first_of(u8"\n\r"_sv, colon_index + 1);
+      sv.find_first_of(u8"\n\r"_sv, metadata_value_begin_index);
   if (directive_terminator_index == string8_view::npos) {
     directive_terminator_index = sv.size();
   }
+  string8_view metadata_value =
+      trim(sv.substr(metadata_value_begin_index,
+                     directive_terminator_index - metadata_value_begin_index),
+           u8" \t"_sv);
   std::size_t end_index =
       sv.find_first_not_of(u8"\n\r"_sv, directive_terminator_index + 1);
   if (end_index == string8_view::npos) {
@@ -92,6 +99,7 @@ find_typescript_test_metadata_directive(string8_view sv,
       .start_index = comment_index,
       .end_index = end_index,
       .metadata_name = metadata_name,
+      .metadata_value = metadata_value,
   };
 }
 
@@ -112,10 +120,15 @@ find_typescript_test_filename_metadata_directive(
 }
 }
 
+bool typescript_test_unit::should_parse_and_lint() const noexcept {
+  return !ends_with(string8_view(this->name), u8".json"_sv);
+}
+
 typescript_test_units extract_units_from_typescript_test(padded_string&& file) {
   typescript_test_units units;
 
   string8_view sv = file.string_view();
+  string8_view next_file_name = u8""_sv;
   for (;;) {
     std::optional<typescript_test_metadata_directive> filename_directive =
         find_typescript_test_filename_metadata_directive(sv, 0);
@@ -125,7 +138,9 @@ typescript_test_units extract_units_from_typescript_test(padded_string&& file) {
     if (filename_directive->start_index != 0) {
       units.push_back(typescript_test_unit{
           .data = padded_string(sv.substr(0, filename_directive->start_index)),
+          .name = string8(next_file_name),
       });
+      next_file_name = filename_directive->metadata_value;
     }
     sv = sv.substr(filename_directive->end_index);
   }
@@ -135,12 +150,14 @@ typescript_test_units extract_units_from_typescript_test(padded_string&& file) {
     if (!sv.empty()) {
       units.push_back(typescript_test_unit{
           .data = padded_string(sv),
+          .name = string8(next_file_name),
       });
     }
   } else {
     // Don't copy the input string. Just move it.
     units.push_back(typescript_test_unit{
         .data = std::move(file),
+        .name = string8(),
     });
   }
   return units;

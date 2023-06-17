@@ -26,7 +26,9 @@ TEST(test_typescript_test, one_filename_directive) {
       extract_units_from_typescript_test(std::move(file));
   ASSERT_EQ(units.size(), 2);
   EXPECT_EQ(units[0].data, u8"hello\nworld\n"_sv);
+  EXPECT_EQ(units[0].name, u8""_sv);
   EXPECT_EQ(units[1].data, u8"second\nfile\n"_sv);
+  EXPECT_EQ(units[1].name, u8"banana.ts"_sv);
 }
 
 TEST(test_typescript_test, filename_directive_at_end_of_line_is_ignored) {
@@ -125,9 +127,13 @@ TEST(test_typescript_test, multiple_units_are_allowed) {
       extract_units_from_typescript_test(std::move(file));
   ASSERT_EQ(units.size(), 4);
   EXPECT_EQ(units[0].data, u8"first\n"_sv);
+  EXPECT_EQ(units[0].name, u8""_sv);
   EXPECT_EQ(units[1].data, u8"second\n"_sv);
+  EXPECT_EQ(units[1].name, u8"2.ts"_sv);
   EXPECT_EQ(units[2].data, u8"third\n"_sv);
+  EXPECT_EQ(units[2].name, u8"3.ts"_sv);
   EXPECT_EQ(units[3].data, u8"fourth\n"_sv);
+  EXPECT_EQ(units[3].name, u8"4.ts"_sv);
 }
 
 TEST(test_typescript_test, unrelated_metadata_is_included_in_units) {

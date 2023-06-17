@@ -125,9 +125,11 @@ void process_test_case_file(expected_test_results& expected_results,
 
   for (typescript_test_unit& unit :
        extract_units_from_typescript_test(std::move(*raw_source))) {
-    // TODO(strager): Indicate which unit we are looking at.
-    text_reporter.set_source(&unit.data, path);
-    parse_and_lint(&unit.data, text_reporter, globals, options);
+    if (unit.should_parse_and_lint()) {
+      // TODO(strager): Indicate which unit we are looking at.
+      text_reporter.set_source(&unit.data, path);
+      parse_and_lint(&unit.data, text_reporter, globals, options);
+    }
   }
   diags.flush();
 

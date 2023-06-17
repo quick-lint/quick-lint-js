@@ -10,6 +10,9 @@
 namespace quick_lint_js {
 struct typescript_test_unit {
   padded_string data;
+  string8 name;
+
+  bool should_parse_and_lint() const noexcept;
 };
 
 using typescript_test_units = std::vector<typescript_test_unit>;
