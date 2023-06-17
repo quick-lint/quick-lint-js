@@ -17,6 +17,7 @@ TEST(test_typescript_test, extract_units_without_directives_gives_one_file) {
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 1);
   EXPECT_EQ(units[0].data, u8"hello\nworld\n"_sv);
+  EXPECT_EQ(units[0].name, u8"test.ts"_sv);
 }
 
 TEST(test_typescript_test, one_filename_directive) {

@@ -162,7 +162,7 @@ typescript_test_units extract_units_from_typescript_test(
     // Don't copy the input string. Just move it.
     units.push_back(typescript_test_unit{
         .data = std::move(file),
-        .name = string8(),
+        .name = string8(next_file_name),
     });
   }
   return units;
