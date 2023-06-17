@@ -112,6 +112,41 @@ TEST(test_variable_analyzer_multiple_declarations,
 }
 
 TEST(test_variable_analyzer_multiple_declarations,
+     namespace_can_be_declared_multiple_times) {
+  const char8 namespace_declaration_0[] = u8"ns";
+  const char8 namespace_declaration_1[] = u8"ns";
+  const char8 namespace_declaration_2[] = u8"ns";
+
+  {
+    // namespace ns {}
+    // namespace ns {}
+    // namespace ns {}
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_variable_declaration(identifier_of(namespace_declaration_0),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
+
+    l.visit_variable_declaration(identifier_of(namespace_declaration_1),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
+
+    l.visit_variable_declaration(identifier_of(namespace_declaration_2),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_variable_analyzer_multiple_declarations,
      type_alias_and_local_variable_do_not_conflict) {
   const char8 type_declaration[] = u8"x";
   const char8 var_declaration[] = u8"x";

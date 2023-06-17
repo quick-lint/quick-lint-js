@@ -28,6 +28,8 @@ Semantic Versioning.
     variable").
   * `function f<T>(T) {}` no longer reports [E0034][] ("redeclaration of
     variable").
+  * `namespace ns{} namespace ns{}` no longer reports [E0034][] ("redeclaration
+    of variable").
 
 ## 2.14.0 (2023-05-22)
 
