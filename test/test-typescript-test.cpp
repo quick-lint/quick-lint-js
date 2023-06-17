@@ -147,6 +147,78 @@ TEST(test_typescript_test, unrelated_metadata_is_included_in_units) {
   EXPECT_EQ(units[0].data, u8"first\n// @something: xxx\nunit\n"_sv);
   EXPECT_EQ(units[1].data, u8"second\n// @something: xxx\nunit\n"_sv);
 }
+
+TEST(test_typescript_test, json_file_is_not_linted) {
+  {
+    padded_string file(
+        u8"TypeScript code\n"_sv
+        u8"// @filename: hello.json\n"_sv
+        u8"JSON code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.ts");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_FALSE(units[1].should_parse_and_lint());
+  }
+
+  {
+    padded_string file(
+        u8"JSON code\n"_sv
+        u8"// @filename: hello.ts\n"_sv
+        u8"TypeScript code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.json");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_FALSE(units[0].should_parse_and_lint());
+  }
+}
+
+TEST(test_typescript_test, typescript_file_is_linted) {
+  {
+    padded_string file(
+        u8"TypeScript code\n"_sv
+        u8"// @filename: hello.json\n"_sv
+        u8"JSON code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.ts");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_TRUE(units[0].should_parse_and_lint());
+  }
+
+  {
+    padded_string file(
+        u8"JSON code\n"_sv
+        u8"// @filename: hello.ts\n"_sv
+        u8"TypeScript code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.json");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_TRUE(units[1].should_parse_and_lint());
+  }
+}
+
+TEST(test_typescript_test, typescript_react_file_is_linted) {
+  {
+    padded_string file(
+        u8"TypeScript code\n"_sv
+        u8"// @filename: hello.json\n"_sv
+        u8"JSON code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.tsx");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_TRUE(units[0].should_parse_and_lint());
+  }
+
+  {
+    padded_string file(
+        u8"JSON code\n"_sv
+        u8"// @filename: hello.tsx\n"_sv
+        u8"TypeScript code"_sv);
+    typescript_test_units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.json");
+    ASSERT_EQ(units.size(), 2);
+    EXPECT_TRUE(units[1].should_parse_and_lint());
+  }
+}
 }
 }
 
