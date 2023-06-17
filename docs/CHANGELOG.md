@@ -26,6 +26,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * `class A {} namespace A {}` no longer reports [E0034][] ("redeclaration of
     variable").
+  * `function f<T>(T) {}` no longer reports [E0034][] ("redeclaration of
+    variable").
 
 ## 2.14.0 (2023-05-22)
 

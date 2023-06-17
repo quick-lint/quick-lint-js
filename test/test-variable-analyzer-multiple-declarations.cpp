@@ -265,6 +265,30 @@ TEST(test_variable_analyzer_multiple_declarations,
                 }));
   }
 }
+
+TEST(test_variable_analyzer_multiple_declarations,
+     function_parameter_can_have_same_name_as_generic_parameter) {
+  const char8 function_parameter_declaration[] = u8"T";
+  const char8 type_parameter_declaration[] = u8"T";
+
+  {
+    // (function <T>(T) {});
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(type_parameter_declaration),
+                                 variable_kind::_generic_parameter,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(function_parameter_declaration),
+                                 variable_kind::_function_parameter,
+                                 variable_init_kind::normal);
+    l.visit_enter_function_scope_body();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 
