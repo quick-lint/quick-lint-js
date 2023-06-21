@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 459;
-constexpr std::size_t translation_table_string_table_size = 77126;
+constexpr std::uint16_t translation_table_mapping_table_size = 460;
+constexpr std::size_t translation_table_string_table_size = 77163;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -472,6 +472,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "using '{0}' against an object literal always returns '{1}'"sv,
           "variable already declared here"sv,
           "variable assigned before its declaration"sv,
+          "variable assignment to self is no-op"sv,
           "variable declared here"sv,
           "variable used before declaration: {0}"sv,
           "what is this '{1}' nonsense?"sv,

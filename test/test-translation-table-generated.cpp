@@ -4895,6 +4895,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "variable assignment to self is no-op"_translatable,
+        {
+            u8"variable assignment to self is no-op",
+            u8"variable assignment to self is no-op",
+            u8"variable assignment to self is no-op",
+            u8"variable assignment to self is no-op",
+            u8"variable assignment to self is no-op",
+            u8"variable assignment to self is no-op",
+        },
+    },
+    {
         "variable declared here"_translatable,
         {
             u8"variable declared here",

@@ -3087,6 +3087,15 @@
                                 "'{1}'"),                                       \
               second_modifier, first_modifier))                                 \
                                                                                 \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_variable_assigned_to_self_is_noop,                                   \
+      "E0383",                                                                  \
+      diagnostic_severity::warning,                                             \
+      { source_code_span assignment_statement; },                               \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+        "variable assignment to self is no-op"),                                \
+        assignment_statement))                                                  \
+                                                                                \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
