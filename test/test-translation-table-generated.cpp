@@ -4444,6 +4444,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "unexpected '...'; expected expression"_translatable,
+        {
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+        },
+    },
+    {
         "unexpected ':' in expression; did you mean 'as'?"_translatable,
         {
             u8"unexpected ':' in expression; did you mean 'as'?",

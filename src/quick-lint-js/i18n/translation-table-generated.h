@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 459;
-constexpr std::size_t translation_table_string_table_size = 77126;
+constexpr std::uint16_t translation_table_mapping_table_size = 460;
+constexpr std::size_t translation_table_string_table_size = 77164;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -431,6 +431,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unclosed string literal"sv,
           "unclosed template"sv,
           "unexpected '#'"sv,
+          "unexpected '...'; expected expression"sv,
           "unexpected ':' in expression; did you mean 'as'?"sv,
           "unexpected '?'"sv,
           "unexpected '?' when destructuring"sv,

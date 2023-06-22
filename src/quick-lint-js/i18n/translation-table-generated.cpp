@@ -414,7 +414,8 @@ const translation_table translation_data = {
         {27, 25, 28, 22, 25, 24},            //
         {23, 25, 28, 22, 26, 24},            //
         {19, 19, 20, 26, 15, 18},            //
-        {0, 0, 0, 15, 0, 15},                //
+        {0, 0, 0, 0, 0, 15},                 //
+        {0, 0, 0, 15, 0, 38},                //
         {0, 0, 0, 53, 0, 49},                //
         {0, 0, 0, 15, 0, 15},                //
         {16, 12, 14, 32, 17, 34},            //
@@ -2149,6 +2150,7 @@ const translation_table translation_data = {
         u8"unclosed string literal\0"
         u8"unclosed template\0"
         u8"unexpected '#'\0"
+        u8"unexpected '...'; expected expression\0"
         u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '?'\0"
         u8"unexpected '?' when destructuring\0"

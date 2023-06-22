@@ -426,6 +426,10 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(v, precedence{.commas = false});
+    if (child->kind() == expression_kind::_missing) {
+      this->diag_reporter_->report(
+          diag_spread_must_precede_expression{operator_span});
+    }
     return this->make_expression<expression::spread>(child, operator_span);
   }
 

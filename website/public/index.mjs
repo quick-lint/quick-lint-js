@@ -124,8 +124,11 @@ for (let [iconName, icon] of Object.entries(icons)) {
   let spriteSheetItem = null;
   if (path.extname(icon.path) === ".svg") {
     // HACK(#818): Some SVGs are broken in Chrome and Safari when spritesheeted.
-    // This might be a bug in the svg-sprite library. Remove these offending
-    // SVGs from the spritesheet as a workaround.
+    // This appears to be a bug in both WebKit and Chromium:
+    // https://bugs.webkit.org/show_bug.cgi?id=65344
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=109212
+    //
+    // Remove these offending SVGs from the spritesheet as a workaround.
     if (!icon.disableSpritesheet) {
       spriteSheetItem = iconsSpriteSheet.addSVG(
         path.join(__dirname, icon.path)
