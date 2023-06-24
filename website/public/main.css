@@ -206,7 +206,7 @@ header .mascot {
   header {
     grid-template-areas:
       "mascot title main-nav"
-      "mascot mascot main-nav"
+      "mascot title main-nav"
       "breadcrumbs breadcrumbs main-nav";
   }
   header > .tag-line {
