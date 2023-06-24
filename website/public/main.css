@@ -43,10 +43,10 @@ video + figcaption,
   grid-template-areas: "before after";
 }
 .side-by-side-comparison .before {
-  grid-area: "before";
+  grid-area: before;
 }
 .side-by-side-comparison .after {
-  grid-area: "after";
+  grid-area: after;
 }
 .side-by-side-comparison figure {
   margin: 0.5em;
