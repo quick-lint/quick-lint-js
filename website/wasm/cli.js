@@ -23,7 +23,7 @@ async function mainAsync() {
 
     for (let diag of diagnostics) {
       console.log(
-        `web demo: ${diag.beginOffset}-${diag.endOffset}: ${severityString(
+        `web demo: ${diag.begin}-${diag.end}: ${severityString(
           diag.severity
         )}: ${diag.message}`
       );
