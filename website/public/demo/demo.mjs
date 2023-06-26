@@ -50,10 +50,16 @@ class FloatingEditorMarker {
       range.setEnd(textNode, mark.end);
       let rects = range.getClientRects();
       for (let r of rects) {
-        if (r.width === 0) {
+        if (r.width === 0 && rects.length > 1) {
           // If a mark starts at the beginning of a line, Safari gives an extra
           // 0-width rectangle at the end of the previous line. Ignore this
           // extra rectangle.
+          //
+          // Note that zero-width rectangles are expected for diagnostics with
+          // an empty span. For example, in the following code:
+          //
+          //   var i j;
+          //       ^^ diagnostic between these two characters.
           continue;
         }
         let { markElement, markWrapperElement } =
