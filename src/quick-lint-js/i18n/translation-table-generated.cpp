@@ -222,7 +222,8 @@ const translation_table translation_data = {
         {32, 39, 44, 50, 41, 37},            //
         {55, 81, 72, 73, 57, 55},            //
         {64, 76, 69, 87, 73, 65},            //
-        {63, 58, 71, 93, 71, 69},            //
+        {0, 0, 0, 0, 0, 69},                 //
+        {63, 58, 71, 93, 71, 35},            //
         {33, 27, 36, 45, 0, 35},             //
         {39, 42, 0, 49, 0, 41},              //
         {24, 24, 0, 24, 0, 24},              //
@@ -1958,6 +1959,7 @@ const translation_table translation_data = {
         u8"expected hexadecimal digits in Unicode escape sequence\0"
         u8"expected parameter for arrow function, but got a literal instead\0"
         u8"expected parameter for arrow function, but got an expression instead\0"
+        u8"expected variable name after '...'\0"
         u8"expected variable name for 'catch'\0"
         u8"expected variable name for 'import'-'as'\0"
         u8"expected {1:headlinese}\0"

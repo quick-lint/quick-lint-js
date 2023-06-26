@@ -114,11 +114,17 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     }
     break;
   }
+  case expression_kind::spread: {
+    // expression* child = this->parse_expression(v, precedence{.commas = false});
+    if (ast->child_0()->kind() == expression_kind::_missing) {
+      this->diag_reporter_->report(
+          diag_spread_must_precede_expression{this->peek().span()});
+    }   
+  }
   case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
   case expression_kind::satisfies:
-  case expression_kind::spread:
   case expression_kind::unary_operator:
   case expression_kind::yield_many:
   case expression_kind::yield_one:
@@ -426,10 +432,6 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(v, precedence{.commas = false});
-    if (child->kind() == expression_kind::_missing) {
-      this->diag_reporter_->report(
-          diag_spread_must_precede_expression{operator_span});
-    }
     return this->make_expression<expression::spread>(child, operator_span);
   }
 

@@ -2332,6 +2332,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "expected variable name after '...'"_translatable,
+        {
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+        },
+    },
+    {
         "expected variable name for 'catch'"_translatable,
         {
             u8"expected variable name for 'catch'",

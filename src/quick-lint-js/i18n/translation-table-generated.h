@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 460;
-constexpr std::size_t translation_table_string_table_size = 77164;
+constexpr std::uint16_t translation_table_mapping_table_size = 461;
+constexpr std::size_t translation_table_string_table_size = 77199;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -239,6 +239,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "expected hexadecimal digits in Unicode escape sequence"sv,
           "expected parameter for arrow function, but got a literal instead"sv,
           "expected parameter for arrow function, but got an expression instead"sv,
+          "expected variable name after '...'"sv,
           "expected variable name for 'catch'"sv,
           "expected variable name for 'import'-'as'"sv,
           "expected {1:headlinese}"sv,

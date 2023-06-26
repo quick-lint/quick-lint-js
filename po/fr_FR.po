@@ -2202,6 +2202,11 @@ msgstr ""
 msgid "unexpected '...'; expected expression"
 msgstr "'\\' inattendu dans un identifiant"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "expected variable name after '...'"
+msgstr "nom de variable requis pour 'catch'"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

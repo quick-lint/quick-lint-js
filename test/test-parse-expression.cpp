@@ -3766,8 +3766,8 @@ TEST_F(test_parse_expression, whitespace_between_bang_and_equal) {
 }
 
 TEST_F(test_parse_expression, diag_spread_must_precede_expression) {
-  test_parser p(u8"..."_sv, capture_diags);
-  expression* ast = p.parse_expression();
+  test_parser p(u8"a = ...;"_sv, capture_diags);
+  p.parse_and_visit_expression();
   EXPECT_THAT(p.errors, ElementsAreArray(
                             {DIAG_TYPE(diag_spread_must_precede_expression)}));
 }

@@ -2460,6 +2460,14 @@ TEST_F(test_parse_var, var_declaration_as_label_body_is_allowed) {
                         }));
 }
 
+TEST_F(test_parse_var, spread_must_precede_variable_name) {
+  test_parser p(u8"const [a, b, ...] = z;"_sv, capture_diags);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.errors, 
+              ElementsAreArray(
+                {DIAG_TYPE(diag_spread_must_precede_variable_name)}));
+}
+
 TEST_F(test_parse_var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {

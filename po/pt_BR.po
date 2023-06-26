@@ -1957,6 +1957,11 @@ msgstr ""
 msgid "unexpected '...'; expected expression"
 msgstr "'?' inesperado ao desestruturar"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "expected variable name after '...'"
+msgstr "esperado um nome de variável para o 'catch'"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
