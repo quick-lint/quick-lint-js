@@ -649,9 +649,9 @@ TEST_F(test_parse_typescript_module, export_namespace) {
     test_parser p(u8"export namespace ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",   // ns
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -662,9 +662,9 @@ TEST_F(test_parse_typescript_module, export_namespace) {
     test_parser p(u8"export module ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",   // ns
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -722,9 +722,9 @@ TEST_F(test_parse_typescript_module,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",   // ns
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,

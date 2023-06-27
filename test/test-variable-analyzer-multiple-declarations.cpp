@@ -30,11 +30,11 @@ TEST(test_variable_analyzer_multiple_declarations,
     // enum A {}
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(enum_declaration),
                                  variable_kind::_enum,
                                  variable_declaration_flags::none);
@@ -55,11 +55,11 @@ TEST(test_variable_analyzer_multiple_declarations,
                                  variable_declaration_flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -80,11 +80,11 @@ TEST(test_variable_analyzer_multiple_declarations,
       // var n;
       diag_collector v;
       variable_analyzer l(&v, &default_globals, typescript_var_options);
+      l.visit_enter_namespace_scope();
+      l.visit_exit_namespace_scope();
       l.visit_variable_declaration(identifier_of(namespace_declaration),
                                    variable_kind::_namespace,
                                    variable_declaration_flags::none);
-      l.visit_enter_namespace_scope();
-      l.visit_exit_namespace_scope();
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
           variable_declaration_flags::initialized_with_equals);
@@ -101,11 +101,11 @@ TEST(test_variable_analyzer_multiple_declarations,
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
           variable_declaration_flags::initialized_with_equals);
+      l.visit_enter_namespace_scope();
+      l.visit_exit_namespace_scope();
       l.visit_variable_declaration(identifier_of(namespace_declaration),
                                    variable_kind::_namespace,
                                    variable_declaration_flags::none);
-      l.visit_enter_namespace_scope();
-      l.visit_exit_namespace_scope();
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -125,23 +125,23 @@ TEST(test_variable_analyzer_multiple_declarations,
     // namespace ns {}
     diag_collector v;
     variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration_0),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
+
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
-
     l.visit_variable_declaration(identifier_of(namespace_declaration_1),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
+
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
-
     l.visit_variable_declaration(identifier_of(namespace_declaration_2),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -209,11 +209,11 @@ TEST(test_variable_analyzer_multiple_declarations,
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
 
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -231,11 +231,11 @@ TEST(test_variable_analyzer_multiple_declarations,
                                  variable_kind::_class,
                                  variable_declaration_flags::none);
 
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -253,11 +253,11 @@ TEST(test_variable_analyzer_multiple_declarations,
     // function x() {}  // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
 
     l.visit_variable_declaration(identifier_of(function_declaration),
                                  variable_kind::_function,
@@ -281,11 +281,11 @@ TEST(test_variable_analyzer_multiple_declarations,
     // class x {}      // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
 
     l.visit_enter_class_scope();
     l.visit_enter_class_scope_body(identifier_of(class_declaration));

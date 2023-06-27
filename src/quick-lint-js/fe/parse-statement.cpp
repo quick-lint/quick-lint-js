@@ -2352,25 +2352,29 @@ void parser::parse_and_visit_typescript_namespace(
           v,
           /*export_keyword_span=*/export_keyword_span,
           /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
+
+  {
+    typescript_namespace_guard g = this->enter_typescript_namespace();
+
+    if (this->peek().type != token_type::left_curly) {
+      this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+          .expected_body =
+              source_code_span::unit(this->lexer_.end_of_previous_token()),
+      });
+      goto done_parsing_body;
+    }
+
+    v.visit_enter_namespace_scope();
+    this->parse_and_visit_statement_block_no_scope(v);
+    v.visit_exit_namespace_scope();
+  }
+
+done_parsing_body:
   if (namespace_declaration.has_value()) {
     v.visit_variable_declaration(*namespace_declaration,
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
   }
-
-  typescript_namespace_guard g = this->enter_typescript_namespace();
-
-  if (this->peek().type != token_type::left_curly) {
-    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
-        .expected_body =
-            source_code_span::unit(this->lexer_.end_of_previous_token()),
-    });
-    return;
-  }
-
-  v.visit_enter_namespace_scope();
-  this->parse_and_visit_statement_block_no_scope(v);
-  v.visit_exit_namespace_scope();
 }
 
 std::optional<identifier> parser::parse_and_visit_typescript_namespace_head(
@@ -2443,85 +2447,89 @@ void parser::parse_and_visit_typescript_declare_namespace(
           /*export_keyword_span=*/std::nullopt,
           /*declare_keyword_span=*/declare_keyword_span,
           namespace_keyword_span);
+
+  {
+    typescript_namespace_guard g = this->enter_typescript_namespace();
+
+    if (this->peek().type != token_type::left_curly) {
+      this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+          .expected_body =
+              source_code_span::unit(this->lexer_.end_of_previous_token()),
+      });
+      goto done_parsing_body;
+    }
+    source_code_span left_curly_span = this->peek().span();
+    this->skip();
+
+    v.visit_enter_namespace_scope();
+    for (;;) {
+      switch (this->peek().type) {
+      // TODO(strager): Deduplicate list with
+      // parse_and_visit_possible_declare_statement.
+      case token_type::kw_abstract:
+      case token_type::kw_async:
+      case token_type::kw_class:
+      case token_type::kw_const:
+      case token_type::kw_enum:
+      case token_type::kw_function:
+      case token_type::kw_import:
+      case token_type::kw_let:
+      case token_type::kw_module:
+      case token_type::kw_namespace:
+      case token_type::kw_var:
+        this->parse_and_visit_declare_statement(v, declare_keyword_span,
+                                                /*is_directly_declared=*/false);
+        break;
+
+      case token_type::kw_export:
+        this->parse_and_visit_export(v, declare_keyword_span);
+        break;
+
+      case token_type::right_curly:
+        this->skip();
+        goto stop_parsing_body;
+
+      case token_type::end_of_file:
+        this->diag_reporter_->report(diag_unclosed_code_block{
+            .block_open = left_curly_span,
+        });
+        goto stop_parsing_body;
+
+      case token_type::kw_declare: {
+        this->diag_reporter_->report(
+            diag_declare_keyword_is_not_allowed_inside_declare_namespace{
+                .declare_keyword = this->peek().span(),
+                .declare_namespace_declare_keyword = declare_keyword_span,
+            });
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, parse_statement_type::any_statement_in_block);
+        QLJS_ASSERT(parsed_statement);
+        break;
+      }
+
+      default: {
+        this->diag_reporter_->report(
+            diag_declare_namespace_cannot_contain_statement{
+                .first_statement_token = this->peek().span(),
+                .declare_keyword = declare_keyword_span,
+            });
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, parse_statement_type::any_statement_in_block);
+        QLJS_ASSERT(parsed_statement);
+        break;
+      }
+      }
+    }
+  stop_parsing_body:
+    v.visit_exit_namespace_scope();
+  }
+
+done_parsing_body:
   if (namespace_declaration.has_value()) {
     v.visit_variable_declaration(*namespace_declaration,
                                  variable_kind::_namespace,
                                  variable_declaration_flags::none);
   }
-
-  typescript_namespace_guard g = this->enter_typescript_namespace();
-
-  if (this->peek().type != token_type::left_curly) {
-    this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
-        .expected_body =
-            source_code_span::unit(this->lexer_.end_of_previous_token()),
-    });
-    return;
-  }
-  source_code_span left_curly_span = this->peek().span();
-  this->skip();
-
-  v.visit_enter_namespace_scope();
-  for (;;) {
-    switch (this->peek().type) {
-    // TODO(strager): Deduplicate list with
-    // parse_and_visit_possible_declare_statement.
-    case token_type::kw_abstract:
-    case token_type::kw_async:
-    case token_type::kw_class:
-    case token_type::kw_const:
-    case token_type::kw_enum:
-    case token_type::kw_function:
-    case token_type::kw_import:
-    case token_type::kw_let:
-    case token_type::kw_module:
-    case token_type::kw_namespace:
-    case token_type::kw_var:
-      this->parse_and_visit_declare_statement(v, declare_keyword_span,
-                                              /*is_directly_declared=*/false);
-      break;
-
-    case token_type::kw_export:
-      this->parse_and_visit_export(v, declare_keyword_span);
-      break;
-
-    case token_type::right_curly:
-      this->skip();
-      goto done;
-
-    case token_type::end_of_file:
-      this->diag_reporter_->report(diag_unclosed_code_block{
-          .block_open = left_curly_span,
-      });
-      goto done;
-
-    case token_type::kw_declare: {
-      this->diag_reporter_->report(
-          diag_declare_keyword_is_not_allowed_inside_declare_namespace{
-              .declare_keyword = this->peek().span(),
-              .declare_namespace_declare_keyword = declare_keyword_span,
-          });
-      bool parsed_statement = this->parse_and_visit_statement(
-          v, parse_statement_type::any_statement_in_block);
-      QLJS_ASSERT(parsed_statement);
-      break;
-    }
-
-    default: {
-      this->diag_reporter_->report(
-          diag_declare_namespace_cannot_contain_statement{
-              .first_statement_token = this->peek().span(),
-              .declare_keyword = declare_keyword_span,
-          });
-      bool parsed_statement = this->parse_and_visit_statement(
-          v, parse_statement_type::any_statement_in_block);
-      QLJS_ASSERT(parsed_statement);
-      break;
-    }
-    }
-  }
-done:
-  v.visit_exit_namespace_scope();
 }
 
 void parser::parse_and_visit_typescript_type_alias(

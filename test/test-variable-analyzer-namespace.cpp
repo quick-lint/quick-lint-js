@@ -25,11 +25,11 @@ TEST(test_variable_analyzer_namespace, empty_namespace) {
   // namespace NS { }
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
+  l.visit_enter_namespace_scope();
+  l.visit_exit_namespace_scope();
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_declaration_flags::none);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
@@ -44,11 +44,11 @@ TEST(test_variable_analyzer_namespace,
   // NS;
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
+  l.visit_enter_namespace_scope();
+  l.visit_exit_namespace_scope();
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_declaration_flags::none);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
   l.visit_variable_use(identifier_of(namespace_use));
   l.visit_end_of_module();
 
@@ -68,11 +68,11 @@ TEST(test_variable_analyzer_namespace,
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(namespace_use));
+  l.visit_enter_namespace_scope();
+  l.visit_exit_namespace_scope();
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
                                variable_declaration_flags::none);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
@@ -88,12 +88,12 @@ TEST(test_variable_analyzer_namespace,
   // }
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               variable_kind::_namespace,
-                               variable_declaration_flags::none);
   l.visit_enter_namespace_scope();
   l.visit_variable_use(identifier_of(namespace_use));
   l.visit_exit_namespace_scope();
+  l.visit_variable_declaration(identifier_of(namespace_declaration),
+                               variable_kind::_namespace,
+                               variable_declaration_flags::none);
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
@@ -113,13 +113,13 @@ TEST(test_variable_analyzer_namespace,
     // C;  // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_member_declaration),
                                  var_kind, variable_declaration_flags::none);
     l.visit_exit_namespace_scope();
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
     l.visit_variable_use(identifier_of(namespace_member_use));
     l.visit_end_of_module();
 
@@ -157,9 +157,6 @@ TEST(test_variable_analyzer_namespace,
     // }
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_use(identifier_of(variable_use));
     l.visit_variable_assignment(identifier_of(assignment));
@@ -168,6 +165,9 @@ TEST(test_variable_analyzer_namespace,
     l.visit_variable_typeof_use(identifier_of(typeof_use));
     l.visit_variable_type_use(identifier_of(type_use));
     l.visit_exit_namespace_scope();
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -187,12 +187,12 @@ TEST(test_variable_analyzer_namespace,
     // myVar;  // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_use(identifier_of(eval_use));
     l.visit_exit_namespace_scope();
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
     l.visit_variable_use(identifier_of(variable_use));
     l.visit_end_of_module();
 
