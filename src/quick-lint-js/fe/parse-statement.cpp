@@ -2347,10 +2347,16 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 void parser::parse_and_visit_typescript_namespace(
     parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
     source_code_span namespace_keyword_span) {
-  this->parse_and_visit_typescript_namespace_head(
-      v,
-      /*export_keyword_span=*/export_keyword_span,
-      /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
+  std::optional<identifier> namespace_declaration =
+      this->parse_and_visit_typescript_namespace_head(
+          v,
+          /*export_keyword_span=*/export_keyword_span,
+          /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
+  if (namespace_declaration.has_value()) {
+    v.visit_variable_declaration(*namespace_declaration,
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
+  }
 
   typescript_namespace_guard g = this->enter_typescript_namespace();
 
@@ -2367,8 +2373,8 @@ void parser::parse_and_visit_typescript_namespace(
   v.visit_exit_namespace_scope();
 }
 
-void parser::parse_and_visit_typescript_namespace_head(
-    parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
+std::optional<identifier> parser::parse_and_visit_typescript_namespace_head(
+    parse_visitor_base &, std::optional<source_code_span> export_keyword_span,
     std::optional<source_code_span> declare_keyword_span,
     source_code_span namespace_keyword_span) {
   if (this->peek().has_leading_newline) {
@@ -2387,17 +2393,16 @@ void parser::parse_and_visit_typescript_namespace_head(
   switch (this->peek().type) {
   // namespace ns { }
   QLJS_CASE_CONTEXTUAL_KEYWORD:
-  case token_type::identifier:
-    v.visit_variable_declaration(this->peek().identifier_name(),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+  case token_type::identifier: {
+    identifier namespace_identifier = this->peek().identifier_name();
     this->skip();
     while (this->peek().type == token_type::dot) {
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
       this->skip();
     }
-    break;
+    return namespace_identifier;
+  }
 
   // module 'my namespace' { }
   // namespace 'ns' { }         // Invalid.
@@ -2417,12 +2422,12 @@ void parser::parse_and_visit_typescript_namespace_head(
           });
     }
     this->skip();
-    break;
+    return std::nullopt;
   }
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
-    break;
+    return std::nullopt;
   }
 }
 
@@ -2432,10 +2437,17 @@ void parser::parse_and_visit_typescript_declare_namespace(
               this->peek().type == token_type::kw_namespace);
   source_code_span namespace_keyword_span = this->peek().span();
   this->skip();
-  this->parse_and_visit_typescript_namespace_head(
-      v,
-      /*export_keyword_span=*/std::nullopt,
-      /*declare_keyword_span=*/declare_keyword_span, namespace_keyword_span);
+  std::optional<identifier> namespace_declaration =
+      this->parse_and_visit_typescript_namespace_head(
+          v,
+          /*export_keyword_span=*/std::nullopt,
+          /*declare_keyword_span=*/declare_keyword_span,
+          namespace_keyword_span);
+  if (namespace_declaration.has_value()) {
+    v.visit_variable_declaration(*namespace_declaration,
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
+  }
 
   typescript_namespace_guard g = this->enter_typescript_namespace();
 

@@ -383,7 +383,7 @@ class parser {
       parse_visitor_base &v,
       std::optional<source_code_span> export_keyword_span,
       source_code_span namespace_keyword_span);
-  void parse_and_visit_typescript_namespace_head(
+  std::optional<identifier> parse_and_visit_typescript_namespace_head(
       parse_visitor_base &v,
       std::optional<source_code_span> export_keyword_span,
       std::optional<source_code_span> declare_keyword_span,
