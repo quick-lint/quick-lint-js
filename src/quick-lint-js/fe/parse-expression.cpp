@@ -115,12 +115,12 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     break;
   }
   case expression_kind::spread: {
-    // expression* child = this->parse_expression(v, precedence{.commas = false});
     if (ast->child_0()->kind() == expression_kind::_missing) {
       this->diag_reporter_->report(
           diag_spread_must_precede_expression{this->peek().span()});
     }   
-  }
+    [[fallthrough]];
+  } 
   case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
