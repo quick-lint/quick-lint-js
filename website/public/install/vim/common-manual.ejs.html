@@ -5,112 +5,151 @@
 
 <h3 id="install-vim-plugin">Install Vim plugin</h3>
 <p>Install this plugin with your favorite Vim packaging system:</p>
-<ul>
-  <li>
-    <a href="#manual-vim-package">Vim package</a> (built into Vim 8.0 and newer)
+
+<ul class="tab-bar">
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-package')"
+      href="#manual-vim-package"
+      >Vim package</a
+    >
   </li>
-  <li><a href="#manual-vim-pathogen">Pathogen</a></li>
-  <li><a href="#manual-vim-vim-plug">Vim-Plug</a></li>
-  <li><a href="#manual-vim-vundle">Vundle</a></li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-pathogen')"
+      href="#manual-vim-pathogen"
+      >Pathogen</a
+    >
+  </li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-vim-plug')"
+      href="#manual-vim-vim-plug"
+      >Vim-Plug</a
+    >
+  </li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-vundle')"
+      href="#manual-vim-vundle"
+      >Vundle</a
+    >
+  </li>
 </ul>
 
-<h4 id="manual-vim-package">Install as a Vim package</h4>
-<p>This option requires Vim 8.0 or newer.</p>
-<ol>
-  <li>
-    <a
-      href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
-      >Download the quick-lint-js Vim plugin.</a
-    >
-  </li>
-  <li>
-    Add <code style="vim">packloadall</code> to your <% if (os === "windows") {
-    %> <code>%USERPROFILE%\_vimrc</code> file (or
-    <code>%USERPROFILE%\vimfiles\vimrc</code>) <% } else { %>
-    <code>~/.vimrc</code> file <% } %> if not already present.
-  </li>
-  <li>
-    Create the directory <% if (os === "windows") { %>
-    <code>%USERPROFILE%\vimfiles\pack\external\start\</code>. <% } else { %>
-    <code>~/.vim/pack/external/start/</code>. <% } %>
-  </li>
-  <li>
-    Copy the extracted
-    <code>quick-lint-js.vim</code> directory into the <% if (os === "windows") {
-    %>
-    <code>%USERPROFILE%\vimfiles\pack\external\start\</code>
-    <% } else { %>
-    <code>~/.vim/pack/external/start/</code>
-    <% } %> directory.
-  </li>
-  <li>Restart Vim.</li>
-</ol>
+<div id="manual-nothing-selected" class="show-with-js package-manager">
+  <p>Choose a Vim package manager above to get started!</p>
+</div>
 
-<h4 id="manual-vim-pathogen">Install with Pathogen</h4>
-<p>
-  This option requires
-  <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
-</p>
-<ol>
-  <li>
-    <a
-      href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
-      >Download the quick-lint-js Vim plugin.</a
-    >
-  </li>
-  <li>
-    Copy the extracted <code>quick-lint-js.vim</code> directory into the <% if
-    (os === "windows") { %>
-    <code>%USERPROFILE%\vimfiles\bundle\</code>
-    <% } else { %>
-    <code>~/.vim/bundle/</code>
-    <% } %> directory.
-  </li>
-  <li>Restart Vim.</li>
-</ol>
+<div id="manual-vim-package" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install as a Vim package</h4>
+  <p>This option requires Vim 8.0 or newer.</p>
+  <ol>
+    <li>
+      <a
+        href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
+        >Download the quick-lint-js Vim plugin.</a
+      >
+    </li>
+    <li>
+      Add <code style="vim">packloadall</code> to your <% if (os === "windows")
+      { %> <code>%USERPROFILE%\_vimrc</code> file (or
+      <code>%USERPROFILE%\vimfiles\vimrc</code>) <% } else { %>
+      <code>~/.vimrc</code> file <% } %> if not already present.
+    </li>
+    <li>
+      Create the directory <% if (os === "windows") { %>
+      <code>%USERPROFILE%\vimfiles\pack\external\start\</code>. <% } else { %>
+      <code>~/.vim/pack/external/start/</code>. <% } %>
+    </li>
+    <li>
+      Copy the extracted
+      <code>quick-lint-js.vim</code> directory into the <% if (os === "windows")
+      { %>
+      <code>%USERPROFILE%\vimfiles\pack\external\start\</code>
+      <% } else { %>
+      <code>~/.vim/pack/external/start/</code>
+      <% } %> directory.
+    </li>
+    <li>Restart Vim.</li>
+  </ol>
+</div>
 
-<h4 id="manual-vim-vim-plug">Install with Vim-Plug</h4>
-<p>
-  This option requires
-  <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
-</p>
-<ol>
-  <li>
-    Add the following line to your <code>vimrc</code> file between
-    <code class="vim">call&nbsp;plug#begin(...)</code> and
-    <code class="vim">call&nbsp;plug#end()</code>:
-    <blockquote>
-      <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '<%= qljsVersionInfo.version %>'}</code></pre>
-    </blockquote>
-  </li>
-  <li>Restart Vim.</li>
-  <li>In Vim, run <code class="vim">:PlugInstall</code>.</li>
-</ol>
+<div id="manual-vim-pathogen" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Pathogen</h4>
+  <p>
+    This option requires
+    <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
+  </p>
+  <ol>
+    <li>
+      <a
+        href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
+        >Download the quick-lint-js Vim plugin.</a
+      >
+    </li>
+    <li>
+      Copy the extracted <code>quick-lint-js.vim</code> directory into the <% if
+      (os === "windows") { %>
+      <code>%USERPROFILE%\vimfiles\bundle\</code>
+      <% } else { %>
+      <code>~/.vim/bundle/</code>
+      <% } %> directory.
+    </li>
+    <li>Restart Vim.</li>
+  </ol>
+</div>
 
-<h4 id="manual-vim-vundle">Install with Vundle</h4>
-<p>
-  This option requires
-  <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
-</p>
-<p>
-  Using Vundle is <em>not recommended</em>. Vundle doesn't support version
-  pinning. We recommend using a
-  <a href="#install-vim-plugin">different Vim plugin manager</a>.
-</p>
-<ol>
-  <li>
-    Add the following line to your <code>vimrc</code> file between
-    <code class="vim">call&nbsp;vundle#begin(...)</code> and
-    <code class="vim">call&nbsp;vundle#end()</code>:
-    <blockquote>
-      <pre><code class="vim">Plugin 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
-    </blockquote>
-  </li>
-  <li>Restart Vim.</li>
-  <li>In Vim, run <code class="vim">:PluginInstall</code>.</li>
-</ol>
+<div id="manual-vim-vim-plug" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Vim-Plug</h4>
+  <p>
+    This option requires
+    <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
+  </p>
+  <ol>
+    <li>
+      Add the following line to your <code>vimrc</code> file between
+      <code class="vim">call&nbsp;plug#begin(...)</code> and
+      <code class="vim">call&nbsp;plug#end()</code>:
+      <blockquote>
+        <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '<%= qljsVersionInfo.version %>'}</code></pre>
+      </blockquote>
+    </li>
+    <li>Restart Vim.</li>
+    <li>In Vim, run <code class="vim">:PlugInstall</code>.</li>
+  </ol>
+</div>
 
-<%#
+<div id="manual-vim-vundle" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Vundle</h4>
+  <p>
+    This option requires
+    <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
+  </p>
+  <p>
+    Using Vundle is <em>not recommended</em>. Vundle doesn't support version
+    pinning. We recommend using a
+    <a href="#install-vim-plugin">different Vim plugin manager</a>.
+  </p>
+  <ol>
+    <li>
+      Add the following line to your <code>vimrc</code> file between
+      <code class="vim">call&nbsp;vundle#begin(...)</code> and
+      <code class="vim">call&nbsp;vundle#end()</code>:
+      <blockquote>
+        <pre><code class="vim">Plugin 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+      </blockquote>
+    </li>
+    <li>Restart Vim.</li>
+    <li>In Vim, run <code class="vim">:PluginInstall</code>.</li>
+  </ol>
+</div>
+
+<%- await include("../common-manual-tabs.ejs.html") %> <%#
 <!--
 quick-lint-js finds bugs in JavaScript programs.
 Copyright (C) 2020  Matthew "strager" Glazar

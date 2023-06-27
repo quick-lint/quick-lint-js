@@ -1,0 +1,146 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<style>
+  .show-with-js {
+    display: none;
+  }
+
+  .js-enabled .show-with-js {
+    display: block;
+  }
+
+  .hide-with-js {
+    display: block;
+  }
+
+  .js-enabled .hide-with-js {
+    display: none;
+  }
+
+  .tab-bar a {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #aaaaaa;
+    transition: 0.3s;
+    font-size: medium;
+    color: rgb(0, 0, 0);
+
+    border-bottom-color: rgb(156, 23, 23);
+
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  .tab-bar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tab-bar li {
+    float: left;
+  }
+
+  .tab-bar li a {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    text-decoration: none;
+  }
+
+  .tab-bar a:hover {
+    background-color: #858585;
+  }
+
+  .js-enabled .tab-bar li {
+    border-bottom: 4px solid;
+    border-bottom-color: black;
+  }
+
+  .js-enabled .tab-bar li.tab-bar-selected {
+    border-bottom-color: rgb(255, 0, 0);
+  }
+
+  @media (prefers-reduced-motion) {
+    .tab-bar a {
+      transition: 0ms;
+    }
+  }
+
+  .package-manager {
+    border-left: 1px #858585 solid;
+    padding-left: 8px;
+    scroll-margin-bottom: 20px;
+  }
+
+  .hidden.hidden {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .tab-bar a {
+      color: rgb(0, 0, 0);
+      background-color: #bdbdbd;
+    }
+  }
+</style>
+
+<script>
+  document.body.classList.add("js-enabled");
+  changePackageManager(null, "manual-nothing-selected");
+
+  function changePackageManager(event, selectedManager) {
+    let tabContent = document.getElementsByClassName("package-manager");
+    for (let i = 0; i < tabContent.length; i++) {
+      tabContent[i].classList.add("hidden");
+    }
+
+    let tabBarButtons = document.getElementsByClassName("tab-bar-button");
+    for (let i = 0; i < tabBarButtons.length; i++) {
+      tabBarButtons[i].classList.remove("tab-bar-selected");
+    }
+
+    let selectedTab = document.getElementById(selectedManager);
+    selectedTab.classList.remove("hidden");
+    selectedTab.tabIndex = -1;
+    selectedTab.blur(); // Remove highlighting of content, not sure why I can't just disable it.
+
+    if (event != null) {
+      // This doesn't depend on event, but we don't want to skip the rest of the page if we are simply loading the default "Choose a Package Manager" message.
+      selectedTab.focus(); // Focus the content for accessibility purposes.
+      selectedTab.scrollIntoView(false);
+
+      event.preventDefault();
+      let targetElement = event.target;
+      targetElement.parentElement.classList.add("tab-bar-selected");
+    }
+  }
+</script>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>
