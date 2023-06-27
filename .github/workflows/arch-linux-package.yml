@@ -26,7 +26,7 @@ jobs:
         run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           fetch-depth: 0  # Needed to determine package version.
 
@@ -58,14 +58,14 @@ jobs:
         run: ./dist/arch/lint.sh
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-arch-${{ github.sha }}
           path: dist/arch/quick-lint-js-*.pkg.tar.zst
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: dist/arch/quick-lint-js-*.pkg.tar.zst
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-arch-${{ github.sha }}
 

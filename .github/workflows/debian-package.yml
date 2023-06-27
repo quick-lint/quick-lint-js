@@ -21,7 +21,7 @@ jobs:
     container: ${{ matrix.os.docker_container }}
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       # HACK(strager): Work around the following error from
       # build.sh:
@@ -36,7 +36,7 @@ jobs:
         run: ${{ matrix.os.build_env }} ./dist/debian/build.sh --bionic
 
       - name: upload build to workflow
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           if-no-files-found: error
           name: quick-lint-js-deb-${{ matrix.os.arch }}-${{ github.sha }}
@@ -46,7 +46,7 @@ jobs:
             dist/debian/build/quick-lint-js_*
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
-        uses: quick-lint/sftp-upload@v3
+        uses: quick-lint/sftp-upload@1fa54164d4bdd081207a6e54ec143d8dda3a7fb8 # v3
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: |
@@ -91,7 +91,7 @@ jobs:
       - name: update apt
         run: apt-get update
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: quick-lint-js-deb-${{ matrix.os.arch }}-${{ github.sha }}
 
