@@ -65,7 +65,7 @@ class buffering_visitor final : public parse_visitor_base {
       const std::optional<identifier> &name) override;
   void visit_variable_assignment(identifier name) override;
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) override;
+                                  variable_declaration_flags flags) override;
   void visit_variable_delete_use(identifier name,
                                  source_code_span delete_keyword) override;
   void visit_variable_export_use(identifier name) override;
@@ -135,8 +135,8 @@ class buffering_visitor final : public parse_visitor_base {
         : kind(kind), name(name) {}
 
     explicit visit(visit_kind kind, identifier name, variable_kind var_kind,
-                   variable_init_kind init_kind) noexcept
-        : kind(kind), name(name), var_decl{var_kind, init_kind} {}
+                   variable_declaration_flags flags) noexcept
+        : kind(kind), name(name), var_decl{var_kind, flags} {}
 
     explicit visit(visit_kind kind, identifier name,
                    source_code_span extra_span) noexcept
@@ -153,7 +153,7 @@ class buffering_visitor final : public parse_visitor_base {
 
     struct var_decl_data {
       variable_kind var_kind;
-      variable_init_kind var_init_kind;
+      variable_declaration_flags flags;
     };
     union {
       // variable_declaration

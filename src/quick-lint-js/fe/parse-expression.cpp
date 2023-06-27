@@ -2547,7 +2547,7 @@ expression* parser::parse_arrow_function_body_no_scope(
         binding_element_info{
             .declaration_kind = variable_kind::_arrow_parameter,
             .declaring_token = std::nullopt,
-            .init_kind = variable_init_kind::normal,
+            .flags = variable_declaration_flags::none,
         });
   }
   if (return_type_visits) {
@@ -3846,7 +3846,7 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
               &this->type_expression_memory_);
           generic_parameter_visits.visit_variable_declaration(
               type, variable_kind::_generic_parameter,
-              variable_init_kind::normal);
+              variable_declaration_flags::none);
           return this->parse_arrow_function_expression_remainder(
               v,
               /*generic_parameter_visits=*/&generic_parameter_visits, ast,

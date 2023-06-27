@@ -267,15 +267,15 @@ TEST(test_variable_analyzer_globals, nodejs_global_variables_are_usable) {
 
 TEST(test_variable_analyzer_globals,
      non_module_nodejs_global_variables_are_shadowable) {
-  for (variable_init_kind init_kind :
-       {variable_init_kind::normal,
-        variable_init_kind::initialized_with_equals}) {
+  for (variable_declaration_flags flags :
+       {variable_declaration_flags::none,
+        variable_declaration_flags::initialized_with_equals}) {
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     // Intentionally excluded: __dirname, __filename, exports, module, require
     for (const char8 *global_variable : nodejs_global_variables) {
       l.visit_variable_declaration(identifier_of(global_variable),
-                                   variable_kind::_let, init_kind);
+                                   variable_kind::_let, flags);
     }
     l.visit_end_of_module();
 
@@ -343,10 +343,12 @@ TEST(test_variable_analyzer_globals,
   diag_collector v;
   variable_analyzer l(&v, &globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(builtin_1_declaration),
-                               variable_kind::_let, variable_init_kind::normal);
+                               variable_kind::_let,
+                               variable_declaration_flags::none);
   l.visit_variable_use(identifier_of(builtin_2_use));
   l.visit_variable_declaration(identifier_of(anything_1_declaration),
-                               variable_kind::_let, variable_init_kind::normal);
+                               variable_kind::_let,
+                               variable_declaration_flags::none);
   l.visit_variable_use(identifier_of(anything_2_use));
   l.visit_end_of_module();
 

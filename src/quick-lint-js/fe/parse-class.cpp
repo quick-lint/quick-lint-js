@@ -204,7 +204,7 @@ void parser::visit_class_name(parse_visitor_base &v,
                               name_requirement require_name) {
   if (class_name.has_value()) {
     v.visit_variable_declaration(*class_name, variable_kind::_class,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
   } else {
     switch (require_name) {
     case name_requirement::optional:
@@ -622,7 +622,7 @@ void parser::parse_and_visit_class_or_interface_member(
 
           v.visit_variable_declaration(
               key_variable, variable_kind::_index_signature_parameter,
-              variable_init_kind::normal);
+              variable_declaration_flags::none);
 
           switch (p->peek().type) {
           // [key: KeyType]: ValueType;
@@ -1339,7 +1339,7 @@ void parser::parse_and_visit_typescript_interface(
   interface_name:
     v.visit_variable_declaration(this->peek().identifier_name(),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     this->skip();
     break;
 

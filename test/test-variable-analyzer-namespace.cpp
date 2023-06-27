@@ -27,7 +27,7 @@ TEST(test_variable_analyzer_namespace, empty_namespace) {
   variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_namespace_scope();
   l.visit_exit_namespace_scope();
   l.visit_end_of_module();
@@ -46,7 +46,7 @@ TEST(test_variable_analyzer_namespace,
   variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_namespace_scope();
   l.visit_exit_namespace_scope();
   l.visit_variable_use(identifier_of(namespace_use));
@@ -70,7 +70,7 @@ TEST(test_variable_analyzer_namespace,
   l.visit_variable_use(identifier_of(namespace_use));
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_namespace_scope();
   l.visit_exit_namespace_scope();
   l.visit_end_of_module();
@@ -90,7 +90,7 @@ TEST(test_variable_analyzer_namespace,
   variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(namespace_declaration),
                                variable_kind::_namespace,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_namespace_scope();
   l.visit_variable_use(identifier_of(namespace_use));
   l.visit_exit_namespace_scope();
@@ -115,10 +115,10 @@ TEST(test_variable_analyzer_namespace,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_member_declaration),
-                                 var_kind, variable_init_kind::normal);
+                                 var_kind, variable_declaration_flags::none);
     l.visit_exit_namespace_scope();
     l.visit_variable_use(identifier_of(namespace_member_use));
     l.visit_end_of_module();
@@ -159,7 +159,7 @@ TEST(test_variable_analyzer_namespace,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_use(identifier_of(variable_use));
     l.visit_variable_assignment(identifier_of(assignment));
@@ -189,7 +189,7 @@ TEST(test_variable_analyzer_namespace,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(namespace_declaration),
                                  variable_kind::_namespace,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_namespace_scope();
     l.visit_variable_use(identifier_of(eval_use));
     l.visit_exit_namespace_scope();

@@ -1410,7 +1410,7 @@ next_parameter:
   QLJS_ASSERT(parameter_name.has_value());
   v.visit_variable_declaration(*parameter_name,
                                variable_kind::_generic_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
 
   switch (this->peek().type) {
   case token_type::greater:
@@ -1522,7 +1522,7 @@ void parser::parse_and_visit_function_declaration(
     }
     identifier function_name = this->peek().identifier_name();
     v.visit_variable_declaration(function_name, variable_kind::_function,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     this->skip();
 
     bump_vector<identifier, monotonic_allocator> overload_names(
@@ -1610,7 +1610,7 @@ void parser::parse_and_visit_function_declaration(
               i == 0 ? real_function_name : overload_name;
           v.visit_variable_declaration(variable_to_declare,
                                        variable_kind::_function,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
 
           this->diag_reporter_->report(
               diag_typescript_function_overload_signature_must_have_same_name{
@@ -2092,7 +2092,7 @@ void parser::parse_and_visit_function_parameters(
           binding_element_info{
               .declaration_kind = parameter_kind,
               .declaring_token = std::nullopt,
-              .init_kind = variable_init_kind::normal,
+              .flags = variable_declaration_flags::none,
               .first_parameter_begin = first_parameter_begin,
           });
 
@@ -2390,7 +2390,7 @@ void parser::parse_and_visit_typescript_namespace_head(
   case token_type::identifier:
     v.visit_variable_declaration(this->peek().identifier_name(),
                                  variable_kind::_namespace,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     this->skip();
     while (this->peek().type == token_type::dot) {
       this->skip();
@@ -2527,7 +2527,7 @@ void parser::parse_and_visit_typescript_type_alias(
   }
   v.visit_variable_declaration(this->peek().identifier_name(),
                                variable_kind::_type_alias,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   this->skip();
 
   v.visit_enter_type_alias_scope();
@@ -2597,7 +2597,7 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
 
   v.visit_variable_declaration(this->peek().identifier_name(),
                                variable_kind::_enum,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   this->skip();
 
   v.visit_enter_enum_scope();
@@ -2912,7 +2912,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
       case token_type::identifier:
         v.visit_variable_declaration(this->peek().identifier_name(),
                                      variable_kind::_catch,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         this->skip();
         break;
 
@@ -2925,7 +2925,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
             binding_element_info{
                 .declaration_kind = variable_kind::_catch,
                 .declaring_token = std::nullopt,
-                .init_kind = variable_init_kind::normal,
+                .flags = variable_declaration_flags::none,
             });
         break;
       }
@@ -3639,7 +3639,7 @@ void parser::parse_and_visit_import(
     }
     v.visit_variable_declaration(this->peek().identifier_name(),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     this->skip();
     if (this->peek().type == token_type::comma) {
       this->skip();
@@ -3729,7 +3729,7 @@ void parser::parse_and_visit_import(
       report_type_only_import_in_javascript_if_needed();
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_import_type,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       this->skip();
       if (this->peek().type == token_type::comma) {
         this->skip();
@@ -3949,7 +3949,7 @@ void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
     }
     v.visit_variable_declaration(this->peek().identifier_name(),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     this->skip();
     break;
 
@@ -4056,7 +4056,7 @@ void parser::parse_and_visit_named_exports(
           }
           v.visit_variable_declaration(right_token.identifier_name(),
                                        imported_variable_kind(),
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           break;
 
           // import {var} from 'other';  // Invalid.
@@ -4069,7 +4069,7 @@ void parser::parse_and_visit_named_exports(
           // sketchy. Delete this?
           v.visit_variable_declaration(right_token.identifier_name(),
                                        variable_kind::_import,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           break;
 
           // import {\u{76}ar} from 'other';  // Invalid.
@@ -4080,7 +4080,7 @@ void parser::parse_and_visit_named_exports(
           // sketchy. Delete this?
           v.visit_variable_declaration(right_token.identifier_name(),
                                        variable_kind::_import,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           break;
 
         case token_type::string:
@@ -4211,7 +4211,7 @@ void parser::parse_and_visit_named_exports(
           }
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_import,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           this->skip();
           break;
 
@@ -4223,7 +4223,7 @@ void parser::parse_and_visit_named_exports(
               });
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_import,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           this->skip();
           break;
 
@@ -4233,7 +4233,7 @@ void parser::parse_and_visit_named_exports(
               this->diag_reporter_);
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_import,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           this->skip();
           break;
 
@@ -4455,7 +4455,7 @@ void parser::parse_and_visit_let_bindings(
             binding_element_info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
-                .init_kind = variable_init_kind::initialized_with_equals,
+                .flags = variable_declaration_flags::initialized_with_equals,
             });
         break;
       }
@@ -4475,7 +4475,7 @@ void parser::parse_and_visit_let_bindings(
               binding_element_info{
                   .declaration_kind = declaration_kind,
                   .declaring_token = options.declaring_token.span(),
-                  .init_kind = variable_init_kind::normal,
+                  .flags = variable_declaration_flags::none,
               });
           this->lexer_.insert_semicolon();
           return;
@@ -4494,7 +4494,7 @@ void parser::parse_and_visit_let_bindings(
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
                 // TODO(strager): Would initialized_with_equals make more sense?
-                .init_kind = variable_init_kind::normal,
+                .flags = variable_declaration_flags::none,
             });
         break;
       }
@@ -4515,7 +4515,7 @@ void parser::parse_and_visit_let_bindings(
             binding_element_info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
-                .init_kind = variable_init_kind::normal,
+                .flags = variable_declaration_flags::none,
             });
         break;
       }
@@ -4542,7 +4542,7 @@ void parser::parse_and_visit_let_bindings(
           binding_element_info{
               .declaration_kind = declaration_kind,
               .declaring_token = options.declaring_token.span(),
-              .init_kind = variable_init_kind::normal,
+              .flags = variable_declaration_flags::none,
           });
       break;
     }
@@ -4651,12 +4651,13 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
   case variable_kind::_var:
     break;
   default:
-    QLJS_ASSERT(info.init_kind == variable_init_kind::normal);
+    QLJS_ASSERT(
+        !(info.flags & variable_declaration_flags::initialized_with_equals));
     break;
   }
 
   auto visit_variable_declaration = [&](const identifier &ident) -> void {
-    v.visit_variable_declaration(ident, info.declaration_kind, info.init_kind);
+    v.visit_variable_declaration(ident, info.declaration_kind, info.flags);
   };
 
   switch (ast->kind()) {
@@ -4699,18 +4700,18 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     }
 
     this->visit_expression(rhs, v, variable_context::rhs);
-    variable_init_kind lhs_init_kind;
+    variable_declaration_flags lhs_flags = variable_declaration_flags::none;
     switch (info.declaration_kind) {
     case variable_kind::_const:
     case variable_kind::_let:
     case variable_kind::_var:
-      lhs_init_kind = variable_init_kind::initialized_with_equals;
+      lhs_flags = static_cast<variable_declaration_flags>(
+          lhs_flags | variable_declaration_flags::initialized_with_equals);
       break;
     default:
-      lhs_init_kind = variable_init_kind::normal;
       break;
     }
-    this->visit_binding_element(lhs, v, info.with_init_kind(lhs_init_kind));
+    this->visit_binding_element(lhs, v, info.with_flags(lhs_flags));
     break;
   }
 
@@ -5147,7 +5148,7 @@ void parser::parse_and_visit_declare_statement(
     case token_type::identifier: {
       identifier function_name = this->peek().identifier_name();
       v.visit_variable_declaration(function_name, variable_kind::_function,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       function_name_span = function_name.span();
       this->skip();
       break;

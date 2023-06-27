@@ -132,7 +132,7 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
       break;
     case visit_kind::variable_declaration:
       target.visit_variable_declaration(v.name, v.var_decl.var_kind,
-                                        v.var_decl.var_init_kind);
+                                        v.var_decl.flags);
       break;
     }
   });
@@ -265,9 +265,9 @@ void buffering_visitor::visit_variable_assignment(identifier name) {
 }
 
 void buffering_visitor::visit_variable_declaration(
-    identifier name, variable_kind kind, variable_init_kind init_kind) {
+    identifier name, variable_kind kind, variable_declaration_flags flags) {
   this->visits_.emplace_back(visit_kind::variable_declaration, name, kind,
-                             init_kind);
+                             flags);
 }
 
 void buffering_visitor::visit_variable_delete_use(

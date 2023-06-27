@@ -8,12 +8,8 @@
 namespace quick_lint_js {
 void PrintTo(const visited_variable_declaration &x, std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);
-  switch (x.init_kind) {
-  case variable_init_kind::normal:
-    break;
-  case variable_init_kind::initialized_with_equals:
+  if (x.flags & variable_declaration_flags::initialized_with_equals) {
     *out << " (initialized with '=')";
-    break;
   }
 }
 }

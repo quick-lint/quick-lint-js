@@ -42,7 +42,7 @@ class null_visitor final : public parse_visitor_base {
   void visit_property_declaration(const std::optional<identifier>&) override {}
   void visit_variable_assignment(identifier) override {}
   void visit_variable_declaration(identifier, variable_kind,
-                                  variable_init_kind) override {}
+                                  variable_declaration_flags) override {}
   void visit_variable_delete_use(identifier, source_code_span) override {}
   void visit_variable_export_use(identifier) override {}
   void visit_variable_namespace_use(identifier) override {}

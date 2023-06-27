@@ -212,7 +212,8 @@ again:
           });
     } else {
       this->typescript_infer_declaration_buffer_->visit_variable_declaration(
-          variable, variable_kind::_infer_type, variable_init_kind::normal);
+          variable, variable_kind::_infer_type,
+          variable_declaration_flags::none);
     }
 
     if (this->peek().type == token_type::left_square) {
@@ -837,7 +838,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
           this->parse_and_visit_typescript_colon_type_expression(v);
           v.visit_variable_declaration(
               ident, variable_kind::_index_signature_parameter,
-              variable_init_kind::normal);
+              variable_declaration_flags::none);
           break;
 
         // { [key in Type]: Type }
@@ -847,7 +848,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
           v.visit_enter_index_signature_scope();
           this->parse_and_visit_typescript_type_expression(v);
           v.visit_variable_declaration(ident, variable_kind::_generic_parameter,
-                                       variable_init_kind::normal);
+                                       variable_declaration_flags::none);
           if (this->peek().type == token_type::kw_as) {
             this->skip();
             this->parse_and_visit_typescript_type_expression(v);

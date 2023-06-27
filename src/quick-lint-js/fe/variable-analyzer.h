@@ -75,7 +75,7 @@ class variable_analyzer final : public parse_visitor_base {
   void visit_keyword_variable_use(identifier name) override;
   void visit_property_declaration(const std::optional<identifier> &) override;
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) override;
+                                  variable_declaration_flags flags) override;
   void visit_variable_assignment(identifier name) override;
   void visit_variable_delete_use(identifier name,
                                  source_code_span delete_keyword) override;

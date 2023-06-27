@@ -19,11 +19,11 @@ namespace quick_lint_js {
 struct visited_variable_declaration {
   string8 name;
   variable_kind kind;
-  variable_init_kind init_kind;
+  variable_declaration_flags flags;
 
   bool operator==(const visited_variable_declaration &other) const {
     return this->name == other.name && this->kind == other.kind &&
-           this->init_kind == other.init_kind;
+           this->flags == other.flags;
   }
 
   bool operator!=(const visited_variable_declaration &other) const {
@@ -35,17 +35,17 @@ struct visited_variable_declaration {
 inline visited_variable_declaration arrow_param_decl(string8_view name) {
   return visited_variable_declaration{string8(name),
                                       variable_kind::_arrow_parameter,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration catch_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_catch,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration class_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_class,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A variable declared with 'const' with an initializer. Example: const x =
@@ -53,54 +53,56 @@ inline visited_variable_declaration class_decl(string8_view name) {
 inline visited_variable_declaration const_init_decl(string8_view name) {
   return visited_variable_declaration{
       string8(name), variable_kind::_const,
-      variable_init_kind::initialized_with_equals};
+      variable_declaration_flags::initialized_with_equals};
 }
 
 // A variable declared with 'const' without an initializer.
 // Example: for (const x of []) {}
 inline visited_variable_declaration const_noinit_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_const,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration enum_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_enum,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration function_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_function,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // An function/method parameter. Not an arrow function parameter.
 inline visited_variable_declaration func_param_decl(string8_view name) {
   return visited_variable_declaration{string8(name),
                                       variable_kind::_function_parameter,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // An function parameter in a TypeScript type.
 inline visited_variable_declaration func_type_param_decl(string8_view name) {
   return visited_variable_declaration{string8(name),
                                       variable_kind::_function_type_parameter,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A TypeScript namespace or module alias. Example: import A = B;
 inline visited_variable_declaration import_alias_decl(string8_view name) {
-  return visited_variable_declaration{
-      string8(name), variable_kind::_import_alias, variable_init_kind::normal};
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_import_alias,
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration import_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_import,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration import_type_decl(string8_view name) {
-  return visited_variable_declaration{
-      string8(name), variable_kind::_import_type, variable_init_kind::normal};
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_import_type,
+                                      variable_declaration_flags::none};
 }
 
 // A parameter in a TypeScript index signature.
@@ -110,62 +112,62 @@ inline visited_variable_declaration index_signature_param_decl(
     string8_view name) {
   return visited_variable_declaration{string8(name),
                                       variable_kind::_index_signature_parameter,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration infer_type_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_infer_type,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 inline visited_variable_declaration interface_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_interface,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A variable declared with 'let' with an initializer. Example: let x = null;
 inline visited_variable_declaration let_init_decl(string8_view name) {
   return visited_variable_declaration{
       string8(name), variable_kind::_let,
-      variable_init_kind::initialized_with_equals};
+      variable_declaration_flags::initialized_with_equals};
 }
 
 // A variable declared with 'let' without an initializer. Example: let x;
 inline visited_variable_declaration let_noinit_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_let,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A TypeScript namespace (declared with the 'namespace' keyword).
 inline visited_variable_declaration namespace_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_namespace,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A TypeScript generic function parameter.
 inline visited_variable_declaration generic_param_decl(string8_view name) {
   return visited_variable_declaration{string8(name),
                                       variable_kind::_generic_parameter,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A TypeScript type alias. Example: type T = number;
 inline visited_variable_declaration type_alias_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_type_alias,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 // A variable declared with 'var' with an initializer. Example: var x = null;
 inline visited_variable_declaration var_init_decl(string8_view name) {
   return visited_variable_declaration{
       string8(name), variable_kind::_var,
-      variable_init_kind::initialized_with_equals};
+      variable_declaration_flags::initialized_with_equals};
 }
 
 // A variable declared with 'var' without an initializer. Example: var x;
 inline visited_variable_declaration var_noinit_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_var,
-                                      variable_init_kind::normal};
+                                      variable_declaration_flags::none};
 }
 
 struct parse_visit_collector : public parse_visitor_base {
@@ -304,9 +306,9 @@ struct parse_visit_collector : public parse_visitor_base {
   std::vector<string8> variable_assignments;
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) override {
+                                  variable_declaration_flags flags) override {
     this->variable_declarations.emplace_back(visited_variable_declaration{
-        string8(name.normalized_name()), kind, init_kind});
+        string8(name.normalized_name()), kind, flags});
     this->visits.emplace_back("visit_variable_declaration");
   }
 

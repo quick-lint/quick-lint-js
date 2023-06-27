@@ -175,7 +175,7 @@ class debug_parse_visitor final : public parse_visitor_base {
   }
 
   void visit_variable_declaration(identifier name, variable_kind,
-                                  variable_init_kind) override {
+                                  variable_declaration_flags) override {
     this->output_->append_copy(u8"variable declaration: "_sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');

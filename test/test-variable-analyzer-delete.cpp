@@ -41,7 +41,7 @@ TEST(test_variable_analyzer_delete_javascript,
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_exit_function_scope();
@@ -69,7 +69,7 @@ TEST(test_variable_analyzer_delete_javascript,
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_block_scope();
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
@@ -99,7 +99,7 @@ TEST(test_variable_analyzer_delete_javascript,
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_delete_use(identifier(deleted_variable_span),
@@ -135,7 +135,7 @@ TEST(test_variable_analyzer_delete_javascript,
     l.visit_exit_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -163,7 +163,7 @@ TEST(test_variable_analyzer_delete_javascript,
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -207,7 +207,7 @@ TEST(test_variable_analyzer_delete_javascript,
   l.visit_variable_delete_use(identifier(deleted_variable_span),
                               delete_keyword_span);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -236,7 +236,7 @@ TEST(test_variable_analyzer_delete_javascript,
   diag_collector v;
   variable_analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_delete_use(identifier(deleted_variable_span),
                               delete_keyword_span);
   l.visit_end_of_module();
@@ -348,7 +348,7 @@ TEST(test_variable_analyzer_delete_typescript,
     variable_analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_variable_declaration(identifier_of(my_var_declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_end_of_module();
@@ -372,7 +372,7 @@ TEST(test_variable_analyzer_delete_typescript,
                                 delete_keyword_span);
     l.visit_variable_declaration(identifier_of(my_var_declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(

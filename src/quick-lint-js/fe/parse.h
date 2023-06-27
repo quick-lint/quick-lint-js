@@ -477,7 +477,7 @@ class parser {
   struct binding_element_info {
     variable_kind declaration_kind;
     std::optional<source_code_span> declaring_token;
-    variable_init_kind init_kind;
+    variable_declaration_flags flags;
 
     // Valid only if declaration_kind == variable_kind::_function_parameter.
     const char8 *first_parameter_begin;
@@ -496,10 +496,10 @@ class parser {
           this->spread_operator_begin + this->spread_operator_length);
     }
 
-    binding_element_info with_init_kind(variable_init_kind init_kind) const
+    binding_element_info with_flags(variable_declaration_flags flags) const
         noexcept {
       binding_element_info result = *this;
-      result.init_kind = init_kind;
+      result.flags = flags;
       return result;
     }
 

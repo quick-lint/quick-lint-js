@@ -43,7 +43,7 @@ TEST(test_variable_analyzer_type, type_use_after_declaration_is_okay) {
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_type_use(identifier_of(use));
     l.visit_end_of_module();
 
@@ -67,7 +67,7 @@ TEST(test_variable_analyzer_type,
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_block_scope();
     l.visit_variable_type_use(identifier_of(use));
     l.visit_exit_block_scope();
@@ -110,7 +110,7 @@ TEST(test_variable_analyzer_type,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_block_scope();
     l.visit_variable_type_use(identifier_of(use));
     l.visit_end_of_module();
@@ -138,7 +138,7 @@ TEST(test_variable_analyzer_type, type_use_before_declaration_is_okay) {
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_type_use(identifier_of(use));
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -156,7 +156,7 @@ TEST(test_variable_analyzer_type, type_use_before_declaration_is_okay) {
       l.visit_variable_type_use(identifier_of(use));
       l.visit_exit_function_scope();
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -176,7 +176,7 @@ TEST(test_variable_analyzer_type, type_use_of_import_is_okay) {
     l.visit_variable_type_use(identifier_of(use));
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -189,7 +189,7 @@ TEST(test_variable_analyzer_type, type_use_of_import_is_okay) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_type_use(identifier_of(use));
     l.visit_end_of_module();
 
@@ -211,11 +211,11 @@ TEST(test_variable_analyzer_type,
   variable_analyzer l(&v, &default_globals, typescript_var_options);
   l.visit_variable_declaration(identifier_of(other_declaration),
                                variable_kind::_generic_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_type_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_generic_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
@@ -237,7 +237,7 @@ TEST(test_variable_analyzer_type, interface_can_be_exported) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_export_use(identifier_of(use));
     l.visit_end_of_module();
 
@@ -252,7 +252,7 @@ TEST(test_variable_analyzer_type, interface_can_be_exported) {
     l.visit_variable_export_use(identifier_of(use));
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -267,7 +267,7 @@ TEST(test_variable_analyzer_type, interface_can_be_exported) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_export_use(identifier_of(use));
@@ -290,7 +290,7 @@ TEST(test_variable_analyzer_type, interface_can_be_exported) {
     l.visit_exit_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -307,7 +307,7 @@ TEST(test_variable_analyzer_type, interface_can_be_exported) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -343,7 +343,7 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
       diag_collector v;
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_variable_type_use(identifier_of(use));
       l.visit_end_of_module();
 
@@ -364,7 +364,7 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
       diag_collector v;
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_enter_block_scope();
       l.visit_variable_type_use(identifier_of(use));
       l.visit_exit_block_scope();
@@ -387,7 +387,7 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
       diag_collector v;
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_enter_function_scope();
       l.visit_enter_function_scope_body();
       l.visit_variable_type_use(identifier_of(use));
@@ -413,7 +413,7 @@ TEST(test_variable_analyzer_type, type_use_does_not_see_non_type_variables) {
       diag_collector v;
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_enter_function_scope();
       l.visit_enter_function_scope_body();
       l.visit_enter_function_scope();
@@ -547,7 +547,7 @@ TEST(test_variable_analyzer_type,
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       visit_kind.visit(l);
       l.visit_end_of_module();
 
@@ -563,7 +563,7 @@ TEST(test_variable_analyzer_type,
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_enter_block_scope();
       visit_kind.visit(l);
       l.visit_exit_block_scope();
@@ -583,7 +583,7 @@ TEST(test_variable_analyzer_type,
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_enter_function_scope();
       l.visit_enter_function_scope_body();
       l.visit_enter_function_scope();
@@ -617,11 +617,12 @@ TEST(test_variable_analyzer_type,
         diag_collector v;
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
-                                     outer_kind, variable_init_kind::normal);
+                                     outer_kind,
+                                     variable_declaration_flags::none);
         l.visit_enter_block_scope();
         l.visit_variable_declaration(identifier_of(declaration),
                                      variable_kind::_interface,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         visit_kind.visit(l);
         l.visit_exit_block_scope();
         l.visit_end_of_module();
@@ -638,10 +639,11 @@ TEST(test_variable_analyzer_type,
         diag_collector v;
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
-                                     outer_kind, variable_init_kind::normal);
+                                     outer_kind,
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(declaration),
                                      variable_kind::_interface,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_enter_block_scope();
         visit_kind.visit(l);
         l.visit_exit_block_scope();
@@ -657,10 +659,11 @@ TEST(test_variable_analyzer_type,
         diag_collector v;
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
-                                     outer_kind, variable_init_kind::normal);
+                                     outer_kind,
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(declaration),
                                      variable_kind::_interface,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         visit_kind.visit(l);
         l.visit_end_of_module();
 
@@ -675,9 +678,10 @@ TEST(test_variable_analyzer_type,
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(declaration),
                                      variable_kind::_interface,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(outer_declaration),
-                                     outer_kind, variable_init_kind::normal);
+                                     outer_kind,
+                                     variable_declaration_flags::none);
         visit_kind.visit(l);
         l.visit_end_of_module();
 
@@ -698,9 +702,10 @@ TEST(test_variable_analyzer_type,
         l.visit_exit_function_scope();
         l.visit_variable_declaration(identifier_of(declaration),
                                      variable_kind::_interface,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(outer_declaration),
-                                     outer_kind, variable_init_kind::normal);
+                                     outer_kind,
+                                     variable_declaration_flags::none);
         l.visit_end_of_module();
 
         EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
@@ -734,10 +739,10 @@ TEST(test_variable_analyzer_type, mixing_non_type_and_type_only_is_okay) {
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(type_declaration),
                                      type_declaration_kind,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(non_type_declaration),
                                      non_type_declaration_kind,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_end_of_module();
 
         EXPECT_THAT(v.errors, IsEmpty());
@@ -750,10 +755,10 @@ TEST(test_variable_analyzer_type, mixing_non_type_and_type_only_is_okay) {
         variable_analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(non_type_declaration),
                                      non_type_declaration_kind,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_variable_declaration(identifier_of(type_declaration),
                                      type_declaration_kind,
-                                     variable_init_kind::normal);
+                                     variable_declaration_flags::none);
         l.visit_end_of_module();
 
         EXPECT_THAT(v.errors, IsEmpty());
@@ -780,10 +785,10 @@ TEST(test_variable_analyzer_type,
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(interface_declaration),
                                    variable_kind::_interface,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_variable_declaration(identifier_of(other_declaration),
                                    other_declaration_kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -796,10 +801,10 @@ TEST(test_variable_analyzer_type,
       variable_analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(other_declaration),
                                    other_declaration_kind,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_variable_declaration(identifier_of(interface_declaration),
                                    variable_kind::_interface,
-                                   variable_init_kind::normal);
+                                   variable_declaration_flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -822,10 +827,10 @@ TEST(test_variable_analyzer_type, mixing_interface_and_import_is_not_an_error) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(imported_declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -838,10 +843,10 @@ TEST(test_variable_analyzer_type, mixing_interface_and_import_is_not_an_error) {
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_declaration(identifier_of(imported_declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -860,11 +865,11 @@ TEST(test_variable_analyzer_type, interfaces_conflict_with_generic_parameters) {
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
                                variable_kind::_generic_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(interface_declaration),
                                variable_kind::_interface,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_interface_scope();
   l.visit_exit_interface_scope();
   l.visit_exit_function_scope();
@@ -891,7 +896,7 @@ TEST(test_variable_analyzer_type, type_predicate_finds_function_parameter) {
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter_declaration),
                                variable_kind::_arrow_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_type_predicate_use(identifier_of(parameter_use));
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -915,12 +920,12 @@ TEST(test_variable_analyzer_type,
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(outer_parameter_declaration),
                                variable_kind::_arrow_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_function_scope_body();
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(inner_parameter_declaration),
                                variable_kind::_arrow_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_type_predicate_use(identifier_of(parameter_use));
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -948,10 +953,10 @@ TEST(test_variable_analyzer_type,
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
                                variable_kind::_generic_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_declaration(identifier_of(parameter_declaration),
                                variable_kind::_arrow_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_type_predicate_use(identifier_of(parameter_use));
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -979,10 +984,10 @@ TEST(test_variable_analyzer_type,
   variable_analyzer l(&v, &default_globals, typescript_var_options);
   l.visit_variable_declaration(identifier_of(derived_use),
                                variable_kind::_type_alias,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_declaration(identifier_of(base_use),
                                variable_kind::_type_alias,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
 
   l.visit_variable_type_use(identifier_of(derived_use));
   l.visit_variable_type_use(identifier_of(base_use));
@@ -1012,7 +1017,7 @@ TEST(test_variable_analyzer_type,
   l.visit_enter_conditional_type_scope();
   l.visit_variable_declaration(identifier_of(t_declaration),
                                variable_kind::_infer_type,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_variable_type_use(identifier_of(t_use));
   l.visit_exit_conditional_type_scope();
   l.visit_end_of_module();

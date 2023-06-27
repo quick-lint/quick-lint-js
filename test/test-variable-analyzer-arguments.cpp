@@ -66,7 +66,7 @@ TEST(test_variable_analyzer_arguments,
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter_declaration),
                                variable_kind::_function_parameter,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(parameter_use));
   l.visit_exit_function_scope();
@@ -89,7 +89,7 @@ TEST(test_variable_analyzer_arguments,
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_function_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_end_of_module();
@@ -112,11 +112,11 @@ TEST(test_variable_analyzer_arguments,
     l.visit_variable_use(identifier_of(parameter_default_value));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_function_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
                                  variable_kind::_let,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -136,7 +136,8 @@ TEST(test_variable_analyzer_arguments,
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(arguments_declaration),
-                               variable_kind::_var, variable_init_kind::normal);
+                               variable_kind::_var,
+                               variable_declaration_flags::none);
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -155,7 +156,7 @@ TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(arguments_declaration), kind,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -176,7 +177,7 @@ TEST(test_variable_analyzer_arguments, let_shadows_magic_arguments) {
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(arguments_use));
     l.visit_variable_declaration(identifier_of(arguments_declaration), kind,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -202,7 +203,7 @@ TEST(test_variable_analyzer_arguments, function_shadows_magic_arguments) {
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(arguments_declaration),
                                variable_kind::_function,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_enter_function_scope();
   l.visit_exit_function_scope();
   l.visit_exit_function_scope();
@@ -228,7 +229,7 @@ TEST(test_variable_analyzer_arguments, catch_variable_shadows_magic_arguments) {
   l.visit_enter_block_scope();
   l.visit_variable_declaration(identifier_of(arguments_declaration),
                                variable_kind::_catch,
-                               variable_init_kind::normal);
+                               variable_declaration_flags::none);
   l.visit_exit_block_scope();
   l.visit_exit_function_scope();
   l.visit_end_of_module();

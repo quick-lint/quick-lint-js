@@ -264,14 +264,14 @@ void variable_analyzer::visit_property_declaration(
     const std::optional<identifier> &) {}
 
 void variable_analyzer::visit_variable_declaration(
-    identifier name, variable_kind kind, variable_init_kind init_kind) {
+    identifier name, variable_kind kind, variable_declaration_flags flags) {
   this->declare_variable(
       /*scope=*/this->current_scope(),
       /*name=*/name,
       /*kind=*/kind,
       /*declared_scope=*/declared_variable_scope::declared_in_current_scope,
-      /*declaration_possibly_looks_like_assignment=*/init_kind ==
-          variable_init_kind::initialized_with_equals);
+      /*declaration_possibly_looks_like_assignment=*/flags &
+          variable_declaration_flags::initialized_with_equals);
 }
 
 void variable_analyzer::declare_variable(

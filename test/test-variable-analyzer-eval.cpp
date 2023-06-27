@@ -241,7 +241,7 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_function_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
@@ -264,9 +264,9 @@ TEST(test_variable_analyzer_eval_javascript,
     // x = 10;  // ERROR (assignment to undeclared variable)
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(eval_declaration),
-                                 variable_kind::_let,
-                                 variable_init_kind::initialized_with_equals);
+    l.visit_variable_declaration(
+        identifier_of(eval_declaration), variable_kind::_let,
+        variable_declaration_flags::initialized_with_equals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_assignment(identifier_of(use));
@@ -304,7 +304,7 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_var,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_block_scope();
     l.visit_exit_function_scope();
     l.visit_end_of_module();
@@ -335,9 +335,9 @@ TEST(test_variable_analyzer_eval_javascript,
     // });
     diag_collector v;
     variable_analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(eval_declaration),
-                                 variable_kind::_let,
-                                 variable_init_kind::initialized_with_equals);
+    l.visit_variable_declaration(
+        identifier_of(eval_declaration), variable_kind::_let,
+        variable_declaration_flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -364,9 +364,9 @@ TEST(test_variable_analyzer_eval_javascript,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(const_declaration),
-                                 variable_kind::_const,
-                                 variable_init_kind::initialized_with_equals);
+    l.visit_variable_declaration(
+        identifier_of(const_declaration), variable_kind::_const,
+        variable_declaration_flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_assignment(identifier_of(const_assignment));

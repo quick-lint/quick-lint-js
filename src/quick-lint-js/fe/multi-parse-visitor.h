@@ -162,9 +162,9 @@ class multi_parse_visitor final : public parse_visitor_base {
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) override {
-    this->visitor_1_->visit_variable_declaration(name, kind, init_kind);
-    this->visitor_2_->visit_variable_declaration(name, kind, init_kind);
+                                  variable_declaration_flags flags) override {
+    this->visitor_1_->visit_variable_declaration(name, kind, flags);
+    this->visitor_2_->visit_variable_declaration(name, kind, flags);
   }
 
   void visit_variable_delete_use(identifier name,

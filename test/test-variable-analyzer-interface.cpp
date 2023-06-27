@@ -35,10 +35,10 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
@@ -58,7 +58,7 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
@@ -89,11 +89,11 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_generic_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
     l.visit_variable_type_use(identifier_of(parameter_use));
@@ -122,16 +122,16 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
                                  variable_kind::_import,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
                                  variable_kind::_index_signature_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
@@ -148,13 +148,13 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
                                  variable_kind::_index_signature_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
@@ -182,12 +182,12 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
                                  variable_kind::_index_signature_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_variable_use(identifier_of(index_use));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
@@ -215,12 +215,12 @@ TEST(test_variable_analyzer_interface,
     variable_analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
                                  variable_kind::_interface,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
                                  variable_kind::_index_signature_parameter,
-                                 variable_init_kind::normal);
+                                 variable_declaration_flags::none);
     l.visit_exit_index_signature_scope();
     l.visit_property_declaration(identifier_of(property_declaration));
     l.visit_variable_use(identifier_of(index_use_inside_interface));

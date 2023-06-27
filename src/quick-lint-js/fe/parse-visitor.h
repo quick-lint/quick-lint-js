@@ -52,7 +52,7 @@ class parse_visitor_base {
   virtual void visit_property_declaration(
       const std::optional<identifier> &) = 0;
   virtual void visit_variable_declaration(identifier name, variable_kind kind,
-                                          variable_init_kind init_kind) = 0;
+                                          variable_declaration_flags flags) = 0;
   virtual void visit_variable_assignment(identifier name) = 0;
   virtual void visit_variable_delete_use(identifier name,
                                          source_code_span delete_keyword) = 0;

@@ -45,21 +45,21 @@ enum class variable_kind {
   _var,
 };
 
-enum class variable_init_kind {
-  // Examples:
+enum variable_declaration_flags : unsigned char {
+  none = 0,
+
+  // Only valid for _const, _let, and _var.
+  //
+  // Examples set:
+  //   let x = 42;
+  //   const [x] = xs;
+  //   for (var x = null in xs) {}
+  // Examples unset:
   //   class C {}
   //   (param, defaultParam = null) => {}
   //   let x, y, z;
   //   for (let x of xs) {}
-  normal,
-
-  // Only valid for _const, _let, and _var.
-  //
-  // Examples:
-  //   let x = 42;
-  //   const [x] = xs;
-  //   for (var x = null in xs) {}
-  initialized_with_equals,
+  initialized_with_equals = 1 << 0,
 };
 
 std::ostream& operator<<(std::ostream&, variable_kind);
