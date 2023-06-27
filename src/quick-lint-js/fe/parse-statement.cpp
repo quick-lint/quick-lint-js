@@ -69,15 +69,19 @@ parse_statement:
     // export class C {}
     // export {taco} from "taco-stand";
   case token_type::kw_export:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_export.
     this->parse_and_visit_export(v);
     break;
 
   case token_type::semicolon:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->skip();
     break;
 
     // function f() {}
   case token_type::kw_function:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_function_declaration(
         v, function_attributes::normal,
         /*begin=*/this->peek().begin,
@@ -85,9 +89,12 @@ parse_statement:
         name_requirement::required_for_statement);
     break;
 
-    // var x = 42;
+  // var x = 42;
+  // const enum E {}  // TypeScript only.
   case token_type::kw_const:
   case token_type::kw_var:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_variable_declaration_statement.
     this->parse_and_visit_variable_declaration_statement(v);
     break;
 
@@ -95,6 +102,7 @@ parse_statement:
     // let();
     // let: while (true) {}
   case token_type::kw_let: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     token let_token = this->peek();
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
@@ -127,6 +135,7 @@ parse_statement:
     // abstract class C {}  // TypeScript only.
     // abstract = 42;
   case token_type::kw_abstract: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     source_code_span abstract_token = this->peek().span();
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
@@ -166,6 +175,8 @@ parse_statement:
   // declare enum E {}  // TypeScript only.
   // declare = 42;
   case token_type::kw_declare:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_possible_declare_statement.
     switch (this->parse_and_visit_possible_declare_statement(v)) {
     case parse_possible_declare_result::declare_is_expression_or_loop_label:
       goto parse_loop_label_or_expression_starting_with_identifier;
@@ -177,6 +188,7 @@ parse_statement:
     // async function f() {}
     // async = 42;
   case token_type::kw_async: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     token async_token = this->peek();
     this->skip();
     switch (this->peek().type) {
@@ -267,6 +279,8 @@ parse_statement:
     // import {bananas} from "Thailand";
     // import(url).then(loaded);
   case token_type::kw_import:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_import.
     this->parse_and_visit_import(v);
     break;
 
@@ -307,6 +321,7 @@ parse_statement:
   case token_type::slash_equal:
   case token_type::string:
   case token_type::tilde: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (this->peek().type == token_type::star) {
       // * 42; // Invalid (missing operand).
       // *function f() {} // Invalid (misplaced '*').
@@ -331,6 +346,7 @@ parse_statement:
     // await = value;
     // await: for(;;);
   case token_type::kw_await: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     token await_token = this->peek();
     this->skip();
     if (this->peek().type == token_type::colon) {
@@ -362,6 +378,8 @@ parse_statement:
       this->parse_end_of_expression_statement();
       break;
     } else {
+      // is_current_typescript_namespace_non_empty_ is possibly set by
+      // parse_loop_label_or_expression_starting_with_identifier.
       goto parse_loop_label_or_expression_starting_with_identifier;
     }
 
@@ -405,12 +423,14 @@ parse_statement:
     switch (this->peek().type) {
       // Labelled statement.
     case token_type::colon:
+      this->is_current_typescript_namespace_non_empty_ = true;
       this->skip();
       this->check_body_after_label();
       goto parse_statement;
 
       // Expression statement.
     default:
+      this->is_current_typescript_namespace_non_empty_ = true;
       expression *ast =
           this->make_expression<expression::variable>(ident, ident_token_type);
       ast = this->parse_expression_remainder(v, ast, precedence{});
@@ -425,6 +445,8 @@ parse_statement:
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
         this->diag_reporter_);
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_loop_label_or_expression_starting_with_identifier.
     goto parse_loop_label_or_expression_starting_with_identifier;
 
   // type++;
@@ -441,8 +463,11 @@ parse_statement:
         this->parse_and_visit_typescript_interface_or_namespace_or_type_statement(
             v)) {
     case parse_possible_label_result::parsed_not_as_a_label:
+      // is_current_typescript_namespace_non_empty_ was possibly set by
+      // parse_and_visit_typescript_interface_or_namespace_or_type_statement.
       break;
     case parse_possible_label_result::parsed_as_label:
+      this->is_current_typescript_namespace_non_empty_ = true;
       goto parse_statement;
     }
     break;
@@ -457,6 +482,7 @@ parse_statement:
 
     // class C {}
   case token_type::kw_class:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_class(
         v, parse_class_options{
                .require_name = name_requirement::required_for_statement,
@@ -466,27 +492,32 @@ parse_statement:
 
     // switch (x) { default: ; }
   case token_type::kw_switch:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_switch(v);
     break;
 
     // return;
     // return 42;
   case token_type::kw_return:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_return_statement(v, statement_type);
     break;
 
     // throw fit;
   case token_type::kw_throw:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_throw_statement(v);
     break;
 
     // try { hard(); } catch (exhaustion) {}
   case token_type::kw_try:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_try_maybe_catch_maybe_finally(v);
     break;
 
     // catch (e) { }  // Invalid.
   case token_type::kw_catch: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_catch_without_try{
         .catch_token = this->peek().span(),
     });
@@ -497,6 +528,7 @@ parse_statement:
 
     // finally { }  // Invalid.
   case token_type::kw_finally: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_finally_without_try{
         .finally_token = this->peek().span(),
     });
@@ -507,32 +539,38 @@ parse_statement:
 
     // do { } while (can);
   case token_type::kw_do:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_do_while(v);
     break;
 
     // for (let i = 0; i < length; ++i) {}
     // for (let x of xs) {}
   case token_type::kw_for:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_for(v);
     break;
 
     // while (cond) {}
   case token_type::kw_while:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_while(v);
     break;
 
     // with (o) { eek(); }
   case token_type::kw_with:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_with(v);
     break;
 
     // if (cond) { yay; } else { nay; }
   case token_type::kw_if:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_if(v);
     break;
 
     // else { nay; } // Invalid.
   case token_type::kw_else: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_else_has_no_if{
         .else_token = this->peek().span(),
     });
@@ -549,22 +587,27 @@ parse_statement:
     // continue label;
   case token_type::kw_break:
   case token_type::kw_continue:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_break_or_continue();
     break;
 
     // debugger;
   case token_type::kw_debugger:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->skip();
     this->consume_semicolon_after_statement();
     break;
 
     // enum E { a, b, c }  // TypeScript.
   case token_type::kw_enum:
+    // is_current_typescript_namespace_non_empty_ is set by
+    // parse_and_visit_typescript_enum.
     this->parse_and_visit_typescript_enum(v, enum_kind::normal);
     break;
 
     // { statement; statement; }
   case token_type::left_curly:
+    this->is_current_typescript_namespace_non_empty_ = true;
     v.visit_enter_block_scope();
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
@@ -572,6 +615,7 @@ parse_statement:
 
     // case 3:  // Invalid.
   case token_type::kw_case:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_unexpected_case_outside_switch_statement{
         .case_token = this->peek().span(),
     });
@@ -587,6 +631,7 @@ parse_statement:
 
     // default:  // Invalid.
   case token_type::kw_default:
+    // Do not set is_current_typescript_namespace_non_empty_.
     this->diag_reporter_->report(
         diag_unexpected_default_outside_switch_statement{
             .default_token = this->peek().span(),
@@ -600,6 +645,7 @@ parse_statement:
   case token_type::colon:
   case token_type::kw_extends:
   case token_type::question:
+    // Do not set is_current_typescript_namespace_non_empty_.
     this->diag_reporter_->report(diag_unexpected_token{
         .token = this->peek().span(),
     });
@@ -608,6 +654,7 @@ parse_statement:
 
   case token_type::end_of_file:
   case token_type::right_curly:
+    // Do not set is_current_typescript_namespace_non_empty_.
     return false;
 
   default:
@@ -855,6 +902,7 @@ void parser::parse_and_visit_export(
   switch (this->peek().type) {
     // export default class C {}
   case token_type::kw_default:
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (declare_namespace_declare_keyword.has_value()) {
       this->diag_reporter_->report(diag_declare_namespace_cannot_export_default{
           .default_keyword = this->peek().span(),
@@ -959,6 +1007,8 @@ void parser::parse_and_visit_export(
     // export * from "module";
     // export * as name from "module";
   case token_type::star:
+    // Do not set is_current_typescript_namespace_non_empty_. See
+    // NOTE[ambiguous-ambient-statement-in-namespace].
     this->skip();
     if (this->peek().type == token_type::kw_as) {
       this->skip();
@@ -996,6 +1046,8 @@ void parser::parse_and_visit_export(
     // export {a, b, c} from "module";
   named_export_list:
   case token_type::left_curly: {
+    // Do not set is_current_typescript_namespace_non_empty_. See
+    // NOTE[ambiguous-ambient-statement-in-namespace].
     stacked_buffering_visitor exports_visitor =
         this->buffering_visitor_stack_.push();
     bump_vector<token, monotonic_allocator> exported_bad_tokens(
@@ -1048,6 +1100,7 @@ void parser::parse_and_visit_export(
 
     // export async function f() {}
   case token_type::kw_async:
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export async function f(); }
       this->parse_and_visit_declare_statement(
@@ -1066,6 +1119,7 @@ void parser::parse_and_visit_export(
 
     // export function f() {}
   case token_type::kw_function:
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export function f(); }
       this->parse_and_visit_declare_statement(
@@ -1081,6 +1135,7 @@ void parser::parse_and_visit_export(
 
   // export class C {}
   case token_type::kw_class:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_class(
         v, parse_class_options{
                .require_name = name_requirement::required_for_export,
@@ -1091,6 +1146,7 @@ void parser::parse_and_visit_export(
 
   // export abstract class C {}
   case token_type::kw_abstract: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     source_code_span abstract_keyword = this->peek().span();
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
@@ -1121,12 +1177,15 @@ void parser::parse_and_visit_export(
           v, *declare_namespace_declare_keyword,
           /*is_directly_declared=*/false);
     } else {
+      // is_current_typescript_namespace_non_empty_ is possibly set by
+      // parse_and_visit_variable_declaration_statement.
       this->parse_and_visit_variable_declaration_statement(v);
     }
     break;
 
   // export interface I {}  // TypeScript only.
   case token_type::kw_interface: {
+    // Do not set is_current_typescript_namespace_non_empty_.
     source_code_span interface_keyword = this->peek().span();
     this->skip();
     if (this->peek().has_leading_newline) {
@@ -1142,10 +1201,13 @@ void parser::parse_and_visit_export(
   // export type A = B;        // TypeScript only.
   // export type {A, B as C};  // TypeScript only.
   case token_type::kw_type: {
+    // Do not set is_current_typescript_namespace_non_empty_.
     source_code_span type_keyword = this->peek().span();
     this->skip();
     if (this->peek().type == token_type::left_curly) {
       // export type {A, B as C};
+      // Do not set is_current_typescript_namespace_non_empty_. See
+      // NOTE[ambiguous-ambient-statement-in-namespace].
       typescript_type_only_keyword = type_keyword;
       if (!this->options_.typescript) {
         this->diag_reporter_->report(
@@ -1156,6 +1218,7 @@ void parser::parse_and_visit_export(
       goto named_export_list;
     } else {
       // export type A = B;
+      // Do not set is_current_typescript_namespace_non_empty_.
       this->parse_and_visit_typescript_type_alias(v, type_keyword);
     }
     break;
@@ -1163,6 +1226,7 @@ void parser::parse_and_visit_export(
 
   // export import A = ns;  // TypeScript only.
   case token_type::kw_import:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_import(v);
     // TODO(#795): Report an error if the import is not a TypeScript import
     // alias.
@@ -1188,6 +1252,8 @@ void parser::parse_and_visit_export(
 
   // export enum E {}  // TypeScript only.
   case token_type::kw_enum:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_typescript_enum.
     this->parse_and_visit_typescript_enum(
         v, declare_namespace_declare_keyword.has_value()
                ? enum_kind::declare_enum
@@ -1199,6 +1265,7 @@ void parser::parse_and_visit_export(
     // export 2 + 2;    // Invalid.
   case token_type::identifier:
   case token_type::number: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     expression *ast = this->parse_expression(v);
     switch (ast->kind()) {
     case expression_kind::variable:
@@ -1220,6 +1287,7 @@ void parser::parse_and_visit_export(
   // export = foo;                // TypeScript only.
   // export = 2 + foo.bar.baz();  // TypeScript only.
   case token_type::equal: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
       this->diag_reporter_->report(
           diag_typescript_export_equal_not_allowed_in_javascript{
@@ -1238,7 +1306,14 @@ void parser::parse_and_visit_export(
   }
 
   case token_type::end_of_file:
+    // Do not set is_current_typescript_namespace_non_empty_.
+    this->diag_reporter_->report(diag_missing_token_after_export{
+        .export_token = export_token_span,
+    });
+    break;
+
   case token_type::semicolon:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_missing_token_after_export{
         .export_token = export_token_span,
     });
@@ -2353,6 +2428,11 @@ void parser::parse_and_visit_typescript_namespace(
           /*export_keyword_span=*/export_keyword_span,
           /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
 
+  bool is_nested_namespace = this->in_typescript_namespace_;
+  if (!is_nested_namespace) {
+    this->is_current_typescript_namespace_non_empty_ = false;
+  }
+
   {
     typescript_namespace_guard g = this->enter_typescript_namespace();
 
@@ -2371,9 +2451,16 @@ void parser::parse_and_visit_typescript_namespace(
 
 done_parsing_body:
   if (namespace_declaration.has_value()) {
+    variable_declaration_flags namespace_flags =
+        this->is_current_typescript_namespace_non_empty_
+            ? variable_declaration_flags::non_empty_namespace
+            : variable_declaration_flags::none;
     v.visit_variable_declaration(*namespace_declaration,
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 variable_kind::_namespace, namespace_flags);
+  }
+
+  if (!is_nested_namespace) {
+    this->is_current_typescript_namespace_non_empty_ = false;
   }
 }
 
@@ -2477,11 +2564,13 @@ void parser::parse_and_visit_typescript_declare_namespace(
       case token_type::kw_module:
       case token_type::kw_namespace:
       case token_type::kw_var:
+        this->is_current_typescript_namespace_non_empty_ = true;
         this->parse_and_visit_declare_statement(v, declare_keyword_span,
                                                 /*is_directly_declared=*/false);
         break;
 
       case token_type::kw_export:
+        this->is_current_typescript_namespace_non_empty_ = true;
         this->parse_and_visit_export(v, declare_keyword_span);
         break;
 
@@ -2496,6 +2585,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
         goto stop_parsing_body;
 
       case token_type::kw_declare: {
+        this->is_current_typescript_namespace_non_empty_ = true;
         this->diag_reporter_->report(
             diag_declare_keyword_is_not_allowed_inside_declare_namespace{
                 .declare_keyword = this->peek().span(),
@@ -2508,6 +2598,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
       }
 
       default: {
+        this->is_current_typescript_namespace_non_empty_ = true;
         this->diag_reporter_->report(
             diag_declare_namespace_cannot_contain_statement{
                 .first_statement_token = this->peek().span(),
@@ -2572,6 +2663,16 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
         });
   }
   this->skip();
+
+  switch (kind) {
+  case enum_kind::declare_enum:
+  case enum_kind::normal:
+    this->is_current_typescript_namespace_non_empty_ = true;
+    break;
+  case enum_kind::const_enum:
+  case enum_kind::declare_const_enum:
+    break;
+  }
 
   switch (this->peek().type) {
   case token_type::kw_abstract:
@@ -3635,12 +3736,14 @@ void parser::parse_and_visit_import(
     this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
         .import_name = this->peek().span(),
     });
+    this->is_current_typescript_namespace_non_empty_ = true;
     goto identifier;
 
     // import \u{76}ar from "module";  // Invalid.
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
         this->diag_reporter_);
+    this->is_current_typescript_namespace_non_empty_ = true;
     goto identifier;
 
   // import let from "module";
@@ -3653,6 +3756,7 @@ void parser::parse_and_visit_import(
   case token_type::kw_get:
   case token_type::kw_set:
   case token_type::kw_static:
+    // Do not set is_current_typescript_namespace_non_empty_.
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(
           diag_cannot_import_let{.import_name = this->peek().span()});
@@ -3687,6 +3791,7 @@ void parser::parse_and_visit_import(
 
     // import {readFile} from "fs";
   case token_type::left_curly:
+    // Do not set is_current_typescript_namespace_non_empty_.
     this->parse_and_visit_named_exports_for_import(v);
     break;
 
@@ -3696,6 +3801,7 @@ void parser::parse_and_visit_import(
     // import.meta
   case token_type::dot:
   case token_type::left_paren: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     expression *ast = this->parse_expression_remainder(
         v, this->make_expression<expression::import>(import_span),
         precedence{});
@@ -3706,11 +3812,13 @@ void parser::parse_and_visit_import(
 
     // import * as fs from "fs";
   case token_type::star:
+    // Do not set is_current_typescript_namespace_non_empty_.
     this->parse_and_visit_name_space_import(v);
     break;
 
     // import "foo";
   case token_type::string:
+    // Do not set is_current_typescript_namespace_non_empty_.
     this->skip();
     this->consume_semicolon_after_statement();
     return;
@@ -3720,6 +3828,7 @@ void parser::parse_and_visit_import(
   // import type * as M from "module";  // TypeScript only
   // import type from "module";
   case token_type::kw_type: {
+    // Do not set is_current_typescript_namespace_non_empty_.
     source_code_span type_span = this->peek().span();
     auto report_type_only_import_in_javascript_if_needed = [&] {
       if (!this->options_.typescript) {
@@ -4298,6 +4407,7 @@ void parser::parse_and_visit_variable_declaration_statement(
       declaring_token.type == token_type::kw_const) {
     this->parse_and_visit_typescript_enum(v, enum_kind::const_enum);
   } else {
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_let_bindings(v,
                                        parse_let_bindings_options{
                                            .declaring_token = declaring_token,
@@ -5032,6 +5142,8 @@ void parser::parse_and_visit_declare_statement(
   // declare enum E {}
   case token_type::kw_enum:
     // declare enum E {}
+    // is_current_typescript_namespace_non_empty_ is set by
+    // parse_and_visit_typescript_enum.
     this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
     break;
 
@@ -5042,9 +5154,11 @@ void parser::parse_and_visit_declare_statement(
     this->skip();
     if (this->peek().type == token_type::kw_enum) {
       // declare const enum E {}
+      // Do not set is_current_typescript_namespace_non_empty_.
       this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
     } else {
       // declare const myVariable: any;
+      this->is_current_typescript_namespace_non_empty_ = true;
       if (!this->options_.typescript) {
         this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
             .declare_keyword = declare_keyword_span,
@@ -5063,6 +5177,7 @@ void parser::parse_and_visit_declare_statement(
 
   // declare class C {}
   case token_type::kw_class:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_class(
         v, parse_class_options{
                .require_name = name_requirement::required_for_statement,
@@ -5076,6 +5191,7 @@ void parser::parse_and_visit_declare_statement(
   // declare abstract
   // class C {}        // Invalid.
   case token_type::kw_abstract: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     source_code_span abstract_token = this->peek().span();
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_class);
@@ -5098,6 +5214,7 @@ void parser::parse_and_visit_declare_statement(
   // declare let y, z;
   case token_type::kw_let:
   case token_type::kw_var: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
       this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
           .declare_keyword = declare_keyword_span,
@@ -5117,6 +5234,7 @@ void parser::parse_and_visit_declare_statement(
 
   // declare type T = U;
   case token_type::kw_type: {
+    // Do not set is_current_typescript_namespace_non_empty_.
     source_code_span type_keyword_span = this->peek().span();
     this->skip();
     this->parse_and_visit_typescript_type_alias(v, type_keyword_span);
@@ -5125,6 +5243,7 @@ void parser::parse_and_visit_declare_statement(
 
   // declare interface I { }
   case token_type::kw_interface: {
+    // Do not set is_current_typescript_namespace_non_empty_.
     source_code_span interface_keyword_span = this->peek().span();
     this->skip();
     this->parse_and_visit_typescript_interface(v, interface_keyword_span);
@@ -5133,6 +5252,7 @@ void parser::parse_and_visit_declare_statement(
 
   // declare async function f(); // Invalid.
   case token_type::kw_async:
+    this->is_current_typescript_namespace_non_empty_ = true;
     this->diag_reporter_->report(diag_declare_function_cannot_be_async{
         .async_keyword = this->peek().span(),
     });
@@ -5144,6 +5264,7 @@ void parser::parse_and_visit_declare_statement(
   // declare function f();
   parse_declare_function:
   case token_type::kw_function: {
+    this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
       this->diag_reporter_->report(
           diag_declare_function_not_allowed_in_javascript{
@@ -5215,6 +5336,8 @@ void parser::parse_and_visit_declare_statement(
   // declare namespace ns {}
   case token_type::kw_module:
   case token_type::kw_namespace:
+    // is_current_typescript_namespace_non_empty_ is set by
+    // parse_and_visit_typescript_declare_namespace if necessary.
     this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
     break;
 
@@ -5242,6 +5365,8 @@ void parser::parse_and_visit_declare_statement(
           .declare_keyword = declare_keyword_span,
       });
     }
+    // is_current_typescript_namespace_non_empty_ is set by
+    // parse_and_visit_import if necessary.
     this->parse_and_visit_import(
         v, /*declare_namespace_declare_keyword=*/is_directly_declared
                ? std::optional<source_code_span>()

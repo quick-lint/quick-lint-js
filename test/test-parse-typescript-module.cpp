@@ -655,7 +655,7 @@ TEST_F(test_parse_typescript_module, export_namespace) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 
   {
@@ -668,7 +668,7 @@ TEST_F(test_parse_typescript_module, export_namespace) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 }
 
@@ -728,7 +728,7 @@ TEST_F(test_parse_typescript_module,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({

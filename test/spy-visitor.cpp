@@ -11,6 +11,9 @@ void PrintTo(const visited_variable_declaration &x, std::ostream *out) {
   if (x.flags & variable_declaration_flags::initialized_with_equals) {
     *out << " (initialized with '=')";
   }
+  if (x.flags & variable_declaration_flags::non_empty_namespace) {
+    *out << " (non-empty)";
+  }
 }
 }
 

@@ -19,9 +19,8 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -59,7 +58,7 @@ TEST_F(test_parse_typescript_declare_namespace, declare_empty_namespace) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 
   {
@@ -72,7 +71,7 @@ TEST_F(test_parse_typescript_declare_namespace, declare_empty_namespace) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 }
 
@@ -993,6 +992,43 @@ TEST_F(test_parse_typescript_declare_namespace,
                         first_statement_token,
                         strlen(u8"declare namespace ns { "), u8"console"_sv),
                 }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       declare_namespace_is_always_empty) {
+  {
+    test_parser p(u8"declare namespace ns { export class C {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(::testing::_, empty_namespace_decl(u8"ns"_sv)));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       subnamespace_in_declare_namespace_is_always_empty) {
+  {
+    test_parser p(
+        u8"declare namespace ns { namespace subns { export class C { } } }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(::testing::_, empty_namespace_decl(u8"subns"_sv),
+                            ::testing::_));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       namespace_with_declare_subnamespace_containing_statement_is_not_empty) {
+  {
+    test_parser p(
+        u8"namespace ns { declare namespace subns { export class C { } } }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(::testing::_, empty_namespace_decl(u8"subns"_sv),
+                            non_empty_namespace_decl(u8"ns"_sv)));
   }
 }
 }

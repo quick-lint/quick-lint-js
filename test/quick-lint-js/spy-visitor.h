@@ -138,8 +138,18 @@ inline visited_variable_declaration let_noinit_decl(string8_view name) {
                                       variable_declaration_flags::none};
 }
 
-// A TypeScript namespace (declared with the 'namespace' keyword).
-inline visited_variable_declaration namespace_decl(string8_view name) {
+// A TypeScript namespace (declared with the 'module' or 'namespace' keyword)
+// for which the TypeScript compiler generates JavaScript code.
+inline visited_variable_declaration non_empty_namespace_decl(
+    string8_view name) {
+  return visited_variable_declaration{
+      string8(name), variable_kind::_namespace,
+      variable_declaration_flags::non_empty_namespace};
+}
+
+// A TypeScript namespace for which the TypeScript compiler does not generate
+// any JavaScript code.
+inline visited_variable_declaration empty_namespace_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_namespace,
                                       variable_declaration_flags::none};
 }

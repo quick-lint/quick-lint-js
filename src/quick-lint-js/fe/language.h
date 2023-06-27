@@ -60,6 +60,19 @@ enum variable_declaration_flags : unsigned char {
   //   let x, y, z;
   //   for (let x of xs) {}
   initialized_with_equals = 1 << 0,
+
+  // Only valid for _namespace.
+  //
+  // Examples set:
+  //   namespace ns {;}
+  //   namespace ns { export class C {} }
+  // Examples unset:
+  //   namespace ns {}
+  //   module ns { namespace subns {} }
+  //
+  // See also NOTE[non-empty-namespace] and
+  // parser::is_current_typescript_namespace_non_empty_.
+  non_empty_namespace = 1 << 1,
 };
 
 std::ostream& operator<<(std::ostream&, variable_kind);

@@ -55,7 +55,7 @@ TEST_F(test_parse_typescript_namespace, empty_namespace) {
                               "visit_variable_declaration",   // ns
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 
   {
@@ -67,7 +67,7 @@ TEST_F(test_parse_typescript_namespace, empty_namespace) {
                               "visit_variable_declaration",   // ns
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 }
 
@@ -125,6 +125,23 @@ TEST_F(test_parse_typescript_namespace, incomplete_body) {
                               diag_unclosed_code_block,  //
                               block_open, strlen(u8"namespace ns "), u8"{"_sv),
         }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { export "_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // implicit }
+                              "visit_variable_declaration",   // ns
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}))
+        << "the namespace should be empty";
   }
 }
 
@@ -179,7 +196,7 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_variable_declaration",   // ns
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
@@ -198,7 +215,7 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_variable_declaration",   // ns
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
@@ -247,7 +264,7 @@ TEST_F(test_parse_typescript_namespace,
     test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(name)}));
+                ElementsAreArray({empty_namespace_decl(name)}));
   }
 }
 
@@ -262,7 +279,7 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_variable_declaration",   // ns
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"ns"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
 
   {
@@ -275,7 +292,7 @@ TEST_F(test_parse_typescript_namespace,
                               "visit_variable_declaration",   // mainNamespace
                           }));
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({namespace_decl(u8"mainNamespace"_sv)}));
+                ElementsAreArray({empty_namespace_decl(u8"mainNamespace"_sv)}));
   }
 }
 
@@ -294,10 +311,290 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
                               "visit_variable_declaration",       // ns
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.variable_declarations,
-        ElementsAreArray({function_decl(u8"f"_sv), namespace_decl(u8"ns"_sv)}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv),
+                                  non_empty_namespace_decl(u8"ns"_sv)}));
   }
+}
+
+// See NOTE[non-empty-namespace].
+TEST_F(test_parse_typescript_namespace,
+       namespace_with_empty_subnamespaces_is_empty) {
+  {
+    test_parser p(u8"namespace ns { namespace subns {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"subns"_sv),
+                                  empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { namespace subns {} module subns2 {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"subns"_sv),
+                                  empty_namespace_decl(u8"subns2"_sv),
+                                  empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { declare namespace subns {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"subns"_sv),
+                                  empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { export declare namespace subns {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"subns"_sv),
+                                  empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { export namespace subns {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"subns"_sv),
+                                  empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  for (string8_view body : {
+           u8"export const enum E {}"_sv,          //
+           u8"export interface I {}"_sv,           //
+           u8"export declare interface I {}"_sv,   //
+           u8"export type C = A;"_sv,              //
+           u8"export declare type T = null;"_sv,   //
+           u8"export declare const enum E {}"_sv,  //
+           u8"import myns = ns;"_sv,               //
+           u8"import myns = ns.subns;"_sv,         //
+           u8"const enum E {}"_sv,                 //
+           u8"declare interface I {}"_sv,          //
+           u8"declare type T = null;"_sv,          //
+           u8"declare const enum E {}"_sv,         //
+
+           // These examples are invalid TypeScript, but the TypeScript compiler
+           // still treats them as ambient statements.
+           u8"import fs from 'fs';"_sv,                //
+           u8"import fs = require('fs');"_sv,          //
+           u8"import {readFile} from 'fs';"_sv,        //
+           u8"import * as fs from 'fs';"_sv,           //
+           u8"import 'fs';"_sv,                        //
+           u8"import type T from 'module';"_sv,        //
+           u8"import type {T} from 'module';"_sv,      //
+           u8"import type * as M from 'module';"_sv,   //
+           u8"import type from 'module';"_sv,          //
+           u8"export declare import a = otherns;"_sv,  //
+           u8"declare import a = otherns;"_sv,         //
+           u8"default:"_sv,                            //
+           u8":"_sv,                                   //
+           u8"?"_sv,                                   //
+           u8"extends"_sv,                             //
+
+           // NOTE[ambiguous-ambient-statement-in-namespace]: These examples are
+           // invalid TypeScript. The TypeScript compiler treats them as either
+           // ambient or non-ambient statements depending on what is being
+           // exported. quick-lint-js's parser does not have the information
+           // needed to determine whether they are ambient or non-ambient. Be
+           // conservative and say that such constructs are always empty.
+           u8"export * from 'module';"_sv,          //
+           u8"export {a, b, c} from 'module';"_sv,  //
+           u8"export type {A};"_sv,                 //
+       }) {
+    padded_string code(concat(u8"namespace ns { "_sv, body, u8" }"_sv));
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    ASSERT_THAT(p.variable_declarations, ::testing::Not(IsEmpty()));
+    EXPECT_EQ(p.variable_declarations[p.variable_declarations.size() - 1],
+              empty_namespace_decl(u8"ns"_sv))
+        << "namespace should have been declared as empty";
+    // Ignore p.errors.
+  }
+}
+
+// See NOTE[non-empty-namespace].
+TEST_F(test_parse_typescript_namespace, namespace_with_statement_is_non_empty) {
+  for (string8_view body : {
+           u8";"_sv,                                   //
+           u8"x = y;"_sv,                              //
+           u8"export async function f() {}"_sv,        //
+           u8"export function f() {}"_sv,              //
+           u8"export abstract class C {}"_sv,          //
+           u8"export class C {}"_sv,                   //
+           u8"export let x = 42;"_sv,                  //
+           u8"export const x = 42;"_sv,                //
+           u8"export var x = 42;"_sv,                  //
+           u8"export import A = otherns;"_sv,          //
+           u8"export enum E {}"_sv,                    //
+           u8"export declare enum E {}"_sv,            //
+           u8"export declare const x: any;"_sv,        //
+           u8"export declare var x: any;"_sv,          //
+           u8"export declare let x: any;"_sv,          //
+           u8"export declare abstract class C {}"_sv,  //
+           u8"export declare class C {}"_sv,           //
+           u8"export declare function f();"_sv,        //
+           u8"declare();"_sv,                          //
+           u8"import('url')"_sv,                       //
+           u8"import.meta"_sv,                         //
+           u8"function f() {}"_sv,                     //
+           u8"var x: any;"_sv,                         //
+           u8"const x: any = null;"_sv,                //
+           u8"let x: any;"_sv,                         //
+           u8"let();"_sv,                              //
+           u8"abstract = null;"_sv,                    //
+           u8"abstract class C {}"_sv,                 //
+           u8"class C {}"_sv,                          //
+           u8"declare enum E {}"_sv,                   //
+           u8"declare const x: any;"_sv,               //
+           u8"declare var x: any;"_sv,                 //
+           u8"declare let x: any;"_sv,                 //
+           u8"declare abstract class C {}"_sv,         //
+           u8"declare class C {}"_sv,                  //
+           u8"declare function f();"_sv,               //
+           u8"async function f() {}"_sv,               //
+           u8"async => {};"_sv,                        //
+           u8"async = null;"_sv,                       //
+           u8"async: const enum E {};"_sv,             //
+           u8"false;"_sv,                              //
+           u8"[1, 2, 3];"_sv,                          //
+           u8"'use strict';"_sv,                       //
+           u8"await = null;"_sv,                       //
+           u8"yield = null;"_sv,                       //
+           u8"switch (x) {}"_sv,                       //
+           u8"throw new Error();"_sv,                  //
+           u8"try {} catch {}"_sv,                     //
+           u8"try {} catch (e) {}"_sv,                 //
+           u8"try {} finally {}"_sv,                   //
+           u8"do {} while (false)"_sv,                 //
+           u8"for (;;);"_sv,                           //
+           u8"while (true);"_sv,                       //
+           u8"with (obj) {}"_sv,                       //
+           u8"if (true) {}"_sv,                        //
+           u8"if (true) {} else {}"_sv,                //
+           u8"debugger;"_sv,                           //
+           u8"enum E {}"_sv,                           //
+           u8"{}"_sv,                                  //
+
+           // These examples are invalid TypeScript, but our error recovery
+           // should correct the code. The corrected code is non-ambient .
+           u8"*function f() {}"_sv,  // function* f() {}
+           u8"catch (e) {}"_sv,      // try {} catch (e) {}
+           u8"finally {}"_sv,        // try {} finally {}
+           u8"else {}"_sv,           // if (cond) {} else {}
+
+           // These examples are invalid TypeScript, but the compiler still
+           // treats them as non-ambient statements.
+           u8"export default class C {}"_sv,           //
+           u8"export declare async function f();"_sv,  //
+           u8"export 2+2;"_sv,                         //
+           u8"export = value;"_sv,                     //
+           u8"import var from 'module';"_sv,           //
+           u8"import \\u{76}ar from 'module';"_sv,     //
+           u8"export;"_sv,                             //
+           u8"declare: const enum E {}"_sv,            //
+           u8"mylabel: const enum E {}"_sv,            //
+           u8"let: const enum E {}"_sv,                //
+           u8"abstract: const enum E {}"_sv,           //
+           u8"await: const enum E {}"_sv,              //
+           u8"yield: const enum E {}"_sv,              //
+           u8"interface: const enum E {}"_sv,          //
+           u8"type: const enum E {}"_sv,               //
+           u8"module: const enum E {}"_sv,             //
+           u8"namespace: const enum E {}"_sv,          //
+           u8"await null;"_sv,                         //
+           u8"yield null;"_sv,                         //
+           u8"yield *null;"_sv,                        //
+           u8"\\u{69}\\u{66}"_sv,                      //
+           u8"protected"_sv,                           //
+           u8"return 42;"_sv,                          //
+           u8"return;"_sv,                             //
+           u8"continue;"_sv,                           //
+           u8"break;"_sv,                              //
+           u8"case 42:"_sv,
+
+           // TODO(strager):
+           // u8"export declare import a from 'b';"_sv,
+       }) {
+    padded_string code(concat(u8"namespace ns { "_sv, body, u8" }"_sv));
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view(), typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    ASSERT_THAT(p.variable_declarations, ::testing::Not(IsEmpty()));
+    EXPECT_EQ(p.variable_declarations[p.variable_declarations.size() - 1],
+              non_empty_namespace_decl(u8"ns"_sv))
+        << "namespace should have been declared as non-empty";
+    // Ignore p.errors.
+  }
+
+  {
+    test_parser p(u8"namespace ns { x = y; }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { namespace\n notANamespace\n {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { module\n notANamespace\n {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_namespace,
+       namespace_with_statement_in_subnamespace_is_non_empty) {
+  {
+    test_parser p(u8"namespace ns { namespace subns { ; } }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({non_empty_namespace_decl(u8"subns"_sv),
+                                  non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(u8"namespace ns { namespace subns { x = y; } }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({non_empty_namespace_decl(u8"subns"_sv),
+                                  non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_namespace,
+       empty_namespace_after_non_empty_namespace) {
+  test_parser p(u8"namespace nonempty { ; } namespace empty {}"_sv,
+                typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAreArray({non_empty_namespace_decl(u8"nonempty"_sv),
+                                empty_namespace_decl(u8"empty"_sv)}));
+}
+
+TEST_F(test_parse_typescript_namespace,
+       empty_namespace_after_unrelated_statements) {
+  test_parser p(u8"let x = 42; namespace empty {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.variable_declarations,
+              ElementsAre(::testing::_, empty_namespace_decl(u8"empty"_sv)));
 }
 
 TEST_F(test_parse_typescript_namespace, namespace_alias) {

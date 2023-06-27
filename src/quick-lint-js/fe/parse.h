@@ -888,6 +888,26 @@ class parser {
 
   bool in_typescript_only_construct_ = false;
 
+  // Set to true when a statement is found which would cause the TypeScript
+  // compiler to generate JavaScript code for a namespace.
+  //
+  // This might be true for 'declare namespace', in which case this flag applies
+  // to the containing namespace, if any. For example:
+  //
+  //   namespace outer {
+  //     declare namespace inner {
+  //       // The following statement sets
+  //       // is_current_typescript_namespace_non_empty_=true for 'outer'.
+  //       export class C {}
+  //     }
+  //   }
+  //
+  // NOTE[non-empty-namespace]: The rules for what makes a namespace empty or
+  // not are not obvious. See tests.
+  //
+  // See also variable_declaration_flags::non_empty_namespace.
+  bool is_current_typescript_namespace_non_empty_ = false;
+
   // When parsing TypeScript 'infer', store visit_variable_declaration calls
   // here. If typescript_infer_declaration_buffer_ is null, then we are in a
   // context where 'infer' is disallowed.
