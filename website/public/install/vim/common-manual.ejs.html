@@ -4,6 +4,10 @@
 %>
 
 <style>
+  #tab-bar {
+    display: none;
+  }
+
   #tab-bar button {
     display: table-header-group;
     padding: 6px 12px;
@@ -35,6 +39,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     changePackageManager(null, "manual-vim-package");
+    document.getElementById("tab-bar").style.display = "table-header-group";
   });
 
   function changePackageManager(event, selectedManager) {
@@ -52,6 +57,18 @@
 <p id="package-list-header">
   Install this plugin with your favorite Vim packaging system
 </p>
+
+<noscript>
+  <ul>
+    <li>
+      <a href="#manual-vim-package">Vim package</a> (built into Vim 8.0 and newer)
+    </li>
+    <li><a href="#manual-vim-pathogen">Pathogen</a></li>
+    <li><a href="#manual-vim-vim-plug">Vim-Plug</a></li>
+    <li><a href="#manual-vim-vundle">Vundle</a></li>
+  </ul>
+</noscript>
+
 
 <div id="tab-bar">
   <button
