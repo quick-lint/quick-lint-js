@@ -23,6 +23,9 @@ struct global_declared_variable {
   bool is_type_only;
 
   variable_kind kind() const noexcept;
+  variable_declaration_flags flags() const noexcept {
+    return variable_declaration_flags::none;
+  }
 };
 
 class global_declared_variable_set {

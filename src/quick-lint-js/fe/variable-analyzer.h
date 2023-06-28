@@ -286,14 +286,17 @@ class variable_analyzer final : public parse_visitor_base {
 
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
+      variable_declaration_flags flags,
       declared_variable_scope declaration_scope) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const global_scope &scope, const declared_variable &var) const;
   void report_error_if_variable_declaration_conflicts(
       const identifier *already_declared, variable_kind already_declared_kind,
+      variable_declaration_flags already_declared_flags,
       declared_variable_scope already_declared_declaration_scope,
       bool already_declared_is_global_variable, identifier newly_declared_name,
       variable_kind newly_declared_kind,
+      variable_declaration_flags newly_declared_flags,
       declared_variable_scope newly_declared_declaration_scope) const;
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }

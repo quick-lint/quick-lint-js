@@ -243,21 +243,21 @@ TEST(test_variable_analyzer_multiple_declarations,
 }
 
 TEST(test_variable_analyzer_multiple_declarations,
-     function_or_class_cannot_appear_after_namespace_with_same_name) {
+     function_or_class_cannot_appear_after_non_empty_namespace_with_same_name) {
   const char8 function_declaration[] = u8"x";
   const char8 class_declaration[] = u8"x";
   const char8 namespace_declaration[] = u8"x";
 
   {
-    // namespace x {}
+    // namespace x { ; }
     // function x() {}  // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+    l.visit_variable_declaration(
+        identifier_of(namespace_declaration), variable_kind::_namespace,
+        variable_declaration_flags::non_empty_namespace);
 
     l.visit_variable_declaration(identifier_of(function_declaration),
                                  variable_kind::_function,
@@ -277,15 +277,15 @@ TEST(test_variable_analyzer_multiple_declarations,
   }
 
   {
-    // namespace x {}
+    // namespace x { ; }
     // class x {}      // ERROR
     diag_collector v;
     variable_analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+    l.visit_variable_declaration(
+        identifier_of(namespace_declaration), variable_kind::_namespace,
+        variable_declaration_flags::non_empty_namespace);
 
     l.visit_enter_class_scope();
     l.visit_enter_class_scope_body(identifier_of(class_declaration));
@@ -302,6 +302,57 @@ TEST(test_variable_analyzer_multiple_declarations,
                         redeclaration, span_of(class_declaration),  //
                         original_declaration, span_of(namespace_declaration)),
                 }));
+  }
+}
+
+TEST(test_variable_analyzer_multiple_declarations,
+     function_or_class_can_appear_after_empty_namespace_with_same_name) {
+  const char8 function_declaration[] = u8"x";
+  const char8 class_declaration[] = u8"x";
+  const char8 namespace_declaration[] = u8"x";
+
+  {
+    // namespace x {}
+    // function x() {}
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
+
+    l.visit_variable_declaration(identifier_of(function_declaration),
+                                 variable_kind::_function,
+                                 variable_declaration_flags::none);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // namespace x {}
+    // class x {}
+    diag_collector v;
+    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    l.visit_enter_namespace_scope();
+    l.visit_exit_namespace_scope();
+    l.visit_variable_declaration(identifier_of(namespace_declaration),
+                                 variable_kind::_namespace,
+                                 variable_declaration_flags::none);
+
+    l.visit_enter_class_scope();
+    l.visit_enter_class_scope_body(identifier_of(class_declaration));
+    l.visit_exit_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration),
+                                 variable_kind::_class,
+                                 variable_declaration_flags::none);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 

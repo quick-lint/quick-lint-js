@@ -284,7 +284,7 @@ void variable_analyzer::declare_variable(scope &scope, identifier name,
   }
 
   this->report_error_if_variable_declaration_conflicts_in_scope(
-      scope, name, kind, declared_scope);
+      scope, name, kind, flags, declared_scope);
 
   if (is_function_or_var && name.normalized_name() == u8"eval"_sv) {
     scope.used_eval_in_this_scope = false;
@@ -878,6 +878,7 @@ void variable_analyzer::report_errors_for_variable_use(
 
 void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
     const variable_analyzer::scope &scope, identifier name, variable_kind kind,
+    variable_declaration_flags flags,
     variable_analyzer::declared_variable_scope declaration_scope) const {
   const declared_variable *already_declared_variable =
       scope.declared_variables.find(name);
@@ -885,11 +886,13 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
     this->report_error_if_variable_declaration_conflicts(
         /*already_declared=*/&already_declared_variable->declaration,
         /*already_declared_kind=*/already_declared_variable->kind,
+        /*already_declared_flags=*/already_declared_variable->flags,
         /*already_declared_declaration_scope=*/
         already_declared_variable->declaration_scope,
         /*already_declared_is_global_variable=*/false,
         /*newly_declared_name=*/name,
         /*newly_declared_kind=*/kind,
+        /*newly_declared_flags=*/flags,
         /*newly_declared_declaration_scope=*/declaration_scope);
   }
 }
@@ -903,11 +906,13 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
       this->report_error_if_variable_declaration_conflicts(
           /*already_declared=*/nullptr,
           /*already_declared_kind=*/already_declared_variable->kind(),
+          /*already_declared_flags=*/already_declared_variable->flags(),
           /*already_declared_declaration_scope=*/
           declared_variable_scope::declared_in_current_scope,
           /*already_declared_is_global_variable=*/true,
           /*newly_declared_name=*/var.declaration,
           /*newly_declared_kind=*/var.kind,
+          /*newly_declared_flags=*/var.flags,
           /*newly_declared_declaration_scope=*/var.declaration_scope);
     }
   }
@@ -915,9 +920,11 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts_in_scope(
 
 void variable_analyzer::report_error_if_variable_declaration_conflicts(
     const identifier *already_declared, variable_kind already_declared_kind,
+    variable_declaration_flags already_declared_flags,
     declared_variable_scope already_declared_declaration_scope,
     bool already_declared_is_global_variable, identifier newly_declared_name,
     variable_kind newly_declared_kind,
+    [[maybe_unused]] variable_declaration_flags newly_declared_flags,
     declared_variable_scope newly_declared_declaration_scope) const {
   using vk = variable_kind;
   vk kind = newly_declared_kind;
@@ -1020,6 +1027,10 @@ void variable_analyzer::report_error_if_variable_declaration_conflicts(
       (kind_is_parameter               && other_kind_is_parameter) ||
       (!is_type(kind)                  && other_kind == vk::_interface) ||
       // clang-format on
+      (other_kind == vk::_namespace &&
+       (kind == vk::_class || kind == vk::_function) &&
+       !(already_declared_flags &
+         variable_declaration_flags::non_empty_namespace)) ||
       (kind == vk::_function &&
        newly_declared_declaration_scope ==
            declared_variable_scope::declared_in_descendant_scope) ||
