@@ -26,8 +26,7 @@ namespace quick_lint_js {
 namespace {
 class test_parse_typescript_declare_tsmodule : public test_parse_expression {};
 
-TEST_F(test_parse_typescript_declare_tsmodule,
-       declaring_namespace_with_string_name_is_allowed_with_module_keyword) {
+TEST_F(test_parse_typescript_declare_tsmodule, declare_module) {
   {
     test_parser p(u8"declare module 'my name space' {}"_sv, typescript_options);
     p.parse_and_visit_module();
@@ -39,9 +38,8 @@ TEST_F(test_parse_typescript_declare_tsmodule,
   }
 }
 
-TEST_F(
-    test_parse_typescript_declare_tsmodule,
-    declaring_namespace_with_string_name_is_not_allowed_inside_containing_namespace) {
+TEST_F(test_parse_typescript_declare_tsmodule,
+       declaring_module_is_not_allowed_inside_containing_namespace) {
   {
     test_parser p(u8"namespace ns { declare module 'my name space' {} }"_sv,
                   typescript_options, capture_diags);
@@ -59,7 +57,7 @@ TEST_F(
 }
 
 TEST_F(test_parse_typescript_declare_tsmodule,
-       declare_module_with_string_name_allows_import_from_module) {
+       declare_module_allows_import_from_module) {
   {
     test_parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
                   typescript_options);
@@ -85,9 +83,8 @@ TEST_F(test_parse_typescript_declare_tsmodule,
   }
 }
 
-TEST_F(
-    test_parse_typescript_declare_tsmodule,
-    declare_module_with_string_name_allows_import_from_module_with_export_keyword) {
+TEST_F(test_parse_typescript_declare_tsmodule,
+       declare_module_allows_import_from_module_with_export_keyword) {
   {
     test_parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
                   typescript_options);
