@@ -14,8 +14,18 @@ Semantic Versioning.
   `initialize` request. See [LSP configuration
   documentation](https://quick-lint-js.com/docs/lsp/#_configuration) for
   details.
+* `x = x;` now reports [E0383][]. (Implemented by [Austin Garcia][].)
+* `...` without something following it now reports either [E0708][] ("unexpected
+  '...'; expected expression") or [E0709][] ("expected variable name after
+  '...'"). (Implemented by [Isaac Nonato][].)
 * TypeScript support (still experimental):
   * `namespace A.B {}` syntax (with `.`) is now supported.
+  * `static public myMethod() {}` now reports [E0380][] ("'public' access
+    specifier must precede 'static'"). (Implemented by [Leszek Nowicki][].)
+  * `class C { \u{63}onstructor() {} }` now reports [E0381][] ("Typescript does
+    not allow keywords to contain escape sequence"). (Implemented by [Jait
+    Jacob][].)
+  * `export declare` is now supported.
 
 ### Fixed
 
@@ -24,13 +34,15 @@ Semantic Versioning.
   update your Emacs file: add `new-line` to the
   `flycheck-check-syntax-automatically` variable.
 * TypeScript support (still experimental):
-  * `class A {} namespace A {}` no longer reports [E0034][] ("redeclaration of
-    variable").
-  * `function f<T>(T) {}` no longer reports [E0034][] ("redeclaration of
-    variable").
-  * `namespace ns{} namespace ns{}` no longer reports [E0034][] ("redeclaration
-    of variable").
+  * [E0034][] ("redeclaration of variable") is no longer incorrectly reporter
+    in various cases, including the following:
+      * `class A {} namespace A {}`
+      * `function f<T>(T) {}`
+      * `type X = null; var X;`
+      * `namespace ns{} namespace ns{}`
   * `export = a b` now reports [E0027][] ("missing semicolon after statement").
+  * `module 'name' { import ... }` no longer falsely reports [E0362][] ("cannot
+    import a module from inside a 'declare namespace'").
 
 ## 2.14.0 (2023-05-22)
 
@@ -932,6 +944,7 @@ Beta release.
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
 [Amir]: https://github.com/ahmafi
+[Austin Garcia]: https://github.com/holychowders
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
 [Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
@@ -940,6 +953,8 @@ Beta release.
 [Guilherme Vasconcelos]: https://github.com/Guilherme-Vasconcelos
 [Harshit Aghera]: https://github.com/HarshitAghera
 [Himanshu]: https://github.com/singalhimanshu
+[Isaac Nonato]: https://github.com/isaacnonato
+[Jait Jacob]: https://github.com/jaitjacob
 [Jake Castelli]: https://github.com/jakecastelli
 [James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
@@ -1062,13 +1077,18 @@ Beta release.
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
 [E0356]: https://quick-lint-js.com/errors/E0356/
+[E0362]: https://quick-lint-js.com/errors/E0362/
 [E0365]: https://quick-lint-js.com/errors/E0365/
 [E0369]: https://quick-lint-js.com/errors/E0369/
 [E0373]: https://quick-lint-js.com/errors/E0373/
 [E0374]: https://quick-lint-js.com/errors/E0374/
 [E0376]: https://quick-lint-js.com/errors/E0376/
 [E0379]: https://quick-lint-js.com/errors/E0379/
+[E0380]: https://quick-lint-js.com/errors/E0380/
+[E0383]: https://quick-lint-js.com/errors/E0383/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
 [E0707]: https://quick-lint-js.com/errors/E0707/
+[E0708]: https://quick-lint-js.com/errors/E0708/
+[E0709]: https://quick-lint-js.com/errors/E0709/

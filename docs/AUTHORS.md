@@ -30,6 +30,7 @@ authored portions of quick-lint-js:
 * Ang Kosal; angkosal@gmail.com; signed CLA-v1.md
 * Angel Avila; angel.j.avila@gmail.com; signed CLA-v1.md
 * Asaduzzaman Pavel; k1ngs.k1ngdom@live.com; signed CLA-v1.md
+* Austin Garcia; theholychowders@gmail.com; signed CLA-v1.md
 * Biel A. P. (0xbiel); bielp07@gmail.com; signed CLA-v1.md
 * Brandon Conway; brandoncc@gmail.com; signed CLA-v1.md
 * Carlo Cabrera; https://github.com/carlocab; signed CLA-v1.md
@@ -43,6 +44,8 @@ authored portions of quick-lint-js:
 * Guilherme Vasconcelos; signed CLA-v1.md
 * Harshit Aghera; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
+* Isaac Nonato; nonatoisaac@mailfence.com; signed CLA-v1.md
+* Jait Jacob; jai8.jacob@gmail.com; signed CLA-v1.md
 * James Moles; jamespmoles@gmail.com; signed CLA-v1.md
 * Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
 * Jenny "Jennipuff" Wheat
