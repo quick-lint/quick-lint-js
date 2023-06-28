@@ -3087,6 +3087,18 @@
                                 "'{1}'"),                                       \
               second_modifier, first_modifier))                                 \
                                                                                 \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_spread_must_precede_expression, "E0708",                             \
+      diagnostic_severity::error, { source_code_span spread; },                 \
+      MESSAGE(QLJS_TRANSLATABLE("unexpected '...'; expected expression"),       \
+              spread))                                                          \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_spread_must_precede_variable_name, "E0709",                          \
+      diagnostic_severity::error, { source_code_span spread; },                 \
+      MESSAGE(QLJS_TRANSLATABLE("expected variable name after '...'"),          \
+              spread))                                                          \
+                                                                                \
   /* END */
 
 // QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used

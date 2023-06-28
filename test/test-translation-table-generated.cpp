@@ -2332,6 +2332,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "expected variable name after '...'"_translatable,
+        {
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+            u8"expected variable name after '...'",
+        },
+    },
+    {
         "expected variable name for 'catch'"_translatable,
         {
             u8"expected variable name for 'catch'",
@@ -4441,6 +4452,17 @@ const translated_string test_translation_table[] = {
             u8"'#' inattendu",
             u8"'#' inesperado",
             u8"of\u00f6rv\u00e4ntad '#'",
+        },
+    },
+    {
+        "unexpected '...'; expected expression"_translatable,
+        {
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
+            u8"unexpected '...'; expected expression",
         },
     },
     {

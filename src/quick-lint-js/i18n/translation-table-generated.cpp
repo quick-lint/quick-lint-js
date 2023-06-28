@@ -222,7 +222,8 @@ const translation_table translation_data = {
         {32, 39, 44, 50, 41, 37},            //
         {55, 81, 72, 73, 57, 55},            //
         {64, 76, 69, 87, 73, 65},            //
-        {63, 58, 71, 93, 71, 69},            //
+        {0, 0, 0, 0, 0, 69},                 //
+        {63, 58, 71, 93, 71, 35},            //
         {33, 27, 36, 45, 0, 35},             //
         {39, 42, 0, 49, 0, 41},              //
         {24, 24, 0, 24, 0, 24},              //
@@ -414,7 +415,8 @@ const translation_table translation_data = {
         {27, 25, 28, 22, 25, 24},            //
         {23, 25, 28, 22, 26, 24},            //
         {19, 19, 20, 26, 15, 18},            //
-        {0, 0, 0, 15, 0, 15},                //
+        {0, 0, 0, 0, 0, 15},                 //
+        {0, 0, 0, 15, 0, 38},                //
         {0, 0, 0, 53, 0, 49},                //
         {0, 0, 0, 15, 0, 15},                //
         {16, 12, 14, 32, 17, 34},            //
@@ -1957,6 +1959,7 @@ const translation_table translation_data = {
         u8"expected hexadecimal digits in Unicode escape sequence\0"
         u8"expected parameter for arrow function, but got a literal instead\0"
         u8"expected parameter for arrow function, but got an expression instead\0"
+        u8"expected variable name after '...'\0"
         u8"expected variable name for 'catch'\0"
         u8"expected variable name for 'import'-'as'\0"
         u8"expected {1:headlinese}\0"
@@ -2149,6 +2152,7 @@ const translation_table translation_data = {
         u8"unclosed string literal\0"
         u8"unclosed template\0"
         u8"unexpected '#'\0"
+        u8"unexpected '...'; expected expression\0"
         u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '?'\0"
         u8"unexpected '?' when destructuring\0"

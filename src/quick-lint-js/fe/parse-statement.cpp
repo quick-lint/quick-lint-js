@@ -4876,6 +4876,10 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
 
   case expression_kind::spread: {
     expression::spread *spread = static_cast<expression::spread *>(ast);
+    if (spread->child_0()->kind() == expression_kind::_missing) {
+      this->diag_reporter_->report(diag_spread_must_precede_variable_name{
+          spread->spread_operator_span()});
+    }
     this->visit_binding_element(
         spread->child_0(), v, info.with_spread(spread->spread_operator_span()));
     break;
