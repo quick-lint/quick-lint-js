@@ -34,7 +34,7 @@ Semantic Versioning.
   update your Emacs file: add `new-line` to the
   `flycheck-check-syntax-automatically` variable.
 * TypeScript support (still experimental):
-  * [E0034][] ("redeclaration of variable") is no longer incorrectly reporter
+  * [E0034][] ("redeclaration of variable") is no longer incorrectly reported
     in various cases, including the following:
       * `class A {} namespace A {}`
       * `function f<T>(T) {}`
