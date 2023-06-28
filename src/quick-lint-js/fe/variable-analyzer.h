@@ -101,11 +101,11 @@ class variable_analyzer final : public parse_visitor_base {
     // used or assigned to after declaration. If true, this variable was used or
     // assigned (or both) after its declaration.
     bool is_used;
-    // If true, the programmer might have intended the variable declaration to
-    // be an assignment to an existing variable instead. This happens iff the
-    // variable has an initializer with '='. See
-    // variable_init_kind::initialized_with_equals.
-    bool declaration_possibly_looks_like_assignment;
+    // If variable_init_kind::initialized_with_equals is set, the programmer
+    // might have intended the variable declaration to be an assignment to an
+    // existing variable instead. This happens iff the variable has an
+    // initializer with '='.
+    variable_declaration_flags flags;
 
     // Returns true if this variable can be used in expressions.
     //
@@ -164,7 +164,7 @@ class variable_analyzer final : public parse_visitor_base {
 
     declared_variable *add_variable_declaration(
         identifier name, variable_kind, declared_variable_scope,
-        bool declaration_possibly_looks_like_assignment);
+        variable_declaration_flags flags);
 
     const declared_variable *find(identifier name) const noexcept;
     declared_variable *find(identifier name) noexcept;
@@ -253,7 +253,7 @@ class variable_analyzer final : public parse_visitor_base {
 
   void declare_variable(scope &, identifier name, variable_kind kind,
                         declared_variable_scope declared_scope,
-                        bool declaration_possibly_looks_like_assignment);
+                        variable_declaration_flags flags);
   void visit_variable_use(identifier name, used_variable_kind);
 
   void propagate_variable_uses_to_parent_scope(

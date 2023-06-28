@@ -125,7 +125,7 @@ void variable_analyzer::visit_enter_class_scope_body(
         /*name=*/*class_name,
         /*kind=*/variable_kind::_class,
         /*declared_scope=*/declared_variable_scope::declared_in_current_scope,
-        /*declaration_possibly_looks_like_assignment=*/false);
+        /*flags=*/variable_declaration_flags::none);
   }
 }
 
@@ -159,7 +159,7 @@ void variable_analyzer::visit_enter_named_function_scope(
       .kind = variable_kind::_function,
       .declaration_scope = declared_variable_scope::declared_in_current_scope,
       .is_used = false,
-      .declaration_possibly_looks_like_assignment = false,
+      .flags = variable_declaration_flags::none,
   };
 }
 
@@ -270,14 +270,13 @@ void variable_analyzer::visit_variable_declaration(
       /*name=*/name,
       /*kind=*/kind,
       /*declared_scope=*/declared_variable_scope::declared_in_current_scope,
-      /*declaration_possibly_looks_like_assignment=*/flags &
-          variable_declaration_flags::initialized_with_equals);
+      /*flags=*/flags);
 }
 
-void variable_analyzer::declare_variable(
-    scope &scope, identifier name, variable_kind kind,
-    declared_variable_scope declared_scope,
-    bool declaration_possibly_looks_like_assignment) {
+void variable_analyzer::declare_variable(scope &scope, identifier name,
+                                         variable_kind kind,
+                                         declared_variable_scope declared_scope,
+                                         variable_declaration_flags flags) {
   bool is_function_or_var =
       kind == variable_kind::_function || kind == variable_kind::_var;
   if (declared_scope == declared_variable_scope::declared_in_descendant_scope) {
@@ -292,10 +291,8 @@ void variable_analyzer::declare_variable(
   }
 
   declared_variable *declared =
-      scope.declared_variables.add_variable_declaration(
-          name, kind, declared_scope,
-          /*declaration_possibly_looks_like_assignment=*/
-          declaration_possibly_looks_like_assignment);
+      scope.declared_variables.add_variable_declaration(name, kind,
+                                                        declared_scope, flags);
 
   erase_if(scope.variables_used, [&](const used_variable &used_var) {
     if (name.normalized_name() != used_var.name.normalized_name()) {
@@ -705,11 +702,12 @@ void variable_analyzer::propagate_variable_declarations_to_parent_scope() {
           /*kind=*/var.kind,
           /*declared_scope=*/
           declared_variable_scope::declared_in_descendant_scope,
-          /*declaration_possibly_looks_like_assignment=*/
-          var.declaration_possibly_looks_like_assignment);
+          /*flags=*/var.flags);
     }
 
-    if (var.declaration_possibly_looks_like_assignment && !var.is_used &&
+    bool declaration_possibly_looks_like_assignment =
+        (var.flags & variable_declaration_flags::initialized_with_equals);
+    if (declaration_possibly_looks_like_assignment && !var.is_used &&
         (var.kind == variable_kind::_const ||
          var.kind == variable_kind::_let) &&
         !(current_scope.used_eval_in_this_scope ||
@@ -1082,14 +1080,13 @@ bool variable_analyzer::used_variable::is_type() const noexcept {
 variable_analyzer::declared_variable *
 variable_analyzer::declared_variable_set::add_variable_declaration(
     identifier name, variable_kind kind, declared_variable_scope declared_scope,
-    bool declaration_possibly_looks_like_assignment) {
+    variable_declaration_flags flags) {
   this->variables_.emplace_back(declared_variable{
       .declaration = name,
       .kind = kind,
       .declaration_scope = declared_scope,
       .is_used = false,
-      .declaration_possibly_looks_like_assignment =
-          declaration_possibly_looks_like_assignment,
+      .flags = flags,
   });
   return &this->variables_.back();
 }
