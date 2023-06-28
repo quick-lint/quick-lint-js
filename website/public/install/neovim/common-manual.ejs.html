@@ -3,105 +3,153 @@
 <!-- See end of file for extended copyright information. -->
 %>
 
+<%- await include("../common-manual-tabs.ejs.html") %>
+
 <h3 id="install-neovim-plugin">Install Neovim plugin</h3>
-<p>Install this plugin with your favorite Neovim packaging system:</p>
-<ul>
-  <li>
-    <a href="#manual-neovim-package">Neovim package</a> (built into Neovim 0.5.0
-    and newer)
-  </li>
-  <li><a href="#manual-neovim-dein-vim">dein.vim</a></li>
-  <li><a href="#manual-neovim-packer-nvim">packer.nvim</a></li>
-  <li><a href="#manual-neovim-vim-plug">Vim-Plug</a></li>
-</ul>
+<p id="package-list-header">Install this plugin with your favorite Neovim packaging system</p>
 
-<h4 id="manual-neovim-package">Install as a Neovim package</h4>
-<ol>
-  <li>
-    <a
-      href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
-      >Download the quick-lint-js Neovim plugin.</a
-    >
-  </li>
-  <li>
-    Create the directory <% if (os === "windows") { %>
-    <code>%LOCALAPPDATA%\nvim\pack\external\start\</code>. <% } else { %>
-    <code>~/.local/share/nvim/site/pack/external/start/</code>. <% } %>
-  </li>
-  <li>
-    Copy the extracted
-    <code>quick-lint-js.vim</code> directory into the <% if (os === "windows") {
-    %>
-    <code>%LOCALAPPDATA%\nvim\pack\external\start\</code>
-    <% } else { %>
-    <code>~/.local/share/nvim/site/pack/external/start/</code>
-    <% } %> directory.
-  </li>
-  <li>Restart Neovim.</li>
-</ol>
+<noscript>
+  <ul>
+    <li>
+      <a href="#manual-neovim-package">Neovim package</a> (built into Neovim 0.5.0
+      and newer)
+    </li>
+    <li><a href="#manual-neovim-dein-vim">dein.vim</a></li>
+    <li><a href="#manual-neovim-packer-nvim">packer.nvim</a></li>
+    <li><a href="#manual-neovim-vim-plug">Vim-Plug</a></li>
+  </ul>
+</noscript>
 
-<h4 id="manual-neovim-dein-vim">Install with dein.vim</h4>
-<p>
-  This option requires
-  <a href="https://github.com/Shougo/dein.vim">dein.vim</a>.
-</p>
-<ol>
-  <li>
-    Add the following line to your <% if (os === "windows") { %>
-    <code>%LOCALAPPDATA%\nvim\init.vim</code> file <% } else { %>
-    <code>~/.config/nvim/init.vim</code> <% } %> file between
-    <code class="vim">call dein#begin(...)</code> and
-    <code class="vim">call dein#end()</code>:
-    <blockquote>
-      <pre><code class="vim">call dein#add('quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'rev': '<%= qljsVersionInfo.version %>'})</code></pre>
-    </blockquote>
-  </li>
-  <li>Restart Neovim.</li>
-  <li>In Neovim, run <code class="vim">:call dein#install()</code>.</li>
-</ol>
+<div id="tab-bar">
+  <button
+    class="tab-bar-button"
+    onclick="changePackageManager(event, 'manual-neovim-package')"
+  >
+    Neovim Package
+  </button>
+  <button
+    class="tab-bar-button"
+    onclick="changePackageManager(event, 'manual-neovim-dein-vim')"
+  >
+    dein.vim
+  </button>
+  <button
+    class="tab-bar-button"
+    onclick="changePackageManager(event, 'manual-neovim-packer-nvim')"
+  >
+    packer.nvim
+  </button>
+  <button
+    class="tab-bar-button"
+    onclick="changePackageManager(event, 'manual-neovim-vim-plug')"
+  >
+    Vim-Plug
+  </button>
+</div>
 
-<h4 id="manual-neovim-packer-nvim">Install with packer.nvim</h4>
-<p>
-  This option requires
-  <a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a>.
-</p>
-<ol>
-  <li>
-    Add the following line to your <% if (os === "windows") { %>
-    <code>%LOCALAPPDATA%\nvim\lua\plugins.lua</code> file <% } else { %>
-    <code>~/.config/nvim/lua/plugins.lua</code> <% } %> file between
-    <code class="lua">require('packer').startup(function()</code> and
-    <code class="lua">end)</code>:
-    <blockquote>
-      <!-- HACK(strager): Semantically, opt=true makes no sense. We use opt=true
-           to work around Neovim automatically loading plugin/vim/test.vim (a
-           script which causes Neovim to exit on start). However, opt=true
-           packages seem to be loaded by ALE by default anyway, because of the
-           rtp option. -->
-      <pre><code class="lua">use {'quick-lint/quick-lint-js', rtp = 'plugin/vim/quick-lint-js.vim', tag = '<%= qljsVersionInfo.version %>', opt = true}</code></pre>
-    </blockquote>
-  </li>
-  <li>Restart Neovim.</li>
-  <li>In Neovim, run <code class="vim">:PackerSync</code>.</li>
-</ol>
+<div id="manual-neovim-package" class="package-managers">
+  <noscript>
+    <h4>Install as a Neovim package</h4>
+  </noscript>
+  <ol>
+    <li>
+      <a
+        href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
+        >Download the quick-lint-js Neovim plugin.</a
+      >
+    </li>
+    <li>
+      Create the directory <% if (os === "windows") { %>
+      <code>%LOCALAPPDATA%\nvim\pack\external\start\</code>. <% } else { %>
+      <code>~/.local/share/nvim/site/pack/external/start/</code>. <% } %>
+    </li>
+    <li>
+      Copy the extracted
+      <code>quick-lint-js.vim</code> directory into the <% if (os === "windows") {
+      %>
+      <code>%LOCALAPPDATA%\nvim\pack\external\start\</code>
+      <% } else { %>
+      <code>~/.local/share/nvim/site/pack/external/start/</code>
+      <% } %> directory.
+    </li>
+    <li>Restart Neovim.</li>
+  </ol>
+</div>
 
-<h4 id="manual-neovim-vim-plug">Install with Vim-Plug</h4>
-<p>
-  This option requires
-  <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
-</p>
-<ol>
-  <li>
-    Add the following line to your <code>vimrc</code> file between
-    <code class="vim">call&nbsp;plug#begin(...)</code> and
-    <code class="vim">call&nbsp;plug#end()</code>:
-    <blockquote>
-      <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '<%= qljsVersionInfo.version %>'}</code></pre>
-    </blockquote>
-  </li>
-  <li>Restart Neovim.</li>
-  <li>In Neovim, run <code class="vim">:PlugInstall</code>.</li>
-</ol>
+<div id="manual-neovim-dein-vim" class="package-managers">
+  <noscript>
+    <h4>Install with dein.vim</h4>
+  </noscript>
+  <p>
+    This option requires
+    <a href="https://github.com/Shougo/dein.vim">dein.vim</a>.
+  </p>
+  <ol>
+    <li>
+      Add the following line to your <% if (os === "windows") { %>
+      <code>%LOCALAPPDATA%\nvim\init.vim</code> file <% } else { %>
+      <code>~/.config/nvim/init.vim</code> <% } %> file between
+      <code class="vim">call dein#begin(...)</code> and
+      <code class="vim">call dein#end()</code>:
+      <blockquote>
+        <pre><code class="vim">call dein#add('quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'rev': '<%= qljsVersionInfo.version %>'})</code></pre>
+      </blockquote>
+    </li>
+    <li>Restart Neovim.</li>
+    <li>In Neovim, run <code class="vim">:call dein#install()</code>.</li>
+  </ol>
+</div>
+
+<div id="manual-neovim-packer-nvim" class="package-managers">
+  <noscript>
+    <h4>Install with packer.nvim</h4>
+  </noscript>
+  <p>
+    This option requires
+    <a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a>.
+  </p>
+  <ol>
+    <li>
+      Add the following line to your <% if (os === "windows") { %>
+      <code>%LOCALAPPDATA%\nvim\lua\plugins.lua</code> file <% } else { %>
+      <code>~/.config/nvim/lua/plugins.lua</code> <% } %> file between
+      <code class="lua">require('packer').startup(function()</code> and
+      <code class="lua">end)</code>:
+      <blockquote>
+        <!-- HACK(strager): Semantically, opt=true makes no sense. We use opt=true
+             to work around Neovim automatically loading plugin/vim/test.vim (a
+             script which causes Neovim to exit on start). However, opt=true
+             packages seem to be loaded by ALE by default anyway, because of the
+             rtp option. -->
+        <pre><code class="lua">use {'quick-lint/quick-lint-js', rtp = 'plugin/vim/quick-lint-js.vim', tag = '<%= qljsVersionInfo.version %>', opt = true}</code></pre>
+      </blockquote>
+    </li>
+    <li>Restart Neovim.</li>
+    <li>In Neovim, run <code class="vim">:PackerSync</code>.</li>
+  </ol>
+</div>
+
+<div id="manual-neovim-vim-plug" class="package-managers">
+  <noscript>
+    <h4>Install with Vim-Plug</h4>
+  </noscript>
+  <p>
+    This option requires
+    <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
+  </p>
+  <ol>
+    <li>
+      Add the following line to your <code>vimrc</code> file between
+      <code class="vim">call&nbsp;plug#begin(...)</code> and
+      <code class="vim">call&nbsp;plug#end()</code>:
+      <blockquote>
+        <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '<%= qljsVersionInfo.version %>'}</code></pre>
+      </blockquote>
+    </li>
+    <li>Restart Neovim.</li>
+    <li>In Neovim, run <code class="vim">:PlugInstall</code>.</li>
+  </ol>
+</div>
 
 <%#
 <!--
