@@ -85,6 +85,24 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     expression* lhs = ast->child_0();
     expression* rhs = ast->child_1();
     this->visit_assignment_expression(lhs, rhs, v);
+
+    expression* lhs_without_paren = lhs->without_paren();
+    expression* rhs_without_paren = rhs->without_paren();
+
+    bool both_sides_are_variables =
+        lhs_without_paren->kind() == expression_kind::variable &&
+        rhs_without_paren->kind() == expression_kind::variable;
+    if (both_sides_are_variables) {
+      string8_view lhs_variable_name =
+          lhs_without_paren->variable_identifier().normalized_name();
+      string8_view rhs_variable_name =
+          rhs_without_paren->variable_identifier().normalized_name();
+      if (lhs_variable_name == rhs_variable_name) {
+        this->diag_reporter_->report(diag_variable_assigned_to_self_is_noop{
+            .assignment_statement = ast->span(),
+        });
+      }
+    }
     break;
   }
   case expression_kind::compound_assignment:

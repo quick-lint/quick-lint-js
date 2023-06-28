@@ -2033,6 +2033,11 @@ msgstr "oförväntad '\\' i identifierare"
 msgid "expected variable name after '...'"
 msgstr "förväntade variabel namn för 'catch'"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "variable assignment to self is no-op"
+msgstr "tilldelar variabel före deklaration"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

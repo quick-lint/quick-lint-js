@@ -737,6 +737,64 @@ TEST_F(test_parse_warning, warn_on_pointless_nullish_coalescing_operator) {
     p.parse_and_visit_expression();
   }
 }
+
+TEST_F(test_parse_warning, warn_on_variable_assigned_to_self_is_noop) {
+  {
+    test_parser p(u8"x = x"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_variable_assigned_to_self_is_noop,
+                              assignment_statement, 0, u8"x = x"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"x = \\u{78}"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_variable_assigned_to_self_is_noop,
+                              assignment_statement, 0, u8"x = \\u{78}"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"x = ((x))"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_variable_assigned_to_self_is_noop,
+                              assignment_statement, 0, u8"x = ((x))"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"(x) = x"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_variable_assigned_to_self_is_noop,
+                              assignment_statement, 0, u8"(x) = x"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"i.x = i.x"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"x += x"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"x &&= x"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
 }
 }
 

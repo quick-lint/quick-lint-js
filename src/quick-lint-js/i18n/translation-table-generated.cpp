@@ -457,7 +457,8 @@ const translation_table translation_data = {
         {0, 0, 0, 55, 0, 59},                //
         {57, 29, 48, 46, 41, 59},            //
         {37, 26, 31, 33, 35, 31},            //
-        {38, 49, 41, 44, 37, 41},            //
+        {0, 0, 0, 0, 0, 41},                 //
+        {38, 49, 41, 44, 37, 37},            //
         {30, 29, 24, 25, 27, 23},            //
         {48, 45, 0, 0, 0, 38},               //
         {30, 29, 47, 44, 28, 29},            //
@@ -2194,6 +2195,7 @@ const translation_table translation_data = {
         u8"using '{0}' against an object literal always returns '{1}'\0"
         u8"variable already declared here\0"
         u8"variable assigned before its declaration\0"
+        u8"variable assignment to self is no-op\0"
         u8"variable declared here\0"
         u8"variable used before declaration: {0}\0"
         u8"what is this '{1}' nonsense?\0"
