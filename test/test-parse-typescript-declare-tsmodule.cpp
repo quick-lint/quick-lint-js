@@ -54,6 +54,21 @@ TEST_F(test_parse_typescript_declare_tsmodule,
                 u8"'my name space'"),
         }));
   }
+
+  {
+    test_parser p(u8"declare namespace ns { module 'inner ns' { } }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                diag_string_namespace_name_is_only_allowed_at_top_level,  //
+                module_name, strlen(u8"declare namespace ns { module "),
+                u8"'inner ns'"_sv),
+        }));
+  }
 }
 
 TEST_F(test_parse_typescript_declare_tsmodule,
@@ -95,24 +110,6 @@ TEST_F(test_parse_typescript_declare_tsmodule,
     test_parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
-  }
-}
-
-TEST_F(test_parse_typescript_declare_tsmodule,
-       namespace_with_string_name_inside_declare_namespace_is_not_allowed) {
-  {
-    test_parser p(u8"declare namespace ns { module 'inner ns' { } }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_string_namespace_name_is_only_allowed_at_top_level,  //
-                module_name, strlen(u8"declare namespace ns { module "),
-                u8"'inner ns'"_sv),
-        }));
   }
 }
 }
