@@ -914,6 +914,35 @@ TEST_F(test_parse_typescript_module, export_equal_with_expression) {
                           }));
   }
 }
+
+TEST_F(test_parse_typescript_module, export_equal_requires_semicolon) {
+  {
+    test_parser p(u8"export = foo bar"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_variable_use",         // bar
+                              "visit_end_of_module",        //
+                          }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_missing_semicolon_after_statement,
+                              where, strlen(u8"export = foo"), u8""_sv),
+        }));
+  }
+
+  {
+    // ASI:
+    test_parser p(u8"export = foo\nbar"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_use",  // foo
+                              "visit_variable_use",         // bar
+                              "visit_end_of_module",        //
+                          }));
+  }
+}
 }
 }
 

@@ -30,6 +30,7 @@ Semantic Versioning.
     variable").
   * `namespace ns{} namespace ns{}` no longer reports [E0034][] ("redeclaration
     of variable").
+  * `export = a b` now reports [E0027][] ("missing semicolon after statement").
 
 ## 2.14.0 (2023-05-22)
 

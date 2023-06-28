@@ -1302,6 +1302,7 @@ void parser::parse_and_visit_export(
     } else {
       this->visit_expression(ast, v, variable_context::rhs);
     }
+    this->consume_semicolon_after_statement();
     break;
   }
 
