@@ -40,14 +40,22 @@
     border-left: 1px #858585 solid;
     padding-left: 8px;
   }
+
+  @media (prefers-color-scheme: dark) {
+    #package-list-header {
+      color: #b9b9b9;
+    }
+
+    #tab-bar button {
+      color: #1b1b1b;
+      background-color: #727272;
+    }
+  }
 </style>
 
 <script>
   var borderColorHighlighted = "red";
-  var borderColorHighlightedDark = "red";
   var borderColorDefault = "black";
-  var borderColorDefaultDark = "black";
-  var isDarkMode = false;
 
   document.addEventListener("DOMContentLoaded", function () {
     changePackageManager(null, "none");
@@ -62,11 +70,7 @@
 
     let tabBarButtons = document.getElementsByClassName("tab-bar-button");
     for (i = 0; i < tabContent.length; i++) {
-      if (isDarkMode) {
-        tabBarButtons[i].style.borderBottomColor = borderColorDefaultDark;
-      } else {
-        tabBarButtons[i].style.borderBottomColor = borderColorDefault;
-      }
+      tabBarButtons[i].style.borderBottomColor = borderColorDefault;
     }
 
     if (selectedManager === "none") {
@@ -77,11 +81,7 @@
     selectedTab.style.display = "block";
 
     if (event != null) {
-      if (isDarkMode) {
-        event.target.style.borderBottomColor = borderColorHighlightedDark;
-      } else {
-        event.target.style.borderBottomColor = borderColorHighlighted;
-      }
+      event.target.style.borderBottomColor = borderColorHighlighted;
     }
   }
 </script>
