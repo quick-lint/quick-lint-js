@@ -1029,7 +1029,7 @@ void parser::parse_and_visit_export(
     }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
     if (declare_namespace_declare_keyword.has_value()) {
-      // declare namespace ns { import a from "b"; }
+      // declare namespace ns { export * from "b"; }
       // See NOTE[declare-import].
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
           .importing_keyword = this->peek().span(),
