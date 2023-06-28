@@ -1,18 +1,18 @@
 <%#
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-%>
-
-<%- await include("../common-manual-tabs.ejs.html") %>
+%> <%- await include("../common-manual-tabs.ejs.html") %>
 
 <h3 id="install-neovim-plugin">Install Neovim plugin</h3>
-<p id="package-list-header">Install this plugin with your favorite Neovim packaging system</p>
+<p id="package-list-header">
+  Install this plugin with your favorite Neovim packaging system
+</p>
 
 <noscript>
   <ul>
     <li>
-      <a href="#manual-neovim-package">Neovim package</a> (built into Neovim 0.5.0
-      and newer)
+      <a href="#manual-neovim-package">Neovim package</a> (built into Neovim
+      0.5.0 and newer)
     </li>
     <li><a href="#manual-neovim-dein-vim">dein.vim</a></li>
     <li><a href="#manual-neovim-packer-nvim">packer.nvim</a></li>
@@ -65,8 +65,8 @@
     </li>
     <li>
       Copy the extracted
-      <code>quick-lint-js.vim</code> directory into the <% if (os === "windows") {
-      %>
+      <code>quick-lint-js.vim</code> directory into the <% if (os === "windows")
+      { %>
       <code>%LOCALAPPDATA%\nvim\pack\external\start\</code>
       <% } else { %>
       <code>~/.local/share/nvim/site/pack/external/start/</code>
