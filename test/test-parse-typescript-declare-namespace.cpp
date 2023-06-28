@@ -75,19 +75,6 @@ TEST_F(test_parse_typescript_declare_namespace, declare_empty_namespace) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_namespace,
-       declaring_namespace_with_string_name_is_allowed_with_module_keyword) {
-  {
-    test_parser p(u8"declare module 'my name space' {}"_sv, typescript_options);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_namespace_scope",  // {
-                              "visit_exit_namespace_scope",   // }
-                              "visit_end_of_module",
-                          }));
-  }
-}
-
 TEST_F(
     test_parse_typescript_declare_namespace,
     declaring_namespace_with_string_name_is_not_allowed_with_namespace_keyword) {
@@ -107,25 +94,6 @@ TEST_F(
                 p.code,
                 diag_string_namespace_name_is_only_allowed_with_declare_module,  //
                 module_name, strlen(u8"declare namespace "),
-                u8"'my name space'"),
-        }));
-  }
-}
-
-TEST_F(
-    test_parse_typescript_declare_namespace,
-    declaring_namespace_with_string_name_is_not_allowed_inside_containing_namespace) {
-  {
-    test_parser p(u8"namespace ns { declare module 'my name space' {} }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_string_namespace_name_is_only_allowed_at_top_level,  //
-                module_name, strlen(u8"namespace ns { declare module "),
                 u8"'my name space'"),
         }));
   }
@@ -640,49 +608,6 @@ TEST_F(test_parse_typescript_declare_namespace,
 }
 
 TEST_F(test_parse_typescript_declare_namespace,
-       declare_module_with_string_name_allows_import_from_module) {
-  {
-    test_parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_declaration",   // fs
-                              "visit_exit_namespace_scope",   // }
-                              "visit_end_of_module",          //
-                          }));
-  }
-
-  {
-    test_parser p(u8"declare module 'mymod' { import fs = require('fs'); }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_declaration",   // fs
-                              "visit_exit_namespace_scope",   // }
-                              "visit_end_of_module",          //
-                          }));
-  }
-}
-
-TEST_F(
-    test_parse_typescript_declare_namespace,
-    declare_module_with_string_name_allows_import_from_module_with_export_keyword) {
-  {
-    test_parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-  }
-
-  {
-    test_parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-  }
-}
-
-TEST_F(test_parse_typescript_declare_namespace,
        declare_namespace_allows_exporting_variables) {
   {
     test_parser p(u8"declare namespace ns { export {Z}; }"_sv,
@@ -1002,24 +927,6 @@ TEST_F(test_parse_typescript_declare_namespace,
                         u8"if"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
-  }
-}
-
-TEST_F(test_parse_typescript_declare_namespace,
-       namespace_with_string_name_inside_declare_namespace_is_not_allowed) {
-  {
-    test_parser p(u8"declare namespace ns { module 'inner ns' { } }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                diag_string_namespace_name_is_only_allowed_at_top_level,  //
-                module_name, strlen(u8"declare namespace ns { module "),
-                u8"'inner ns'"_sv),
-        }));
   }
 }
 
