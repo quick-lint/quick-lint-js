@@ -43,8 +43,14 @@
 </style>
 
 <script>
+  var borderColorHighlighted = "red";
+  var borderColorHighlightedDark = "red";
+  var borderColorDefault = "black";
+  var borderColorDefaultDark = "black";
+  var isDarkMode = false;
+
   document.addEventListener("DOMContentLoaded", function () {
-    changePackageManager(null, "manual-vim-package");
+    changePackageManager(null, "none");
     document.getElementById("tab-bar").style.display = "table-header-group";
   });
 
@@ -54,8 +60,29 @@
       tabContent[i].style.display = "none";
     }
 
+    let tabBarButtons = document.getElementsByClassName("tab-bar-button");
+    for (i = 0; i < tabContent.length; i++) {
+      if (isDarkMode) {
+        tabBarButtons[i].style.borderBottomColor = borderColorDefaultDark;
+      } else {
+        tabBarButtons[i].style.borderBottomColor = borderColorDefault;
+      }
+    }
+
+    if (selectedManager === "none") {
+      return;
+    }
+
     let selectedTab = document.getElementById(selectedManager);
     selectedTab.style.display = "block";
+
+    if (event != null) {
+      if (isDarkMode) {
+        event.target.style.borderBottomColor = borderColorHighlightedDark;
+      } else {
+        event.target.style.borderBottomColor = borderColorHighlighted;
+      }
+    }
   }
 </script>
 
