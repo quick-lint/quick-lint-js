@@ -566,6 +566,14 @@ TEST_F(test_parse_typescript_declare_namespace,
   }
 
   {
+    test_parser p(u8"declare module ns { import fs from 'fs'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAreArray({DIAG_TYPE(
+                              diag_declare_namespace_cannot_import_module)}));
+  }
+
+  {
     test_parser p(u8"declare namespace ns { import fs = require('fs'); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
@@ -607,6 +615,14 @@ TEST_F(test_parse_typescript_declare_namespace,
   }
 
   {
+    test_parser p(u8"declare module ns { export * from 'module'; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAreArray({DIAG_TYPE(
+                              diag_declare_namespace_cannot_import_module)}));
+  }
+
+  {
     test_parser p(u8"declare namespace ns { export {Z} from 'module'; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
@@ -620,6 +636,49 @@ TEST_F(test_parse_typescript_declare_namespace,
                                 u8"from"_sv,  //
                                 declare_keyword, 0, u8"declare"_sv),
         }));
+  }
+}
+
+TEST_F(test_parse_typescript_declare_namespace,
+       declare_module_with_string_name_allows_import_from_module) {
+  {
+    test_parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // fs
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare module 'mymod' { import fs = require('fs'); }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // fs
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+}
+
+TEST_F(
+    test_parse_typescript_declare_namespace,
+    declare_module_with_string_name_allows_import_from_module_with_export_keyword) {
+  {
+    test_parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    test_parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
   }
 }
 

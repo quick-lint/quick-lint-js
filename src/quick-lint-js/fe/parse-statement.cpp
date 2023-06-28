@@ -1027,7 +1027,8 @@ void parser::parse_and_visit_export(
       }
     }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
-    if (declare_context.declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value() &&
+        !declare_context.in_module) {
       // declare namespace ns { export * from "b"; }
       // See NOTE[declare-import].
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
@@ -1057,7 +1058,8 @@ void parser::parse_and_visit_export(
         /*out_exported_bad_tokens=*/&exported_bad_tokens);
     if (this->peek().type == token_type::kw_from) {
       // export {a, b, c} from "module";
-      if (declare_context.declare_namespace_declare_keyword.has_value()) {
+      if (declare_context.declare_namespace_declare_keyword.has_value() &&
+          !declare_context.in_module) {
         this->diag_reporter_->report(
             diag_declare_namespace_cannot_import_module{
                 .importing_keyword = this->peek().span(),
@@ -2534,6 +2536,13 @@ void parser::parse_and_visit_typescript_declare_namespace(
           /*declare_keyword_span=*/declare_keyword_span,
           namespace_keyword_span);
 
+  // True if 'module "modulename" { ... }'.
+  bool is_module = !namespace_declaration.has_value();
+  typescript_declare_context declare_context{
+      .declare_namespace_declare_keyword = declare_keyword_span,
+      .in_module = is_module,
+  };
+
   {
     typescript_namespace_guard g = this->enter_typescript_namespace();
 
@@ -2564,18 +2573,12 @@ void parser::parse_and_visit_typescript_declare_namespace(
       case token_type::kw_namespace:
       case token_type::kw_var:
         this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_declare_statement(
-            v, typescript_declare_context{
-                   .declare_namespace_declare_keyword = declare_keyword_span,
-               });
+        this->parse_and_visit_declare_statement(v, declare_context);
         break;
 
       case token_type::kw_export:
         this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_export(
-            v, typescript_declare_context{
-                   .declare_namespace_declare_keyword = declare_keyword_span,
-               });
+        this->parse_and_visit_export(v, declare_context);
         break;
 
       case token_type::right_curly:
@@ -3954,7 +3957,8 @@ void parser::parse_and_visit_import(
         if (this->peek().type == token_type::left_paren &&
             namespace_name.normalized_name() == u8"require"_sv) {
           // import fs = require("fs");
-          if (declare_context.declare_namespace_declare_keyword.has_value()) {
+          if (declare_context.declare_namespace_declare_keyword.has_value() &&
+              !declare_context.in_module) {
             this->diag_reporter_->report(
                 diag_declare_namespace_cannot_import_module{
                     .importing_keyword = import_span,
@@ -4008,7 +4012,8 @@ void parser::parse_and_visit_import(
   switch (this->peek().type) {
   // import fs from 'fs';
   case token_type::string:
-    if (declare_context.declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value() &&
+        !declare_context.in_module) {
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
           .importing_keyword = import_span,
           .declare_keyword = *declare_context.declare_namespace_declare_keyword,

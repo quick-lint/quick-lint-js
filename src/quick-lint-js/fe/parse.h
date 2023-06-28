@@ -448,6 +448,13 @@ class parser {
     // statement being parsed.
     std::optional<source_code_span> direct_declare_keyword = std::nullopt;
 
+    // If true, we are inside a TypeScript ambient module. For example:
+    //
+    // module "modulename" {
+    //   /* in_module is true here. */
+    // }
+    bool in_module = false;
+
     // Precondition: declare_namespace_declare_keyword.has_value()
     //               || direct_declare_keyword.has_value()
     source_code_span declare_keyword_span() const;
