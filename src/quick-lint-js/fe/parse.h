@@ -437,10 +437,16 @@ class parser {
   void error_on_lexical_declaration(statement_kind statement_kind);
   void error_on_function_statement(statement_kind statement_kind);
 
+  // Information about how the TypeScript 'declare' keyword was used.
+  struct typescript_declare_context {
+    // If present, the parser found a containing 'declare namespace' or
+    // 'declare module'.
+    std::optional<source_code_span> declare_namespace_declare_keyword;
+  };
+
   void parse_and_visit_import(parse_visitor_base &v);
   void parse_and_visit_import(
-      parse_visitor_base &v,
-      std::optional<source_code_span> declare_namespace_declare_keyword);
+      parse_visitor_base &v, const typescript_declare_context &declare_context);
   void parse_and_visit_name_space_import(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_import(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_typescript_type_only_import(
@@ -448,8 +454,7 @@ class parser {
 
   void parse_and_visit_export(parse_visitor_base &v);
   void parse_and_visit_export(
-      parse_visitor_base &v,
-      std::optional<source_code_span> declare_namespace_declare_keyword);
+      parse_visitor_base &v, const typescript_declare_context &declare_context);
   void parse_and_visit_named_exports(
       parse_visitor_base &v,
       std::optional<source_code_span> typescript_type_only_keyword,

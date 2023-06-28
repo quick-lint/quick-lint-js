@@ -887,12 +887,11 @@ void parser::parse_end_of_expression_statement() {
 }
 
 void parser::parse_and_visit_export(parse_visitor_base &v) {
-  this->parse_and_visit_export(v, /*declare_keyword_span=*/std::nullopt);
+  this->parse_and_visit_export(v, typescript_declare_context());
 }
 
 void parser::parse_and_visit_export(
-    parse_visitor_base &v,
-    std::optional<source_code_span> declare_namespace_declare_keyword) {
+    parse_visitor_base &v, const typescript_declare_context &declare_context) {
   QLJS_ASSERT(this->peek().type == token_type::kw_export);
   source_code_span export_token_span = this->peek().span();
   this->skip();
@@ -903,10 +902,10 @@ void parser::parse_and_visit_export(
     // export default class C {}
   case token_type::kw_default:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       this->diag_reporter_->report(diag_declare_namespace_cannot_export_default{
           .default_keyword = this->peek().span(),
-          .declare_keyword = *declare_namespace_declare_keyword,
+          .declare_keyword = *declare_context.declare_namespace_declare_keyword,
       });
     }
     this->skip();
@@ -1028,12 +1027,12 @@ void parser::parse_and_visit_export(
       }
     }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export * from "b"; }
       // See NOTE[declare-import].
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
           .importing_keyword = this->peek().span(),
-          .declare_keyword = *declare_namespace_declare_keyword,
+          .declare_keyword = *declare_context.declare_namespace_declare_keyword,
       });
     }
     this->skip();
@@ -1058,11 +1057,12 @@ void parser::parse_and_visit_export(
         /*out_exported_bad_tokens=*/&exported_bad_tokens);
     if (this->peek().type == token_type::kw_from) {
       // export {a, b, c} from "module";
-      if (declare_namespace_declare_keyword.has_value()) {
+      if (declare_context.declare_namespace_declare_keyword.has_value()) {
         this->diag_reporter_->report(
             diag_declare_namespace_cannot_import_module{
                 .importing_keyword = this->peek().span(),
-                .declare_keyword = *declare_namespace_declare_keyword,
+                .declare_keyword =
+                    *declare_context.declare_namespace_declare_keyword,
             });
       }
       this->skip();
@@ -1101,10 +1101,10 @@ void parser::parse_and_visit_export(
     // export async function f() {}
   case token_type::kw_async:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export async function f(); }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword,
+          v, *declare_context.declare_namespace_declare_keyword,
           /*is_directly_declared=*/false);
     } else {
       const char8 *async_token_begin = this->peek().begin;
@@ -1120,10 +1120,10 @@ void parser::parse_and_visit_export(
     // export function f() {}
   case token_type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export function f(); }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword,
+          v, *declare_context.declare_namespace_declare_keyword,
           /*is_directly_declared=*/false);
     } else {
       this->parse_and_visit_function_declaration(
@@ -1140,7 +1140,8 @@ void parser::parse_and_visit_export(
         v, parse_class_options{
                .require_name = name_requirement::required_for_export,
                .abstract_keyword_span = std::nullopt,
-               .declare_keyword_span = declare_namespace_declare_keyword,
+               .declare_keyword_span =
+                   declare_context.declare_namespace_declare_keyword,
            });
     break;
 
@@ -1160,7 +1161,8 @@ void parser::parse_and_visit_export(
         v, parse_class_options{
                .require_name = name_requirement::required_for_export,
                .abstract_keyword_span = abstract_keyword,
-               .declare_keyword_span = declare_namespace_declare_keyword,
+               .declare_keyword_span =
+                   declare_context.declare_namespace_declare_keyword,
            });
     break;
   }
@@ -1170,11 +1172,11 @@ void parser::parse_and_visit_export(
   case token_type::kw_const:
   case token_type::kw_let:
   case token_type::kw_var:
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export let x; }
       // declare namespace ns { export const enum E {} }
       this->parse_and_visit_declare_statement(
-          v, *declare_namespace_declare_keyword,
+          v, *declare_context.declare_namespace_declare_keyword,
           /*is_directly_declared=*/false);
     } else {
       // is_current_typescript_namespace_non_empty_ is possibly set by
@@ -1235,10 +1237,10 @@ void parser::parse_and_visit_export(
   // export namespace ns {}  // TypeScript only.
   case token_type::kw_module:
   case token_type::kw_namespace: {
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export namespace subns {} }
       this->parse_and_visit_typescript_declare_namespace(
-          v, *declare_namespace_declare_keyword);
+          v, *declare_context.declare_namespace_declare_keyword);
     } else {
       // export namespace ns {}
       source_code_span namespace_keyword = this->peek().span();
@@ -1255,7 +1257,7 @@ void parser::parse_and_visit_export(
     // is_current_typescript_namespace_non_empty_ is possibly set by
     // parse_and_visit_typescript_enum.
     this->parse_and_visit_typescript_enum(
-        v, declare_namespace_declare_keyword.has_value()
+        v, declare_context.declare_namespace_declare_keyword.has_value()
                ? enum_kind::declare_enum
                : enum_kind::normal);
     break;
@@ -2572,7 +2574,10 @@ void parser::parse_and_visit_typescript_declare_namespace(
 
       case token_type::kw_export:
         this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_export(v, declare_keyword_span);
+        this->parse_and_visit_export(
+            v, typescript_declare_context{
+                   .declare_namespace_declare_keyword = declare_keyword_span,
+               });
         break;
 
       case token_type::right_curly:
@@ -3720,12 +3725,11 @@ parse_maybe_else:
 
 void parser::parse_and_visit_import(parse_visitor_base &v) {
   this->parse_and_visit_import(
-      v, /*declare_namespace_declare_keyword=*/std::nullopt);
+      v, /*declare_context=*/typescript_declare_context());
 }
 
 void parser::parse_and_visit_import(
-    parse_visitor_base &v,
-    std::optional<source_code_span> declare_namespace_declare_keyword) {
+    parse_visitor_base &v, const typescript_declare_context &declare_context) {
   QLJS_ASSERT(this->peek().type == token_type::kw_import);
   source_code_span import_span = this->peek().span();
   this->skip();
@@ -3952,11 +3956,12 @@ void parser::parse_and_visit_import(
         if (this->peek().type == token_type::left_paren &&
             namespace_name.normalized_name() == u8"require"_sv) {
           // import fs = require("fs");
-          if (declare_namespace_declare_keyword.has_value()) {
+          if (declare_context.declare_namespace_declare_keyword.has_value()) {
             this->diag_reporter_->report(
                 diag_declare_namespace_cannot_import_module{
                     .importing_keyword = import_span,
-                    .declare_keyword = *declare_namespace_declare_keyword,
+                    .declare_keyword =
+                        *declare_context.declare_namespace_declare_keyword,
                 });
           }
 
@@ -4005,10 +4010,10 @@ void parser::parse_and_visit_import(
   switch (this->peek().type) {
   // import fs from 'fs';
   case token_type::string:
-    if (declare_namespace_declare_keyword.has_value()) {
+    if (declare_context.declare_namespace_declare_keyword.has_value()) {
       this->diag_reporter_->report(diag_declare_namespace_cannot_import_module{
           .importing_keyword = import_span,
-          .declare_keyword = *declare_namespace_declare_keyword,
+          .declare_keyword = *declare_context.declare_namespace_declare_keyword,
       });
     }
     this->skip();
@@ -5373,9 +5378,11 @@ void parser::parse_and_visit_declare_statement(
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_import if necessary.
     this->parse_and_visit_import(
-        v, /*declare_namespace_declare_keyword=*/is_directly_declared
-               ? std::optional<source_code_span>()
-               : declare_keyword_span);
+        v, typescript_declare_context{
+               .declare_namespace_declare_keyword =
+                   is_directly_declared ? std::optional<source_code_span>()
+                                        : declare_keyword_span,
+           });
     break;
 
   // declare:  // Label.
