@@ -992,6 +992,7 @@ Beta release.
 [E0020]: https://quick-lint-js.com/errors/E0020/
 [E0026]: https://quick-lint-js.com/errors/E0026/
 [E0027]: https://quick-lint-js.com/errors/E0027/
+[E0034]: https://quick-lint-js.com/errors/E0034/
 [E0036]: https://quick-lint-js.com/errors/E0036/
 [E0038]: https://quick-lint-js.com/errors/E0038/
 [E0040]: https://quick-lint-js.com/errors/E0040/
@@ -1087,6 +1088,7 @@ Beta release.
 [E0376]: https://quick-lint-js.com/errors/E0376/
 [E0379]: https://quick-lint-js.com/errors/E0379/
 [E0380]: https://quick-lint-js.com/errors/E0380/
+[E0381]: https://quick-lint-js.com/errors/E0381/
 [E0383]: https://quick-lint-js.com/errors/E0383/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
