@@ -22,6 +22,12 @@
     background-color: #858585;
   }
 
+  @media (prefers-reduced-motion) {
+    #tab-bar button {
+      transition: 0ms;
+    }
+  }
+
   #package-list-header {
     font-size: medium;
     border-bottom: #b9b9b9 2px solid;
