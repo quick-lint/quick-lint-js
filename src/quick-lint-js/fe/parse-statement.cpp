@@ -2547,10 +2547,14 @@ void parser::parse_and_visit_typescript_declare_namespace(
     typescript_namespace_guard g = this->enter_typescript_namespace();
 
     if (this->peek().type != token_type::left_curly) {
-      this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
-          .expected_body =
-              source_code_span::unit(this->lexer_.end_of_previous_token()),
-      });
+      // module 'foo';
+      // namespace ns;  // Invalid.
+      if (!is_module) {
+        this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
+            .expected_body =
+                source_code_span::unit(this->lexer_.end_of_previous_token()),
+        });
+      }
       goto done_parsing_body;
     }
     source_code_span left_curly_span = this->peek().span();

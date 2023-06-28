@@ -38,6 +38,35 @@ TEST_F(test_parse_typescript_declare_tsmodule, declare_module) {
   }
 }
 
+TEST_F(test_parse_typescript_declare_tsmodule, declare_module_permits_no_body) {
+  {
+    test_parser p(u8"declare module 'my name space';"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_end_of_module",
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare module 'my name space'"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_end_of_module",
+                          }));
+  }
+
+  {
+    // ASI
+    test_parser p(u8"declare module 'my name space'\nhello;"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // hello
+                              "visit_end_of_module",
+                          }));
+  }
+}
+
 TEST_F(test_parse_typescript_declare_tsmodule,
        declaring_module_is_not_allowed_inside_containing_namespace) {
   {

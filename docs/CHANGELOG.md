@@ -43,6 +43,8 @@ Semantic Versioning.
   * `export = a b` now reports [E0027][] ("missing semicolon after statement").
   * `module 'name' { import ... }` no longer falsely reports [E0362][] ("cannot
     import a module from inside a 'declare namespace'").
+  * `module 'name';` no longer falsely reports [E0356][] ("missing body for
+    TypeScript namespace").
 
 ## 2.14.0 (2023-05-22)
 
