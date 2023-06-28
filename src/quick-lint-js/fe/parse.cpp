@@ -894,6 +894,19 @@ parser::depth_guard::~depth_guard() noexcept {
   this->parser_->depth_ = this->old_depth_;
 }
 
+source_code_span parser::typescript_declare_context::declare_keyword_span()
+    const {
+  QLJS_ASSERT(this->declare_namespace_declare_keyword.has_value() ||
+              this->direct_declare_keyword.has_value());
+  if (this->direct_declare_keyword.has_value()) {
+    return *this->direct_declare_keyword;
+  }
+  if (this->declare_namespace_declare_keyword.has_value()) {
+    return *this->declare_namespace_declare_keyword;
+  }
+  QLJS_UNREACHABLE();
+}
+
 bool parser::parse_expression_cache_key::operator==(
     const parser::parse_expression_cache_key& rhs) const noexcept {
   return this->begin == rhs.begin && this->in_top_level == rhs.in_top_level &&

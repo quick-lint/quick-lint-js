@@ -1103,9 +1103,7 @@ void parser::parse_and_visit_export(
     this->is_current_typescript_namespace_non_empty_ = true;
     if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export async function f(); }
-      this->parse_and_visit_declare_statement(
-          v, *declare_context.declare_namespace_declare_keyword,
-          /*is_directly_declared=*/false);
+      this->parse_and_visit_declare_statement(v, declare_context);
     } else {
       const char8 *async_token_begin = this->peek().begin;
       this->skip();
@@ -1122,9 +1120,7 @@ void parser::parse_and_visit_export(
     this->is_current_typescript_namespace_non_empty_ = true;
     if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export function f(); }
-      this->parse_and_visit_declare_statement(
-          v, *declare_context.declare_namespace_declare_keyword,
-          /*is_directly_declared=*/false);
+      this->parse_and_visit_declare_statement(v, declare_context);
     } else {
       this->parse_and_visit_function_declaration(
           v, function_attributes::normal,
@@ -1175,9 +1171,7 @@ void parser::parse_and_visit_export(
     if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export let x; }
       // declare namespace ns { export const enum E {} }
-      this->parse_and_visit_declare_statement(
-          v, *declare_context.declare_namespace_declare_keyword,
-          /*is_directly_declared=*/false);
+      this->parse_and_visit_declare_statement(v, declare_context);
     } else {
       // is_current_typescript_namespace_non_empty_ is possibly set by
       // parse_and_visit_variable_declaration_statement.
@@ -1336,8 +1330,10 @@ void parser::parse_and_visit_export(
               .export_keyword = export_token_span,
           });
     }
-    this->parse_and_visit_declare_statement(v, declare_span,
-                                            /*is_directly_declared=*/true);
+    this->parse_and_visit_declare_statement(
+        v, typescript_declare_context{
+               .direct_declare_keyword = declare_span,
+           });
     break;
   }
 
@@ -2568,8 +2564,10 @@ void parser::parse_and_visit_typescript_declare_namespace(
       case token_type::kw_namespace:
       case token_type::kw_var:
         this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_declare_statement(v, declare_keyword_span,
-                                                /*is_directly_declared=*/false);
+        this->parse_and_visit_declare_statement(
+            v, typescript_declare_context{
+                   .declare_namespace_declare_keyword = declare_keyword_span,
+               });
         break;
 
       case token_type::kw_export:
@@ -5130,8 +5128,10 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
   case token_type::kw_type:
   case token_type::kw_var:
     this->lexer_.commit_transaction(std::move(transaction));
-    this->parse_and_visit_declare_statement(v, declare_keyword_span,
-                                            /*is_directly_declared=*/true);
+    this->parse_and_visit_declare_statement(
+        v, typescript_declare_context{
+               .direct_declare_keyword = declare_keyword_span,
+           });
     return parse_possible_declare_result::parsed;
 
   // declare:  // Label.
@@ -5144,8 +5144,10 @@ parser::parse_and_visit_possible_declare_statement(parse_visitor_base &v) {
 }
 
 void parser::parse_and_visit_declare_statement(
-    parse_visitor_base &v, source_code_span declare_keyword_span,
-    bool is_directly_declared) {
+    parse_visitor_base &v, const typescript_declare_context &declare_context) {
+  QLJS_ASSERT(declare_context.declare_namespace_declare_keyword.has_value() ||
+              declare_context.direct_declare_keyword.has_value());
+
   function_attributes func_attributes = function_attributes::normal;
 
   switch (this->peek().type) {
@@ -5171,14 +5173,14 @@ void parser::parse_and_visit_declare_statement(
       this->is_current_typescript_namespace_non_empty_ = true;
       if (!this->options_.typescript) {
         this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
-            .declare_keyword = declare_keyword_span,
+            .declare_keyword = declare_context.declare_keyword_span(),
             .declaring_token = const_keyword.span(),
         });
       }
       this->parse_and_visit_let_bindings(
           v, parse_let_bindings_options{
                  .declaring_token = const_keyword,
-                 .declare_keyword = declare_keyword_span,
+                 .declare_keyword = declare_context.declare_keyword_span(),
              });
       this->consume_semicolon_after_statement();
     }
@@ -5192,7 +5194,7 @@ void parser::parse_and_visit_declare_statement(
         v, parse_class_options{
                .require_name = name_requirement::required_for_statement,
                .abstract_keyword_span = std::nullopt,
-               .declare_keyword_span = declare_keyword_span,
+               .declare_keyword_span = declare_context.declare_keyword_span(),
            });
     break;
 
@@ -5215,7 +5217,7 @@ void parser::parse_and_visit_declare_statement(
         v, parse_class_options{
                .require_name = name_requirement::required_for_statement,
                .abstract_keyword_span = abstract_token,
-               .declare_keyword_span = declare_keyword_span,
+               .declare_keyword_span = declare_context.declare_keyword_span(),
            });
     break;
   }
@@ -5227,7 +5229,7 @@ void parser::parse_and_visit_declare_statement(
     this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
       this->diag_reporter_->report(diag_declare_var_not_allowed_in_javascript{
-          .declare_keyword = declare_keyword_span,
+          .declare_keyword = declare_context.declare_keyword_span(),
           .declaring_token = this->peek().span(),
       });
     }
@@ -5236,7 +5238,7 @@ void parser::parse_and_visit_declare_statement(
     this->parse_and_visit_let_bindings(
         v, parse_let_bindings_options{
                .declaring_token = declaring_token,
-               .declare_keyword = declare_keyword_span,
+               .declare_keyword = declare_context.declare_keyword_span(),
            });
     this->consume_semicolon_after_statement();
     break;
@@ -5278,7 +5280,7 @@ void parser::parse_and_visit_declare_statement(
     if (!this->options_.typescript) {
       this->diag_reporter_->report(
           diag_declare_function_not_allowed_in_javascript{
-              .declare_keyword = declare_keyword_span,
+              .declare_keyword = declare_context.declare_keyword_span(),
           });
     }
     this->skip();
@@ -5326,7 +5328,7 @@ void parser::parse_and_visit_declare_statement(
       case function_parameter_parse_result::missing_parameters:
         this->diag_reporter_->report(diag_declare_function_cannot_have_body{
             .body_start = this->peek().span(),
-            .declare_keyword = declare_keyword_span,
+            .declare_keyword = declare_context.declare_keyword_span(),
         });
         v.visit_enter_function_scope_body();
         this->parse_and_visit_statement_block_no_scope(v);
@@ -5348,7 +5350,8 @@ void parser::parse_and_visit_declare_statement(
   case token_type::kw_namespace:
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_typescript_declare_namespace if necessary.
-    this->parse_and_visit_typescript_declare_namespace(v, declare_keyword_span);
+    this->parse_and_visit_typescript_declare_namespace(
+        v, declare_context.declare_keyword_span());
     break;
 
   // export declare import a = b;                 // Invalid.
@@ -5370,19 +5373,14 @@ void parser::parse_and_visit_declare_statement(
     //
     // * 'export declare import a from "b";':
     //   We report diag_import_cannot_have_declare_keyword below.
-    if (is_directly_declared) {
+    if (declare_context.direct_declare_keyword.has_value()) {
       this->diag_reporter_->report(diag_import_cannot_have_declare_keyword{
-          .declare_keyword = declare_keyword_span,
+          .declare_keyword = *declare_context.direct_declare_keyword,
       });
     }
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_import if necessary.
-    this->parse_and_visit_import(
-        v, typescript_declare_context{
-               .declare_namespace_declare_keyword =
-                   is_directly_declared ? std::optional<source_code_span>()
-                                        : declare_keyword_span,
-           });
+    this->parse_and_visit_import(v, declare_context);
     break;
 
   // declare:  // Label.

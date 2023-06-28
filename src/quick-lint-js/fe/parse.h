@@ -441,7 +441,16 @@ class parser {
   struct typescript_declare_context {
     // If present, the parser found a containing 'declare namespace' or
     // 'declare module'.
-    std::optional<source_code_span> declare_namespace_declare_keyword;
+    std::optional<source_code_span> declare_namespace_declare_keyword =
+        std::nullopt;
+
+    // If present, the parser found a 'declare' keyword immediately before the
+    // statement being parsed.
+    std::optional<source_code_span> direct_declare_keyword = std::nullopt;
+
+    // Precondition: declare_namespace_declare_keyword.has_value()
+    //               || direct_declare_keyword.has_value()
+    source_code_span declare_keyword_span() const;
   };
 
   void parse_and_visit_import(parse_visitor_base &v);
@@ -992,14 +1001,10 @@ class parser {
   parse_possible_declare_result parse_and_visit_possible_declare_statement(
       parse_visitor_base &v);
 
-  // is_directly_declared is true if declare_keyword_span appears immediately
-  // prior.
-  //
-  // is_directly_declared is false if declare_keyword_span refers to 'declare'
-  // in an enclosing 'declare namespace'.
-  void parse_and_visit_declare_statement(parse_visitor_base &v,
-                                         source_code_span declare_keyword_span,
-                                         bool is_directly_declared);
+  // Precondition: declare_context.declare_namespace_declare_keyword.has_value()
+  //               || declare_context.direct_declare_keyword.has_value()
+  void parse_and_visit_declare_statement(
+      parse_visitor_base &v, const typescript_declare_context &declare_context);
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
