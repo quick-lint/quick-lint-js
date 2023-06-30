@@ -1618,6 +1618,13 @@ void parser::parse_and_visit_function_declaration(
     v.visit_exit_function_scope();
   };
 
+  if (options.declare_keyword.has_value() && !this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_declare_function_not_allowed_in_javascript{
+            .declare_keyword = *options.declare_keyword,
+        });
+  }
+
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   source_code_span function_token_span = this->peek().span();
   const char8 *function_token_begin = function_token_span.begin();
@@ -5391,15 +5398,8 @@ void parser::parse_and_visit_declare_statement(
 
   // declare function f();
   parse_declare_function:
-  case token_type::kw_function: {
+  case token_type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          diag_declare_function_not_allowed_in_javascript{
-              .declare_keyword = declare_context.declare_keyword_span(),
-          });
-    }
-
     this->parse_and_visit_function_declaration(
         v, function_declaration_options{
                .attributes = func_attributes,
@@ -5409,9 +5409,7 @@ void parser::parse_and_visit_declare_statement(
                .async_keyword = async_keyword,
                .declare_keyword = declare_context.declare_keyword_span(),
            });
-
     break;
-  }
 
   // declare namespace ns {}
   case token_type::kw_module:
