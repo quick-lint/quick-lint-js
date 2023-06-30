@@ -329,20 +329,6 @@
           MESSAGE(QLJS_TRANSLATABLE("'declare' here"), declare_keyword))        \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
-      diag_declare_namespace_cannot_export_default, "E0363",                    \
-      diagnostic_severity::error,                                               \
-      {                                                                         \
-        source_code_span default_keyword;                                       \
-        source_code_span declare_keyword;                                       \
-      },                                                                        \
-      MESSAGE(                                                                  \
-          QLJS_TRANSLATABLE(                                                    \
-              "cannot 'export default' from inside a 'declare namespace'"),     \
-          default_keyword)                                                      \
-          MESSAGE(QLJS_TRANSLATABLE("'declare namespace' starts here"),         \
-                  declare_keyword))                                             \
-                                                                                \
-  QLJS_DIAG_TYPE(                                                               \
       diag_declare_namespace_cannot_import_module, "E0362",                     \
       diagnostic_severity::error,                                               \
       {                                                                         \
@@ -2304,6 +2290,19 @@
                                 "name, not before the type"),                   \
               spread)                                                           \
           MESSAGE(QLJS_TRANSLATABLE("'...' goes here"), expected_spread))       \
+                                                                                \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_typescript_namespace_cannot_export_default, "E0363",                 \
+      diagnostic_severity::error,                                               \
+      {                                                                         \
+        source_code_span default_keyword;                                       \
+        source_code_span namespace_keyword; /* 'namespace' or 'module' */       \
+      },                                                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "cannot 'export default' from inside a namespace"),           \
+              default_keyword)                                                  \
+          MESSAGE(QLJS_TRANSLATABLE("namespace starts here"),                   \
+                  namespace_keyword))                                           \
                                                                                 \
   QLJS_DIAG_TYPE(                                                               \
       diag_typescript_namespaces_not_allowed_in_javascript, "E0273",            \

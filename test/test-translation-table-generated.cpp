@@ -1694,14 +1694,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "cannot 'export default' from inside a 'declare namespace'"_translatable,
+        "cannot 'export default' from inside a namespace"_translatable,
         {
-            u8"cannot 'export default' from inside a 'declare namespace'",
-            u8"cannot 'export default' from inside a 'declare namespace'",
-            u8"cannot 'export default' from inside a 'declare namespace'",
-            u8"cannot 'export default' from inside a 'declare namespace'",
-            u8"cannot 'export default' from inside a 'declare namespace'",
-            u8"cannot 'export default' from inside a 'declare namespace'",
+            u8"cannot 'export default' from inside a namespace",
+            u8"cannot 'export default' from inside a namespace",
+            u8"cannot 'export default' from inside a namespace",
+            u8"cannot 'export default' from inside a namespace",
+            u8"cannot 'export default' from inside a namespace",
+            u8"cannot 'export default' from inside a namespace",
         },
     },
     {
@@ -3770,6 +3770,17 @@ const translated_string test_translation_table[] = {
             u8"move the 'extends' clause before 'implements' here",
             u8"mova a cl\u00e1usula 'extends' para antes do 'implements' aqui",
             u8"move the 'extends' clause before 'implements' here",
+        },
+    },
+    {
+        "namespace starts here"_translatable,
+        {
+            u8"namespace starts here",
+            u8"namespace starts here",
+            u8"namespace starts here",
+            u8"namespace starts here",
+            u8"namespace starts here",
+            u8"namespace starts here",
         },
     },
     {

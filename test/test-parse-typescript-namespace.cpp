@@ -315,6 +315,85 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
                 ElementsAreArray({function_decl(u8"f"_sv),
                                   non_empty_namespace_decl(u8"ns"_sv)}));
   }
+
+  {
+    test_parser p(u8"namespace ns { export class C {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",   // {
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_namespace_scope",    // }
+                              "visit_variable_declaration",    // ns
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({class_decl(u8"C"_sv),
+                                  non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+
+  {
+    test_parser p(
+        u8"namespace ns { export var a; export const b = null; export let c; }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // a
+                              "visit_variable_declaration",   // b
+                              "visit_variable_declaration",   // c
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({var_noinit_decl(u8"a"_sv), const_init_decl(u8"b"_sv),
+                          let_noinit_decl(u8"c"_sv),
+                          non_empty_namespace_decl(u8"ns"_sv)}));
+  }
+}
+
+TEST_F(test_parse_typescript_namespace, namespace_disallows_exporting_default) {
+  {
+    test_parser p(u8"namespace ns { export default Z; }"_sv, typescript_options,
+                  capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_use",           // Z
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_typescript_namespace_cannot_export_default,  //
+                        default_keyword, strlen(u8"namespace ns { export "),
+                        u8"default"_sv,  //
+                        namespace_keyword, 0, u8"namespace"_sv),
+                }));
+  }
+
+  {
+    test_parser p(u8"namespace ns { export default class C {} }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        diag_typescript_namespace_cannot_export_default,  //
+                        default_keyword, strlen(u8"namespace ns { export "),
+                        u8"default"_sv,  //
+                        namespace_keyword, 0, u8"namespace"_sv),
+                }));
+  }
 }
 
 // See NOTE[non-empty-namespace].

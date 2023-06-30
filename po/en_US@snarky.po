@@ -272,17 +272,13 @@ msgid "'declare' here"
 msgstr "IIFE started here"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot 'export default' from inside a 'declare namespace'"
+msgid "cannot import a module from inside a 'declare namespace'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
 msgid "'declare namespace' starts here"
 msgstr "you opened Pandora's Box here"
-
-#: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot import a module from inside a 'declare namespace'"
-msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy
@@ -1524,6 +1520,15 @@ msgstr ""
 #, fuzzy
 msgid "'...' goes here"
 msgstr "here's the '{0}'"
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot 'export default' from inside a namespace"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+#, fuzzy
+msgid "namespace starts here"
+msgstr "you opened Pandora's Box here"
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 #, fuzzy

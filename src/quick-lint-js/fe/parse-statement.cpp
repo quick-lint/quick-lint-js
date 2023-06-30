@@ -902,11 +902,12 @@ void parser::parse_and_visit_export(
     // export default class C {}
   case token_type::kw_default:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_context.declare_namespace_declare_keyword.has_value()) {
-      this->diag_reporter_->report(diag_declare_namespace_cannot_export_default{
-          .default_keyword = this->peek().span(),
-          .declare_keyword = *declare_context.declare_namespace_declare_keyword,
-      });
+    if (this->in_typescript_namespace_.has_value()) {
+      this->diag_reporter_->report(
+          diag_typescript_namespace_cannot_export_default{
+              .default_keyword = this->peek().span(),
+              .namespace_keyword = *this->in_typescript_namespace_,
+          });
     }
     this->skip();
     switch (this->peek().type) {

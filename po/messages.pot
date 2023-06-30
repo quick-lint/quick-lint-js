@@ -260,15 +260,11 @@ msgid "'declare' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot 'export default' from inside a 'declare namespace'"
+msgid "cannot import a module from inside a 'declare namespace'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'declare namespace' starts here"
-msgstr ""
-
-#: src/quick-lint-js/diag/diagnostic-types.h
-msgid "cannot import a module from inside a 'declare namespace'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
@@ -1393,6 +1389,14 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h
 msgid "'...' goes here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "cannot 'export default' from inside a namespace"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "namespace starts here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-types.h

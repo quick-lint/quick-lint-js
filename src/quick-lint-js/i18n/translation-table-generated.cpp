@@ -165,7 +165,7 @@ const translation_table translation_data = {
         {80, 38, 43, 55, 49, 56},            //
         {36, 32, 52, 35, 42, 36},            //
         {0, 0, 0, 0, 0, 50},                 //
-        {73, 51, 90, 53, 0, 58},             //
+        {73, 51, 90, 53, 0, 48},             //
         {54, 29, 70, 63, 0, 47},             //
         {66, 38, 70, 71, 49, 49},            //
         {62, 81, 69, 64, 48, 45},            //
@@ -353,7 +353,8 @@ const translation_table translation_data = {
         {20, 29, 0, 26, 0, 22},              //
         {0, 0, 0, 0, 0, 48},                 //
         {0, 0, 0, 52, 0, 57},                //
-        {69, 26, 0, 59, 0, 51},              //
+        {0, 0, 0, 0, 0, 51},                 //
+        {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 51, 0, 46},                //
@@ -1902,7 +1903,7 @@ const translation_table translation_data = {
         u8"attribute has wrong capitalization; write '{1}' instead\0"
         u8"binary number literal has no digits\0"
         u8"break can only be used inside of a loop or switch\0"
-        u8"cannot 'export default' from inside a 'declare namespace'\0"
+        u8"cannot 'export default' from inside a namespace\0"
         u8"cannot access private identifier outside class\0"
         u8"cannot assign to loop variable in for of/in loop\0"
         u8"cannot declare 'await' inside async function\0"
@@ -2091,6 +2092,7 @@ const translation_table translation_data = {
         u8"misspelled React attribute; write '{1}' instead\0"
         u8"module with string name is only allowed at the top level\0"
         u8"move the 'extends' clause before 'implements' here\0"
+        u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
         u8"newline is not allowed after 'export declare'\0"

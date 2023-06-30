@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 462;
-constexpr std::size_t translation_table_string_table_size = 77236;
+constexpr std::uint16_t translation_table_mapping_table_size = 463;
+constexpr std::size_t translation_table_string_table_size = 77248;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -181,7 +181,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "attribute has wrong capitalization; write '{1}' instead"sv,
           "binary number literal has no digits"sv,
           "break can only be used inside of a loop or switch"sv,
-          "cannot 'export default' from inside a 'declare namespace'"sv,
+          "cannot 'export default' from inside a namespace"sv,
           "cannot access private identifier outside class"sv,
           "cannot assign to loop variable in for of/in loop"sv,
           "cannot declare 'await' inside async function"sv,
@@ -370,6 +370,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "misspelled React attribute; write '{1}' instead"sv,
           "module with string name is only allowed at the top level"sv,
           "move the 'extends' clause before 'implements' here"sv,
+          "namespace starts here"sv,
           "new variable shadows existing variable"sv,
           "newline is not allowed after 'abstract'"sv,
           "newline is not allowed after 'export declare'"sv,
