@@ -175,6 +175,26 @@ TEST_F(test_parse_module, export_default) {
   }
 }
 
+TEST_F(test_parse_module,
+       export_default_with_contextual_keyword_variable_expression) {
+  dirty_set<string8> variable_names =
+      // TODO(#73): Disallow 'interface'.
+      // TODO(#73): Disallow 'protected', 'implements', etc.
+      // (strict_only_reserved_keywords).
+      (contextual_keywords - dirty_set<string8>{u8"let", u8"interface"}) |
+      dirty_set<string8>{u8"await", u8"yield"};
+  for (string8_view variable_name : variable_names) {
+    test_parser p(concat(u8"export default "_sv, variable_name, u8";"_sv));
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",   // (variable_name)
+                              "visit_end_of_module",  //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({variable_name}));
+  }
+}
+
 TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
   for (string8 declaration_kind : {u8"const", u8"let", u8"var"}) {
     test_parser p(

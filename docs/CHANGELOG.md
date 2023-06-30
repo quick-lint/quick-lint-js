@@ -33,6 +33,8 @@ Semantic Versioning.
   (instead of leaving old diagnostics on the screen). This requires that you
   update your Emacs file: add `new-line` to the
   `flycheck-check-syntax-automatically` variable.
+* `export default abstract;` is now parsed correctly as the export of a variable
+  named `abstract`.
 * TypeScript support (still experimental):
   * [E0034][] ("redeclaration of variable") is no longer incorrectly reported
     in various cases, including the following:

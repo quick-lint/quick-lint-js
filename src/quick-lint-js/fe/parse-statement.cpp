@@ -965,7 +965,9 @@ void parser::parse_and_visit_export(
       lexer_transaction transaction = this->lexer_.begin_transaction();
       source_code_span abstract_keyword = this->peek().span();
       this->skip();
-      if (this->peek().has_leading_newline) {
+      if (this->peek().has_leading_newline ||
+          this->peek().type == token_type::semicolon) {
+        // export default abstract;
         // export default abstract  // ASI.
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->parse_and_visit_expression(v);
