@@ -259,6 +259,9 @@ class parser {
     function_attributes attributes;
     const char8 *begin;
     name_requirement require_name;
+    std::optional<source_code_span> async_keyword;
+    // TypeScript 'declare', either direct or from 'declare namespace'.
+    std::optional<source_code_span> declare_keyword;
   };
 
   void parse_and_visit_function_declaration(
@@ -483,6 +486,8 @@ class parser {
     // Precondition: declare_namespace_declare_keyword.has_value()
     //               || direct_declare_keyword.has_value()
     source_code_span declare_keyword_span() const;
+
+    std::optional<source_code_span> maybe_declare_keyword_span() const;
   };
 
   void parse_and_visit_import(parse_visitor_base &v);

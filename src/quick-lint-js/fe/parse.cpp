@@ -893,13 +893,20 @@ source_code_span parser::typescript_declare_context::declare_keyword_span()
     const {
   QLJS_ASSERT(this->declare_namespace_declare_keyword.has_value() ||
               this->direct_declare_keyword.has_value());
+  std::optional<source_code_span> span = this->maybe_declare_keyword_span();
+  QLJS_ASSERT(span.has_value());
+  return *span;
+}
+
+std::optional<source_code_span>
+parser::typescript_declare_context::maybe_declare_keyword_span() const {
   if (this->direct_declare_keyword.has_value()) {
-    return *this->direct_declare_keyword;
+    return this->direct_declare_keyword;
   }
   if (this->declare_namespace_declare_keyword.has_value()) {
-    return *this->declare_namespace_declare_keyword;
+    return this->declare_namespace_declare_keyword;
   }
-  QLJS_UNREACHABLE();
+  return std::nullopt;
 }
 
 bool parser::parse_expression_cache_key::operator==(

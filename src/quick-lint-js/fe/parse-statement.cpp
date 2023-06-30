@@ -87,6 +87,8 @@ parse_statement:
                .attributes = function_attributes::normal,
                .begin = this->peek().begin,
                .require_name = name_requirement::required_for_statement,
+               .async_keyword = std::nullopt,
+               .declare_keyword = std::nullopt,
            });
     break;
 
@@ -207,6 +209,8 @@ parse_statement:
                  .attributes = function_attributes::async,
                  .begin = async_token.begin,
                  .require_name = name_requirement::required_for_statement,
+                 .async_keyword = async_token.span(),
+                 .declare_keyword = std::nullopt,
              });
       break;
 
@@ -269,6 +273,8 @@ parse_statement:
                  .attributes = function_attributes::async,
                  .begin = async_token.begin,
                  .require_name = name_requirement::required_for_statement,
+                 .async_keyword = async_token.span(),
+                 .declare_keyword = std::nullopt,
              });
       break;
     }
@@ -337,6 +343,8 @@ parse_statement:
                    .attributes = attributes.value(),
                    .begin = star_token.begin,
                    .require_name = name_requirement::required_for_statement,
+                   .async_keyword = std::nullopt,
+                   .declare_keyword = std::nullopt,
                });
         break;
       }
@@ -922,11 +930,14 @@ void parser::parse_and_visit_export(
       this->skip();
       if (this->peek().type == token_type::kw_function) {
         this->parse_and_visit_function_declaration(
-            v, function_declaration_options{
-                   .attributes = function_attributes::async,
-                   .begin = async_token.begin,
-                   .require_name = name_requirement::optional,
-               });
+            v,
+            function_declaration_options{
+                .attributes = function_attributes::async,
+                .begin = async_token.begin,
+                .require_name = name_requirement::optional,
+                .async_keyword = async_token.span(),
+                .declare_keyword = declare_context.maybe_declare_keyword_span(),
+            });
       } else {
         expression *ast =
             this->parse_async_expression(v, async_token, precedence{});
@@ -972,11 +983,14 @@ void parser::parse_and_visit_export(
       // export default function f() {}
     case token_type::kw_function:
       this->parse_and_visit_function_declaration(
-          v, function_declaration_options{
-                 .attributes = function_attributes::normal,
-                 .begin = this->peek().begin,
-                 .require_name = name_requirement::optional,
-             });
+          v,
+          function_declaration_options{
+              .attributes = function_attributes::normal,
+              .begin = this->peek().begin,
+              .require_name = name_requirement::optional,
+              .async_keyword = std::nullopt,
+              .declare_keyword = declare_context.maybe_declare_keyword_span(),
+          });
       break;
 
       // export default let x = null;  // Invalid.
@@ -1116,15 +1130,18 @@ void parser::parse_and_visit_export(
       // declare namespace ns { export async function f(); }
       this->parse_and_visit_declare_statement(v, declare_context);
     } else {
-      const char8 *async_token_begin = this->peek().begin;
+      source_code_span async_token_span = this->peek().span();
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
       this->parse_and_visit_function_declaration(
-          v, function_declaration_options{
-                 .attributes = function_attributes::async,
-                 .begin = async_token_begin,
-                 .require_name = name_requirement::required_for_export,
-             });
+          v,
+          function_declaration_options{
+              .attributes = function_attributes::async,
+              .begin = async_token_span.begin(),
+              .require_name = name_requirement::required_for_export,
+              .async_keyword = async_token_span,
+              .declare_keyword = declare_context.maybe_declare_keyword_span(),
+          });
     }
     break;
 
@@ -1136,11 +1153,14 @@ void parser::parse_and_visit_export(
       this->parse_and_visit_declare_statement(v, declare_context);
     } else {
       this->parse_and_visit_function_declaration(
-          v, function_declaration_options{
-                 .attributes = function_attributes::normal,
-                 .begin = this->peek().begin,
-                 .require_name = name_requirement::required_for_export,
-             });
+          v,
+          function_declaration_options{
+              .attributes = function_attributes::normal,
+              .begin = this->peek().begin,
+              .require_name = name_requirement::required_for_export,
+              .async_keyword = std::nullopt,
+              .declare_keyword = declare_context.maybe_declare_keyword_span(),
+          });
     }
     break;
 
