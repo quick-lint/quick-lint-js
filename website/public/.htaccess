@@ -15,17 +15,6 @@
   Header always set X-XSS-Protection "1; mode=block"
 </IfModule>
 
-<IfModule http2_module>
-  # Optimize loads of the main page and press release pages using HTTP/2 push.
-  <Files "index.html">
-    # Whitelist to avoid pushing for all subdirectories.
-    <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
-      Header add Link "</main.css>;rel=preload"
-      Header add Link "</dusty.svg>;rel=preload"
-    </If>
-  </Files>
-</IfModule>
-
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #
