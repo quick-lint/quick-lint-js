@@ -406,7 +406,10 @@ class parser {
       std::optional<source_code_span> declare_keyword_span,
       source_code_span namespace_or_module_keyword_span);
 
-  void parse_and_visit_typescript_declare_namespace(
+  // Parse an ambient TypeScript namespace declared with either 'declare
+  // namespace' or 'declare module' or a TypeScript module declared with
+  // 'declare module'.
+  void parse_and_visit_typescript_declare_namespace_or_module(
       parse_visitor_base &v, source_code_span declare_keyword_span);
 
   void parse_and_visit_typescript_type_alias(parse_visitor_base &v,

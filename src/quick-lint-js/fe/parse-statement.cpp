@@ -1236,7 +1236,7 @@ void parser::parse_and_visit_export(
   case token_type::kw_namespace: {
     if (declare_context.declare_namespace_declare_keyword.has_value()) {
       // declare namespace ns { export namespace subns {} }
-      this->parse_and_visit_typescript_declare_namespace(
+      this->parse_and_visit_typescript_declare_namespace_or_module(
           v, *declare_context.declare_namespace_declare_keyword);
     } else {
       // export namespace ns {}
@@ -2528,7 +2528,7 @@ parser::parse_and_visit_typescript_namespace_or_module_head(
   }
 }
 
-void parser::parse_and_visit_typescript_declare_namespace(
+void parser::parse_and_visit_typescript_declare_namespace_or_module(
     parse_visitor_base &v, source_code_span declare_keyword_span) {
   QLJS_ASSERT(this->peek().type == token_type::kw_module ||
               this->peek().type == token_type::kw_namespace);
@@ -5366,8 +5366,8 @@ void parser::parse_and_visit_declare_statement(
   case token_type::kw_module:
   case token_type::kw_namespace:
     // is_current_typescript_namespace_non_empty_ is set by
-    // parse_and_visit_typescript_declare_namespace if necessary.
-    this->parse_and_visit_typescript_declare_namespace(
+    // parse_and_visit_typescript_declare_namespace_or_module if necessary.
+    this->parse_and_visit_typescript_declare_namespace_or_module(
         v, declare_context.declare_keyword_span());
     break;
 
