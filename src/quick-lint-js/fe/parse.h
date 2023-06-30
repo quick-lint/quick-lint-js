@@ -383,11 +383,24 @@ class parser {
       parse_visitor_base &v,
       std::optional<source_code_span> export_keyword_span,
       source_code_span namespace_keyword_span);
-  std::optional<identifier> parse_and_visit_typescript_namespace_head(
+
+  // If a namespace head is parsed (even if it's declared with the 'module'
+  // keyword), returns the outer-most declared identifier. If a module head is
+  // parsed, returns nullopt.
+  //
+  // Examples:
+  //
+  //   namespace ns {}        // Returns "ns".
+  //   module ns {}           // Returns "ns".
+  //   namespace ns.subns {}  // Returns "ns".
+  //   module ns.subns {}     // Returns "ns".
+  //   module "mymod" {}      // Returns nullopt.
+  std::optional<identifier> parse_and_visit_typescript_namespace_or_module_head(
       parse_visitor_base &v,
       std::optional<source_code_span> export_keyword_span,
       std::optional<source_code_span> declare_keyword_span,
-      source_code_span namespace_keyword_span);
+      source_code_span namespace_or_module_keyword_span);
+
   void parse_and_visit_typescript_declare_namespace(
       parse_visitor_base &v, source_code_span declare_keyword_span);
 

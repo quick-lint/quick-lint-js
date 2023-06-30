@@ -2425,7 +2425,7 @@ void parser::parse_and_visit_typescript_namespace(
     parse_visitor_base &v, std::optional<source_code_span> export_keyword_span,
     source_code_span namespace_keyword_span) {
   std::optional<identifier> namespace_declaration =
-      this->parse_and_visit_typescript_namespace_head(
+      this->parse_and_visit_typescript_namespace_or_module_head(
           v,
           /*export_keyword_span=*/export_keyword_span,
           /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
@@ -2469,20 +2469,21 @@ done_parsing_body:
   }
 }
 
-std::optional<identifier> parser::parse_and_visit_typescript_namespace_head(
+std::optional<identifier>
+parser::parse_and_visit_typescript_namespace_or_module_head(
     parse_visitor_base &, std::optional<source_code_span> export_keyword_span,
     std::optional<source_code_span> declare_keyword_span,
-    source_code_span namespace_keyword_span) {
+    source_code_span namespace_or_module_keyword_span) {
   if (this->peek().has_leading_newline) {
     this->diag_reporter_->report(
         diag_newline_not_allowed_after_namespace_keyword{
-            .namespace_keyword = namespace_keyword_span,
+            .namespace_keyword = namespace_or_module_keyword_span,
         });
   }
   if (!this->options_.typescript) {
     this->diag_reporter_->report(
         diag_typescript_namespaces_not_allowed_in_javascript{
-            .namespace_keyword = namespace_keyword_span,
+            .namespace_keyword = namespace_or_module_keyword_span,
         });
   }
 
@@ -2504,7 +2505,7 @@ std::optional<identifier> parser::parse_and_visit_typescript_namespace_head(
   // namespace 'ns' { }         // Invalid.
   case token_type::string: {
     bool namespace_keyword_is_module =
-        namespace_keyword_span.string_view()[0] == u8'm';
+        namespace_or_module_keyword_span.string_view()[0] == u8'm';
     if (!namespace_keyword_is_module || !declare_keyword_span.has_value() ||
         export_keyword_span.has_value()) {
       this->diag_reporter_->report(
@@ -2534,7 +2535,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
   source_code_span namespace_keyword_span = this->peek().span();
   this->skip();
   std::optional<identifier> namespace_declaration =
-      this->parse_and_visit_typescript_namespace_head(
+      this->parse_and_visit_typescript_namespace_or_module_head(
           v,
           /*export_keyword_span=*/std::nullopt,
           /*declare_keyword_span=*/declare_keyword_span,
