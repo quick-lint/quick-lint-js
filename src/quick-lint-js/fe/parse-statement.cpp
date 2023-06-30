@@ -5263,6 +5263,7 @@ void parser::parse_and_visit_declare_statement(
               declare_context.direct_declare_keyword.has_value());
 
   function_attributes func_attributes = function_attributes::normal;
+  std::optional<source_code_span> async_keyword = std::nullopt;
 
   switch (this->peek().type) {
   // declare enum E {}
@@ -5379,8 +5380,9 @@ void parser::parse_and_visit_declare_statement(
   // declare async function f(); // Invalid.
   case token_type::kw_async:
     this->is_current_typescript_namespace_non_empty_ = true;
+    async_keyword = this->peek().span();
     this->diag_reporter_->report(diag_declare_function_cannot_be_async{
-        .async_keyword = this->peek().span(),
+        .async_keyword = *async_keyword,
     });
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
@@ -5401,12 +5403,10 @@ void parser::parse_and_visit_declare_statement(
     this->parse_and_visit_function_declaration(
         v, function_declaration_options{
                .attributes = func_attributes,
-               // FIXME(strager): .begin is wrong if 'async' appeared prior.
-               .begin = this->peek().begin,
+               .begin = async_keyword.has_value() ? async_keyword->begin()
+                                                  : this->peek().begin,
                .require_name = name_requirement::required_for_statement,
-               // FIXME(strager): async_keyword is wrong if 'async' appeared
-               // prior.
-               .async_keyword = std::nullopt,
+               .async_keyword = async_keyword,
                .declare_keyword = declare_context.declare_keyword_span(),
            });
 
