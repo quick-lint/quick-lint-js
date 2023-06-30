@@ -141,6 +141,36 @@ TEST_F(test_parse_typescript_declare_tsmodule,
     p.parse_and_visit_module();
   }
 }
+
+TEST_F(test_parse_typescript_declare_tsmodule,
+       declare_module_allows_exporting_default) {
+  {
+    test_parser p(u8"declare module 'mymod' { export default Z; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              // FIXME(strager): This should be
+                              // visit_variable_export_use.
+                              "visit_variable_use",          // Z
+                              "visit_exit_namespace_scope",  // }
+                              "visit_end_of_module",         //
+                          }));
+  }
+
+  {
+    test_parser p(u8"declare module 'mymod' { export default class C {} }"_sv,
+                  typescript_options);
+    p.parse_and_visit_module();
+  }
+
+  {
+    test_parser p(
+        u8"declare module 'mymod' { export default function f(); }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+  }
+}
 }
 }
 

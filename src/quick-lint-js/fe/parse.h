@@ -940,7 +940,8 @@ class parser {
    public:
     explicit typescript_namespace_or_module_guard(
         parser *,
-        std::optional<source_code_span> old_in_typescript_namespace_or_module);
+        std::optional<source_code_span> old_in_typescript_namespace_or_module,
+        bool old_in_typescript_module);
 
     typescript_namespace_or_module_guard(
         const typescript_namespace_or_module_guard &) = delete;
@@ -952,16 +953,26 @@ class parser {
    private:
     parser *parser_;
     std::optional<source_code_span> old_in_typescript_namespace_or_module_;
+    bool old_in_typescript_module_;
   };
+  // Sets in_typescript_namespace_or_module_ and in_typescript_module_.
   [[nodiscard]] typescript_namespace_or_module_guard
   enter_typescript_namespace_or_module(
-      source_code_span namespace_or_module_keyword_span);
+      source_code_span namespace_or_module_keyword_span, bool is_module);
 
   // If present, we are inside the body of a TypeScript namespace (declared with
   // 'namespace' or 'module') or a TypeScript module. This variable then refers
   // to the inner-most 'namespace' or 'module' token.
   std::optional<source_code_span> in_typescript_namespace_or_module_ =
       std::nullopt;
+
+  // If true, we are inside the body of a TypeScript module (declared with
+  // 'module "modulename"'). in_typescript_namespace_or_module_ will be present.
+  //
+  // If false, we might be inside the body of a TypeScript namespace (declared
+  // with 'module'); see in_typescript_namespace_or_module_ for that
+  // information.
+  bool in_typescript_module_ = false;
 
   bool in_typescript_only_construct_ = false;
 

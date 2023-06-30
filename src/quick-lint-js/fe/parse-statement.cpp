@@ -914,7 +914,8 @@ void parser::parse_and_visit_export(
     // export default class C {}
   case token_type::kw_default:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (this->in_typescript_namespace_or_module_.has_value()) {
+    if (this->in_typescript_namespace_or_module_.has_value() &&
+        !this->in_typescript_module_) {
       this->diag_reporter_->report(
           diag_typescript_namespace_cannot_export_default{
               .default_keyword = this->peek().span(),
@@ -2540,8 +2541,12 @@ void parser::parse_and_visit_typescript_namespace(
     this->is_current_typescript_namespace_non_empty_ = false;
   }
 
+  // FIXME(strager): is_module should be true if we performed error recovery to
+  // treat 'module "foo"' as 'declare module "foo"'.
+  bool is_module = false;
   typescript_namespace_or_module_guard namespace_guard =
-      this->enter_typescript_namespace_or_module(namespace_keyword_span);
+      this->enter_typescript_namespace_or_module(namespace_keyword_span,
+                                                 is_module);
   {
     if (this->peek().type != token_type::left_curly) {
       this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
@@ -2651,7 +2656,8 @@ void parser::parse_and_visit_typescript_declare_namespace_or_module(
   };
 
   typescript_namespace_or_module_guard namespace_guard =
-      this->enter_typescript_namespace_or_module(namespace_keyword_span);
+      this->enter_typescript_namespace_or_module(namespace_keyword_span,
+                                                 is_module);
   {
     if (this->peek().type != token_type::left_curly) {
       // module 'foo';

@@ -381,6 +381,15 @@ TEST_F(test_parse_typescript_namespace, namespace_disallows_exporting_default) {
   }
 
   {
+    test_parser p(u8"namespace ns { export default 2+2; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({DIAG_TYPE(
+                    diag_typescript_namespace_cannot_export_default)}));
+  }
+
+  {
     test_parser p(u8"namespace ns { export default class C {} }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
