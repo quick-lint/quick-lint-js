@@ -379,6 +379,11 @@ class parser {
   // 'extends' clause.
   void parse_and_visit_typescript_interface_reference(parse_visitor_base &v);
 
+  // Parse a TypeScript namespace declared with either 'namespace' or 'module'.
+  //
+  // If the code looks like a TypeScript module (e.g. 'module "modname" {}'), it
+  // is interpreted as a 'declare module' (as if
+  // parse_and_visit_typescript_declare_namespace was called instead).
   void parse_and_visit_typescript_namespace(
       parse_visitor_base &v,
       std::optional<source_code_span> export_keyword_span,
