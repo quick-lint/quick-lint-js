@@ -101,11 +101,6 @@ parser::switch_guard parser::enter_switch() {
   return switch_guard(this, std::exchange(this->in_switch_statement_, true));
 }
 
-parser::typescript_namespace_guard parser::enter_typescript_namespace() {
-  return typescript_namespace_guard(
-      this, std::exchange(this->in_typescript_namespace_, true));
-}
-
 parser::binary_expression_builder::binary_expression_builder(
     monotonic_allocator* allocator, expression* first_child)
     : children_("binary_expression_builder children", allocator),

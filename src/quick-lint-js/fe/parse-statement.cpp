@@ -2429,14 +2429,16 @@ void parser::parse_and_visit_typescript_namespace(
           /*export_keyword_span=*/export_keyword_span,
           /*declare_keyword_span=*/std::nullopt, namespace_keyword_span);
 
-  bool is_nested_namespace = this->in_typescript_namespace_;
+  bool is_nested_namespace = this->in_typescript_namespace_.has_value();
   if (!is_nested_namespace) {
     this->is_current_typescript_namespace_non_empty_ = false;
   }
 
-  {
-    typescript_namespace_guard g = this->enter_typescript_namespace();
+  std::optional<source_code_span> old_in_typescript_namespace =
+      this->in_typescript_namespace_;
+  this->in_typescript_namespace_ = namespace_keyword_span;
 
+  {
     if (this->peek().type != token_type::left_curly) {
       this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
           .expected_body =
@@ -2451,6 +2453,7 @@ void parser::parse_and_visit_typescript_namespace(
   }
 
 done_parsing_body:
+  this->in_typescript_namespace_ = old_in_typescript_namespace;
   if (namespace_declaration.has_value()) {
     variable_declaration_flags namespace_flags =
         this->is_current_typescript_namespace_non_empty_
@@ -2543,9 +2546,11 @@ void parser::parse_and_visit_typescript_declare_namespace(
       .in_module = is_module,
   };
 
-  {
-    typescript_namespace_guard g = this->enter_typescript_namespace();
+  std::optional<source_code_span> old_in_typescript_namespace =
+      this->in_typescript_namespace_;
+  this->in_typescript_namespace_ = namespace_keyword_span;
 
+  {
     if (this->peek().type != token_type::left_curly) {
       // module 'foo';
       // namespace ns;  // Invalid.
@@ -2627,6 +2632,7 @@ void parser::parse_and_visit_typescript_declare_namespace(
   }
 
 done_parsing_body:
+  this->in_typescript_namespace_ = old_in_typescript_namespace;
   if (namespace_declaration.has_value()) {
     v.visit_variable_declaration(*namespace_declaration,
                                  variable_kind::_namespace,

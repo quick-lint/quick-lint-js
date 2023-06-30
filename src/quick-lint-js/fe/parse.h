@@ -905,7 +905,9 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
-  bool in_typescript_namespace_ = false;
+
+  // If present, refers to a 'namespace' or 'module' token.
+  std::optional<source_code_span> in_typescript_namespace_ = std::nullopt;
 
   bool in_typescript_only_construct_ = false;
 
@@ -964,8 +966,6 @@ class parser {
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
-  using typescript_namespace_guard =
-      bool_guard<&parser::in_typescript_namespace_>;
 
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
@@ -983,7 +983,6 @@ class parser {
   [[nodiscard]] typescript_only_construct_guard
   enter_typescript_only_construct();
   [[nodiscard]] switch_guard enter_switch();
-  [[nodiscard]] typescript_namespace_guard enter_typescript_namespace();
 
   void parse_end_of_expression_statement();
   void parse_and_visit_return_statement(
