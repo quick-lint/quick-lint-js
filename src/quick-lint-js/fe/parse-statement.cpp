@@ -1737,6 +1737,7 @@ void parser::parse_and_visit_function_declaration(
   case token_type::left_paren:
     switch (options.require_name) {
     case name_requirement::required_for_statement: {
+      const char8 *left_paren_begin = this->peek().begin;
       const char8 *left_paren_end = this->peek().end;
 
       // The function should have a name, but doesn't have a name. Perhaps the
@@ -1752,7 +1753,7 @@ void parser::parse_and_visit_function_declaration(
 
       if (this->peek().type != token_type::left_paren) {
         this->diag_reporter_->report(diag_missing_name_in_function_statement{
-            .where = source_code_span(function_token_begin, left_paren_end),
+            .where = source_code_span::unit(left_paren_begin),
         });
       } else {
         this->diag_reporter_->report(

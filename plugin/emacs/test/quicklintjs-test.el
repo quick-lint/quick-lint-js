@@ -118,9 +118,9 @@ foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
          (inhibit-message 't))
      (flycheck-ert-should-syntax-check
       "test/error.js" 'js-mode
-      '(1 1 error "missing name in function statement"
+      '(1 9 error "missing name in function statement"
           :id "E0061" :checker javascript-quicklintjs
-          :end-line 1 :end-column 10)
+          :end-line 1 :end-column 9)
       '(1 12 error "unclosed code block; expected '}' by end of file"
           :id "E0134" :checker javascript-quicklintjs
           :end-line 1 :end-column 13)

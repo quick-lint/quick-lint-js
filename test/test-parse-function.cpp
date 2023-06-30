@@ -178,12 +178,12 @@ TEST_F(test_parse_function, function_statement_with_no_name) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_name_in_function_statement,  //
-                        where, 0, u8"function("_sv),
+                        where, strlen(u8"function"), u8""_sv),
                 }));
   }
 
   {
-    test_parser p(u8"async function() {x;}"_sv, capture_diags);
+    test_parser p(u8"async function  () {x;}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -196,7 +196,7 @@ TEST_F(test_parse_function, function_statement_with_no_name) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, diag_missing_name_in_function_statement,  //
-                        where, strlen(u8"async "), u8"function("_sv),
+                        where, strlen(u8"async function  "), u8""_sv),
                 }));
   }
 
@@ -216,8 +216,8 @@ TEST_F(test_parse_function, function_statement_with_no_name) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, diag_missing_name_or_parentheses_for_function,  //
-                where, strlen(u8"async "), u8"function("_sv, function, 0,
-                u8"async function(x) {y;}"_sv),
+                where, strlen(u8"async "), u8"function("_sv,            //
+                function, 0, u8"async function(x) {y;}"_sv),
         }));
   }
 }
@@ -953,7 +953,7 @@ TEST_F(test_parse_function, named_function_statement_without_body) {
 
 TEST_F(test_parse_function, unnamed_function_statement_without_body) {
   {
-    test_parser p(u8"function*()"_sv, capture_diags);
+    test_parser p(u8"function* ()"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -963,10 +963,10 @@ TEST_F(test_parse_function, unnamed_function_statement_without_body) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, diag_missing_function_body,  //
-                              expected_body, strlen(u8"function*()"), u8""_sv),
+                              expected_body, strlen(u8"function* ()"), u8""_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_name_in_function_statement,  //
-                              where, strlen(u8""), u8"function*("_sv),
+                              where, strlen(u8"function* "), u8""_sv),
         }));
   }
 
@@ -984,7 +984,7 @@ TEST_F(test_parse_function, unnamed_function_statement_without_body) {
                               expected_body, strlen(u8"function()"), u8""_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               diag_missing_name_in_function_statement,  //
-                              where, strlen(u8""), u8"function("_sv),
+                              where, strlen(u8"function"), u8""_sv),
         }));
   }
 
