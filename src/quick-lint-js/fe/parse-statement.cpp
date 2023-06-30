@@ -927,13 +927,19 @@ void parser::parse_and_visit_export(
       // export default async function f() {}
       // export default async () => {}
     case token_type::kw_async: {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
       token async_token = this->peek();
       this->skip();
       if (this->peek().type == token_type::kw_function) {
+        this->lexer_.commit_transaction(std::move(transaction));
         if (this->peek().has_leading_newline) {
           // export default async  // ASI.
           // function f() {}
-          v.visit_variable_use(async_token.identifier_name());
+          if (this->in_typescript_module_) {
+            v.visit_variable_export_use(async_token.identifier_name());
+          } else {
+            v.visit_variable_use(async_token.identifier_name());
+          }
           this->consume_semicolon_after_statement();
           break;
         }
@@ -947,10 +953,8 @@ void parser::parse_and_visit_export(
                 .declare_keyword = declare_context.maybe_declare_keyword_span(),
             });
       } else {
-        expression *ast =
-            this->parse_async_expression(v, async_token, precedence{});
-        this->visit_expression(ast, v, variable_context::rhs);
-        this->consume_semicolon_after_statement();
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto export_default_expression;
       }
       break;
     }
@@ -977,8 +981,7 @@ void parser::parse_and_visit_export(
         // export default abstract;
         // export default abstract  // ASI.
         this->lexer_.roll_back_transaction(std::move(transaction));
-        this->parse_and_visit_expression(v);
-        this->consume_semicolon_after_statement();
+        goto export_default_expression;
       } else {
         // export default abstract class C {}
         this->lexer_.commit_transaction(std::move(transaction));
@@ -1032,9 +1035,24 @@ void parser::parse_and_visit_export(
       break;
     }
 
-      // export default 2 + 2;
+    // export default MyClass;
+    // export default 2 + 2;
+    export_default_expression:
     default:
-      this->parse_and_visit_expression(v);
+      expression *ast = this->parse_expression(v);
+      if (this->in_typescript_module_) {
+        if (ast->kind() == expression_kind::variable) {
+          // declare module "m" { export default MyClass; }
+          v.visit_variable_export_use(ast->variable_identifier());
+        } else {
+          // declare module "m" { export default 2 + 2; }  // Invalid.
+          this->visit_expression(ast, v, variable_context::rhs);
+        }
+      } else {
+        // export default MyClass;
+        // export default 2 + 2;
+        this->visit_expression(ast, v, variable_context::rhs);
+      }
       this->consume_semicolon_after_statement();
       break;
     }

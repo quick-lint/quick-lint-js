@@ -145,20 +145,6 @@ TEST_F(test_parse_typescript_declare_tsmodule,
 TEST_F(test_parse_typescript_declare_tsmodule,
        declare_module_allows_exporting_default) {
   {
-    test_parser p(u8"declare module 'mymod' { export default Z; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_namespace_scope",  // {
-                              // FIXME(strager): This should be
-                              // visit_variable_export_use.
-                              "visit_variable_use",          // Z
-                              "visit_exit_namespace_scope",  // }
-                              "visit_end_of_module",         //
-                          }));
-  }
-
-  {
     test_parser p(u8"declare module 'mymod' { export default class C {} }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
@@ -169,6 +155,74 @@ TEST_F(test_parse_typescript_declare_tsmodule,
         u8"declare module 'mymod' { export default function f(); }"_sv,
         typescript_options);
     p.parse_and_visit_module();
+  }
+}
+
+TEST_F(test_parse_typescript_declare_tsmodule,
+       export_default_of_variable_is_allowed_in_declare_module) {
+  // NOTE[declare-module-export-default-var]: Unlike a normal 'export default',
+  // 'export default' inside 'declare module' is an export use:
+  //
+  // export default A;     // Invalid
+  // class A {}
+  //
+  // declare module "m" {
+  //   export default A;   // OK
+  //   class A {}
+  // }
+
+  {
+    test_parser p(u8"declare module 'mymod' { export default Z; }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_export_use",    // Z
+                              "visit_exit_namespace_scope",   // }
+                              "visit_end_of_module",          //
+                          }));
+  }
+
+  // See also test_parse_module
+  // export_default_with_contextual_keyword_variable_expression.
+  dirty_set<string8> variable_names =
+      // TODO(#73): Disallow 'interface'.
+      // TODO(#73): Disallow 'protected', 'implements', etc.
+      // (strict_only_reserved_keywords).
+      (contextual_keywords - dirty_set<string8>{u8"let", u8"interface"}) |
+      dirty_set<string8>{u8"await", u8"yield"};
+  for (string8_view variable_name : variable_names) {
+    test_parser p(concat(u8"declare module 'mymod' { export default "_sv,
+                         variable_name, u8"; }"_sv),
+                  typescript_options);
+    SCOPED_TRACE(p.code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_export_use",    // (variable_name)
+                              "visit_exit_namespace_scope",   // {
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({variable_name}));
+  }
+
+  // See also test_parse_module
+  // export_default_async_function_with_newline_inserts_semicolon.
+  {
+    test_parser p(
+        u8"declare module 'mymod' { export default async\nfunction f(); }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_export_use",    // async
+                              "visit_variable_declaration",   // f
+                              "visit_enter_function_scope",   // f
+                              "visit_exit_function_scope",    // f
+                              "visit_exit_namespace_scope",   // {
+                              "visit_end_of_module",          //
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async"}));
   }
 }
 }
