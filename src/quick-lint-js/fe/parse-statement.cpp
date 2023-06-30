@@ -953,6 +953,8 @@ void parser::parse_and_visit_export(
           v, parse_class_options{
                  .require_name = name_requirement::optional,
                  .abstract_keyword_span = std::nullopt,
+                 .declare_keyword_span =
+                     declare_context.maybe_declare_keyword_span(),
              });
       break;
 
@@ -975,6 +977,8 @@ void parser::parse_and_visit_export(
             v, parse_class_options{
                    .require_name = name_requirement::optional,
                    .abstract_keyword_span = abstract_keyword,
+                   .declare_keyword_span =
+                       declare_context.maybe_declare_keyword_span(),
                });
       }
       break;

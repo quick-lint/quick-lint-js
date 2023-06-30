@@ -677,8 +677,9 @@ TEST_F(test_parse_typescript_declare_namespace,
   }
 
   {
-    test_parser p(u8"declare namespace ns { export default class C {} }"_sv,
-                  typescript_options, capture_diags);
+    test_parser p(
+        u8"declare namespace ns { export default class C { method(); } }"_sv,
+        typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -690,6 +691,16 @@ TEST_F(test_parse_typescript_declare_namespace,
                 u8"default"_sv,  //
                 namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
         }));
+  }
+
+  {
+    test_parser p(
+        u8"declare namespace ns { export default abstract class C { method(); } }"_sv,
+        typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({DIAG_TYPE(
+                    diag_typescript_namespace_cannot_export_default)}));
   }
 
   {
