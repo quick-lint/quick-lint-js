@@ -1124,44 +1124,41 @@ void parser::parse_and_visit_export(
   }
 
     // export async function f() {}
-  case token_type::kw_async:
+  case token_type::kw_async: {
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_context.declare_namespace_declare_keyword.has_value()) {
-      // declare namespace ns { export async function f(); }
-      this->parse_and_visit_declare_statement(v, declare_context);
-    } else {
-      source_code_span async_token_span = this->peek().span();
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
-      this->parse_and_visit_function_declaration(
-          v,
-          function_declaration_options{
-              .attributes = function_attributes::async,
-              .begin = async_token_span.begin(),
-              .require_name = name_requirement::required_for_export,
-              .async_keyword = async_token_span,
-              .declare_keyword = declare_context.maybe_declare_keyword_span(),
-          });
+    source_code_span async_token_span = this->peek().span();
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
+
+    std::optional<source_code_span> declare_keyword =
+        declare_context.maybe_declare_keyword_span();
+    if (declare_keyword.has_value()) {
+      this->diag_reporter_->report(diag_declare_function_cannot_be_async{
+          .async_keyword = async_token_span,
+      });
     }
+    this->parse_and_visit_function_declaration(
+        v, function_declaration_options{
+               .attributes = function_attributes::async,
+               .begin = async_token_span.begin(),
+               .require_name = name_requirement::required_for_export,
+               .async_keyword = async_token_span,
+               .declare_keyword = declare_keyword,
+           });
     break;
+  }
 
     // export function f() {}
   case token_type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (declare_context.declare_namespace_declare_keyword.has_value()) {
-      // declare namespace ns { export function f(); }
-      this->parse_and_visit_declare_statement(v, declare_context);
-    } else {
-      this->parse_and_visit_function_declaration(
-          v,
-          function_declaration_options{
-              .attributes = function_attributes::normal,
-              .begin = this->peek().begin,
-              .require_name = name_requirement::required_for_export,
-              .async_keyword = std::nullopt,
-              .declare_keyword = declare_context.maybe_declare_keyword_span(),
-          });
-    }
+    this->parse_and_visit_function_declaration(
+        v, function_declaration_options{
+               .attributes = function_attributes::normal,
+               .begin = this->peek().begin,
+               .require_name = name_requirement::required_for_export,
+               .async_keyword = std::nullopt,
+               .declare_keyword = declare_context.maybe_declare_keyword_span(),
+           });
     break;
 
   // export class C {}
