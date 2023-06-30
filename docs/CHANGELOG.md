@@ -35,6 +35,9 @@ Semantic Versioning.
   `flycheck-check-syntax-automatically` variable.
 * `export default abstract;` is now parsed correctly as the export of a variable
   named `abstract`.
+* `export default async (newline) function f() {}` is now parsed correctly as
+  the export of a variable named `async` followed by the declaration of a
+  non-async function named `f`.
 * TypeScript support (still experimental):
   * [E0034][] ("redeclaration of variable") is no longer incorrectly reported
     in various cases, including the following:

@@ -930,6 +930,13 @@ void parser::parse_and_visit_export(
       token async_token = this->peek();
       this->skip();
       if (this->peek().type == token_type::kw_function) {
+        if (this->peek().has_leading_newline) {
+          // export default async  // ASI.
+          // function f() {}
+          v.visit_variable_use(async_token.identifier_name());
+          this->consume_semicolon_after_statement();
+          break;
+        }
         this->parse_and_visit_function_declaration(
             v,
             function_declaration_options{

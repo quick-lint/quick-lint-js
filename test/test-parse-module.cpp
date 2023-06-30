@@ -317,6 +317,37 @@ TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
   }
 }
 
+TEST_F(test_parse_module,
+       export_default_async_function_with_newline_inserts_semicolon) {
+  test_parser p(u8"export default async\nfunction f() {await;}"_sv);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_variable_use",               // async
+                            "visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       // f
+                            "visit_enter_function_scope_body",  // {
+                            "visit_variable_use",  // await (not an operator)
+                            "visit_exit_function_scope",  // }
+                            "visit_end_of_module",
+                        }));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async", u8"await"}))
+      << "'async' should be treated as a variable name, not a keyword; "
+      << "'await' should be treated as a variable name, not a keyword because "
+         "the containing function is not async";
+}
+
+TEST_F(test_parse_module,
+       export_default_async_with_newline_does_not_insert_semicolon) {
+  {
+    test_parser p(u8"export default async\n[x] = 42;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async", u8"x"}))
+        << "'async' should be treated as a variable name, not a keyword; "
+        << "'x' should be parsed as an index, not as part of a destructured "
+           "assignment";
+  }
+}
+
 TEST_F(test_parse_module, export_list) {
   {
     test_parser p(u8"export {one, two};"_sv);
