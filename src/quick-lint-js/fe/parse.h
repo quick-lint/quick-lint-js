@@ -927,8 +927,11 @@ class parser {
   bool in_switch_statement_ = false;
   bool in_class_ = false;
 
-  // If present, refers to a 'namespace' or 'module' token.
-  std::optional<source_code_span> in_typescript_namespace_ = std::nullopt;
+  // If present, we are inside the body of a TypeScript namespace (declared with
+  // 'namespace' or 'module') or a TypeScript module. This variable then refers
+  // to the inner-most 'namespace' or 'module' token.
+  std::optional<source_code_span> in_typescript_namespace_or_module_ =
+      std::nullopt;
 
   bool in_typescript_only_construct_ = false;
 
