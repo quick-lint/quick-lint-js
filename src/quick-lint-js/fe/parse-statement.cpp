@@ -1589,13 +1589,49 @@ void parser::parse_and_visit_statement_block_after_left_curly(
 
 void parser::parse_and_visit_function_declaration(
     parse_visitor_base &v, function_declaration_options options) {
+  auto parse_and_visit_declare_function_parameters_and_body =
+      [&](std::optional<source_code_span> function_name) -> void {
+    // declare function f();  // TypeScript only
+    v.visit_enter_function_scope();
+    function_guard guard = this->enter_function(options.attributes);
+
+    function_parameter_parse_result result =
+        this->parse_and_visit_function_parameter_list(v, function_name,
+                                                      parameter_list_options());
+    switch (result) {
+    case function_parameter_parse_result::parsed_parameters:
+    case function_parameter_parse_result::missing_parameters:
+      this->diag_reporter_->report(diag_declare_function_cannot_have_body{
+          .body_start = this->peek().span(),
+          .declare_keyword = *options.declare_keyword,
+      });
+      v.visit_enter_function_scope_body();
+      this->parse_and_visit_statement_block_no_scope(v);
+      break;
+
+    case function_parameter_parse_result::missing_parameters_ignore_body:
+    case function_parameter_parse_result::parsed_parameters_missing_body:
+      this->consume_semicolon_after_statement();
+      break;
+    }
+
+    v.visit_exit_function_scope();
+  };
+
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   source_code_span function_token_span = this->peek().span();
   const char8 *function_token_begin = function_token_span.begin();
   this->skip();
+
   // NOTE(strager): This potentially updates options.attributes.
   std::optional<source_code_span> generator_star =
       this->parse_generator_star(&options.attributes);
+  if (options.declare_keyword.has_value() && generator_star.has_value()) {
+    // declare function *f();  // Invalid.
+    this->diag_reporter_->report(diag_declare_function_cannot_be_generator{
+        .star = *generator_star,
+    });
+  }
 
   switch (this->peek().type) {
   case token_type::kw_await:
@@ -1620,6 +1656,8 @@ void parser::parse_and_visit_function_declaration(
     // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
     goto named_function;
 
+  // function f() {}
+  // declare function f();  // TypeScript only
   named_function:
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier: {
@@ -1639,93 +1677,100 @@ void parser::parse_and_visit_function_declaration(
         &this->temporary_memory_);
 
   next_overload:
-    v.visit_enter_function_scope();
-    {
-      function_guard guard = this->enter_function(options.attributes);
-      function_parameter_parse_result result =
-          this->parse_and_visit_function_parameter_list(
-              v, function_name.span(), parameter_list_options());
-      switch (result) {
-      case function_parameter_parse_result::parsed_parameters:
-      case function_parameter_parse_result::missing_parameters:
-        v.visit_enter_function_scope_body();
-        this->parse_and_visit_statement_block_no_scope(v);
-        break;
+    if (options.declare_keyword.has_value()) {
+      // declare function f();  // TypeScript only
+      parse_and_visit_declare_function_parameters_and_body(
+          function_name.span());
+    } else {
+      // function f() {}
+      v.visit_enter_function_scope();
+      {
+        function_guard guard = this->enter_function(options.attributes);
+        function_parameter_parse_result result =
+            this->parse_and_visit_function_parameter_list(
+                v, function_name.span(), parameter_list_options());
+        switch (result) {
+        case function_parameter_parse_result::parsed_parameters:
+        case function_parameter_parse_result::missing_parameters:
+          v.visit_enter_function_scope_body();
+          this->parse_and_visit_statement_block_no_scope(v);
+          break;
 
-      case function_parameter_parse_result::missing_parameters_ignore_body:
-        break;
+        case function_parameter_parse_result::missing_parameters_ignore_body:
+          break;
 
-      case function_parameter_parse_result::parsed_parameters_missing_body:
-        if (this->options_.typescript) {
-          overload_signature_parse_result r =
-              this->parse_end_of_typescript_overload_signature(function_name);
-          if (r.is_overload_signature) {
-            if (generator_star.has_value()) {
-              this->diag_reporter_->report(
-                  diag_typescript_function_overload_signature_must_not_have_generator_star{
-                      .generator_star = *generator_star,
-                  });
+        case function_parameter_parse_result::parsed_parameters_missing_body:
+          if (this->options_.typescript) {
+            overload_signature_parse_result r =
+                this->parse_end_of_typescript_overload_signature(function_name);
+            if (r.is_overload_signature) {
+              if (generator_star.has_value()) {
+                this->diag_reporter_->report(
+                    diag_typescript_function_overload_signature_must_not_have_generator_star{
+                        .generator_star = *generator_star,
+                    });
+              }
+              v.visit_exit_function_scope();
+              options.attributes = r.second_function_attributes;
+              generator_star = r.second_function_generator_star;
+              if (overload_names.empty()) {
+                // Lazily initialize overload_names with the first function's
+                // name.
+                overload_names.push_back(function_name);
+              }
+              overload_names.push_back(*r.second_function_name);
+              goto next_overload;
             }
-            v.visit_exit_function_scope();
-            options.attributes = r.second_function_attributes;
-            generator_star = r.second_function_generator_star;
-            if (overload_names.empty()) {
-              // Lazily initialize overload_names with the first function's
-              // name.
-              overload_names.push_back(function_name);
+            if (!r.has_missing_body_error) {
+              goto invalid_typescript_function_overload_signature;
             }
-            overload_names.push_back(*r.second_function_name);
-            goto next_overload;
           }
-          if (!r.has_missing_body_error) {
-            goto invalid_typescript_function_overload_signature;
-          }
+          this->diag_reporter_->report(diag_missing_function_body{
+              .expected_body = source_code_span::unit(
+                  this->lexer_.end_of_previous_token())});
+        invalid_typescript_function_overload_signature:
+          break;
         }
-        this->diag_reporter_->report(diag_missing_function_body{
-            .expected_body =
-                source_code_span::unit(this->lexer_.end_of_previous_token())});
-      invalid_typescript_function_overload_signature:
-        break;
       }
-    }
-    v.visit_exit_function_scope();
+      v.visit_exit_function_scope();
 
-    if (!overload_names.empty()) {
-      QLJS_ASSERT(overload_names.size() >= 2);
-      identifier &real_function_name = overload_names.back();
+      if (!overload_names.empty()) {
+        QLJS_ASSERT(overload_names.size() >= 2);
+        identifier &real_function_name = overload_names.back();
 
-      // Detect mismatched function names.
-      //
-      // We just parsed code like the following:
-      //
-      //     function f();        // #0
-      //     function f(a);       // #1
-      //     function f(a, b);    // #2
-      //     function f(a, b) {}  // #3
-      //
-      // We already declared the first overload (#0 above).
-      // The last overload (#3 above) is the real function.
-      for (bump_vector_size i = 0; i < overload_names.size() - 1; ++i) {
-        identifier &overload_name = overload_names[i];
-        if (overload_name.normalized_name() !=
-            real_function_name.normalized_name()) {
-          // If this is the first overload:
-          // We already declared the first overload's function name. If it turns
-          // out it had the wrong name, then we don't want to redeclare it.
-          // Instead, declare the real function's name.
-          //
-          // If this is the second, third, or other overload, declare it.
-          const identifier &variable_to_declare =
-              i == 0 ? real_function_name : overload_name;
-          v.visit_variable_declaration(variable_to_declare,
-                                       variable_kind::_function,
-                                       variable_declaration_flags::none);
+        // Detect mismatched function names.
+        //
+        // We just parsed code like the following:
+        //
+        //     function f();        // #0
+        //     function f(a);       // #1
+        //     function f(a, b);    // #2
+        //     function f(a, b) {}  // #3
+        //
+        // We already declared the first overload (#0 above).
+        // The last overload (#3 above) is the real function.
+        for (bump_vector_size i = 0; i < overload_names.size() - 1; ++i) {
+          identifier &overload_name = overload_names[i];
+          if (overload_name.normalized_name() !=
+              real_function_name.normalized_name()) {
+            // If this is the first overload:
+            // We already declared the first overload's function name. If it
+            // turns out it had the wrong name, then we don't want to redeclare
+            // it. Instead, declare the real function's name.
+            //
+            // If this is the second, third, or other overload, declare it.
+            const identifier &variable_to_declare =
+                i == 0 ? real_function_name : overload_name;
+            v.visit_variable_declaration(variable_to_declare,
+                                         variable_kind::_function,
+                                         variable_declaration_flags::none);
 
-          this->diag_reporter_->report(
-              diag_typescript_function_overload_signature_must_have_same_name{
-                  .overload_name = overload_name.span(),
-                  .function_name = real_function_name.span(),
-              });
+            this->diag_reporter_->report(
+                diag_typescript_function_overload_signature_must_have_same_name{
+                    .overload_name = overload_name.span(),
+                    .function_name = real_function_name.span(),
+                });
+          }
         }
       }
     }
@@ -1740,31 +1785,44 @@ void parser::parse_and_visit_function_declaration(
       const char8 *left_paren_begin = this->peek().begin;
       const char8 *left_paren_end = this->peek().end;
 
-      // The function should have a name, but doesn't have a name. Perhaps the
-      // user intended to include parentheses. Parse the function as an
-      // expression instead of as a declaration.
-      this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, options.attributes,
-          parameter_list_options());
-      const char8 *function_end = this->lexer_.end_of_previous_token();
-      expression *function = this->make_expression<expression::function>(
-          options.attributes,
-          source_code_span(function_token_begin, function_end));
-
-      if (this->peek().type != token_type::left_paren) {
+      if (options.declare_keyword.has_value()) {
+        // declare function();  // Invalid.
         this->diag_reporter_->report(diag_missing_name_in_function_statement{
             .where = source_code_span::unit(left_paren_begin),
         });
+        parse_and_visit_declare_function_parameters_and_body(
+            /*function_name=*/std::nullopt);
       } else {
-        this->diag_reporter_->report(
-            diag_missing_name_or_parentheses_for_function{
-                .where = source_code_span(function_token_begin, left_paren_end),
-                .function =
-                    source_code_span(options.begin, function->span().end()),
-            });
-        expression *full_expression =
-            this->parse_expression_remainder(v, function, precedence{});
-        this->visit_expression(full_expression, v, variable_context::rhs);
+        // function() {}  // Invalid.
+        // function() {}()  // Invalid.
+
+        // The function should have a name, but doesn't have a name. Perhaps the
+        // user intended to include parentheses. Parse the function as an
+        // expression instead of as a declaration.
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/std::nullopt, options.attributes,
+            parameter_list_options());
+        const char8 *function_end = this->lexer_.end_of_previous_token();
+        expression *function = this->make_expression<expression::function>(
+            options.attributes,
+            source_code_span(function_token_begin, function_end));
+
+        if (this->peek().type != token_type::left_paren) {
+          this->diag_reporter_->report(diag_missing_name_in_function_statement{
+              .where = source_code_span::unit(left_paren_begin),
+          });
+        } else {
+          this->diag_reporter_->report(
+              diag_missing_name_or_parentheses_for_function{
+                  .where =
+                      source_code_span(function_token_begin, left_paren_end),
+                  .function =
+                      source_code_span(options.begin, function->span().end()),
+              });
+          expression *full_expression =
+              this->parse_expression_remainder(v, function, precedence{});
+          this->visit_expression(full_expression, v, variable_context::rhs);
+        }
       }
 
       break;
@@ -5339,64 +5397,18 @@ void parser::parse_and_visit_declare_statement(
               .declare_keyword = declare_context.declare_keyword_span(),
           });
     }
-    this->skip();
 
-    std::optional<source_code_span> generator_star =
-        this->parse_generator_star(&func_attributes);
-    if (generator_star.has_value()) {
-      this->diag_reporter_->report(diag_declare_function_cannot_be_generator{
-          .star = *generator_star,
-      });
-    }
-
-    std::optional<source_code_span> function_name_span;
-    switch (this->peek().type) {
-    QLJS_CASE_CONTEXTUAL_KEYWORD:
-    case token_type::kw_await:
-    case token_type::kw_yield:
-    case token_type::identifier: {
-      identifier function_name = this->peek().identifier_name();
-      v.visit_variable_declaration(function_name, variable_kind::_function,
-                                   variable_declaration_flags::none);
-      function_name_span = function_name.span();
-      this->skip();
-      break;
-    }
-
-    default:
-      break;
-    }
-
-    if (!function_name_span.has_value()) {
-      this->diag_reporter_->report(diag_missing_name_in_function_statement{
-          .where = source_code_span::unit(this->peek().begin),
-      });
-    }
-
-    v.visit_enter_function_scope();
-    {
-      function_guard guard = this->enter_function(func_attributes);
-      function_parameter_parse_result result =
-          this->parse_and_visit_function_parameter_list(
-              v, function_name_span, parameter_list_options());
-      switch (result) {
-      case function_parameter_parse_result::parsed_parameters:
-      case function_parameter_parse_result::missing_parameters:
-        this->diag_reporter_->report(diag_declare_function_cannot_have_body{
-            .body_start = this->peek().span(),
-            .declare_keyword = declare_context.declare_keyword_span(),
-        });
-        v.visit_enter_function_scope_body();
-        this->parse_and_visit_statement_block_no_scope(v);
-        break;
-
-      case function_parameter_parse_result::missing_parameters_ignore_body:
-      case function_parameter_parse_result::parsed_parameters_missing_body:
-        this->consume_semicolon_after_statement();
-        break;
-      }
-    }
-    v.visit_exit_function_scope();
+    this->parse_and_visit_function_declaration(
+        v, function_declaration_options{
+               .attributes = func_attributes,
+               // FIXME(strager): .begin is wrong if 'async' appeared prior.
+               .begin = this->peek().begin,
+               .require_name = name_requirement::required_for_statement,
+               // FIXME(strager): async_keyword is wrong if 'async' appeared
+               // prior.
+               .async_keyword = std::nullopt,
+               .declare_keyword = declare_context.declare_keyword_span(),
+           });
 
     break;
   }
