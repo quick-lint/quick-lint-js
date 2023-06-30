@@ -691,6 +691,15 @@ TEST_F(test_parse_typescript_declare_namespace,
                 namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
         }));
   }
+
+  {
+    test_parser p(u8"declare namespace ns { export default function f(); }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({DIAG_TYPE(
+                    diag_typescript_namespace_cannot_export_default)}));
+  }
 }
 
 TEST_F(test_parse_typescript_declare_namespace,

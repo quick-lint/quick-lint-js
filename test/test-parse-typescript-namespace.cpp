@@ -394,6 +394,15 @@ TEST_F(test_parse_typescript_namespace, namespace_disallows_exporting_default) {
                         namespace_keyword, 0, u8"namespace"_sv),
                 }));
   }
+
+  {
+    test_parser p(u8"namespace ns { export default function f() {} }"_sv,
+                  typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({DIAG_TYPE(
+                    diag_typescript_namespace_cannot_export_default)}));
+  }
 }
 
 // See NOTE[non-empty-namespace].
