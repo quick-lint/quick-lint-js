@@ -248,7 +248,7 @@
       }
       let titleHTML = ejs.escapeXML(page.title);
       if (page.uri === currentURI) {
-        return html`<li class="${classes}"><span class="current-page" aria-current="page">${titleHTML}</span></li>`;
+        return html`<li class="${classes}"><span aria-current="page">${titleHTML}</span></li>`;
       } else {
         return html`<li class="${classes}">
           <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
@@ -258,7 +258,7 @@
     if (page.pattern instanceof RegExp) {
       assert.match(currentURI, page.pattern, "Linkifying pattern subpages only supported for current URI");
       let titleHTML = ejs.escapeXML(page.makeTitle(currentURI, currentURI.match(page.pattern)));
-      return html`<li><span class="current-page" aria-current="page">${titleHTML}</span></li>`;
+      return html`<li><span aria-current="page">${titleHTML}</span></li>`;
     }
     throw new Error("Malformed page or subpage: " + JSON.stringify(subpage));
   }
