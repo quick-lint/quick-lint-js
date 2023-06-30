@@ -504,14 +504,14 @@ analyze_options parse_analyze_options(int argc, char** argv) {
   analyze_options o;
 
   arg_parser parser(argc, argv);
-  while (!parser.done()) {
-    if (const char* argument = parser.match_argument()) {
-      o.trace_files.push_back(argument);
-    } else if (parser.match_flag_option("--check-document-consistency"sv,
-                                        "--check"sv)) {
+  QLJS_ARG_PARSER_LOOP(parser) {
+    QLJS_ARGUMENT(const char* argument) { o.trace_files.push_back(argument); }
+
+    QLJS_FLAG("--check-document-consistency"sv, "--check"sv) {
       o.check_document_consistency = true;
-    } else if (const char* document_id_string = parser.match_option_with_value(
-                   "--dump-document-content"sv)) {
+    }
+
+    QLJS_OPTION(const char* document_id_string, "--dump-document-content"sv) {
       errno = 0;
       char* end;
       unsigned long long document_id =
@@ -523,8 +523,9 @@ analyze_options parse_analyze_options(int argc, char** argv) {
       }
       o.dump_document_content_document_id =
           narrow_cast<std::uint64_t>(document_id);
-    } else if (const char* begin_event_index_string =
-                   parser.match_option_with_value("--begin"sv)) {
+    }
+
+    QLJS_OPTION(const char* begin_event_index_string, "--begin"sv) {
       if (parse_integer_exact(std::string_view(begin_event_index_string),
                               o.begin_event_index) !=
           parse_integer_exact_error::ok) {
@@ -532,8 +533,9 @@ analyze_options parse_analyze_options(int argc, char** argv) {
                      begin_event_index_string);
         std::exit(2);
       }
-    } else if (const char* end_event_index_string =
-                   parser.match_option_with_value("--end"sv)) {
+    }
+
+    QLJS_OPTION(const char* end_event_index_string, "--end"sv) {
       if (parse_integer_exact(std::string_view(end_event_index_string),
                               o.end_event_index) !=
           parse_integer_exact_error::ok) {
@@ -541,8 +543,9 @@ analyze_options parse_analyze_options(int argc, char** argv) {
                      end_event_index_string);
         std::exit(2);
       }
-    } else {
-      const char* unrecognized = parser.match_anything();
+    }
+
+    QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
       std::exit(2);
     }

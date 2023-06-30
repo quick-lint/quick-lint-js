@@ -44,15 +44,17 @@ generate_lex_keyword_options parse_generate_lex_keyword_options(int argc,
   generate_lex_keyword_options o;
 
   arg_parser parser(argc, argv);
-  while (!parser.done()) {
-    if (const char* argument = parser.match_argument()) {
+  QLJS_ARG_PARSER_LOOP(parser) {
+    QLJS_ARGUMENT(const char* argument) {
       std::fprintf(stderr, "error: unexpected argument: %s\n", argument);
       std::exit(2);
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--output"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output"sv) {
       o.output_path = arg_value;
-    } else {
-      const char* unrecognized = parser.match_anything();
+    }
+
+    QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
       std::exit(2);
     }

@@ -42,11 +42,12 @@ test_typescript_options parse_test_options(int argc, char** argv) {
   test_typescript_options o;
 
   arg_parser parser(argc, argv);
-  while (!parser.done()) {
-    if (const char* argument = parser.match_argument()) {
+  QLJS_ARG_PARSER_LOOP(parser) {
+    QLJS_ARGUMENT(const char* argument) {
       o.test_case_paths.push_back(argument);
-    } else {
-      const char* unrecognized = parser.match_anything();
+    }
+
+    QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
       std::exit(2);
     }

@@ -65,18 +65,20 @@ options parse_options(int argc, char** argv) {
   };
 
   arg_parser parser(argc, argv);
-  while (!parser.done()) {
-    if (const char* argument = parser.match_argument()) {
+  QLJS_ARG_PARSER_LOOP(parser) {
+    QLJS_ARGUMENT(const char* argument) {
       if (argument == "-"sv) {
         add_stdin_file();
       } else {
         add_regular_file(argument);
       }
-    } else if (parser.match_flag_option("--debug-parser-visits"sv,
-                                        "--debug-p"sv)) {
+    }
+
+    QLJS_FLAG("--debug-parser-visits"sv, "--debug-p"sv) {
       o.print_parser_visits = true;
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--output-format"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-format"sv) {
       if (arg_value == "gnu-like"sv) {
         o.output_format = output_format::gnu_like;
       } else if (arg_value == "vim-qflist-json"sv) {
@@ -86,8 +88,9 @@ options parse_options(int argc, char** argv) {
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
-    } else if (const char* arg_value = parser.match_option_with_value(
-                   "--diagnostic-hyperlinks"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--diagnostic-hyperlinks"sv) {
       if (arg_value == "auto"sv) {
         o.diagnostic_hyperlinks = option_when::auto_;
       } else if (arg_value == "always"sv) {
@@ -97,12 +100,14 @@ options parse_options(int argc, char** argv) {
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--config-file"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--config-file"sv) {
       active_config_file = arg_value;
       o.has_config_file = true;
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--language"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--language"sv) {
       o.has_language = true;
       if (unused_language_option) {
         o.warning_language_without_file.emplace_back(unused_language_option);
@@ -121,11 +126,13 @@ options parse_options(int argc, char** argv) {
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
-    } else if (const char* arg_value = parser.match_option_with_value(
-                   "--path-for-config-search"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--path-for-config-search"sv) {
       next_path_for_config_search = arg_value;
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--vim-file-bufnr"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--vim-file-bufnr"sv) {
       o.has_vim_file_bufnr = true;
       int bufnr;
       if (parse_integer_exact(std::string_view(arg_value), bufnr) !=
@@ -139,25 +146,20 @@ options parse_options(int argc, char** argv) {
       }
       next_vim_file_bufnr.number = bufnr;
       next_vim_file_bufnr.arg_var = arg_value;
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--exit-fail-on"sv)) {
+    }
+
+    QLJS_OPTION(const char* arg_value, "--exit-fail-on"sv) {
       o.exit_fail_on.add(parse_diag_code_list(arg_value));
-    } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
-               parser.match_flag_shorthand('h')) {
-      o.help = true;
-    } else if (parser.match_flag_option("--debug-apps"sv, "--debug-apps"sv)) {
-      o.list_debug_apps = true;
-    } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
-               parser.match_flag_shorthand('v')) {
-      o.version = true;
-    } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
-      o.lsp_server = true;
-    } else if (parser.match_flag_option("--snarky"sv, "--snarky"sv)) {
-      o.snarky = true;
-    } else if (parser.match_flag_option("--stdin"sv, ""sv)) {
-      add_stdin_file();
-    } else {
-      const char* unrecognized = parser.match_anything();
+    }
+
+    QLJS_FLAG('h', "--help"sv, "--h"sv) { o.help = true; }
+    QLJS_FLAG("--debug-apps"sv, "--debug-apps"sv) { o.list_debug_apps = true; }
+    QLJS_FLAG('v', "--version"sv, "--v"sv) { o.version = true; }
+    QLJS_FLAG("--lsp-server"sv, "--lsp"sv) { o.lsp_server = true; }
+    QLJS_FLAG("--snarky"sv, "--snarky"sv) { o.snarky = true; }
+    QLJS_FLAG("--stdin"sv, ""sv) { add_stdin_file(); }
+
+    QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
       o.error_unrecognized_options.emplace_back(unrecognized);
       goto done_parsing_options;
     }

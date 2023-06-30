@@ -55,6 +55,13 @@ bool arg_parser::match_flag_option(
   return matches;
 }
 
+bool arg_parser::match_flag_option(
+    char option_shorthand, std::string_view full_option_name,
+    std::string_view partial_option_name) noexcept {
+  return this->match_flag_option(full_option_name, partial_option_name) ||
+         this->match_flag_shorthand(option_shorthand);
+}
+
 const char* arg_parser::match_argument() noexcept {
   if (this->option_.has_value()) {
     return nullptr;
