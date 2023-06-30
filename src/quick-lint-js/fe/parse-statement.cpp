@@ -83,10 +83,11 @@ parse_statement:
   case token_type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_function_declaration(
-        v, function_attributes::normal,
-        /*begin=*/this->peek().begin,
-        /*require_name=*/
-        name_requirement::required_for_statement);
+        v, function_declaration_options{
+               .attributes = function_attributes::normal,
+               .begin = this->peek().begin,
+               .require_name = name_requirement::required_for_statement,
+           });
     break;
 
   // var x = 42;
@@ -202,10 +203,11 @@ parse_statement:
       }
 
       this->parse_and_visit_function_declaration(
-          v, function_attributes::async,
-          /*begin=*/async_token.begin,
-          /*require_name=*/
-          name_requirement::required_for_statement);
+          v, function_declaration_options{
+                 .attributes = function_attributes::async,
+                 .begin = async_token.begin,
+                 .require_name = name_requirement::required_for_statement,
+             });
       break;
 
       // async (x, y) => expressionOrStatement
@@ -263,10 +265,11 @@ parse_statement:
                                          async_token.begin, this->peek().end)});
       this->skip();
       this->parse_and_visit_function_declaration(
-          v, function_attributes::async,
-          /*begin=*/async_token.begin,
-          /*require_name=*/
-          name_requirement::required_for_statement);
+          v, function_declaration_options{
+                 .attributes = function_attributes::async,
+                 .begin = async_token.begin,
+                 .require_name = name_requirement::required_for_statement,
+             });
       break;
     }
     default:
@@ -330,10 +333,11 @@ parse_statement:
           this->try_parse_function_with_leading_star();
       if (attributes.has_value()) {
         this->parse_and_visit_function_declaration(
-            v, attributes.value(),
-            /*begin=*/star_token.begin,
-            /*require_name=*/
-            name_requirement::required_for_statement);
+            v, function_declaration_options{
+                   .attributes = attributes.value(),
+                   .begin = star_token.begin,
+                   .require_name = name_requirement::required_for_statement,
+               });
         break;
       }
     }
@@ -918,9 +922,11 @@ void parser::parse_and_visit_export(
       this->skip();
       if (this->peek().type == token_type::kw_function) {
         this->parse_and_visit_function_declaration(
-            v, function_attributes::async,
-            /*begin=*/async_token.begin,
-            /*require_name=*/name_requirement::optional);
+            v, function_declaration_options{
+                   .attributes = function_attributes::async,
+                   .begin = async_token.begin,
+                   .require_name = name_requirement::optional,
+               });
       } else {
         expression *ast =
             this->parse_async_expression(v, async_token, precedence{});
@@ -966,9 +972,11 @@ void parser::parse_and_visit_export(
       // export default function f() {}
     case token_type::kw_function:
       this->parse_and_visit_function_declaration(
-          v, function_attributes::normal,
-          /*begin=*/this->peek().begin,
-          /*require_name=*/name_requirement::optional);
+          v, function_declaration_options{
+                 .attributes = function_attributes::normal,
+                 .begin = this->peek().begin,
+                 .require_name = name_requirement::optional,
+             });
       break;
 
       // export default let x = null;  // Invalid.
@@ -1112,9 +1120,11 @@ void parser::parse_and_visit_export(
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
       this->parse_and_visit_function_declaration(
-          v, function_attributes::async,
-          /*begin=*/async_token_begin,
-          /*require_name=*/name_requirement::required_for_export);
+          v, function_declaration_options{
+                 .attributes = function_attributes::async,
+                 .begin = async_token_begin,
+                 .require_name = name_requirement::required_for_export,
+             });
     }
     break;
 
@@ -1126,9 +1136,11 @@ void parser::parse_and_visit_export(
       this->parse_and_visit_declare_statement(v, declare_context);
     } else {
       this->parse_and_visit_function_declaration(
-          v, function_attributes::normal,
-          /*begin=*/this->peek().begin,
-          /*require_name=*/name_requirement::required_for_export);
+          v, function_declaration_options{
+                 .attributes = function_attributes::normal,
+                 .begin = this->peek().begin,
+                 .require_name = name_requirement::required_for_export,
+             });
     }
     break;
 
@@ -1556,14 +1568,14 @@ void parser::parse_and_visit_statement_block_after_left_curly(
 }
 
 void parser::parse_and_visit_function_declaration(
-    parse_visitor_base &v, function_attributes attributes, const char8 *begin,
-    parser::name_requirement require_name) {
+    parse_visitor_base &v, function_declaration_options options) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   source_code_span function_token_span = this->peek().span();
   const char8 *function_token_begin = function_token_span.begin();
   this->skip();
+  // NOTE(strager): This potentially updates options.attributes.
   std::optional<source_code_span> generator_star =
-      this->parse_generator_star(&attributes);
+      this->parse_generator_star(&options.attributes);
 
   switch (this->peek().type) {
   case token_type::kw_await:
@@ -1592,7 +1604,7 @@ void parser::parse_and_visit_function_declaration(
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier: {
     if (this->peek().type == token_type::kw_let &&
-        require_name == name_requirement::required_for_export) {
+        options.require_name == name_requirement::required_for_export) {
       this->diag_reporter_->report(diag_cannot_export_let{
           .export_name = this->peek().span(),
       });
@@ -1609,7 +1621,7 @@ void parser::parse_and_visit_function_declaration(
   next_overload:
     v.visit_enter_function_scope();
     {
-      function_guard guard = this->enter_function(attributes);
+      function_guard guard = this->enter_function(options.attributes);
       function_parameter_parse_result result =
           this->parse_and_visit_function_parameter_list(
               v, function_name.span(), parameter_list_options());
@@ -1635,7 +1647,7 @@ void parser::parse_and_visit_function_declaration(
                   });
             }
             v.visit_exit_function_scope();
-            attributes = r.second_function_attributes;
+            options.attributes = r.second_function_attributes;
             generator_star = r.second_function_generator_star;
             if (overload_names.empty()) {
               // Lazily initialize overload_names with the first function's
@@ -1703,7 +1715,7 @@ void parser::parse_and_visit_function_declaration(
 
     // export default function() {}
   case token_type::left_paren:
-    switch (require_name) {
+    switch (options.require_name) {
     case name_requirement::required_for_statement: {
       const char8 *left_paren_end = this->peek().end;
 
@@ -1711,10 +1723,12 @@ void parser::parse_and_visit_function_declaration(
       // user intended to include parentheses. Parse the function as an
       // expression instead of as a declaration.
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes, parameter_list_options());
+          v, /*name=*/std::nullopt, options.attributes,
+          parameter_list_options());
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
-          attributes, source_code_span(function_token_begin, function_end));
+          options.attributes,
+          source_code_span(function_token_begin, function_end));
 
       if (this->peek().type != token_type::left_paren) {
         this->diag_reporter_->report(diag_missing_name_in_function_statement{
@@ -1724,7 +1738,8 @@ void parser::parse_and_visit_function_declaration(
         this->diag_reporter_->report(
             diag_missing_name_or_parentheses_for_function{
                 .where = source_code_span(function_token_begin, left_paren_end),
-                .function = source_code_span(begin, function->span().end()),
+                .function =
+                    source_code_span(options.begin, function->span().end()),
             });
         expression *full_expression =
             this->parse_expression_remainder(v, function, precedence{});
@@ -1739,13 +1754,15 @@ void parser::parse_and_visit_function_declaration(
           .function_keyword = function_token_span,
       });
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes, parameter_list_options());
+          v, /*name=*/std::nullopt, options.attributes,
+          parameter_list_options());
       break;
     }
 
     case name_requirement::optional:
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, attributes, parameter_list_options());
+          v, /*name=*/std::nullopt, options.attributes,
+          parameter_list_options());
       break;
     }
     break;

@@ -255,10 +255,14 @@ class parser {
     bool is_class_constructor = false;
   };
 
-  void parse_and_visit_function_declaration(parse_visitor_base &v,
-                                            function_attributes attributes,
-                                            const char8 *begin,
-                                            name_requirement require_name);
+  struct function_declaration_options {
+    function_attributes attributes;
+    const char8 *begin;
+    name_requirement require_name;
+  };
+
+  void parse_and_visit_function_declaration(
+      parse_visitor_base &v, function_declaration_options options);
   void parse_and_visit_function_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes, parameter_list_options);
