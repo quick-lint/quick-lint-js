@@ -909,6 +909,28 @@ parser::typescript_declare_context::maybe_declare_keyword_span() const {
   return std::nullopt;
 }
 
+parser::typescript_namespace_or_module_guard
+parser::enter_typescript_namespace_or_module(
+    source_code_span namespace_or_module_keyword_span) {
+  return typescript_namespace_or_module_guard(
+      this, std::exchange(this->in_typescript_namespace_or_module_,
+                          namespace_or_module_keyword_span));
+}
+
+parser::typescript_namespace_or_module_guard::
+    typescript_namespace_or_module_guard(
+        parser* parser,
+        std::optional<source_code_span> old_in_typescript_namespace_or_module)
+    : parser_(parser),
+      old_in_typescript_namespace_or_module_(
+          old_in_typescript_namespace_or_module) {}
+
+parser::typescript_namespace_or_module_guard::
+    ~typescript_namespace_or_module_guard() {
+  this->parser_->in_typescript_namespace_or_module_ =
+      this->old_in_typescript_namespace_or_module_;
+}
+
 bool parser::parse_expression_cache_key::operator==(
     const parser::parse_expression_cache_key& rhs) const noexcept {
   return this->begin == rhs.begin && this->in_top_level == rhs.in_top_level &&

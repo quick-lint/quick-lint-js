@@ -936,6 +936,27 @@ class parser {
   bool in_switch_statement_ = false;
   bool in_class_ = false;
 
+  class typescript_namespace_or_module_guard {
+   public:
+    explicit typescript_namespace_or_module_guard(
+        parser *,
+        std::optional<source_code_span> old_in_typescript_namespace_or_module);
+
+    typescript_namespace_or_module_guard(
+        const typescript_namespace_or_module_guard &) = delete;
+    typescript_namespace_or_module_guard &operator=(
+        const typescript_namespace_or_module_guard &) = delete;
+
+    ~typescript_namespace_or_module_guard();
+
+   private:
+    parser *parser_;
+    std::optional<source_code_span> old_in_typescript_namespace_or_module_;
+  };
+  [[nodiscard]] typescript_namespace_or_module_guard
+  enter_typescript_namespace_or_module(
+      source_code_span namespace_or_module_keyword_span);
+
   // If present, we are inside the body of a TypeScript namespace (declared with
   // 'namespace' or 'module') or a TypeScript module. This variable then refers
   // to the inner-most 'namespace' or 'module' token.

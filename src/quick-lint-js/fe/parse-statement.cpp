@@ -2540,10 +2540,8 @@ void parser::parse_and_visit_typescript_namespace(
     this->is_current_typescript_namespace_non_empty_ = false;
   }
 
-  std::optional<source_code_span> old_in_typescript_namespace =
-      this->in_typescript_namespace_or_module_;
-  this->in_typescript_namespace_or_module_ = namespace_keyword_span;
-
+  typescript_namespace_or_module_guard namespace_guard =
+      this->enter_typescript_namespace_or_module(namespace_keyword_span);
   {
     if (this->peek().type != token_type::left_curly) {
       this->diag_reporter_->report(diag_missing_body_for_typescript_namespace{
@@ -2559,7 +2557,6 @@ void parser::parse_and_visit_typescript_namespace(
   }
 
 done_parsing_body:
-  this->in_typescript_namespace_or_module_ = old_in_typescript_namespace;
   if (namespace_declaration.has_value()) {
     variable_declaration_flags namespace_flags =
         this->is_current_typescript_namespace_non_empty_
@@ -2653,10 +2650,8 @@ void parser::parse_and_visit_typescript_declare_namespace_or_module(
       .in_module = is_module,
   };
 
-  std::optional<source_code_span> old_in_typescript_namespace =
-      this->in_typescript_namespace_or_module_;
-  this->in_typescript_namespace_or_module_ = namespace_keyword_span;
-
+  typescript_namespace_or_module_guard namespace_guard =
+      this->enter_typescript_namespace_or_module(namespace_keyword_span);
   {
     if (this->peek().type != token_type::left_curly) {
       // module 'foo';
@@ -2739,7 +2734,6 @@ void parser::parse_and_visit_typescript_declare_namespace_or_module(
   }
 
 done_parsing_body:
-  this->in_typescript_namespace_or_module_ = old_in_typescript_namespace;
   if (namespace_declaration.has_value()) {
     v.visit_variable_declaration(*namespace_declaration,
                                  variable_kind::_namespace,
