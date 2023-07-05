@@ -1,56 +1,52 @@
 <%#
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-%> <%- await include("../common-manual-tabs.ejs.html") %>
+%>
 
 <h3 id="install-vim-plugin">Install Vim plugin</h3>
-<p id="package-list-header">
-  Install this plugin with your favorite Vim packaging system
-</p>
+<p>Install this plugin with your favorite Vim packaging system:</p>
 
-<noscript>
-  <ul>
-    <li>
-      <a href="#manual-vim-package">Vim package</a> (built into Vim 8.0 and
-      newer)
-    </li>
-    <li><a href="#manual-vim-pathogen">Pathogen</a></li>
-    <li><a href="#manual-vim-vim-plug">Vim-Plug</a></li>
-    <li><a href="#manual-vim-vundle">Vundle</a></li>
-  </ul>
-</noscript>
+<ul class="tab-bar">
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-package')"
+      href="#manual-vim-package"
+      >Vim package</a
+    >
+  </li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-pathogen')"
+      href="#manual-vim-pathogen"
+      >Pathogen</a
+    >
+  </li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-vim-plug')"
+      href="#manual-vim-vim-plug"
+      >Vim-Plug</a
+    >
+  </li>
+  <li class="tab-bar-button">
+    <a
+      role="tab"
+      onclick="changePackageManager(event, 'manual-vim-vundle')"
+      href="#manual-vim-vundle"
+      >Vundle</a
+    >
+  </li>
+</ul>
 
-<div id="tab-bar">
-  <button
-    class="tab-bar-button"
-    onclick="changePackageManager(event, 'manual-vim-package')"
-  >
-    Vim Package
-  </button>
-  <button
-    class="tab-bar-button"
-    onclick="changePackageManager(event, 'manual-vim-pathogen')"
-  >
-    Pathogen
-  </button>
-  <button
-    class="tab-bar-button"
-    onclick="changePackageManager(event, 'manual-vim-vim-plug')"
-  >
-    Vim-Plug
-  </button>
-  <button
-    class="tab-bar-button"
-    onclick="changePackageManager(event, 'manual-vim-vundle')"
-  >
-    Vundle
-  </button>
+<div id="manual-nothing-selected" class="show-with-js package-manager">
+  <p>Choose a Vim package manager above to get started!</p>
 </div>
 
-<div id="manual-vim-package" class="package-managers">
-  <noscript>
-    <h4>Install as a Vim package</h4>
-  </noscript>
+<div id="manual-vim-package" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install as a Vim package</h4>
   <p>This option requires Vim 8.0 or newer.</p>
   <ol>
     <li>
@@ -83,10 +79,8 @@
   </ol>
 </div>
 
-<div id="manual-vim-pathogen" class="package-managers">
-  <noscript>
-    <h4>Install with Pathogen</h4>
-  </noscript>
+<div id="manual-vim-pathogen" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Pathogen</h4>
   <p>
     This option requires
     <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
@@ -110,10 +104,8 @@
   </ol>
 </div>
 
-<div id="manual-vim-vim-plug" class="package-managers">
-  <noscript>
-    <h4>Install with Vim-Plug</h4>
-  </noscript>
+<div id="manual-vim-vim-plug" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Vim-Plug</h4>
   <p>
     This option requires
     <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
@@ -132,10 +124,8 @@
   </ol>
 </div>
 
-<div id="manual-vim-vundle" class="package-managers">
-  <noscript>
-    <h4>Install with Vundle</h4>
-  </noscript>
+<div id="manual-vim-vundle" class="package-manager" role="tabpanel">
+  <h4 class="hide-with-js">Install with Vundle</h4>
   <p>
     This option requires
     <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
@@ -159,7 +149,7 @@
   </ol>
 </div>
 
-<%#
+<%- await include("../common-manual-tabs.ejs.html") %> <%#
 <!--
 quick-lint-js finds bugs in JavaScript programs.
 Copyright (C) 2020  Matthew "strager" Glazar

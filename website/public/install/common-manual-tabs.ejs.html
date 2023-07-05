@@ -4,18 +4,31 @@
 %>
 
 <style>
-  #tab-bar {
+  .show-with-js {
     display: none;
   }
 
-  #tab-bar button {
-    display: table-header-group;
+  .js-enabled .show-with-js {
+    display: block;
+  }
+
+  .hide-with-js {
+    display: block;
+  }
+
+  .js-enabled .hide-with-js {
+    display: none;
+  }
+
+  .tab-bar a {
+    display: inline-block;
     padding: 6px 12px;
-    border: none;
-    border-bottom: 4px solid #1b1b1b;
-    background-color: #bdbdbd;
+    background-color: #aaaaaa;
     transition: 0.3s;
     font-size: medium;
+    color: rgb(0, 0, 0);
+
+    border-bottom-color: rgb(156, 23, 23);
 
     -webkit-user-select: text;
     -moz-user-select: text;
@@ -23,59 +36,76 @@
     user-select: text;
   }
 
-  #tab-bar button:hover {
+  .tab-bar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tab-bar li {
+    float: left;
+  }
+
+  .tab-bar li a {
+    display: block;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .js-enabled .tab-bar a {
+    text-decoration: none;
+  }
+
+  .tab-bar a:hover {
     background-color: #858585;
   }
 
+  .js-enabled .tab-bar li {
+    border-bottom: 4px solid;
+    border-bottom-color: black;
+  }
+
+  .js-enabled .tab-bar li.tab-bar-selected {
+    border-bottom-color: rgb(255, 0, 0);
+  }
+
   @media (prefers-reduced-motion) {
-    #tab-bar button {
+    .tab-bar a {
       transition: 0ms;
     }
   }
 
-  #package-list-header {
-    font-size: medium;
-    border-bottom: #b9b9b9 2px solid;
-    padding-bottom: 4px;
-    margin-bottom: 16px;
-    color: #2b2b2b;
-  }
-
-  .package-managers {
+  .package-manager {
     border-left: 1px #858585 solid;
     padding-left: 8px;
   }
 
-  @media (prefers-color-scheme: dark) {
-    #package-list-header {
-      color: #b9b9b9;
-    }
+  .hidden.hidden {
+    display: none;
+  }
 
-    #tab-bar button {
-      color: #1b1b1b;
-      background-color: #727272;
+  @media (prefers-color-scheme: dark) {
+    .tab-bar a {
+      color: rgb(0, 0, 0);
+      background-color: #bdbdbd;
     }
   }
 </style>
 
 <script>
-  var borderColorHighlighted = "red";
-  var borderColorDefault = "black";
-
-  document.addEventListener("DOMContentLoaded", function () {
-    changePackageManager(null, "none");
-    document.getElementById("tab-bar").style.display = "table-header-group";
-  });
+  document.body.classList.add("js-enabled");
+  changePackageManager(null, "manual-nothing-selected");
 
   function changePackageManager(event, selectedManager) {
-    let tabContent = document.getElementsByClassName("package-managers");
-    for (i = 0; i < tabContent.length; i++) {
-      tabContent[i].style.display = "none";
+    let tabContent = document.getElementsByClassName("package-manager");
+    for (let i = 0; i < tabContent.length; i++) {
+      tabContent[i].classList.add("hidden");
     }
 
     let tabBarButtons = document.getElementsByClassName("tab-bar-button");
-    for (i = 0; i < tabContent.length; i++) {
-      tabBarButtons[i].style.borderBottomColor = borderColorDefault;
+    for (let i = 0; i < tabBarButtons.length; i++) {
+      tabBarButtons[i].classList.remove("tab-bar-selected");
     }
 
     if (selectedManager === "none") {
@@ -83,10 +113,14 @@
     }
 
     let selectedTab = document.getElementById(selectedManager);
-    selectedTab.style.display = "block";
+    selectedTab.classList.remove("hidden");
+    selectedTab.tabIndex = -1;
+    selectedTab.focus();
+    selectedTab.blur(); // Remove highlighting of content, not sure why I can't just disable it.
 
     if (event != null) {
-      event.target.style.borderBottomColor = borderColorHighlighted;
+      let targetElement = event.target;
+      targetElement.parentElement.classList.add("tab-bar-selected");
     }
   }
 </script>
