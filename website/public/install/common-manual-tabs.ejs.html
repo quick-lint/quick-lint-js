@@ -22,7 +22,7 @@
 
   .tab-bar a {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 4px 8px;
     background-color: #aaaaaa;
     transition: 0.3s;
     font-size: medium;
@@ -51,9 +51,6 @@
     display: block;
     text-align: center;
     padding: 16px;
-  }
-
-  .js-enabled .tab-bar a {
     text-decoration: none;
   }
 
@@ -79,6 +76,7 @@
   .package-manager {
     border-left: 1px #858585 solid;
     padding-left: 8px;
+    scroll-margin-bottom: 20px;
   }
 
   .hidden.hidden {
@@ -108,17 +106,17 @@
       tabBarButtons[i].classList.remove("tab-bar-selected");
     }
 
-    if (selectedManager === "none") {
-      return;
-    }
-
     let selectedTab = document.getElementById(selectedManager);
     selectedTab.classList.remove("hidden");
     selectedTab.tabIndex = -1;
-    selectedTab.focus();
     selectedTab.blur(); // Remove highlighting of content, not sure why I can't just disable it.
 
     if (event != null) {
+      // This doesn't depend on event, but we don't want to skip the rest of the page if we are simply loading the default "Choose a Package Manager" message.
+      selectedTab.focus(); // Focus the content for accessibility purposes.
+      selectedTab.scrollIntoView(false);
+
+      event.preventDefault();
       let targetElement = event.target;
       targetElement.parentElement.classList.add("tab-bar-selected");
     }
