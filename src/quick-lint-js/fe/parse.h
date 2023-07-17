@@ -454,6 +454,7 @@ class parser {
   void error_on_sketchy_condition(expression *);
   void warn_on_comma_operator_in_conditional_statement(expression *);
   void warn_on_comma_operator_in_index(expression *, source_code_span);
+  void warn_on_xor_operator_as_exponentiation(expression::binary_operator *);
   void error_on_pointless_string_compare(expression::binary_operator *);
   void error_on_pointless_compare_against_literal(
       expression::binary_operator *);

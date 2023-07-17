@@ -32,7 +32,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 61},                 //
         {93, 63, 151, 70, 130, 71},          //
         {0, 0, 0, 0, 0, 37},                 //
-        {0, 0, 0, 36, 0, 14},                //
+        {0, 0, 0, 0, 0, 14},                 //
+        {0, 0, 0, 36, 0, 59},                //
         {0, 0, 0, 100, 0, 89},               //
         {0, 0, 0, 0, 0, 24},                 //
         {50, 77, 41, 27, 0, 60},             //
@@ -1771,6 +1772,7 @@ const translation_table translation_data = {
         u8"'?' belongs only after the tuple element name, not also after the type\0"
         u8"'?' creates a conditional expression\0"
         u8"'?' goes here\0"
+        u8"'^' is the XOR operator; to exponentiate, use '**' instead\0"
         u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"
         u8"'as const' located here\0"
         u8"'async export' is not allowed; write 'export async' instead\0"

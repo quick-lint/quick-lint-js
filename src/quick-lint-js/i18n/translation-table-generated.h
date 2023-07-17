@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 463;
-constexpr std::size_t translation_table_string_table_size = 77248;
+constexpr std::uint16_t translation_table_mapping_table_size = 464;
+constexpr std::size_t translation_table_string_table_size = 77307;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -49,6 +49,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'?' belongs only after the tuple element name, not also after the type"sv,
           "'?' creates a conditional expression"sv,
           "'?' goes here"sv,
+          "'^' is the XOR operator; to exponentiate, use '**' instead"sv,
           "'as const' is only allowed on literals (array, object, string, boolean) and enum members"sv,
           "'as const' located here"sv,
           "'async export' is not allowed; write 'export async' instead"sv,

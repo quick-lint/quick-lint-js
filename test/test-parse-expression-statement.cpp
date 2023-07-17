@@ -29,7 +29,7 @@ namespace {
 class test_parse_expression_statement : public test_parse_expression {};
 
 TEST_F(test_parse_expression_statement, parse_math_expression) {
-  for (string8_view input : {u8"2"_sv, u8"2+2"_sv, u8"2^2"_sv, u8"2 + + 2"_sv,
+  for (string8_view input : {u8"2"_sv, u8"2+2"_sv, u8"3^2"_sv, u8"2 + + 2"_sv,
                              u8"2 * (3 + 4)"_sv, u8"1+1+1+1+1"_sv}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
     test_parser p(input);

@@ -242,6 +242,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'^' is the XOR operator; to exponentiate, use '**' instead"_translatable,
+        {
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+        },
+    },
+    {
         "'as const' is only allowed on literals (array, object, string, boolean) and enum members"_translatable,
         {
             u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",

@@ -2197,6 +2197,10 @@ msgstr "Variablenname für 'catch' fehlt"
 msgid "variable assignment to self is no-op"
 msgstr "Zuweisung an Variable vor Deklaration"
 
+#: src/quick-lint-js/diag/diagnostic-types.h
+msgid "'^' is the XOR operator; to exponentiate, use '**' instead"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

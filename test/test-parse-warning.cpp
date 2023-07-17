@@ -795,6 +795,62 @@ TEST_F(test_parse_warning, warn_on_variable_assigned_to_self_is_noop) {
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
+
+TEST_F(test_parse_warning, warn_on_xor_operation_used_as_exponentiation) {
+  {
+    test_parser p(u8"2 ^ 8"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_xor_used_as_exponentiation,
+                                      xor_operator, strlen(u8"2 "), u8"^"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"let a = 2 ^ 5"_sv, capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, diag_xor_used_as_exponentiation,
+                              xor_operator, strlen(u8"let a = 2 "), u8"^"_sv),
+        }));
+  }
+  {
+    test_parser p(u8"10 ^ 5"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, diag_xor_used_as_exponentiation,
+                                      xor_operator, strlen(u8"10 "), u8"^"_sv),
+                }));
+  }
+  {
+    test_parser p(u8"x ^ a"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"10 ^ x"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"3 ^ x"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"4 ^ 3"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+  {
+    test_parser p(u8"(x+2)^a"_sv, capture_diags);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors, IsEmpty());
+  }
+}
 }
 }
 
