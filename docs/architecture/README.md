@@ -212,5 +212,6 @@ Nygard][ADR-bible].
 ### Rejected ADRs
 
 * [ADR007: Expression stack](ADR007-Expression-stack.md)
+* [ADR017: Lexer tables](ADR017-Lexer-tables.md)
 
 [ADR-bible]: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions

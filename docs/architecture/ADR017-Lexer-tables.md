@@ -1,4 +1,4 @@
-# ADR016: Lexer tables
+# ADR017: Lexer tables
 
 **Status**: Rejected.
 
