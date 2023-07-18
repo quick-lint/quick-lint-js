@@ -1,6 +1,6 @@
 # ADR018: Naming style
 
-**Status**: Accepted and active.
+**Status**: Accepted and active; pending migration.
 
 ## Context
 
@@ -14,10 +14,10 @@ quick-lint-js uses the following styles for C++ code based on the C++ standard
 library's naming conventions:
 
 * types
-    * classes: `lower_snake_case`
-    * enums: `lower_snake_case`
-    * type aliases: `lower_snake_case`
-    * type template parameters: `UpperCamelCase`
+    * classes: `Upper_Snake_Case` (previously: `lower_snake_case`)
+    * enums: `Upper_Snake_Case` (previously: `lower_snake_case`)
+    * type aliases: `Upper_Snake_Case` (previously: `lower_snake_case`)
+    * type template parameters: `Upper_Snake_Case` (previously: `UpperCamelCase`)
 * values
     * local variables: `lower_snake_case`
     * global variables: `lower_snake_case`
@@ -26,7 +26,7 @@ library's naming conventions:
       * private: `lower_snake_case_` (trailing underscore)
     * enum members: `lower_snake_case`
     * parameter variables: `lower_snake_case`
-    * variable template parameters: `UpperCamelCase`
+    * variable template parameters: `lower_snake_case` (previously: `UpperCamelCase`)
 * functions
     * free functions: `lower_snake_case`
     * class methods: `lower_snake_case`
@@ -38,11 +38,18 @@ library's naming conventions:
 
 ## Consequences
 
-Because types and values have the same naming convention, we are sometimes
-forced to either qualify a variable's type or choose an inferior name. For
-example:
+Previously, because types and values have the same naming convention, we are
+sometimes forced to either qualify a variable's type or choose an inferior name.
+For example:
 
 ```c++
 quick_lint_js::output_format output_format =
     quick_lint_js::output_format::default_format;
+```
+
+This issue has been fixed in an update to this ADR. The code can now be more
+succinct:
+
+```c++
+Output_Format output_format = Output_Format::default_format;
 ```
