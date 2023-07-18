@@ -207,6 +207,7 @@ Nygard][ADR-bible].
 * [ADR014: Plugins](ADR014-Plugins.md)
 * [ADR015: Logging and tracing](ADR015-Logging-and-tracing.md)
 * [ADR016: Collections](ADR016-Collections.md)
+* [ADR018: Naming style](ADR018-Naming-style.md)
 
 ### Rejected ADRs
 
