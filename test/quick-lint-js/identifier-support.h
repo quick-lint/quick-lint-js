@@ -9,8 +9,9 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline Source_Code_Span span_of(const Char8 *code) {
-  return Source_Code_Span(&code[0], &code[strlen(code)]);
+inline Source_Code_Span span_of(String8_View code) {
+  const Char8 *c = code.data();
+  return Source_Code_Span(&c[0], &c[code.size()]);
 }
 
 inline Source_Code_Span span_of(const Padded_String &code) {
