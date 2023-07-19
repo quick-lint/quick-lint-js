@@ -68,14 +68,14 @@ LSP_Message_Parser_Base::Parsed_Header LSP_Message_Parser_Base::parse_header(
       u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ"_sv;
 
   // Part of HTTP-message: https://tools.ietf.org/html/rfc7230#section-3
-  static constexpr const Char8 crlf[] = u8"\r\n";
+  static constexpr String8_View crlf = u8"\r\n"_sv;
 
   // OWS: https://tools.ietf.org/html/rfc7230#section-3.2.3
   static constexpr String8_View ows = u8" \t"_sv;
 
   auto find_line_terminator = [](String8_View haystack) -> const Char8* {
-    auto terminator_begin = std::search(haystack.begin(), haystack.end(), crlf,
-                                        crlf + strlen(crlf));
+    auto terminator_begin =
+        std::search(haystack.begin(), haystack.end(), crlf.begin(), crlf.end());
     QLJS_ASSERT(terminator_begin != haystack.end());
     return &*terminator_begin;
   };
@@ -86,7 +86,7 @@ LSP_Message_Parser_Base::Parsed_Header LSP_Message_Parser_Base::parse_header(
         .name = {},
         .value = {},
         .remaining = data.substr(narrow_cast<std::size_t>(
-            (line_terminator + strlen(crlf)) - data.data())),
+            (line_terminator + crlf.size()) - data.data())),
     };
   };
 
@@ -110,13 +110,13 @@ LSP_Message_Parser_Base::Parsed_Header LSP_Message_Parser_Base::parse_header(
 
   const Char8* header_value_begin = data.data();
   auto header_terminator_begin =
-      std::search(data.begin(), data.end(), crlf, crlf + strlen(crlf));
+      std::search(data.begin(), data.end(), crlf.begin(), crlf.end());
   QLJS_ASSERT(header_terminator_begin != data.end());
   const Char8* header_value_end = &*header_terminator_begin;
   String8_View header_value =
       make_string_view(header_value_begin, header_value_end);
   // TODO(strager): Trim trailing whitespace.
-  data = data.substr(header_value.size() + strlen(crlf));
+  data = data.substr(header_value.size() + crlf.size());
 
   return Parsed_Header{
       .name = header_name,
