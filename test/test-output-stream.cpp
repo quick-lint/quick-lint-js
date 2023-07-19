@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
@@ -96,36 +97,36 @@ TEST(Test_Memory_Output_Stream,
   static constexpr int buffer_size = 16;
   Memory_Output_Stream s(/*buffer_size=*/buffer_size);
 
-  static constexpr Char8 message_0[] = u8"the quick brown";
-  static int message_0_length = narrow_cast<int>(strlen(message_0));
-  static constexpr Char8 message_1[] = u8" fox jumps";
-  static int message_1_length = narrow_cast<int>(strlen(message_1));
+  static constexpr String8_View message_0 = u8"the quick brown"_sv;
+  static int message_0_length = narrow_cast<int>(message_0.size());
+  static constexpr String8_View message_1 = u8" fox jumps"_sv;
+  static int message_1_length = narrow_cast<int>(message_1.size());
   ASSERT_LT(message_0_length, buffer_size);
   ASSERT_GT(message_0_length + message_1_length, buffer_size);
 
   s.append(message_0_length, [](Char8* piece) -> int {
-    std::copy(message_0, &message_0[message_0_length], piece);
+    std::copy(message_0.begin(), message_0.end(), piece);
     return message_0_length;
   });
   s.append(message_1_length, [](Char8* piece) -> int {
-    std::copy(message_1, &message_1[message_1_length], piece);
+    std::copy(message_1.begin(), message_1.end(), piece);
     return message_1_length;
   });
   s.flush();
 
-  EXPECT_EQ(s.get_flushed_string8(), String8(message_0) + message_1);
+  EXPECT_EQ(s.get_flushed_string8(), concat(message_0, message_1));
 }
 
 TEST(Test_Memory_Output_Stream, append_with_callback_more_than_buffer_size) {
   static constexpr int buffer_size = 16;
   Memory_Output_Stream s(/*buffer_size=*/buffer_size);
 
-  static constexpr Char8 message_0[] = u8"the quick brown fox jumps";
-  static int message_0_length = narrow_cast<int>(strlen(message_0));
+  static constexpr String8_View message_0 = u8"the quick brown fox jumps"_sv;
+  static int message_0_length = narrow_cast<int>(message_0.size());
   ASSERT_GT(message_0_length, buffer_size);
 
   s.append(message_0_length, [](Char8* piece) -> int {
-    std::copy(message_0, &message_0[message_0_length], piece);
+    std::copy(message_0.begin(), message_0.end(), piece);
     return message_0_length;
   });
   s.flush();
