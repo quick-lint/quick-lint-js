@@ -3413,8 +3413,8 @@ TEST_F(Test_Lex, jsx_string_ignores_comments) {
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::string);
-    EXPECT_EQ(l.peek().begin, &code[strlen_i(u8"! ")]);
-    EXPECT_EQ(l.peek().end, &code[strlen_i(u8"! 'hello // '")])
+    EXPECT_EQ(l.peek().begin, &code[u8"! "_sv.size()]);
+    EXPECT_EQ(l.peek().end, &code[u8"! 'hello // '"_sv.size()])
         << "string should end at ', treating // as part of the string";
 
     l.skip_in_jsx();
@@ -3431,8 +3431,8 @@ TEST_F(Test_Lex, jsx_string_ignores_comments) {
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::string);
-    EXPECT_EQ(l.peek().begin, &code[strlen_i(u8"! ")]);
-    EXPECT_EQ(l.peek().end, &code[strlen_i(u8R"(! "hello/* not")")])
+    EXPECT_EQ(l.peek().begin, &code[u8"! "_sv.size()]);
+    EXPECT_EQ(l.peek().end, &code[u8R"(! "hello/* not")"_sv.size()])
         << "string should end at \", treating /* as part of the string";
 
     l.skip_in_jsx();
@@ -3524,8 +3524,8 @@ TEST_F(Test_Lex, jsx_text_children) {
     l.skip_in_jsx_children();  // Skip '>'.
 
     EXPECT_EQ(l.peek().type, Token_Type::less);
-    EXPECT_EQ(l.peek().begin, &code[strlen_i(u8"<>hello")]);
-    EXPECT_EQ(l.peek().end, &code[strlen_i(u8"<>hello<")]);
+    EXPECT_EQ(l.peek().begin, &code[u8"<>hello"_sv.size()]);
+    EXPECT_EQ(l.peek().end, &code[u8"<>hello<"_sv.size()]);
     EXPECT_THAT(errors.errors, IsEmpty());
   }
 
@@ -3538,8 +3538,8 @@ TEST_F(Test_Lex, jsx_text_children) {
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, Token_Type::greater);
-    EXPECT_EQ(l.peek().begin, &code[strlen_i(u8"<")]);
-    EXPECT_EQ(l.peek().end, &code[strlen_i(u8"<>")]);
+    EXPECT_EQ(l.peek().begin, &code[u8"<"_sv.size()]);
+    EXPECT_EQ(l.peek().end, &code[u8"<>"_sv.size()]);
     l.skip_in_jsx_children();
 
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);

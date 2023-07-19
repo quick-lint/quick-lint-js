@@ -47,7 +47,6 @@ std::string_view to_string_view(String8_View);
 String8_View to_string8_view(std::string_view);
 
 std::size_t strlen(const Char8 *);
-int strlen_i(const Char8 *);
 const Char8 *strchr(const Char8 *haystack, Char8 needle);
 const Char8 *strstr(const Char8 *haystack, const Char8 *needle);
 std::size_t strspn(const Char8 *haystack, const Char8 *needles);
