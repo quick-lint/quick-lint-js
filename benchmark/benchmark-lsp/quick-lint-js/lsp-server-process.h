@@ -253,30 +253,30 @@ class LSP_Server_Process {
       std::int64_t document_version, std::int64_t messages_to_ignore);
   LSP_Task<::boost::json::array> wait_for_diagnostics_async(
       String8_View document_uri, std::int64_t document_version);
-  template <class ParamsPredicate>
-  LSP_Task<::boost::json::array> wait_for_diagnostics_async(ParamsPredicate&&);
-  template <class ParamsPredicate>
+  template <class Params_Predicate>
+  LSP_Task<::boost::json::array> wait_for_diagnostics_async(Params_Predicate&&);
+  template <class Params_Predicate>
   LSP_Task<::boost::json::array> wait_for_diagnostics_ignoring_async(
-      ParamsPredicate&&, std::int64_t messages_to_ignore);
+      Params_Predicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Respects diagnosticsMessagesToIgnore.
   LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async();
-  template <class ParamsPredicate>
+  template <class Params_Predicate>
   LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async(
-      ParamsPredicate&&);
-  template <class ParamsPredicate>
+      Params_Predicate&&);
+  template <class Params_Predicate>
   LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async(
-      ParamsPredicate&&, std::int64_t messages_to_ignore);
+      Params_Predicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Does not respect diagnosticsMessagesToIgnore; returns the first matching
   // message.
   LSP_Task<::boost::json::object>
   wait_for_first_diagnostics_notification_async();
-  template <class ParamsPredicate>
+  template <class Params_Predicate>
   LSP_Task<::boost::json::object> wait_for_first_diagnostics_notification_async(
-      ParamsPredicate&&);
+      Params_Predicate&&);
 
   void send_message(Byte_Buffer&& message);
 

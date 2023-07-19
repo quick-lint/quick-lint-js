@@ -86,11 +86,11 @@ class Uninstrumented_Vector : private Vector {
 
 using Bump_Vector_Size = std::ptrdiff_t;
 
-template <class T, class BumpAllocator>
+template <class T, class Bump_Allocator>
 class Raw_Bump_Vector {
  public:
   using value_type = T;
-  using allocator_type = BumpAllocator *;
+  using allocator_type = Bump_Allocator *;
   using size_type = Bump_Vector_Size;
   using difference_type = Bump_Vector_Size;
   using reference = T &;
@@ -102,7 +102,7 @@ class Raw_Bump_Vector {
 
   static_assert(is_winkable_v<T>);
 
-  explicit Raw_Bump_Vector(BumpAllocator *allocator) noexcept
+  explicit Raw_Bump_Vector(Bump_Allocator *allocator) noexcept
       : allocator_(allocator) {}
 
   Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
@@ -120,7 +120,7 @@ class Raw_Bump_Vector {
 
   ~Raw_Bump_Vector() { this->clear(); }
 
-  BumpAllocator *get_allocator() const noexcept { return this->allocator_; }
+  Bump_Allocator *get_allocator() const noexcept { return this->allocator_; }
 
   bool empty() const noexcept { return this->data_ == this->data_end_; }
   size_type size() const noexcept {
@@ -300,15 +300,15 @@ class Raw_Bump_Vector {
   T *data_end_ = nullptr;
   T *capacity_end_ = nullptr;
 
-  BumpAllocator *allocator_;
+  Bump_Allocator *allocator_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-template <class T, class BumpAllocator>
-using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T, BumpAllocator>>;
+template <class T, class Bump_Allocator>
+using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T, Bump_Allocator>>;
 #else
-template <class T, class BumpAllocator>
-using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T, BumpAllocator>>;
+template <class T, class Bump_Allocator>
+using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T, Bump_Allocator>>;
 #endif
 }
 

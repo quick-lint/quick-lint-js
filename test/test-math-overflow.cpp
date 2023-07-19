@@ -9,7 +9,7 @@
 
 namespace quick_lint_js {
 namespace {
-template <class BoolVector16>
+template <class Bool_Vector_16>
 class Test_Math_Checked_Add_Signed : public ::testing::Test {};
 using Signed_Types = ::testing::Types<int, long, long long>;
 TYPED_TEST_SUITE(Test_Math_Checked_Add_Signed, Signed_Types,

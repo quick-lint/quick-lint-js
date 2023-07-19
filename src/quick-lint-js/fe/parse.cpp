@@ -707,7 +707,7 @@ void Parser::check_body_after_label() {
   this->error_on_lexical_declaration(Statement_Kind::labelled_statement);
 }
 
-template <class MissingSemicolonDiagnostic>
+template <class Missing_Semicolon_Diagnostic>
 void Parser::consume_semicolon() {
   switch (this->peek().type) {
   case Token_Type::semicolon:
@@ -723,7 +723,7 @@ void Parser::consume_semicolon() {
     } else {
       this->lexer_.insert_semicolon();
       this->diag_reporter_->report(
-          MissingSemicolonDiagnostic{this->peek().span()});
+          Missing_Semicolon_Diagnostic{this->peek().span()});
       this->skip();
     }
     break;

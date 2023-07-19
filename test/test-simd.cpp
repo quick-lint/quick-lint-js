@@ -16,7 +16,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 namespace quick_lint_js {
 namespace {
 #if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
-template <class CharVector16>
+template <class Char_Vector_16>
 class Test_Char_Vector_16 : public ::testing::Test {};
 using Char_Vector_16_Types = ::testing::Types<
 #if QLJS_HAVE_ARM_NEON
@@ -64,7 +64,7 @@ TYPED_TEST(Test_Char_Vector_16, bitwise_or) {
 #endif
 
 #if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
-template <class BoolVector16>
+template <class Bool_Vector_16>
 class Test_Bool_Vector_16 : public ::testing::Test {};
 using Bool_Vector_16_Types = ::testing::Types<
 #if QLJS_HAVE_ARM_NEON

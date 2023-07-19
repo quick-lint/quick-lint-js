@@ -26,11 +26,11 @@ class Try_Catch_Stack {
   //
   // If try_func() does not call this->raise(), returns the result of
   // try_func().
-  template <class ResultType, class TryFunc, class CatchFunc>
-  ResultType try_catch(TryFunc &&try_func, CatchFunc &&catch_func) {
+  template <class Result_Type, class Try_Func, class Catch_Func>
+  Result_Type try_catch(Try_Func &&try_func, Catch_Func &&catch_func) {
     this->catch_stack_.emplace_back();
     if (setjmp(this->catch_stack_.back().buf) == 0) {
-      ResultType result = std::move(try_func)();
+      Result_Type result = std::move(try_func)();
       // this->raise() was not called.
       this->catch_stack_.pop_back();
       return result;
@@ -40,13 +40,13 @@ class Try_Catch_Stack {
       QLJS_ASSERT(c.exception.has_value());
       Exception exception = std::move(*c.exception);
       this->catch_stack_.pop_back();
-      ResultType result = std::move(catch_func)(std::move(exception));
+      Result_Type result = std::move(catch_func)(std::move(exception));
       return result;
     }
   }
 
-  template <class TryFunc, class FinallyFunc>
-  void try_finally(TryFunc &&try_func, FinallyFunc &&finally_func) {
+  template <class Try_Func, class Finally_Func>
+  void try_finally(Try_Func &&try_func, Finally_Func &&finally_func) {
     if (this->catch_stack_.empty()) {
       // Because the catch stack is empty, a call to this->raise_if_have_handler
       // should return. If we called this->try_catch here, then a call to

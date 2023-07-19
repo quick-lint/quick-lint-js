@@ -8,7 +8,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-template <class FuncType>
+template <class Func_Type>
 class Heap_Function;
 
 // heap_function is like std::function but with a few differences:

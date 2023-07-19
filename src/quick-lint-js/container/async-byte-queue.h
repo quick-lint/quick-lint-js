@@ -66,9 +66,9 @@ class Async_Byte_Queue {
   String8 take_committed_string8();
 
   // Reader thread only.
-  template <class ChunkFunc, class FinalizeFunc>
-  void take_committed(ChunkFunc&& chunk_callback,
-                      FinalizeFunc&& finalize_callback);
+  template <class Chunk_Func, class Finalize_Func>
+  void take_committed(Chunk_Func&& chunk_callback,
+                      Finalize_Func&& finalize_callback);
 
  private:
   struct alignas(alignof(Max_Align_T)) Chunk {
@@ -143,9 +143,9 @@ class Async_Byte_Queue {
 };
 
 // Reader thread only.
-template <class ChunkFunc, class FinalizeFunc>
-void Async_Byte_Queue::take_committed(ChunkFunc&& chunk_callback,
-                                      FinalizeFunc&& finalize_callback) {
+template <class Chunk_Func, class Finalize_Func>
+void Async_Byte_Queue::take_committed(Chunk_Func&& chunk_callback,
+                                      Finalize_Func&& finalize_callback) {
   Chunk* first_chunk = this->reader_chunk_;
   Chunk* last_chunk;
   {

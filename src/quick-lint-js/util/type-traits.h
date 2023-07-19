@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_UTIL_TYPE_TRAITS_H
 
 namespace quick_lint_js {
-template <class MemberFunctionPointer>
+template <class Member_Function_Pointer>
 struct Member_Function_Pointer_Traits;
 template <class Class, class Return, class... Args>
 struct Member_Function_Pointer_Traits<Return (Class::*)(Args...)> {

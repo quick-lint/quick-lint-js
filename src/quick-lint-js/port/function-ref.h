@@ -9,7 +9,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-template <class FuncType>
+template <class Func_Type>
 class Function_Ref;
 
 QLJS_WARNING_PUSH

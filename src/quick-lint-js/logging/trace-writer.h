@@ -133,21 +133,21 @@ class Trace_Writer {
 
   void write_event_init(const Trace_Event_Init&);
 
-  template <class StringWriter>
+  template <class String_Writer>
   void write_event_vscode_document_opened(
-      const Trace_Event_VSCode_Document_Opened&, StringWriter&&);
+      const Trace_Event_VSCode_Document_Opened&, String_Writer&&);
 
-  template <class StringWriter>
+  template <class String_Writer>
   void write_event_vscode_document_closed(
-      const Trace_Event_VSCode_Document_Closed&, StringWriter&&);
+      const Trace_Event_VSCode_Document_Closed&, String_Writer&&);
 
-  template <class StringWriter>
+  template <class String_Writer>
   void write_event_vscode_document_changed(
-      const Trace_Event_VSCode_Document_Changed&, StringWriter&&);
+      const Trace_Event_VSCode_Document_Changed&, String_Writer&&);
 
-  template <class StringWriter>
+  template <class String_Writer>
   void write_event_vscode_document_sync(const Trace_Event_VSCode_Document_Sync&,
-                                        StringWriter&&);
+                                        String_Writer&&);
 
   void write_event_lsp_client_to_server_message(
       const Trace_Event_LSP_Client_To_Server_Message&);
@@ -163,18 +163,18 @@ class Trace_Writer {
   template <class Func>
   void append_binary(Async_Byte_Queue::Size_Type size, Func&& callback);
 
-  template <class StringWriter>
-  void write_utf16le_string(void* string, StringWriter&);
+  template <class String_Writer>
+  void write_utf16le_string(void* string, String_Writer&);
 
   void write_utf8_string(String8_View);
 
   Async_Byte_Queue* out_;
 };
 
-template <class StringWriter>
+template <class String_Writer>
 void Trace_Writer::write_event_vscode_document_opened(
     const Trace_Event_VSCode_Document_Opened& event,
-    StringWriter&& string_writer) {
+    String_Writer&& string_writer) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);
@@ -185,10 +185,10 @@ void Trace_Writer::write_event_vscode_document_opened(
   this->write_utf16le_string(event.content, string_writer);
 }
 
-template <class StringWriter>
+template <class String_Writer>
 void Trace_Writer::write_event_vscode_document_closed(
     const Trace_Event_VSCode_Document_Closed& event,
-    StringWriter&& string_writer) {
+    String_Writer&& string_writer) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);
@@ -198,10 +198,10 @@ void Trace_Writer::write_event_vscode_document_closed(
   this->write_utf16le_string(event.language_id, string_writer);
 }
 
-template <class StringWriter>
+template <class String_Writer>
 void Trace_Writer::write_event_vscode_document_changed(
     const Trace_Event_VSCode_Document_Changed& event,
-    StringWriter&& string_writer) {
+    String_Writer&& string_writer) {
   this->append_binary(8 + 1 + 8 + 8, [&](Binary_Writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);
@@ -232,9 +232,9 @@ void Trace_Writer::append_binary(Async_Byte_Queue::Size_Type size,
   QLJS_ASSERT(w.bytes_written_since(data_begin) == size);
 }
 
-template <class StringWriter>
+template <class String_Writer>
 void Trace_Writer::write_utf16le_string(void* string,
-                                        StringWriter& string_writer) {
+                                        String_Writer& string_writer) {
   std::size_t code_unit_count = string_writer.string_size(string);
   // HACK(strager): Reserve an extra code unit for a null terminator. This is
   // required when interacting with N-API in the Visual Studio Code extension.
@@ -248,10 +248,10 @@ void Trace_Writer::write_utf16le_string(void* string,
       });
 }
 
-template <class StringWriter>
+template <class String_Writer>
 void Trace_Writer::write_event_vscode_document_sync(
     const Trace_Event_VSCode_Document_Sync& event,
-    StringWriter&& string_writer) {
+    String_Writer&& string_writer) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);

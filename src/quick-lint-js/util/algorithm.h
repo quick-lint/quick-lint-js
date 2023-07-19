@@ -11,8 +11,8 @@
 
 namespace quick_lint_js {
 // Backport of C++20 std::copy.
-template <class InputIt, class OutputIt>
-constexpr OutputIt copy(InputIt begin, InputIt end, OutputIt out_begin) {
+template <class Input_It, class Output_It>
+constexpr Output_It copy(Input_It begin, Input_It end, Output_It out_begin) {
   while (begin != end) {
     *out_begin = *begin;
     ++begin;
@@ -131,14 +131,14 @@ bool contains(Range&& haystack, const T& needle) {
 }
 
 // An alias for std::ranges::equal.
-template <class RangeA, class RangeB>
-bool ranges_equal(RangeA&& a, RangeB&& b) {
+template <class Range_A, class Range_B>
+bool ranges_equal(Range_A&& a, Range_B&& b) {
   return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b));
 }
 
 // An alias for std::ranges::equal.
-template <class RangeA, class RangeB, class Pred>
-auto ranges_equal(RangeA&& a, RangeB&& b, Pred&& predicate) {
+template <class Range_A, class Range_B, class Pred>
+auto ranges_equal(Range_A&& a, Range_B&& b, Pred&& predicate) {
   return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b),
                     predicate);
 }

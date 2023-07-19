@@ -852,12 +852,12 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   }
 }
 
-template <class DeclaredVariableType>
+template <class Declared_Variable_Type>
 void Variable_Analyzer::report_errors_for_variable_use(
-    const Used_Variable &used_var, const DeclaredVariableType &declared,
+    const Used_Variable &used_var, const Declared_Variable_Type &declared,
     bool use_is_before_declaration) const {
   constexpr bool declared_in_global_scope =
-      std::is_same_v<DeclaredVariableType, Global_Declared_Variable>;
+      std::is_same_v<Declared_Variable_Type, Global_Declared_Variable>;
 
   if (used_var.kind == Used_Variable_Kind::assignment) {
     this->report_error_if_assignment_is_illegal(

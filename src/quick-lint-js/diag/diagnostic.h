@@ -97,7 +97,7 @@ const Diagnostic_Info &get_diagnostic_info(Diag_Type) noexcept;
 std::optional<Diag_Type> diag_type_from_code_slow(
     std::string_view code) noexcept;
 
-template <class ArgType>
+template <class Arg_Type>
 constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type() noexcept;
 template <>
 constexpr Diagnostic_Arg_Type

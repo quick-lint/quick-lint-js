@@ -279,9 +279,9 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
       const Identifier *declaration, const Identifier &assignment,
       bool is_assigned_before_declaration) const;
 
-  template <class DeclaredVariableType>
+  template <class Declared_Variable_Type>
   void report_errors_for_variable_use(const Used_Variable &,
-                                      const DeclaredVariableType &,
+                                      const Declared_Variable_Type &,
                                       bool use_is_before_declaration) const;
 
   void report_error_if_variable_declaration_conflicts_in_scope(

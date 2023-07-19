@@ -16,8 +16,8 @@ namespace quick_lint_js {
 namespace {
 // Like std::transform with an std::back_insert_iterator, but more efficient for
 // std::vector<int>.
-template <class InputIt, class Output, class Transformer>
-void insert_back_transform(InputIt input_begin, InputIt input_end,
+template <class Input_It, class Output, class Transformer>
+void insert_back_transform(Input_It input_begin, Input_It input_end,
                            Output &output, Transformer &&transformer) {
   using Difference_Type = typename Output::difference_type;
   std::size_t original_size = output.size();

@@ -304,21 +304,21 @@ LSP_Server_Process::wait_for_diagnostics_ignoring_async(
       /*messages_to_ignore=*/messages_to_ignore);
 }
 
-template <class ParamsPredicate>
+template <class Params_Predicate>
 LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
-    ParamsPredicate&& predicate) {
+    Params_Predicate&& predicate) {
   return this->wait_for_diagnostics_ignoring_async(
-      std::forward<ParamsPredicate>(predicate),
+      std::forward<Params_Predicate>(predicate),
       /*messages_to_ignore=*/this->diagnostics_messages_to_ignore_);
 }
 
-template <class ParamsPredicate>
+template <class Params_Predicate>
 LSP_Task<::boost::json::array>
 LSP_Server_Process::wait_for_diagnostics_ignoring_async(
-    ParamsPredicate&& predicate, std::int64_t messages_to_ignore) {
+    Params_Predicate&& predicate, std::int64_t messages_to_ignore) {
   ::boost::json::object notification =
       co_await this->wait_for_diagnostics_notification_async(
-          std::forward<ParamsPredicate>(predicate),
+          std::forward<Params_Predicate>(predicate),
           /*messages_to_ignore=*/messages_to_ignore);
   co_return look_up(notification, "params", "diagnostics").get_array();
 }
@@ -329,19 +329,19 @@ LSP_Server_Process::wait_for_diagnostics_notification_async() {
       []([[maybe_unused]] ::boost::json::object& params) { return true; });
 }
 
-template <class ParamsPredicate>
+template <class Params_Predicate>
 LSP_Task<::boost::json::object>
 LSP_Server_Process::wait_for_diagnostics_notification_async(
-    ParamsPredicate&& predicate) {
+    Params_Predicate&& predicate) {
   return this->wait_for_diagnostics_notification_async(
-      std::forward<ParamsPredicate>(predicate),
+      std::forward<Params_Predicate>(predicate),
       /*messages_to_ignore=*/this->diagnostics_messages_to_ignore_);
 }
 
-template <class ParamsPredicate>
+template <class Params_Predicate>
 LSP_Task<::boost::json::object>
 LSP_Server_Process::wait_for_diagnostics_notification_async(
-    ParamsPredicate&& predicate, std::int64_t messages_to_ignore) {
+    Params_Predicate&& predicate, std::int64_t messages_to_ignore) {
   for (std::int64_t i = 0; i < messages_to_ignore; ++i) {
     co_await this->wait_for_first_diagnostics_notification_async(predicate);
   }
@@ -355,10 +355,10 @@ LSP_Server_Process::wait_for_first_diagnostics_notification_async() {
       []([[maybe_unused]] ::boost::json::object& params) { return true; });
 }
 
-template <class ParamsPredicate>
+template <class Params_Predicate>
 LSP_Task<::boost::json::object>
 LSP_Server_Process::wait_for_first_diagnostics_notification_async(
-    ParamsPredicate&& predicate) {
+    Params_Predicate&& predicate) {
   for (;;) {
     ::boost::json::object message =
         (co_await this->get_message_async()).as_object();

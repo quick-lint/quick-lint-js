@@ -27,8 +27,8 @@ typename std::basic_string_view<Char>::size_type find_first_if(
   return String_View_Type::npos;
 }
 
-template <class Char, class WriteFunc>
-void write_json_escaped_string_impl(WriteFunc &&write_string,
+template <class Char, class Write_Func>
+void write_json_escaped_string_impl(Write_Func &&write_string,
                                     std::basic_string_view<Char> string) {
   for (;;) {
     auto special_character_index =

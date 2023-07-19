@@ -446,7 +446,7 @@ class Parser {
 
   void parse_and_visit_with(Parse_Visitor_Base &v);
 
-  template <class ExpectedParenthesesError, class ExpectedParenthesisError,
+  template <class Expected_Parentheses_Error, class Expected_Parenthesis_Error,
             bool CheckForSketchyConditions, bool CheckForCommaOperator>
   void parse_and_visit_parenthesized_expression(Parse_Visitor_Base &v,
                                                 Source_Code_Span token);
@@ -749,7 +749,7 @@ class Parser {
                                                   Expression *lhs);
 
   void consume_semicolon_after_statement();
-  template <class MissingSemicolonDiagnostic>
+  template <class Missing_Semicolon_Diagnostic>
   void consume_semicolon();
 
   void error_on_pointless_nullish_coalescing_operator(
@@ -808,8 +808,8 @@ class Parser {
   //
   // When try_func and catch_func are called, they start with the same lexer
   // state.
-  template <class TryFunc, class CatchFunc>
-  void try_parse(TryFunc &&try_func, CatchFunc &&catch_func) {
+  template <class Try_Func, class Catch_Func>
+  void try_parse(Try_Func &&try_func, Catch_Func &&catch_func) {
     Parser_Transaction transaction = this->begin_transaction();
     bool should_commit = std::move(try_func)();
     if (should_commit) {
@@ -1078,7 +1078,7 @@ class Parser {
       Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
 };
 
-template <class ExpectedParenthesesError, class ExpectedParenthesisError,
+template <class Expected_Parentheses_Error, class Expected_Parenthesis_Error,
           bool CheckForSketchyConditions, bool CheckForCommaOperator>
 void Parser::parse_and_visit_parenthesized_expression(
     Parse_Visitor_Base &v, Source_Code_Span token_span) {
@@ -1116,15 +1116,15 @@ void Parser::parse_and_visit_parenthesized_expression(
   }
 
   if (!have_expression_left_paren && !have_expression_right_paren) {
-    this->diag_reporter_->report(ExpectedParenthesesError{
+    this->diag_reporter_->report(Expected_Parentheses_Error{
         Source_Code_Span(expression_begin, expression_end)});
   } else if (!have_expression_right_paren) {
-    this->diag_reporter_->report(ExpectedParenthesisError{
+    this->diag_reporter_->report(Expected_Parenthesis_Error{
         .where = Source_Code_Span::unit(expression_end),
         .token = ')',
     });
   } else if (!have_expression_left_paren) {
-    this->diag_reporter_->report(ExpectedParenthesisError{
+    this->diag_reporter_->report(Expected_Parenthesis_Error{
         .where = Source_Code_Span::unit(expression_begin),
         .token = '(',
     });
