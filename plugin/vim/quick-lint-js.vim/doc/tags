@@ -15,5 +15,6 @@ quick-lint-js-configure-nvim-lspconfig	quick-lint-js.txt	/*quick-lint-js-configu
 quick-lint-js-configure-nvim-lspconfig-cmd	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-cmd*
 quick-lint-js-configure-nvim-lspconfig-filetypes	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-filetypes*
 quick-lint-js-configure-nvim-lspconfig-root_dir	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-root_dir*
+quick-lint-js-configure-nvim-lspconfig-tracing-directory	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-tracing-directory*
 quick-lint-js-vim-install	quick-lint-js.txt	/*quick-lint-js-vim-install*
 quick-lint-js.txt	quick-lint-js.txt	/*quick-lint-js.txt*
