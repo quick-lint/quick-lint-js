@@ -1,0 +1,7 @@
+# This file lists Git commits which are likely uninteresting
+# when using 'git blame' or 'git bisect'.
+
+# Mass symbol renames:
+bc30c3fe051cdabb7844e48eba6c6eba0d38248b
+c78034750bc8a6e30efd7af0a7cc9f6c2979b942
+309863e2a343b6d90401d7b92fb2084423620c5e
