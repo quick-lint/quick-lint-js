@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -324,16 +325,16 @@ TEST_F(Test_Parse_Expression_TypeScript,
 
 TEST_F(Test_Parse_Expression_TypeScript,
        as_const_is_disallowed_for_most_expressions) {
-  for (const Char8* expression : {
-           u8"/regexp literal/",
-           u8"myVariable",
-           u8"'string' as string",
-           u8"'string' as const",
-           u8"f()",
-           u8"null",
-           u8"f`tagged template`",
+  for (String8_View expression : {
+           u8"/regexp literal/"_sv,
+           u8"myVariable"_sv,
+           u8"'string' as string"_sv,
+           u8"'string' as const"_sv,
+           u8"f()"_sv,
+           u8"null"_sv,
+           u8"f`tagged template`"_sv,
        }) {
-    Padded_String code(expression + u8" as const"s);
+    Padded_String code(concat(expression, u8" as const"s));
     SCOPED_TRACE(code);
     Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_expression();
@@ -343,7 +344,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
                         p.code,
                         Diag_TypeScript_As_Const_With_Non_Literal_Typeable,  //
                         expression, 0, expression,                           //
-                        as_const, strlen(expression) + 1, u8"as const"_sv),
+                        as_const, expression.size() + 1, u8"as const"_sv),
                 }));
   }
 
