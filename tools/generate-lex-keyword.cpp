@@ -35,13 +35,13 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-struct generate_lex_keyword_options {
+struct Generate_Lex_Keyword_Options {
   const char* output_path = nullptr;
 };
 
-generate_lex_keyword_options parse_generate_lex_keyword_options(int argc,
+Generate_Lex_Keyword_Options parse_generate_lex_keyword_options(int argc,
                                                                 char** argv) {
-  generate_lex_keyword_options o;
+  Generate_Lex_Keyword_Options o;
 
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
@@ -111,7 +111,7 @@ void analyze_keys(const std::vector<std::string_view>& keys) {
   }
 }
 
-class table_seed {
+class Table_Seed {
  public:
   Keyword_Lexer::Seed_Type get() const { return this->seed_; }
 
@@ -122,8 +122,8 @@ class table_seed {
   Keyword_Lexer::Seed_Type seed_ = 0x811c9dc5;  // FNV-1a 32-bit basis.
 };
 
-struct hash_table {
-  struct table_entry {
+struct Hash_Table {
+  struct Table_Entry {
     std::string_view key;
 
     // If 'generation' is out of sync with the hash_table's 'generation', then
@@ -142,9 +142,9 @@ struct hash_table {
     }
   };
 
-  std::vector<table_entry> entries;
+  std::vector<Table_Entry> entries;
   std::uint32_t current_generation = 0;
-  table_seed seed;
+  Table_Seed seed;
 
   bool try_fill(const std::vector<std::string_view>& keys) {
     this->current_generation += 1;
@@ -155,7 +155,7 @@ struct hash_table {
           Keyword_Lexer::mix(selection, this->seed.get());
       Keyword_Lexer::Hash_Type index =
           static_cast<Keyword_Lexer::Hash_Type>(hash % this->entries.size());
-      table_entry& entry = this->entries[index];
+      Table_Entry& entry = this->entries[index];
       if (entry.is_taken(this->current_generation)) {
         return false;
       }
@@ -165,13 +165,13 @@ struct hash_table {
   }
 };
 
-hash_table make_hash_table(const std::vector<std::string_view>& keys) {
+Hash_Table make_hash_table(const std::vector<std::string_view>& keys) {
   constexpr int attempts_per_table_size = 80'000;
   constexpr std::size_t max_table_size = 1024;
 
   std::size_t table_size = bit_ceil(keys.size());
   for (;;) {
-    hash_table t;
+    Hash_Table t;
     t.entries.resize(table_size);
     for (int attempt = 0; attempt < attempts_per_table_size; ++attempt) {
       if (t.try_fill(keys)) {
@@ -192,7 +192,7 @@ hash_table make_hash_table(const std::vector<std::string_view>& keys) {
   }
 }
 
-struct string_table {
+struct String_Table {
   std::string data;
   std::vector<std::size_t> word_starts;
 
@@ -202,8 +202,8 @@ struct string_table {
   }
 };
 
-string_table make_string_table(const std::vector<std::string_view>& keys) {
-  string_table strings;
+String_Table make_string_table(const std::vector<std::string_view>& keys) {
+  String_Table strings;
 
   // Sorting in reverse order lets us merge common prefixes, like for
   // "as", "assert", and "asserts".
@@ -225,7 +225,7 @@ string_table make_string_table(const std::vector<std::string_view>& keys) {
   return strings;
 }
 
-void dump_table_code(const hash_table& t, const string_table& strings,
+void dump_table_code(const Hash_Table& t, const String_Table& strings,
                      FILE* f) {
   std::fprintf(
       f, "%s",
@@ -276,7 +276,7 @@ struct Tables_Type {
   std::fprintf(f, "constexpr Tables_Type tables = {\n");
   std::fprintf(f, "    .hash_table =\n");
   std::fprintf(f, "        {\n");
-  for (const hash_table::table_entry& e : t.entries) {
+  for (const Hash_Table::Table_Entry& e : t.entries) {
     std::fprintf(f, "            {");
     if (e.is_taken(t.current_generation)) {
       std::fprintf(f, "%zu, %zu, Token_Type::kw_%.*s", strings.data.find(e.key),
@@ -364,7 +364,7 @@ Token_Type Lexer::identifier_token_type(String8_View identifier) noexcept {
 )");
 }
 
-void dump_table_code(const hash_table& t, const string_table& strings,
+void dump_table_code(const Hash_Table& t, const String_Table& strings,
                      const char* file_path) {
   FILE* f = std::fopen(file_path, "wb");
   if (f == nullptr) {
@@ -385,7 +385,7 @@ void dump_table_code(const hash_table& t, const string_table& strings,
 int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
-  generate_lex_keyword_options o =
+  Generate_Lex_Keyword_Options o =
       parse_generate_lex_keyword_options(argc, argv);
   if (o.output_path == nullptr) {
     std::fprintf(stderr, "error: missing --output path\n");
@@ -399,8 +399,8 @@ int main(int argc, char** argv) {
   };
 
   analyze_keys(keys);
-  hash_table t = make_hash_table(keys);
-  string_table strings = make_string_table(keys);
+  Hash_Table t = make_hash_table(keys);
+  String_Table strings = make_string_table(keys);
   dump_table_code(t, strings, o.output_path);
 
   return 0;

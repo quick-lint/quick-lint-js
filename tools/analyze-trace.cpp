@@ -30,7 +30,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-struct analyze_options {
+struct Analyze_Options {
   std::vector<const char*> trace_files;
   std::optional<std::uint64_t> dump_document_content_document_id;
   bool check_document_consistency = false;
@@ -53,7 +53,7 @@ LSP_Range to_lsp_range(const Parsed_VSCode_Document_Range& range) {
   };
 }
 
-class counting_trace_stream_event_visitor {
+class Counting_Trace_Stream_Event_Visitor {
  public:
   // The first call to a visit_ function will set this to 0.
   std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
@@ -99,11 +99,11 @@ class counting_trace_stream_event_visitor {
   }
 };
 
-class document_content_dumper : public counting_trace_stream_event_visitor {
+class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
  public:
-  using base = counting_trace_stream_event_visitor;
+  using Base = Counting_Trace_Stream_Event_Visitor;
 
-  explicit document_content_dumper(std::uint64_t document_id,
+  explicit Document_Content_Dumper(std::uint64_t document_id,
                                    std::uint64_t end_event_index)
       : document_id_(document_id), end_event_index_(end_event_index) {}
 
@@ -127,7 +127,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_opened_event(
       const Parsed_VSCode_Document_Opened_Event& event) {
-    base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -138,7 +138,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_closed_event(
       const Parsed_VSCode_Document_Closed_Event& event) {
-    base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -149,7 +149,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_changed_event(
       const Parsed_VSCode_Document_Changed_Event& event) {
-    base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -163,7 +163,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vector_max_size_histogram_by_owner_event(
       const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
-    base::visit_vector_max_size_histogram_by_owner_event(event);
+    Base::visit_vector_max_size_histogram_by_owner_event(event);
   }
 
   void print_document_content() {
@@ -181,9 +181,9 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   std::uint64_t end_event_index_;
 };
 
-class document_content_checker : public counting_trace_stream_event_visitor {
+class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
  public:
-  using base = counting_trace_stream_event_visitor;
+  using Base = Counting_Trace_Stream_Event_Visitor;
 
   void visit_error_invalid_magic() {
     std::fprintf(stderr, "error: invalid magic\n");
@@ -205,7 +205,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_opened_event(
       const Parsed_VSCode_Document_Opened_Event& event) {
-    base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -217,7 +217,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_closed_event(
       const Parsed_VSCode_Document_Closed_Event& event) {
-    base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -226,7 +226,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_changed_event(
       const Parsed_VSCode_Document_Changed_Event& event) {
-    base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -248,7 +248,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_sync_event(
       const Parsed_VSCode_Document_Sync_Event& event) {
-    base::visit_vscode_document_sync_event(event);
+    Base::visit_vscode_document_sync_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -294,14 +294,14 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   Hash_Map<std::uint64_t, document_info> documents_;
 };
 
-class event_dumper : public counting_trace_stream_event_visitor {
+class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
  private:
   static constexpr int header_width = 16;
 
  public:
-  using base = counting_trace_stream_event_visitor;
+  using Base = Counting_Trace_Stream_Event_Visitor;
 
-  explicit event_dumper(std::uint64_t begin_event_index,
+  explicit Event_Dumper(std::uint64_t begin_event_index,
                         std::uint64_t end_event_index)
       : begin_event_index_(begin_event_index),
         end_event_index_(end_event_index) {}
@@ -321,7 +321,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   void visit_packet_header(const Parsed_Packet_Header&) {}
 
   void visit_init_event(const Parsed_Init_Event& event) {
-    base::visit_init_event(event);
+    Base::visit_init_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -332,7 +332,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_opened_event(
       const Parsed_VSCode_Document_Opened_Event& event) {
-    base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -345,7 +345,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_closed_event(
       const Parsed_VSCode_Document_Closed_Event& event) {
-    base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -358,7 +358,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_changed_event(
       const Parsed_VSCode_Document_Changed_Event& event) {
-    base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -378,7 +378,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vscode_document_sync_event(
       const Parsed_VSCode_Document_Sync_Event& event) {
-    base::visit_vscode_document_sync_event(event);
+    Base::visit_vscode_document_sync_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -391,7 +391,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_lsp_client_to_server_message_event(
       const Parsed_LSP_Client_To_Server_Message_Event& event) {
-    base::visit_lsp_client_to_server_message_event(event);
+    Base::visit_lsp_client_to_server_message_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -401,7 +401,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_lsp_documents_event(const Parsed_LSP_Documents_Event& event) {
-    base::visit_lsp_documents_event(event);
+    Base::visit_lsp_documents_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -415,7 +415,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
 
   void visit_vector_max_size_histogram_by_owner_event(
       const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
-    base::visit_vector_max_size_histogram_by_owner_event(event);
+    Base::visit_vector_max_size_histogram_by_owner_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -423,7 +423,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_process_id_event(const Parsed_Process_ID_Event& event) {
-    base::visit_process_id_event(event);
+    Base::visit_process_id_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
@@ -500,8 +500,8 @@ void visit_events(const std::vector<Parsed_Trace_Event>& events,
   }
 }
 
-analyze_options parse_analyze_options(int argc, char** argv) {
-  analyze_options o;
+Analyze_Options parse_analyze_options(int argc, char** argv) {
+  Analyze_Options o;
 
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
@@ -559,7 +559,7 @@ analyze_options parse_analyze_options(int argc, char** argv) {
 int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
-  analyze_options o = parse_analyze_options(argc, argv);
+  Analyze_Options o = parse_analyze_options(argc, argv);
   if (o.trace_files.empty()) {
     std::fprintf(stderr, "error: missing trace file\n");
     return 2;
@@ -579,17 +579,17 @@ int main(int argc, char** argv) {
   std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
 
   if (o.check_document_consistency) {
-    document_content_checker checker;
+    Document_Content_Checker checker;
     visit_events(events, checker);
   }
 
   if (o.dump_document_content_document_id.has_value()) {
-    document_content_dumper dumper(*o.dump_document_content_document_id,
+    Document_Content_Dumper dumper(*o.dump_document_content_document_id,
                                    o.end_event_index);
     visit_events(events, dumper);
     dumper.print_document_content();
   } else if (!o.check_document_consistency) {
-    event_dumper dumper(o.begin_event_index, o.end_event_index);
+    Event_Dumper dumper(o.begin_event_index, o.end_event_index);
     visit_events(events, dumper);
   }
 
