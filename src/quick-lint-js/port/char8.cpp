@@ -38,10 +38,6 @@ String8_View to_string8_view(std::string_view s) {
   return String8_View(reinterpret_cast<const Char8 *>(s.data()), s.size());
 }
 
-std::size_t strlen(const Char8 *s) {
-  return std::strlen(reinterpret_cast<const char *>(s));
-}
-
 const Char8 *strchr(const Char8 *haystack, Char8 needle) {
   return reinterpret_cast<const Char8 *>(std::strchr(
       reinterpret_cast<const char *>(haystack), static_cast<char>(needle)));
