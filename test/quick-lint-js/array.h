@@ -25,21 +25,21 @@ inline constexpr auto make_array_explicit(Args&&... items) {
   return std::array<T, sizeof...(items)>{T(std::forward<Args>(items))...};
 }
 
-template <class T, std::size_t LHSSize, std::size_t RHSSize,
-          std::size_t... LHSIndexes, std::size_t... RHSIndexes>
-inline constexpr std::array<T, LHSSize + RHSSize> concat_impl(
-    const std::array<T, LHSSize>& lhs, std::index_sequence<LHSIndexes...>,
-    const std::array<T, RHSSize>& rhs, std::index_sequence<RHSIndexes...>) {
-  return std::array<T, LHSSize + RHSSize>{lhs[LHSIndexes]...,
-                                          rhs[RHSIndexes]...};
+template <class T, std::size_t lhs_size, std::size_t rhs_size,
+          std::size_t... lhs_indexes, std::size_t... rhs_indexes>
+inline constexpr std::array<T, lhs_size + rhs_size> concat_impl(
+    const std::array<T, lhs_size>& lhs, std::index_sequence<lhs_indexes...>,
+    const std::array<T, rhs_size>& rhs, std::index_sequence<rhs_indexes...>) {
+  return std::array<T, lhs_size + rhs_size>{lhs[lhs_indexes]...,
+                                            rhs[rhs_indexes]...};
 }
 
-template <class T, std::size_t LHSSize, std::size_t RHSSize>
-inline constexpr std::array<T, LHSSize + RHSSize> concat(
-    const std::array<T, LHSSize>& lhs, const std::array<T, RHSSize>& rhs) {
-  return concat_impl<T, LHSSize, RHSSize>(
-      lhs, std::make_index_sequence<LHSSize>(), rhs,
-      std::make_index_sequence<RHSSize>());
+template <class T, std::size_t lhs_size, std::size_t rhs_size>
+inline constexpr std::array<T, lhs_size + rhs_size> concat(
+    const std::array<T, lhs_size>& lhs, const std::array<T, rhs_size>& rhs) {
+  return concat_impl<T, lhs_size, rhs_size>(
+      lhs, std::make_index_sequence<lhs_size>(), rhs,
+      std::make_index_sequence<rhs_size>());
 }
 
 QLJS_WARNING_POP

@@ -40,12 +40,12 @@ class Mongoose_Mgr {
   ::mg_mgr mgr_;
 };
 
-template <auto MemberFunctionPointer>
+template <auto member_function_pointer>
 mg_event_handler_t mongoose_callback() {
   using Self = typename Member_Function_Pointer_Traits<decltype(
-      MemberFunctionPointer)>::Class_Type;
+      member_function_pointer)>::Class_Type;
   return [](::mg_connection *c, int ev, void *ev_data, void *fn_data) -> void {
-    (static_cast<Self *>(fn_data)->*MemberFunctionPointer)(c, ev, ev_data);
+    (static_cast<Self *>(fn_data)->*member_function_pointer)(c, ev, ev_data);
   };
 }
 }

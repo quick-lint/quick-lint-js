@@ -46,19 +46,19 @@ const T& get(const Variant<Ts...>& v) noexcept {
   return v.template get<T>();
 }
 
-template <std::size_t Index, class... Ts>
+template <std::size_t index, class... Ts>
 auto& get(Variant<Ts...>& v) noexcept {
-  return v.template get<Index>();
+  return v.template get<index>();
 }
 
-template <std::size_t Index, class... Ts>
+template <std::size_t index, class... Ts>
 auto&& get(Variant<Ts...>&& v) noexcept {
-  return std::move(v).template get<Index>();
+  return std::move(v).template get<index>();
 }
 
-template <std::size_t Index, class... Ts>
+template <std::size_t index, class... Ts>
 const auto& get(const Variant<Ts...>& v) noexcept {
-  return v.template get<Index>();
+  return v.template get<index>();
 }
 
 template <class Visitor, class... Ts>
@@ -87,14 +87,14 @@ auto visit(Visitor&& f, const Variant<Ts...>& v) {
     return const_cast<Variant*>(this)->template get<T>();                   \
   }                                                                         \
                                                                             \
-  template <std::size_t Index>                                              \
+  template <std::size_t index>                                              \
       auto&& get() && noexcept {                                            \
-    return std::move(this->template get<Index>());                          \
+    return std::move(this->template get<index>());                          \
   }                                                                         \
                                                                             \
-  template <std::size_t Index>                                              \
+  template <std::size_t index>                                              \
   const auto& get() const& noexcept {                                       \
-    return const_cast<Variant*>(this)->template get<Index>();               \
+    return const_cast<Variant*>(this)->template get<index>();               \
   }                                                                         \
                                                                             \
   friend bool operator!=(const Variant& lhs, const Variant& rhs) noexcept { \
@@ -152,9 +152,9 @@ class Variant<T0> {
     return this->data_0_;
   }
 
-  template <std::size_t Index>
+  template <std::size_t index>
       T0& get() & noexcept {
-    static_assert(Index == 0, "unexpected Index");
+    static_assert(index == 0, "unexpected Index");
     return this->data_0_;
   }
 
@@ -278,16 +278,16 @@ class Variant<T0, T1> {
     }
   }
 
-  template <std::size_t Index>
+  template <std::size_t index>
       auto& get() & noexcept {
-    if constexpr (Index == 0) {
+    if constexpr (index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
-    } else if constexpr (Index == 1) {
+    } else if constexpr (index == 1) {
       QLJS_ASSERT(this->tag_ == 1);
       return this->data_1_;
     } else {
-      static_assert(Index == 0, "unexpected Index");
+      static_assert(index == 0, "unexpected Index");
     }
   }
 
@@ -486,19 +486,19 @@ class Variant<T0, T1, T2> {
     }
   }
 
-  template <std::size_t Index>
+  template <std::size_t index>
       auto& get() & noexcept {
-    if constexpr (Index == 0) {
+    if constexpr (index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
-    } else if constexpr (Index == 1) {
+    } else if constexpr (index == 1) {
       QLJS_ASSERT(this->tag_ == 1);
       return this->data_1_;
-    } else if constexpr (Index == 2) {
+    } else if constexpr (index == 2) {
       QLJS_ASSERT(this->tag_ == 2);
       return this->data_2_;
     } else {
-      static_assert(Index == 0, "unexpected Index");
+      static_assert(index == 0, "unexpected Index");
     }
   }
 

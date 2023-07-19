@@ -28,12 +28,12 @@ class Span {
 
   explicit Span() noexcept : data_(nullptr), size_(0) {}
 
-  template <std::size_t N>
-  explicit Span(const std::array<std::remove_const_t<T>, N> &data) noexcept
-      : data_(data.data()), size_(N) {}
+  template <std::size_t n>
+  explicit Span(const std::array<std::remove_const_t<T>, n> &data) noexcept
+      : data_(data.data()), size_(n) {}
 
-  template <std::size_t N>
-  explicit Span(T (&data)[N]) noexcept : data_(data), size_(N) {}
+  template <std::size_t n>
+  explicit Span(T (&data)[n]) noexcept : data_(data), size_(n) {}
 
   explicit Span(const std::vector<std::remove_const_t<T>> &data) noexcept
       : data_(data.data()), size_(narrow_cast<Span_Size>(data.size())) {}

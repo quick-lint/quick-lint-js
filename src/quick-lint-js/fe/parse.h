@@ -447,7 +447,7 @@ class Parser {
   void parse_and_visit_with(Parse_Visitor_Base &v);
 
   template <class Expected_Parentheses_Error, class Expected_Parenthesis_Error,
-            bool CheckForSketchyConditions, bool CheckForCommaOperator>
+            bool check_for_sketchy_conditions, bool check_for_comma_operator>
   void parse_and_visit_parenthesized_expression(Parse_Visitor_Base &v,
                                                 Source_Code_Span token);
 
@@ -1079,7 +1079,7 @@ class Parser {
 };
 
 template <class Expected_Parentheses_Error, class Expected_Parenthesis_Error,
-          bool CheckForSketchyConditions, bool CheckForCommaOperator>
+          bool check_for_sketchy_conditions, bool check_for_comma_operator>
 void Parser::parse_and_visit_parenthesized_expression(
     Parse_Visitor_Base &v, Source_Code_Span token_span) {
   bool have_expression_left_paren = this->peek().type == Token_Type::left_paren;
@@ -1100,11 +1100,11 @@ void Parser::parse_and_visit_parenthesized_expression(
   Expression *ast = this->parse_expression(v);
   this->visit_expression(ast, v, Variable_Context::rhs);
 
-  if constexpr (CheckForSketchyConditions) {
+  if constexpr (check_for_sketchy_conditions) {
     this->error_on_sketchy_condition(ast);
   }
 
-  if constexpr (CheckForCommaOperator) {
+  if constexpr (check_for_comma_operator) {
     this->warn_on_comma_operator_in_conditional_statement(ast);
   }
 

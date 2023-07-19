@@ -179,8 +179,8 @@ class Expression_Arena {
   template <class T>
   Array_Ptr<T> make_array(T *begin, T *end);
 
-  template <class T, std::size_t Size>
-  Array_Ptr<T> make_array(std::array<T, Size> &&);
+  template <class T, std::size_t size>
+  Array_Ptr<T> make_array(std::array<T, size> &&);
 
   Monotonic_Allocator *allocator() noexcept { return &this->allocator_; }
 
@@ -335,9 +335,9 @@ inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(T *begin,
   return Array_Ptr<T>(result_begin, size);
 }
 
-template <class T, std::size_t Size>
+template <class T, std::size_t size>
 inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(
-    std::array<T, Size> &&elements) {
+    std::array<T, size> &&elements) {
   return this->make_array(elements.data(), elements.data() + elements.size());
 }
 
