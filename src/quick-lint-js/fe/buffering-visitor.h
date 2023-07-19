@@ -145,8 +145,19 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
     Visit_Kind kind;
 
     union {
-      // enter_named_function_scope, keyword_variable_use, property_declaration,
-      // variable_assignment, variable_declaration, variable_use
+      // enter_class_scope_body_with_name
+      // enter_named_function_scope
+      // keyword_variable_use
+      // property_declaration
+      // variable_declaration
+      // variable_assignment
+      // variable_delete_use
+      // variable_export_use
+      // variable_namespace_use
+      // variable_type_predicate_use
+      // variable_type_use
+      // variable_typeof_use
+      // variable_use
       Identifier name;
       static_assert(is_winkable_v<Identifier>);
     };
