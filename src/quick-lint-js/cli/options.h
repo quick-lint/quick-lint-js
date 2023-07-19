@@ -53,8 +53,7 @@ struct Options {
   bool print_parser_visits = false;
   bool lsp_server = false;
   bool snarky = false;
-  quick_lint_js::Output_Format output_format =
-      quick_lint_js::Output_Format::default_format;
+  Output_Format output_format = Output_Format::default_format;
   Option_When diagnostic_hyperlinks = Option_When::auto_;
   std::vector<File_To_Lint> files_to_lint;
   Compiled_Diag_Code_List exit_fail_on;
