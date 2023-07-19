@@ -942,13 +942,13 @@ TEST_F(Test_Parse_TypeScript_Class,
   ::testing::AnyOf(                                                          \
       DIAG_TYPE_OFFSETS(p.code,                                              \
                         Diag_TypeScript_Private_Not_Allowed_In_JavaScript,   \
-                        specifier, strlen(code_before), u8"private"_sv),     \
+                        specifier, code_before.size(), u8"private"_sv),      \
       DIAG_TYPE_OFFSETS(p.code,                                              \
                         Diag_TypeScript_Protected_Not_Allowed_In_JavaScript, \
-                        specifier, strlen(code_before), u8"protected"_sv),   \
+                        specifier, code_before.size(), u8"protected"_sv),    \
       DIAG_TYPE_OFFSETS(p.code,                                              \
                         Diag_TypeScript_Public_Not_Allowed_In_JavaScript,    \
-                        specifier, strlen(code_before), u8"public"_sv))
+                        specifier, code_before.size(), u8"public"_sv))
 
     {
       Test_Parser p(
@@ -957,7 +957,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "),
+                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
                             }));
     }
 
@@ -968,7 +968,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "),
+                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
                             }));
     }
 
@@ -979,7 +979,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "),
+                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
                             }));
     }
 
@@ -995,7 +995,7 @@ TEST_F(Test_Parse_TypeScript_Class,
               DIAG_TYPE(
                   Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript),
               DIAG_TYPE(Diag_Missing_Semicolon_After_Field),
-              MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { ")));
+              MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv)));
     }
 
     {
@@ -1005,7 +1005,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "),
+                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
                             }));
     }
 #undef MATCH_ACCESS_SPECIFIER_ERROR
