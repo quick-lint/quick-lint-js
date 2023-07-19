@@ -1,6 +1,6 @@
 # ADR018: Naming style
 
-**Status**: Accepted and active; pending migration.
+**Status**: Accepted and active.
 
 ## Context
 
@@ -14,10 +14,10 @@ quick-lint-js uses the following styles for C++ code based on the C++ standard
 library's naming conventions:
 
 * types
-    * classes: `Upper_Snake_Case` (previously: `lower_snake_case`)
-    * enums: `Upper_Snake_Case` (previously: `lower_snake_case`)
-    * type aliases: `Upper_Snake_Case` (previously: `lower_snake_case`)
-    * type template parameters: `Upper_Snake_Case` (previously: `UpperCamelCase`)
+    * classes: `Upper_Snake_Case`
+    * enums: `Upper_Snake_Case`
+    * type aliases: `Upper_Snake_Case`
+    * type template parameters: `Upper_Snake_Case`
 * values
     * local variables: `lower_snake_case`
     * global variables: `lower_snake_case`
@@ -26,7 +26,7 @@ library's naming conventions:
       * private: `lower_snake_case_` (trailing underscore)
     * enum members: `lower_snake_case`
     * parameter variables: `lower_snake_case`
-    * variable template parameters: `lower_snake_case` (previously: `UpperCamelCase`)
+    * variable template parameters: `lower_snake_case`
 * functions
     * free functions: `lower_snake_case`
     * class methods: `lower_snake_case`
