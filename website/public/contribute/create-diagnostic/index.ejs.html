@@ -125,7 +125,7 @@
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                                                  \
     <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark>, <mark class="arg-2">"E0120"</mark>,                \
-    <mark class="arg-3">diagnostic_severity::error</mark>,                                  \
+    <mark class="arg-3">Diagnostic_Severity::error</mark>,                                  \
     <mark class="arg-4">{ Source_Code_Span try_token; }</mark>,                             \
     <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"),</mark> \
             <mark class="arg-5">try_token)</mark>)                                          \</code></pre>
@@ -159,7 +159,7 @@
         </p>
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-1">Diag_Comparison_With_Empty_String</mark>, \
     <mark class="arg-2 unimportant">/* TODO */</mark>,                        \
     <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
     <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
@@ -175,7 +175,7 @@
 
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>, \
     <mark class="arg-2">"E0001"</mark>,                           \
     <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
     <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
@@ -191,9 +191,9 @@
 
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>, \
+    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>, \
     <mark class="arg-2 unimportant">"E0001"</mark>,                           \
-    <mark class="arg-3">diagnostic_severity::warning</mark>,      \
+    <mark class="arg-3">Diagnostic_Severity::warning</mark>,      \
     <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
     <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
         </blockquote>
@@ -213,9 +213,9 @@
 
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                                \
-    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,         \
+    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,         \
     <mark class="arg-2 unimportant">"E0001"</mark>,                                   \
-    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,              \
+    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,              \
     <mark class="arg-4">{ Source_Code_Span comparison_operator; }</mark>, \
     <mark class="arg-5 unimportant">/* TODO */</mark>)                                \</code></pre>
         </blockquote>
@@ -239,9 +239,9 @@
 
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
-    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
+    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,             \
     <mark class="arg-2 unimportant">"E0001"</mark>,                                       \
-    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
+    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,                  \
     <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
     <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
       <mark class="arg-5">"comparing against empty strings is silly"),</mark> \
@@ -283,7 +283,7 @@ src/quick-lint-js/assert.h:92:7: error: inline assembly is not a constant expres
       |       ^~~
 <i>[snip]</i>
 src/quick-lint-js/diag/diagnostic.cpp: At global scope:
-src/quick-lint-js/diag/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::diag_comparison_with_empty_string&gt;::get()’
+src/quick-lint-js/diag/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::Diag_Comparison_With_Empty_String&gt;::get()’
 src/quick-lint-js/diag/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
   133 | };
       | ^</pre
@@ -351,7 +351,7 @@ Running main() from gmock_main.cc
 test/test-diag-code.cpp:50: Failure
 Failed
 <mark>diag code <strong>E0001</strong> used for multiple diags:</mark>
-diag_comparison_with_empty_string, Diag_Assignment_Before_Variable_Declaration
+Diag_Comparison_With_Empty_String, Diag_Assignment_Before_Variable_Declaration
 <mark>try this unused diag code: <strong>E0331</strong></mark>
 [  FAILED  ] test_diag_code.diag_codes_are_unique (1 ms)
 main thread ID: 372035
@@ -369,9 +369,9 @@ main thread ID: 372035
 
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
-    <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
+    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,             \
     <mark class="arg-2">"E0331"</mark>,                                       \
-    <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
+    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,                  \
     <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
     <mark class="arg-5 unimportant">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
       <mark class="arg-5 unimportant">"comparing against empty strings is silly"),</mark> \
@@ -404,14 +404,14 @@ main thread ID: 372035
         </p>
 
         <blockquote>
-          <pre><code class="cxx">TEST_F(test_parse_warning, warn_on_empty_string_literal_comparison) {
+          <pre><code class="cxx">TEST_F(Test_Parse_Warning, warn_on_empty_string_literal_comparison) {
   {
-    test_parser p(<mark class="arg-1">u8"a === ''"_sv</mark>, <mark class="arg-2">capture_diags</mark>);
+    Test_Parser p(<mark class="arg-1">u8"a === ''"_sv</mark>, <mark class="arg-2">capture_diags</mark>);
     <mark class="arg-3">p.parse_and_visit_expression();</mark>
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, <mark class="arg-4">diag_comparison_with_empty_string</mark>,
+            DIAG_TYPE_OFFSETS(p.code, <mark class="arg-4">Diag_Comparison_With_Empty_String</mark>,
                               <mark class="arg-5">comparison_operator</mark>, <mark class="arg-6">strlen(u8"a "), u8"==="_sv</mark>),
         }));
   }
@@ -461,7 +461,7 @@ main thread ID: 372035
           <dt>
             <code class="cxx"
               ><span class="mark-reference arg-4"
-                >diag_comparison_with_empty_string</span
+                >Diag_Comparison_With_Empty_String</span
               ></code
             >
           </dt>
@@ -523,9 +523,9 @@ ninja: Entering directory `build'
 Running main() from gmock_main.cc
 /home/strager/Projects/quick-lint-js-sl/test/test-parse-warning.cpp:561: Failure
 Value of: p.errors
-<mark>Expected: has 1 element that has type diag_comparison_with_empty_string</mark>
+<mark>Expected: has 1 element that has type Diag_Comparison_With_Empty_String</mark>
   <mark>Actual: {}</mark>
-[  FAILED  ] test_parse_warning.warn_on_empty_string_literal_comparison (0 ms)
+[  FAILED  ] Test_Parse_Warning.warn_on_empty_string_literal_comparison (0 ms)
 main thread ID: 373982
 [==========] 1981 tests from 151 test suites ran. (755 ms total)
 [  PASSED  ] 1980 tests.</code></pre>
@@ -571,47 +571,47 @@ main thread ID: 373982
         <blockquote>
           <pre
             class="gdb-session"
-          >$ <kbd>gdb --args ./build/test/quick-lint-js-test --gtest_filter=test_parse_warning.warn_on_empty_string_literal_comparison</kbd>
+          >$ <kbd>gdb --args ./build/test/quick-lint-js-test --gtest_filter=Test_Parse_Warning.warn_on_empty_string_literal_comparison</kbd>
 (gdb) <kbd>b parse_and_visit_expression</kbd>
 <samp class="important">Breakpoint 1 at 0x754ae0: parse_and_visit_expression. (3 locations)</samp>
 (gdb) <kbd>run</kbd>
-<samp>Starting program: build/test/quick-lint-js-test --gtest_filter=test_parse_warning.warn_on_empty_string_literal_comparison
+<samp>Starting program: build/test/quick-lint-js-test --gtest_filter=Test_Parse_Warning.warn_on_empty_string_literal_comparison
 Running main() from gmock_main.cc
-Note: Google Test filter = test_parse_warning.warn_on_empty_string_literal_comparison
+Note: Google Test filter = Test_Parse_Warning.warn_on_empty_string_literal_comparison
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
-[----------] 1 test from test_parse_warning
-[ RUN      ] test_parse_warning.warn_on_empty_string_literal_comparison
+[----------] 1 test from Test_Parse_Warning
+[ RUN      ] Test_Parse_Warning.warn_on_empty_string_literal_comparison
 
-Breakpoint 1, quick_lint_js::test_parser::parse_and_visit_expression at test/./quick-lint-js/parse-support.h:97
+Breakpoint 1, quick_lint_js::Test_Parser::parse_and_visit_expression at test/./quick-lint-js/parse-support.h:97
 97          this-&gt;parser_.parse_and_visit_expression(this-&gt;errors_);</samp>
 (gdb) <kbd>c</kbd>
 <samp>Continuing.
 
-Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:174
+Breakpoint 1, quick_lint_js::Parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:174
 174         this-&gt;parse_and_visit_expression(v, precedence{});</samp>
 (gdb) <kbd>c</kbd>
 <samp>Continuing.
 
-Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:550
-550         monotonic_allocator &amp;alloc = *this-&gt;expressions_.allocator();</samp>
+Breakpoint 1, quick_lint_js::Parser::parse_and_visit_expression at src/./quick-lint-js/fe/parse.h:550
+550         Monotonic_Allocator &amp;alloc = *this-&gt;expressions_.allocator();</samp>
 (gdb) <kbd>n</kbd>
 <samp>551         auto rewind_guard = alloc.make_rewind_guard();</samp>
 (gdb) <kbd>n</kbd>
-<samp>553         expression *ast = this-&gt;parse_expression(v, prec);</samp>
+<samp>553         Expression *ast = this-&gt;parse_expression(v, prec);</samp>
 (gdb) <kbd>n</kbd>
 <samp>555           auto disable_guard = alloc.disable();</samp>
 (gdb) <kbd>n</kbd>
 <samp class="important">556           this-&gt;visit_expression(ast, v, variable_context::rhs);</samp>
 (gdb) <kbd>step</kbd>
-<samp>quick_lint_js::parser::visit_expression at src/quick-lint-js/fe/parse-expression.cpp:36
+<samp>quick_lint_js::Parser::visit_expression at src/quick-lint-js/fe/parse-expression.cpp:36
 36        auto visit_children = [&amp;] {</samp>
 (gdb) <kbd>n</kbd>
 <samp>41        switch (ast-&gt;kind()) {</samp>
 (gdb) <kbd>n</kbd>
 <samp>67          visit_children();</samp>
 (gdb) <kbd>n</kbd>
-<samp>69          static_cast&lt;expression::binary_operator*&gt;(ast));</samp>
+<samp>69          static_cast&lt;Expression::Binary_Operator*&gt;(ast));</samp>
 (gdb) <kbd>n</kbd>
 <samp class="important">68          this-&gt;error_on_pointless_compare_against_literal(</samp></pre>
         </blockquote>
@@ -628,7 +628,7 @@ Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-l
 
         <blockquote>
           <pre><code class="cxx">Source_Code_Span op_span = /* usually this->peek().span */;
-this->diag_reporter_->report(diag_comparison_with_empty_string{
+this->diag_reporter_->report(Diag_Comparison_With_Empty_String{
     .comparison_operator = op_span,
 });</code></pre>
         </blockquote>
