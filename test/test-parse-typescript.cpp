@@ -26,11 +26,11 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript : public test_parse_expression {};
+class Test_Parse_TypeScript : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
+TEST_F(Test_Parse_TypeScript, type_annotation_in_expression_is_an_error) {
   {
-    test_parser p(u8"x = myVar: Type;"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"x = myVar: Type;"_sv, typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // myVar
@@ -43,15 +43,15 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_typescript_type_annotation_in_expression,  //
+                              Diag_TypeScript_Type_Annotation_In_Expression,  //
                               type_colon, strlen(u8"x = myVar"), u8":"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript, type_alias) {
+TEST_F(Test_Parse_TypeScript, type_alias) {
   {
-    test_parser p(u8"type T = U;"_sv, typescript_options);
+    Test_Parser p(u8"type T = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
@@ -65,7 +65,7 @@ TEST_F(test_parse_typescript, type_alias) {
   }
 
   {
-    test_parser p(u8"type MyAlias<T> = U;"_sv, typescript_options);
+    Test_Parser p(u8"type MyAlias<T> = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // MyAlias
@@ -81,9 +81,9 @@ TEST_F(test_parse_typescript, type_alias) {
   }
 }
 
-TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
+TEST_F(Test_Parse_TypeScript, type_alias_requires_semicolon_or_asi) {
   {
-    test_parser p(u8"type T = U"_sv, typescript_options);
+    Test_Parser p(u8"type T = U"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
@@ -94,7 +94,7 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    test_parser p(u8"type T = U\ntype V = W;"_sv, typescript_options);
+    Test_Parser p(u8"type T = U\ntype V = W;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
@@ -110,7 +110,7 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    test_parser p(u8"type T = U type V = W;"_sv, typescript_options,
+    Test_Parser p(u8"type T = U type V = W;"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -128,24 +128,24 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_missing_semicolon_after_statement,  //
+                              Diag_Missing_Semicolon_After_Statement,  //
                               where, strlen(u8"type T = U"), u8""_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript,
+TEST_F(Test_Parse_TypeScript,
        type_alias_can_be_named_certain_contextual_keywords) {
-  for (string8 name :
-       dirty_set<string8>{u8"await"} |
+  for (String8 name :
+       Dirty_Set<String8>{u8"await"} |
            (contextual_keywords - typescript_builtin_type_keywords -
             typescript_special_type_keywords -
-            dirty_set<string8>{
+            Dirty_Set<String8>{
                 u8"let",
                 u8"static",
                 u8"yield",
             })) {
-    test_parser p(concat(u8"type "_sv, name, u8" = T;"_sv), typescript_options);
+    Test_Parser p(concat(u8"type "_sv, name, u8" = T;"_sv), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -159,10 +159,10 @@ TEST_F(test_parse_typescript,
   }
 }
 
-TEST_F(test_parse_typescript,
+TEST_F(Test_Parse_TypeScript,
        type_alias_cannot_have_newline_after_type_keyword) {
   {
-    test_parser p(u8"type\nT = U;"_sv, typescript_options);
+    Test_Parser p(u8"type\nT = U;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // type
@@ -174,9 +174,9 @@ TEST_F(test_parse_typescript,
   }
 }
 
-TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
+TEST_F(Test_Parse_TypeScript, type_alias_not_allowed_in_javascript) {
   {
-    test_parser p(u8"type T = U;"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"type T = U;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
@@ -189,66 +189,66 @@ TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_type_alias_not_allowed_in_javascript,  //
+                Diag_TypeScript_Type_Alias_Not_Allowed_In_JavaScript,  //
                 type_keyword, 0, u8"type"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript, warn_on_mistyped_strict_inequality_operator) {
+TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
   {
-    test_parser p(u8"x! == y"_sv, typescript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"x! == y"_sv, typescript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_bang_equal_equal_interpreted_as_non_null_assertion,  //
+                Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,  //
                 unexpected_space, strlen(u8"x!"), u8" "_sv,               //
                 bang, strlen(u8"x"), u8"!"_sv),
         }));
   }
   {
-    test_parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
+    Test_Parser p(u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_bang_equal_equal_interpreted_as_non_null_assertion,
+                p.code, Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,
                 unexpected_space, strlen(u8"if (length + 1!"), u8" "_sv),
         }));
   }
   {
-    test_parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
+    Test_Parser p(u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_bang_equal_equal_interpreted_as_non_null_assertion,
+                p.code, Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,
                 unexpected_space, strlen(u8"if (typeof diagnostic.code!"),
                 u8" "_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript,
+TEST_F(Test_Parse_TypeScript,
        mistyped_strict_inequality_operator_is_suppressable) {
   {
-    test_parser p(u8"(x!) == y"_sv, typescript_options);
+    Test_Parser p(u8"(x!) == y"_sv, typescript_options);
     p.parse_and_visit_statement();
   }
   {
-    test_parser p(u8"x! /**/ == y"_sv, typescript_options);
+    Test_Parser p(u8"x! /**/ == y"_sv, typescript_options);
     p.parse_and_visit_statement();
   }
   {
-    test_parser p(u8"x!\n== y"_sv, typescript_options);
+    Test_Parser p(u8"x!\n== y"_sv, typescript_options);
     p.parse_and_visit_statement();
   }
 }

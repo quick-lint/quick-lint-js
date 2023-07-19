@@ -19,18 +19,18 @@
 #include <string_view>
 
 namespace quick_lint_js {
-class qljs_workspace;
+class QLJS_Workspace;
 
-class qljs_document_base {
+class QLJS_Document_Base {
  public:
-  static qljs_document_base* unwrap(::Napi::Value document) {
+  static QLJS_Document_Base* unwrap(::Napi::Value document) {
     QLJS_ASSERT(document.IsExternal());
-    ::Napi::External<qljs_document_base> wrapped =
-        document.As<::Napi::External<qljs_document_base>>();
+    ::Napi::External<QLJS_Document_Base> wrapped =
+        document.As<::Napi::External<QLJS_Document_Base>>();
     return wrapped.Data();
   }
 
-  explicit qljs_document_base(vscode_document doc,
+  explicit QLJS_Document_Base(VSCode_Document doc,
                               const std::optional<std::string>& file_path)
       : vscode_document_(::Napi::Persistent(doc)) {
     if (file_path.has_value()) {
@@ -41,16 +41,16 @@ class qljs_document_base {
     }
   }
 
-  virtual ~qljs_document_base() = default;
+  virtual ~QLJS_Document_Base() = default;
 
   // Takes ownership of this qljs_document_base.
   //
   // This qljs_document_base must have been allocated with 'new'.
   ::Napi::Value create_wrapper(::Napi::Env env) {
-    ::Napi::External<qljs_document_base> wrapped =
-        ::Napi::External<qljs_document_base>::New(
+    ::Napi::External<QLJS_Document_Base> wrapped =
+        ::Napi::External<QLJS_Document_Base>::New(
             env, this,
-            /*finalize=*/[](::Napi::Env, qljs_document_base* data) -> void {
+            /*finalize=*/[](::Napi::Env, QLJS_Document_Base* data) -> void {
               delete data;
             });
     return wrapped;
@@ -63,7 +63,7 @@ class qljs_document_base {
       ::Napi::Object range = change.Get("range").As<::Napi::Object>();
       ::Napi::Object start = range.Get("start").As<::Napi::Object>();
       ::Napi::Object end = range.Get("end").As<::Napi::Object>();
-      lsp_range r = {
+      LSP_Range r = {
           .start =
               {
                   .line = to_int(start.Get("line")),
@@ -81,85 +81,85 @@ class qljs_document_base {
     }
   }
 
-  padded_string_view document_string() noexcept {
+  Padded_String_View document_string() noexcept {
     return this->document_.string();
   }
 
-  virtual void after_modification(::Napi::Env, qljs_workspace&,
-                                  vscode_diagnostic_collection) = 0;
+  virtual void after_modification(::Napi::Env, QLJS_Workspace&,
+                                  VSCode_Diagnostic_Collection) = 0;
 
-  virtual void finish_init(::Napi::Env, qljs_workspace&,
+  virtual void finish_init(::Napi::Env, QLJS_Workspace&,
                            const std::optional<std::string>& file_path) = 0;
 
   // config_file is optional.
-  virtual void on_config_file_changed(::Napi::Env, qljs_workspace&,
-                                      vscode_diagnostic_collection,
-                                      loaded_config_file* config_file) = 0;
+  virtual void on_config_file_changed(::Napi::Env, QLJS_Workspace&,
+                                      VSCode_Diagnostic_Collection,
+                                      Loaded_Config_File* config_file) = 0;
 
  protected:
   ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }
 
-  lsp_document_text document_;
-  ::Napi::Reference<vscode_document> vscode_document_;
+  LSP_Document_Text document_;
+  ::Napi::Reference<VSCode_Document> vscode_document_;
 
-  friend class qljs_workspace;
+  friend class QLJS_Workspace;
 };
 
-class qljs_config_document : public qljs_document_base {
+class QLJS_Config_Document : public QLJS_Document_Base {
  public:
-  explicit qljs_config_document(vscode_document doc,
+  explicit QLJS_Config_Document(VSCode_Document doc,
                                 const std::optional<std::string>& file_path)
-      : qljs_document_base(doc, file_path) {
+      : QLJS_Document_Base(doc, file_path) {
     QLJS_ASSERT(file_path.has_value());
   }
 
-  void after_modification(::Napi::Env, qljs_workspace&,
-                          vscode_diagnostic_collection) override;
-  void finish_init(::Napi::Env, qljs_workspace&,
+  void after_modification(::Napi::Env, QLJS_Workspace&,
+                          VSCode_Diagnostic_Collection) override;
+  void finish_init(::Napi::Env, QLJS_Workspace&,
                    const std::optional<std::string>& file_path) override;
-  void on_config_file_changed(::Napi::Env, qljs_workspace&,
-                              vscode_diagnostic_collection,
-                              loaded_config_file* config_file) override;
+  void on_config_file_changed(::Napi::Env, QLJS_Workspace&,
+                              VSCode_Diagnostic_Collection,
+                              Loaded_Config_File* config_file) override;
 
  private:
-  void lint_config_and_publish_diagnostics(::Napi::Env, vscode_module&,
-                                           vscode_diagnostic_collection,
-                                           loaded_config_file* loaded_config);
+  void lint_config_and_publish_diagnostics(::Napi::Env, VSCode_Module&,
+                                           VSCode_Diagnostic_Collection,
+                                           Loaded_Config_File* loaded_config);
 
-  ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
-                            loaded_config_file* loaded_config) {
+  ::Napi::Array lint_config(::Napi::Env env, VSCode_Module* vscode,
+                            Loaded_Config_File* loaded_config) {
     vscode->load_non_persistent(env);
 
-    lsp_locator locator(&loaded_config->file_content);
-    vscode_diag_reporter diag_reporter(vscode, env, &locator, this->uri());
+    LSP_Locator locator(&loaded_config->file_content);
+    VSCode_Diag_Reporter diag_reporter(vscode, env, &locator, this->uri());
     loaded_config->errors.copy_into(&diag_reporter);
     return std::move(diag_reporter).diagnostics();
   }
 };
 
-class qljs_lintable_document : public qljs_document_base {
+class QLJS_Lintable_Document : public QLJS_Document_Base {
  public:
-  explicit qljs_lintable_document(vscode_document doc,
+  explicit QLJS_Lintable_Document(VSCode_Document doc,
                                   const std::optional<std::string>& file_path,
-                                  linter_options lint_options)
-      : qljs_document_base(doc, file_path), lint_options_(lint_options) {}
+                                  Linter_Options lint_options)
+      : QLJS_Document_Base(doc, file_path), lint_options_(lint_options) {}
 
-  void after_modification(::Napi::Env, qljs_workspace&,
-                          vscode_diagnostic_collection) override;
-  void finish_init(::Napi::Env, qljs_workspace&,
+  void after_modification(::Napi::Env, QLJS_Workspace&,
+                          VSCode_Diagnostic_Collection) override;
+  void finish_init(::Napi::Env, QLJS_Workspace&,
                    const std::optional<std::string>& file_path) override;
-  void on_config_file_changed(::Napi::Env, qljs_workspace&,
-                              vscode_diagnostic_collection,
-                              loaded_config_file* config_file) override;
+  void on_config_file_changed(::Napi::Env, QLJS_Workspace&,
+                              VSCode_Diagnostic_Collection,
+                              Loaded_Config_File* config_file) override;
 
-  void lint_javascript_and_publish_diagnostics(::Napi::Env, vscode_module&,
-                                               vscode_diagnostic_collection);
+  void lint_javascript_and_publish_diagnostics(::Napi::Env, VSCode_Module&,
+                                               VSCode_Diagnostic_Collection);
 
  private:
-  ::Napi::Array lint_javascript(::Napi::Env env, vscode_module* vscode) {
+  ::Napi::Array lint_javascript(::Napi::Env env, VSCode_Module* vscode) {
     vscode->load_non_persistent(env);
 
-    vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
+    VSCode_Diag_Reporter diag_reporter(vscode, env, &this->document_.locator(),
                                        this->uri());
     parse_and_lint(this->document_.string(), diag_reporter,
                    this->config_->globals(), this->lint_options_);
@@ -167,11 +167,11 @@ class qljs_lintable_document : public qljs_document_base {
     return std::move(diag_reporter).diagnostics();
   }
 
-  configuration* config_;  // Initialized by finish_init.
-  linter_options lint_options_;
+  Configuration* config_;  // Initialized by finish_init.
+  Linter_Options lint_options_;
 
-  friend class qljs_document_base;
-  friend class qljs_workspace;
+  friend class QLJS_Document_Base;
+  friend class QLJS_Workspace;
 };
 }
 

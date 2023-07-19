@@ -38,14 +38,14 @@ struct kevent;
 #endif
 
 namespace quick_lint_js {
-struct watch_io_error {
+struct Watch_IO_Error {
   std::string path;
-  platform_file_io_error io_error;
+  Platform_File_IO_Error io_error;
 
   std::string to_string() const;
 
-  friend bool operator==(const watch_io_error&, const watch_io_error&) noexcept;
-  friend bool operator!=(const watch_io_error&, const watch_io_error&) noexcept;
+  friend bool operator==(const Watch_IO_Error&, const Watch_IO_Error&) noexcept;
+  friend bool operator!=(const Watch_IO_Error&, const Watch_IO_Error&) noexcept;
 };
 
 QLJS_WARNING_PUSH
@@ -56,35 +56,35 @@ extern int mock_inotify_force_init_error;
 extern int mock_inotify_force_add_watch_error;
 
 // Not thread-safe.
-class change_detecting_filesystem_inotify : public configuration_filesystem,
-                                            public canonicalize_observer {
+class Change_Detecting_Filesystem_Inotify : public Configuration_Filesystem,
+                                            public Canonicalize_Observer {
  public:
-  explicit change_detecting_filesystem_inotify();
-  ~change_detecting_filesystem_inotify() override;
+  explicit Change_Detecting_Filesystem_Inotify();
+  ~Change_Detecting_Filesystem_Inotify() override;
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path&) override;
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  std::optional<posix_fd_file_ref> get_inotify_fd() noexcept;
+  std::optional<POSIX_FD_File_Ref> get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
 
-  std::vector<watch_io_error> take_watch_errors();
+  std::vector<Watch_IO_Error> take_watch_errors();
 
  private:
   // Sets errno and returns false on failure.
   bool watch_directory(const char*);
-  bool watch_directory(const canonical_path&);
+  bool watch_directory(const Canonical_Path&);
 
   void read_inotify();
 
   std::vector<int> watch_descriptors_;
-  std::vector<watch_io_error> watch_errors_;
-  result<posix_fd_file, posix_file_io_error> inotify_fd_;
+  std::vector<Watch_IO_Error> watch_errors_;
+  Result<POSIX_FD_File, POSIX_File_IO_Error> inotify_fd_;
 };
 #endif
 
@@ -93,57 +93,57 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
 extern int mock_kqueue_force_directory_open_error;
 
 // Not thread-safe.
-class change_detecting_filesystem_kqueue : public configuration_filesystem,
-                                           canonicalize_observer {
+class Change_Detecting_Filesystem_Kqueue : public Configuration_Filesystem,
+                                           Canonicalize_Observer {
  public:
-  explicit change_detecting_filesystem_kqueue(posix_fd_file_ref kqueue_fd,
+  explicit Change_Detecting_Filesystem_Kqueue(POSIX_FD_File_Ref kqueue_fd,
                                               void* udata);
-  ~change_detecting_filesystem_kqueue() override;
+  ~Change_Detecting_Filesystem_Kqueue() override;
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path&) override;
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
+  POSIX_FD_File_Ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
 
   void handle_kqueue_event(const struct ::kevent&);
 
-  std::vector<watch_io_error> take_watch_errors();
+  std::vector<Watch_IO_Error> take_watch_errors();
 
  private:
-  struct file_id {
+  struct File_ID {
     ::dev_t device;
     ::ino_t inode;
 
-    static file_id from_open_file(posix_fd_file_ref);
+    static File_ID from_open_file(POSIX_FD_File_Ref);
 
-    bool operator==(const file_id&) const noexcept;
-    bool operator!=(const file_id&) const noexcept;
+    bool operator==(const File_ID&) const noexcept;
+    bool operator!=(const File_ID&) const noexcept;
   };
 
   // A watched directory or regular file.
-  struct watched_file {
-    explicit watched_file(posix_fd_file&&);
+  struct Watched_File {
+    explicit Watched_File(POSIX_FD_File&&);
 
-    posix_fd_file fd;
-    file_id id;
+    POSIX_FD_File fd;
+    File_ID id;
   };
 
   // Sets errno and returns false on failure.
-  bool watch_directory(const canonical_path&);
+  bool watch_directory(const Canonical_Path&);
 
-  hash_map<canonical_path, watched_file>::iterator watch_file(canonical_path&&,
-                                                              posix_fd_file);
+  Hash_Map<Canonical_Path, Watched_File>::iterator watch_file(Canonical_Path&&,
+                                                              POSIX_FD_File);
 
-  posix_fd_file_ref kqueue_fd_;
+  POSIX_FD_File_Ref kqueue_fd_;
   void* udata_;
 
-  hash_map<canonical_path, watched_file> watched_files_;
-  std::vector<watch_io_error> watch_errors_;
+  Hash_Map<Canonical_Path, Watched_File> watched_files_;
+  std::vector<Watch_IO_Error> watch_errors_;
 };
 #endif
 
@@ -154,18 +154,18 @@ extern ::DWORD mock_win32_force_directory_file_id_error;
 extern ::DWORD mock_win32_force_directory_ioctl_error;
 
 // Not thread-safe.
-class change_detecting_filesystem_win32 : public configuration_filesystem {
+class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
  public:
-  explicit change_detecting_filesystem_win32(
-      windows_handle_file_ref io_completion_port, ::ULONG_PTR completion_key);
-  ~change_detecting_filesystem_win32() override;
+  explicit Change_Detecting_Filesystem_Win32(
+      Windows_Handle_File_Ref io_completion_port, ::ULONG_PTR completion_key);
+  ~Change_Detecting_Filesystem_Win32() override;
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path&) override;
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path&) override;
 
-  windows_handle_file_ref io_completion_port() const noexcept {
+  Windows_Handle_File_Ref io_completion_port() const noexcept {
     return this->io_completion_port_;
   }
 
@@ -176,46 +176,46 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
 
   void clear_watches();
 
-  std::vector<watch_io_error> take_watch_errors();
+  std::vector<Watch_IO_Error> take_watch_errors();
 
  private:
-  struct watched_directory {
-    explicit watched_directory(windows_handle_file&& directory_handle,
+  struct Watched_Directory {
+    explicit Watched_Directory(Windows_Handle_File&& directory_handle,
                                const ::FILE_ID_INFO& directory_id);
 
-    // Copying or moving a watched_directory is impossible. Pending I/O
-    // operations maintain pointers into a watched_directory.
-    watched_directory(const watched_directory&) = delete;
-    watched_directory& operator=(const watched_directory&) = delete;
+    // Copying or moving a Watched_Directory is impossible. Pending I/O
+    // operations maintain pointers into a Watched_Directory.
+    Watched_Directory(const Watched_Directory&) = delete;
+    Watched_Directory& operator=(const Watched_Directory&) = delete;
 
     bool valid() const noexcept { return this->directory_handle.valid(); }
 
-    windows_handle_file directory_handle;
+    Windows_Handle_File directory_handle;
     ::FILE_ID_INFO directory_id;
 
     ::OVERLAPPED oplock_overlapped;
     ::REQUEST_OPLOCK_OUTPUT_BUFFER oplock_response;
 
-    static watched_directory* from_oplock_overlapped(OVERLAPPED*) noexcept;
+    static Watched_Directory* from_oplock_overlapped(OVERLAPPED*) noexcept;
   };
 
   // Calls SetLastError and returns false on failure.
-  bool watch_directory(const canonical_path&);
+  bool watch_directory(const Canonical_Path&);
 
-  void cancel_watch(std::unique_ptr<watched_directory>&&);
+  void cancel_watch(std::unique_ptr<Watched_Directory>&&);
 
-  void handle_oplock_aborted_event(watched_directory*);
-  void handle_oplock_broke_event(watched_directory*,
+  void handle_oplock_aborted_event(Watched_Directory*);
+  void handle_oplock_broke_event(Watched_Directory*,
                                  ::DWORD number_of_bytes_transferred);
 
-  windows_handle_file_ref io_completion_port_;
+  Windows_Handle_File_Ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  hash_map<canonical_path, std::unique_ptr<watched_directory> >
+  Hash_Map<Canonical_Path, std::unique_ptr<Watched_Directory> >
       watched_directories_;
-  std::vector<std::unique_ptr<watched_directory> >
+  std::vector<std::unique_ptr<Watched_Directory> >
       cancelling_watched_directories_;
-  std::vector<watch_io_error> watch_errors_;
+  std::vector<Watch_IO_Error> watch_errors_;
 };
 #endif
 QLJS_WARNING_POP

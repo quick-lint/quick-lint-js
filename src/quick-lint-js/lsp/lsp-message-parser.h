@@ -17,28 +17,28 @@
 #include <vector>
 
 namespace quick_lint_js {
-class lsp_message_parser_base {
+class LSP_Message_Parser_Base {
  protected:
-  struct parsed_message_headers {
+  struct Parsed_Message_Headers {
     std::optional<std::size_t> content_length;
   };
 
-  struct parsed_header {
-    string8_view name;
-    string8_view value;
+  struct Parsed_Header {
+    String8_View name;
+    String8_View value;
 
     // Data after the parsed header. Either a new header or \r\n.
-    string8_view remaining;
+    String8_View remaining;
   };
 
-  const char8* find_content_begin(const char8* headers_begin);
+  const Char8* find_content_begin(const Char8* headers_begin);
 
-  static parsed_message_headers parse_message_headers(string8_view headers);
-  static parsed_header parse_header(string8_view headers);
-  static bool header_is(string8_view header_name,
-                        string8_view expected_header_name);
+  static Parsed_Message_Headers parse_message_headers(String8_View headers);
+  static Parsed_Header parse_header(String8_View headers);
+  static bool header_is(String8_View header_name,
+                        String8_View expected_header_name);
 
-  std::vector<char8> buffer_;
+  std::vector<Char8> buffer_;
 
   // If !pending_message_content_length_.has_value(), buffer_ contains message
   // headers (and possibly message content and other messages afterwards).
@@ -53,7 +53,7 @@ class lsp_message_parser_base {
 // lsp_message_parser calls the following member function on Derived when a
 // full message is successfully parsed:
 //
-// * void message_parsed(string8_view message_content)
+// * void message_parsed(String8_View message_content)
 //
 // lsp_message_parser is ignorant of JSON and JSON-RPC. JSON and JSON-RPC are
 // handled in lsp_endpoint.
@@ -61,9 +61,9 @@ class lsp_message_parser_base {
 // lsp_message_parser implements the Curiously Recurring Template Pattern
 // (CRTP).
 template <class Derived>
-class lsp_message_parser : private lsp_message_parser_base {
+class LSP_Message_Parser : private LSP_Message_Parser_Base {
  public:
-  void append(string8_view data) {
+  void append(String8_View data) {
     this->buffer_.insert(this->buffer_.end(), data.data(),
                          data.data() + data.size());
     this->parse();
@@ -71,12 +71,12 @@ class lsp_message_parser : private lsp_message_parser_base {
 
  private:
   void parse() {
-    const char8* headers_or_content_begin = this->buffer_.data();
+    const Char8* headers_or_content_begin = this->buffer_.data();
     for (;;) {
       if (this->pending_message_content_length_.has_value()) {
         // Parse message content.
-        const char8* content_begin = headers_or_content_begin;
-        const char8* content_end = this->parse_message_content(
+        const Char8* content_begin = headers_or_content_begin;
+        const Char8* content_end = this->parse_message_content(
             /*content_begin=*/content_begin,
             /*content_length=*/*this->pending_message_content_length_);
         if (!content_end) {
@@ -86,12 +86,12 @@ class lsp_message_parser : private lsp_message_parser_base {
         headers_or_content_begin = content_end;
       } else {
         // Parse message headers.
-        const char8* headers_begin = headers_or_content_begin;
-        const char8* content_begin = this->find_content_begin(headers_begin);
+        const Char8* headers_begin = headers_or_content_begin;
+        const Char8* content_begin = this->find_content_begin(headers_begin);
         if (!content_begin) {
           break;
         }
-        parsed_message_headers headers = this->parse_message_headers(
+        Parsed_Message_Headers headers = this->parse_message_headers(
             make_string_view(headers_begin, content_begin));
         // If headers.content_length.has_value(), then switch to parsing the
         // body. Otherwise, we received invalid headers, so recover by parsing
@@ -106,7 +106,7 @@ class lsp_message_parser : private lsp_message_parser_base {
                             (headers_or_content_begin - this->buffer_.data()));
   }
 
-  const char8* parse_message_content(const char8* content_begin,
+  const Char8* parse_message_content(const Char8* content_begin,
                                      std::size_t content_length) {
     std::size_t content_bytes_in_buffer = narrow_cast<std::size_t>(
         (this->buffer_.data() + this->buffer_.size()) - content_begin);
@@ -115,9 +115,9 @@ class lsp_message_parser : private lsp_message_parser_base {
       return nullptr;
     }
 
-    const char8* content_end = content_begin + content_length;
+    const Char8* content_end = content_begin + content_length;
     static_cast<Derived*>(this)->message_parsed(
-        string8_view(content_begin, content_length));
+        String8_View(content_begin, content_length));
     return content_end;
   }
 };

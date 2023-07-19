@@ -17,13 +17,13 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_buffering_visitor, buffers_all_visits) {
-  const char8 delete_keyword[] = u8"delete";
-  const char8 function_name[] = u8"function";
-  const char8 property_name[] = u8"property";
-  const char8 variable_name[] = u8"variable";
+TEST(Test_Buffering_Visitor, buffers_all_visits) {
+  const Char8 delete_keyword[] = u8"delete";
+  const Char8 function_name[] = u8"function";
+  const Char8 property_name[] = u8"property";
+  const Char8 variable_name[] = u8"variable";
 
-  buffering_visitor v(new_delete_resource());
+  Buffering_Visitor v(new_delete_resource());
   v.visit_end_of_module();
   v.visit_enter_block_scope();
   v.visit_enter_with_scope();
@@ -50,8 +50,8 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(
-      identifier_of(variable_name), variable_kind::_var,
-      variable_declaration_flags::initialized_with_equals);
+      identifier_of(variable_name), Variable_Kind::_var,
+      Variable_Declaration_Flags::initialized_with_equals);
   v.visit_variable_delete_use(identifier_of(variable_name),
                               span_of(delete_keyword));
   v.visit_variable_export_use(identifier_of(variable_name));
@@ -60,7 +60,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));
 
-  spy_visitor spy;
+  Spy_Visitor spy;
   v.move_into(spy);
   EXPECT_THAT(spy.visits, ElementsAreArray({
                               "visit_end_of_module",                //
@@ -98,28 +98,28 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           }));
 }
 
-TEST(test_buffering_visitor, copy_to_repeats_buffered_visits) {
-  buffering_visitor v(new_delete_resource());
+TEST(Test_Buffering_Visitor, copy_to_repeats_buffered_visits) {
+  Buffering_Visitor v(new_delete_resource());
   v.visit_end_of_module();
 
-  spy_visitor spy_1;
+  Spy_Visitor spy_1;
   v.copy_into(spy_1);
   EXPECT_THAT(spy_1.visits, ElementsAreArray({"visit_end_of_module"}));
 
-  spy_visitor spy_2;
+  Spy_Visitor spy_2;
   v.copy_into(spy_2);
   EXPECT_THAT(spy_2.visits, ElementsAreArray({"visit_end_of_module"}));
 }
 
-TEST(test_buffering_visitor, move_to_clears_buffered_visits) {
-  buffering_visitor v(new_delete_resource());
+TEST(Test_Buffering_Visitor, move_to_clears_buffered_visits) {
+  Buffering_Visitor v(new_delete_resource());
   v.visit_end_of_module();
 
-  spy_visitor spy_1;
+  Spy_Visitor spy_1;
   v.move_into(spy_1);
   EXPECT_THAT(spy_1.visits, ElementsAreArray({"visit_end_of_module"}));
 
-  spy_visitor spy_2;
+  Spy_Visitor spy_2;
   v.move_into(spy_2);
   EXPECT_THAT(spy_2.visits, IsEmpty());
 }

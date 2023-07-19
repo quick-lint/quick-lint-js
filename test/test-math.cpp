@@ -6,7 +6,7 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_math, multiply_u64_get_top_64) {
+TEST(Test_Math, multiply_u64_get_top_64) {
   EXPECT_EQ(multiply_u64_get_top_64(0, 0), 0);
 
   EXPECT_EQ(multiply_u64_get_top_64(0x80000000'00000000ULL, 2), 1);

@@ -12,19 +12,19 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 #if defined(_WIN32)
-TEST(test_utf_16_windows, mbargv) {
+TEST(Test_UTF16_Windows, MBArgv) {
   std::vector<wchar_t*> argv;
   std::wstring first = std::wstring(L"-h");
   std::wstring second = std::wstring(L"\xd83c\xdf55");
   argv.emplace_back(first.data());
   argv.emplace_back(second.data());
-  quick_lint_js::mbargv m(quick_lint_js::narrow_cast<int>(argv.size()),
+  quick_lint_js::MBArgv m(quick_lint_js::narrow_cast<int>(argv.size()),
                           argv.data());
   EXPECT_STREQ(m.data()[0], "-h");
   EXPECT_STREQ(m.data()[1], "\xf0\x9f\x8d\x95");
 }
 
-TEST(test_utf_16_windows, mbstring_to_wstring) {
+TEST(Test_UTF16_Windows, mbstring_to_wstring) {
   {
     std::string mbstring = std::string("-h");
     std::optional<std::wstring> wstring =
@@ -39,14 +39,14 @@ TEST(test_utf_16_windows, mbstring_to_wstring) {
   }
 }
 
-TEST(test_utf_16_windows, wstring_to_mbstring) {
+TEST(Test_UTF16_Windows, wstring_to_mbstring) {
   EXPECT_EQ(wstring_to_mbstring(L""sv).value(), "");
   EXPECT_EQ(wstring_to_mbstring(L"-h"sv).value(), "-h");
   EXPECT_EQ(wstring_to_mbstring(L"\xd83c\xdf55").value(), "\xf0\x9f\x8d\x95");
 }
 #endif
 
-TEST(test_utf_16, utf_16_to_utf_8) {
+TEST(Test_UTF16, utf_16_to_utf_8) {
   EXPECT_EQ(utf_16_to_utf_8(u""sv), u8"");
 
   // One UTF-8 code unit per code point:
@@ -68,7 +68,7 @@ TEST(test_utf_16, utf_16_to_utf_8) {
   EXPECT_EQ(utf_16_to_utf_8(u"\U0010ffff"), u8"\U0010ffff");
 }
 
-TEST(test_utf_16, invalid_utf_16_to_utf_8_adds_replacement_character) {
+TEST(Test_UTF16, invalid_utf_16_to_utf_8_adds_replacement_character) {
   // U+D800 through U+DFFF are reserved.
   // If naively coded, U+D83C would be 'ed a0 bc' in UTF-8.
   // If naively coded, U+DF55 would be 'ef bf bd' in UTF-8.
@@ -95,27 +95,27 @@ TEST(test_utf_16, invalid_utf_16_to_utf_8_adds_replacement_character) {
             "\xed\xa0\xbc"_s8v);
 }
 
-TEST(test_count_utf_8_code_units_in_utf_16, empty_string) {
+TEST(Test_Count_UTF8_Code_Units_In_UTF16, empty_string) {
   EXPECT_EQ(count_utf_8_code_units(u""sv), 0);
 }
 
-TEST(test_count_utf_8_code_units_in_utf_16, ascii) {
+TEST(Test_Count_UTF8_Code_Units_In_UTF16, ascii) {
   EXPECT_EQ(count_utf_8_code_units(u"abc 123"sv), 7);
   EXPECT_EQ(count_utf_8_code_units(u"\u007f"sv), 1);
   EXPECT_EQ(count_utf_8_code_units(u"\u0000"sv), 1);
 }
 
-TEST(test_count_utf_8_code_units_in_utf_16, 2_byte_utf_8) {
+TEST(Test_Count_UTF8_Code_Units_In_UTF16, 2_byte_utf_8) {
   EXPECT_EQ(count_utf_8_code_units(u"\u0080"sv), 2);
   EXPECT_EQ(count_utf_8_code_units(u"\u07ff"sv), 2);
 }
 
-TEST(test_count_utf_8_code_units_in_utf_16, 3_byte_utf_8) {
+TEST(Test_Count_UTF8_Code_Units_In_UTF16, 3_byte_utf_8) {
   EXPECT_EQ(count_utf_8_code_units(u"\u0800"sv), 3);
   EXPECT_EQ(count_utf_8_code_units(u"\uffff"sv), 3);
 }
 
-TEST(test_count_utf_8_code_units_in_utf_16, surrogate_pair) {
+TEST(Test_Count_UTF8_Code_Units_In_UTF16, surrogate_pair) {
   EXPECT_EQ(count_utf_8_code_units(u"\U00010437"sv), 4) << "D801 DC37";
   EXPECT_EQ(count_utf_8_code_units(u"\U00024B62"sv), 4) << "D852 DF62";
 }

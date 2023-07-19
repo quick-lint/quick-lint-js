@@ -5,7 +5,7 @@
 #include <quick-lint-js/cli/emacs-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const emacs_source_position &p) {
+std::ostream &operator<<(std::ostream &out, const Emacs_Source_Position &p) {
   out << "emacs_source_position{" << p.offset << '}';
   return out;
 }

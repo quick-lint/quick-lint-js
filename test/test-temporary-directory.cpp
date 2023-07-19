@@ -24,7 +24,7 @@
 namespace quick_lint_js {
 namespace {
 #if QLJS_HAVE_UNISTD_H
-TEST(test_temporary_directory, delete_directory_containing_unwritable_file) {
+TEST(Test_Temporary_Directory, delete_directory_containing_unwritable_file) {
   std::string temp_dir = make_temporary_directory();
   std::string sub_dir = temp_dir + "/subdir";
   create_directory_or_exit(sub_dir);
@@ -40,7 +40,7 @@ TEST(test_temporary_directory, delete_directory_containing_unwritable_file) {
   EXPECT_FILE_DOES_NOT_EXIST(sub_dir);
 }
 
-TEST(test_temporary_directory,
+TEST(Test_Temporary_Directory,
      delete_directory_containing_non_empty_untraversable_directory) {
   std::string temp_dir = make_temporary_directory();
   std::string sub_dir = temp_dir + "/sub_dir";
@@ -61,7 +61,7 @@ TEST(test_temporary_directory,
 }
 #endif
 
-TEST(test_temporary_directory,
+TEST(Test_Temporary_Directory,
      creating_directory_over_existing_directory_fails) {
   std::string temp_dir = make_temporary_directory();
 
@@ -74,7 +74,7 @@ TEST(test_temporary_directory,
   EXPECT_TRUE(result_2.error().is_directory_already_exists_error);
 }
 
-TEST(test_temporary_directory, creating_directory_over_existing_file_fails) {
+TEST(Test_Temporary_Directory, creating_directory_over_existing_file_fails) {
   std::string temp_dir = make_temporary_directory();
 
   std::string file = temp_dir + "/file";
@@ -86,7 +86,7 @@ TEST(test_temporary_directory, creating_directory_over_existing_file_fails) {
 }
 
 #if QLJS_HAVE_UNISTD_H
-TEST(test_temporary_directory,
+TEST(Test_Temporary_Directory,
      creating_directory_in_unwritable_directory_fails) {
   if (process_ignores_filesystem_permissions()) {
     GTEST_SKIP() << "cannot run test as root";
@@ -104,10 +104,10 @@ TEST(test_temporary_directory,
 }
 #endif
 
-TEST(test_temporary_directory, timestamped_directory) {
+TEST(Test_Temporary_Directory, timestamped_directory) {
   std::string temp_dir = make_temporary_directory();
 
-  result<std::string, platform_file_io_error> d =
+  Result<std::string, Platform_File_IO_Error> d =
       make_timestamped_directory(temp_dir, "dir_%Y-%m-%d-%H-%M-%S");
   ASSERT_TRUE(d.ok()) << d.error_to_string();
 
@@ -118,16 +118,16 @@ TEST(test_temporary_directory, timestamped_directory) {
   EXPECT_THAT(files, ::testing::ElementsAre(*d));
 }
 
-TEST(test_temporary_directory,
+TEST(Test_Temporary_Directory,
      timestamped_directory_is_uniquified_on_timestamp_collision) {
   std::string temp_dir = make_temporary_directory();
 
   // Collisions are likely because the directory name only includes the date,
   // not the time.
-  result<std::string, platform_file_io_error> d1 =
+  Result<std::string, Platform_File_IO_Error> d1 =
       make_timestamped_directory(temp_dir, "dir_%Y-%m-%d");
   ASSERT_TRUE(d1.ok()) << d1.error_to_string();
-  result<std::string, platform_file_io_error> d2 =
+  Result<std::string, Platform_File_IO_Error> d2 =
       make_timestamped_directory(temp_dir, "dir_%Y-%m-%d");
   ASSERT_TRUE(d2.ok()) << d2.error_to_string();
 
@@ -140,9 +140,9 @@ TEST(test_temporary_directory,
   EXPECT_THAT(files, ::testing::UnorderedElementsAre(*d1, *d2));
 }
 
-class test_directory : public ::testing::Test, protected filesystem_test {};
+class Test_Directory : public ::testing::Test, protected Filesystem_Test {};
 
-TEST_F(test_directory, list_directory) {
+TEST_F(Test_Directory, list_directory) {
   std::string temp_dir = this->make_temporary_directory();
 
   write_file_or_exit(temp_dir + "/file-1", u8""_sv);
@@ -159,7 +159,7 @@ TEST_F(test_directory, list_directory) {
   auto visit_file = [&](const char* path) -> void {
     visited_files.push_back(path);
   };
-  result<void, platform_file_io_error> list =
+  Result<void, Platform_File_IO_Error> list =
       list_directory(temp_dir.c_str(), visit_file);
   ASSERT_TRUE(list.ok()) << list.error_to_string();
 
@@ -171,12 +171,12 @@ TEST_F(test_directory, list_directory) {
                              }));
 }
 
-TEST_F(test_directory, list_directory_on_regular_file_fails) {
+TEST_F(Test_Directory, list_directory_on_regular_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/testfile", u8""_sv);
 
   auto visit_file = [&](const char* path) -> void { ADD_FAILURE() << path; };
-  result<void, platform_file_io_error> list =
+  Result<void, Platform_File_IO_Error> list =
       list_directory((temp_dir + "/testfile").c_str(), visit_file);
   ASSERT_FALSE(list.ok());
   SCOPED_TRACE(list.error_to_string());
@@ -190,7 +190,7 @@ TEST_F(test_directory, list_directory_on_regular_file_fails) {
 #endif
 }
 
-TEST_F(test_directory, list_directory_recursively) {
+TEST_F(Test_Directory, list_directory_recursively) {
   std::string temp_dir = this->make_temporary_directory();
 
   create_directory_or_exit(temp_dir + "/dir-a");
@@ -209,7 +209,7 @@ TEST_F(test_directory, list_directory_recursively) {
   auto visit_file = [&](const std::string& path) -> void {
     visited_files.push_back(path);
   };
-  auto on_error = [&](const platform_file_io_error& error,
+  auto on_error = [&](const Platform_File_IO_Error& error,
                       [[maybe_unused]] int depth) -> void {
     ADD_FAILURE() << error.to_string();
   };
@@ -226,7 +226,7 @@ TEST_F(test_directory, list_directory_recursively) {
 #undef SEP
 }
 
-TEST_F(test_directory, list_directory_recursively_on_regular_file_fails) {
+TEST_F(Test_Directory, list_directory_recursively_on_regular_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/testfile", u8""_sv);
 
@@ -234,7 +234,7 @@ TEST_F(test_directory, list_directory_recursively_on_regular_file_fails) {
     ADD_FAILURE() << path;
   };
   bool did_error = false;
-  auto on_error = [&](const platform_file_io_error& error, int depth) -> void {
+  auto on_error = [&](const Platform_File_IO_Error& error, int depth) -> void {
     SCOPED_TRACE(error.to_string());
     EXPECT_FALSE(did_error) << "on_error should only be called once";
     did_error = true;

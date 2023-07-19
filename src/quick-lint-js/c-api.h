@@ -11,11 +11,11 @@ extern "C" {
 #endif
 
 // A bit set (i.e. flags) which tell qljs_web_demo_lint how to interpret a
-// qljs_web_demo_document's text.
+// QLJS_Web_Demo_Document's text.
 //
 // To associate options with a document, call
 // qljs_web_demo_set_language_options.
-typedef enum qljs_language_options {
+typedef enum QLJS_Language_Options {
   // If set, parse JSX syntax. JSX is a JavaScript language extension.
   //
   // If unset, report a diagnostic if JSX syntax is encounted (e.g. E0177 or
@@ -36,16 +36,16 @@ typedef enum qljs_language_options {
   //
   // If unset, parse JavaScript or TypeScript.
   qljs_language_options_config_json_bit = 1 << 2,
-} qljs_language_options;
+} QLJS_Language_Options;
 
-typedef enum qljs_severity {
+typedef enum QLJS_Severity {
   qljs_severity_error = 1,
   qljs_severity_warning = 2,
-} qljs_severity;
+} QLJS_Severity;
 
-// A qljs_web_demo_document is a text document.
+// A QLJS_Web_Demo_Document is a text document.
 //
-// A qljs_web_demo_document contains the following state:
+// A QLJS_Web_Demo_Document contains the following state:
 //
 // * Text, changed using qljs_web_demo_set_text
 // * Language options, changed using qljs_web_demo_set_language_options
@@ -53,14 +53,14 @@ typedef enum qljs_severity {
 // * Locale, changed using qljs_web_demo_set_locale
 // * Output diagnostics, changed using qljs_web_demo_lint
 //
-// qljs_web_demo_document objects are allocated dynamically. To create a
-// qljs_web_demo_document, call qljs_web_demo_create_document. When you are
-// finished using a qljs_web_demo_document, call qljs_web_demo_destroy_document
+// QLJS_Web_Demo_Document objects are allocated dynamically. To create a
+// QLJS_Web_Demo_Document, call qljs_web_demo_create_document. When you are
+// finished using a QLJS_Web_Demo_Document, call qljs_web_demo_destroy_document
 // to free resources.
 //
-// NOTE[qljs_web_demo_document threads]: In general, qljs_web_demo_* functions
+// NOTE[QLJS_Web_Demo_Document threads]: In general, qljs_web_demo_* functions
 // can be called from multiple threads without synchronization. However, for a
-// given qljs_web_demo_document, functions accepting that qljs_web_demo_document
+// given QLJS_Web_Demo_Document, functions accepting that QLJS_Web_Demo_Document
 // *cannot* be called from multiple threads without synchronization.
 //
 // In other words, you can create documents A, B, and C, and use document A on
@@ -70,12 +70,12 @@ typedef enum qljs_severity {
 // on thread 2, then these calls must be synchronized by you.
 //
 // A mutex is sufficient synchronization.
-typedef struct qljs_web_demo_document qljs_web_demo_document;
+typedef struct QLJS_Web_Demo_Document QLJS_Web_Demo_Document;
 
-struct qljs_web_demo_diagnostic {
+struct QLJS_Web_Demo_Diagnostic {
   const char* message;
   char code[6];  // null-terminated
-  qljs_severity severity;
+  QLJS_Severity severity;
   // Offsets count UTF-16 code units.
   int begin_offset;
   int end_offset;
@@ -95,19 +95,19 @@ struct qljs_web_demo_diagnostic {
 // Thread safety: Thread-safe. Not async-signal-safe.
 //
 // Postcondition: The returned value is not null.
-qljs_web_demo_document* qljs_web_demo_create_document(void);
+QLJS_Web_Demo_Document* qljs_web_demo_create_document(void);
 
 // Free resources which were allocated for the given document.
 //
 // After calling qljs_web_demo_destroy_document, the document pointer should
 // never be used.
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() previously returned document.
 // Precondition: qljs_web_demo_destroy_document(document) was not previously
 //               called.
-void qljs_web_demo_destroy_document(qljs_web_demo_document* document);
+void qljs_web_demo_destroy_document(QLJS_Web_Demo_Document* document);
 
 // Make qljs_web_demo_lint use this text.
 //
@@ -120,14 +120,14 @@ void qljs_web_demo_destroy_document(qljs_web_demo_document* document);
 // qljs_web_demo_lint(js_document) must be called. (You couldn't notice without
 // calling qljs_web_demo_lint anyway...)
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() returned document, and
 //               qljs_web_demo_destroy_document(document) has not been called.
 // Precondition: text_utf_8 points to an array of at least text_byte_count
 //               bytes.
 // Precondition: text_utf_8 is not null, even if text_byte_count is 0.
-void qljs_web_demo_set_text(qljs_web_demo_document* document,
+void qljs_web_demo_set_text(QLJS_Web_Demo_Document* document,
                             const void* text_utf_8, size_t text_byte_count);
 
 // When running qljs_web_demo_lint(js_document), treat config_document's text as
@@ -137,7 +137,7 @@ void qljs_web_demo_set_text(qljs_web_demo_document* document,
 //
 // config_document is optional. If null, reverts to the default config.
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() returned js_document, and
 //               qljs_web_demo_destroy_document(js_document) has not been
@@ -146,22 +146,22 @@ void qljs_web_demo_set_text(qljs_web_demo_document* document,
 //               returned config_document, and
 //               qljs_web_demo_destroy_document(config_document) has not been
 //               called.
-void qljs_web_demo_set_config(qljs_web_demo_document* js_document,
-                              qljs_web_demo_document* config_document);
+void qljs_web_demo_set_config(QLJS_Web_Demo_Document* js_document,
+                              QLJS_Web_Demo_Document* config_document);
 
 // Change how qljs_web_demo_lint(document) parses and interprets document's
 // text.
 //
-// options is a bit set. See qljs_language_options for details.
+// options is a bit set. See QLJS_Language_Options for details.
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() returned document, and
 //               qljs_web_demo_destroy_document(document) has not been called.
-// Precondition: options is a bitwise-or of zero or more qljs_language_options
+// Precondition: options is a bitwise-or of zero or more QLJS_Language_Options
 //               members. (options==0 is permitted.)
-void qljs_web_demo_set_language_options(qljs_web_demo_document* document,
-                                        qljs_language_options options);
+void qljs_web_demo_set_language_options(QLJS_Web_Demo_Document* document,
+                                        QLJS_Language_Options options);
 
 // Change the human language which qljs_web_demo_lint(document) uses for its
 // diagnostics.
@@ -172,13 +172,13 @@ void qljs_web_demo_set_language_options(qljs_web_demo_document* document,
 // If locale matches no supported locales, then this sets document's locale to
 // the default locale (which corresponds to professional US English).
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() returned document, and
 //               qljs_web_demo_destroy_document(document) has not been called.
 // Precondition: locale points to a C string.
 // Precondition: locale is not null.
-void qljs_web_demo_set_locale(qljs_web_demo_document* document,
+void qljs_web_demo_set_locale(QLJS_Web_Demo_Document* document,
                               const char* locale);
 
 // Parse and lint document's text [1], according to its language options [2] and
@@ -199,16 +199,16 @@ void qljs_web_demo_set_locale(qljs_web_demo_document* document,
 // [3] qljs_web_demo_set_config
 // [4] qljs_web_demo_set_locale
 //
-// Thread safety: See NOTE[qljs_web_demo_document threads].
+// Thread safety: See NOTE[QLJS_Web_Demo_Document threads].
 //
 // Precondition: qljs_web_demo_create_document() returned document, and
 //               qljs_web_demo_destroy_document(document) has not been called.
 // Precondition: qljs_web_demo_destroy_document(config_document) has not been
-//               called, where config_document is the qljs_web_demo_document
+//               called, where config_document is the QLJS_Web_Demo_Document
 //               associated with this document via qljs_web_demo_set_config.
 // Postcondition: The returned value is not null.
-const qljs_web_demo_diagnostic* qljs_web_demo_lint(
-    qljs_web_demo_document* document);
+const QLJS_Web_Demo_Diagnostic* qljs_web_demo_lint(
+    QLJS_Web_Demo_Document* document);
 
 // Returns a null-terminated array of null-terminated strings.
 //

@@ -44,7 +44,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 #if QLJS_HAVE_POLL
                                        const ::pollfd poll_event,
 #endif
-                                       string8_view data) {
+                                       String8_View data) {
   {cd.get_readable_pipe()};
   {d.append(data)};
 
@@ -77,19 +77,19 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 //
 // event_loop will never call non-const member functions in parallel.
 template <class Derived>
-class event_loop_base {
+class Event_Loop_Base {
  protected:
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    std::array<char8, 65536> buffer;
-    platform_file_ref pipe = this->const_derived().get_readable_pipe();
+    std::array<Char8, 65536> buffer;
+    Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
     QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 #else
     QLJS_SLOW_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
-    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
+    File_Read_Result read_result = pipe.read(buffer.data(), buffer.size());
     if (!read_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
       if (read_result.error().error == EAGAIN) {
@@ -107,8 +107,8 @@ class event_loop_base {
       return true;
     } else {
       QLJS_ASSERT(read_result.bytes_read() != 0);
-      std::lock_guard<mutex> lock(this->user_code_mutex_);
-      this->derived().append(string8_view(
+      std::lock_guard<Mutex> lock(this->user_code_mutex_);
+      this->derived().append(String8_View(
           buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read())));
       return false;
     }
@@ -136,7 +136,7 @@ class event_loop_base {
   // Derived.
   // TODO(strager): Only use a lock on Windows. Avoid the lock on POSIX
   // platforms where we only have one thread.
-  mutex user_code_mutex_;
+  Mutex user_code_mutex_;
 };
 }
 

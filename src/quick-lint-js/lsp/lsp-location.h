@@ -12,58 +12,58 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct lsp_position {
+struct LSP_Position {
   int line;
   int character;
 
-  friend bool operator==(const lsp_position &, const lsp_position &) noexcept;
-  friend bool operator!=(const lsp_position &, const lsp_position &) noexcept;
+  friend bool operator==(const LSP_Position &, const LSP_Position &) noexcept;
+  friend bool operator!=(const LSP_Position &, const LSP_Position &) noexcept;
 
-  friend std::ostream &operator<<(std::ostream &, const lsp_position &);
+  friend std::ostream &operator<<(std::ostream &, const LSP_Position &);
 };
 
-struct lsp_range {
-  lsp_position start;
-  lsp_position end;
+struct LSP_Range {
+  LSP_Position start;
+  LSP_Position end;
 };
 
-class lsp_locator {
+class LSP_Locator {
  private:
-  using offset_type = int;
+  using Offset_Type = int;
 
  public:
-  using range_type = lsp_range;
+  using Range_Type = LSP_Range;
 
-  explicit lsp_locator(padded_string_view input) noexcept;
+  explicit LSP_Locator(Padded_String_View input) noexcept;
 
-  lsp_range range(source_code_span) const;
-  lsp_position position(const char8 *) const noexcept;
+  LSP_Range range(Source_Code_Span) const;
+  LSP_Position position(const Char8 *) const noexcept;
 
-  const char8 *from_position(lsp_position) const noexcept;
+  const Char8 *from_position(LSP_Position) const noexcept;
 
-  void replace_text(lsp_range, string8_view replacement_text,
-                    padded_string_view new_input);
+  void replace_text(LSP_Range, String8_View replacement_text,
+                    Padded_String_View new_input);
 
   void validate_caches_debug() const;
 
  private:
   void cache_offsets_of_lines();
-  void compute_offsets_of_lines(const char8 *begin, const char8 *end,
+  void compute_offsets_of_lines(const Char8 *begin, const Char8 *end,
                                 bool *out_last_line_is_ascii);
 
-  int find_line_at_offset(offset_type offset) const;
+  int find_line_at_offset(Offset_Type offset) const;
 
-  offset_type offset(const char8 *) const noexcept;
+  Offset_Type offset(const Char8 *) const noexcept;
 
-  lsp_position position(int line_number, offset_type offset) const noexcept;
+  LSP_Position position(int line_number, Offset_Type offset) const noexcept;
 
-  padded_string_view input_;
-  std::vector<offset_type> offset_of_lines_;
+  Padded_String_View input_;
+  std::vector<Offset_Type> offset_of_lines_;
   std::vector<unsigned char> line_is_ascii_;
 
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
   // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
-  std::vector<offset_type> old_offset_of_lines_;
+  std::vector<Offset_Type> old_offset_of_lines_;
   std::vector<unsigned char> old_line_is_ascii_;
 };
 }

@@ -11,25 +11,25 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_binary_search, empty_never_finds) {
+TEST(Test_Binary_Search, empty_never_finds) {
   std::array<std::string_view, 0> data = {};
   auto result = sorted_search(data.begin(), data.end(), "hi"sv);
   EXPECT_EQ(result, data.end());
 }
 
-TEST(test_binary_search, single_item_array_with_match) {
+TEST(Test_Binary_Search, single_item_array_with_match) {
   std::array data = {"hi"sv};
   auto result = sorted_search(data.begin(), data.end(), "hi"sv);
   EXPECT_EQ(result, data.begin());
 }
 
-TEST(test_binary_search, single_item_array_with_no_match) {
+TEST(Test_Binary_Search, single_item_array_with_no_match) {
   std::array data = {"hi"sv};
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "aye"sv), data.end());
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "yo"sv), data.end());
 }
 
-TEST(test_binary_search, two_item_array) {
+TEST(Test_Binary_Search, two_item_array) {
   std::array data = {"b"sv, "d"sv};
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "a"sv), data.end());
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "b"sv), data.begin() + 0);
@@ -38,7 +38,7 @@ TEST(test_binary_search, two_item_array) {
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "e"sv), data.end());
 }
 
-TEST(test_binary_search, three_item_array) {
+TEST(Test_Binary_Search, three_item_array) {
   std::array data = {"b"sv, "d"sv, "f"sv};
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "a"sv), data.end());
   EXPECT_EQ(sorted_search(data.begin(), data.end(), "b"sv), data.begin() + 0);

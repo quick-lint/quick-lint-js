@@ -13,14 +13,14 @@
 #include <string_view>
 
 namespace quick_lint_js {
-class vscode_diag_formatter
-    : public diagnostic_formatter<vscode_diag_formatter> {
+class VSCode_Diag_Formatter
+    : public Diagnostic_Formatter<VSCode_Diag_Formatter> {
  public:
-  explicit vscode_diag_formatter(vscode_module* vscode, ::Napi::Env env,
+  explicit VSCode_Diag_Formatter(VSCode_Module* vscode, ::Napi::Env env,
                                  ::Napi::Array diagnostics,
-                                 const lsp_locator* locator,
+                                 const LSP_Locator* locator,
                                  ::Napi::Value document_uri)
-      : diagnostic_formatter(qljs_messages),
+      : Diagnostic_Formatter(qljs_messages),
         vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
@@ -28,25 +28,25 @@ class vscode_diag_formatter
         document_uri_(document_uri) {}
 
   void write_before_message([[maybe_unused]] std::string_view code,
-                            diagnostic_severity, const source_code_span&) {}
+                            Diagnostic_Severity, const Source_Code_Span&) {}
 
   void write_message_part([[maybe_unused]] std::string_view code,
-                          diagnostic_severity, string8_view message_part) {
+                          Diagnostic_Severity, String8_View message_part) {
     this->message_.append(message_part);
   }
 
-  void write_after_message(std::string_view code, diagnostic_severity sev,
-                           const source_code_span& origin) {
+  void write_after_message(std::string_view code, Diagnostic_Severity sev,
+                           const Source_Code_Span& origin) {
     switch (sev) {
-    case diagnostic_severity::error:
+    case Diagnostic_Severity::error:
       this->append_diagnostic(code, this->vscode_->diagnostic_severity_error,
                               origin);
       break;
-    case diagnostic_severity::warning:
+    case Diagnostic_Severity::warning:
       this->append_diagnostic(code, this->vscode_->diagnostic_severity_warning,
                               origin);
       break;
-    case diagnostic_severity::note: {
+    case Diagnostic_Severity::note: {
       ::Napi::Object location = this->vscode_->location_class.New({
           /*uri=*/this->document_uri_,
           /*rangeOrPosition=*/this->new_range(origin),
@@ -79,7 +79,7 @@ class vscode_diag_formatter
 
  private:
   void append_diagnostic(std::string_view code, ::Napi::Value severity,
-                         const source_code_span& origin) {
+                         const Source_Code_Span& origin) {
     ::Napi::Object diag = this->vscode_->diagnostic_class.New({
         /*range=*/this->new_range(origin),
         /*message=*/
@@ -107,8 +107,8 @@ class vscode_diag_formatter
   }
 
   // Returns a vscode.Range object.
-  ::Napi::Value new_range(const source_code_span& span) {
-    lsp_range r = this->locator_->range(span);
+  ::Napi::Value new_range(const Source_Code_Span& span) {
+    LSP_Range r = this->locator_->range(span);
     ::Napi::Value start = this->vscode_->position_class.New(
         {::Napi::Number::New(this->env_, r.start.line),
          ::Napi::Number::New(this->env_, r.start.character)});
@@ -118,18 +118,18 @@ class vscode_diag_formatter
     return this->vscode_->range_class.New({start, end});
   }
 
-  vscode_module* vscode_;
+  VSCode_Module* vscode_;
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
-  const lsp_locator* locator_;
+  const LSP_Locator* locator_;
   ::Napi::Value document_uri_;
-  string8 message_;
+  String8 message_;
 };
 
-class vscode_diag_reporter final : public diag_reporter {
+class VSCode_Diag_Reporter final : public Diag_Reporter {
  public:
-  explicit vscode_diag_reporter(vscode_module* vscode, ::Napi::Env env,
-                                const lsp_locator* locator,
+  explicit VSCode_Diag_Reporter(VSCode_Module* vscode, ::Napi::Env env,
+                                const LSP_Locator* locator,
                                 ::Napi::Value document_uri) noexcept
       : vscode_(vscode),
         env_(env),
@@ -139,8 +139,8 @@ class vscode_diag_reporter final : public diag_reporter {
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
-  void report_impl(diag_type type, void* diag) override {
-    vscode_diag_formatter formatter(
+  void report_impl(Diag_Type type, void* diag) override {
+    VSCode_Diag_Formatter formatter(
         /*vscode=*/this->vscode_,
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
@@ -150,10 +150,10 @@ class vscode_diag_reporter final : public diag_reporter {
   }
 
  private:
-  vscode_module* vscode_;
+  VSCode_Module* vscode_;
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
-  const lsp_locator* locator_;
+  const LSP_Locator* locator_;
   ::Napi::Value document_uri_;
 };
 }

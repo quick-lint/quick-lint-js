@@ -7,7 +7,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-extern const char8 trace_metadata[];
+extern const Char8 trace_metadata[];
 }
 
 #endif

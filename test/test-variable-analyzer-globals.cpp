@@ -17,7 +17,7 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-constexpr const char8 *writable_global_variables[] = {
+constexpr const Char8 *writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"globalThis",
 
@@ -81,14 +81,14 @@ constexpr const char8 *writable_global_variables[] = {
     u8"Reflect",
 };
 
-constexpr const char8 *non_writable_global_variables[] = {
+constexpr const Char8 *non_writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"Infinity",
     u8"NaN",
     u8"undefined",
 };
 
-constexpr const char8 *type_only_global_variables[] = {
+constexpr const Char8 *type_only_global_variables[] = {
     u8"Awaited",
     u8"Capitalize",
     u8"ConstructorParameters",
@@ -112,7 +112,7 @@ constexpr const char8 *type_only_global_variables[] = {
     u8"Uppercase",
 };
 
-constexpr const char8 *nodejs_global_variables[] = {
+constexpr const Char8 *nodejs_global_variables[] = {
     u8"Array",
     u8"ArrayBuffer",
     u8"Atomics",
@@ -190,13 +190,13 @@ constexpr const char8 *nodejs_global_variables[] = {
     u8"unescape",
 };
 
-TEST(test_variable_analyzer_globals, global_variables_are_usable) {
+TEST(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
   // Array = null;
   // Array;
-  for (const char8 *global_variable : writable_global_variables) {
+  for (const Char8 *global_variable : writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
@@ -204,42 +204,42 @@ TEST(test_variable_analyzer_globals, global_variables_are_usable) {
   }
 
   // NaN;
-  for (const char8 *global_variable : non_writable_global_variables) {
+  for (const Char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_globals,
+TEST(Test_Variable_Analyzer_Globals,
      immutable_global_variables_are_not_assignable) {
-  for (const char8 *global_variable : non_writable_global_variables) {
+  for (const Char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // NaN = null;  // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
+                    DIAG_TYPE_SPAN(Diag_Assignment_To_Const_Global_Variable,
                                    assignment, span_of(global_variable)),
                 }));
   }
 
-  for (const char8 *global_variable : non_writable_global_variables) {
+  for (const Char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // (() => {
     //   NaN = null;  // ERROR
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_assignment(identifier_of(global_variable));
@@ -248,34 +248,34 @@ TEST(test_variable_analyzer_globals,
 
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_SPAN(diag_assignment_to_const_global_variable,
+                    DIAG_TYPE_SPAN(Diag_Assignment_To_Const_Global_Variable,
                                    assignment, span_of(global_variable)),
                 }));
   }
 }
 
-TEST(test_variable_analyzer_globals, nodejs_global_variables_are_usable) {
-  for (const char8 *global_variable : nodejs_global_variables) {
+TEST(Test_Variable_Analyzer_Globals, nodejs_global_variables_are_usable) {
+  for (const Char8 *global_variable : nodejs_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_globals,
+TEST(Test_Variable_Analyzer_Globals,
      non_module_nodejs_global_variables_are_shadowable) {
-  for (variable_declaration_flags flags :
-       {variable_declaration_flags::none,
-        variable_declaration_flags::initialized_with_equals}) {
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+  for (Variable_Declaration_Flags flags :
+       {Variable_Declaration_Flags::none,
+        Variable_Declaration_Flags::initialized_with_equals}) {
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     // Intentionally excluded: __dirname, __filename, exports, module, require
-    for (const char8 *global_variable : nodejs_global_variables) {
+    for (const Char8 *global_variable : nodejs_global_variables) {
       l.visit_variable_declaration(identifier_of(global_variable),
-                                   variable_kind::_let, flags);
+                                   Variable_Kind::_let, flags);
     }
     l.visit_end_of_module();
 
@@ -283,72 +283,72 @@ TEST(test_variable_analyzer_globals,
   }
 }
 
-TEST(test_variable_analyzer_globals,
+TEST(Test_Variable_Analyzer_Globals,
      type_only_global_variables_are_not_usable_in_expressions) {
-  for (const char8 *global_variable : type_only_global_variables) {
+  for (const Char8 *global_variable : type_only_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // Awaited;
     {
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_variable_use(identifier_of(global_variable));
       l.visit_end_of_module();
       EXPECT_THAT(v.errors, ElementsAreArray({
-                                DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
                                                name, span_of(global_variable)),
                             }));
     }
 
     // Awaited = null;
     {
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_variable_assignment(identifier_of(global_variable));
       l.visit_end_of_module();
       EXPECT_THAT(v.errors,
                   ElementsAreArray({
-                      DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
+                      DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable,
                                      assignment, span_of(global_variable)),
                   }));
     }
   }
 }
 
-TEST(test_variable_analyzer_globals,
+TEST(Test_Variable_Analyzer_Globals,
      type_only_global_variables_are_usable_in_types) {
   // null as Awaited;
-  for (const char8 *global_variable : type_only_global_variables) {
+  for (const Char8 *global_variable : type_only_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_variable_type_use(identifier_of(global_variable));
     l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_globals,
+TEST(Test_Variable_Analyzer_Globals,
      any_variable_is_declarable_and_usable_if_opted_into) {
   // This tests the "literally-anything" global group.
 
-  global_declared_variable_set globals;
+  Global_Declared_Variable_Set globals;
   globals.add_literally_everything();
 
-  const char8 builtin_1_declaration[] = u8"Object";
-  const char8 builtin_2_use[] = u8"Array";
-  const char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
-  const char8 anything_2_use[] = u8"iDoNotExistInAnyList";
+  const Char8 builtin_1_declaration[] = u8"Object";
+  const Char8 builtin_2_use[] = u8"Array";
+  const Char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
+  const Char8 anything_2_use[] = u8"iDoNotExistInAnyList";
 
-  diag_collector v;
-  variable_analyzer l(&v, &globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(builtin_1_declaration),
-                               variable_kind::_let,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_let,
+                               Variable_Declaration_Flags::none);
   l.visit_variable_use(identifier_of(builtin_2_use));
   l.visit_variable_declaration(identifier_of(anything_1_declaration),
-                               variable_kind::_let,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_let,
+                               Variable_Declaration_Flags::none);
   l.visit_variable_use(identifier_of(anything_2_use));
   l.visit_end_of_module();
 

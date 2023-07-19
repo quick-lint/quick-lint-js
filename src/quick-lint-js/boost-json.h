@@ -11,8 +11,8 @@
 #include <type_traits>
 
 namespace quick_lint_js {
-::boost::json::string_view to_boost_string_view(string8_view sv);
-::boost::json::string_view to_boost_string_view(const string8 &sv);
+::boost::json::string_view to_boost_string_view(String8_View sv);
+::boost::json::string_view to_boost_string_view(const String8 &sv);
 #if QLJS_HAVE_CHAR8_T
 ::boost::json::string_view to_boost_string_view(std::string_view sv);
 #endif
@@ -21,25 +21,25 @@ std::string_view to_string_view(::boost::json::string_view sv);
 std::string_view to_string_view(const ::boost::json::string &s);
 
 template <class... Keys>
-struct look_up_impl;
+struct Look_Up_Impl;
 
 template <class Key, class... OtherKeys>
-struct look_up_impl<Key, OtherKeys...> {
+struct Look_Up_Impl<Key, OtherKeys...> {
   static ::boost::json::value look_up(const ::boost::json::value &root,
                                       Key &&key, OtherKeys &&... other_keys) {
     if constexpr (std::is_integral_v<Key>) {
-      return look_up_impl<OtherKeys...>::look_up(
+      return Look_Up_Impl<OtherKeys...>::look_up(
           root.as_array().at(narrow_cast<std::size_t>(key)),
           std::forward<OtherKeys>(other_keys)...);
     } else {
-      return look_up_impl<OtherKeys...>::look_up(
+      return Look_Up_Impl<OtherKeys...>::look_up(
           root.as_object().at(key), std::forward<OtherKeys>(other_keys)...);
     }
   }
 };
 
 template <>
-struct look_up_impl<> {
+struct Look_Up_Impl<> {
   static ::boost::json::value look_up(const ::boost::json::value &root) {
     return root;
   }
@@ -48,7 +48,7 @@ struct look_up_impl<> {
 template <class... Keys>
 ::boost::json::value look_up(const ::boost::json::value &root,
                              Keys &&... keys) {
-  return look_up_impl<Keys...>::look_up(root, std::forward<Keys>(keys)...);
+  return Look_Up_Impl<Keys...>::look_up(root, std::forward<Keys>(keys)...);
 }
 
 ::boost::json::array *if_array(::boost::json::object &,

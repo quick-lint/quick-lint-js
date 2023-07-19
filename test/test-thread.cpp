@@ -8,23 +8,23 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_thread, print_thread_id) {
+TEST(Test_Thread, print_thread_id) {
   // This is a manual test.
   std::cerr << "main thread ID: " << get_current_thread_id() << '\n';
 }
 
-TEST(test_thread, thread_id_is_stable) {
+TEST(Test_Thread, thread_id_is_stable) {
   std::uint64_t id = get_current_thread_id();
   std::uint64_t id2 = get_current_thread_id();
   EXPECT_EQ(id, id2) << "thread ID should not change between calls";
 }
 
 #if QLJS_HAVE_THREADS
-TEST(test_thread, thread_ids_differ_between_threads) {
+TEST(Test_Thread, thread_ids_differ_between_threads) {
   std::uint64_t main_id = get_current_thread_id();
   std::uint64_t other_id;
 
-  thread other_thread([&] { other_id = get_current_thread_id(); });
+  Thread other_thread([&] { other_id = get_current_thread_id(); });
   other_thread.join();
 
   EXPECT_NE(main_id, other_id) << "thread IDs should differ";

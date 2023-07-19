@@ -22,20 +22,20 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-void write_full_message(platform_file_ref, string8_view);
+void write_full_message(Platform_File_Ref, String8_View);
 
-struct spy_event_loop : public event_loop<spy_event_loop> {
-  explicit spy_event_loop(platform_file_ref pipe) : pipe_(pipe) {}
+struct Spy_Event_Loop : public Event_Loop<Spy_Event_Loop> {
+  explicit Spy_Event_Loop(Platform_File_Ref pipe) : pipe_(pipe) {}
 
-  platform_file_ref get_readable_pipe() const { return this->pipe_; }
+  Platform_File_Ref get_readable_pipe() const { return this->pipe_; }
 
-  void append(string8_view data) {
+  void append(String8_View data) {
     std::unique_lock lock(this->mutex_);
     this->read_data_.append(data);
     this->new_data_.notify_all();
   }
 
-  string8 get_read_data() {
+  String8 get_read_data() {
     std::unique_lock lock(this->mutex_);
     return this->read_data_;
   }
@@ -49,7 +49,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-  std::optional<posix_fd_file_ref> get_pipe_write_fd() const {
+  std::optional<POSIX_FD_File_Ref> get_pipe_write_fd() const {
     return this->pipe_write_fd_;
   }
 
@@ -59,7 +59,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   }
 
   template <class Func>
-  void set_pipe_write(posix_fd_file_ref fd, Func on_event) {
+  void set_pipe_write(POSIX_FD_File_Ref fd, Func on_event) {
     this->pipe_write_fd_ = fd;
     this->pipe_write_event_callback_ = std::move(on_event);
   }
@@ -71,7 +71,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-  std::optional<posix_fd_file_ref> get_inotify_fd() const {
+  std::optional<POSIX_FD_File_Ref> get_inotify_fd() const {
     return std::nullopt;
   }
 
@@ -85,33 +85,33 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 #endif
 
  private:
-  platform_file_ref pipe_;
+  Platform_File_Ref pipe_;
 
-  mutex mutex_;
-  condition_variable new_data_;
+  Mutex mutex_;
+  Condition_Variable new_data_;
 
   // Protected by mutex_:
-  string8 read_data_;
+  String8 read_data_;
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-  std::optional<posix_fd_file_ref> pipe_write_fd_;
+  std::optional<POSIX_FD_File_Ref> pipe_write_fd_;
 #endif
 
 #if QLJS_HAVE_KQUEUE
-  heap_function<void(const struct ::kevent&)> pipe_write_event_callback_;
+  Heap_Function<void(const struct ::kevent&)> pipe_write_event_callback_;
 #elif QLJS_HAVE_POLL
-  heap_function<void(const ::pollfd&)> pipe_write_event_callback_;
+  Heap_Function<void(const ::pollfd&)> pipe_write_event_callback_;
 #endif
 };
 
-class test_event_loop : public ::testing::Test {
+class Test_Event_Loop : public ::testing::Test {
  public:
-  pipe_fds pipe = make_pipe_for_event_loop();
-  spy_event_loop loop{this->pipe.reader.ref()};
+  Pipe_FDs pipe = make_pipe_for_event_loop();
+  Spy_Event_Loop loop{this->pipe.reader.ref()};
 
  private:
-  static pipe_fds make_pipe_for_event_loop() {
-    pipe_fds pipe = make_pipe();
+  static Pipe_FDs make_pipe_for_event_loop() {
+    Pipe_FDs pipe = make_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
     pipe.reader.set_pipe_non_blocking();
 #endif
@@ -119,14 +119,14 @@ class test_event_loop : public ::testing::Test {
   }
 };
 
-TEST_F(test_event_loop, stops_on_pipe_read_eof) {
+TEST_F(Test_Event_Loop, stops_on_pipe_read_eof) {
   this->pipe.writer.close();
 
   this->loop.run();
   // run() should terminate.
 }
 
-TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
+TEST_F(Test_Event_Loop, reads_data_in_pipe_buffer) {
   write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
   this->pipe.writer.close();
 
@@ -135,15 +135,15 @@ TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
   EXPECT_EQ(this->loop.get_read_data(), u8"Hi");
 }
 
-TEST_F(test_event_loop, reads_many_messages) {
+TEST_F(Test_Event_Loop, reads_many_messages) {
   std::thread writer_thread([this]() {
     write_full_message(this->pipe.writer.ref(), u8"first"_sv);
     this->loop.wait_until_data(
-        [](const string8& data) -> bool { return data == u8"first"; });
+        [](const String8& data) -> bool { return data == u8"first"; });
 
     write_full_message(this->pipe.writer.ref(), u8"SECOND"_sv);
     this->loop.wait_until_data(
-        [](const string8& data) -> bool { return data == u8"firstSECOND"; });
+        [](const String8& data) -> bool { return data == u8"firstSECOND"; });
 
     this->pipe.writer.close();
   });
@@ -155,7 +155,7 @@ TEST_F(test_event_loop, reads_many_messages) {
 }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-TEST_F(test_event_loop, signals_writable_pipe) {
+TEST_F(Test_Event_Loop, signals_writable_pipe) {
   bool called = false;
   this->loop.set_pipe_write(this->pipe.writer.ref(),
                             [this, &called](const auto& event) {
@@ -175,12 +175,12 @@ TEST_F(test_event_loop, signals_writable_pipe) {
   EXPECT_TRUE(called);
 }
 
-TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
+TEST_F(Test_Event_Loop, does_not_write_to_unwritable_pipe) {
   // Make a pipe such that POLLOUT will not be signalled.
-  pipe_fds full_pipe = make_pipe();
+  Pipe_FDs full_pipe = make_pipe();
   full_pipe.writer.set_pipe_non_blocking();
   write_full_message(full_pipe.writer.ref(),
-                     string8(full_pipe.writer.get_pipe_buffer_size(), 'x'));
+                     String8(full_pipe.writer.get_pipe_buffer_size(), 'x'));
 
   this->loop.set_pipe_write(full_pipe.writer.ref(), [](const auto&) {
     ADD_FAILURE() << "on_pipe_write_event should not be called";
@@ -197,7 +197,7 @@ TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
 }
 #endif
 
-void write_full_message(platform_file_ref file, string8_view message) {
+void write_full_message(Platform_File_Ref file, String8_View message) {
   auto write_result = file.write_full(message.data(), message.size());
   EXPECT_TRUE(write_result.ok()) << write_result.error_to_string();
 }

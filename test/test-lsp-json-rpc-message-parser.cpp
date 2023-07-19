@@ -26,18 +26,18 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 // Fails the test if any not-overridden method is called.
-struct test_json_rpc_message_handler : public json_rpc_message_handler {
+struct Test_JSON_RPC_Message_Handler : public JSON_RPC_Message_Handler {
   void handle_request(::simdjson::ondemand::object&, std::string_view,
-                      string8_view) override {
+                      String8_View) override {
     ADD_FAILURE() << "handle_request should not be called";
   }
 
-  void handle_response(json_rpc_message_handler::request_id_type,
+  void handle_response(JSON_RPC_Message_Handler::Request_ID_Type,
                        ::simdjson::ondemand::value&) override {
     ADD_FAILURE() << "handle_response should not be called";
   }
 
-  void handle_error_response(json_rpc_message_handler::request_id_type,
+  void handle_error_response(JSON_RPC_Message_Handler::Request_ID_Type,
                              std::int64_t, std::string_view) override {
     ADD_FAILURE() << "handle_error_response should not be called";
   }
@@ -60,11 +60,11 @@ void expect_batch_not_supported_error(::boost::json::value& message) {
   EXPECT_EQ(look_up(message, "id"), ::boost::json::value());
 }
 
-TEST(test_lsp_json_rpc_message_parser, single_request) {
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
+TEST(Test_LSP_JSON_RPC_Message_Parser, single_request) {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
     void handle_request(::simdjson::ondemand::object& request,
                         std::string_view method,
-                        string8_view id_json) override {
+                        String8_View id_json) override {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
       EXPECT_EQ(method, "testmethod");
       EXPECT_EQ(id_json, u8"3"_sv);
@@ -74,9 +74,9 @@ TEST(test_lsp_json_rpc_message_parser, single_request) {
 
     bool handle_request_called = false;
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -89,10 +89,10 @@ TEST(test_lsp_json_rpc_message_parser, single_request) {
   EXPECT_TRUE(handler.handle_request_called);
 }
 
-TEST(test_lsp_json_rpc_message_parser, batched_request_is_not_supported) {
-  test_json_rpc_message_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+TEST(Test_LSP_JSON_RPC_Message_Parser, batched_request_is_not_supported) {
+  Test_JSON_RPC_Message_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"([
@@ -116,9 +116,9 @@ TEST(test_lsp_json_rpc_message_parser, batched_request_is_not_supported) {
   expect_batch_not_supported_error(remote.messages[0]);
 }
 
-TEST(test_lsp_json_rpc_message_parser, successful_response) {
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
-    void handle_response(json_rpc_message_handler::request_id_type request_id,
+TEST(Test_LSP_JSON_RPC_Message_Parser, successful_response) {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
+    void handle_response(JSON_RPC_Message_Handler::Request_ID_Type request_id,
                          ::simdjson::ondemand::value& result) override {
       this->response_handled = true;
 
@@ -131,9 +131,9 @@ TEST(test_lsp_json_rpc_message_parser, successful_response) {
 
     bool response_handled = false;
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -150,9 +150,9 @@ TEST(test_lsp_json_rpc_message_parser, successful_response) {
 // This test is the same as successful_response, but it queries the given
 // simdjson::ondemand::value-s in a different way. This test shakes out bugs
 // caused by violating simdjson's strict usage pattern requirements.
-TEST(test_lsp_json_rpc_message_parser, successful_response_v2) {
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
-    void handle_response(json_rpc_message_handler::request_id_type request_id,
+TEST(Test_LSP_JSON_RPC_Message_Parser, successful_response_v2) {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
+    void handle_response(JSON_RPC_Message_Handler::Request_ID_Type request_id,
                          ::simdjson::ondemand::value& result) override {
       this->response_handled = true;
 
@@ -167,9 +167,9 @@ TEST(test_lsp_json_rpc_message_parser, successful_response_v2) {
 
     bool response_handled = false;
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -183,10 +183,10 @@ TEST(test_lsp_json_rpc_message_parser, successful_response_v2) {
   EXPECT_TRUE(handler.response_handled);
 }
 
-TEST(test_lsp_json_rpc_message_parser, error_response) {
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
+TEST(Test_LSP_JSON_RPC_Message_Parser, error_response) {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
     void handle_error_response(
-        json_rpc_message_handler::request_id_type request_id, std::int64_t code,
+        JSON_RPC_Message_Handler::Request_ID_Type request_id, std::int64_t code,
         std::string_view message) override {
       this->error_response_handled = true;
       EXPECT_EQ(request_id, 3);
@@ -196,9 +196,9 @@ TEST(test_lsp_json_rpc_message_parser, error_response) {
 
     bool error_response_handled = false;
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -215,10 +215,10 @@ TEST(test_lsp_json_rpc_message_parser, error_response) {
   EXPECT_TRUE(handler.error_response_handled);
 }
 
-TEST(test_lsp_json_rpc_message_parser, batched_responses_are_not_supported) {
-  test_json_rpc_message_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+TEST(Test_LSP_JSON_RPC_Message_Parser, batched_responses_are_not_supported) {
+  Test_JSON_RPC_Message_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"([
@@ -242,11 +242,11 @@ TEST(test_lsp_json_rpc_message_parser, batched_responses_are_not_supported) {
   expect_batch_not_supported_error(remote.messages[0]);
 }
 
-TEST(test_lsp_json_rpc_message_parser, single_notification_with_no_reply) {
+TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_no_reply) {
   static int handle_notification_count;
   handle_notification_count = 0;
 
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -254,9 +254,9 @@ TEST(test_lsp_json_rpc_message_parser, single_notification_with_no_reply) {
       handle_notification_count += 1;
     }
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -270,8 +270,8 @@ TEST(test_lsp_json_rpc_message_parser, single_notification_with_no_reply) {
   EXPECT_EQ(handle_notification_count, 1);
 }
 
-TEST(test_lsp_json_rpc_message_parser, single_notification_with_reply) {
-  struct mock_lsp_server_handler : public test_json_rpc_message_handler {
+TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_reply) {
+  struct Mock_LSP_Server_Handler : public Test_JSON_RPC_Message_Handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -287,9 +287,9 @@ TEST(test_lsp_json_rpc_message_parser, single_notification_with_reply) {
 
     std::vector< ::boost::json::value> pending_notifications;
   };
-  mock_lsp_server_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+  Mock_LSP_Server_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"({
@@ -305,10 +305,10 @@ TEST(test_lsp_json_rpc_message_parser, single_notification_with_reply) {
   EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
 }
 
-TEST(test_lsp_json_rpc_message_parser, batched_notification_is_not_supported) {
-  test_json_rpc_message_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+TEST(Test_LSP_JSON_RPC_Message_Parser, batched_notification_is_not_supported) {
+  Test_JSON_RPC_Message_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(
       make_message(u8R"([{
@@ -325,10 +325,10 @@ TEST(test_lsp_json_rpc_message_parser, batched_notification_is_not_supported) {
 }
 
 // https://www.jsonrpc.org/specification#error_object
-TEST(test_lsp_json_rpc_message_parser, malformed_json) {
-  test_json_rpc_message_handler handler;
-  spy_lsp_endpoint_remote remote;
-  lsp_json_rpc_message_parser server(&handler);
+TEST(Test_LSP_JSON_RPC_Message_Parser, malformed_json) {
+  Test_JSON_RPC_Message_Handler handler;
+  Spy_LSP_Endpoint_Remote remote;
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   server.append(make_message(u8"{ malformed json! }"_sv));
   server.flush_error_responses(remote);
@@ -338,9 +338,9 @@ TEST(test_lsp_json_rpc_message_parser, malformed_json) {
   expect_parse_error(remote.messages[0]);
 }
 
-TEST(test_lsp_json_rpc_message_parser, invalid_message) {
+TEST(Test_LSP_JSON_RPC_Message_Parser, invalid_message) {
   for (
-      string8_view message : {
+      String8_View message : {
           // request with missing method
           u8R"({ "jsonrpc": "2.0", "id": 10, "params": {} })"_sv,
           // request with method type mismatch
@@ -382,9 +382,9 @@ TEST(test_lsp_json_rpc_message_parser, invalid_message) {
       }) {
     SCOPED_TRACE(out_string8(message));
 
-    test_json_rpc_message_handler handler;
-    spy_lsp_endpoint_remote remote;
-    lsp_json_rpc_message_parser server(&handler);
+    Test_JSON_RPC_Message_Handler handler;
+    Spy_LSP_Endpoint_Remote remote;
+    LSP_JSON_RPC_Message_Parser server(&handler);
 
     server.append(make_message(message));
     server.flush_error_responses(remote);

@@ -14,7 +14,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 // Returns an empty string on parse failure.
-std::string parse_file_from_lsp_uri(string8_view uri) {
+std::string parse_file_from_lsp_uri(String8_View uri) {
 #if defined(_WIN32)
   return parse_file_from_lsp_uri_win32(uri);
 #else
@@ -22,7 +22,7 @@ std::string parse_file_from_lsp_uri(string8_view uri) {
 #endif
 }
 
-std::string parse_file_from_lsp_uri_posix(string8_view uri) {
+std::string parse_file_from_lsp_uri_posix(String8_View uri) {
   if (!starts_with(uri, u8"file://"_sv)) {
     return "";
   }
@@ -53,9 +53,9 @@ std::string parse_file_from_lsp_uri_posix(string8_view uri) {
     if (uri.size() < 2) {
       return "";
     }
-    string8_view digits = uri.substr(0, 2);
+    String8_View digits = uri.substr(0, 2);
     unsigned char c;
-    if (parse_integer_exact_hex(digits, c) != parse_integer_exact_error::ok) {
+    if (parse_integer_exact_hex(digits, c) != Parse_Integer_Exact_Error::ok) {
       return "";
     }
     result.push_back(static_cast<char>(c));
@@ -65,7 +65,7 @@ std::string parse_file_from_lsp_uri_posix(string8_view uri) {
   return result;
 }
 
-std::string parse_file_from_lsp_uri_win32(string8_view uri) {
+std::string parse_file_from_lsp_uri_win32(String8_View uri) {
   std::string result = parse_file_from_lsp_uri_posix(uri);
   if (result.empty()) {
     return result;

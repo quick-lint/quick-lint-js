@@ -8,8 +8,8 @@
 
 namespace quick_lint_js {
 namespace {
-string8 repeat(string8_view s, int count) {
-  string8 result;
+String8 repeat(String8_View s, int count) {
+  String8 result;
   for (int i = 0; i < count; ++i) {
     result += s;
   }
@@ -17,15 +17,15 @@ string8 repeat(string8_view s, int count) {
 }
 
 void benchmark_advance_lsp_characters_in_utf_8(::benchmark::State& state,
-                                               string8_view input) {
-  padded_string padded_input(input);
+                                               String8_View input) {
+  Padded_String padded_input(input);
   int total_character_count = narrow_cast<int>(count_lsp_characters_in_utf_8(
       &padded_input, narrow_cast<int>(padded_input.size())));
   // Avoid count==size optimizations:
   int characters_to_count = total_character_count - 1;
 
   for (auto _ : state) {
-    const char8* end =
+    const Char8* end =
         advance_lsp_characters_in_utf_8(input, characters_to_count);
     ::benchmark::DoNotOptimize(end);
   }
@@ -44,7 +44,7 @@ BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, tiny_ascii,
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, small_ascii,
                   u8"hello"_sv);
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, large_ascii,
-                  string8(4096, u8'x'));
+                  String8(4096, u8'x'));
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, small_japanese,
                   u8"こんにちは"_sv);
 BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, large_japanese,

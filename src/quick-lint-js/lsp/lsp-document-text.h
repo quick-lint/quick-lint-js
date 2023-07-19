@@ -9,37 +9,37 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-class double_buffered_padded_string {
+class Double_Buffered_Padded_String {
  public:
-  void set_text(string8_view new_text);
+  void set_text(String8_View new_text);
 
   // to_replace must be a substring of active_buffer.
-  void replace_text(string8_view to_replace, string8_view replacement_text);
+  void replace_text(String8_View to_replace, String8_View replacement_text);
 
-  padded_string_view string() const;
+  Padded_String_View string() const;
 
  private:
-  padded_string& active_buffer();
-  padded_string& inactive_buffer();
+  Padded_String& active_buffer();
+  Padded_String& inactive_buffer();
   void swap_buffers();
 
   int active_content_buffer_ = 0;
-  padded_string content_buffers_[2];
+  Padded_String content_buffers_[2];
 };
 
-class lsp_document_text {
+class LSP_Document_Text {
  public:
-  explicit lsp_document_text();
+  explicit LSP_Document_Text();
 
-  void set_text(string8_view new_text);
-  void replace_text(lsp_range range, string8_view replacement_text);
+  void set_text(String8_View new_text);
+  void replace_text(LSP_Range range, String8_View replacement_text);
 
-  padded_string_view string() noexcept;
-  const lsp_locator& locator() noexcept;
+  Padded_String_View string() noexcept;
+  const LSP_Locator& locator() noexcept;
 
  private:
-  double_buffered_padded_string buffers_;
-  lsp_locator locator_;
+  Double_Buffered_Padded_String buffers_;
+  LSP_Locator locator_;
 };
 }
 

@@ -8,9 +8,9 @@
 
 namespace quick_lint_js {
 template <class Visitor1, class Visitor2>
-class multi_parse_visitor final : public parse_visitor_base {
+class Multi_Parse_Visitor final : public Parse_Visitor_Base {
  public:
-  explicit multi_parse_visitor(Visitor1 *visitor_1,
+  explicit Multi_Parse_Visitor(Visitor1 *visitor_1,
                                Visitor2 *visitor_2) noexcept
       : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
 
@@ -35,7 +35,7 @@ class multi_parse_visitor final : public parse_visitor_base {
   }
 
   void visit_enter_class_scope_body(
-      const std::optional<identifier> &class_name) override {
+      const std::optional<Identifier> &class_name) override {
     this->visitor_1_->visit_enter_class_scope_body(class_name);
     this->visitor_2_->visit_enter_class_scope_body(class_name);
   }
@@ -75,7 +75,7 @@ class multi_parse_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_enter_interface_scope();
   }
 
-  void visit_enter_named_function_scope(identifier name) override {
+  void visit_enter_named_function_scope(Identifier name) override {
     this->visitor_1_->visit_enter_named_function_scope(name);
     this->visitor_2_->visit_enter_named_function_scope(name);
   }
@@ -145,60 +145,60 @@ class multi_parse_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_exit_type_alias_scope();
   }
 
-  void visit_keyword_variable_use(identifier name) override {
+  void visit_keyword_variable_use(Identifier name) override {
     this->visitor_1_->visit_keyword_variable_use(name);
     this->visitor_2_->visit_keyword_variable_use(name);
   }
 
   void visit_property_declaration(
-      const std::optional<identifier> &name) override {
+      const std::optional<Identifier> &name) override {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
   }
 
-  void visit_variable_assignment(identifier name) override {
+  void visit_variable_assignment(Identifier name) override {
     this->visitor_1_->visit_variable_assignment(name);
     this->visitor_2_->visit_variable_assignment(name);
   }
 
-  void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_declaration_flags flags) override {
+  void visit_variable_declaration(Identifier name, Variable_Kind kind,
+                                  Variable_Declaration_Flags flags) override {
     this->visitor_1_->visit_variable_declaration(name, kind, flags);
     this->visitor_2_->visit_variable_declaration(name, kind, flags);
   }
 
-  void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword) override {
+  void visit_variable_delete_use(Identifier name,
+                                 Source_Code_Span delete_keyword) override {
     this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
     this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
-  void visit_variable_export_use(identifier name) override {
+  void visit_variable_export_use(Identifier name) override {
     this->visitor_1_->visit_variable_export_use(name);
     this->visitor_2_->visit_variable_export_use(name);
   }
 
-  void visit_variable_namespace_use(identifier name) override {
+  void visit_variable_namespace_use(Identifier name) override {
     this->visitor_1_->visit_variable_namespace_use(name);
     this->visitor_2_->visit_variable_namespace_use(name);
   }
 
-  void visit_variable_type_predicate_use(identifier parameter_name) override {
+  void visit_variable_type_predicate_use(Identifier parameter_name) override {
     this->visitor_1_->visit_variable_type_predicate_use(parameter_name);
     this->visitor_2_->visit_variable_type_predicate_use(parameter_name);
   }
 
-  void visit_variable_type_use(identifier name) override {
+  void visit_variable_type_use(Identifier name) override {
     this->visitor_1_->visit_variable_type_use(name);
     this->visitor_2_->visit_variable_type_use(name);
   }
 
-  void visit_variable_typeof_use(identifier name) override {
+  void visit_variable_typeof_use(Identifier name) override {
     this->visitor_1_->visit_variable_typeof_use(name);
     this->visitor_2_->visit_variable_typeof_use(name);
   }
 
-  void visit_variable_use(identifier name) override {
+  void visit_variable_use(Identifier name) override {
     this->visitor_1_->visit_variable_use(name);
     this->visitor_2_->visit_variable_use(name);
   }

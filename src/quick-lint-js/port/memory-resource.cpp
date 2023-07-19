@@ -8,7 +8,7 @@
 
 namespace quick_lint_js {
 namespace {
-class new_delete_resource_impl : public memory_resource {
+class New_Delete_Resource_Impl : public Memory_Resource {
  public:
   void* do_allocate(std::size_t bytes, std::size_t alignment) override {
 #if QLJS_HAVE_SIZED_ALIGNED_NEW
@@ -31,13 +31,13 @@ class new_delete_resource_impl : public memory_resource {
   }
 
   bool do_is_equal(const memory_resource& other) const noexcept override {
-    return this == static_cast<const new_delete_resource_impl*>(&other);
+    return this == static_cast<const New_Delete_Resource_Impl*>(&other);
   }
 };
 }
 
-memory_resource* new_delete_resource() noexcept {
-  static new_delete_resource_impl instance;
+Memory_Resource* new_delete_resource() noexcept {
+  static New_Delete_Resource_Impl instance;
   return &instance;
 }
 }

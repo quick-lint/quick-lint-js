@@ -8,11 +8,11 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-struct jsx_attribute {
-  string8_view expected;
+struct JSX_Attribute {
+  String8_View expected;
 };
 
-const hash_map<string8_view, jsx_attribute> &jsx_attribute_aliases();
+const Hash_Map<String8_View, JSX_Attribute> &jsx_attribute_aliases();
 }
 
 #endif

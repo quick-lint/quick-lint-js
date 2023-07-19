@@ -19,17 +19,17 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_eval_javascript,
+TEST(Test_Variable_Analyzer_Eval_JavaScript,
      disable_variable_lookup_in_presence_of_eval) {
-  const char8 use_eval[] = u8"eval";
-  const char8 use[] = u8"x";
+  const Char8 use_eval[] = u8"eval";
+  const Char8 use[] = u8"x";
 
   {
     // eval("var x = 42");
     // x;
     // x = 10;
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_assignment(identifier_of(use));
@@ -44,8 +44,8 @@ TEST(test_variable_analyzer_eval_javascript,
     // }
     // x;
     // x = 10;
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
@@ -62,8 +62,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x;
     //   x = 10;
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -81,8 +81,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x = 10;
     // });
     // eval("var x = 42");
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -102,8 +102,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x;
     //   x = 10;
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -127,8 +127,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x;
     //   x = 10;
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -145,10 +145,10 @@ TEST(test_variable_analyzer_eval_javascript,
   }
 }
 
-TEST(test_variable_analyzer_eval_javascript,
+TEST(Test_Variable_Analyzer_Eval_JavaScript,
      disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
-  const char8 use_eval[] = u8"eval";
-  const char8 use[] = u8"x";
+  const Char8 use_eval[] = u8"eval";
+  const Char8 use[] = u8"x";
 
   {
     // (function() {
@@ -157,8 +157,8 @@ TEST(test_variable_analyzer_eval_javascript,
     // (function() {
     //   x;  // ERROR (use of undeclared variable)
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -172,7 +172,7 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
         }));
   }
 
@@ -181,8 +181,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   eval("var x = 42;");
     // });
     // x;  // ERROR (use of undeclared variable)
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -193,7 +193,7 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
         }));
   }
 
@@ -205,8 +205,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x;      // ERROR (use of undeclared variable)
     //   x = 10; // ERROR (assignment to undeclared variable)
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -221,27 +221,27 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
-            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable, assignment,
                            span_of(use)),
         }));
   }
 
   {
-    const char8 parameter_declaration[] = u8"a";
-    const char8 function_declaration[] = u8"f";
+    const Char8 parameter_declaration[] = u8"a";
+    const Char8 function_declaration[] = u8"f";
 
     // function f(a = eval('var x = 42;')) {
     //   x;
     // }
     // x; // ERROR (use of undeclared variable)
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_function_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_function_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
@@ -251,22 +251,22 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
         }));
   }
 
   {
-    const char8 eval_declaration[] = u8"eval";
+    const Char8 eval_declaration[] = u8"eval";
 
     // let eval = () => {};
     // eval("var x = 42;");
     // x;  // ERROR (use of undeclared variable)
     // x = 10;  // ERROR (assignment to undeclared variable)
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(eval_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(eval_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_assignment(identifier_of(use));
@@ -275,14 +275,14 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
-            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable, assignment,
                            span_of(use)),
         }));
   }
 
   {
-    const char8 eval_declaration[] = u8"eval";
+    const Char8 eval_declaration[] = u8"eval";
 
     // function f() {
     //   eval = () => {};
@@ -293,8 +293,8 @@ TEST(test_variable_analyzer_eval_javascript,
     //     var eval;
     //   }
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_assignment(identifier_of(use_eval));
@@ -303,8 +303,8 @@ TEST(test_variable_analyzer_eval_javascript,
     l.visit_variable_assignment(identifier_of(use));
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(eval_declaration),
-                                 variable_kind::_var,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_var,
+                                 Variable_Declaration_Flags::none);
     l.visit_exit_block_scope();
     l.visit_exit_function_scope();
     l.visit_end_of_module();
@@ -312,20 +312,20 @@ TEST(test_variable_analyzer_eval_javascript,
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
-            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable, assignment,
                            span_of(use)),
         }));
   }
 }
 
-TEST(test_variable_analyzer_eval_javascript,
+TEST(Test_Variable_Analyzer_Eval_JavaScript,
      false_negatives_on_redeclaration_of_eval) {
-  const char8 use_eval[] = u8"eval";
-  const char8 use[] = u8"x";
+  const Char8 use_eval[] = u8"eval";
+  const Char8 use[] = u8"x";
 
   {
-    const char8 eval_declaration[] = u8"eval";
+    const Char8 eval_declaration[] = u8"eval";
 
     // let eval = () => {};
     // (function() {
@@ -333,11 +333,11 @@ TEST(test_variable_analyzer_eval_javascript,
     //   x;  // TODO: ERROR (use of undeclared variable)
     //   x = 10;  // TODO: ERROR (assignment to undeclared variable)
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(eval_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(eval_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -350,8 +350,8 @@ TEST(test_variable_analyzer_eval_javascript,
   }
 
   {
-    const char8 const_declaration[] = u8"x";
-    const char8 const_assignment[] = u8"x";
+    const Char8 const_declaration[] = u8"x";
+    const Char8 const_assignment[] = u8"x";
 
     // (function() {
     //   const x = 42;
@@ -360,13 +360,13 @@ TEST(test_variable_analyzer_eval_javascript,
     //     x = 3;  // TODO: ERROR (assignment to const variable)
     //   }
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(
-        identifier_of(const_declaration), variable_kind::_const,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(const_declaration), Variable_Kind::_const,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_assignment(identifier_of(const_assignment));
@@ -378,18 +378,18 @@ TEST(test_variable_analyzer_eval_javascript,
   }
 }
 
-TEST(test_variable_analyzer_eval_typescript,
+TEST(Test_Variable_Analyzer_Eval_TypeScript,
      eval_does_not_disable_variable_lookup) {
-  const char8 use_eval[] = u8"eval";
-  const char8 use[] = u8"x";
-  const char8 assignment[] = u8"x";
+  const Char8 use_eval[] = u8"eval";
+  const Char8 use[] = u8"x";
+  const Char8 assignment[] = u8"x";
 
   {
     // eval("var x = 42");
     // x;                   // ERROR
     // x = 10;              // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_assignment(identifier_of(assignment));
@@ -398,8 +398,8 @@ TEST(test_variable_analyzer_eval_typescript,
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
-            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable, assignment,
                            span_of(assignment))));
   }
 }

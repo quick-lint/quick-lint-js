@@ -10,7 +10,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 namespace quick_lint_js {
 // Last updated: Bun v0.1.4
 // Excludes ECMAScript globals.
-constexpr const char8 global_variables_bun[] =
+constexpr const Char8 global_variables_bun[] =
     u8"AbortController\0"
     u8"AbortSignal\0"
     u8"Blob\0"
@@ -75,7 +75,7 @@ constexpr const char8 global_variables_bun[] =
 
 // Last updated: Deno 1.31.1
 // Excludes ECMAScript globals.
-constexpr const char8 global_variables_deno[] =
+constexpr const Char8 global_variables_deno[] =
     u8"AbortController\0"
     u8"AbortSignal\0"
     u8"Blob\0"
@@ -169,7 +169,7 @@ constexpr const char8 global_variables_deno[] =
     u8"unescape\0"
     u8"window\0";
 
-constexpr const char8 global_variables_ecmascript[] =
+constexpr const Char8 global_variables_ecmascript[] =
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"globalThis\0"
 
@@ -232,13 +232,13 @@ constexpr const char8 global_variables_ecmascript[] =
     u8"Math\0"
     u8"Reflect\0";
 
-constexpr const char8 global_variables_ecmascript_non_writable[] =
+constexpr const Char8 global_variables_ecmascript_non_writable[] =
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"Infinity\0"
     u8"NaN\0"
     u8"undefined\0";
 
-constexpr const char8 global_variables_jasmine[] =
+constexpr const Char8 global_variables_jasmine[] =
     u8"afterAll\0"
     u8"afterEach\0"
     u8"beforeAll\0"
@@ -261,7 +261,7 @@ constexpr const char8 global_variables_jasmine[] =
     u8"xdescribe\0"
     u8"xit\0";
 
-constexpr const char8 global_variables_jest[] =
+constexpr const Char8 global_variables_jest[] =
     u8"afterAll\0"
     u8"afterEach\0"
     u8"beforeAll\0"
@@ -277,11 +277,11 @@ constexpr const char8 global_variables_jest[] =
     u8"xit\0"
     u8"xtest\0";
 
-constexpr const char8 global_variables_jquery[] =
+constexpr const Char8 global_variables_jquery[] =
     u8"$\0"
     u8"jQuery\0";
 
-constexpr const char8 global_variables_node_js[] =
+constexpr const Char8 global_variables_node_js[] =
     u8"Buffer\0"
     u8"GLOBAL\0"  // Removed in v14.16.1 (or earlier?).
     u8"Intl\0"
@@ -309,7 +309,7 @@ constexpr const char8 global_variables_node_js[] =
     u8"setTimeout\0"
     u8"unescape\0";
 
-constexpr const char8 global_variables_node_js_es[] =
+constexpr const Char8 global_variables_node_js_es[] =
     u8"Buffer\0"
     u8"GLOBAL\0"  // Removed in v14.16.1 (or earlier?).
     u8"Intl\0"
@@ -332,12 +332,12 @@ constexpr const char8 global_variables_node_js_es[] =
     u8"setTimeout\0"
     u8"unescape\0";
 
-constexpr const char8 global_variables_quickjs[] =
+constexpr const Char8 global_variables_quickjs[] =
     u8"scriptArgs\0"
     u8"console\0"
     u8"print\0";
 
-constexpr const char8 global_variables_typescript_types[] =
+constexpr const Char8 global_variables_typescript_types[] =
     // Source:
     // https://github.com/microsoft/TypeScript/tree/1da6d87a053746901a7eca6395a4bd15190b13c4/src/lib
     //
@@ -457,7 +457,7 @@ constexpr const char8 global_variables_typescript_types[] =
     u8"WeakRefConstructor\0"
     u8"WeakSetConstructor\0";
 
-const global_group global_groups[] = {
+const Global_Group global_groups[] = {
     {
         .name = u8"browser",
         .globals = global_variables_browser,

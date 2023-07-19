@@ -23,8 +23,8 @@ QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-options parse_options(int argc, char** argv) {
-  options o;
+Options parse_options(int argc, char** argv) {
+  Options o;
 
   struct {
     std::optional<int> number;
@@ -33,7 +33,7 @@ options parse_options(int argc, char** argv) {
 
   const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
-  std::optional<input_file_language> language;
+  std::optional<Input_File_Language> language;
   const char* unused_language_option = nullptr;
   bool has_stdin = false;
 
@@ -41,7 +41,7 @@ options parse_options(int argc, char** argv) {
     if (is_stdin && has_stdin) {
       o.has_multiple_stdin = true;
     } else {
-      file_to_lint file{.path = path,
+      File_To_Lint file{.path = path,
                         .config_file = active_config_file,
                         .path_for_config_search = next_path_for_config_search,
                         .language = language,
@@ -64,7 +64,7 @@ options parse_options(int argc, char** argv) {
     add_file(path, /*is_stdin=*/false);
   };
 
-  arg_parser parser(argc, argv);
+  Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) {
       if (argument == "-"sv) {
@@ -80,11 +80,11 @@ options parse_options(int argc, char** argv) {
 
     QLJS_OPTION(const char* arg_value, "--output-format"sv) {
       if (arg_value == "gnu-like"sv) {
-        o.output_format = output_format::gnu_like;
+        o.output_format = Output_Format::gnu_like;
       } else if (arg_value == "vim-qflist-json"sv) {
-        o.output_format = output_format::vim_qflist_json;
+        o.output_format = Output_Format::vim_qflist_json;
       } else if (arg_value == "emacs-lisp"sv) {
-        o.output_format = output_format::emacs_lisp;
+        o.output_format = Output_Format::emacs_lisp;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
@@ -92,11 +92,11 @@ options parse_options(int argc, char** argv) {
 
     QLJS_OPTION(const char* arg_value, "--diagnostic-hyperlinks"sv) {
       if (arg_value == "auto"sv) {
-        o.diagnostic_hyperlinks = option_when::auto_;
+        o.diagnostic_hyperlinks = Option_When::auto_;
       } else if (arg_value == "always"sv) {
-        o.diagnostic_hyperlinks = option_when::always;
+        o.diagnostic_hyperlinks = Option_When::always;
       } else if (arg_value == "never"sv) {
-        o.diagnostic_hyperlinks = option_when::never;
+        o.diagnostic_hyperlinks = Option_When::never;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
@@ -116,13 +116,13 @@ options parse_options(int argc, char** argv) {
       if (arg_value == "default"sv) {
         language = std::nullopt;
       } else if (arg_value == "javascript"sv) {
-        language = input_file_language::javascript;
+        language = Input_File_Language::javascript;
       } else if (arg_value == "javascript-jsx"sv) {
-        language = input_file_language::javascript_jsx;
+        language = Input_File_Language::javascript_jsx;
       } else if (arg_value == "experimental-typescript"sv) {
-        language = input_file_language::typescript;
+        language = Input_File_Language::typescript;
       } else if (arg_value == "experimental-typescript-jsx"sv) {
-        language = input_file_language::typescript_jsx;
+        language = Input_File_Language::typescript_jsx;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
@@ -136,7 +136,7 @@ options parse_options(int argc, char** argv) {
       o.has_vim_file_bufnr = true;
       int bufnr;
       if (parse_integer_exact(std::string_view(arg_value), bufnr) !=
-          parse_integer_exact_error::ok) {
+          Parse_Integer_Exact_Error::ok) {
         o.error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
@@ -176,14 +176,14 @@ done_parsing_options:
   return o;
 }
 
-bool options::dump_errors(output_stream& out) const {
+bool Options::dump_errors(Output_Stream& out) const {
   bool have_errors = false;
   if (this->lsp_server) {
     if (this->exit_fail_on.is_user_provided()) {
       out.append_copy(
           u8"warning: --exit-fail-on ignored with --lsp-server\n"_sv);
     }
-    if (this->output_format != output_format::default_format) {
+    if (this->output_format != Output_Format::default_format) {
       out.append_copy(
           u8"warning: --output-format ignored with --lsp-server\n"_sv);
     }
@@ -205,7 +205,7 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(
         u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n"_sv);
   } else if (this->has_vim_file_bufnr &&
-             this->output_format != output_format::vim_qflist_json) {
+             this->output_format != Output_Format::vim_qflist_json) {
     out.append_copy(
         u8"warning: --output-format selected which doesn't use --vim-file-bufnr\n"_sv);
   } else {
@@ -256,18 +256,18 @@ bool options::dump_errors(output_stream& out) const {
   return have_errors;
 }
 
-input_file_language file_to_lint::get_language() const noexcept {
+Input_File_Language File_To_Lint::get_language() const noexcept {
   return quick_lint_js::get_language(this->path, this->language);
 }
 
-input_file_language get_language(
+Input_File_Language get_language(
     const char* config_file,
-    const std::optional<input_file_language>& language) noexcept {
+    const std::optional<Input_File_Language>& language) noexcept {
   static_cast<void>(config_file);  // Unused for now.
   if (language.has_value()) {
     return *language;
   } else {
-    return input_file_language::javascript_jsx;
+    return Input_File_Language::javascript_jsx;
   }
 }
 }

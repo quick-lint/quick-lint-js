@@ -14,12 +14,12 @@ template <class Out, class In>
 Out narrow_cast(In x
 #if !(defined(NDEBUG) && NDEBUG)
                 ,
-                source_location caller = source_location::current()
+                Source_Location caller = Source_Location::current()
 #endif
                     ) noexcept {
 #if !(defined(NDEBUG) && NDEBUG)
   if (!in_range<Out>(x)) {
-    if constexpr (source_location::valid()) {
+    if constexpr (Source_Location::valid()) {
       report_assertion_failure(caller.file_name(),
                                static_cast<int>(caller.line()),
                                caller.function_name(), "number not in range");

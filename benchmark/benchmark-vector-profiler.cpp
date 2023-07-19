@@ -9,75 +9,75 @@
 namespace quick_lint_js {
 namespace {
 // clang-format off
-vector_instrumentation::entry sample_entries[] = {
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300da30,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300da30, .size = 1, .capacity = 4},
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300da70,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300da70, .size = 1, .capacity = 4},
-  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018540, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300daa8,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f018540, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300daa8, .size = 1, .capacity = 4},
-  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f017bf0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dab0,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f017bf0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dab0, .size = 1, .capacity = 4},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dae8,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300db20,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dae8,  .size = 2, .capacity = 4},
-  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f017180, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300db80,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f017180, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300db80, .size = 1, .capacity = 4},
-  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300db20,  .size = 2, .capacity = 4},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dae8,  .size = 3, .capacity = 4},
-  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300db20,  .size = 3, .capacity = 4},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dae8,  .size = 4, .capacity = 4},
-  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f0173f0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dc38,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f016980, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dca0,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f015f10, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dd08,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = vector_instrumentation::event::append, .data_pointer = 0x12300dd28,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f0152a0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
-  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::append, .data_pointer = 0x12300dd68,  .size = 1, .capacity = 4},
-  {.object_id = 0x16f0173f0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dc38, .size = 1, .capacity = 4},
-  {.object_id = 0x16f016980, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dca0, .size = 1, .capacity = 4},
-  {.object_id = 0x16f015f10, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dd08, .size = 1, .capacity = 4},
-  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dd28, .size = 1, .capacity = 4},
-  {.object_id = 0x16f0152a0, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
-  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = vector_instrumentation::event::destroy, .data_pointer = 0x12300dd68, .size = 1, .capacity = 4},
+Vector_Instrumentation::Entry sample_entries[] = {
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300da30,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300da30, .size = 1, .capacity = 4},
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300da70,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f018c90, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f018c68, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300da70, .size = 1, .capacity = 4},
+  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018540, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300daa8,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f018540, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f018518, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300daa8, .size = 1, .capacity = 4},
+  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f017bf0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dab0,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f017bf0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f017bc8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dab0, .size = 1, .capacity = 4},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dae8,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300db20,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dae8,  .size = 2, .capacity = 4},
+  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f017180, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300db80,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f017180, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f017158, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300db80, .size = 1, .capacity = 4},
+  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300db20,  .size = 2, .capacity = 4},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dae8,  .size = 3, .capacity = 4},
+  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300db20,  .size = 3, .capacity = 4},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dae8,  .size = 4, .capacity = 4},
+  {.object_id = 0x16f018470, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f018448, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f0173f0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dc38,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f016980, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dca0,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f015f10, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dd08,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dd28,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f0152a0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::create, .data_pointer = 0x0,          .size = 0, .capacity = 0},
+  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::append, .data_pointer = 0x12300dd68,  .size = 1, .capacity = 4},
+  {.object_id = 0x16f0173f0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f0173c8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dc38, .size = 1, .capacity = 4},
+  {.object_id = 0x16f016980, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f016958, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dca0, .size = 1, .capacity = 4},
+  {.object_id = 0x16f015f10, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f015ee8, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dd08, .size = 1, .capacity = 4},
+  {.object_id = 0x16f015480, .owner = "parse_expression_remainder call children", .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dd28, .size = 1, .capacity = 4},
+  {.object_id = 0x16f0152a0, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x0,         .size = 0, .capacity = 0},
+  {.object_id = 0x16f015278, .owner = "binary_expression_builder children",       .event = Vector_Instrumentation::Event::destroy, .data_pointer = 0x12300dd68, .size = 1, .capacity = 4},
 };
 // clang-format on
 
 void benchmark_add_entries_from_array(::benchmark::State& state,
                                       std::size_t entry_count) {
   for (auto _ : state) {
-    vector_instrumentation profiler;
+    Vector_Instrumentation profiler;
     for (std::size_t i = 0; i < entry_count; ++i) {
-      const vector_instrumentation::entry& entry =
+      const Vector_Instrumentation::Entry& entry =
           sample_entries[i % std::size(sample_entries)];
       profiler.add_entry(entry.object_id, entry.owner, entry.event,
                          entry.data_pointer, entry.size, entry.capacity);
@@ -95,17 +95,17 @@ BENCHMARK_CAPTURE(benchmark_add_entries_from_array, tons, 50'000);
 
 void benchmark_max_size_histogram_by_owner(::benchmark::State& state,
                                            std::size_t entry_count) {
-  vector_instrumentation profiler;
+  Vector_Instrumentation profiler;
   for (std::size_t i = 0; i < entry_count; ++i) {
-    const vector_instrumentation::entry& entry =
+    const Vector_Instrumentation::Entry& entry =
         sample_entries[i % std::size(sample_entries)];
     profiler.add_entry(entry.object_id, entry.owner, entry.event,
                        entry.data_pointer, entry.size, entry.capacity);
   }
-  std::vector<vector_instrumentation::entry> entries = profiler.entries();
+  std::vector<Vector_Instrumentation::Entry> entries = profiler.entries();
 
   for (auto _ : state) {
-    vector_max_size_histogram_by_owner histogram;
+    Vector_Max_Size_Histogram_By_Owner histogram;
     histogram.add_entries(entries);
     auto hist = histogram.histogram();
     ::benchmark::DoNotOptimize(hist);

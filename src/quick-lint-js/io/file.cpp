@@ -54,25 +54,25 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-platform_file_io_error file_too_large_error() {
+Platform_File_IO_Error file_too_large_error() {
 #if QLJS_HAVE_WINDOWS_H
-  return windows_file_io_error{ERROR_FILE_TOO_LARGE};
+  return Windows_File_IO_Error{ERROR_FILE_TOO_LARGE};
 #elif QLJS_HAVE_UNISTD_H
-  return posix_file_io_error{EFBIG};
+  return POSIX_File_IO_Error{EFBIG};
 #else
 #error "Unknown platform"
 #endif
 }
 
-result<void, platform_file_io_error> read_file_buffered(
-    platform_file_ref file, padded_string_size buffer_size,
-    padded_string *out_content) {
+Result<void, Platform_File_IO_Error> read_file_buffered(
+    Platform_File_Ref file, Padded_String_Size buffer_size,
+    Padded_String *out_content) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
-    padded_string_size size_before = out_content->size();
+    Padded_String_Size size_before = out_content->size();
     {
-      std::optional<padded_string_size> new_size =
+      std::optional<Padded_String_Size> new_size =
           checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
@@ -82,7 +82,7 @@ result<void, platform_file_io_error> read_file_buffered(
     }
 
     // TODO(strager): Get rid of this narrow_cast.
-    file_read_result read_result = file.read(&out_content->data()[size_before],
+    File_Read_Result read_result = file.read(&out_content->data()[size_before],
                                              narrow_cast<int>(buffer_size));
     if (!read_result.ok()) return read_result.propagate();
     if (read_result.at_end_of_file()) {
@@ -91,16 +91,16 @@ result<void, platform_file_io_error> read_file_buffered(
       return {};
     }
     // TODO(strager): Get rid of this narrow_cast.
-    std::optional<padded_string_size> new_size = checked_add(
-        size_before, narrow_cast<padded_string_size>(read_result.bytes_read()));
+    std::optional<Padded_String_Size> new_size = checked_add(
+        size_before, narrow_cast<Padded_String_Size>(read_result.bytes_read()));
     QLJS_ASSERT(new_size.has_value());
     out_content->resize(*new_size);
   }
 }
 
-result<padded_string, platform_file_io_error> read_file_with_expected_size(
-    platform_file_ref file, int file_size, int buffer_size) {
-  padded_string content;
+Result<Padded_String, Platform_File_IO_Error> read_file_with_expected_size(
+    Platform_File_Ref file, int file_size, int buffer_size) {
+  Padded_String content;
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
   if (!size_to_read.has_value()) {
@@ -108,7 +108,7 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
   }
   content.resize_grow_uninitialized(*size_to_read);
 
-  file_read_result read_result = file.read(content.data(), *size_to_read);
+  File_Read_Result read_result = file.read(content.data(), *size_to_read);
   if (!read_result.ok()) return read_result.propagate();
   if (read_result.at_end_of_file()) {
     // The file was empty.
@@ -118,7 +118,7 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
   if (read_result.bytes_read() == file_size) {
     // We possibly read the entire file. Make extra sure by reading one more
     // byte.
-    file_read_result extra_read_result =
+    File_Read_Result extra_read_result =
         file.read(content.data() + file_size, 1);
     if (!extra_read_result.ok()) return extra_read_result.propagate();
     if (extra_read_result.at_end_of_file()) {
@@ -128,7 +128,7 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
     } else {
       // We didn't read the entire file the first time. Keep reading.
       content.resize(read_result.bytes_read() + extra_read_result.bytes_read());
-      result<void, platform_file_io_error> r =
+      Result<void, Platform_File_IO_Error> r =
           read_file_buffered(file, buffer_size, &content);
       if (!r.ok()) return r.propagate();
       return content;
@@ -136,7 +136,7 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
   } else {
     content.resize(read_result.bytes_read());
     // We did not read the entire file. There is more data to read.
-    result<void, platform_file_io_error> r =
+    Result<void, Platform_File_IO_Error> r =
         read_file_buffered(file, buffer_size, &content);
     if (!r.ok()) return r.propagate();
     return content;
@@ -144,48 +144,48 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
 }
 }
 
-bool read_file_io_error::is_file_not_found_error() const noexcept {
+bool Read_File_IO_Error::is_file_not_found_error() const noexcept {
   return this->io_error.is_file_not_found_error();
 }
 
-std::string read_file_io_error::to_string() const {
+std::string Read_File_IO_Error::to_string() const {
   return "failed to read from "s + this->path + ": "s +
          this->io_error.to_string();
 }
 
-[[noreturn]] void read_file_io_error::print_and_exit() const {
+[[noreturn]] void Read_File_IO_Error::print_and_exit() const {
   std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
   std::exit(1);
 }
 
-std::string write_file_io_error::to_string() const {
+std::string Write_File_IO_Error::to_string() const {
   return "failed to write to "s + this->path + ": "s +
          this->io_error.to_string();
 }
 
-[[noreturn]] void write_file_io_error::print_and_exit() const {
+[[noreturn]] void Write_File_IO_Error::print_and_exit() const {
   std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
   std::exit(1);
 }
 
-bool operator==(const read_file_io_error &lhs,
-                const read_file_io_error &rhs) noexcept {
+bool operator==(const Read_File_IO_Error &lhs,
+                const Read_File_IO_Error &rhs) noexcept {
   return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
 }
 
-bool operator!=(const read_file_io_error &lhs,
-                const read_file_io_error &rhs) noexcept {
+bool operator!=(const Read_File_IO_Error &lhs,
+                const Read_File_IO_Error &rhs) noexcept {
   return !(lhs == rhs);
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-result<padded_string, platform_file_io_error> read_file(
-    windows_handle_file_ref file) {
+Result<Padded_String, Platform_File_IO_Error> read_file(
+    Windows_Handle_File_Ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
   if (!::GetFileSizeEx(file.get(), &file_size)) {
-    return failed_result(windows_file_io_error{::GetLastError()});
+    return failed_result(Windows_File_IO_Error{::GetLastError()});
   }
   if (!in_range<int>(file_size.QuadPart)) {
     return failed_result(file_too_large_error());
@@ -201,9 +201,9 @@ result<padded_string, platform_file_io_error> read_file(
 #if defined(QLJS_FILE_POSIX)
 namespace {
 int reasonable_buffer_size(const struct stat &s) noexcept {
-  using size_type = decltype(s.st_blksize);
-  size_type minimum_buffer_size = 512;
-  size_type megabyte = 1 << 20;
+  using Size_Type = decltype(s.st_blksize);
+  Size_Type minimum_buffer_size = 512;
+  Size_Type megabyte = 1 << 20;
   // Bound st_blksize in case the OS gives us crazy numbers (like 0 or
   // (size_t)-1).
   return narrow_cast<int>(
@@ -211,12 +211,12 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 }
 
-result<padded_string, platform_file_io_error> read_file(
-    posix_fd_file_ref file) {
+Result<Padded_String, Platform_File_IO_Error> read_file(
+    POSIX_FD_File_Ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
-    return failed_result(posix_file_io_error{errno});
+    return failed_result(POSIX_File_IO_Error{errno});
   }
   auto file_size = s.st_size;
   if (!in_range<int>(file_size)) {
@@ -229,27 +229,27 @@ result<padded_string, platform_file_io_error> read_file(
 }
 #endif
 
-result<padded_string, read_file_io_error> read_file(const char *path,
-                                                    platform_file_ref file) {
-  result<padded_string, platform_file_io_error> r = read_file(file);
+Result<Padded_String, Read_File_IO_Error> read_file(const char *path,
+                                                    Platform_File_Ref file) {
+  Result<Padded_String, Platform_File_IO_Error> r = read_file(file);
   if (!r.ok()) {
     return failed_result(
-        read_file_io_error{.path = path, .io_error = r.error()});
+        Read_File_IO_Error{.path = path, .io_error = r.error()});
   }
   return *std::move(r);
 }
 
-result<padded_string, read_file_io_error> read_file(const std::string &path) {
+Result<Padded_String, Read_File_IO_Error> read_file(const std::string &path) {
   return read_file(path.c_str());
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-result<padded_string, read_file_io_error> read_file(const char *path) {
+Result<Padded_String, Read_File_IO_Error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
-    return failed_result(read_file_io_error{
-        .path = path, .io_error = windows_file_io_error{::GetLastError()}});
+    return failed_result(Read_File_IO_Error{
+        .path = path, .io_error = Windows_File_IO_Error{::GetLastError()}});
   }
   HANDLE handle = ::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
@@ -259,58 +259,58 @@ result<padded_string, read_file_io_error> read_file(const char *path) {
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
-    return failed_result(read_file_io_error{
-        .path = path, .io_error = windows_file_io_error{::GetLastError()}});
+    return failed_result(Read_File_IO_Error{
+        .path = path, .io_error = Windows_File_IO_Error{::GetLastError()}});
   }
-  windows_handle_file file(handle);
+  Windows_Handle_File file(handle);
   return read_file(path, file.ref());
 }
 
-result<padded_string, read_file_io_error> read_stdin() {
-  windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
+Result<Padded_String, Read_File_IO_Error> read_stdin() {
+  Windows_Handle_File_Ref file(::GetStdHandle(STD_INPUT_HANDLE));
   return read_file("<stdin>", file);
 }
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-result<padded_string, read_file_io_error> read_file(const char *path) {
+Result<Padded_String, Read_File_IO_Error> read_file(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    return failed_result(read_file_io_error{
-        .path = path, .io_error = posix_file_io_error{errno}});
+    return failed_result(Read_File_IO_Error{
+        .path = path, .io_error = POSIX_File_IO_Error{errno}});
   }
-  posix_fd_file file(fd);
+  POSIX_FD_File file(fd);
   return read_file(path, file.ref());
 }
 
-result<padded_string, read_file_io_error> read_stdin() {
-  posix_fd_file_ref file(STDIN_FILENO);
+Result<Padded_String, Read_File_IO_Error> read_stdin() {
+  POSIX_FD_File_Ref file(STDIN_FILENO);
   return read_file("<stdin>", file);
 }
 #endif
 
-padded_string read_file_or_exit(const char *path) {
-  result<padded_string, read_file_io_error> r = read_file(path);
+Padded_String read_file_or_exit(const char *path) {
+  Result<Padded_String, Read_File_IO_Error> r = read_file(path);
   if (!r.ok()) {
     r.error().print_and_exit();
   }
   return *std::move(r);
 }
 
-result<void, write_file_io_error> write_file(const std::string &path,
-                                             string8_view content) {
+Result<void, Write_File_IO_Error> write_file(const std::string &path,
+                                             String8_View content) {
   return write_file(path.c_str(), content);
 }
 
 #if defined(QLJS_FILE_POSIX)
-result<platform_file, write_file_io_error> open_file_for_writing(
+Result<Platform_File, Write_File_IO_Error> open_file_for_writing(
     const char *path) {
-  posix_fd_file file(
+  POSIX_FD_File file(
       ::open(path, O_CLOEXEC | O_CREAT | O_TRUNC | O_WRONLY, 0644));
   if (!file.valid()) {
-    return failed_result(write_file_io_error{
+    return failed_result(Write_File_IO_Error{
         .path = path,
-        .io_error = posix_file_io_error{errno},
+        .io_error = POSIX_File_IO_Error{errno},
     });
   }
   return file;
@@ -318,16 +318,16 @@ result<platform_file, write_file_io_error> open_file_for_writing(
 #endif
 
 #if defined(QLJS_FILE_WINDOWS)
-result<platform_file, write_file_io_error> open_file_for_writing(
+Result<Platform_File, Write_File_IO_Error> open_file_for_writing(
     const char *path) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
-    return failed_result(write_file_io_error{
+    return failed_result(Write_File_IO_Error{
         .path = path,
-        .io_error = windows_file_io_error{::GetLastError()},
+        .io_error = Windows_File_IO_Error{::GetLastError()},
     });
   }
-  windows_handle_file file(::CreateFileW(
+  Windows_Handle_File file(::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_WRITE,
       /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
       /*lpSecurityAttributes=*/nullptr,
@@ -335,17 +335,17 @@ result<platform_file, write_file_io_error> open_file_for_writing(
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr));
   if (!file.valid()) {
-    return failed_result(write_file_io_error{
+    return failed_result(Write_File_IO_Error{
         .path = path,
-        .io_error = windows_file_io_error{::GetLastError()},
+        .io_error = Windows_File_IO_Error{::GetLastError()},
     });
   }
   return std::move(file);
 }
 #endif
 
-result<void, write_file_io_error> write_file(const char *path,
-                                             string8_view content) {
+Result<void, Write_File_IO_Error> write_file(const char *path,
+                                             String8_View content) {
   auto file = open_file_for_writing(path);
   if (!file.ok()) {
     return file.propagate();
@@ -353,7 +353,7 @@ result<void, write_file_io_error> write_file(const char *path,
 
   auto write_result = file->write_full(content.data(), content.size());
   if (!write_result.ok()) {
-    return failed_result(write_file_io_error{
+    return failed_result(Write_File_IO_Error{
         .path = path,
         .io_error = write_result.error(),
     });
@@ -362,12 +362,12 @@ result<void, write_file_io_error> write_file(const char *path,
   return {};
 }
 
-void write_file_or_exit(const std::string &path, string8_view content) {
+void write_file_or_exit(const std::string &path, String8_View content) {
   write_file_or_exit(path.c_str(), content);
 }
 
-void write_file_or_exit(const char *path, string8_view content) {
-  result<void, write_file_io_error> result = write_file(path, content);
+void write_file_or_exit(const char *path, String8_View content) {
+  Result<void, Write_File_IO_Error> result = write_file(path, content);
   if (!result.ok()) {
     result.error().print_and_exit();
   }

@@ -39,10 +39,10 @@
 // The mapping table and the locale table are run-time-only. They look like this
 // (C++ code):
 //
-//     struct mapping_entry {
+//     struct Mapping_Entry {
 //       std::uint32_t string_offsets[locale_count + 1];
 //     };
-//     mapping_entry mapping_table[mapping_table_size];
+//     Mapping_Entry mapping_table[mapping_table_size];
 //
 //     char locale_table[locale_table_size] =
 //       "en_US\0"
@@ -50,10 +50,10 @@
 //       /* ... */
 //       "";  // C++ adds an extra null byte for us.
 //
-// mapping_entry::string_offsets[i] corresponds to the i-th locale listed in
+// Mapping_Entry::string_offsets[i] corresponds to the i-th locale listed in
 // locale_table.
 //
-// mapping_entry::string_offsets[locale_count] refers to the original
+// Mapping_Entry::string_offsets[locale_count] refers to the original
 // (untranslated) string.
 //
 // Entry 0 of the mapping table is unused.
@@ -488,8 +488,8 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 #include <quick-lint-js/i18n/translation-table.h>
 
 namespace quick_lint_js {
-const translation_table translation_data = {
-    .mapping_table = translation_table::absolute_mapping_table_from_relative({{
+const Translation_Table translation_data = {
+    .mapping_table = Translation_Table::absolute_mapping_table_from_relative({{
 `)
 	mappingTableLines := []string{}
 	maxLineLength := 0
@@ -580,12 +580,12 @@ inline constexpr const char *test_locale_names[] = {
 		`};
 // clang-format on
 
-struct translated_string {
-  translatable_message translatable;
-  const char8 *expected_per_locale[%d];
+struct Translated_String {
+  Translatable_Message translatable;
+  const Char8 *expected_per_locale[%d];
 };
 
-extern const translated_string test_translation_table[%d];
+extern const Translated_String test_translation_table[%d];
 }
 
 #endif
@@ -629,7 +629,7 @@ func WriteTranslationTestSource(locales map[string][]TranslationEntry, path stri
 
 namespace quick_lint_js {
 // clang-format off
-const translated_string test_translation_table[] = {
+const Translated_String test_translation_table[] = {
 `)
 
 	for _, untranslated := range allUntranslated {

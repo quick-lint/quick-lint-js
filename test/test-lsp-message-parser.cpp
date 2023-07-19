@@ -19,15 +19,15 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lsp_message_parser, small_full_message) {
-  spy_lsp_message_parser parser;
+TEST(Test_LSP_Message_Parser, small_full_message) {
+  Spy_LSP_Message_Parser parser;
   parser.append(u8"Content-Length: 2\r\n\r\nhi"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hi"}));
 }
 
-TEST(test_lsp_message_parser, content_type_header_is_ignored) {
+TEST(Test_LSP_Message_Parser, content_type_header_is_ignored) {
   {
-    spy_lsp_message_parser parser;
+    Spy_LSP_Message_Parser parser;
     parser.append(
         u8"Content-Length: 2\r\nContent-Type: application/vscode-jsonrpc; "
         u8"charset=utf-8\r\n\r\nhi"_sv);
@@ -35,7 +35,7 @@ TEST(test_lsp_message_parser, content_type_header_is_ignored) {
   }
 
   {
-    spy_lsp_message_parser parser;
+    Spy_LSP_Message_Parser parser;
     parser.append(
         u8"Content-Type: application/vscode-jsonrpc; "
         u8"charset=utf-8\r\nContent-Length: 2\r\n\r\nhi"_sv);
@@ -43,51 +43,51 @@ TEST(test_lsp_message_parser, content_type_header_is_ignored) {
   }
 }
 
-TEST(test_lsp_message_parser, content_length_header_is_case_insensitive) {
-  spy_lsp_message_parser parser;
+TEST(Test_LSP_Message_Parser, content_length_header_is_case_insensitive) {
+  Spy_LSP_Message_Parser parser;
   parser.append(u8"cOntEnT-lEnGtH: 5\r\n\r\nhello"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello"}));
 }
 
-TEST(test_lsp_message_parser, content_length_allows_leading_zeros) {
-  spy_lsp_message_parser parser;
+TEST(Test_LSP_Message_Parser, content_length_allows_leading_zeros) {
+  Spy_LSP_Message_Parser parser;
   parser.append(u8"Content-Length: 0002\r\n\r\nhi"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hi"}));
 }
 
-TEST(test_lsp_message_parser, small_message_one_byte_at_a_time) {
-  spy_lsp_message_parser parser;
-  string8 full_message = u8"Content-Length: 2\r\n\r\nhi";
-  for (char8 c : full_message) {
-    parser.append(string8(1, c));
+TEST(Test_LSP_Message_Parser, small_message_one_byte_at_a_time) {
+  Spy_LSP_Message_Parser parser;
+  String8 full_message = u8"Content-Length: 2\r\n\r\nhi";
+  for (Char8 c : full_message) {
+    parser.append(String8(1, c));
   }
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hi"}));
 }
 
-TEST(test_lsp_message_parser, two_messages) {
-  spy_lsp_message_parser parser;
+TEST(Test_LSP_Message_Parser, two_messages) {
+  Spy_LSP_Message_Parser parser;
   parser.append(
       u8"Content-Length: 5\r\n\r\nhelloContent-Length: 5\r\n\r\nworld"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello", u8"world"}));
 }
 
-TEST(test_lsp_message_parser,
+TEST(Test_LSP_Message_Parser,
      missing_content_length_is_treated_as_empty_message) {
-  spy_lsp_message_parser parser;
+  Spy_LSP_Message_Parser parser;
   parser.append(
       u8"not-content-length: 10\r\n\r\nContent-Length: 5\r\n\r\nhello"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello"}));
 }
 
-TEST(test_lsp_message_parser, content_length_with_not_number_is_ignored) {
-  spy_lsp_message_parser parser;
+TEST(Test_LSP_Message_Parser, content_length_with_not_number_is_ignored) {
+  Spy_LSP_Message_Parser parser;
   parser.append(u8"Content-Length: asdf\r\nContent-Length: 5\r\n\r\nhello"_sv);
   EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello"}));
 }
 
-TEST(test_lsp_message_parser, malformed_headers_are_ignored) {
+TEST(Test_LSP_Message_Parser, malformed_headers_are_ignored) {
   for (
-      string8_view message : {
+      String8_View message : {
           // No header name:
           u8"\r\nContent-Length: 5\r\n\r\nhello"_sv,
           // No header value:
@@ -96,22 +96,22 @@ TEST(test_lsp_message_parser, malformed_headers_are_ignored) {
           u8"Content-Length Content-Length: 3\r\nContent-Length: 5\r\n\r\nhello"_sv,
       }) {
     SCOPED_TRACE(out_string8(message));
-    spy_lsp_message_parser parser;
+    Spy_LSP_Message_Parser parser;
     parser.append(message);
     EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello"}));
   }
 }
 
-TEST(test_lsp_message_parser, two_messages_chunked) {
+TEST(Test_LSP_Message_Parser, two_messages_chunked) {
   {
-    spy_lsp_message_parser parser;
+    Spy_LSP_Message_Parser parser;
     parser.append(u8"Content-Length: 5\r\n\r\nhelloContent"_sv);
     parser.append(u8"-Length: 5\r\n\r\nworld"_sv);
     EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello", u8"world"}));
   }
 
   {
-    spy_lsp_message_parser parser;
+    Spy_LSP_Message_Parser parser;
     parser.append(u8"Content-Length: 5\r\n\r\nhel"_sv);
     parser.append(u8"loContent-Length: 5\r\n\r\nworld"_sv);
     EXPECT_THAT(parser.messages(), ElementsAreArray({u8"hello", u8"world"}));

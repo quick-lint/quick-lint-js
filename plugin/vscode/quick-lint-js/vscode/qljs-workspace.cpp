@@ -43,19 +43,19 @@
 
 namespace quick_lint_js {
 namespace {
-class extension_configuration {
+class Extension_Configuration {
  public:
-  enum class logging_value {
+  enum class Logging_Value {
     off,  // default
     verbose,
   };
 
-  enum class tracing_value {
+  enum class Tracing_Value {
     off,  // default
     verbose,
   };
 
-  explicit extension_configuration(::Napi::Env env, vscode_module& vscode)
+  explicit Extension_Configuration(::Napi::Env env, VSCode_Module& vscode)
       : config_ref_(::Napi::Persistent(
             vscode.get_configuration(env, "quick-lint-js"))) {}
 
@@ -67,29 +67,29 @@ class extension_configuration {
     return value.As<::Napi::Boolean>().Value();
   }
 
-  logging_value get_logging(::Napi::Env env) {
+  Logging_Value get_logging(::Napi::Env env) {
     ::Napi::Value value = this->get(env, "logging");
     if (!value.IsString()) {
-      return logging_value::off;
+      return Logging_Value::off;
     }
     std::string string_value = value.As<::Napi::String>().Utf8Value();
     if (string_value == "verbose") {
-      return logging_value::verbose;
+      return Logging_Value::verbose;
     } else {
-      return logging_value::off;
+      return Logging_Value::off;
     }
   }
 
-  tracing_value get_tracing(::Napi::Env env) {
+  Tracing_Value get_tracing(::Napi::Env env) {
     ::Napi::Value value = this->get(env, "tracing");
     if (!value.IsString()) {
-      return tracing_value::off;
+      return Tracing_Value::off;
     }
     std::string string_value = value.As<::Napi::String>().Utf8Value();
     if (string_value == "verbose") {
-      return tracing_value::verbose;
+      return Tracing_Value::verbose;
     } else {
-      return tracing_value::off;
+      return Tracing_Value::off;
     }
   }
 
@@ -102,9 +102,9 @@ class extension_configuration {
   ::Napi::ObjectReference config_ref_;
 };
 
-struct vscode_language {
-  constexpr vscode_language(std::string_view language_id,
-                            linter_options lint_options)
+struct VSCode_Language {
+  constexpr VSCode_Language(std::string_view language_id,
+                            Linter_Options lint_options)
       : lint_options(lint_options) {
     quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
@@ -116,33 +116,33 @@ struct vscode_language {
   }
 
   // Returns nullptr if the language does not exist.
-  static const vscode_language* find(std::string_view language_id,
+  static const VSCode_Language* find(std::string_view language_id,
                                      bool allow_typescript) noexcept {
-    static constexpr linter_options jsx = {
+    static constexpr Linter_Options jsx = {
         .jsx = true,
         .typescript = false,
         .print_parser_visits = false,
     };
-    static constexpr linter_options ts = {
+    static constexpr Linter_Options ts = {
         .jsx = false,
         .typescript = true,
         .print_parser_visits = false,
     };
-    static constexpr linter_options tsx = {
+    static constexpr Linter_Options tsx = {
         .jsx = true,
         .typescript = true,
         .print_parser_visits = false,
     };
-    static constexpr vscode_language languages[] = {
-        vscode_language("javascript"sv, jsx),
-        vscode_language("javascriptreact"sv, jsx),
+    static constexpr VSCode_Language languages[] = {
+        VSCode_Language("javascript"sv, jsx),
+        VSCode_Language("javascriptreact"sv, jsx),
 
-        vscode_language("typescript"sv, ts),
-        vscode_language("typescriptreact"sv, tsx),
+        VSCode_Language("typescript"sv, ts),
+        VSCode_Language("typescriptreact"sv, tsx),
     };
-    const vscode_language* lang =
+    const VSCode_Language* lang =
         find_unique_if(std::begin(languages), std::end(languages),
-                       [&](const vscode_language& l) {
+                       [&](const VSCode_Language& l) {
                          return l.language_id() == language_id;
                        });
     if (lang == std::end(languages)) {
@@ -156,27 +156,27 @@ struct vscode_language {
 
   char raw_language_id[16] = {};
   unsigned char language_id_size = 0;
-  linter_options lint_options;
+  Linter_Options lint_options;
 };
 }
 
-::Napi::Function qljs_workspace::init(::Napi::Env env) {
+::Napi::Function QLJS_Workspace::init(::Napi::Env env) {
   return DefineClass(
       env, "QLJSWorkspace",
       {
-          InstanceMethod<&qljs_workspace::close_document>("closeDocument"),
-          InstanceMethod<&qljs_workspace::configuration_changed>(
+          InstanceMethod<&QLJS_Workspace::close_document>("closeDocument"),
+          InstanceMethod<&QLJS_Workspace::configuration_changed>(
               "configurationChanged"),
-          InstanceMethod<&qljs_workspace::dispose>("dispose"),
-          InstanceMethod<&qljs_workspace::document_changed>("documentChanged"),
-          InstanceMethod<&qljs_workspace::document_saved>("documentSaved"),
-          InstanceMethod<&qljs_workspace::editor_visibility_changed>(
+          InstanceMethod<&QLJS_Workspace::dispose>("dispose"),
+          InstanceMethod<&QLJS_Workspace::document_changed>("documentChanged"),
+          InstanceMethod<&QLJS_Workspace::document_saved>("documentSaved"),
+          InstanceMethod<&QLJS_Workspace::editor_visibility_changed>(
               "editorVisibilityChanged"),
       });
 }
 
-qljs_workspace::qljs_workspace(const Napi::CallbackInfo& info)
-    : ::Napi::ObjectWrap<qljs_workspace>(info),
+QLJS_Workspace::QLJS_Workspace(const Napi::CallbackInfo& info)
+    : ::Napi::ObjectWrap<QLJS_Workspace>(info),
       tracer_(info[0].As<::Napi::String>().Utf8Value()),
       vscode_(info[1].As<::Napi::Object>()),
       check_for_config_file_changes_on_js_thread_(
@@ -189,65 +189,65 @@ qljs_workspace::qljs_workspace(const Napi::CallbackInfo& info)
   QLJS_DEBUG_LOG("Workspace %p: created\n", this);
   this->update_logging(info.Env());
   this->fs_change_detection_thread_ =
-      thread([this]() -> void { this->run_fs_change_detection_thread(); });
+      Thread([this]() -> void { this->run_fs_change_detection_thread(); });
 }
 
-void qljs_workspace::update_logging(::Napi::Env env) {
-  extension_configuration config(env, this->vscode_);
+void QLJS_Workspace::update_logging(::Napi::Env env) {
+  Extension_Configuration config(env, this->vscode_);
   switch (config.get_logging(env)) {
-  case extension_configuration::logging_value::off:
+  case Extension_Configuration::Logging_Value::off:
     this->disable_logging();
     break;
-  case extension_configuration::logging_value::verbose:
+  case Extension_Configuration::Logging_Value::verbose:
     this->enable_logging(env);
     break;
   }
   switch (config.get_tracing(env)) {
-  case extension_configuration::tracing_value::off:
+  case Extension_Configuration::Tracing_Value::off:
     this->tracer_.disable();
     break;
-  case extension_configuration::tracing_value::verbose:
+  case Extension_Configuration::Tracing_Value::verbose:
     this->tracer_.enable();
     break;
   }
 }
 
-void qljs_workspace::enable_logging(::Napi::Env env) {
+void QLJS_Workspace::enable_logging(::Napi::Env env) {
   if (this->logger_enabled_) {
     return;
   }
   if (this->logger_.IsEmpty()) {
-    addon_state* state = env.GetInstanceData<addon_state>();
+    Addon_State* state = env.GetInstanceData<Addon_State>();
     this->logger_ = ::Napi::Persistent(state->qljs_logger_class.New(
         {this->vscode_.create_output_channel(env, "quick-lint-js")}));
   }
-  enable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+  enable_logger(QLJS_Logger::Unwrap(this->logger_.Value()));
   this->logger_enabled_ = true;
   QLJS_DEBUG_LOG("Configured VS Code logger\n");
 }
 
-void qljs_workspace::disable_logging() {
+void QLJS_Workspace::disable_logging() {
   if (!this->logger_enabled_) {
     return;
   }
   QLJS_DEBUG_LOG("Disabling VS Code logger\n");
   QLJS_ASSERT(!this->logger_.IsEmpty());
-  disable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+  disable_logger(QLJS_Logger::Unwrap(this->logger_.Value()));
   this->logger_enabled_ = false;
 }
 
-qljs_workspace::~qljs_workspace() {
+QLJS_Workspace::~QLJS_Workspace() {
   // See NOTE[workspace-cleanup].
   this->dispose();
 }
 
-::Napi::Value qljs_workspace::dispose(const Napi::CallbackInfo& info) {
+::Napi::Value QLJS_Workspace::dispose(const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   this->dispose();
   return env.Undefined();
 }
 
-void qljs_workspace::dispose() {
+void QLJS_Workspace::dispose() {
   if (this->disposed_) {
     return;
   }
@@ -262,9 +262,9 @@ void qljs_workspace::dispose() {
   this->disposed_ = true;
 }
 
-void qljs_workspace::dispose_documents() {
+void QLJS_Workspace::dispose_documents() {
   this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
-    qljs_document_base* doc = qljs_document_base::unwrap(value);
+    QLJS_Document_Base* doc = QLJS_Document_Base::unwrap(value);
     this->delete_diagnostics(doc);
   });
   this->qljs_documents_.clear();
@@ -274,13 +274,13 @@ void qljs_workspace::dispose_documents() {
   this->fs_.clear();
 }
 
-::Napi::Value qljs_workspace::close_document(const Napi::CallbackInfo& info) {
+::Napi::Value QLJS_Workspace::close_document(const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
-  vscode_document vscode_doc(info[0].As<::Napi::Object>());
+  VSCode_Document vscode_doc(info[0].As<::Napi::Object>());
   ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc.get());
-  qljs_document_base* doc =
-      qljs_doc.IsUndefined() ? nullptr : qljs_document_base::unwrap(qljs_doc);
+  QLJS_Document_Base* doc =
+      qljs_doc.IsUndefined() ? nullptr : QLJS_Document_Base::unwrap(qljs_doc);
   this->tracer_.trace_vscode_document_closed(env, vscode_doc, doc);
   if (doc) {
     QLJS_DEBUG_LOG("Document %p: Closing\n", doc);
@@ -292,7 +292,7 @@ void qljs_workspace::dispose_documents() {
   return env.Undefined();
 }
 
-::Napi::Value qljs_workspace::configuration_changed(
+::Napi::Value QLJS_Workspace::configuration_changed(
     const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
@@ -301,15 +301,15 @@ void qljs_workspace::dispose_documents() {
   return env.Undefined();
 }
 
-::Napi::Value qljs_workspace::editor_visibility_changed(
+::Napi::Value QLJS_Workspace::editor_visibility_changed(
     const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
   ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
   ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
-  qljs_document_base* doc;
+  QLJS_Document_Base* doc;
   if (qljs_doc.IsUndefined()) {
-    vscode_document d(vscode_doc);
+    VSCode_Document d(vscode_doc);
     doc = this->maybe_create_document(
         env,
         /*vscode_doc=*/d,
@@ -318,20 +318,20 @@ void qljs_workspace::dispose_documents() {
       doc->after_modification(env, *this, this->diagnostic_collection());
     }
   } else {
-    doc = qljs_document_base::unwrap(qljs_doc);
+    doc = QLJS_Document_Base::unwrap(qljs_doc);
     doc->after_modification(env, *this, this->diagnostic_collection());
   }
 
   return env.Undefined();
 }
 
-::Napi::Value qljs_workspace::document_changed(const Napi::CallbackInfo& info) {
+::Napi::Value QLJS_Workspace::document_changed(const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
   ::Napi::Value vscode_document = info[0];
   ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
   if (!qljs_doc.IsUndefined()) {
-    qljs_document_base* doc = qljs_document_base::unwrap(qljs_doc);
+    QLJS_Document_Base* doc = QLJS_Document_Base::unwrap(qljs_doc);
     ::Napi::Array changes = info[1].As<::Napi::Array>();
     this->tracer_.trace_vscode_document_changed(env, doc, changes);
     doc->replace_text(changes);
@@ -341,39 +341,39 @@ void qljs_workspace::dispose_documents() {
   return env.Undefined();
 }
 
-::Napi::Value qljs_workspace::document_saved(const Napi::CallbackInfo& info) {
+::Napi::Value QLJS_Workspace::document_saved(const Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
   ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
   ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
   if (!qljs_doc.IsUndefined()) {
-    qljs_document_base* doc = qljs_document_base::unwrap(qljs_doc);
+    QLJS_Document_Base* doc = QLJS_Document_Base::unwrap(qljs_doc);
     QLJS_DEBUG_LOG("Document %p: Saved\n", doc);
-    this->tracer_.trace_vscode_document_sync(env, vscode_document(vscode_doc),
+    this->tracer_.trace_vscode_document_sync(env, VSCode_Document(vscode_doc),
                                              doc);
   }
 
   return env.Undefined();
 }
 
-qljs_document_base* qljs_workspace::maybe_create_document(
-    ::Napi::Env env, vscode_document vscode_doc, string8_view text) {
+QLJS_Document_Base* QLJS_Workspace::maybe_create_document(
+    ::Napi::Env env, VSCode_Document vscode_doc, String8_View text) {
   ::Napi::Object vscode_document_uri = vscode_doc.uri();
   std::optional<std::string> file_path = std::nullopt;
   if (to_string(vscode_document_uri.Get("scheme")) == "file") {
     file_path = to_string(vscode_document_uri.Get("fsPath"));
   }
-  bool allow_typescript = extension_configuration(env, this->vscode_)
+  bool allow_typescript = Extension_Configuration(env, this->vscode_)
                               .get_experimental_typescript(env);
 
-  qljs_document_base* doc;
-  if (const vscode_language* lang =
-          vscode_language::find(vscode_doc.language_id(),
+  QLJS_Document_Base* doc;
+  if (const VSCode_Language* lang =
+          VSCode_Language::find(vscode_doc.language_id(),
                                 /*allow_typescript=*/allow_typescript)) {
-    doc = new qljs_lintable_document(vscode_doc, file_path, lang->lint_options);
+    doc = new QLJS_Lintable_Document(vscode_doc, file_path, lang->lint_options);
   } else if (file_path.has_value() &&
              this->config_loader_.is_config_file_path(*file_path)) {
-    doc = new qljs_config_document(vscode_doc, file_path);
+    doc = new QLJS_Config_Document(vscode_doc, file_path);
   } else {
     return nullptr;
   }
@@ -394,18 +394,18 @@ qljs_document_base* qljs_workspace::maybe_create_document(
   return doc;
 }
 
-vscode_diagnostic_collection qljs_workspace::diagnostic_collection() const {
-  return vscode_diagnostic_collection(
+VSCode_Diagnostic_Collection QLJS_Workspace::diagnostic_collection() const {
+  return VSCode_Diagnostic_Collection(
       this->vscode_diagnostic_collection_ref_.Value());
 }
 
-void qljs_workspace::delete_diagnostics(qljs_document_base* doc) {
-  vscode_diagnostic_collection(this->vscode_diagnostic_collection_ref_.Value())
+void QLJS_Workspace::delete_diagnostics(QLJS_Document_Base* doc) {
+  VSCode_Diagnostic_Collection(this->vscode_diagnostic_collection_ref_.Value())
       .delete_(doc->uri());
 }
 
-void qljs_workspace::report_pending_watch_io_errors(::Napi::Env env) {
-  std::vector<watch_io_error> errors =
+void QLJS_Workspace::report_pending_watch_io_errors(::Napi::Env env) {
+  std::vector<Watch_IO_Error> errors =
       this->fs_change_detection_event_loop_.fs()->take_watch_errors();
   if (!errors.empty() && !this->did_report_watch_io_error_) {
     this->vscode_.window_show_warning_message.Value().Call(
@@ -417,9 +417,9 @@ void qljs_workspace::report_pending_watch_io_errors(::Napi::Env env) {
   }
 }
 
-void qljs_workspace::check_for_config_file_changes_from_thread(
+void QLJS_Workspace::check_for_config_file_changes_from_thread(
     ::Napi::Env env, ::Napi::Object workspace_object) {
-  qljs_workspace* workspace = qljs_workspace::Unwrap(workspace_object);
+  QLJS_Workspace* workspace = QLJS_Workspace::Unwrap(workspace_object);
   if (workspace->disposed_) {
     QLJS_DEBUG_LOG(
         "Workspace %p: check_for_config_file_changes_from_thread: workspace "
@@ -430,19 +430,19 @@ void qljs_workspace::check_for_config_file_changes_from_thread(
   workspace->check_for_config_file_changes(env);
 }
 
-void qljs_workspace::check_for_config_file_changes(::Napi::Env env) {
-  std::vector<configuration_change> changes = this->config_loader_.refresh();
-  for (const configuration_change& change : changes) {
+void QLJS_Workspace::check_for_config_file_changes(::Napi::Env env) {
+  std::vector<Configuration_Change> changes = this->config_loader_.refresh();
+  for (const Configuration_Change& change : changes) {
     QLJS_DEBUG_LOG("Configuration changed for %s\n",
                    change.watched_path->c_str());
-    qljs_document_base* doc =
-        reinterpret_cast<qljs_document_base*>(change.token);
+    QLJS_Document_Base* doc =
+        reinterpret_cast<QLJS_Document_Base*>(change.token);
     doc->on_config_file_changed(env, *this, this->diagnostic_collection(),
                                 change.config_file);
   }
 }
 
-void qljs_workspace::run_fs_change_detection_thread() {
+void QLJS_Workspace::run_fs_change_detection_thread() {
   QLJS_DEBUG_LOG("Workspace %p: starting run_fs_change_detection_thread\n",
                  this);
   this->fs_change_detection_event_loop_.run();
@@ -453,7 +453,7 @@ void qljs_workspace::run_fs_change_detection_thread() {
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
-  addon_state* state = env.GetInstanceData<addon_state>();
+  Addon_State* state = env.GetInstanceData<Addon_State>();
 
   ::Napi::Object options = info[0].As<::Napi::Object>();
   return state->qljs_workspace_class.New({

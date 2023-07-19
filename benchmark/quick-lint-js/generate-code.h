@@ -13,19 +13,19 @@
 
 namespace quick_lint_js {
 std::vector<int> random_line_lengths(std::mt19937_64 &, int line_count);
-padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const string8 &newline);
+Padded_String make_source_code(const std::vector<int> &line_lengths,
+                               const String8 &newline);
 
 struct source_code_with_spans {
-  explicit source_code_with_spans(std::unique_ptr<padded_string> &&source,
-                                  std::vector<source_code_span> &&spans)
+  explicit source_code_with_spans(std::unique_ptr<Padded_String> &&source,
+                                  std::vector<Source_Code_Span> &&spans)
       : source(std::move(source)), spans(std::move(spans)) {}
 
   source_code_with_spans(const source_code_with_spans &) = delete;
   source_code_with_spans &operator=(const source_code_with_spans &) = delete;
 
-  std::unique_ptr<padded_string> source;
-  std::vector<source_code_span> spans;
+  std::unique_ptr<Padded_String> source;
+  std::vector<Source_Code_Span> spans;
 };
 
 source_code_with_spans make_realisticish_code(int line_count, int span_count);

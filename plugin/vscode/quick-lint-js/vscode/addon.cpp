@@ -9,12 +9,12 @@
 #include <quick-lint-js/vscode/qljs-workspace.h>
 
 namespace quick_lint_js {
-std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
-  std::unique_ptr<addon_state> state(new addon_state{
-      .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
-      .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
+std::unique_ptr<Addon_State> Addon_State::create(::Napi::Env env) {
+  std::unique_ptr<Addon_State> state(new Addon_State{
+      .qljs_logger_class = ::Napi::Persistent(QLJS_Logger::init(env)),
+      .qljs_workspace_class = ::Napi::Persistent(QLJS_Workspace::init(env)),
   });
-  trace_flusher* tracer = trace_flusher::instance();
+  Trace_Flusher* tracer = Trace_Flusher::instance();
   tracer->register_current_thread();
   tracer->start_flushing_thread();
   return state;
@@ -60,8 +60,8 @@ void work_around_dlltool_bug(::napi_env env) {
 ::Napi::Object initialize_addon(::Napi::Env env, ::Napi::Object exports) {
   work_around_dlltool_bug(env);
 
-  std::unique_ptr<addon_state> state = addon_state::create(env);
-  env.SetInstanceData<addon_state>(state.get());
+  std::unique_ptr<Addon_State> state = Addon_State::create(env);
+  env.SetInstanceData<Addon_State>(state.get());
   state.release();
 
   exports.Set("createWorkspace",

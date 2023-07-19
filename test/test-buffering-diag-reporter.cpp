@@ -18,42 +18,42 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_buffering_diag_reporter, buffers_all_visits) {
-  padded_string let_code(u8"let"_sv);
-  padded_string expression_code(u8"2+2==5"_sv);
+TEST(Test_Buffering_Diag_Reporter, buffers_all_visits) {
+  Padded_String let_code(u8"let"_sv);
+  Padded_String expression_code(u8"2+2==5"_sv);
 
-  linked_bump_allocator<alignof(void*)> memory("test");
-  buffering_diag_reporter diag_reporter(&memory);
-  diag_reporter.report(diag_let_with_no_bindings{.where = span_of(let_code)});
-  diag_reporter.report(diag_expected_parenthesis_around_if_condition{
+  Linked_Bump_Allocator<alignof(void*)> memory("test");
+  Buffering_Diag_Reporter diag_reporter(&memory);
+  diag_reporter.report(Diag_Let_With_No_Bindings{.where = span_of(let_code)});
+  diag_reporter.report(Diag_Expected_Parenthesis_Around_If_Condition{
       .where = span_of(expression_code),
       .token = u8'(',
   });
 
-  diag_collector collector;
+  Diag_Collector collector;
   diag_reporter.move_into(&collector);
   EXPECT_THAT(
       collector.errors,
-      ElementsAre(DIAG_TYPE_FIELD(diag_let_with_no_bindings, where,
-                                  source_code_span_matcher(span_of(let_code))),
+      ElementsAre(DIAG_TYPE_FIELD(Diag_Let_With_No_Bindings, where,
+                                  Source_Code_Span_Matcher(span_of(let_code))),
                   DIAG_TYPE_2_FIELDS(
-                      diag_expected_parenthesis_around_if_condition, where,
-                      source_code_span_matcher(span_of(expression_code)),  //
+                      Diag_Expected_Parenthesis_Around_If_Condition, where,
+                      Source_Code_Span_Matcher(span_of(expression_code)),  //
                       token, u8'(')));
 }
 
-TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
+TEST(Test_Buffering_Diag_Reporter, not_destructing_does_not_leak) {
   // This test relies on a leak checker such as Valgrind's memtest or
   // Clang's LeakSanitizer.
 
-  linked_bump_allocator<alignof(void*)> memory("test");
-  alignas(buffering_diag_reporter)
-      std::byte diag_reporter_storage[sizeof(buffering_diag_reporter)];
-  buffering_diag_reporter* diag_reporter =
-      new (&diag_reporter_storage) buffering_diag_reporter(&memory);
+  Linked_Bump_Allocator<alignof(void*)> memory("test");
+  alignas(Buffering_Diag_Reporter)
+      std::byte diag_reporter_storage[sizeof(Buffering_Diag_Reporter)];
+  Buffering_Diag_Reporter* diag_reporter =
+      new (&diag_reporter_storage) Buffering_Diag_Reporter(&memory);
 
-  padded_string let_code(u8"let"_sv);
-  diag_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
+  Padded_String let_code(u8"let"_sv);
+  diag_reporter->report(Diag_Let_With_No_Bindings{.where = span_of(let_code)});
 
   // Destruct memory, but don't destruct *diag_reporter.
 }

@@ -16,7 +16,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-class u16_cstring_trace_string_writer {
+class U16_CString_Trace_String_Writer {
  public:
   std::size_t string_size(void* string) const noexcept {
     return this->get(string).size();
@@ -35,10 +35,10 @@ class u16_cstring_trace_string_writer {
   }
 };
 
-TEST(test_trace_writer, write_header) {
-  async_byte_queue data;
-  trace_writer w(&data);
-  w.write_header(trace_context{
+TEST(Test_Trace_Writer, write_header) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
+  w.write_header(Trace_Context{
       .thread_id = 0x1234,
   });
 
@@ -62,10 +62,10 @@ TEST(test_trace_writer, write_header) {
               }));
 }
 
-TEST(test_trace_writer, write_event_init) {
-  async_byte_queue data;
-  trace_writer w(&data);
-  w.write_event_init(trace_event_init{
+TEST(Test_Trace_Writer, write_event_init) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
+  w.write_event_init(Trace_Event_Init{
       .timestamp = 0x5678,
       .version = u8"1.0.0"_sv,
   });
@@ -86,19 +86,19 @@ TEST(test_trace_writer, write_event_init) {
               }));
 }
 
-TEST(test_trace_writer, write_event_vscode_document_opened) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_vscode_document_opened) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   w.write_event_vscode_document_opened(
-      trace_event_vscode_document_opened{
+      Trace_Event_VSCode_Document_Opened{
           .timestamp = 0x5678,
           .document_id = 0x1234,
           .uri = const_cast<char16_t*>(u"test.js"),
           .language_id = const_cast<char16_t*>(u"js"),
           .content = const_cast<char16_t*>(u"hi"),
       },
-      u16_cstring_trace_string_writer());
+      U16_CString_Trace_String_Writer());
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -128,18 +128,18 @@ TEST(test_trace_writer, write_event_vscode_document_opened) {
               }));
 }
 
-TEST(test_trace_writer, write_event_vscode_document_closed) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_vscode_document_closed) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   w.write_event_vscode_document_closed(
-      trace_event_vscode_document_closed{
+      Trace_Event_VSCode_Document_Closed{
           .timestamp = 0x5678,
           .document_id = 0x1234,
           .uri = const_cast<char16_t*>(u"test.js"),
           .language_id = const_cast<char16_t*>(u"js"),
       },
-      u16_cstring_trace_string_writer());
+      U16_CString_Trace_String_Writer());
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -165,12 +165,12 @@ TEST(test_trace_writer, write_event_vscode_document_closed) {
               }));
 }
 
-TEST(test_trace_writer, write_event_vscode_document_changed) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   std::array changes{
-      trace_vscode_document_change{
+      Trace_VSCode_Document_Change{
           .range =
               {
                   .start =
@@ -188,7 +188,7 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
           .range_length = 0x66,
           .text = const_cast<char16_t*>(u"hi"),
       },
-      trace_vscode_document_change{
+      Trace_VSCode_Document_Change{
           .range =
               {
                   .start =
@@ -209,13 +209,13 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
   };
 
   w.write_event_vscode_document_changed(
-      trace_event_vscode_document_changed{
+      Trace_Event_VSCode_Document_Changed{
           .timestamp = 0x5678,
           .document_id = 0x1234,
           .changes = changes.data(),
           .change_count = changes.size(),
       },
-      u16_cstring_trace_string_writer());
+      U16_CString_Trace_String_Writer());
 
   data.commit();
   EXPECT_THAT(
@@ -263,19 +263,19 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
       }));
 }
 
-TEST(test_trace_writer, write_event_vscode_document_sync) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_vscode_document_sync) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   w.write_event_vscode_document_sync(
-      trace_event_vscode_document_sync{
+      Trace_Event_VSCode_Document_Sync{
           .timestamp = 0x5678,
           .document_id = 0x1234,
           .uri = const_cast<char16_t*>(u"test.js"),
           .language_id = const_cast<char16_t*>(u"js"),
           .content = const_cast<char16_t*>(u"hi"),
       },
-      u16_cstring_trace_string_writer());
+      U16_CString_Trace_String_Writer());
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -305,12 +305,12 @@ TEST(test_trace_writer, write_event_vscode_document_sync) {
               }));
 }
 
-TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_lsp_client_to_server_message) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   w.write_event_lsp_client_to_server_message(
-      trace_event_lsp_client_to_server_message{
+      Trace_Event_LSP_Client_To_Server_Message{
           .timestamp = 0x5678,
           .body = u8"{ }"_sv,
       });
@@ -332,9 +332,9 @@ TEST(test_trace_writer, write_event_lsp_client_to_server_message) {
               }));
 }
 
-TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
   std::map<std::string_view, std::map<std::size_t, int>> histogram = {
       {"o1"sv,
@@ -348,7 +348,7 @@ TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
        }},
   };
   w.write_event_vector_max_size_histogram_by_owner(
-      trace_event_vector_max_size_histogram_by_owner{
+      Trace_Event_Vector_Max_Size_Histogram_By_Owner{
           .timestamp = 0x5678,
           .histogram = &histogram,
       });
@@ -385,11 +385,11 @@ TEST(test_trace_writer, write_event_vector_max_size_histogram_by_owner) {
               }));  // Max size entry 0 count
 }
 
-TEST(test_trace_writer, write_event_process_id) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_process_id) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
-  w.write_event_process_id(trace_event_process_id{
+  w.write_event_process_id(Trace_Event_Process_ID{
       .timestamp = 0x5678,
       .process_id = 0x0123,
   });
@@ -410,21 +410,21 @@ TEST(test_trace_writer, write_event_process_id) {
               }));
 }
 
-TEST(test_trace_writer, write_event_lsp_documents) {
-  async_byte_queue data;
-  trace_writer w(&data);
+TEST(Test_Trace_Writer, write_event_lsp_documents) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
 
-  std::array<trace_lsp_document_state, 1> documents = {
-      trace_lsp_document_state{
-          .type = trace_lsp_document_type::lintable,
+  std::array<Trace_LSP_Document_State, 1> documents = {
+      Trace_LSP_Document_State{
+          .type = Trace_LSP_Document_Type::lintable,
           .uri = u8"file:///f"_sv,
           .text = u8"hello"_sv,
           .language_id = u8"js"_sv,
       },
   };
-  w.write_event_lsp_documents(trace_event_lsp_documents{
+  w.write_event_lsp_documents(Trace_Event_LSP_Documents{
       .timestamp = 0x5678,
-      .documents = span<const trace_lsp_document_state>(documents),
+      .documents = Span<const Trace_LSP_Document_State>(documents),
   });
 
   data.commit();

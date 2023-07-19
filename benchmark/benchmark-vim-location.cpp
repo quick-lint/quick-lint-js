@@ -13,11 +13,11 @@ namespace quick_lint_js {
 namespace {
 void benchmark_location_scale_of_long_line(::benchmark::State &state) {
   int line_length = 10'000;
-  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'x'));
+  Padded_String line(String8(narrow_cast<std::size_t>(line_length), u8'x'));
   for (auto _ : state) {
-    vim_locator l(&line);
+    Vim_Locator l(&line);
     for (int i = 0; i < line_length; ++i) {
-      vim_source_position p = l.position(&line[i]);
+      Vim_Source_Position p = l.position(&line[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
@@ -26,11 +26,11 @@ BENCHMARK(benchmark_location_scale_of_long_line);
 
 void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
   int line_count = 10'000;
-  padded_string lines(string8(narrow_cast<std::size_t>(line_count), u8'\n'));
+  Padded_String lines(String8(narrow_cast<std::size_t>(line_count), u8'\n'));
   for (auto _ : state) {
-    vim_locator l(&lines);
+    Vim_Locator l(&lines);
     for (int i = 0; i < line_count; ++i) {
-      vim_source_position p = l.position(&lines[i]);
+      Vim_Source_Position p = l.position(&lines[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
@@ -40,12 +40,12 @@ BENCHMARK(benchmark_location_scale_of_empty_lines);
 void benchmark_range_scale_of_empty_lines(::benchmark::State &state) {
   int line_length = 10'000;
   int span_length = 5;
-  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
+  Padded_String line(String8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
-    vim_locator l(&line);
+    Vim_Locator l(&line);
     for (int i = 0; i < line_length - span_length; i += span_length) {
-      source_code_span span(&line[i], &line[i + span_length]);
-      vim_source_range r = l.range(span);
+      Source_Code_Span span(&line[i], &line[i + span_length]);
+      Vim_Source_Range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }
@@ -59,9 +59,9 @@ void benchmark_location_realisticish(::benchmark::State &state) {
       /*line_count=*/line_count, /*span_count=*/span_count);
 
   for (auto _ : state) {
-    vim_locator l(code.source.get());
-    for (const source_code_span &span : code.spans) {
-      vim_source_range r = l.range(span);
+    Vim_Locator l(code.source.get());
+    for (const Source_Code_Span &span : code.spans) {
+      Vim_Source_Range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }

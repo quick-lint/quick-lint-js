@@ -16,8 +16,8 @@ QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
 
 template <class... Args>
 inline constexpr auto make_array(Args&&... items) {
-  using item_type = std::common_type_t<Args...>;
-  return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
+  using Item_Type = std::common_type_t<Args...>;
+  return std::array<Item_Type, sizeof...(items)>{std::forward<Args>(items)...};
 }
 
 template <class T, class... Args>

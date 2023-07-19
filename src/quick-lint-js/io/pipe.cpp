@@ -24,7 +24,7 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_PIPE
-pipe_fds make_pipe() {
+Pipe_FDs make_pipe() {
   int fds[2];
   int rc = ::pipe(fds);
   if (rc == -1) {
@@ -39,13 +39,13 @@ pipe_fds make_pipe() {
                    std::strerror(errno));
     }
   }
-  return pipe_fds{
-      .reader = posix_fd_file(fds[0]),
-      .writer = posix_fd_file(fds[1]),
+  return Pipe_FDs{
+      .reader = POSIX_FD_File(fds[0]),
+      .writer = POSIX_FD_File(fds[1]),
   };
 }
 #elif defined(_WIN32)
-pipe_fds make_pipe() {
+Pipe_FDs make_pipe() {
   HANDLE readPipe;
   HANDLE writePipe;
   ::SECURITY_ATTRIBUTES attributes = {};
@@ -57,9 +57,9 @@ pipe_fds make_pipe() {
                  windows_last_error_message().c_str());
     std::abort();
   }
-  return pipe_fds{
-      .reader = windows_handle_file(readPipe),
-      .writer = windows_handle_file(writePipe),
+  return Pipe_FDs{
+      .reader = Windows_Handle_File(readPipe),
+      .writer = Windows_Handle_File(writePipe),
   };
 }
 #endif

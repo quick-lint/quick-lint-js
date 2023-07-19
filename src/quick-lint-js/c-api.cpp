@@ -20,63 +20,63 @@
 
 using namespace quick_lint_js;
 
-struct qljs_web_demo_document final {
-  padded_string text_;
-  c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>
+struct QLJS_Web_Demo_Document final {
+  Padded_String text_;
+  C_API_Diag_Reporter<QLJS_Web_Demo_Diagnostic, Web_Demo_Locator>
       diag_reporter_;
-  configuration config_;
-  linter_options linter_options_;
+  Configuration config_;
+  Linter_Options linter_options_;
   bool is_config_json_ = false;
-  qljs_web_demo_document* config_document_ = nullptr;
+  QLJS_Web_Demo_Document* config_document_ = nullptr;
   bool need_update_config_ = true;
 };
 
-qljs_web_demo_document* qljs_web_demo_create_document(void) {
-  qljs_web_demo_document* p = new qljs_web_demo_document();
+QLJS_Web_Demo_Document* qljs_web_demo_create_document(void) {
+  QLJS_Web_Demo_Document* p = new QLJS_Web_Demo_Document();
   return p;
 }
 
-void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
+void qljs_web_demo_destroy_document(QLJS_Web_Demo_Document* p) { delete p; }
 
-void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
+void qljs_web_demo_set_text(QLJS_Web_Demo_Document* p, const void* text_utf_8,
                             size_t text_byte_count) {
-  p->text_ = padded_string(string8_view(
-      reinterpret_cast<const char8*>(text_utf_8), text_byte_count));
+  p->text_ = Padded_String(String8_View(
+      reinterpret_cast<const Char8*>(text_utf_8), text_byte_count));
 }
 
-void qljs_web_demo_set_config(qljs_web_demo_document* js_document,
-                              qljs_web_demo_document* config_document) {
+void qljs_web_demo_set_config(QLJS_Web_Demo_Document* js_document,
+                              QLJS_Web_Demo_Document* config_document) {
   js_document->need_update_config_ = true;
   js_document->config_document_ = config_document;
 }
 
-void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
-                                        qljs_language_options options) {
+void qljs_web_demo_set_language_options(QLJS_Web_Demo_Document* p,
+                                        QLJS_Language_Options options) {
   p->linter_options_.jsx = options & qljs_language_options_jsx_bit;
   p->linter_options_.typescript =
       options & qljs_language_options_typescript_bit;
   p->is_config_json_ = options & qljs_language_options_config_json_bit;
 }
 
-void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
-  translator t;
+void qljs_web_demo_set_locale(QLJS_Web_Demo_Document* p, const char* locale) {
+  Translator t;
   t.use_messages_from_locale(locale);
   p->diag_reporter_.set_translator(t);
 }
 
-const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
+const QLJS_Web_Demo_Diagnostic* qljs_web_demo_lint(QLJS_Web_Demo_Document* p) {
   if (p->need_update_config_) {
     p->config_.reset();
     if (p->config_document_) {
       p->config_.load_from_json(&p->config_document_->text_,
-                                &null_diag_reporter::instance);
+                                &Null_Diag_Reporter::instance);
     }
   }
 
   p->diag_reporter_.reset();
   p->diag_reporter_.set_input(&p->text_);
   if (p->is_config_json_) {
-    configuration().load_from_json(&p->text_, &p->diag_reporter_);
+    Configuration().load_from_json(&p->text_, &p->diag_reporter_);
   } else {
     parse_and_lint(&p->text_, p->diag_reporter_, p->config_.globals(),
                    p->linter_options_);
@@ -90,8 +90,8 @@ const char* const* qljs_list_locales() {
     const char** locales = new const char*[locale_count + 1];
 
     std::size_t i = 0;
-    c_string_list_view locale_table(translation_data.locale_table);
-    for (c_string_list_iterator it = locale_table.begin();
+    C_String_List_View locale_table(translation_data.locale_table);
+    for (C_String_List_Iterator it = locale_table.begin();
          it != locale_table.end(); ++it, ++i) {
       locales[i] = it.c_str();
     }

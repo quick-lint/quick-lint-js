@@ -13,12 +13,12 @@
 #include <vector>
 
 namespace quick_lint_js {
-bool parsed_diag_code_list::error_missing_predicate() const noexcept {
+bool Parsed_Diag_Code_List::error_missing_predicate() const noexcept {
   return this->included_codes.empty() && this->excluded_codes.empty() &&
          this->included_categories.empty() && this->excluded_categories.empty();
 }
 
-parsed_diag_code_list parse_diag_code_list(
+Parsed_Diag_Code_List parse_diag_code_list(
     const char* const raw_diag_code_list) {
   static auto is_initial_category_character = [](char c) -> bool {
     return 'a' <= c && c <= 'z';
@@ -30,7 +30,7 @@ parsed_diag_code_list parse_diag_code_list(
     return '0' <= c && c <= '9';
   };
 
-  parsed_diag_code_list diag_codes;
+  Parsed_Diag_Code_List diag_codes;
   std::size_t i = 0;
   bool need_comma = false;
 
@@ -91,9 +91,9 @@ parsed_diag_code_list parse_diag_code_list(
   return diag_codes;
 }
 
-void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
+void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
-    std::optional<diag_type> code_diag_type = diag_type_from_code_slow(code);
+    std::optional<Diag_Type> code_diag_type = diag_type_from_code_slow(code);
     if (code_diag_type.has_value()) {
       code_set[static_cast<std::size_t>(*code_diag_type)] = true;
     } else {
@@ -101,7 +101,7 @@ void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
     }
   };
 
-  codes& c = this->parsed_diag_code_lists_.emplace_back();
+  Codes& c = this->parsed_diag_code_lists_.emplace_back();
   for (std::string_view code : diag_code_list.included_codes) {
     add_code(code, c.included_codes);
   }
@@ -117,7 +117,7 @@ void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
   }
 }
 
-std::vector<std::string> compiled_diag_code_list::parse_errors(
+std::vector<std::string> Compiled_Diag_Code_List::parse_errors(
     std::string_view cli_option_name) const {
   std::vector<std::string> errors;
   if (this->has_missing_predicate_error_) {
@@ -127,7 +127,7 @@ std::vector<std::string> compiled_diag_code_list::parse_errors(
   return errors;
 }
 
-std::vector<std::string> compiled_diag_code_list::parse_warnings() const {
+std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
   std::vector<std::string> warnings;
   auto check_category = [&warnings](std::string_view category) {
     if (category != "all") {
@@ -136,7 +136,7 @@ std::vector<std::string> compiled_diag_code_list::parse_warnings() const {
     }
   };
 
-  for (const codes& c : this->parsed_diag_code_lists_) {
+  for (const Codes& c : this->parsed_diag_code_lists_) {
     for (std::string_view category : c.included_categories) {
       check_category(category);
     }
@@ -153,10 +153,10 @@ std::vector<std::string> compiled_diag_code_list::parse_warnings() const {
   return warnings;
 }
 
-bool compiled_diag_code_list::is_present(diag_type type) const noexcept {
+bool Compiled_Diag_Code_List::is_present(Diag_Type type) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
-  for (const codes& c : this->parsed_diag_code_lists_) {
+  for (const Codes& c : this->parsed_diag_code_lists_) {
     std::size_t diag_type_index = static_cast<std::size_t>(type);
     if (c.override_defaults || c.excluded_codes[diag_type_index] ||
         (is_default && contains(c.excluded_categories, "all"))) {
@@ -170,7 +170,7 @@ bool compiled_diag_code_list::is_present(diag_type type) const noexcept {
   return present;
 }
 
-bool compiled_diag_code_list::is_user_provided() const noexcept {
+bool Compiled_Diag_Code_List::is_user_provided() const noexcept {
   return !parsed_diag_code_lists_.empty();
 }
 }

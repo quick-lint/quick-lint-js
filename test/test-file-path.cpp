@@ -16,7 +16,7 @@ namespace quick_lint_js {
 namespace {
 #if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
     _POSIX_VERSION >= 200112L
-TEST(test_file_path, parent_path_posix) {
+TEST(Test_File_Path, parent_path_posix) {
   EXPECT_EQ(parent_path("x/y"), "x");
   EXPECT_EQ(parent_path("x/y/z"), "x/y");
 
@@ -47,7 +47,7 @@ TEST(test_file_path, parent_path_posix) {
       << "// is implementation-defined";
 }
 
-TEST(test_file_path, path_file_name_posix) {
+TEST(Test_File_Path, path_file_name_posix) {
   EXPECT_EQ(path_file_name(""), "");
   EXPECT_EQ(path_file_name("x"), "x");
 
@@ -79,7 +79,7 @@ TEST(test_file_path, path_file_name_posix) {
 #endif
 
 #if defined(_WIN32)
-TEST(test_file_path, parent_path_windows) {
+TEST(Test_File_Path, parent_path_windows) {
   EXPECT_EQ(parent_path(R"(x/y)"), R"(x)");
   EXPECT_EQ(parent_path(R"(x/y/z)"), R"(x/y)");
   EXPECT_EQ(parent_path(R"(x\y)"), R"(x)");
@@ -160,7 +160,7 @@ TEST(test_file_path, parent_path_windows) {
   // TODO(strager): Test \\?\UNC\host\share paths.
 }
 
-TEST(test_file_path, path_file_name_windows) {
+TEST(Test_File_Path, path_file_name_windows) {
   EXPECT_EQ(path_file_name(""), "");
   EXPECT_EQ(path_file_name(R"(x)"), "x");
 

@@ -45,7 +45,7 @@ bool icu_data_is_valid() {
   return false;
 }
 
-TEST(test_lex_unicode, is_initial_identifier_character) {
+TEST(Test_Lex_Unicode, is_initial_identifier_character) {
   if (!icu_data_is_valid()) {
     GTEST_SKIP();
   }
@@ -55,11 +55,11 @@ TEST(test_lex_unicode, is_initial_identifier_character) {
         c == U'$' ||  //
         c == U'_' ||  //
         ::u_hasBinaryProperty(narrow_cast<::UChar32>(c), UCHAR_ID_START);
-    EXPECT_EQ(lexer::is_initial_identifier_character(c), expected) << pretty(c);
+    EXPECT_EQ(Lexer::is_initial_identifier_character(c), expected) << pretty(c);
   }
 }
 
-TEST(test_lex_unicode, is_identifier_character) {
+TEST(Test_Lex_Unicode, is_identifier_character) {
   if (!icu_data_is_valid()) {
     GTEST_SKIP();
   }
@@ -71,7 +71,7 @@ TEST(test_lex_unicode, is_identifier_character) {
         c == U'\u200d' ||
         ::u_hasBinaryProperty(narrow_cast<::UChar32>(c), UCHAR_ID_CONTINUE);
     EXPECT_EQ(
-        lexer::is_identifier_character(c, lexer::identifier_kind::javascript),
+        Lexer::is_identifier_character(c, Lexer::Identifier_Kind::javascript),
         expected)
         << pretty(c);
   }

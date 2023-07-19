@@ -21,7 +21,7 @@ namespace quick_lint_js {
 void register_current_thread_as_debug_server_thread(std::uint16_t port_number);
 #endif
 
-struct found_debug_server {
+struct Found_Debug_Server {
   std::uint64_t process_id;
   std::uint16_t port_number;
 };
@@ -34,7 +34,7 @@ struct found_debug_server {
 // number of returned debug servers might be dead.
 //
 // NOTE[find-debug-server] for implementation details.
-std::vector<found_debug_server> find_debug_servers();
+std::vector<Found_Debug_Server> find_debug_servers();
 }
 
 #endif

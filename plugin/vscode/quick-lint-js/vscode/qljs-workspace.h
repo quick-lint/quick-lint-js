@@ -54,11 +54,11 @@ namespace quick_lint_js {
 // stored as check_for_config_file_changes_on_js_thread_'s Context.
 // check_for_config_file_changes_from_thread does nothing if the
 // qljs_workspace has been deleted.
-class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
+class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
  public:
   static ::Napi::Function init(::Napi::Env env);
 
-  explicit qljs_workspace(const ::Napi::CallbackInfo& info);
+  explicit QLJS_Workspace(const ::Napi::CallbackInfo& info);
 
   // Enable or disable logging depending on the user's configuration.
   void update_logging(::Napi::Env env);
@@ -69,7 +69,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   // Disable logging if logging is enabled.
   void disable_logging();
 
-  ~qljs_workspace();
+  ~QLJS_Workspace();
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info);
 
@@ -87,13 +87,13 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   ::Napi::Value document_saved(const ::Napi::CallbackInfo& info);
 
-  qljs_document_base* maybe_create_document(::Napi::Env env,
-                                            vscode_document vscode_doc,
-                                            string8_view text);
+  QLJS_Document_Base* maybe_create_document(::Napi::Env env,
+                                            VSCode_Document vscode_doc,
+                                            String8_View text);
 
-  vscode_diagnostic_collection diagnostic_collection() const;
+  VSCode_Diagnostic_Collection diagnostic_collection() const;
 
-  void delete_diagnostics(qljs_document_base* doc);
+  void delete_diagnostics(QLJS_Document_Base* doc);
 
   void report_pending_watch_io_errors(::Napi::Env env);
 
@@ -109,10 +109,10 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   // This function runs on a background thread.
   void run_fs_change_detection_thread();
 
-  class fs_change_detection_event_loop
-      : public event_loop<fs_change_detection_event_loop> {
+  class FS_Change_Detection_Event_Loop
+      : public Event_Loop<FS_Change_Detection_Event_Loop> {
    public:
-    explicit fs_change_detection_event_loop(qljs_workspace* workspace)
+    explicit FS_Change_Detection_Event_Loop(QLJS_Workspace* workspace)
         :
 #if QLJS_HAVE_KQUEUE
           fs_(this->kqueue_fd(),
@@ -137,14 +137,14 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
     }
 
-    platform_file_ref get_readable_pipe() const {
+    Platform_File_Ref get_readable_pipe() const {
       return this->stop_pipe_.reader.ref();
     }
 
-    [[noreturn]] void append(string8_view) { QLJS_UNREACHABLE(); }
+    [[noreturn]] void append(String8_View) { QLJS_UNREACHABLE(); }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-    std::optional<posix_fd_file_ref> get_pipe_write_fd() {
+    std::optional<POSIX_FD_File_Ref> get_pipe_write_fd() {
       return std::nullopt;
     }
 #endif
@@ -179,7 +179,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-    std::optional<posix_fd_file_ref> get_inotify_fd() {
+    std::optional<POSIX_FD_File_Ref> get_inotify_fd() {
       return this->fs_.get_inotify_fd();
     }
 
@@ -201,51 +201,51 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 #endif
 
-    using underlying_fs_type =
+    using Underlying_FS_Type =
 #if QLJS_HAVE_KQUEUE
-        change_detecting_filesystem_kqueue
+        Change_Detecting_Filesystem_Kqueue
 #elif QLJS_HAVE_INOTIFY
-        change_detecting_filesystem_inotify
+        Change_Detecting_Filesystem_Inotify
 #elif defined(_WIN32)
-        change_detecting_filesystem_win32;
+        Change_Detecting_Filesystem_Win32;
 #else
 #error "Unsupported platform"
 #endif
         ;
 
-    thread_safe_configuration_filesystem<underlying_fs_type>* fs() noexcept {
+    Thread_Safe_Configuration_Filesystem<Underlying_FS_Type>* fs() noexcept {
       return &this->fs_;
     }
 
    private:
-    thread_safe_configuration_filesystem<underlying_fs_type> fs_;
-    pipe_fds stop_pipe_ = make_pipe();
-    qljs_workspace* workspace_;
+    Thread_Safe_Configuration_Filesystem<Underlying_FS_Type> fs_;
+    Pipe_FDs stop_pipe_ = make_pipe();
+    QLJS_Workspace* workspace_;
   };
 
   bool disposed_ = false;
-  vscode_tracer tracer_;
-  vscode_module vscode_;
-  fs_change_detection_event_loop fs_change_detection_event_loop_{this};
-  vscode_configuration_filesystem fs_{fs_change_detection_event_loop_.fs()};
-  configuration_loader config_loader_{&fs_};
-  configuration default_config_;
-  thread fs_change_detection_thread_;
+  VSCode_Tracer tracer_;
+  VSCode_Module vscode_;
+  FS_Change_Detection_Event_Loop fs_change_detection_event_loop_{this};
+  VSCode_Configuration_Filesystem fs_{fs_change_detection_event_loop_.fs()};
+  Configuration_Loader config_loader_{&fs_};
+  Configuration default_config_;
+  Thread fs_change_detection_thread_;
   bool did_report_watch_io_error_ = false;
 
   // See NOTE[workspace-cleanup].
-  thread_safe_js_function<check_for_config_file_changes_from_thread>
+  Thread_Safe_JS_Function<check_for_config_file_changes_from_thread>
       check_for_config_file_changes_on_js_thread_;
 
   // Mapping from vscode.Document to wrapped qljs_document_base.
-  js_map qljs_documents_;
+  JS_Map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   ::Napi::ObjectReference logger_;  // An optional qljs_logger.
   bool logger_enabled_ = false;
 
-  friend class qljs_config_document;
-  friend class qljs_lintable_document;
+  friend class QLJS_Config_Document;
+  friend class QLJS_Lintable_Document;
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info);

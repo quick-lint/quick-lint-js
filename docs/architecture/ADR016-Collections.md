@@ -20,11 +20,11 @@ For fixed-sized lists, quick-lint-js uses:
 * `std::array`
 
 For variable-sized lists, quick-lint-js uses:
-* `quick_lint_js::bump_vector` in performance-critical code
-* `quick_lint_js::linked_vector` where pointer stability is required
-* `quick_lint_js::byte_buffer` for byte arrays destined for I/O syscalls
-* `quick_lint_js::padded_string` for strings which need to be parsed
-* C strings, `std::string`, and `quick_lint_js::string8`
+* `quick_lint_js::Bump_Vector` in performance-critical code
+* `quick_lint_js::Linked_Vector` where pointer stability is required
+* `quick_lint_js::Byte_Buffer` for byte arrays destined for I/O syscalls
+* `quick_lint_js::Padded_String` for strings which need to be parsed
+* C strings, `std::string`, and `quick_lint_js::String8`
   (`std::basic_string<char8_t>`) for strings
 * `std::vector` otherwise
 * Banned: `std::deque`
@@ -32,30 +32,30 @@ For variable-sized lists, quick-lint-js uses:
 * Banned: `std::slist`
 
 For associative dictionaries, quick-lint-js uses:
-* `quick_lint_js::hash_map`
-* `quick_lint_js::hash_set`
+* `quick_lint_js::Hash_Map`
+* `quick_lint_js::Hash_Set`
 * Banned: `std::unordered_map` (except when implementing
-  `quick_lint_js::hash_map`)
+  `quick_lint_js::Hash_Map`)
 * Banned: `std::unordered_set` (except when implementing
-  `quick_lint_js::hash_set`)
+  `quick_lint_js::Hash_Set`)
 * Banned: `std::map`
 * Banned: `std::set`
 
 For functions, quick-lint-js uses:
 * Polymorphic base classes
-* `quick_lint_js::heap_function`
+* `quick_lint_js::Heap_Function`
 * Banned: `std::function`
 
 For variants, quick-lint-js uses:
 * `std::optional`
-* `quick_lint_js::result`
-* `quick_lint_js::variant`
+* `quick_lint_js::Result`
+* `quick_lint_js::Variant`
 * Banned: `std::variant`
 
 ## Consequences
 
 Implementing custom collections lets us add convenience functions, such as a
-backport for `contains` on `hash_set` (`std::unordered_set`).
+backport for `contains` on `Hash_Set` (`std::unordered_set`).
 
 Custom collections easily reduce compile times compared to standard library
 options. This was the motivation for custom `std::deque`, `std::function`, and

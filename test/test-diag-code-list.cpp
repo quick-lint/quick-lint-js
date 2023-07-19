@@ -15,10 +15,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_diag_code_list, compiled_default_matches_all_errors) {
-  compiled_diag_code_list errors;
+TEST(Test_Diag_Code_List, compiled_default_matches_all_errors) {
+  Compiled_Diag_Code_List errors;
 #define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
-  EXPECT_TRUE(errors.is_present(diag_type::error_name)) << #error_name;
+  EXPECT_TRUE(errors.is_present(Diag_Type::error_name)) << #error_name;
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
@@ -26,58 +26,58 @@ TEST(test_diag_code_list, compiled_default_matches_all_errors) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(test_diag_code_list, compiled_excluded_error_by_code) {
-  parsed_diag_code_list parsed_errors;
+TEST(Test_Diag_Code_List, compiled_excluded_error_by_code) {
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.excluded_codes.emplace_back("E0003");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-  EXPECT_FALSE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_FALSE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be disabled";
   EXPECT_TRUE(
-      errors.is_present(diag_type::diag_big_int_literal_contains_decimal_point))
+      errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 should be enabled";
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(test_diag_code_list, compiled_excluded_then_included_error_by_code) {
-  std::array<parsed_diag_code_list, 2> parsed_diag_code_lists;
+TEST(Test_Diag_Code_List, compiled_excluded_then_included_error_by_code) {
+  std::array<Parsed_Diag_Code_List, 2> parsed_diag_code_lists;
   parsed_diag_code_lists[0].excluded_codes.emplace_back("E0003");
   parsed_diag_code_lists[1].included_codes.emplace_back("E0003");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_diag_code_lists[0]);
   errors.add(parsed_diag_code_lists[1]);
 
-  EXPECT_TRUE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be enabled";
 }
 
-TEST(test_diag_code_list, compiled_included_then_excluded_error_by_code) {
-  std::array<parsed_diag_code_list, 2> parsed_diag_code_lists;
+TEST(Test_Diag_Code_List, compiled_included_then_excluded_error_by_code) {
+  std::array<Parsed_Diag_Code_List, 2> parsed_diag_code_lists;
   parsed_diag_code_lists[0].included_codes.emplace_back("E0003");
   parsed_diag_code_lists[1].excluded_codes.emplace_back("E0003");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_diag_code_lists[0]);
   errors.add(parsed_diag_code_lists[1]);
 
-  EXPECT_FALSE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_FALSE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be disabled";
 }
 
-TEST(test_diag_code_list, compiled_exclude_all_matches_no_errors) {
-  parsed_diag_code_list parsed_errors;
+TEST(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.excluded_categories.emplace_back("all");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
 #define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
-  EXPECT_FALSE(errors.is_present(diag_type::error_name)) << #error_name;
+  EXPECT_FALSE(errors.is_present(Diag_Type::error_name)) << #error_name;
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
@@ -85,83 +85,83 @@ TEST(test_diag_code_list, compiled_exclude_all_matches_no_errors) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(test_diag_code_list,
+TEST(Test_Diag_Code_List,
      compiled_override_and_include_code_matches_only_explicit) {
-  parsed_diag_code_list parsed_errors;
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.included_codes.emplace_back("E0003");
   parsed_errors.override_defaults = true;
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-  EXPECT_TRUE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be enabled";
   EXPECT_FALSE(
-      errors.is_present(diag_type::diag_big_int_literal_contains_decimal_point))
+      errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 (default) should be disabled";
 }
 
-TEST(test_diag_code_list,
+TEST(Test_Diag_Code_List,
      compiled_include_code_then_override_matches_only_later_included_codes) {
-  std::array<parsed_diag_code_list, 2> parsed_diag_code_lists;
+  std::array<Parsed_Diag_Code_List, 2> parsed_diag_code_lists;
   parsed_diag_code_lists[0].included_codes.emplace_back("E0003");
 
   parsed_diag_code_lists[1].override_defaults = true;
   parsed_diag_code_lists[1].included_codes.emplace_back("E0005");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_diag_code_lists[0]);
   errors.add(parsed_diag_code_lists[1]);
 
-  EXPECT_FALSE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_FALSE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be disabled";
   EXPECT_TRUE(
-      errors.is_present(diag_type::diag_big_int_literal_contains_decimal_point))
+      errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 should be enabled";
 }
 
-TEST(test_diag_code_list,
+TEST(Test_Diag_Code_List,
      compiled_exclude_all_and_include_code_matches_only_explicit) {
-  parsed_diag_code_list parsed_errors;
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.excluded_categories.emplace_back("all");
   parsed_errors.included_codes.emplace_back("E0003");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-  EXPECT_TRUE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be enabled";
   EXPECT_FALSE(
-      errors.is_present(diag_type::diag_big_int_literal_contains_decimal_point))
+      errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 (all) should be disabled";
 }
 
-TEST(test_diag_code_list,
+TEST(Test_Diag_Code_List,
      compiled_exclude_default_code_and_include_all_matches_excluded_code) {
-  std::array<parsed_diag_code_list, 2> parsed_diag_code_lists;
+  std::array<Parsed_Diag_Code_List, 2> parsed_diag_code_lists;
   // These codes are enabled by default.
   parsed_diag_code_lists[0].excluded_codes.emplace_back("E0003");
   parsed_diag_code_lists[0].excluded_codes.emplace_back("E0005");
 
   parsed_diag_code_lists[1].included_categories.emplace_back("all");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_diag_code_lists[0]);
   errors.add(parsed_diag_code_lists[1]);
 
-  EXPECT_TRUE(errors.is_present(diag_type::diag_assignment_to_const_variable))
+  EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 (all) should be enabled";
   EXPECT_TRUE(
-      errors.is_present(diag_type::diag_big_int_literal_contains_decimal_point))
+      errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 (all) should be enabled";
 }
 
-TEST(test_diag_code_list, compiling_invalid_category_is_an_error) {
-  parsed_diag_code_list parsed_errors;
+TEST(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.included_categories.emplace_back("banana");
   parsed_errors.excluded_categories.emplace_back("strawberry");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
   EXPECT_THAT(errors.parse_warnings(),
@@ -169,12 +169,12 @@ TEST(test_diag_code_list, compiling_invalid_category_is_an_error) {
                                    "unknown error category: strawberry"));
 }
 
-TEST(test_diag_code_list, compiling_invalid_code_is_an_error) {
-  parsed_diag_code_list parsed_errors;
+TEST(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
+  Parsed_Diag_Code_List parsed_errors;
   parsed_errors.included_codes.emplace_back("E9999");
   parsed_errors.excluded_codes.emplace_back("E0000");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
   EXPECT_THAT(errors.parse_warnings(),
@@ -182,12 +182,12 @@ TEST(test_diag_code_list, compiling_invalid_code_is_an_error) {
                                    "unknown error code: E0000"));
 }
 
-TEST(test_diag_code_list, compiling_empty_parsed_diag_code_list_is_an_error) {
-  std::array<parsed_diag_code_list, 3> parsed_diag_code_lists;
+TEST(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
+  std::array<Parsed_Diag_Code_List, 3> parsed_diag_code_lists;
   parsed_diag_code_lists[0].included_codes.emplace_back("E0003");
   parsed_diag_code_lists[2].excluded_codes.emplace_back("E0003");
 
-  compiled_diag_code_list errors;
+  Compiled_Diag_Code_List errors;
   errors.add(parsed_diag_code_lists[0]);
   errors.add(parsed_diag_code_lists[1]);
   errors.add(parsed_diag_code_lists[2]);
@@ -199,23 +199,23 @@ TEST(test_diag_code_list, compiling_empty_parsed_diag_code_list_is_an_error) {
           {"--testoption must be given at least one category or code"}));
 }
 
-TEST(test_diag_code_list, empty_list_is_disallowed) {
+TEST(Test_Diag_Code_List, empty_list_is_disallowed) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("");
     EXPECT_TRUE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("    \t ");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("    \t ");
     EXPECT_TRUE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(test_diag_code_list, add_error_code_to_default) {
+TEST(Test_Diag_Code_List, add_error_code_to_default) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("+E0420");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("+E0420");
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -223,7 +223,7 @@ TEST(test_diag_code_list, add_error_code_to_default) {
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("+E0420,+E0069");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("+E0420,+E0069");
     EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -231,9 +231,9 @@ TEST(test_diag_code_list, add_error_code_to_default) {
   }
 }
 
-TEST(test_diag_code_list, remove_error_code_from_default) {
+TEST(Test_Diag_Code_List, remove_error_code_from_default) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("-E0420");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("-E0420");
     EXPECT_THAT(errors.excluded_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -241,7 +241,7 @@ TEST(test_diag_code_list, remove_error_code_from_default) {
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("-E0420,-E0069");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("-E0420,-E0069");
     EXPECT_THAT(errors.excluded_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -249,9 +249,9 @@ TEST(test_diag_code_list, remove_error_code_from_default) {
   }
 }
 
-TEST(test_diag_code_list, add_error_category_to_default) {
+TEST(Test_Diag_Code_List, add_error_category_to_default) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("+warning");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("+warning");
     EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -259,9 +259,9 @@ TEST(test_diag_code_list, add_error_category_to_default) {
   }
 }
 
-TEST(test_diag_code_list, remove_error_category_from_default) {
+TEST(Test_Diag_Code_List, remove_error_category_from_default) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("-warning");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("-warning");
     EXPECT_THAT(errors.excluded_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -269,9 +269,9 @@ TEST(test_diag_code_list, remove_error_category_from_default) {
   }
 }
 
-TEST(test_diag_code_list, set_default_to_category) {
+TEST(Test_Diag_Code_List, set_default_to_category) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("warning");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("warning");
     EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -279,9 +279,9 @@ TEST(test_diag_code_list, set_default_to_category) {
   }
 }
 
-TEST(test_diag_code_list, set_default_to_error_code) {
+TEST(Test_Diag_Code_List, set_default_to_error_code) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("E0420");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("E0420");
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -289,9 +289,9 @@ TEST(test_diag_code_list, set_default_to_error_code) {
   }
 }
 
-TEST(test_diag_code_list, mixed) {
+TEST(Test_Diag_Code_List, mixed) {
   {
-    parsed_diag_code_list errors =
+    Parsed_Diag_Code_List errors =
         parse_diag_code_list("+E0420,warning,-pedantic,syntax-error");
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.excluded_codes, IsEmpty());
@@ -304,62 +304,62 @@ TEST(test_diag_code_list, mixed) {
   }
 }
 
-TEST(test_diag_code_list, whitespace_around_predicates_is_ignored) {
+TEST(Test_Diag_Code_List, whitespace_around_predicates_is_ignored) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("\t +E0420 \t");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("\t +E0420 \t");
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list(" +E0420 , +E0069");
+    Parsed_Diag_Code_List errors = parse_diag_code_list(" +E0420 , +E0069");
     EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(test_diag_code_list, stray_commas_are_ignored) {
+TEST(Test_Diag_Code_List, stray_commas_are_ignored) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list(",one,,two , three");
+    Parsed_Diag_Code_List errors = parse_diag_code_list(",one,,two , three");
     EXPECT_THAT(errors.included_categories,
                 UnorderedElementsAre("one", "two", "three"));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(test_diag_code_list, unexpected_characters) {
+TEST(Test_Diag_Code_List, unexpected_characters) {
   {
-    parsed_diag_code_list errors = parse_diag_code_list("~E0420");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("~E0420");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"~"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("E???");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("E???");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("err0r");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("err0r");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"0"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("err?r");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("err?r");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("+err+r");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("+err+r");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"+"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("+%^#");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("+%^#");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"%"}));
   }
 
   {
-    parsed_diag_code_list errors = parse_diag_code_list("warning error");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("warning error");
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"e"}));
   }
 }

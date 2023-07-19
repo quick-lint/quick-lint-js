@@ -17,7 +17,7 @@ namespace quick_lint_js {
 //
 // * Might or might not call destructors of automatic variables.
 template <class Exception>
-class try_catch_stack {
+class Try_Catch_Stack {
  public:
   // Calls try_func().
   //
@@ -36,7 +36,7 @@ class try_catch_stack {
       return result;
     } else {
       // this->raise() was called.
-      catch_entry &c = this->catch_stack_.back();
+      Catch_Entry &c = this->catch_stack_.back();
       QLJS_ASSERT(c.exception.has_value());
       Exception exception = std::move(*c.exception);
       this->catch_stack_.pop_back();
@@ -85,7 +85,7 @@ class try_catch_stack {
   // responsible for figuring out what to do in this case.
   void raise_if_have_handler(Exception &&e) {
     if (!this->catch_stack_.empty()) {
-      catch_entry &c = this->catch_stack_.back();
+      Catch_Entry &c = this->catch_stack_.back();
       c.exception.emplace(std::move(e));
       std::longjmp(c.buf, 1);
       QLJS_UNREACHABLE();
@@ -93,11 +93,11 @@ class try_catch_stack {
   }
 
  private:
-  struct catch_entry {
+  struct Catch_Entry {
     std::jmp_buf buf;
     std::optional<Exception> exception;
   };
-  std::vector<catch_entry> catch_stack_;
+  std::vector<Catch_Entry> catch_stack_;
 };
 }
 

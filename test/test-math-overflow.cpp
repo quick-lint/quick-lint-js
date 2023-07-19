@@ -10,12 +10,12 @@
 namespace quick_lint_js {
 namespace {
 template <class BoolVector16>
-class test_math_checked_add_signed : public ::testing::Test {};
-using signed_types = ::testing::Types<int, long, long long>;
-TYPED_TEST_SUITE(test_math_checked_add_signed, signed_types,
+class Test_Math_Checked_Add_Signed : public ::testing::Test {};
+using Signed_Types = ::testing::Types<int, long, long long>;
+TYPED_TEST_SUITE(Test_Math_Checked_Add_Signed, Signed_Types,
                  ::testing::internal::DefaultNameGenerator);
 
-TYPED_TEST(test_math_checked_add_signed, small_in_range) {
+TYPED_TEST(Test_Math_Checked_Add_Signed, small_in_range) {
   using I = TypeParam;
   EXPECT_EQ(checked_add(I{2}, I{3}), I{5});
   EXPECT_EQ(checked_add(I{-2}, I{-3}), I{-5});
@@ -23,7 +23,7 @@ TYPED_TEST(test_math_checked_add_signed, small_in_range) {
   EXPECT_EQ(checked_add(I{2}, I{-3}), I{-1});
 }
 
-TYPED_TEST(test_math_checked_add_signed, near_min) {
+TYPED_TEST(Test_Math_Checked_Add_Signed, near_min) {
   using I = TypeParam;
   I low = std::numeric_limits<I>::lowest();
   EXPECT_EQ(checked_add(low, I{0}), low);
@@ -36,7 +36,7 @@ TYPED_TEST(test_math_checked_add_signed, near_min) {
   EXPECT_EQ(checked_add(I{-100}, low + I{100}), low);
 }
 
-TYPED_TEST(test_math_checked_add_signed, near_max) {
+TYPED_TEST(Test_Math_Checked_Add_Signed, near_max) {
   using I = TypeParam;
   I high = (std::numeric_limits<I>::max)();
   EXPECT_EQ(checked_add(high, I{0}), high);
@@ -49,7 +49,7 @@ TYPED_TEST(test_math_checked_add_signed, near_max) {
   EXPECT_EQ(checked_add(I{100}, high - I{100}), high);
 }
 
-TYPED_TEST(test_math_checked_add_signed, over_max) {
+TYPED_TEST(Test_Math_Checked_Add_Signed, over_max) {
   using I = TypeParam;
   I high = (std::numeric_limits<I>::max)();
   EXPECT_EQ(checked_add(high, I{1}), std::nullopt);

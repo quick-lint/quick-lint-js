@@ -44,7 +44,7 @@ def parse_tests(source_code: str) -> typing.List[ParsedTest]:
     pattern = re.compile(
         r"""
         ^TEST(_F|_P)?\(
-            \s*(?P<test_suite>\w+),
+            \s*(?P<Test_Suite>\w+),
             \s*(?P<test_name>\w+)\s*
         \)\s*\{
         (?P<body>.*?)
@@ -58,7 +58,7 @@ def parse_tests(source_code: str) -> typing.List[ParsedTest]:
     for match in re.finditer(pattern, source_code):
         tests.append(
             ParsedTest(
-                suite=match.group("test_suite"),
+                suite=match.group("Test_Suite"),
                 name=match.group("test_name"),
                 body=match.group("body"),
             )
@@ -69,11 +69,11 @@ def parse_tests(source_code: str) -> typing.List[ParsedTest]:
 def test() -> None:
     tests = parse_tests(
         """
-TEST(test_suite, hello) {
+TEST(Test_Suite, hello) {
   // code
 }
 
-TEST(test_suite_2, hi) {
+TEST(Test_Suite_2, hi) {
   // code
   {
     // more code
@@ -83,10 +83,10 @@ TEST(test_suite_2, hi) {
 """
     )
     assert len(tests) == 2
-    assert tests[0].suite == "test_suite"
+    assert tests[0].suite == "Test_Suite"
     assert tests[0].name == "hello"
     assert tests[0].body_line_count == 1
-    assert tests[1].suite == "test_suite_2"
+    assert tests[1].suite == "Test_Suite_2"
     assert tests[1].name == "hi"
     assert tests[1].body_line_count == 5
 

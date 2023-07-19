@@ -12,29 +12,29 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
 namespace {
-void expect_null_terminated(const padded_string &);
+void expect_null_terminated(const Padded_String &);
 }
 
-TEST(test_padded_string, default_constructed_string_has_following_null_bytes) {
-  padded_string padded;
+TEST(Test_Padded_String, default_constructed_string_has_following_null_bytes) {
+  Padded_String padded;
   EXPECT_EQ(padded.size(), 0);
   expect_null_terminated(padded);
 }
 
-TEST(test_padded_string, empty_string_has_following_null_bytes) {
-  string8 s = u8"";
-  padded_string padded(std::move(s));
+TEST(Test_Padded_String, empty_string_has_following_null_bytes) {
+  String8 s = u8"";
+  Padded_String padded(std::move(s));
   expect_null_terminated(padded);
 }
 
-TEST(test_padded_string, size_excludes_padding_bytes) {
-  string8 s = u8"hello";
-  padded_string padded(std::move(s));
+TEST(Test_Padded_String, size_excludes_padding_bytes) {
+  String8 s = u8"hello";
+  Padded_String padded(std::move(s));
   EXPECT_EQ(padded.size(), 5);
 }
 
-TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
-  padded_string s(u8"hello"_sv);
+TEST(Test_Padded_String, resize_with_bigger_size_adds_new_characters) {
+  Padded_String s(u8"hello"_sv);
 
   s.resize(10);
 
@@ -43,8 +43,8 @@ TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
   expect_null_terminated(s);
 }
 
-TEST(test_padded_string, resize_grow_uninitialized_preserves_original_data) {
-  padded_string s(u8"hello"_sv);
+TEST(Test_Padded_String, resize_grow_uninitialized_preserves_original_data) {
+  Padded_String s(u8"hello"_sv);
 
   s.resize_grow_uninitialized(10);
 
@@ -55,8 +55,8 @@ TEST(test_padded_string, resize_grow_uninitialized_preserves_original_data) {
   // anything.
 }
 
-TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
-  padded_string s(u8"helloworld"_sv);
+TEST(Test_Padded_String, resize_with_smaller_size_removes_characters) {
+  Padded_String s(u8"helloworld"_sv);
 
   s.resize(5);
 
@@ -65,55 +65,55 @@ TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
   expect_null_terminated(s);
 }
 
-TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
-  EXPECT_TRUE(padded_string(string8(u8"hello")) == u8"hello"_sv);
+TEST(Test_Padded_String, comparing_with_string_view_excludes_padding_bytes) {
+  EXPECT_TRUE(Padded_String(String8(u8"hello")) == u8"hello"_sv);
 }
 
-TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
-  padded_string s(u8"hello"_sv);
+TEST(Test_Padded_String, writing_to_ostream_does_not_include_padding_bytes) {
+  Padded_String s(u8"hello"_sv);
   std::ostringstream stream;
   stream << "BEFORE" << s << "AFTER";
   EXPECT_EQ(stream.str(), "BEFOREhelloAFTER");
 }
 
-TEST(test_padded_string, std_string_view_excludes_padding_bytes) {
-  padded_string s(string8(u8"hello"));
+TEST(Test_Padded_String, std_string_view_excludes_padding_bytes) {
+  Padded_String s(String8(u8"hello"));
   EXPECT_TRUE(s.string_view() == u8"hello"_sv);
 }
 
-TEST(test_padded_string, shrinking_does_not_reallocate) {
-  padded_string s(u8"helloworld"_sv);
-  const char8 *old_data = s.data();
+TEST(Test_Padded_String, shrinking_does_not_reallocate) {
+  Padded_String s(u8"helloworld"_sv);
+  const Char8 *old_data = s.data();
   s.resize(5);
   EXPECT_EQ(s.data(), old_data);
   s.resize(1);
   EXPECT_EQ(s.data(), old_data);
 }
 
-TEST(test_padded_string, move_constructing_does_not_invalidate_pointers) {
-  padded_string s1(u8"helloworld"_sv);
-  const char8 *old_s1_data = s1.data();
-  padded_string s2(std::move(s1));
+TEST(Test_Padded_String, move_constructing_does_not_invalidate_pointers) {
+  Padded_String s1(u8"helloworld"_sv);
+  const Char8 *old_s1_data = s1.data();
+  Padded_String s2(std::move(s1));
   EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8"helloworld"_sv)
       << "moving should not change data";
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string,
+TEST(Test_Padded_String,
      move_constructing_empty_string_does_not_invalidate_pointers) {
-  padded_string s1;
-  const char8 *old_s1_data = s1.data();
-  padded_string s2(std::move(s1));
+  Padded_String s1;
+  const Char8 *old_s1_data = s1.data();
+  Padded_String s2(std::move(s1));
   EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8""_sv) << "moving should not change data";
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string, move_assigning_copies_pointers) {
-  padded_string s1(u8"helloworld"_sv);
-  const char8 *old_s1_data = s1.data();
-  padded_string s2(u8"other"_sv);
+TEST(Test_Padded_String, move_assigning_copies_pointers) {
+  Padded_String s1(u8"helloworld"_sv);
+  const Char8 *old_s1_data = s1.data();
+  Padded_String s2(u8"other"_sv);
   s2 = std::move(s1);
   EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8"helloworld"_sv)
@@ -121,10 +121,10 @@ TEST(test_padded_string, move_assigning_copies_pointers) {
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string, move_assigning_empty_string_copies_pointers) {
-  padded_string s1;
-  const char8 *old_s1_data = s1.data();
-  padded_string s2(u8"other"_sv);
+TEST(Test_Padded_String, move_assigning_empty_string_copies_pointers) {
+  Padded_String s1;
+  const Char8 *old_s1_data = s1.data();
+  Padded_String s2(u8"other"_sv);
   s2 = std::move(s1);
   EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8""_sv) << "moving should not change data";
@@ -132,10 +132,10 @@ TEST(test_padded_string, move_assigning_empty_string_copies_pointers) {
 }
 
 namespace {
-void expect_null_terminated(const padded_string &s) {
-  const char8 *data = s.c_str();
-  for (padded_string_size i = 0; i < s.padding_size; ++i) {
-    padded_string_size index = s.size() + i;
+void expect_null_terminated(const Padded_String &s) {
+  const Char8 *data = s.c_str();
+  for (Padded_String_Size i = 0; i < s.padding_size; ++i) {
+    Padded_String_Size index = s.size() + i;
     EXPECT_EQ(data[index], u8'\0') << "index=" << index;
   }
 }

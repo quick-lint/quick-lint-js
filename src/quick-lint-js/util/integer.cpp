@@ -60,7 +60,7 @@ char *write_integer(T value, char *out) {
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-char8 *write_integer(T value, char8 *out) {
+Char8 *write_integer(T value, Char8 *out) {
   return write_integer_generic(value, out, u8'0');
 }
 #endif
@@ -71,7 +71,7 @@ wchar_t *write_integer(T value, wchar_t *out) {
 }
 
 template <class Char>
-struct decimal {
+struct Decimal {
   static bool is_digit(Char c) { return '0' <= c && c <= '9'; }
   static int parse_digit(Char c) {
     QLJS_ASSERT(is_digit(c));
@@ -81,7 +81,7 @@ struct decimal {
 };
 
 template <class Char>
-struct hexadecimal {
+struct Hexadecimal {
   static bool is_digit(Char c) {
     return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') ||
            ('A' <= c && c <= 'F');
@@ -97,45 +97,45 @@ struct hexadecimal {
 };
 
 template <class Char, class Base, class T>
-parse_integer_exact_error parse_integer_exact_generic(
+Parse_Integer_Exact_Error parse_integer_exact_generic(
     std::basic_string_view<Char> s, T &value) {
   if (s.empty()) {
-    return parse_integer_exact_error::invalid;
+    return Parse_Integer_Exact_Error::invalid;
   }
 
   if constexpr (std::is_same_v<T, int>) {
-    using unsigned_t = std::make_unsigned_t<T>;
+    using Unsigned_T = std::make_unsigned_t<T>;
     static constexpr T result_min = std::numeric_limits<T>::min();
     static constexpr T result_max = std::numeric_limits<T>::max();
-    static constexpr unsigned_t abs_result_min =
-        static_cast<unsigned_t>(result_min);
+    static constexpr Unsigned_T abs_result_min =
+        static_cast<Unsigned_T>(result_min);
 
     bool is_negative = s[0] == '-';
     if (is_negative) {
-      unsigned_t unsigned_value;
-      parse_integer_exact_error parse_error =
+      Unsigned_T unsigned_value;
+      Parse_Integer_Exact_Error parse_error =
           parse_integer_exact_generic<Char, Base>(s.substr(1), unsigned_value);
-      if (parse_error != parse_integer_exact_error::ok) {
+      if (parse_error != Parse_Integer_Exact_Error::ok) {
         return parse_error;
       }
       if (unsigned_value > abs_result_min) {
-        return parse_integer_exact_error::out_of_range;
+        return Parse_Integer_Exact_Error::out_of_range;
       }
       unsigned_value = -unsigned_value;
       std::memcpy(&value, &unsigned_value, sizeof(T));
-      return parse_integer_exact_error::ok;
+      return Parse_Integer_Exact_Error::ok;
     } else {
-      unsigned_t unsigned_value;
-      parse_integer_exact_error parse_error =
+      Unsigned_T unsigned_value;
+      Parse_Integer_Exact_Error parse_error =
           parse_integer_exact_generic<Char, Base>(s, unsigned_value);
-      if (parse_error != parse_integer_exact_error::ok) {
+      if (parse_error != Parse_Integer_Exact_Error::ok) {
         return parse_error;
       }
-      if (unsigned_value > static_cast<unsigned_t>(result_max)) {
-        return parse_integer_exact_error::out_of_range;
+      if (unsigned_value > static_cast<Unsigned_T>(result_max)) {
+        return Parse_Integer_Exact_Error::out_of_range;
       }
       value = static_cast<T>(unsigned_value);
-      return parse_integer_exact_error::ok;
+      return Parse_Integer_Exact_Error::ok;
     }
   } else {
     static constexpr T result_max = std::numeric_limits<T>::max();
@@ -144,92 +144,92 @@ parse_integer_exact_error parse_integer_exact_generic(
     constexpr T radix = static_cast<T>(Base::radix());
     for (Char c : s) {
       if (!Base::is_digit(c)) {
-        return parse_integer_exact_error::invalid;
+        return Parse_Integer_Exact_Error::invalid;
       }
       if (result > result_max / radix) {
-        return parse_integer_exact_error::out_of_range;
+        return Parse_Integer_Exact_Error::out_of_range;
       }
       T new_result =
           static_cast<T>(result * radix + static_cast<T>(Base::parse_digit(c)));
       if (new_result < result) {
-        return parse_integer_exact_error::out_of_range;
+        return Parse_Integer_Exact_Error::out_of_range;
       }
       result = new_result;
     }
     value = result;
-    return parse_integer_exact_error::ok;
+    return Parse_Integer_Exact_Error::ok;
   }
 }
 
 template <class T>
-parse_integer_exact_error parse_integer_exact(std::string_view s, T &value) {
-  return parse_integer_exact_generic<char, decimal<char>, T>(s, value);
+Parse_Integer_Exact_Error parse_integer_exact(std::string_view s, T &value) {
+  return parse_integer_exact_generic<char, Decimal<char>, T>(s, value);
 }
 
-template parse_integer_exact_error parse_integer_exact(std::string_view,
+template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                        int &value);
-template parse_integer_exact_error parse_integer_exact(std::string_view,
+template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                        unsigned short &value);
-template parse_integer_exact_error parse_integer_exact(std::string_view,
+template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                        unsigned &value);
-template parse_integer_exact_error parse_integer_exact(std::string_view,
+template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                        unsigned long &value);
-template parse_integer_exact_error parse_integer_exact(
+template Parse_Integer_Exact_Error parse_integer_exact(
     std::string_view, unsigned long long &value);
 
 template <class T>
-parse_integer_exact_error parse_integer_exact(std::wstring_view s, T &value) {
-  return parse_integer_exact_generic<wchar_t, decimal<wchar_t>, T>(s, value);
+Parse_Integer_Exact_Error parse_integer_exact(std::wstring_view s, T &value) {
+  return parse_integer_exact_generic<wchar_t, Decimal<wchar_t>, T>(s, value);
 }
 
-template parse_integer_exact_error parse_integer_exact(std::wstring_view,
+template Parse_Integer_Exact_Error parse_integer_exact(std::wstring_view,
                                                        unsigned short &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_integer_exact_error parse_integer_exact(string8_view s, T &value) {
+Parse_Integer_Exact_Error parse_integer_exact(String8_View s, T &value) {
   return parse_integer_exact(to_string_view(s), value);
 }
 
-template parse_integer_exact_error parse_integer_exact(string8_view,
+template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                        unsigned &value);
-template parse_integer_exact_error parse_integer_exact(string8_view,
+template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                        unsigned long &value);
-template parse_integer_exact_error parse_integer_exact(
-    string8_view, unsigned long long &value);
+template Parse_Integer_Exact_Error parse_integer_exact(
+    String8_View, unsigned long long &value);
 #endif
 
 template <class T>
-parse_integer_exact_error parse_integer_exact_hex(std::string_view s,
+Parse_Integer_Exact_Error parse_integer_exact_hex(std::string_view s,
                                                   T &value) {
-  return parse_integer_exact_generic<char, hexadecimal<char>, T>(s, value);
+  return parse_integer_exact_generic<char, Hexadecimal<char>, T>(s, value);
 }
 
-template parse_integer_exact_error parse_integer_exact_hex(
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
     std::string_view, unsigned char &value);
-template parse_integer_exact_error parse_integer_exact_hex(std::string_view,
+template Parse_Integer_Exact_Error parse_integer_exact_hex(std::string_view,
                                                            char32_t &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_integer_exact_error parse_integer_exact_hex(string8_view s, T &value) {
+Parse_Integer_Exact_Error parse_integer_exact_hex(String8_View s, T &value) {
   return parse_integer_exact_hex(to_string_view(s), value);
 }
 
-template parse_integer_exact_error parse_integer_exact_hex(
-    string8_view, unsigned char &value);
-template parse_integer_exact_error parse_integer_exact_hex(string8_view,
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    String8_View, unsigned char &value);
+template Parse_Integer_Exact_Error parse_integer_exact_hex(String8_View,
                                                            char32_t &value);
 #endif
 
-template char8 *write_integer<unsigned short>(unsigned short, char8 *out);
-template char8 *write_integer<int>(int, char8 *out);
-template char8 *write_integer<long>(long, char8 *out);
-template char8 *write_integer<long long>(long long, char8 *out);
-template char8 *write_integer<unsigned>(unsigned, char8 *out);
-template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
-template char8 *write_integer<unsigned long long>(unsigned long long,
-                                                  char8 *out);
+template Char8 *write_integer<unsigned short>(unsigned short, Char8 *out);
+template Char8 *write_integer<int>(int, Char8 *out);
+template Char8 *write_integer<long>(long, Char8 *out);
+template Char8 *write_integer<long long>(long long, Char8 *out);
+template Char8 *write_integer<unsigned>(unsigned, Char8 *out);
+template Char8 *write_integer<unsigned long>(unsigned long, Char8 *out);
+template Char8 *write_integer<unsigned long long>(unsigned long long,
+                                                  Char8 *out);
 
 #if QLJS_HAVE_CHAR8_T
 template char *write_integer<unsigned short>(unsigned short, char *out);

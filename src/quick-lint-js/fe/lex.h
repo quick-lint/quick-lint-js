@@ -21,28 +21,28 @@
 #include <vector>
 
 namespace quick_lint_js {
-class diag_reporter;
-struct lex_tables;
-struct lexer_transaction;
+class Diag_Reporter;
+struct Lex_Tables;
+struct Lexer_Transaction;
 
-// A lexer reads JavaScript source code one token at a time.
+// A Lexer reads JavaScript source code one token at a time.
 //
 // A token is (roughly) either a keyword (if, function, let, etc.), an operator
 // (+, !==, *=, etc.), an identifier (variable name), or a literal (number,
 // string, boolean, etc.).
 //
 // Whitespace and comments are not interpreted as tokens.
-class lexer {
+class Lexer {
  public:
-  enum class identifier_kind {
+  enum class Identifier_Kind {
     javascript,
     jsx,  // Allows '-'.
   };
 
-  explicit lexer(padded_string_view input, diag_reporter*) noexcept;
+  explicit Lexer(Padded_String_View input, Diag_Reporter*) noexcept;
 
   // Return information about the current token.
-  const token& peek() const noexcept { return this->last_token_; }
+  const Token& peek() const noexcept { return this->last_token_; }
 
   // Advance to the next token. Use this->peek() after to observe the next
   // token.
@@ -67,7 +67,7 @@ class lexer {
   // The given template_begin is used for diagnostic reporting.
   //
   // Precondition: this->peek().type == token_type::right_curly
-  void skip_in_template(const char8* template_begin);
+  void skip_in_template(const Char8* template_begin);
 
   // Like this->skip(), except:
   //
@@ -110,7 +110,7 @@ class lexer {
   //
   // If '=>' was found, this function returns a pointer to the '='. Otherwise,
   // it returns nullptr.
-  const char8* find_equal_greater_in_jsx_children() const noexcept;
+  const Char8* find_equal_greater_in_jsx_children() const noexcept;
 
   // After parsing a '<<' (less_less) token, call this function to reinterpret
   // the token as two '<' (less) tokens, then skip the first token.
@@ -137,7 +137,7 @@ class lexer {
 
   // Returns true if a valid regexp literal is found
   // Precondition: *regexp_begin == '/'
-  bool test_for_regexp(const char8* regexp_begin);
+  bool test_for_regexp(const Char8* regexp_begin);
 
   // Save lexer state.
   //
@@ -149,14 +149,14 @@ class lexer {
   //
   // Inside a transaction, diagnostics are not reported until commit_transaction
   // is called for the outer-most nested transaction.
-  lexer_transaction begin_transaction();
+  Lexer_Transaction begin_transaction();
 
   // After calling commit_transaction, it's almost as if you never called
   // begin_transaction in the first place.
   //
   // commit_transaction does not restore the state of the lexer when
   // begin_transaction was called.
-  void commit_transaction(lexer_transaction&&);
+  void commit_transaction(Lexer_Transaction&&);
 
   // Restore lexer state to a prior version.
   //
@@ -169,40 +169,40 @@ class lexer {
   //
   // Calling roll_back_transaction will not report lexer diagnostics which might
   // have been reported if it weren't for begin_transaction.
-  void roll_back_transaction(lexer_transaction&&);
+  void roll_back_transaction(Lexer_Transaction&&);
 
   // transaction_has_lex_diagnostics can only be called while the given
   // transaction is the most recent active transaction.
-  bool transaction_has_lex_diagnostics(const lexer_transaction&) const noexcept;
+  bool transaction_has_lex_diagnostics(const Lexer_Transaction&) const noexcept;
 
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been
   // called after.
-  const char8* end_of_previous_token() const noexcept;
+  const Char8* end_of_previous_token() const noexcept;
 
-  padded_string_view original_input() const noexcept;
+  Padded_String_View original_input() const noexcept;
 
   void debug_dump_location() const;
-  void debug_dump_location(const char8*) const;
+  void debug_dump_location(const Char8*) const;
 
   static constexpr std::size_t unicode_table_chunk_size = 256;
   static constexpr std::size_t unicode_tables_chunks_size = 49152;
   static const std::uint8_t unicode_tables_chunks[];
 
-  using unicode_table_chunk_index_type = std::uint8_t;
+  using Unicode_Table_Chunk_Index_Type = std::uint8_t;
   static constexpr std::size_t identifier_start_chunk_indexes_size = 804;
-  static const unicode_table_chunk_index_type identifier_start_chunk_indexes[];
+  static const Unicode_Table_Chunk_Index_Type identifier_start_chunk_indexes[];
 
   static constexpr std::size_t identifier_part_chunk_indexes_size = 3586;
-  static const unicode_table_chunk_index_type identifier_part_chunk_indexes[];
+  static const Unicode_Table_Chunk_Index_Type identifier_part_chunk_indexes[];
 
  private:
-  struct parsed_template_body {
-    token_type type;
-    const char8* end;
+  struct Parsed_Template_Body {
+    Token_Type type;
+    const Char8* end;
     // Might be null.
-    buffering_diag_reporter* escape_sequence_diagnostics;
+    Buffering_Diag_Reporter* escape_sequence_diagnostics;
   };
 
   // The result of parsing an identifier.
@@ -226,11 +226,11 @@ class lexer {
   //
   // Invariant:
   //   (escape_sequences == nullptr) == (normalized.data() == nullptr)
-  struct parsed_identifier {
-    const char8* after;  // Where to continue parsing.
-    string8_view normalized;
+  struct Parsed_Identifier {
+    const Char8* after;  // Where to continue parsing.
+    String8_View normalized;
 
-    escape_sequence_list* escape_sequences;
+    Escape_Sequence_List* escape_sequences;
   };
 
   void parse_bom_before_shebang();
@@ -249,45 +249,45 @@ class lexer {
   // this->last_token_.begin and other members of this->last_token_.
   bool try_parse_current_token();
 
-  const char8* parse_string_literal() noexcept;
-  const char8* parse_jsx_string_literal() noexcept;
-  const char8* parse_smart_quote_string_literal(
-      const decode_utf_8_result& opening_quote) noexcept;
+  const Char8* parse_string_literal() noexcept;
+  const Char8* parse_jsx_string_literal() noexcept;
+  const Char8* parse_smart_quote_string_literal(
+      const Decode_UTF8_Result& opening_quote) noexcept;
 
-  parsed_template_body parse_template_body(const char8* input,
-                                           const char8* template_begin,
-                                           diag_reporter*);
+  Parsed_Template_Body parse_template_body(const Char8* input,
+                                           const Char8* template_begin,
+                                           Diag_Reporter*);
 
   void parse_binary_number();
   void parse_legacy_octal_number();  // 0775, 09999, 08.24
   void parse_modern_octal_number();  // 0o775, 0o111_555
   void parse_hexadecimal_number();
   template <class Error>
-  const char8* check_garbage_in_number_literal(const char8* input);
-  void check_integer_precision_loss(string8_view number_literal);
+  const Char8* check_garbage_in_number_literal(const Char8* input);
+  void check_integer_precision_loss(String8_View number_literal);
   void parse_number();
 
   template <class Func>
-  const char8* parse_digits_and_underscores(Func&& is_valid_digit,
-                                            const char8* input) noexcept;
-  const char8* parse_octal_digits(const char8* input) noexcept;
-  const char8* parse_decimal_digits_and_underscores(
-      const char8* input) noexcept;
-  const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
+  const Char8* parse_digits_and_underscores(Func&& is_valid_digit,
+                                            const Char8* input) noexcept;
+  const Char8* parse_octal_digits(const Char8* input) noexcept;
+  const Char8* parse_decimal_digits_and_underscores(
+      const Char8* input) noexcept;
+  const Char8* parse_hex_digits_and_underscores(const Char8* input) noexcept;
 
-  struct parsed_unicode_escape {
-    const char8* end;
+  struct Parsed_Unicode_Escape {
+    const Char8* end;
     std::optional<char32_t> code_point;
   };
 
-  parsed_unicode_escape parse_unicode_escape(const char8* input,
-                                             diag_reporter*) noexcept;
+  Parsed_Unicode_Escape parse_unicode_escape(const Char8* input,
+                                             Diag_Reporter*) noexcept;
 
-  parsed_identifier parse_identifier(const char8*, identifier_kind);
-  const char8* parse_identifier_fast_only(const char8*);
-  parsed_identifier parse_identifier_slow(const char8* input,
-                                          const char8* identifier_begin,
-                                          identifier_kind);
+  Parsed_Identifier parse_identifier(const Char8*, Identifier_Kind);
+  const Char8* parse_identifier_fast_only(const Char8*);
+  Parsed_Identifier parse_identifier_slow(const Char8* input,
+                                          const Char8* identifier_begin,
+                                          Identifier_Kind);
 
   void parse_non_ascii();
 
@@ -296,61 +296,61 @@ class lexer {
   void skip_line_comment_body();
   void skip_jsx_text();
 
-  bool is_eof(const char8*) const noexcept;
+  bool is_eof(const Char8*) const noexcept;
 
   bool is_first_token_on_line() const noexcept;
 
-  static bool is_binary_digit(char8);
-  static bool is_octal_digit(char8);
-  static bool is_digit(char8);
-  static bool is_hex_digit(char8);
+  static bool is_binary_digit(Char8);
+  static bool is_octal_digit(Char8);
+  static bool is_digit(Char8);
+  static bool is_hex_digit(Char8);
 
  public:
-  static bool is_initial_identifier_byte(char8 byte);
+  static bool is_initial_identifier_byte(Char8 byte);
 
   // Returns true if the given byte is the legal anywhere within an identifier,
   // except for the following cases:
   //
   // * '{' or '}'
   // * a byte which cannot be the first byte of a UTF-8 sequence
-  static bool is_identifier_byte(char8 byte);
+  static bool is_identifier_byte(Char8 byte);
 
   static bool is_initial_identifier_character(char32_t code_point);
-  static bool is_identifier_character(char32_t code_point, identifier_kind);
+  static bool is_identifier_character(char32_t code_point, Identifier_Kind);
 
  private:
   static bool is_non_ascii_whitespace_character(char32_t code_point);
-  static bool is_ascii_character(char8 code_unit);
+  static bool is_ascii_character(Char8 code_unit);
   static bool is_ascii_character(char32_t code_point);
 
-  static int newline_character_size(const char8*);
+  static int newline_character_size(const Char8*);
   static bool is_newline_character(char32_t code_point) noexcept;
 
-  static token_type identifier_token_type(string8_view) noexcept;
+  static Token_Type identifier_token_type(String8_View) noexcept;
 
-  token last_token_;
-  const char8* last_last_token_end_;
-  const char8* input_;
-  diag_reporter* diag_reporter_;
-  padded_string_view original_input_;
+  Token last_token_;
+  const Char8* last_last_token_end_;
+  const Char8* input_;
+  Diag_Reporter* diag_reporter_;
+  Padded_String_View original_input_;
 
-  monotonic_allocator allocator_{"lexer::allocator_"};
-  linked_bump_allocator<alignof(void*)> transaction_allocator_{
+  Monotonic_Allocator allocator_{"lexer::allocator_"};
+  Linked_Bump_Allocator<alignof(void*)> transaction_allocator_{
       "lexer::transaction_allocator_"};
 
-  friend struct lex_tables;
+  friend struct Lex_Tables;
 };
 
-struct lexer_transaction {
+struct Lexer_Transaction {
   // Private to lexer. Do not construct, read, or modify.
 
-  using allocator_type = linked_bump_allocator<alignof(void*)>;
+  using Allocator_Type = Linked_Bump_Allocator<alignof(void*)>;
 
-  explicit lexer_transaction(token old_last_token,
-                             const char8* old_last_last_token_end,
-                             const char8* old_input,
-                             diag_reporter** diag_reporter_pointer,
-                             allocator_type* allocator)
+  explicit Lexer_Transaction(Token old_last_token,
+                             const Char8* old_last_last_token_end,
+                             const Char8* old_input,
+                             Diag_Reporter** diag_reporter_pointer,
+                             Allocator_Type* allocator)
       : allocator_rewind(allocator->prepare_for_rewind()),
         old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
@@ -359,24 +359,24 @@ struct lexer_transaction {
         old_diag_reporter(
             std::exchange(*diag_reporter_pointer, get(this->reporter))) {}
 
-  // Don't allow copying a transaction. lexer::diag_reporter_ might point to
-  // lexer_transaction::diag_reporter.
-  lexer_transaction(const lexer_transaction&) = delete;
-  lexer_transaction& operator=(const lexer_transaction&) = delete;
+  // Don't allow copying a transaction. Lexer::diag_reporter_ might point to
+  // Lexer_Transaction::diag_reporter.
+  Lexer_Transaction(const Lexer_Transaction&) = delete;
+  Lexer_Transaction& operator=(const Lexer_Transaction&) = delete;
 
   // Rewinds memory allocated by 'reporter'. Must be constructed before
-  // 'reporter' is constructed. 'allocator_type::rewind' must be called before
+  // 'reporter' is constructed. 'Allocator_Type::rewind' must be called before
   // 'reporter' is destructed.
-  allocator_type::rewind_state allocator_rewind;
+  Allocator_Type::Rewind_State allocator_rewind;
 
-  token old_last_token;
-  const char8* old_last_last_token_end;
-  const char8* old_input;
-  std::optional<buffering_diag_reporter> reporter;
-  diag_reporter* old_diag_reporter;
+  Token old_last_token;
+  const Char8* old_last_last_token_end;
+  const Char8* old_input;
+  std::optional<Buffering_Diag_Reporter> reporter;
+  Diag_Reporter* old_diag_reporter;
 };
 
-bool is_plain_horizontal_whitespace(source_code_span span);
+bool is_plain_horizontal_whitespace(Source_Code_Span span);
 }
 
 #endif

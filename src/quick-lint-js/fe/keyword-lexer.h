@@ -11,10 +11,10 @@
 #include <quick-lint-js/port/simd.h>
 
 namespace quick_lint_js {
-struct keyword_lexer {
-  using selection_type = std::uint32_t;
-  using hash_type = std::uint32_t;
-  using seed_type = std::uint64_t;
+struct Keyword_Lexer {
+  using Selection_Type = std::uint32_t;
+  using Hash_Type = std::uint32_t;
+  using Seed_Type = std::uint64_t;
 
   static constexpr int padding_size = 17;
 
@@ -31,7 +31,7 @@ struct keyword_lexer {
   // Precondition: key[minimum_key_length - 1] can be read.
   // Precondition: key[key_length - 1] can be read.
   // Precondition: key[padding_size - 1] can be read.
-  static selection_type select(const char* key,
+  static Selection_Type select(const char* key,
                                std::size_t key_length) noexcept {
     // With our keys, the following statements are true:
     //
@@ -67,14 +67,14 @@ struct keyword_lexer {
   }
 
 #if QLJS_HAVE_CHAR8_T
-  static selection_type select(const char8_t* key,
+  static Selection_Type select(const char8_t* key,
                                std::size_t key_length) noexcept {
     return select(reinterpret_cast<const char*>(key), key_length);
   }
 #endif
 
   // Step 2 of the hash function for lexer::identifier_token_type().
-  static hash_type mix(selection_type selection, seed_type seed) {
+  static Hash_Type mix(Selection_Type selection, Seed_Type seed) {
     // This hash function executes quickly, but might produce a lot of
     // collisions. Collisions are fine, though; collisions just slow down table
     // generation, not run-time.

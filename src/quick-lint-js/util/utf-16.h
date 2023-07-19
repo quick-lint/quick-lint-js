@@ -12,12 +12,12 @@
 
 namespace quick_lint_js {
 #if defined(_WIN32)
-class mbargv {
+class MBArgv {
  public:
-  explicit mbargv(int argc, wchar_t **wargv);
-  mbargv(const mbargv &) = delete;
-  mbargv &operator=(const mbargv &) = delete;
-  ~mbargv();
+  explicit MBArgv(int argc, wchar_t **wargv);
+  MBArgv(const MBArgv &) = delete;
+  MBArgv &operator=(const MBArgv &) = delete;
+  ~MBArgv();
   char **data();
   int size();
 
@@ -38,7 +38,7 @@ std::size_t count_utf_8_code_units(std::u16string_view) noexcept;
 std::size_t count_utf_8_code_units(std::wstring_view) noexcept;
 #endif
 
-string8 utf_16_to_utf_8(std::u16string_view);
+String8 utf_16_to_utf_8(std::u16string_view);
 }
 #endif
 

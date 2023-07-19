@@ -27,26 +27,26 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out,
-                         const vector_instrumentation::entry &e) {
+                         const Vector_Instrumentation::Entry &e) {
   out << "entry{.object_id = 0x" << std::hex << e.object_id << std::dec
       << ", .owner = \"" << e.owner << "\", .event = ";
   switch (e.event) {
-  case vector_instrumentation::event::append:
+  case Vector_Instrumentation::Event::append:
     out << "append";
     break;
-  case vector_instrumentation::event::assign:
+  case Vector_Instrumentation::Event::assign:
     out << "assign";
     break;
-  case vector_instrumentation::event::clear:
+  case Vector_Instrumentation::Event::clear:
     out << "clear";
     break;
-  case vector_instrumentation::event::create:
+  case Vector_Instrumentation::Event::create:
     out << "create";
     break;
-  case vector_instrumentation::event::destroy:
+  case Vector_Instrumentation::Event::destroy:
     out << "destroy";
     break;
-  case vector_instrumentation::event::resize:
+  case Vector_Instrumentation::Event::resize:
     out << "resize";
     break;
   }
@@ -56,28 +56,28 @@ std::ostream &operator<<(std::ostream &out,
 }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-vector_instrumentation vector_instrumentation::instance;
+Vector_Instrumentation Vector_Instrumentation::instance;
 #endif
 
-void vector_instrumentation::clear() { this->entries_.lock()->clear(); }
+void Vector_Instrumentation::clear() { this->entries_.lock()->clear(); }
 
-std::vector<vector_instrumentation::entry> vector_instrumentation::entries() {
+std::vector<Vector_Instrumentation::Entry> Vector_Instrumentation::entries() {
   return *this->entries_.lock();
 }
 
-std::vector<vector_instrumentation::entry>
-vector_instrumentation::take_entries() {
-  std::vector<vector_instrumentation::entry> result;
+std::vector<Vector_Instrumentation::Entry>
+Vector_Instrumentation::take_entries() {
+  std::vector<Vector_Instrumentation::Entry> result;
   swap(result, *this->entries_.lock());
   return result;
 }
 
-void vector_instrumentation::add_entry(std::uintptr_t object_id,
+void Vector_Instrumentation::add_entry(std::uintptr_t object_id,
                                        const char *owner,
-                                       vector_instrumentation::event event,
+                                       Vector_Instrumentation::Event event,
                                        std::uintptr_t data_pointer,
                                        std::size_t size, std::size_t capacity) {
-  this->entries_.lock()->emplace_back(entry{
+  this->entries_.lock()->emplace_back(Entry{
       .object_id = object_id,
       .owner = owner,
       .event = event,
@@ -88,7 +88,7 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
 }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-void vector_instrumentation::register_dump_on_exit_if_requested() {
+void Vector_Instrumentation::register_dump_on_exit_if_requested() {
   const char *dump_vectors_value = std::getenv("QLJS_DUMP_VECTORS");
   bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
@@ -96,11 +96,11 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
       auto entries = instance.entries();
 
       {
-        vector_max_size_histogram_by_owner hist;
+        Vector_Max_Size_Histogram_By_Owner hist;
         hist.add_entries(entries);
-        vector_max_size_histogram_by_owner::dump(
+        Vector_Max_Size_Histogram_By_Owner::dump(
             hist.histogram(), std::cerr,
-            vector_max_size_histogram_by_owner::dump_options{
+            Vector_Max_Size_Histogram_By_Owner::Dump_Options{
                 .maximum_line_length = 80,
                 .max_adjacent_empty_rows = 5,
             });
@@ -108,11 +108,11 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
       std::cerr << '\n';
 
       {
-        vector_capacity_change_histogram_by_owner hist;
+        Vector_Capacity_Change_Histogram_By_Owner hist;
         hist.add_entries(entries);
-        vector_capacity_change_histogram_by_owner::dump(
+        Vector_Capacity_Change_Histogram_By_Owner::dump(
             hist.histogram(), std::cerr,
-            vector_capacity_change_histogram_by_owner::dump_options{
+            Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
                 .maximum_line_length = 80,
             });
       }
@@ -121,20 +121,20 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
 }
 #endif
 
-vector_max_size_histogram_by_owner::vector_max_size_histogram_by_owner() =
+Vector_Max_Size_Histogram_By_Owner::Vector_Max_Size_Histogram_By_Owner() =
     default;
 
-vector_max_size_histogram_by_owner::~vector_max_size_histogram_by_owner() =
+Vector_Max_Size_Histogram_By_Owner::~Vector_Max_Size_Histogram_By_Owner() =
     default;
 
-void vector_max_size_histogram_by_owner::add_entries(
-    const std::vector<vector_instrumentation::entry> &entries) {
-  for (const vector_instrumentation::entry &entry : entries) {
+void Vector_Max_Size_Histogram_By_Owner::add_entries(
+    const std::vector<Vector_Instrumentation::Entry> &entries) {
+  for (const Vector_Instrumentation::Entry &entry : entries) {
     std::pair key(entry.owner, entry.object_id);
     std::size_t &object_size = this->object_sizes_[key];
     object_size = std::max(entry.size, object_size);
 
-    if (entry.event == vector_instrumentation::event::destroy) {
+    if (entry.event == Vector_Instrumentation::Event::destroy) {
       this->histogram_[entry.owner][object_size] += 1;
       this->object_sizes_.erase(key);
     }
@@ -142,9 +142,9 @@ void vector_max_size_histogram_by_owner::add_entries(
 }
 
 std::map<std::string_view, std::map<std::size_t, int>>
-vector_max_size_histogram_by_owner::histogram() const {
+Vector_Max_Size_Histogram_By_Owner::histogram() const {
   // TODO(strager): Avoid this copy.
-  hash_map<const char *, hash_map<std::size_t, int>> histogram =
+  Hash_Map<const char *, Hash_Map<std::size_t, int>> histogram =
       this->histogram_;
 
   for (auto &[owner_and_object_id, size] : this->object_sizes_) {
@@ -165,15 +165,15 @@ vector_max_size_histogram_by_owner::histogram() const {
   return stable_histogram;
 }
 
-void vector_max_size_histogram_by_owner::dump(
+void Vector_Max_Size_Histogram_By_Owner::dump(
     const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
     std::ostream &out) {
-  return dump(histogram, out, dump_options());
+  return dump(histogram, out, Dump_Options());
 }
 
-void vector_max_size_histogram_by_owner::dump(
+void Vector_Max_Size_Histogram_By_Owner::dump(
     const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
-    std::ostream &out, const dump_options &options) {
+    std::ostream &out, const Dump_Options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
@@ -240,20 +240,20 @@ void vector_max_size_histogram_by_owner::dump(
   }
 }
 
-vector_capacity_change_histogram_by_owner::
-    vector_capacity_change_histogram_by_owner() = default;
+Vector_Capacity_Change_Histogram_By_Owner::
+    Vector_Capacity_Change_Histogram_By_Owner() = default;
 
-vector_capacity_change_histogram_by_owner::
-    ~vector_capacity_change_histogram_by_owner() = default;
+Vector_Capacity_Change_Histogram_By_Owner::
+    ~Vector_Capacity_Change_Histogram_By_Owner() = default;
 
-void vector_capacity_change_histogram_by_owner::add_entries(
-    const std::vector<vector_instrumentation::entry> &entries) {
-  for (const vector_instrumentation::entry &entry : entries) {
-    capacity_change_histogram &h = this->histogram_[entry.owner];
-    if (entry.event == vector_instrumentation::event::append) {
+void Vector_Capacity_Change_Histogram_By_Owner::add_entries(
+    const std::vector<Vector_Instrumentation::Entry> &entries) {
+  for (const Vector_Instrumentation::Entry &entry : entries) {
+    Capacity_Change_Histogram &h = this->histogram_[entry.owner];
+    if (entry.event == Vector_Instrumentation::Event::append) {
       auto old_object_it = this->objects_.find(entry.object_id);
       QLJS_ASSERT(old_object_it != this->objects_.end());
-      vector_info &old_object = old_object_it->second;
+      Vector_Info &old_object = old_object_it->second;
       if (old_object.data_pointer == entry.data_pointer) {
         h.appends_reusing_capacity += 1;
       } else if (old_object.size == 0) {
@@ -262,7 +262,7 @@ void vector_capacity_change_histogram_by_owner::add_entries(
         h.appends_growing_capacity += 1;
       }
     }
-    this->objects_[entry.object_id] = vector_info{
+    this->objects_[entry.object_id] = Vector_Info{
         .data_pointer = entry.data_pointer,
         .size = entry.size,
     };
@@ -270,14 +270,14 @@ void vector_capacity_change_histogram_by_owner::add_entries(
 }
 
 std::map<std::string_view,
-         vector_capacity_change_histogram_by_owner::capacity_change_histogram>
-vector_capacity_change_histogram_by_owner::histogram() const {
+         Vector_Capacity_Change_Histogram_By_Owner::Capacity_Change_Histogram>
+Vector_Capacity_Change_Histogram_By_Owner::histogram() const {
   return this->histogram_;
 }
 
-void vector_capacity_change_histogram_by_owner::dump(
-    const std::map<std::string_view, capacity_change_histogram> &histogram,
-    std::ostream &out, const dump_options &options) {
+void Vector_Capacity_Change_Histogram_By_Owner::dump(
+    const std::map<std::string_view, Capacity_Change_Histogram> &histogram,
+    std::ostream &out, const Dump_Options &options) {
   out << R"(vector capacity changes:
 (C=copied; z=initial alloc; -=used internal capacity)
 )";

@@ -19,12 +19,12 @@
 #include <utility>
 
 namespace quick_lint_js {
-trace_flusher_directory_backend::trace_flusher_directory_backend(
+Trace_Flusher_Directory_Backend::Trace_Flusher_Directory_Backend(
     const std::string &trace_directory)
     : trace_directory_(trace_directory) {}
 
-void trace_flusher_directory_backend::trace_thread_begin(
-    trace_flusher_thread_index thread_index) {
+void Trace_Flusher_Directory_Backend::trace_thread_begin(
+    Trace_Flusher_Thread_Index thread_index) {
   std::string stream_path =
       this->trace_directory_ + "/thread" + std::to_string(thread_index);
   auto file = open_file_for_writing(stream_path.c_str());
@@ -39,8 +39,8 @@ void trace_flusher_directory_backend::trace_thread_begin(
   QLJS_ASSERT(inserted);
 }
 
-void trace_flusher_directory_backend::trace_thread_end(
-    trace_flusher_thread_index thread_index) {
+void Trace_Flusher_Directory_Backend::trace_thread_end(
+    Trace_Flusher_Thread_Index thread_index) {
   auto it = this->thread_files_.find(thread_index);
   if (it == this->thread_files_.end()) {
     // Opening the file failed, so there's nothing to close.
@@ -50,14 +50,14 @@ void trace_flusher_directory_backend::trace_thread_end(
   }
 }
 
-void trace_flusher_directory_backend::trace_thread_write_data(
-    trace_flusher_thread_index thread_index, span<const std::byte> data) {
+void Trace_Flusher_Directory_Backend::trace_thread_write_data(
+    Trace_Flusher_Thread_Index thread_index, Span<const std::byte> data) {
   auto it = this->thread_files_.find(thread_index);
   if (it == this->thread_files_.end()) {
     // Opening the file failed. Don't write anything.
     return;
   }
-  platform_file_ref file = it->second.ref();
+  Platform_File_Ref file = it->second.ref();
 
   auto write_result =
       file.write_full(data.data(), narrow_cast<std::size_t>(data.size()));
@@ -69,18 +69,18 @@ void trace_flusher_directory_backend::trace_thread_write_data(
   }
 }
 
-result<trace_flusher_directory_backend, write_file_io_error>
-trace_flusher_directory_backend::init_directory(
+Result<Trace_Flusher_Directory_Backend, Write_File_IO_Error>
+Trace_Flusher_Directory_Backend::init_directory(
     const std::string &trace_directory) {
   auto write_result = write_file(trace_directory + "/metadata", trace_metadata);
   if (!write_result.ok()) {
     return write_result.propagate();
   }
-  return trace_flusher_directory_backend(trace_directory);
+  return Trace_Flusher_Directory_Backend(trace_directory);
 }
 
-std::optional<trace_flusher_directory_backend>
-trace_flusher_directory_backend::create_child_directory(
+std::optional<Trace_Flusher_Directory_Backend>
+Trace_Flusher_Directory_Backend::create_child_directory(
     const std::string &directory) {
   auto dir_result = create_directory(directory);
   if (!dir_result.ok()) {
@@ -90,7 +90,7 @@ trace_flusher_directory_backend::create_child_directory(
       return std::nullopt;
     }
   }
-  result<std::string, platform_file_io_error> trace_directory =
+  Result<std::string, Platform_File_IO_Error> trace_directory =
       make_timestamped_directory(directory, "trace_%Y-%m-%d-%H-%M-%S");
   if (!trace_directory.ok()) {
     QLJS_DEBUG_LOG("failed to create tracing directory in %s: %s\n",

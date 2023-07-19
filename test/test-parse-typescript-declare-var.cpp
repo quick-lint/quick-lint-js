@@ -24,12 +24,12 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_declare_var : public test_parse_expression {};
+class Test_Parse_TypeScript_Declare_Var : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_declare_var,
+TEST_F(Test_Parse_TypeScript_Declare_Var,
        declare_var_is_not_allowed_in_javascript) {
   {
-    test_parser p(u8"declare var x;"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"declare var x;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -38,14 +38,14 @@ TEST_F(test_parse_typescript_declare_var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        diag_declare_var_not_allowed_in_javascript,     //
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"var"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"declare const x;"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"declare const x;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -54,14 +54,14 @@ TEST_F(test_parse_typescript_declare_var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        diag_declare_var_not_allowed_in_javascript,     //
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"const"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"declare let x;"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"declare let x;"_sv, javascript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -70,16 +70,16 @@ TEST_F(test_parse_typescript_declare_var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        diag_declare_var_not_allowed_in_javascript,     //
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"let"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_var, declare_var) {
+TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
   {
-    test_parser p(u8"declare var x;"_sv, typescript_options);
+    Test_Parser p(u8"declare var x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -89,7 +89,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var) {
   }
 
   {
-    test_parser p(u8"declare const x;"_sv, typescript_options);
+    Test_Parser p(u8"declare const x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -99,7 +99,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var) {
   }
 
   {
-    test_parser p(u8"declare let x;"_sv, typescript_options);
+    Test_Parser p(u8"declare let x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -109,10 +109,10 @@ TEST_F(test_parse_typescript_declare_var, declare_var) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_var,
+TEST_F(Test_Parse_TypeScript_Declare_Var,
        declare_var_allow_destructuring_without_initializer) {
   {
-    test_parser p(u8"declare var [x, y, z];"_sv, typescript_options);
+    Test_Parser p(u8"declare var [x, y, z];"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -126,9 +126,9 @@ TEST_F(test_parse_typescript_declare_var,
   }
 }
 
-TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
+TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
   {
-    test_parser p(u8"declare var x = 42;"_sv, typescript_options,
+    Test_Parser p(u8"declare var x = 42;"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -137,7 +137,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        diag_declare_var_cannot_have_initializer,       //
+                        Diag_Declare_Var_Cannot_Have_Initializer,       //
                         equal, strlen(u8"declare var x "), u8"=",       //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"var"_sv),
@@ -145,7 +145,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
   }
 
   {
-    test_parser p(u8"declare const x = 42;"_sv, typescript_options,
+    Test_Parser p(u8"declare const x = 42;"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -154,7 +154,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        diag_declare_var_cannot_have_initializer,       //
+                        Diag_Declare_Var_Cannot_Have_Initializer,       //
                         equal, strlen(u8"declare const x "), u8"=",     //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"const"_sv),
@@ -162,7 +162,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
   }
 
   {
-    test_parser p(u8"declare let x = 42;"_sv, typescript_options,
+    Test_Parser p(u8"declare let x = 42;"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -171,7 +171,7 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        diag_declare_var_cannot_have_initializer,       //
+                        Diag_Declare_Var_Cannot_Have_Initializer,       //
                         equal, strlen(u8"declare let x "), u8"=",       //
                         declare_keyword, strlen(u8""), u8"declare"_sv,  //
                         declaring_token, strlen(u8"declare "), u8"let"_sv),
@@ -179,9 +179,9 @@ TEST_F(test_parse_typescript_declare_var, declare_var_cannot_have_initializer) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_var, newline_before_var_triggers_asi) {
+TEST_F(Test_Parse_TypeScript_Declare_Var, newline_before_var_triggers_asi) {
   {
-    test_parser p(u8"declare\nvar x = initializer;"_sv, typescript_options);
+    Test_Parser p(u8"declare\nvar x = initializer;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare
@@ -196,7 +196,7 @@ TEST_F(test_parse_typescript_declare_var, newline_before_var_triggers_asi) {
   }
 
   {
-    test_parser p(u8"declare\nconst x = initializer;"_sv, typescript_options);
+    Test_Parser p(u8"declare\nconst x = initializer;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare
@@ -211,7 +211,7 @@ TEST_F(test_parse_typescript_declare_var, newline_before_var_triggers_asi) {
   }
 
   {
-    test_parser p(u8"declare\nlet x = initializer;"_sv, typescript_options);
+    Test_Parser p(u8"declare\nlet x = initializer;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare

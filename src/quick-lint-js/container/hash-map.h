@@ -10,20 +10,20 @@
 
 namespace quick_lint_js {
 // Like std::unordered_map.
-template <class Key, class Value, class Hash = hasher<Key>>
-class hash_map {
+template <class Key, class Value, class Hash = Hasher<Key>>
+class Hash_Map {
  private:
-  using unordered_map = std::unordered_map<Key, Value, Hash>;
+  using Unordered_Map = std::unordered_map<Key, Value, Hash>;
 
  public:
-  using const_iterator = typename unordered_map::const_iterator;
-  using iterator = typename unordered_map::iterator;
-  using size_type = typename unordered_map::size_type;
-  using value_type = typename unordered_map::value_type;
+  using const_iterator = typename Unordered_Map::const_iterator;
+  using iterator = typename Unordered_Map::iterator;
+  using size_type = typename Unordered_Map::size_type;
+  using value_type = typename Unordered_Map::value_type;
 
-  explicit hash_map() = default;
+  explicit Hash_Map() = default;
 
-  explicit hash_map(std::initializer_list<value_type> init) : map_(init) {}
+  explicit Hash_Map(std::initializer_list<value_type> init) : map_(init) {}
 
   template <class K>
   const_iterator find(const K& key) const noexcept {
@@ -91,7 +91,7 @@ class hash_map {
   void reserve(size_type size) { this->map_.reserve(size); }
 
  private:
-  unordered_map map_;
+  Unordered_Map map_;
 };
 }
 

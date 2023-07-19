@@ -21,37 +21,37 @@
 #include <string>
 
 namespace quick_lint_js {
-class lsp_diag_formatter;
+class LSP_Diag_Formatter;
 
-class lsp_diag_reporter final : public diag_reporter {
+class LSP_Diag_Reporter final : public Diag_Reporter {
  public:
-  explicit lsp_diag_reporter(translator, byte_buffer &output,
-                             padded_string_view input);
+  explicit LSP_Diag_Reporter(Translator, Byte_Buffer &output,
+                             Padded_String_View input);
 
   void finish();
 
-  void report_impl(diag_type type, void *diag) override;
+  void report_impl(Diag_Type type, void *diag) override;
 
  private:
-  byte_buffer &output_;
-  lsp_locator locator_;
-  translator translator_;
+  Byte_Buffer &output_;
+  LSP_Locator locator_;
+  Translator translator_;
   bool need_comma_ = false;
 };
 
-class lsp_diag_formatter : public diagnostic_formatter<lsp_diag_formatter> {
+class LSP_Diag_Formatter : public Diagnostic_Formatter<LSP_Diag_Formatter> {
  public:
-  explicit lsp_diag_formatter(byte_buffer &output, lsp_locator &, translator);
-  void write_before_message(std::string_view code, diagnostic_severity,
-                            const source_code_span &origin);
-  void write_message_part(std::string_view code, diagnostic_severity,
-                          string8_view);
-  void write_after_message(std::string_view code, diagnostic_severity,
-                           const source_code_span &origin);
+  explicit LSP_Diag_Formatter(Byte_Buffer &output, LSP_Locator &, Translator);
+  void write_before_message(std::string_view code, Diagnostic_Severity,
+                            const Source_Code_Span &origin);
+  void write_message_part(std::string_view code, Diagnostic_Severity,
+                          String8_View);
+  void write_after_message(std::string_view code, Diagnostic_Severity,
+                           const Source_Code_Span &origin);
 
  private:
-  byte_buffer &output_;
-  lsp_locator &locator_;
+  Byte_Buffer &output_;
+  LSP_Locator &locator_;
 };
 }
 

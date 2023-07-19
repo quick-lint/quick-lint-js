@@ -52,10 +52,10 @@ template <class Func>
 }
 
 // The JavaScript Map class.
-class js_map {
+class JS_Map {
  public:
   // new Map()
-  explicit js_map(::Napi::Env env)
+  explicit JS_Map(::Napi::Env env)
       : map_(::Napi::Persistent(
             env.Global().Get("Map").As<::Napi::Function>().New({}))) {}
 

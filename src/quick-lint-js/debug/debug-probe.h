@@ -6,8 +6,8 @@
 
 namespace quick_lint_js {
 template <class Data>
-class synchronized;
-struct lsp_documents;
+class Synchronized;
+struct LSP_Documents;
 
 // Call this occasionally after modifying lsp_documents.
 //

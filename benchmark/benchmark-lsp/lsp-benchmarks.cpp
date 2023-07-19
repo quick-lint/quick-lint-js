@@ -28,17 +28,17 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-struct source_file {
+struct Source_File {
   const char* name;
-  padded_string source;
+  Padded_String source;
 
-  static source_file load(const char* name) {
+  static Source_File load(const char* name) {
     auto data = read_file((std::string("corpus/") + name).c_str());
     if (!data.ok()) {
       std::fprintf(stderr, "error: %s\n", data.error_to_string().c_str());
       std::exit(1);
     }
-    return source_file{
+    return Source_File{
         .name = name,
         .source = std::move(*data),
     };
@@ -46,17 +46,17 @@ struct source_file {
 };
 }
 
-bool benchmark::is_supported(
-    const benchmark_config_server& server_config) const {
+bool Benchmark::is_supported(
+    const Benchmark_Config_Server& server_config) const {
   if (this->name().ends_with(".jsx") && !server_config.supports_jsx) {
     return false;
   }
   return true;
 }
 
-class open_wait_close_benchmark : public benchmark {
+class Open_Wait_Close_Benchmark : public Benchmark {
  public:
-  explicit open_wait_close_benchmark(const source_file* sf)
+  explicit Open_Wait_Close_Benchmark(const Source_File* sf)
       : source_file_(sf) {}
 
   std::string name() const override {
@@ -64,16 +64,16 @@ class open_wait_close_benchmark : public benchmark {
   }
 
   bool is_supported(
-      const benchmark_config_server& server_config) const override {
-    return benchmark::is_supported(server_config);
+      const Benchmark_Config_Server& server_config) const override {
+    return Benchmark::is_supported(server_config);
   }
 
-  lsp_task<void> set_up_async(lsp_server_process& server,
-                              const benchmark_config_server&,
+  LSP_Task<void> set_up_async(LSP_Server_Process& server,
+                              const Benchmark_Config_Server&,
                               int iteration_count) override {
-    string8_view file_name = u8"test.js";
+    String8_View file_name = u8"test.js";
     server.create_file_on_disk_if_needed(file_name);
-    string8 uri = server.file_to_uri(file_name);
+    String8 uri = server.file_to_uri(file_name);
 
     this->iterations_.clear();
     this->iterations_.reserve(narrow_cast<std::size_t>(iteration_count));
@@ -91,7 +91,7 @@ class open_wait_close_benchmark : public benchmark {
     co_return;
   }
 
-  lsp_task<void> run_iteration_async(lsp_server_process& server,
+  LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
     iteration_data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
@@ -108,44 +108,44 @@ class open_wait_close_benchmark : public benchmark {
 
  private:
   struct iteration_data {
-    explicit iteration_data(std::int64_t version, byte_buffer open_notification,
-                            byte_buffer close_notification)
+    explicit iteration_data(std::int64_t version, Byte_Buffer open_notification,
+                            Byte_Buffer close_notification)
         : version(version),
           open_notification(std::move(open_notification)),
           close_notification(std::move(close_notification)) {}
 
     std::int64_t version;
-    byte_buffer open_notification;
-    byte_buffer close_notification;
+    Byte_Buffer open_notification;
+    Byte_Buffer close_notification;
   };
 
-  const source_file* source_file_;
+  const Source_File* source_file_;
   std::vector<iteration_data> iterations_;
 };
 
-class change_wait_benchmark : public benchmark {
+class Change_Wait_Benchmark : public Benchmark {
  public:
-  explicit change_wait_benchmark(const source_file* sf) : source_file_(sf) {}
+  explicit Change_Wait_Benchmark(const Source_File* sf) : source_file_(sf) {}
 
   std::string name() const override {
     return std::string("change-wait/") + this->source_file_->name;
   }
 
   bool is_supported(
-      const benchmark_config_server& server_config) const override {
-    return benchmark::is_supported(server_config);
+      const Benchmark_Config_Server& server_config) const override {
+    return Benchmark::is_supported(server_config);
   }
 
-  lsp_task<void> set_up_async(lsp_server_process& server,
-                              const benchmark_config_server& server_config,
+  LSP_Task<void> set_up_async(LSP_Server_Process& server,
+                              const Benchmark_Config_Server& server_config,
                               int iteration_count) override {
-    string8_view initial_source = u8""sv;
+    String8_View initial_source = u8""sv;
     this->iterations_.clear();
     this->iterations_.reserve(narrow_cast<std::size_t>(iteration_count));
     for (int i = 0; i < iteration_count; ++i) {
-      string8 file_name = u8"test" + to_string8(std::to_string(i)) + u8".js";
+      String8 file_name = u8"test" + to_string8(std::to_string(i)) + u8".js";
       server.create_file_on_disk_if_needed(file_name);
-      string8 uri = server.file_to_uri(file_name);
+      String8 uri = server.file_to_uri(file_name);
 
       server.send_message(make_text_document_did_open_notification(
           uri, this->initial_version, initial_source));
@@ -165,7 +165,7 @@ class change_wait_benchmark : public benchmark {
 
     if (server_config.wait_for_empty_diagnostics_on_open &&
         server_config.parallelize_open) {
-      hash_map<string8, int> remaining_uris;
+      Hash_Map<String8, int> remaining_uris;
       for (iteration_data& iteration : this->iterations_) {
         remaining_uris.emplace(
             iteration.uri, server_config.diagnostics_messages_to_ignore + 1);
@@ -173,7 +173,7 @@ class change_wait_benchmark : public benchmark {
       while (!remaining_uris.empty()) {
         ::boost::json::object notification =
             co_await server.wait_for_first_diagnostics_notification_async();
-        string8 notification_uri = to_string8(to_string_view(
+        String8 notification_uri = to_string8(to_string_view(
             look_up(notification, "params", "uri").get_string()));
 
         auto uri_it = remaining_uris.find(notification_uri);
@@ -186,7 +186,7 @@ class change_wait_benchmark : public benchmark {
     }
   }
 
-  lsp_task<void> run_iteration_async(lsp_server_process& server,
+  LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
     iteration_data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
@@ -202,26 +202,26 @@ class change_wait_benchmark : public benchmark {
 
  private:
   struct iteration_data {
-    explicit iteration_data(string8 uri, byte_buffer&& change_text_notification)
+    explicit iteration_data(String8 uri, Byte_Buffer&& change_text_notification)
         : uri(std::move(uri)),
           change_text_notification(std::move(change_text_notification)) {}
 
-    string8 uri;
-    byte_buffer change_text_notification;
+    String8 uri;
+    Byte_Buffer change_text_notification;
   };
 
   static inline constexpr std::int64_t initial_version = 0;
   static inline constexpr std::int64_t changed_version = 1;
 
-  const source_file* source_file_;
+  const Source_File* source_file_;
   std::vector<iteration_data> iterations_;
 };
 
-class incremental_change_wait_benchmark : public benchmark {
+class Incremental_Change_Wait_Benchmark : public Benchmark {
  public:
-  explicit incremental_change_wait_benchmark(
-      const source_file* sf,
-      void (*changes_factory)(int i, byte_buffer& out_changes))
+  explicit Incremental_Change_Wait_Benchmark(
+      const Source_File* sf,
+      void (*changes_factory)(int i, Byte_Buffer& out_changes))
       : source_file_(sf), changes_factory_(changes_factory) {}
 
   std::string name() const override {
@@ -229,17 +229,17 @@ class incremental_change_wait_benchmark : public benchmark {
   }
 
   bool is_supported(
-      const benchmark_config_server& server_config) const override {
-    return benchmark::is_supported(server_config) &&
+      const Benchmark_Config_Server& server_config) const override {
+    return Benchmark::is_supported(server_config) &&
            server_config.allow_incremental_changes;
   }
 
-  lsp_task<void> set_up_async(lsp_server_process& server,
-                              const benchmark_config_server& server_config,
+  LSP_Task<void> set_up_async(LSP_Server_Process& server,
+                              const Benchmark_Config_Server& server_config,
                               int iteration_count) override {
-    string8 file_name = u8"test.js";
+    String8 file_name = u8"test.js";
     server.create_file_on_disk_if_needed(file_name);
-    string8 uri = server.file_to_uri(file_name);
+    String8 uri = server.file_to_uri(file_name);
     std::int64_t version = 0;
 
     server.send_message(make_text_document_did_open_notification(
@@ -254,7 +254,7 @@ class incremental_change_wait_benchmark : public benchmark {
     this->iterations_.clear();
     this->iterations_.reserve(narrow_cast<std::size_t>(iteration_count));
     for (int i = 0; i < iteration_count; ++i) {
-      byte_buffer change_text_notification;
+      Byte_Buffer change_text_notification;
       change_text_notification.append_copy(
           u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
       change_text_notification.append_decimal_integer(version);
@@ -269,9 +269,9 @@ class incremental_change_wait_benchmark : public benchmark {
     }
   }
 
-  lsp_task<void> run_iteration_async(lsp_server_process& server,
+  LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
-    iteration_data& iteration =
+    Iteration_Data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
 
     server.send_message(std::move(iteration.change_text_notification));
@@ -287,26 +287,26 @@ class incremental_change_wait_benchmark : public benchmark {
   }
 
  private:
-  struct iteration_data {
-    explicit iteration_data(std::int64_t version,
-                            byte_buffer&& change_text_notification)
+  struct Iteration_Data {
+    explicit Iteration_Data(std::int64_t version,
+                            Byte_Buffer&& change_text_notification)
         : version(version),
           change_text_notification(std::move(change_text_notification)) {}
 
     std::int64_t version;
-    byte_buffer change_text_notification;
+    Byte_Buffer change_text_notification;
   };
 
-  const source_file* source_file_;
-  void (*changes_factory_)(int i, byte_buffer& out_changes);
-  std::vector<iteration_data> iterations_;
+  const Source_File* source_file_;
+  void (*changes_factory_)(int i, Byte_Buffer& out_changes);
+  std::vector<Iteration_Data> iterations_;
   ::boost::json::array expected_diagnostics;
 };
 
-class full_change_wait_benchmark : public benchmark {
+class Full_Change_Wait_Benchmark : public Benchmark {
  public:
-  explicit full_change_wait_benchmark(const char* name,
-                                      padded_string (*source_factory)(int i))
+  explicit Full_Change_Wait_Benchmark(const char* name,
+                                      Padded_String (*source_factory)(int i))
       : name_(name), source_factory_(source_factory) {}
 
   std::string name() const override {
@@ -314,19 +314,19 @@ class full_change_wait_benchmark : public benchmark {
   }
 
   bool is_supported(
-      const benchmark_config_server& server_config) const override {
-    return benchmark::is_supported(server_config);
+      const Benchmark_Config_Server& server_config) const override {
+    return Benchmark::is_supported(server_config);
   }
 
-  lsp_task<void> set_up_async(lsp_server_process& server,
-                              const benchmark_config_server& server_config,
+  LSP_Task<void> set_up_async(LSP_Server_Process& server,
+                              const Benchmark_Config_Server& server_config,
                               int iteration_count) override {
-    string8 file_name = u8"test.js";
+    String8 file_name = u8"test.js";
     server.create_file_on_disk_if_needed(file_name);
-    string8 uri = server.file_to_uri(file_name);
+    String8 uri = server.file_to_uri(file_name);
     std::int64_t version = 0;
 
-    padded_string initial_source = this->source_factory_(0);
+    Padded_String initial_source = this->source_factory_(0);
     server.send_message(make_text_document_did_open_notification(
         uri, version, initial_source.string_view()));
     ::boost::json::array diagnostics;
@@ -339,7 +339,7 @@ class full_change_wait_benchmark : public benchmark {
     this->iterations_.clear();
     this->iterations_.reserve(narrow_cast<std::size_t>(iteration_count));
     for (int i = 0; i < iteration_count; ++i) {
-      byte_buffer change_text_notification;
+      Byte_Buffer change_text_notification;
       change_text_notification.append_copy(
           u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
       change_text_notification.append_decimal_integer(version);
@@ -347,7 +347,7 @@ class full_change_wait_benchmark : public benchmark {
       write_json_escaped_string(change_text_notification, uri);
       change_text_notification.append_copy(
           u8R"("},"contentChanges":[{"text":")"sv);
-      padded_string new_source = this->source_factory_(i + 1);
+      Padded_String new_source = this->source_factory_(i + 1);
       write_json_escaped_string(change_text_notification,
                                 new_source.string_view());
       change_text_notification.append_copy(u8R"("}]}})"sv);
@@ -357,7 +357,7 @@ class full_change_wait_benchmark : public benchmark {
     }
   }
 
-  lsp_task<void> run_iteration_async(lsp_server_process& server,
+  LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
     iteration_data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
@@ -383,59 +383,59 @@ class full_change_wait_benchmark : public benchmark {
  private:
   struct iteration_data {
     explicit iteration_data(std::int64_t version,
-                            byte_buffer&& change_text_notification)
+                            Byte_Buffer&& change_text_notification)
         : version(version),
           change_text_notification(std::move(change_text_notification)) {}
 
     std::int64_t version;
-    byte_buffer change_text_notification;
+    Byte_Buffer change_text_notification;
   };
 
   std::string name_;
-  padded_string (*source_factory_)(int i);
+  Padded_String (*source_factory_)(int i);
   std::vector<iteration_data> iterations_;
   ::boost::json::array expected_diagnostics;
 };
 
-std::vector<benchmark_factory> get_benchmark_factories() {
-  static source_file tiny_js = source_file::load("tiny.js");
-  static source_file edex_ui_filesystem_js =
-      source_file::load("edex-ui-filesystem.class.js");
-  static source_file express_router_js = source_file::load("express-router.js");
-  static source_file react_quickly_ch10_jsx =
-      source_file::load("react-quickly-ch10.jsx");
+std::vector<Benchmark_Factory> get_benchmark_factories() {
+  static Source_File tiny_js = Source_File::load("tiny.js");
+  static Source_File edex_ui_filesystem_js =
+      Source_File::load("edex-ui-filesystem.class.js");
+  static Source_File express_router_js = Source_File::load("express-router.js");
+  static Source_File react_quickly_ch10_jsx =
+      Source_File::load("react-quickly-ch10.jsx");
 
-  return std::vector<benchmark_factory>{
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<open_wait_close_benchmark>(&tiny_js);
+  return std::vector<Benchmark_Factory>{
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Open_Wait_Close_Benchmark>(&tiny_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<open_wait_close_benchmark>(
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Open_Wait_Close_Benchmark>(
             &edex_ui_filesystem_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<open_wait_close_benchmark>(&express_router_js);
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Open_Wait_Close_Benchmark>(&express_router_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<open_wait_close_benchmark>(
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Open_Wait_Close_Benchmark>(
             &react_quickly_ch10_jsx);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<change_wait_benchmark>(&tiny_js);
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Change_Wait_Benchmark>(&tiny_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<change_wait_benchmark>(&edex_ui_filesystem_js);
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Change_Wait_Benchmark>(&edex_ui_filesystem_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<change_wait_benchmark>(&express_router_js);
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Change_Wait_Benchmark>(&express_router_js);
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<change_wait_benchmark>(&react_quickly_ch10_jsx);
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Change_Wait_Benchmark>(&react_quickly_ch10_jsx);
       },
-      []() -> std::unique_ptr<benchmark> {
+      []() -> std::unique_ptr<Benchmark> {
         return std::make_unique<
-            incremental_change_wait_benchmark>(&express_router_js, [](int i,
-                                                                      byte_buffer&
+            Incremental_Change_Wait_Benchmark>(&express_router_js, [](int i,
+                                                                      Byte_Buffer&
                                                                           out_changes) {
           // In the "create Router#VERB functions" arrow function in
           // express-router.js, replace 'method' (declaration and
@@ -459,13 +459,13 @@ std::vector<benchmark_factory> get_benchmark_factories() {
               u8R"(","range":{"start":{"line":509,"character":10},"end":{"line":509,"character":16}}}])"sv);
         });
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<incremental_change_wait_benchmark>(
-            &react_quickly_ch10_jsx, [](int i, byte_buffer& out_changes) {
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Incremental_Change_Wait_Benchmark>(
+            &react_quickly_ch10_jsx, [](int i, Byte_Buffer& out_changes) {
               // In Cart's render function in react-quickly-ch10.jsx, clear the
               // "Your cart is empty" text then re-type it character by
               // character.
-              static constexpr char8 text[] = u8"Your cart is empty";
+              static constexpr Char8 text[] = u8"Your cart is empty";
               static constexpr int text_length = sizeof(text) - 1;
               int characters_already_typed = (i % text_length == 0)
                                                  ? text_length
@@ -489,8 +489,8 @@ std::vector<benchmark_factory> get_benchmark_factories() {
               }
             });
       },
-      []() -> std::unique_ptr<benchmark> {
-        return std::make_unique<full_change_wait_benchmark>(
+      []() -> std::unique_ptr<Benchmark> {
+        return std::make_unique<Full_Change_Wait_Benchmark>(
             express_router_js.name, [](int i) {
               // In the "create Router#VERB functions" arrow function in
               // express-router.js, replace 'method' (declaration and
@@ -501,10 +501,10 @@ std::vector<benchmark_factory> get_benchmark_factories() {
               std::snprintf(replacement_text, sizeof(replacement_text), "m%05d",
                             i);
               QLJS_ASSERT(std::strlen(replacement_text) == 6);
-              string8_view replacement_text_sv =
+              String8_View replacement_text_sv =
                   to_string8_view(replacement_text);
 
-              padded_string new_source(express_router_js.source.string_view());
+              Padded_String new_source(express_router_js.source.string_view());
               auto write_replacement = [&](int offset) -> void {
                 std::copy(replacement_text_sv.begin(),
                           replacement_text_sv.end(),

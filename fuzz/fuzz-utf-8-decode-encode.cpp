@@ -13,16 +13,16 @@ extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   using namespace quick_lint_js;
 
-  padded_string input(string8_view(reinterpret_cast<const char8*>(data), size));
+  Padded_String input(String8_View(reinterpret_cast<const Char8*>(data), size));
 
-  const char8* c = input.data();
+  const Char8* c = input.data();
   while (c != input.null_terminator()) {
     decode_utf_8_result r =
-        decode_utf_8(padded_string_view(c, input.null_terminator()));
+        decode_utf_8(Padded_String_View(c, input.null_terminator()));
 
     if (r.ok) {
-      char8 encode_buffer[4];
-      char8* encode_end = encode_utf_8(r.code_point, encode_buffer);
+      Char8 encode_buffer[4];
+      Char8* encode_end = encode_utf_8(r.code_point, encode_buffer);
       if (encode_end - encode_buffer != r.size) {
         std::fprintf(stderr,
                      "fatal: decoding %ju gave %zd bytes but reencoding gave "

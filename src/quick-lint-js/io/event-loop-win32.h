@@ -24,30 +24,30 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-windows_handle_file create_io_completion_port() noexcept;
+Windows_Handle_File create_io_completion_port() noexcept;
 
-// An event loop using Win32's I/O completion ports. See event_loop_base for
+// An event loop using Win32's I/O completion ports. See Event_Loop_Base for
 // details.
 template <class Derived>
-class windows_event_loop : public event_loop_base<Derived> {
+class Windows_Event_Loop : public Event_Loop_Base<Derived> {
  public:
-  enum completion_key : ULONG_PTR {
+  enum Completion_Key : ULONG_PTR {
     completion_key_invalid = 0,
     completion_key_stop,
     completion_key_fs_changed,
   };
 
-  explicit windows_event_loop()
+  explicit Windows_Event_Loop()
       : io_completion_port_(create_io_completion_port()) {}
 
-  windows_handle_file_ref io_completion_port() noexcept {
+  Windows_Handle_File_Ref io_completion_port() noexcept {
     return this->io_completion_port_.ref();
   }
 
   void run() {
     static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
 
-    this->read_pipe_thread_ = thread([this] { this->run_read_pipe_thread(); });
+    this->read_pipe_thread_ = Thread([this] { this->run_read_pipe_thread(); });
     for (;;) {
       DWORD number_of_bytes_transferred;
       ULONG_PTR completion_key = completion_key_invalid;
@@ -107,12 +107,12 @@ class windows_event_loop : public event_loop_base<Derived> {
     }
   }
 
-  windows_handle_file io_completion_port_;
-  thread read_pipe_thread_;
+  Windows_Handle_File io_completion_port_;
+  Thread read_pipe_thread_;
 };
 
-inline windows_handle_file create_io_completion_port() noexcept {
-  windows_handle_file iocp(::CreateIoCompletionPort(
+inline Windows_Handle_File create_io_completion_port() noexcept {
+  Windows_Handle_File iocp(::CreateIoCompletionPort(
       /*FileHandle=*/INVALID_HANDLE_VALUE,
       /*ExistingCompletionPort=*/nullptr, /*CompletionKey=*/0,
       /*NumberOfConcurrentThreads=*/1));

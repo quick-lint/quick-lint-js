@@ -11,11 +11,11 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 void benchmark_parse_config_json(::benchmark::State& state,
-                                 string8_view config_json) {
-  padded_string config_json_string(config_json);
-  null_diag_reporter diag_reporter;
+                                 String8_View config_json) {
+  Padded_String config_json_string(config_json);
+  Null_Diag_Reporter diag_reporter;
 
-  configuration config;
+  Configuration config;
   for (auto _ : state) {
     config.reset();
     config.load_from_json(&config_json_string, &diag_reporter);
@@ -47,7 +47,7 @@ BENCHMARK_CAPTURE(benchmark_parse_config_json, medium_sized,
 )"sv);
 
 void benchmark_config_globals_default(::benchmark::State& state) {
-  configuration config;
+  Configuration config;
   for (auto _ : state) {
     config.reset();
     ::benchmark::DoNotOptimize(config.globals());
@@ -56,7 +56,7 @@ void benchmark_config_globals_default(::benchmark::State& state) {
 BENCHMARK(benchmark_config_globals_default);
 
 void benchmark_config_globals_cleared(::benchmark::State& state) {
-  configuration config;
+  Configuration config;
   for (auto _ : state) {
     config.reset();
     config.reset_global_groups();

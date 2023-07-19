@@ -14,12 +14,12 @@ namespace quick_lint_js {
 // using std::shared_ptr. Instances are manually tracked and automatically
 // untracked.
 //
-// instance_tracker is thread-safe.
+// Instance_Tracker is thread-safe.
 template <class Tracked>
-class instance_tracker {
+class Instance_Tracker {
  public:
   static void track(std::shared_ptr<Tracked> instance) {
-    lock_ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
+    Lock_Ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
         weak_instances_.lock();
     sanitize_instances(weak_instances);
     weak_instances->push_back(std::move(instance));
@@ -28,7 +28,7 @@ class instance_tracker {
   static std::vector<std::shared_ptr<Tracked>> instances() {
     std::vector<std::shared_ptr<Tracked>> instances;
     {
-      lock_ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
+      Lock_Ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
           weak_instances_.lock();
       sanitize_instances(weak_instances);
       instances.reserve(weak_instances->size());
@@ -44,7 +44,7 @@ class instance_tracker {
 
  private:
   static void sanitize_instances(
-      lock_ptr<std::vector<std::weak_ptr<Tracked>>>& weak_instances) {
+      Lock_Ptr<std::vector<std::weak_ptr<Tracked>>>& weak_instances) {
     erase_if(*weak_instances, [](const std::weak_ptr<Tracked>& weak_instance) {
       return weak_instance.expired();
     });
@@ -54,7 +54,7 @@ class instance_tracker {
     sanitize_instances(weak_instances_.lock());
   }
 
-  static inline synchronized<std::vector<std::weak_ptr<Tracked>>>
+  static inline Synchronized<std::vector<std::weak_ptr<Tracked>>>
       weak_instances_;
 };
 }

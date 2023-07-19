@@ -30,8 +30,8 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 
 namespace quick_lint_js {
 namespace {
-struct global_loggers {
-  std::vector<logger*> loggers;
+struct Global_Loggers {
+  std::vector<Logger*> loggers;
   bool initialized = false;
 
   void initialize_if_needed() {
@@ -46,16 +46,16 @@ struct global_loggers {
   }
 };
 
-synchronized<global_loggers> loggers;
+Synchronized<Global_Loggers> loggers;
 }
 
-logger::~logger() = default;
+Logger::~Logger() = default;
 
-file_logger::file_logger(const char* path) : file_(std::fopen(path, "a")) {
+File_Logger::File_Logger(const char* path) : file_(std::fopen(path, "a")) {
   // TODO(strager): Report fopen failures.
 }
 
-void file_logger::log(std::string_view message) {
+void File_Logger::log(std::string_view message) {
   FILE* file = this->file_.get();
   if (!file) {
     // File didn't open. Don't try to log anything.
@@ -70,23 +70,23 @@ void file_logger::log(std::string_view message) {
   std::fflush(file);
 }
 
-void file_logger::file_deleter::operator()(FILE* file) {
+void File_Logger::File_Deleter::operator()(FILE* file) {
   if (file) {
     std::fclose(file);
     // TODO(strager): Report fclose failures.
   }
 }
 
-void enable_logger(logger* l) {
-  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+void enable_logger(Logger* l) {
+  Lock_Ptr<Global_Loggers> locked_loggers = loggers.lock();
   locked_loggers->initialize_if_needed();
 
   QLJS_ASSERT(!contains(locked_loggers->loggers, l));
   locked_loggers->loggers.push_back(l);
 }
 
-void disable_logger(logger* l) {
-  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+void disable_logger(Logger* l) {
+  Lock_Ptr<Global_Loggers> locked_loggers = loggers.lock();
   locked_loggers->initialize_if_needed();
 
   locked_loggers->loggers.erase(
@@ -94,14 +94,14 @@ void disable_logger(logger* l) {
 }
 
 bool is_logging_enabled() noexcept {
-  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  Lock_Ptr<Global_Loggers> locked_loggers = loggers.lock();
   locked_loggers->initialize_if_needed();
   return !locked_loggers->loggers.empty();
 }
 
 namespace {
 void debug_log_v(const char* format, std::va_list args) {
-  lock_ptr<global_loggers> locked_loggers = loggers.lock();
+  Lock_Ptr<Global_Loggers> locked_loggers = loggers.lock();
   locked_loggers->initialize_if_needed();
   if (locked_loggers->loggers.empty()) {
     return;
@@ -115,7 +115,7 @@ void debug_log_v(const char* format, std::va_list args) {
       narrow_cast<std::size_t>(full_message_length), message.size() - 1);
   std::string_view message_view(message.data(), message_length);
 
-  for (logger* l : locked_loggers->loggers) {
+  for (Logger* l : locked_loggers->loggers) {
     l->log(message_view);
   }
 }

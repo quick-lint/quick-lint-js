@@ -23,11 +23,11 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_ambiguous : public test_parse_expression {};
+class Test_Parse_TypeScript_Ambiguous : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
+TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
   {
-    test_parser p(u8"async<T>();"_sv, typescript_options);
+    Test_Parser p(u8"async<T>();"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -37,7 +37,7 @@ TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   }
 
   {
-    test_parser p(u8"async<T>;"_sv, typescript_options);
+    Test_Parser p(u8"async<T>;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -47,9 +47,9 @@ TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   }
 }
 
-TEST_F(test_parse_typescript_ambiguous, async_variable_less_than_expression) {
+TEST_F(Test_Parse_TypeScript_Ambiguous, async_variable_less_than_expression) {
   {
-    test_parser p(u8"async < someexpr;"_sv, typescript_options);
+    Test_Parser p(u8"async < someexpr;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // async

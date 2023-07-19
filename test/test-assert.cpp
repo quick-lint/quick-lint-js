@@ -10,7 +10,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 namespace quick_lint_js {
 namespace {
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
-TEST(test_assert, failing_assert_crashes_SLOW) {
+TEST(Test_Assert, failing_assert_crashes_SLOW) {
   auto check = [] {
     bool everything_is_okay = false;
     QLJS_ALWAYS_ASSERT(everything_is_okay);
@@ -19,9 +19,9 @@ TEST(test_assert, failing_assert_crashes_SLOW) {
 }
 #endif
 
-TEST(test_assert, passing_assert_does_not_crash) { QLJS_ALWAYS_ASSERT(true); }
+TEST(Test_Assert, passing_assert_does_not_crash) { QLJS_ALWAYS_ASSERT(true); }
 
-TEST(test_assert, passing_assert_executes_side_effects) {
+TEST(Test_Assert, passing_assert_executes_side_effects) {
   bool executed = false;
   QLJS_ALWAYS_ASSERT((executed = true));
   EXPECT_TRUE(executed);

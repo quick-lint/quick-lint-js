@@ -13,193 +13,193 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-using test_result_error_types = ::testing::Types<void, int>;
+using Test_Result_Error_Types = ::testing::Types<void, int>;
 template <class T>
-class test_result_error : public ::testing::Test {};
-TYPED_TEST_SUITE(test_result_error, test_result_error_types,
+class Test_Result_Error : public ::testing::Test {};
+TYPED_TEST_SUITE(Test_Result_Error, Test_Result_Error_Types,
                  ::testing::internal::DefaultNameGenerator);
 
-TEST(test_result, store_void) {
-  result<void, std::string> r;
+TEST(Test_Result, store_void) {
+  Result<void, std::string> r;
   EXPECT_TRUE(r.ok());
 }
 
-TEST(test_result, store_int) {
-  result<int, std::string> r(42);
+TEST(Test_Result, store_int) {
+  Result<int, std::string> r(42);
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, 42);
 }
 
-TEST(test_result, default_construct_int) {
-  result<int, std::string> r;
+TEST(Test_Result, default_construct_int) {
+  Result<int, std::string> r;
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, 0);
 }
 
-TEST(test_result, default_construct_non_trivial) {
-  result<std::unique_ptr<int>, std::string> r;
+TEST(Test_Result, default_construct_non_trivial) {
+  Result<std::unique_ptr<int>, std::string> r;
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, nullptr);
 }
 
-TEST(test_result, store_move_only_type) {
-  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
+TEST(Test_Result, store_move_only_type) {
+  Result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
 
-TEST(test_result, move_construct_void) {
-  result<void, std::string> r;
-  result<void, std::string> copy = std::move(r);
+TEST(Test_Result, move_construct_void) {
+  Result<void, std::string> r;
+  Result<void, std::string> copy = std::move(r);
   EXPECT_TRUE(copy.ok());
 }
 
-TEST(test_result, move_construct_of_move_only_type) {
-  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
-  result<std::unique_ptr<int>, std::string> copy = std::move(r);
+TEST(Test_Result, move_construct_of_move_only_type) {
+  Result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
+  Result<std::unique_ptr<int>, std::string> copy = std::move(r);
   EXPECT_TRUE(copy.ok());
   EXPECT_EQ(**copy, 42);
 }
 
-TEST(test_result, move_assign_of_move_only_type) {
-  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
-  r = result<std::unique_ptr<int>, std::string>(std::make_unique<int>(69));
+TEST(Test_Result, move_assign_of_move_only_type) {
+  Result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
+  r = Result<std::unique_ptr<int>, std::string>(std::make_unique<int>(69));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 69);
 }
 
-TEST(test_result, move_assign_void) {
-  result<void, std::string> r;
-  r = result<void, std::string>();
+TEST(Test_Result, move_assign_void) {
+  Result<void, std::string> r;
+  r = Result<void, std::string>();
   EXPECT_TRUE(r.ok());
 }
 
-TYPED_TEST(test_result_error, store_error) {
-  result<TypeParam, std::string> r = failed_result("something bad happened"s);
+TYPED_TEST(Test_Result_Error, store_error) {
+  Result<TypeParam, std::string> r = failed_result("something bad happened"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "something bad happened");
 }
 
-TYPED_TEST(test_result_error, move_construct_error) {
-  result<TypeParam, std::string> r = failed_result("something bad happened"s);
-  result<TypeParam, std::string> copy = std::move(r);
+TYPED_TEST(Test_Result_Error, move_construct_error) {
+  Result<TypeParam, std::string> r = failed_result("something bad happened"s);
+  Result<TypeParam, std::string> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error(), "something bad happened");
 }
 
-TYPED_TEST(test_result_error, move_assign_error) {
-  result<TypeParam, std::string> r = failed_result("something bad happened"s);
+TYPED_TEST(Test_Result_Error, move_assign_error) {
+  Result<TypeParam, std::string> r = failed_result("something bad happened"s);
   r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_result, move_assign_error_atop_value) {
-  result<std::shared_ptr<int>, std::string> r =
-      result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
+TEST(Test_Result, move_assign_error_atop_value) {
+  Result<std::shared_ptr<int>, std::string> r =
+      Result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
   r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_result, move_assign_error_atop_void) {
-  result<void, std::string> r;
+TEST(Test_Result, move_assign_error_atop_void) {
+  Result<void, std::string> r;
   r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_result, move_assign_value_atop_error) {
-  result<std::shared_ptr<int>, std::string> r = failed_result("fatal error"s);
-  r = result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
+TEST(Test_Result, move_assign_value_atop_error) {
+  Result<std::shared_ptr<int>, std::string> r = failed_result("fatal error"s);
+  r = Result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
 
-TEST(test_result, move_assign_void_atop_error) {
-  result<void, std::string> r = failed_result("fatal error"s);
-  r = result<void, std::string>();
+TEST(Test_Result, move_assign_void_atop_error) {
+  Result<void, std::string> r = failed_result("fatal error"s);
+  r = Result<void, std::string>();
   EXPECT_TRUE(r.ok());
 }
 
-TEST(test_multi_error_result, store_void) {
-  struct e_a {};
-  struct e_b {};
-  result<void, e_a, e_b> r;
+TEST(Test_Multi_Error_Result, store_void) {
+  struct E_A {};
+  struct E_B {};
+  Result<void, E_A, E_B> r;
   EXPECT_TRUE(r.ok());
-  EXPECT_FALSE(r.has_error<e_a>());
-  EXPECT_FALSE(r.has_error<e_b>());
+  EXPECT_FALSE(r.has_error<E_A>());
+  EXPECT_FALSE(r.has_error<E_B>());
 }
 
-TEST(test_multi_error_result, store_int) {
-  struct e_a {};
-  struct e_b {};
-  result<int, e_a, e_b> r(42);
+TEST(Test_Multi_Error_Result, store_int) {
+  struct E_A {};
+  struct E_B {};
+  Result<int, E_A, E_B> r(42);
   EXPECT_TRUE(r.ok());
-  EXPECT_FALSE(r.has_error<e_a>());
-  EXPECT_FALSE(r.has_error<e_b>());
+  EXPECT_FALSE(r.has_error<E_A>());
+  EXPECT_FALSE(r.has_error<E_B>());
   EXPECT_EQ(*r, 42);
 }
 
-TEST(test_multi_error_result, move_construct_void) {
-  struct e_a {};
-  struct e_b {};
-  result<void, e_a, e_b> r;
-  result<void, e_a, e_b> copy = std::move(r);
+TEST(Test_Multi_Error_Result, move_construct_void) {
+  struct E_A {};
+  struct E_B {};
+  Result<void, E_A, E_B> r;
+  Result<void, E_A, E_B> copy = std::move(r);
   EXPECT_TRUE(copy.ok());
-  EXPECT_FALSE(copy.has_error<e_a>());
-  EXPECT_FALSE(copy.has_error<e_b>());
+  EXPECT_FALSE(copy.has_error<E_A>());
+  EXPECT_FALSE(copy.has_error<E_B>());
 }
 
-TEST(test_multi_error_result, move_assign_void) {
-  struct e_a {};
-  struct e_b {};
-  result<void, e_a, e_b> r;
-  r = result<void, e_a, e_b>();
+TEST(Test_Multi_Error_Result, move_assign_void) {
+  struct E_A {};
+  struct E_B {};
+  Result<void, E_A, E_B> r;
+  r = Result<void, E_A, E_B>();
   EXPECT_TRUE(r.ok());
-  EXPECT_FALSE(r.has_error<e_a>());
-  EXPECT_FALSE(r.has_error<e_b>());
+  EXPECT_FALSE(r.has_error<E_A>());
+  EXPECT_FALSE(r.has_error<E_B>());
 }
 
-TYPED_TEST(test_result_error, multi_store_first_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, multi_store_first_error_type) {
+  struct E_A {
     std::string data;
   };
-  struct e_b {
+  struct E_B {
     int data;
   };
-  result<TypeParam, e_a, e_b> r = failed_result(e_a{"something bad happened"});
+  Result<TypeParam, E_A, E_B> r = failed_result(E_A{"something bad happened"});
   EXPECT_FALSE(r.ok());
-  EXPECT_TRUE(r.template has_error<e_a>());
-  EXPECT_FALSE(r.template has_error<e_b>());
-  EXPECT_EQ(r.template error<e_a>().data, "something bad happened");
+  EXPECT_TRUE(r.template has_error<E_A>());
+  EXPECT_FALSE(r.template has_error<E_B>());
+  EXPECT_EQ(r.template error<E_A>().data, "something bad happened");
 }
 
-TYPED_TEST(test_result_error, multi_store_second_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, multi_store_second_error_type) {
+  struct E_A {
     std::string data;
   };
-  struct e_b {
+  struct E_B {
     int data;
   };
-  result<TypeParam, e_a, e_b> r = failed_result(e_b{42});
+  Result<TypeParam, E_A, E_B> r = failed_result(E_B{42});
   EXPECT_FALSE(r.ok());
-  EXPECT_FALSE(r.template has_error<e_a>());
-  EXPECT_TRUE(r.template has_error<e_b>());
-  EXPECT_EQ(r.template error<e_b>().data, 42);
+  EXPECT_FALSE(r.template has_error<E_A>());
+  EXPECT_TRUE(r.template has_error<E_B>());
+  EXPECT_EQ(r.template error<E_B>().data, 42);
 }
 
-TYPED_TEST(test_result_error, multi_move_construct_first_error_type) {
-  result<TypeParam, std::string, char> r = failed_result("error"s);
-  result<TypeParam, std::string, char> copy = std::move(r);
+TYPED_TEST(Test_Result_Error, multi_move_construct_first_error_type) {
+  Result<TypeParam, std::string, char> r = failed_result("error"s);
+  Result<TypeParam, std::string, char> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_TRUE(copy.template has_error<std::string>());
   EXPECT_FALSE(copy.template has_error<char>());
   EXPECT_EQ(copy.template error<std::string>(), "error");
 }
 
-TYPED_TEST(test_result_error, multi_move_assign_first_error_type) {
-  result<TypeParam, std::string, char> r =
+TYPED_TEST(Test_Result_Error, multi_move_assign_first_error_type) {
+  Result<TypeParam, std::string, char> r =
       failed_result<std::string>("something bad happened");
   r = failed_result<std::string>("fatal error");
   EXPECT_FALSE(r.ok());
@@ -208,9 +208,9 @@ TYPED_TEST(test_result_error, multi_move_assign_first_error_type) {
   EXPECT_EQ(r.template error<std::string>(), "fatal error");
 }
 
-TEST(test_result, multi_move_assign_first_error_type_atop_value) {
-  result<std::shared_ptr<int>, std::string, char> r =
-      result<std::shared_ptr<int>, std::string, char>(
+TEST(Test_Result, multi_move_assign_first_error_type_atop_value) {
+  Result<std::shared_ptr<int>, std::string, char> r =
+      Result<std::shared_ptr<int>, std::string, char>(
           std::make_shared<int>(42));
   r = failed_result("fatal error"s);
   EXPECT_FALSE(r.ok());
@@ -219,8 +219,8 @@ TEST(test_result, multi_move_assign_first_error_type_atop_value) {
   EXPECT_EQ(r.template error<std::string>(), "fatal error");
 }
 
-TEST(test_result, multi_move_assign_first_error_type_atop_void) {
-  result<void, std::string, char> r = result<void, std::string, char>();
+TEST(Test_Result, multi_move_assign_first_error_type_atop_void) {
+  Result<void, std::string, char> r = Result<void, std::string, char>();
   r = failed_result<std::string>("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_TRUE(r.template has_error<std::string>());
@@ -228,10 +228,10 @@ TEST(test_result, multi_move_assign_first_error_type_atop_void) {
   EXPECT_EQ(r.template error<std::string>(), "fatal error");
 }
 
-TEST(test_result, multi_move_assign_value_atop_first_error_type) {
-  result<std::shared_ptr<int>, std::string, char> r =
+TEST(Test_Result, multi_move_assign_value_atop_first_error_type) {
+  Result<std::shared_ptr<int>, std::string, char> r =
       failed_result<std::string>("fatal error");
-  r = result<std::shared_ptr<int>, std::string, char>(
+  r = Result<std::shared_ptr<int>, std::string, char>(
       std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_FALSE(r.template has_error<std::string>());
@@ -239,192 +239,192 @@ TEST(test_result, multi_move_assign_value_atop_first_error_type) {
   EXPECT_EQ(**r, 42);
 }
 
-TEST(test_result, multi_move_assign_void_atop_first_error_type) {
-  result<void, std::string, char> r = failed_result("fatal error"s);
-  r = result<void, std::string, char>();
+TEST(Test_Result, multi_move_assign_void_atop_first_error_type) {
+  Result<void, std::string, char> r = failed_result("fatal error"s);
+  r = Result<void, std::string, char>();
   EXPECT_TRUE(r.ok());
   EXPECT_FALSE(r.template has_error<std::string>());
   EXPECT_FALSE(r.template has_error<char>());
 }
 
-TYPED_TEST(test_result_error, widen_error_to_first_error_type) {
-  struct e_a {};
-  struct e_b {};
-  result<TypeParam, e_a> original = failed_result(e_a{});
-  result<TypeParam, e_a, e_b> copy = std::move(original);
+TYPED_TEST(Test_Result_Error, widen_error_to_first_error_type) {
+  struct E_A {};
+  struct E_B {};
+  Result<TypeParam, E_A> original = failed_result(E_A{});
+  Result<TypeParam, E_A, E_B> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
-  EXPECT_TRUE(copy.template has_error<e_a>());
-  EXPECT_FALSE(copy.template has_error<e_b>());
+  EXPECT_TRUE(copy.template has_error<E_A>());
+  EXPECT_FALSE(copy.template has_error<E_B>());
 }
 
-TYPED_TEST(test_result_error, widen_error_to_second_error_type) {
-  struct e_a {};
-  struct e_b {};
-  result<TypeParam, e_b> original = failed_result(e_b{});
-  result<TypeParam, e_a, e_b> copy = std::move(original);
+TYPED_TEST(Test_Result_Error, widen_error_to_second_error_type) {
+  struct E_A {};
+  struct E_B {};
+  Result<TypeParam, E_B> original = failed_result(E_B{});
+  Result<TypeParam, E_A, E_B> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
-  EXPECT_FALSE(copy.template has_error<e_a>());
-  EXPECT_TRUE(copy.template has_error<e_b>());
+  EXPECT_FALSE(copy.template has_error<E_A>());
+  EXPECT_TRUE(copy.template has_error<E_B>());
 }
 
-TYPED_TEST(test_result_error, swap_error_types) {
-  struct e_a {};
-  struct e_b {};
-  result<TypeParam, e_a, e_b> original = failed_result(e_a{});
-  result<TypeParam, e_b, e_a> copy = std::move(original);
+TYPED_TEST(Test_Result_Error, swap_error_types) {
+  struct E_A {};
+  struct E_B {};
+  Result<TypeParam, E_A, E_B> original = failed_result(E_A{});
+  Result<TypeParam, E_B, E_A> copy = std::move(original);
   EXPECT_FALSE(copy.ok());
-  EXPECT_TRUE(copy.template has_error<e_a>());
-  EXPECT_FALSE(copy.template has_error<e_b>());
+  EXPECT_TRUE(copy.template has_error<E_A>());
+  EXPECT_FALSE(copy.template has_error<E_B>());
 }
 
-TYPED_TEST(test_result_error, propagate_error_with_same_value_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, propagate_error_with_same_value_type) {
+  struct E_A {
     int data;
   };
-  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
   ASSERT_FALSE(original.ok());
 
-  result<TypeParam, e_a> copy = original.propagate();
+  Result<TypeParam, E_A> copy = original.propagate();
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error().data, 42);
 }
 
-TYPED_TEST(test_result_error, propagate_error_to_different_value_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, propagate_error_to_different_value_type) {
+  struct E_A {
     int data;
   };
-  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
   ASSERT_FALSE(original.ok());
 
-  result<std::string, e_a> copy = original.propagate();
+  Result<std::string, E_A> copy = original.propagate();
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error().data, 42);
 }
 
-TYPED_TEST(test_result_error, propagate_error_to_void_value_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, propagate_error_to_void_value_type) {
+  struct E_A {
     int data;
   };
-  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
   ASSERT_FALSE(original.ok());
 
-  result<void, e_a> copy = original.propagate();
+  Result<void, E_A> copy = original.propagate();
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error().data, 42);
 }
 
-TYPED_TEST(test_result_error, propagate_error_with_extra_second_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, propagate_error_with_extra_second_error_type) {
+  struct E_A {
     int data;
   };
-  struct e_b {};
-  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
+  struct E_B {};
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
   ASSERT_FALSE(original.ok());
 
-  result<TypeParam, e_a, e_b> copy = original.propagate();
+  Result<TypeParam, E_A, E_B> copy = original.propagate();
   EXPECT_FALSE(copy.ok());
-  EXPECT_TRUE(copy.template has_error<e_a>());
-  EXPECT_FALSE(copy.template has_error<e_b>());
-  EXPECT_EQ(copy.template error<e_a>().data, 42);
+  EXPECT_TRUE(copy.template has_error<E_A>());
+  EXPECT_FALSE(copy.template has_error<E_B>());
+  EXPECT_EQ(copy.template error<E_A>().data, 42);
 }
 
-TYPED_TEST(test_result_error, propagate_error_with_extra_first_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, propagate_error_with_extra_first_error_type) {
+  struct E_A {
     int data;
   };
-  struct e_b {};
-  result<TypeParam, e_a> original = failed_result(e_a{.data = 42});
+  struct E_B {};
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
   ASSERT_FALSE(original.ok());
 
-  result<TypeParam, e_b, e_a> copy = original.propagate();
+  Result<TypeParam, E_B, E_A> copy = original.propagate();
   EXPECT_FALSE(copy.ok());
-  EXPECT_TRUE(copy.template has_error<e_a>());
-  EXPECT_FALSE(copy.template has_error<e_b>());
-  EXPECT_EQ(copy.template error<e_a>().data, 42);
+  EXPECT_TRUE(copy.template has_error<E_A>());
+  EXPECT_FALSE(copy.template has_error<E_B>());
+  EXPECT_EQ(copy.template error<E_A>().data, 42);
 }
 
-TYPED_TEST(test_result_error, error_to_string_with_single_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, error_to_string_with_single_error_type) {
+  struct E_A {
     std::string data;
     std::string to_string() const { return "data = " + data; }
   };
-  result<TypeParam, e_a> error = failed_result(e_a{.data = "hello"});
+  Result<TypeParam, E_A> error = failed_result(E_A{.data = "hello"});
   EXPECT_EQ(error.error_to_string(), "data = hello");
 }
 
-TYPED_TEST(test_result_error, error_to_string_with_first_error_type) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, error_to_string_with_first_error_type) {
+  struct E_A {
     std::string data;
-    std::string to_string() const { return "e_a data = " + data; }
+    std::string to_string() const { return "E_A data = " + data; }
   };
-  struct e_b {
+  struct E_B {
     std::string data;
-    std::string to_string() const { return "e_b data = " + data; }
+    std::string to_string() const { return "E_B data = " + data; }
   };
-  result<TypeParam, e_a, e_b> error = failed_result(e_a{.data = "hello"});
-  EXPECT_EQ(error.error_to_string(), "e_a data = hello");
+  Result<TypeParam, E_A, E_B> error = failed_result(E_A{.data = "hello"});
+  EXPECT_EQ(error.error_to_string(), "E_A data = hello");
 }
 
-TYPED_TEST(test_result_error, copy_errors_with_single_error) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, copy_errors_with_single_error) {
+  struct E_A {
     std::string data;
   };
-  result<TypeParam, e_a> r = failed_result(e_a{.data = "hello"});
-  result<void, e_a> v = r.template copy_errors<e_a>();
+  Result<TypeParam, E_A> r = failed_result(E_A{.data = "hello"});
+  Result<void, E_A> v = r.template copy_errors<E_A>();
   EXPECT_FALSE(v.ok());
   EXPECT_EQ(v.error().data, "hello");
 }
 
-TYPED_TEST(test_result_error, copy_errors_with_first_error) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, copy_errors_with_first_error) {
+  struct E_A {
     std::string data;
   };
-  struct e_b {
+  struct E_B {
     int data;
   };
-  result<TypeParam, e_a, e_b> r = failed_result(e_a{.data = "hello"});
-  result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+  Result<TypeParam, E_A, E_B> r = failed_result(E_A{.data = "hello"});
+  Result<void, E_A, E_B> v = r.template copy_errors<E_A, E_B>();
   EXPECT_FALSE(v.ok());
-  EXPECT_TRUE(v.template has_error<e_a>());
-  EXPECT_FALSE(v.template has_error<e_b>());
-  EXPECT_EQ(v.template error<e_a>().data, "hello");
+  EXPECT_TRUE(v.template has_error<E_A>());
+  EXPECT_FALSE(v.template has_error<E_B>());
+  EXPECT_EQ(v.template error<E_A>().data, "hello");
 }
 
-TYPED_TEST(test_result_error, copy_errors_with_second_error) {
-  struct e_a {
+TYPED_TEST(Test_Result_Error, copy_errors_with_second_error) {
+  struct E_A {
     std::string data;
   };
-  struct e_b {
+  struct E_B {
     int data;
   };
-  result<TypeParam, e_a, e_b> r = failed_result(e_b{.data = 42});
-  result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+  Result<TypeParam, E_A, E_B> r = failed_result(E_B{.data = 42});
+  Result<void, E_A, E_B> v = r.template copy_errors<E_A, E_B>();
   EXPECT_FALSE(v.ok());
-  EXPECT_FALSE(v.template has_error<e_a>());
-  EXPECT_TRUE(v.template has_error<e_b>());
-  EXPECT_EQ(v.template error<e_b>().data, 42);
+  EXPECT_FALSE(v.template has_error<E_A>());
+  EXPECT_TRUE(v.template has_error<E_B>());
+  EXPECT_EQ(v.template error<E_B>().data, 42);
 }
 
-TYPED_TEST(test_result_error,
+TYPED_TEST(Test_Result_Error,
            copy_errors_with_single_error_adding_error_types) {
-  struct e_a {};
-  struct e_b {};
-  struct e_c {};
+  struct E_A {};
+  struct E_B {};
+  struct E_C {};
 
   {
-    result<TypeParam, e_b> r = failed_result(e_b());
-    result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+    Result<TypeParam, E_B> r = failed_result(E_B());
+    Result<void, E_A, E_B> v = r.template copy_errors<E_A, E_B>();
     EXPECT_FALSE(v.ok());
-    EXPECT_FALSE(v.template has_error<e_a>());
-    EXPECT_TRUE(v.template has_error<e_b>());
+    EXPECT_FALSE(v.template has_error<E_A>());
+    EXPECT_TRUE(v.template has_error<E_B>());
   }
 
   {
-    result<TypeParam, e_b> r = failed_result(e_b());
-    result<void, e_b, e_c> v = r.template copy_errors<e_b, e_c>();
+    Result<TypeParam, E_B> r = failed_result(E_B());
+    Result<void, E_B, E_C> v = r.template copy_errors<E_B, E_C>();
     EXPECT_FALSE(v.ok());
-    EXPECT_TRUE(v.template has_error<e_b>());
-    EXPECT_FALSE(v.template has_error<e_c>());
+    EXPECT_TRUE(v.template has_error<E_B>());
+    EXPECT_FALSE(v.template has_error<E_C>());
   }
 }
 }

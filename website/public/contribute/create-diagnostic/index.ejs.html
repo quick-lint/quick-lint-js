@@ -124,9 +124,9 @@
         </p>
         <blockquote>
           <pre><code class="cxx">QLJS_DIAG_TYPE(                                                  \
-    <mark class="arg-1">diag_missing_body_for_try_statement</mark>, <mark class="arg-2">"E0120"</mark>,                \
+    <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark>, <mark class="arg-2">"E0120"</mark>,                \
     <mark class="arg-3">diagnostic_severity::error</mark>,                                  \
-    <mark class="arg-4">{ source_code_span try_token; }</mark>,                             \
+    <mark class="arg-4">{ Source_Code_Span try_token; }</mark>,                             \
     <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"),</mark> \
             <mark class="arg-5">try_token)</mark>)                                          \</code></pre>
         </blockquote>
@@ -145,8 +145,8 @@
         </p>
 
         <blockquote>
-          <pre><code class="cxx">struct <mark class="arg-1">diag_missing_body_for_try_statement</mark> <mark class="arg-4">{</mark>
-    <mark class="arg-4">source_code_span try_token;</mark>
+          <pre><code class="cxx">struct <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark> <mark class="arg-4">{</mark>
+    <mark class="arg-4">Source_Code_Span try_token;</mark>
 <mark class="arg-4">}</mark>;</code></pre>
         </blockquote>
 
@@ -200,7 +200,7 @@
 
         <p>
           Each diagnostic is actually a class. The class needs to store at least
-          one <code class="cxx">source_code_span</code> or
+          one <code class="cxx">Source_Code_Span</code> or
           <code class="cxx">identifier</code> variable so the editor knows where
           to put the <span class="diagnostic">squigglies</span>. We should think
           about where the squigglies should go and name our variable
@@ -216,7 +216,7 @@
     <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,         \
     <mark class="arg-2 unimportant">"E0001"</mark>,                                   \
     <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,              \
-    <mark class="arg-4">{ source_code_span comparison_operator; }</mark>, \
+    <mark class="arg-4">{ Source_Code_Span comparison_operator; }</mark>, \
     <mark class="arg-5 unimportant">/* TODO */</mark>)                                \</code></pre>
         </blockquote>
 
@@ -233,7 +233,7 @@
           diagnostics might have formatting or multiple strings. Our diagnostic
           is simple, so let's just write a single string with no formatting.
           Don't forget to mention the
-          <code class="cxx">source_code_span</code> variable we defined inside
+          <code class="cxx">Source_Code_Span</code> variable we defined inside
           our <code class="cxx">diag_</code> class:
         </p>
 
@@ -242,7 +242,7 @@
     <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
     <mark class="arg-2 unimportant">"E0001"</mark>,                                       \
     <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
-    <mark class="arg-4 unimportant">{ source_code_span comparison_operator; }</mark>,     \
+    <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
     <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
       <mark class="arg-5">"comparing against empty strings is silly"),</mark> \
       <mark class="arg-5">comparison_operator)</mark>)                        \</code></pre>
@@ -351,7 +351,7 @@ Running main() from gmock_main.cc
 test/test-diag-code.cpp:50: Failure
 Failed
 <mark>diag code <strong>E0001</strong> used for multiple diags:</mark>
-diag_comparison_with_empty_string, diag_assignment_before_variable_declaration
+diag_comparison_with_empty_string, Diag_Assignment_Before_Variable_Declaration
 <mark>try this unused diag code: <strong>E0331</strong></mark>
 [  FAILED  ] test_diag_code.diag_codes_are_unique (1 ms)
 main thread ID: 372035
@@ -372,7 +372,7 @@ main thread ID: 372035
     <mark class="arg-1 unimportant">diag_comparison_with_empty_string</mark>,             \
     <mark class="arg-2">"E0331"</mark>,                                       \
     <mark class="arg-3 unimportant">diagnostic_severity::warning</mark>,                  \
-    <mark class="arg-4 unimportant">{ source_code_span comparison_operator; }</mark>,     \
+    <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
     <mark class="arg-5 unimportant">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
       <mark class="arg-5 unimportant">"comparing against empty strings is silly"),</mark> \
       <mark class="arg-5 unimportant">comparison_operator)</mark>)                        \</code></pre>
@@ -627,7 +627,7 @@ Breakpoint 1, quick_lint_js::parser::parse_and_visit_expression at src/./quick-l
         </p>
 
         <blockquote>
-          <pre><code class="cxx">source_code_span op_span = /* usually this->peek().span */;
+          <pre><code class="cxx">Source_Code_Span op_span = /* usually this->peek().span */;
 this->diag_reporter_->report(diag_comparison_with_empty_string{
     .comparison_operator = op_span,
 });</code></pre>

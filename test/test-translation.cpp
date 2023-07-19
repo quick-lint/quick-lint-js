@@ -18,102 +18,102 @@ using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class basic_text_diag_reporter;
-class basic_text_diag_formatter;
+class Basic_Text_Diag_Reporter;
+class Basic_Text_Diag_Formatter;
 
-class basic_text_diag_formatter
-    : public diagnostic_formatter<basic_text_diag_formatter> {
+class Basic_Text_Diag_Formatter
+    : public Diagnostic_Formatter<Basic_Text_Diag_Formatter> {
  public:
-  explicit basic_text_diag_formatter(basic_text_diag_reporter *reporter);
+  explicit Basic_Text_Diag_Formatter(Basic_Text_Diag_Reporter *reporter);
 
   void write_before_message([[maybe_unused]] std::string_view code,
-                            diagnostic_severity, const source_code_span &) {}
+                            Diagnostic_Severity, const Source_Code_Span &) {}
 
   void write_message_part([[maybe_unused]] std::string_view code,
-                          diagnostic_severity, string8_view part) {
+                          Diagnostic_Severity, String8_View part) {
     this->current_message_.append(part);
   }
 
-  void write_after_message(std::string_view code, diagnostic_severity,
-                           const source_code_span &);
+  void write_after_message(std::string_view code, Diagnostic_Severity,
+                           const Source_Code_Span &);
 
  private:
-  basic_text_diag_reporter *reporter_;
-  string8 current_message_;
+  Basic_Text_Diag_Reporter *reporter_;
+  String8 current_message_;
 };
 
-class basic_text_diag_reporter final : public diag_reporter {
+class Basic_Text_Diag_Reporter final : public Diag_Reporter {
  public:
-  explicit basic_text_diag_reporter(translator t) : translator_(t) {}
+  explicit Basic_Text_Diag_Reporter(Translator t) : translator_(t) {}
 
-  std::vector<string8> messages() { return this->messages_; }
+  std::vector<String8> messages() { return this->messages_; }
 
-  void report_impl(diag_type type, void *diag) override {
-    basic_text_diag_formatter formatter(this);
+  void report_impl(Diag_Type type, void *diag) override {
+    Basic_Text_Diag_Formatter formatter(this);
     formatter.format(get_diagnostic_info(type), diag);
   }
 
  private:
-  std::vector<string8> messages_;
-  translator translator_;
+  std::vector<String8> messages_;
+  Translator translator_;
 
-  friend basic_text_diag_formatter;
+  friend Basic_Text_Diag_Formatter;
 };
 
-basic_text_diag_formatter::basic_text_diag_formatter(
-    basic_text_diag_reporter *reporter)
-    : diagnostic_formatter<basic_text_diag_formatter>(reporter->translator_),
+Basic_Text_Diag_Formatter::Basic_Text_Diag_Formatter(
+    Basic_Text_Diag_Reporter *reporter)
+    : Diagnostic_Formatter<Basic_Text_Diag_Formatter>(reporter->translator_),
       reporter_(reporter) {}
 
-void basic_text_diag_formatter::write_after_message(
-    [[maybe_unused]] std::string_view code, diagnostic_severity,
-    const source_code_span &) {
+void Basic_Text_Diag_Formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity,
+    const Source_Code_Span &) {
   this->reporter_->messages_.emplace_back(std::move(this->current_message_));
 }
 
-class test_translation : public ::testing::Test {
+class Test_Translation : public ::testing::Test {
  public:
   void TearDown() override { initialize_translations_from_locale("C"); }
 
  protected:
-  source_code_span dummy_span() {
-    static const char8 hello[] = u8"hello";
-    return source_code_span(&hello[0], &hello[5]);
+  Source_Code_Span dummy_span() {
+    static const Char8 hello[] = u8"hello";
+    return Source_Code_Span(&hello[0], &hello[5]);
   }
 };
 
-TEST_F(test_translation, c_language_does_not_translate_diagnostics) {
-  translator t;
+TEST_F(Test_Translation, c_language_does_not_translate_diagnostics) {
+  Translator t;
   t.use_messages_from_locale("C");
-  basic_text_diag_reporter reporter(t);
-  reporter.report(diag_unexpected_hash_character{this->dummy_span()});
+  Basic_Text_Diag_Reporter reporter(t);
+  reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
   EXPECT_THAT(reporter.messages(), ElementsAre(u8"unexpected '#'"));
 }
 
-TEST_F(test_translation, english_snarky_translates) {
-  translator t;
+TEST_F(Test_Translation, english_snarky_translates) {
+  Translator t;
   t.use_messages_from_locale("en_US.utf8@snarky");
-  basic_text_diag_reporter reporter(t);
-  reporter.report(diag_unexpected_hash_character{this->dummy_span()});
+  Basic_Text_Diag_Reporter reporter(t);
+  reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
   EXPECT_THAT(reporter.messages(), ElementsAre(u8"#unexpected"));
 }
 
-TEST_F(test_translation, full_translation_table) {
+TEST_F(Test_Translation, full_translation_table) {
   for (std::size_t locale_index = 0;
        locale_index < std::size(test_locale_names); ++locale_index) {
     const char *locale_name = test_locale_names[locale_index];
     SCOPED_TRACE(locale_name);
-    translator messages;
+    Translator messages;
     if (*locale_name == '\0') {
       messages.use_messages_from_source_code();
     } else {
       EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
     }
 
-    for (const translated_string &test_case : test_translation_table) {
+    for (const Translated_String &test_case : test_translation_table) {
       ASSERT_TRUE(test_case.translatable.valid());
       EXPECT_EQ(messages.translate(test_case.translatable),
-                string8_view(test_case.expected_per_locale[locale_index]));
+                String8_View(test_case.expected_per_locale[locale_index]));
     }
   }
 }

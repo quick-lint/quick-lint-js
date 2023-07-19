@@ -46,7 +46,7 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
     auto get_file_id = [](const char* path) -> ::FILE_ID_INFO {
       ::FILE_ID_INFO id = {};
       // TODO(strager): Use CreateFileW instead.
-      windows_handle_file handle(::CreateFileA(
+      Windows_Handle_File handle(::CreateFileA(
           path, /*dwDesiredAccess=*/GENERIC_READ,
           /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ |
               FILE_SHARE_WRITE,
@@ -115,7 +115,7 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
 
 inline ::testing::AssertionResult assert_same_file(
     const char* lhs_expr, const char* rhs_expr,
-    const std::optional<canonical_path>& lhs_path,
+    const std::optional<Canonical_Path>& lhs_path,
     const std::string& rhs_path) {
   return assert_same_file(lhs_expr, rhs_expr,
                           lhs_path.has_value() ? lhs_path->c_str() : "",
@@ -123,7 +123,7 @@ inline ::testing::AssertionResult assert_same_file(
 }
 
 inline ::testing::AssertionResult assert_same_file(
-    const char* lhs_expr, const char* rhs_expr, const canonical_path& lhs_path,
+    const char* lhs_expr, const char* rhs_expr, const Canonical_Path& lhs_path,
     const std::string& rhs_path) {
   return assert_same_file(lhs_expr, rhs_expr, lhs_path.c_str(), rhs_path);
 }
@@ -163,7 +163,6 @@ inline ::testing::AssertionResult assert_file_does_not_exist(
     const char* expr, const std::string& path) {
   return assert_file_does_not_exist(expr, path.c_str());
 }
-
 }
 
 #endif

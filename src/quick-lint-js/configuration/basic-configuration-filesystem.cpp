@@ -11,19 +11,19 @@
 #include <string>
 
 namespace quick_lint_js {
-basic_configuration_filesystem*
-basic_configuration_filesystem::instance() noexcept {
-  static basic_configuration_filesystem fs;
+Basic_Configuration_Filesystem*
+Basic_Configuration_Filesystem::instance() noexcept {
+  static Basic_Configuration_Filesystem fs;
   return &fs;
 }
 
-result<canonical_path_result, canonicalize_path_io_error>
-basic_configuration_filesystem::canonicalize_path(const std::string& path) {
+Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
+Basic_Configuration_Filesystem::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-result<padded_string, read_file_io_error>
-basic_configuration_filesystem::read_file(const canonical_path& path) {
+Result<Padded_String, Read_File_IO_Error>
+Basic_Configuration_Filesystem::read_file(const Canonical_Path& path) {
   return quick_lint_js::read_file(path.c_str());
 }
 }

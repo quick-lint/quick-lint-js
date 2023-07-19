@@ -13,13 +13,13 @@
 
 namespace quick_lint_js {
 // See tools/compile-translations.go for documentation on the format.
-struct translation_table {
-  struct mapping_entry {
+struct Translation_Table {
+  struct Mapping_Entry {
     std::uint32_t string_offsets[translation_table_locale_count + 1];
   };
 
-  std::array<mapping_entry, translation_table_mapping_table_size> mapping_table;
-  char8 string_table[translation_table_string_table_size];
+  std::array<Mapping_Entry, translation_table_mapping_table_size> mapping_table;
+  Char8 string_table[translation_table_string_table_size];
   char locale_table[translation_table_locale_table_size];
 
   static constexpr std::uint16_t unallocated_mapping_index = 0;
@@ -32,12 +32,12 @@ struct translation_table {
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
   static QLJS_CONSTEVAL
-      std::array<mapping_entry, translation_table_mapping_table_size>
+      std::array<Mapping_Entry, translation_table_mapping_table_size>
       absolute_mapping_table_from_relative(
-          const std::array<mapping_entry, translation_table_mapping_table_size>
+          const std::array<Mapping_Entry, translation_table_mapping_table_size>
               &relative) {
-    mapping_entry last_present_mapping = {};
-    std::array<mapping_entry, translation_table_mapping_table_size> result = {};
+    Mapping_Entry last_present_mapping = {};
+    std::array<Mapping_Entry, translation_table_mapping_table_size> result = {};
     for (std::uint16_t i = 0; i < translation_table_mapping_table_size; ++i) {
       for (std::uint32_t locale_index = 0;
            locale_index < translation_table_locale_count + 1; ++locale_index) {
@@ -57,7 +57,7 @@ struct translation_table {
   QLJS_WARNING_POP
 };
 
-extern const translation_table translation_data;
+extern const Translation_Table translation_data;
 }
 
 #endif

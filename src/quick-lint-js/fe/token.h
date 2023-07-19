@@ -12,57 +12,57 @@
 #include <vector>
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \
-  case ::quick_lint_js::token_type::kw_break:                          \
-  case ::quick_lint_js::token_type::kw_case:                           \
-  case ::quick_lint_js::token_type::kw_catch:                          \
-  case ::quick_lint_js::token_type::kw_class:                          \
-  case ::quick_lint_js::token_type::kw_const:                          \
-  case ::quick_lint_js::token_type::kw_continue:                       \
-  case ::quick_lint_js::token_type::kw_debugger:                       \
-  case ::quick_lint_js::token_type::kw_default:                        \
-  case ::quick_lint_js::token_type::kw_delete:                         \
-  case ::quick_lint_js::token_type::kw_do:                             \
-  case ::quick_lint_js::token_type::kw_else:                           \
-  case ::quick_lint_js::token_type::kw_enum:                           \
-  case ::quick_lint_js::token_type::kw_export:                         \
-  case ::quick_lint_js::token_type::kw_extends:                        \
-  case ::quick_lint_js::token_type::kw_false:                          \
-  case ::quick_lint_js::token_type::kw_finally:                        \
-  case ::quick_lint_js::token_type::kw_for:                            \
-  case ::quick_lint_js::token_type::kw_if:                             \
-  case ::quick_lint_js::token_type::kw_import:                         \
-  case ::quick_lint_js::token_type::kw_in:                             \
-  case ::quick_lint_js::token_type::kw_instanceof:                     \
-  case ::quick_lint_js::token_type::kw_new:                            \
-  case ::quick_lint_js::token_type::kw_null:                           \
-  case ::quick_lint_js::token_type::kw_return:                         \
-  case ::quick_lint_js::token_type::kw_super:                          \
-  case ::quick_lint_js::token_type::kw_switch:                         \
-  case ::quick_lint_js::token_type::kw_this:                           \
-  case ::quick_lint_js::token_type::kw_throw:                          \
-  case ::quick_lint_js::token_type::kw_true:                           \
-  case ::quick_lint_js::token_type::kw_try:                            \
-  case ::quick_lint_js::token_type::kw_typeof:                         \
-  case ::quick_lint_js::token_type::kw_var:                            \
-  case ::quick_lint_js::token_type::kw_void:                           \
-  case ::quick_lint_js::token_type::kw_while:                          \
-  case ::quick_lint_js::token_type::kw_with
+  case ::quick_lint_js::Token_Type::kw_break:                          \
+  case ::quick_lint_js::Token_Type::kw_case:                           \
+  case ::quick_lint_js::Token_Type::kw_catch:                          \
+  case ::quick_lint_js::Token_Type::kw_class:                          \
+  case ::quick_lint_js::Token_Type::kw_const:                          \
+  case ::quick_lint_js::Token_Type::kw_continue:                       \
+  case ::quick_lint_js::Token_Type::kw_debugger:                       \
+  case ::quick_lint_js::Token_Type::kw_default:                        \
+  case ::quick_lint_js::Token_Type::kw_delete:                         \
+  case ::quick_lint_js::Token_Type::kw_do:                             \
+  case ::quick_lint_js::Token_Type::kw_else:                           \
+  case ::quick_lint_js::Token_Type::kw_enum:                           \
+  case ::quick_lint_js::Token_Type::kw_export:                         \
+  case ::quick_lint_js::Token_Type::kw_extends:                        \
+  case ::quick_lint_js::Token_Type::kw_false:                          \
+  case ::quick_lint_js::Token_Type::kw_finally:                        \
+  case ::quick_lint_js::Token_Type::kw_for:                            \
+  case ::quick_lint_js::Token_Type::kw_if:                             \
+  case ::quick_lint_js::Token_Type::kw_import:                         \
+  case ::quick_lint_js::Token_Type::kw_in:                             \
+  case ::quick_lint_js::Token_Type::kw_instanceof:                     \
+  case ::quick_lint_js::Token_Type::kw_new:                            \
+  case ::quick_lint_js::Token_Type::kw_null:                           \
+  case ::quick_lint_js::Token_Type::kw_return:                         \
+  case ::quick_lint_js::Token_Type::kw_super:                          \
+  case ::quick_lint_js::Token_Type::kw_switch:                         \
+  case ::quick_lint_js::Token_Type::kw_this:                           \
+  case ::quick_lint_js::Token_Type::kw_throw:                          \
+  case ::quick_lint_js::Token_Type::kw_true:                           \
+  case ::quick_lint_js::Token_Type::kw_try:                            \
+  case ::quick_lint_js::Token_Type::kw_typeof:                         \
+  case ::quick_lint_js::Token_Type::kw_var:                            \
+  case ::quick_lint_js::Token_Type::kw_void:                           \
+  case ::quick_lint_js::Token_Type::kw_while:                          \
+  case ::quick_lint_js::Token_Type::kw_with
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION                \
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD: \
-  case ::quick_lint_js::token_type::kw_await:                     \
-  case ::quick_lint_js::token_type::kw_yield
+  case ::quick_lint_js::Token_Type::kw_await:                     \
+  case ::quick_lint_js::Token_Type::kw_yield
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD         \
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD: \
-  case ::quick_lint_js::token_type::kw_function
+  case ::quick_lint_js::Token_Type::kw_function
 
 // Non-contextual keywords, including future reserved words, for non-strict
 // mode.
 #define QLJS_CASE_RESERVED_KEYWORD                   \
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD: \
-  case ::quick_lint_js::token_type::kw_await:        \
-  case ::quick_lint_js::token_type::kw_yield
+  case ::quick_lint_js::Token_Type::kw_await:        \
+  case ::quick_lint_js::Token_Type::kw_yield
 
 // Non-contextual keywords, including future reserved words, for strict mode.
 // Includes everything from QLJS_CASE_RESERVED_KEYWORD.
@@ -73,67 +73,67 @@
 // Everything in QLJS_CASE_STRICT_RESERVED_KEYWORD except everything in
 // QLJS_CASE_RESERVED_KEYWORD.
 #define QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD     \
-  case ::quick_lint_js::token_type::kw_implements: \
-  case ::quick_lint_js::token_type::kw_interface:  \
-  case ::quick_lint_js::token_type::kw_package:    \
-  case ::quick_lint_js::token_type::kw_private:    \
-  case ::quick_lint_js::token_type::kw_protected:  \
-  case ::quick_lint_js::token_type::kw_public
+  case ::quick_lint_js::Token_Type::kw_implements: \
+  case ::quick_lint_js::Token_Type::kw_interface:  \
+  case ::quick_lint_js::Token_Type::kw_package:    \
+  case ::quick_lint_js::Token_Type::kw_private:    \
+  case ::quick_lint_js::Token_Type::kw_protected:  \
+  case ::quick_lint_js::Token_Type::kw_public
 
 #define QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE \
-  case ::quick_lint_js::token_type::kw_abstract:                 \
-  case ::quick_lint_js::token_type::kw_any:                      \
-  case ::quick_lint_js::token_type::kw_assert:                   \
-  case ::quick_lint_js::token_type::kw_asserts:                  \
-  case ::quick_lint_js::token_type::kw_bigint:                   \
-  case ::quick_lint_js::token_type::kw_boolean:                  \
-  case ::quick_lint_js::token_type::kw_constructor:              \
-  case ::quick_lint_js::token_type::kw_declare:                  \
-  case ::quick_lint_js::token_type::kw_global:                   \
-  case ::quick_lint_js::token_type::kw_infer:                    \
-  case ::quick_lint_js::token_type::kw_intrinsic:                \
-  case ::quick_lint_js::token_type::kw_is:                       \
-  case ::quick_lint_js::token_type::kw_keyof:                    \
-  case ::quick_lint_js::token_type::kw_module:                   \
-  case ::quick_lint_js::token_type::kw_namespace:                \
-  case ::quick_lint_js::token_type::kw_never:                    \
-  case ::quick_lint_js::token_type::kw_number:                   \
-  case ::quick_lint_js::token_type::kw_object:                   \
-  case ::quick_lint_js::token_type::kw_out:                      \
-  case ::quick_lint_js::token_type::kw_override:                 \
-  case ::quick_lint_js::token_type::kw_readonly:                 \
-  case ::quick_lint_js::token_type::kw_require:                  \
-  case ::quick_lint_js::token_type::kw_string:                   \
-  case ::quick_lint_js::token_type::kw_symbol:                   \
-  case ::quick_lint_js::token_type::kw_undefined:                \
-  case ::quick_lint_js::token_type::kw_unique:                   \
-  case ::quick_lint_js::token_type::kw_unknown
+  case ::quick_lint_js::Token_Type::kw_abstract:                 \
+  case ::quick_lint_js::Token_Type::kw_any:                      \
+  case ::quick_lint_js::Token_Type::kw_assert:                   \
+  case ::quick_lint_js::Token_Type::kw_asserts:                  \
+  case ::quick_lint_js::Token_Type::kw_bigint:                   \
+  case ::quick_lint_js::Token_Type::kw_boolean:                  \
+  case ::quick_lint_js::Token_Type::kw_constructor:              \
+  case ::quick_lint_js::Token_Type::kw_declare:                  \
+  case ::quick_lint_js::Token_Type::kw_global:                   \
+  case ::quick_lint_js::Token_Type::kw_infer:                    \
+  case ::quick_lint_js::Token_Type::kw_intrinsic:                \
+  case ::quick_lint_js::Token_Type::kw_is:                       \
+  case ::quick_lint_js::Token_Type::kw_keyof:                    \
+  case ::quick_lint_js::Token_Type::kw_module:                   \
+  case ::quick_lint_js::Token_Type::kw_namespace:                \
+  case ::quick_lint_js::Token_Type::kw_never:                    \
+  case ::quick_lint_js::Token_Type::kw_number:                   \
+  case ::quick_lint_js::Token_Type::kw_object:                   \
+  case ::quick_lint_js::Token_Type::kw_out:                      \
+  case ::quick_lint_js::Token_Type::kw_override:                 \
+  case ::quick_lint_js::Token_Type::kw_readonly:                 \
+  case ::quick_lint_js::Token_Type::kw_require:                  \
+  case ::quick_lint_js::Token_Type::kw_string:                   \
+  case ::quick_lint_js::Token_Type::kw_symbol:                   \
+  case ::quick_lint_js::Token_Type::kw_undefined:                \
+  case ::quick_lint_js::Token_Type::kw_unique:                   \
+  case ::quick_lint_js::Token_Type::kw_unknown
 
 #define QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD        \
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE: \
-  case ::quick_lint_js::token_type::kw_type
+  case ::quick_lint_js::Token_Type::kw_type
 
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE \
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE:                           \
-  case ::quick_lint_js::token_type::kw_as:                                            \
-  case ::quick_lint_js::token_type::kw_from:                                          \
-  case ::quick_lint_js::token_type::kw_let:                                           \
-  case ::quick_lint_js::token_type::kw_of:                                            \
-  case ::quick_lint_js::token_type::kw_satisfies
+  case ::quick_lint_js::Token_Type::kw_as:                                            \
+  case ::quick_lint_js::Token_Type::kw_from:                                          \
+  case ::quick_lint_js::Token_Type::kw_let:                                           \
+  case ::quick_lint_js::Token_Type::kw_of:                                            \
+  case ::quick_lint_js::Token_Type::kw_satisfies
 
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET               \
   QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE \
       :                                                                         \
-  case ::quick_lint_js::token_type::kw_static:                                  \
-  case ::quick_lint_js::token_type::kw_type
+  case ::quick_lint_js::Token_Type::kw_static:                                  \
+  case ::quick_lint_js::Token_Type::kw_type
 
 // Keywords which are sometimes treated as identifiers; i.e. identifiers which
 // are sometimes treated as keywords.
 #define QLJS_CASE_CONTEXTUAL_KEYWORD                         \
   QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET: \
-  case ::quick_lint_js::token_type::kw_async:                \
-  case ::quick_lint_js::token_type::kw_get:                  \
-  case ::quick_lint_js::token_type::kw_set
+  case ::quick_lint_js::Token_Type::kw_async:                \
+  case ::quick_lint_js::Token_Type::kw_get:                  \
+  case ::quick_lint_js::Token_Type::kw_set
 
 // Any kind of keyword in strict or non-strict mode.
 #define QLJS_CASE_KEYWORD       \
@@ -141,65 +141,65 @@
   QLJS_CASE_STRICT_RESERVED_KEYWORD
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_LESS_AND_STAR \
-  case ::quick_lint_js::token_type::ampersand:                          \
-  case ::quick_lint_js::token_type::ampersand_ampersand:                \
-  case ::quick_lint_js::token_type::bang_equal:                         \
-  case ::quick_lint_js::token_type::bang_equal_equal:                   \
-  case ::quick_lint_js::token_type::circumflex:                         \
-  case ::quick_lint_js::token_type::equal_equal:                        \
-  case ::quick_lint_js::token_type::equal_equal_equal:                  \
-  case ::quick_lint_js::token_type::greater:                            \
-  case ::quick_lint_js::token_type::greater_equal:                      \
-  case ::quick_lint_js::token_type::greater_greater:                    \
-  case ::quick_lint_js::token_type::greater_greater_greater:            \
-  case ::quick_lint_js::token_type::less_equal:                         \
-  case ::quick_lint_js::token_type::percent:                            \
-  case ::quick_lint_js::token_type::pipe:                               \
-  case ::quick_lint_js::token_type::pipe_pipe:                          \
-  case ::quick_lint_js::token_type::question_question:                  \
-  case ::quick_lint_js::token_type::star_star
+  case ::quick_lint_js::Token_Type::ampersand:                          \
+  case ::quick_lint_js::Token_Type::ampersand_ampersand:                \
+  case ::quick_lint_js::Token_Type::bang_equal:                         \
+  case ::quick_lint_js::Token_Type::bang_equal_equal:                   \
+  case ::quick_lint_js::Token_Type::circumflex:                         \
+  case ::quick_lint_js::Token_Type::equal_equal:                        \
+  case ::quick_lint_js::Token_Type::equal_equal_equal:                  \
+  case ::quick_lint_js::Token_Type::greater:                            \
+  case ::quick_lint_js::Token_Type::greater_equal:                      \
+  case ::quick_lint_js::Token_Type::greater_greater:                    \
+  case ::quick_lint_js::Token_Type::greater_greater_greater:            \
+  case ::quick_lint_js::Token_Type::less_equal:                         \
+  case ::quick_lint_js::Token_Type::percent:                            \
+  case ::quick_lint_js::Token_Type::pipe:                               \
+  case ::quick_lint_js::Token_Type::pipe_pipe:                          \
+  case ::quick_lint_js::Token_Type::question_question:                  \
+  case ::quick_lint_js::Token_Type::star_star
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR          \
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_LESS_AND_STAR: \
-  case ::quick_lint_js::token_type::less_less
+  case ::quick_lint_js::Token_Type::less_less
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL        \
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR: \
-  case ::quick_lint_js::token_type::star
+  case ::quick_lint_js::Token_Type::star
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR   \
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
-  case ::quick_lint_js::token_type::kw_instanceof
+  case ::quick_lint_js::Token_Type::kw_instanceof
 
 #define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL  \
-  case ::quick_lint_js::token_type::ampersand_equal:               \
-  case ::quick_lint_js::token_type::circumflex_equal:              \
-  case ::quick_lint_js::token_type::greater_greater_equal:         \
-  case ::quick_lint_js::token_type::greater_greater_greater_equal: \
-  case ::quick_lint_js::token_type::less_less_equal:               \
-  case ::quick_lint_js::token_type::minus_equal:                   \
-  case ::quick_lint_js::token_type::percent_equal:                 \
-  case ::quick_lint_js::token_type::pipe_equal:                    \
-  case ::quick_lint_js::token_type::plus_equal:                    \
-  case ::quick_lint_js::token_type::star_equal:                    \
-  case ::quick_lint_js::token_type::star_star_equal
+  case ::quick_lint_js::Token_Type::ampersand_equal:               \
+  case ::quick_lint_js::Token_Type::circumflex_equal:              \
+  case ::quick_lint_js::Token_Type::greater_greater_equal:         \
+  case ::quick_lint_js::Token_Type::greater_greater_greater_equal: \
+  case ::quick_lint_js::Token_Type::less_less_equal:               \
+  case ::quick_lint_js::Token_Type::minus_equal:                   \
+  case ::quick_lint_js::Token_Type::percent_equal:                 \
+  case ::quick_lint_js::Token_Type::pipe_equal:                    \
+  case ::quick_lint_js::Token_Type::plus_equal:                    \
+  case ::quick_lint_js::Token_Type::star_equal:                    \
+  case ::quick_lint_js::Token_Type::star_star_equal
 
 #define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR   \
-  case ::quick_lint_js::token_type::slash_equal: \
+  case ::quick_lint_js::Token_Type::slash_equal: \
     QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL
 
 #define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR              \
-  case ::quick_lint_js::token_type::ampersand_ampersand_equal: \
-  case ::quick_lint_js::token_type::pipe_pipe_equal:           \
-  case ::quick_lint_js::token_type::question_question_equal
+  case ::quick_lint_js::Token_Type::ampersand_ampersand_equal: \
+  case ::quick_lint_js::Token_Type::pipe_pipe_equal:           \
+  case ::quick_lint_js::Token_Type::question_question_equal
 
 namespace quick_lint_js {
-class buffering_diag_reporter;
-class diag_reporter;
-class identifier;
-class source_code_span;
+class Buffering_Diag_Reporter;
+class Diag_Reporter;
+class Identifier;
+class Source_Code_Span;
 
-enum class token_type {
+enum class Token_Type {
   // Single-character symbols:
   ampersand = '&',
   bang = '!',
@@ -285,22 +285,22 @@ enum class token_type {
 #undef QLJS_KEYWORD
 };
 
-const char* to_string(token_type);
-std::ostream& operator<<(std::ostream&, token_type);
+const char* to_string(Token_Type);
+std::ostream& operator<<(std::ostream&, Token_Type);
 
-using escape_sequence_list = bump_vector<source_code_span, monotonic_allocator>;
+using Escape_Sequence_List = Bump_Vector<Source_Code_Span, Monotonic_Allocator>;
 
-struct token {
-  identifier identifier_name() const noexcept;
-  source_code_span span() const noexcept;
+struct Token {
+  Identifier identifier_name() const noexcept;
+  Source_Code_Span span() const noexcept;
 
-  // Report diag_keywords_cannot_contain_escape_sequences for each escape
+  // Report Diag_Keywords_Cannot_Contain_Escape_Sequences for each escape
   // sequence in the most recently parsed keyword-looking identifier.
   //
   // Precondition:
   //   this->type == token_type::reserved_keyword_with_escape_sequence
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_keyword(diag_reporter*) const;
+  void report_errors_for_escape_sequences_in_keyword(Diag_Reporter*) const;
 
   // Report errors for each invalid escape sequence in the most recently parsed
   // template.
@@ -309,26 +309,26 @@ struct token {
   //   this->type == token_type::complete_template ||
   //   this->type == token_type::incomplete_template
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_template(diag_reporter*) const;
+  void report_errors_for_escape_sequences_in_template(Diag_Reporter*) const;
 
-  const char8* begin;
-  const char8* end;
+  const Char8* begin;
+  const Char8* end;
 
-  token_type type;
+  Token_Type type;
 
   bool has_leading_newline;
 
   // Used only if this is a keyword token or an identifier token.
   // If the token contains no escape sequences, .normalized_identifier is
-  // equivalent to string8_view(.begin, .end).
-  string8_view normalized_identifier;
+  // equivalent to String8_View(.begin, .end).
+  String8_View normalized_identifier;
   bool contains_escape_sequence() const;
 
   union {
     // Used only if this is a reserved_keyword_with_escape_sequence token.
-    escape_sequence_list* identifier_escape_sequences;
+    Escape_Sequence_List* identifier_escape_sequences;
     // Used only if this is a complete_template or incomplete_template token.
-    buffering_diag_reporter* template_escape_sequence_diagnostics;
+    Buffering_Diag_Reporter* template_escape_sequence_diagnostics;
   };
 };
 }

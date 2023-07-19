@@ -16,7 +16,7 @@
 
 namespace quick_lint_js {
 namespace {
-string8_view sentence = u8"The quick brown fox jumps over the lazy dog.";
+String8_View sentence = u8"The quick brown fox jumps over the lazy dog.";
 
 // Simulate opening a document and typing a sentence.
 void benchmark_lsp_create_and_insert_single_characters(
@@ -26,22 +26,22 @@ void benchmark_lsp_create_and_insert_single_characters(
   std::mt19937_64 rng;
   std::vector<int> line_lengths =
       random_line_lengths(rng, /*line_count=*/line_count);
-  padded_string base_code =
+  Padded_String base_code =
       make_source_code(/*line_lengths=*/line_lengths, /*newline=*/u8"\n");
-  string8_view base_code_view = base_code.string_view();
+  String8_View base_code_view = base_code.string_view();
 
   int insertion_line = narrow_cast<int>(line_lengths.size() / 2);
   int initial_insertion_character =
       line_lengths[narrow_cast<std::size_t>(insertion_line)] / 2;
 
   for (auto _ : state) {
-    lsp_document_text doc;
+    LSP_Document_Text doc;
     doc.set_text(base_code_view);
 
     for (int i = 0; i < narrow_cast<int>(sentence.size()); ++i) {
       int insertion_character = initial_insertion_character + i;
       doc.replace_text(
-          lsp_range{
+          LSP_Range{
               .start = {.line = insertion_line,
                         .character = insertion_character},
               .end = {.line = insertion_line, .character = insertion_character},

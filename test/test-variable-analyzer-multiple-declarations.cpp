@@ -20,24 +20,24 @@ using ::testing::UnorderedElementsAre;
 // This file contains tests for multiple declarations with the same name.
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      enum_and_namespace_do_not_conflict) {
-  const char8 namespace_declaration[] = u8"A";
-  const char8 enum_declaration[] = u8"A";
+  const Char8 namespace_declaration[] = u8"A";
+  const Char8 enum_declaration[] = u8"A";
 
   {
     // namespace A {}
     // enum A {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 variable_kind::_enum,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_enum,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
     l.visit_end_of_module();
@@ -48,46 +48,46 @@ TEST(test_variable_analyzer_multiple_declarations,
   {
     // enum A {}
     // namespace A {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 variable_kind::_enum,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_enum,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      variable_and_namespace_do_not_conflict) {
-  const char8 namespace_declaration[] = u8"n";
-  const char8 var_declaration[] = u8"n";
+  const Char8 namespace_declaration[] = u8"n";
+  const Char8 var_declaration[] = u8"n";
 
-  for (variable_kind var_kind :
-       {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
+  for (Variable_Kind var_kind :
+       {Variable_Kind::_const, Variable_Kind::_let, Variable_Kind::_var}) {
     SCOPED_TRACE(var_kind);
 
     {
       // namespace n {}
       // var n;
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_enter_namespace_scope();
       l.visit_exit_namespace_scope();
       l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                   variable_kind::_namespace,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_namespace,
+                                   Variable_Declaration_Flags::none);
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -96,16 +96,16 @@ TEST(test_variable_analyzer_multiple_declarations,
     {
       // var n;
       // namespace n {}
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_enter_namespace_scope();
       l.visit_exit_namespace_scope();
       l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                   variable_kind::_namespace,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_namespace,
+                                   Variable_Declaration_Flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -113,61 +113,61 @@ TEST(test_variable_analyzer_multiple_declarations,
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      namespace_can_be_declared_multiple_times) {
-  const char8 namespace_declaration_0[] = u8"ns";
-  const char8 namespace_declaration_1[] = u8"ns";
-  const char8 namespace_declaration_2[] = u8"ns";
+  const Char8 namespace_declaration_0[] = u8"ns";
+  const Char8 namespace_declaration_1[] = u8"ns";
+  const Char8 namespace_declaration_2[] = u8"ns";
 
   {
     // namespace ns {}
     // namespace ns {}
     // namespace ns {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration_0),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
 
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration_1),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
 
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration_2),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      type_alias_and_local_variable_do_not_conflict) {
-  const char8 type_declaration[] = u8"x";
-  const char8 var_declaration[] = u8"x";
+  const Char8 type_declaration[] = u8"x";
+  const Char8 var_declaration[] = u8"x";
 
-  for (variable_kind var_kind :
-       {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
+  for (Variable_Kind var_kind :
+       {Variable_Kind::_const, Variable_Kind::_let, Variable_Kind::_var}) {
     SCOPED_TRACE(var_kind);
 
     {
       // type x = null;
       // var x;
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_variable_declaration(identifier_of(type_declaration),
-                                   variable_kind::_type_alias,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_type_alias,
+                                   Variable_Declaration_Flags::none);
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -176,14 +176,14 @@ TEST(test_variable_analyzer_multiple_declarations,
     {
       // var x;
       // type x = null;
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
       l.visit_variable_declaration(
           identifier_of(var_declaration), var_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_variable_declaration(identifier_of(type_declaration),
-                                   variable_kind::_type_alias,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_type_alias,
+                                   Variable_Declaration_Flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors, IsEmpty());
@@ -191,20 +191,20 @@ TEST(test_variable_analyzer_multiple_declarations,
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      namespace_can_appear_after_function_or_class_with_same_name) {
-  const char8 function_declaration[] = u8"x";
-  const char8 class_declaration[] = u8"x";
-  const char8 namespace_declaration[] = u8"x";
+  const Char8 function_declaration[] = u8"x";
+  const Char8 class_declaration[] = u8"x";
+  const Char8 namespace_declaration[] = u8"x";
 
   {
     // function x() {}
     // namespace x {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_variable_declaration(identifier_of(function_declaration),
-                                 variable_kind::_function,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_function,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -212,8 +212,8 @@ TEST(test_variable_analyzer_multiple_declarations,
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -222,46 +222,46 @@ TEST(test_variable_analyzer_multiple_declarations,
   {
     // class x {}
     // namespace x {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_class_scope();
     l.visit_enter_class_scope_body(identifier_of(class_declaration));
     l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration),
-                                 variable_kind::_class,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_class,
+                                 Variable_Declaration_Flags::none);
 
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      function_or_class_cannot_appear_after_non_empty_namespace_with_same_name) {
-  const char8 function_declaration[] = u8"x";
-  const char8 class_declaration[] = u8"x";
-  const char8 namespace_declaration[] = u8"x";
+  const Char8 function_declaration[] = u8"x";
+  const Char8 class_declaration[] = u8"x";
+  const Char8 namespace_declaration[] = u8"x";
 
   {
     // namespace x { ; }
     // function x() {}  // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(
-        identifier_of(namespace_declaration), variable_kind::_namespace,
-        variable_declaration_flags::non_empty_namespace);
+        identifier_of(namespace_declaration), Variable_Kind::_namespace,
+        Variable_Declaration_Flags::non_empty_namespace);
 
     l.visit_variable_declaration(identifier_of(function_declaration),
-                                 variable_kind::_function,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_function,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -270,7 +270,7 @@ TEST(test_variable_analyzer_multiple_declarations,
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_SPANS(
-                        diag_redeclaration_of_variable,                //
+                        Diag_Redeclaration_Of_Variable,                //
                         redeclaration, span_of(function_declaration),  //
                         original_declaration, span_of(namespace_declaration)),
                 }));
@@ -279,52 +279,52 @@ TEST(test_variable_analyzer_multiple_declarations,
   {
     // namespace x { ; }
     // class x {}      // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(
-        identifier_of(namespace_declaration), variable_kind::_namespace,
-        variable_declaration_flags::non_empty_namespace);
+        identifier_of(namespace_declaration), Variable_Kind::_namespace,
+        Variable_Declaration_Flags::non_empty_namespace);
 
     l.visit_enter_class_scope();
     l.visit_enter_class_scope_body(identifier_of(class_declaration));
     l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration),
-                                 variable_kind::_class,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_class,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_SPANS(
-                        diag_redeclaration_of_variable,             //
+                        Diag_Redeclaration_Of_Variable,             //
                         redeclaration, span_of(class_declaration),  //
                         original_declaration, span_of(namespace_declaration)),
                 }));
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      function_or_class_can_appear_after_empty_namespace_with_same_name) {
-  const char8 function_declaration[] = u8"x";
-  const char8 class_declaration[] = u8"x";
-  const char8 namespace_declaration[] = u8"x";
+  const Char8 function_declaration[] = u8"x";
+  const Char8 class_declaration[] = u8"x";
+  const Char8 namespace_declaration[] = u8"x";
 
   {
     // namespace x {}
     // function x() {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
 
     l.visit_variable_declaration(identifier_of(function_declaration),
-                                 variable_kind::_function,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_function,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
@@ -336,42 +336,42 @@ TEST(test_variable_analyzer_multiple_declarations,
   {
     // namespace x {}
     // class x {}
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_namespace_scope();
     l.visit_exit_namespace_scope();
     l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 variable_kind::_namespace,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_namespace,
+                                 Variable_Declaration_Flags::none);
 
     l.visit_enter_class_scope();
     l.visit_enter_class_scope_body(identifier_of(class_declaration));
     l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration),
-                                 variable_kind::_class,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_class,
+                                 Variable_Declaration_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
-TEST(test_variable_analyzer_multiple_declarations,
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      function_parameter_can_have_same_name_as_generic_parameter) {
-  const char8 function_parameter_declaration[] = u8"T";
-  const char8 type_parameter_declaration[] = u8"T";
+  const Char8 function_parameter_declaration[] = u8"T";
+  const Char8 type_parameter_declaration[] = u8"T";
 
   {
     // (function <T>(T) {});
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, typescript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(type_parameter_declaration),
-                                 variable_kind::_generic_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_generic_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_declaration(identifier_of(function_parameter_declaration),
-                                 variable_kind::_function_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_function_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_end_of_module();

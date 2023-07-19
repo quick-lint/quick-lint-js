@@ -29,11 +29,11 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_type : public test_parse_expression {};
+class Test_Parse_TypeScript_Type : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_type, direct_type_reference) {
+TEST_F(Test_Parse_TypeScript_Type, direct_type_reference) {
   {
-    test_parser p(u8"Type"_sv, typescript_options);
+    Test_Parser p(u8"Type"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -42,11 +42,11 @@ TEST_F(test_parse_typescript_type, direct_type_reference) {
   }
 }
 
-TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
-  for (string8 keyword :
+TEST_F(Test_Parse_TypeScript_Type, direct_type_reference_with_keyword_name) {
+  for (String8 keyword :
        contextual_keywords - typescript_builtin_type_keywords -
            typescript_special_type_keywords - typescript_type_only_keywords -
-           dirty_set<string8>{
+           Dirty_Set<String8>{
                // NOTE(strager): keyof is omitted on purpose because of
                // ambiguities in the grammar:
                // https://github.com/microsoft/TypeScript/issues/49724
@@ -62,9 +62,9 @@ TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
                u8"unique",
            }) {
     {
-      padded_string code(keyword);
+      Padded_String code(keyword);
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_type_use",  // (keyword)
@@ -73,9 +73,9 @@ TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
     }
 
     {
-      padded_string code(concat(u8"["_sv, keyword, u8"]"_sv));
+      Padded_String code(concat(u8"["_sv, keyword, u8"]"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_type_use",  // (keyword)
@@ -85,9 +85,9 @@ TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   }
 }
 
-TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
+TEST_F(Test_Parse_TypeScript_Type, direct_generic_type_reference) {
   {
-    test_parser p(u8"Type<T>"_sv, typescript_options);
+    Test_Parser p(u8"Type<T>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -97,7 +97,7 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
   }
 
   {
-    test_parser p(u8"C<'hello', number, Banana>"_sv, typescript_options);
+    Test_Parser p(u8"C<'hello', number, Banana>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // C
@@ -107,7 +107,7 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
   }
 
   {
-    test_parser p(u8"ns.C<T>"_sv, typescript_options);
+    Test_Parser p(u8"ns.C<T>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_namespace_use",  // ns
@@ -117,10 +117,10 @@ TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
   }
 }
 
-TEST_F(test_parse_typescript_type, less_less_token_is_split) {
+TEST_F(Test_Parse_TypeScript_Type, less_less_token_is_split) {
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser p(u8"C<<T>() => ReturnType>"_sv, typescript_options);
+    Test_Parser p(u8"C<<T>() => ReturnType>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // C
@@ -135,10 +135,10 @@ TEST_F(test_parse_typescript_type, less_less_token_is_split) {
   }
 }
 
-TEST_F(test_parse_typescript_type, greater_greater_token_is_split) {
+TEST_F(Test_Parse_TypeScript_Type, greater_greater_token_is_split) {
   {
     SCOPED_TRACE("'>>' should be split into two tokens");
-    test_parser p(u8"A<B<C>>"_sv, typescript_options);
+    Test_Parser p(u8"A<B<C>>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -150,7 +150,7 @@ TEST_F(test_parse_typescript_type, greater_greater_token_is_split) {
 
   {
     SCOPED_TRACE("'>>>' should be split into three tokens");
-    test_parser p(u8"A<B<C<D>>>"_sv, typescript_options);
+    Test_Parser p(u8"A<B<C<D>>>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -163,10 +163,10 @@ TEST_F(test_parse_typescript_type, greater_greater_token_is_split) {
   }
 }
 
-TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
+TEST_F(Test_Parse_TypeScript_Type, greater_equal_token_is_split) {
   {
     SCOPED_TRACE("'>=' should be split into two tokens");
-    test_parser p(u8"let x: A<B>= y"_sv, typescript_options);
+    Test_Parser p(u8"let x: A<B>= y"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // A
@@ -180,7 +180,7 @@ TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
 
   {
     SCOPED_TRACE("'>>=' should be split into three tokens");
-    test_parser p(u8"let x: A<B<C>>= y"_sv, typescript_options);
+    Test_Parser p(u8"let x: A<B<C>>= y"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // A
@@ -196,7 +196,7 @@ TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
 
   {
     SCOPED_TRACE("'>>>=' should be split into four tokens");
-    test_parser p(u8"let x: A<B<C<D>>>= y"_sv, typescript_options);
+    Test_Parser p(u8"let x: A<B<C<D>>>= y"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // A
@@ -212,9 +212,9 @@ TEST_F(test_parse_typescript_type, greater_equal_token_is_split) {
   }
 }
 
-TEST_F(test_parse_typescript_type, namespaced_type_reference) {
+TEST_F(Test_Parse_TypeScript_Type, namespaced_type_reference) {
   {
-    test_parser p(u8"ns.Type"_sv, typescript_options);
+    Test_Parser p(u8"ns.Type"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_namespace_use",  // ns
@@ -223,7 +223,7 @@ TEST_F(test_parse_typescript_type, namespaced_type_reference) {
   }
 
   {
-    test_parser p(u8"ns.subns.subsubns.Type[ns2.K]"_sv, typescript_options);
+    Test_Parser p(u8"ns.subns.subsubns.Type[ns2.K]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_namespace_use",  // ns
@@ -232,10 +232,10 @@ TEST_F(test_parse_typescript_type, namespaced_type_reference) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns", u8"ns2"}));
   }
 
-  for (string8 keyword : keywords) {
-    padded_string code(u8"mymodule." + keyword);
+  for (String8 keyword : keywords) {
+    Padded_String code(u8"mymodule." + keyword);
     SCOPED_TRACE(code);
-    test_parser p(code.string_view(), typescript_options);
+    Test_Parser p(code.string_view(), typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_namespace_use",  // mymodule
@@ -244,10 +244,10 @@ TEST_F(test_parse_typescript_type, namespaced_type_reference) {
   }
 }
 
-TEST_F(test_parse_typescript_type, builtin_types) {
-  for (string8 type : typescript_builtin_type_keywords) {
+TEST_F(Test_Parse_TypeScript_Type, builtin_types) {
+  for (String8 type : typescript_builtin_type_keywords) {
     SCOPED_TRACE(out_string8(type));
-    test_parser p(type, typescript_options);
+    Test_Parser p(type, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -255,10 +255,10 @@ TEST_F(test_parse_typescript_type, builtin_types) {
   }
 }
 
-TEST_F(test_parse_typescript_type, special_types) {
-  for (string8 type : typescript_special_type_keywords) {
+TEST_F(Test_Parse_TypeScript_Type, special_types) {
+  for (String8 type : typescript_special_type_keywords) {
     SCOPED_TRACE(out_string8(type));
-    test_parser p(type, typescript_options);
+    Test_Parser p(type, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -266,9 +266,9 @@ TEST_F(test_parse_typescript_type, special_types) {
   }
 }
 
-TEST_F(test_parse_typescript_type, unique_symbol_type) {
+TEST_F(Test_Parse_TypeScript_Type, unique_symbol_type) {
   {
-    test_parser p(u8"unique symbol"_sv, typescript_options);
+    Test_Parser p(u8"unique symbol"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -276,7 +276,7 @@ TEST_F(test_parse_typescript_type, unique_symbol_type) {
   }
 
   {
-    test_parser p(u8"(unique symbol)"_sv, typescript_options);
+    Test_Parser p(u8"(unique symbol)"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty())
@@ -284,18 +284,18 @@ TEST_F(test_parse_typescript_type, unique_symbol_type) {
   }
 }
 
-TEST_F(test_parse_typescript_type, this_type) {
+TEST_F(Test_Parse_TypeScript_Type, this_type) {
   // TODO(#881): Only allow within class and interface method signatures.
 
   {
-    test_parser p(u8"this"_sv, typescript_options);
+    Test_Parser p(u8"this"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
   }
 
   {
-    test_parser p(u8"this | OtherType"_sv, typescript_options);
+    Test_Parser p(u8"this | OtherType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",
@@ -304,8 +304,8 @@ TEST_F(test_parse_typescript_type, this_type) {
   }
 }
 
-TEST_F(test_parse_typescript_type, literal_type) {
-  for (string8_view code : {
+TEST_F(Test_Parse_TypeScript_Type, literal_type) {
+  for (String8_View code : {
            u8"42"_sv,
            u8"'hello'"_sv,
            u8"null"_sv,
@@ -313,22 +313,22 @@ TEST_F(test_parse_typescript_type, literal_type) {
            u8"false"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options);
+    Test_Parser p(code, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
   }
 }
 
-TEST_F(test_parse_typescript_type, template_literal_type) {
+TEST_F(Test_Parse_TypeScript_Type, template_literal_type) {
   {
-    test_parser p(u8"`hello`"_sv, typescript_options);
+    Test_Parser p(u8"`hello`"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"`hello${other}`"_sv, typescript_options);
+    Test_Parser p(u8"`hello${other}`"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // other
@@ -337,7 +337,7 @@ TEST_F(test_parse_typescript_type, template_literal_type) {
   }
 
   {
-    test_parser p(u8"`hello${other}${another}`"_sv, typescript_options);
+    Test_Parser p(u8"`hello${other}${another}`"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // other
@@ -347,9 +347,9 @@ TEST_F(test_parse_typescript_type, template_literal_type) {
   }
 }
 
-TEST_F(test_parse_typescript_type, parenthesized_type) {
+TEST_F(Test_Parse_TypeScript_Type, parenthesized_type) {
   {
-    test_parser p(u8"(Type)"_sv, typescript_options);
+    Test_Parser p(u8"(Type)"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -358,7 +358,7 @@ TEST_F(test_parse_typescript_type, parenthesized_type) {
   }
 
   {
-    test_parser p(u8"(((((Type)))))"_sv, typescript_options);
+    Test_Parser p(u8"(((((Type)))))"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -367,52 +367,22 @@ TEST_F(test_parse_typescript_type, parenthesized_type) {
   }
 
   {
-    test_parser p(u8"(number)"_sv, typescript_options);
+    Test_Parser p(u8"(number)"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 }
 
-TEST_F(test_parse_typescript_type, tuple_type) {
+TEST_F(Test_Parse_TypeScript_Type, tuple_type) {
   {
-    test_parser p(u8"[]"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.variable_uses, IsEmpty());
-  }
-
-  {
-    test_parser p(u8"[A]"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",  // A
-                          }));
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A"}));
-  }
-
-  {
-    test_parser p(u8"[A, B, C]"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-  }
-
-  {
-    test_parser p(u8"[A, B, C, ]"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-  }
-}
-
-TEST_F(test_parse_typescript_type, readonly_tuple_type) {
-  {
-    test_parser p(u8"readonly []"_sv, typescript_options);
+    Test_Parser p(u8"[]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
   }
 
   {
-    test_parser p(u8"readonly [A]"_sv, typescript_options);
+    Test_Parser p(u8"[A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -421,15 +391,28 @@ TEST_F(test_parse_typescript_type, readonly_tuple_type) {
   }
 
   {
-    test_parser p(u8"readonly [A, B, C]"_sv, typescript_options);
+    Test_Parser p(u8"[A, B, C]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
+  }
+
+  {
+    Test_Parser p(u8"[A, B, C, ]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
   }
 }
 
-TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
+TEST_F(Test_Parse_TypeScript_Type, readonly_tuple_type) {
   {
-    test_parser p(u8"[A?]"_sv, typescript_options);
+    Test_Parser p(u8"readonly []"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+  }
+
+  {
+    Test_Parser p(u8"readonly [A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -438,19 +421,36 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
   }
 
   {
-    test_parser p(u8"[A, B?]"_sv, typescript_options);
+    Test_Parser p(u8"readonly [A, B, C]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_unnamed_element) {
+  {
+    Test_Parser p(u8"[A?]"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // A
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A"}));
+  }
+
+  {
+    Test_Parser p(u8"[A, B?]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[A?, B?]"_sv, typescript_options);
+    Test_Parser p(u8"[A?, B?]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[A?, B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[A?, B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
@@ -458,14 +458,14 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[A?, B"), u8""_sv,
                 previous_optional_question, strlen(u8"[A"), u8"?"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[A?, B?, C]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[A?, B?, C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
@@ -473,7 +473,7 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[A?, B?, C"), u8""_sv,
                 previous_optional_question, strlen(u8"[A?, B"), u8"?"_sv),
         }))
@@ -481,7 +481,7 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
   }
 
   {
-    test_parser p(u8"[A?, B, C]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[A?, B, C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
@@ -489,21 +489,21 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_unnamed_element) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[A?, B"), u8""_sv,
                 previous_optional_question, strlen(u8"[A"), u8"?"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[A?, B, C"), u8""_sv,
                 previous_optional_question, strlen(u8"[A"), u8"?"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, tuple_type_unnamed_spread_element) {
+TEST_F(Test_Parse_TypeScript_Type, tuple_type_unnamed_spread_element) {
   {
-    test_parser p(u8"[...A]"_sv, typescript_options);
+    Test_Parser p(u8"[...A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -512,19 +512,19 @@ TEST_F(test_parse_typescript_type, tuple_type_unnamed_spread_element) {
   }
 
   {
-    test_parser p(u8"[A, ...B]"_sv, typescript_options);
+    Test_Parser p(u8"[A, ...B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[...A, B]"_sv, typescript_options);
+    Test_Parser p(u8"[...A, B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[A, ...B, C]"_sv, typescript_options);
+    Test_Parser p(u8"[A, ...B, C]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
   }
@@ -562,24 +562,24 @@ TEST_F(test_parse_typescript_type, tuple_type_unnamed_spread_element) {
 //
 // This rule is too complicated for me to implement right now, so let's just
 // make sure we have no false positives.
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        tuple_type_can_only_have_one_array_spread_sorta) {
   {
-    test_parser p(u8"[...A, ...B[]]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A, ...B[]]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     // TODO(#867): Assert a diagnostic.
   }
 
   {
-    test_parser p(u8"[...A[], ...B[]]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A[], ...B[]]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     // TODO(#867): Assert a diagnostic.
   }
 
   {
-    test_parser p(u8"[...A[], ...B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A[], ...B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(p.errors, IsEmpty())
@@ -588,7 +588,7 @@ TEST_F(test_parse_typescript_type,
   }
 
   {
-    test_parser p(u8"[...A, ...B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A, ...B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(p.errors, IsEmpty())
@@ -597,7 +597,7 @@ TEST_F(test_parse_typescript_type,
   }
 
   {
-    test_parser p(u8"[...A[], ...B[], ...C[]]"_sv, typescript_options,
+    Test_Parser p(u8"[...A[], ...B[], ...C[]]"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
@@ -605,18 +605,18 @@ TEST_F(test_parse_typescript_type,
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        tuple_type_unnamed_spread_element_with_optional_unnamed_element) {
   // Rest element can follow optional element.
   {
-    test_parser p(u8"[A?, ...B]"_sv, typescript_options);
+    Test_Parser p(u8"[A?, ...B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   // Optional element cannot follow rest element.
   {
-    test_parser p(u8"[...A, B?]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A, B?]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
@@ -624,30 +624,30 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_optional_tuple_element_cannot_follow_spread_element,
+                Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element,
                 optional_question, strlen(u8"[...A, B"), u8"?"_sv,
                 previous_spread, strlen(u8"["), u8"..."_sv),
         }));
   }
 
   {
-    test_parser p(u8"[...A?, B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...A?, B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_spread_element_cannot_be_optional,
+                p.code, Diag_TypeScript_Spread_Element_Cannot_Be_Optional,
                 optional_question, strlen(u8"[...A"), u8"?"_sv, spread,
                 strlen(u8"["), u8"..."_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, named_tuple_type) {
+TEST_F(Test_Parse_TypeScript_Type, named_tuple_type) {
   {
-    test_parser p(u8"[a: A]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -656,7 +656,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
   }
 
   {
-    test_parser p(u8"[a: A, b: B]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A, b: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -666,7 +666,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
   }
 
   {
-    test_parser p(u8"[a: A, b: B, ]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A, b: B, ]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -675,8 +675,8 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
-  for (const string8& name :
-       (keywords - disallowed_binding_identifier_keywords) | dirty_set<string8>{
+  for (const String8& name :
+       (keywords - disallowed_binding_identifier_keywords) | Dirty_Set<String8>{
                                                                  u8"false",
                                                                  u8"function",
                                                                  u8"import",
@@ -687,7 +687,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
                                                                  u8"typeof",
                                                                  u8"void",
                                                              }) {
-    test_parser p(concat(u8"["_sv, name, u8": A]"_sv), typescript_options);
+    Test_Parser p(concat(u8"["_sv, name, u8": A]"_sv), typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -697,9 +697,9 @@ TEST_F(test_parse_typescript_type, named_tuple_type) {
   }
 }
 
-TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
+TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
   {
-    test_parser p(u8"[a: A, B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[a: A, B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -711,14 +711,14 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, strlen(u8"[a: A, "), u8""_sv,
                 existing_name, strlen(u8"["), u8"a:"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[a: A, b: B, C]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[a: A, b: B, C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
@@ -726,14 +726,14 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, strlen(u8"[a: A, b: B, "), u8""_sv,
                 existing_name, strlen(u8"["), u8"a:"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[A, b: B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[A, b: B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -745,14 +745,14 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, strlen(u8"["), u8""_sv, existing_name,
                 strlen(u8"[A, "), u8"b:"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[: A, b: B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[: A, b: B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -763,13 +763,13 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_typescript_missing_name_in_named_tuple_type,
+                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
                               colon, strlen(u8"["), u8":"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[: A, B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[: A, B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -780,7 +780,7 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_typescript_missing_name_in_named_tuple_type,
+                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
                               colon, strlen(u8"["), u8":"_sv),
         }))
         << "should not also report a missing name for the second element, "
@@ -788,44 +788,44 @@ TEST_F(test_parse_typescript_type, named_tuple_type_with_missing_name) {
   }
 
   {
-    test_parser p(u8"[: A, b: B, C]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[: A, b: B, C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
         p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_typescript_missing_name_in_named_tuple_type,
+                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
                               colon, strlen(u8"["), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, strlen(u8"[: A, b: B, "), u8""_sv,
                 existing_name, strlen(u8"[: A, "), u8"b:"_sv)));
   }
 
   {
-    test_parser p(u8"[: A, B, c: C]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[: A, B, c: C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_typescript_missing_name_in_named_tuple_type,
+                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
                               colon, strlen(u8"["), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_missing_name_and_colon_in_named_tuple_type,
+                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, strlen(u8"[: A, "), u8""_sv,
                 existing_name, strlen(u8"[: A, B, "), u8"c:"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
+TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_named_element) {
   {
-    test_parser p(u8"[a?: A]"_sv, typescript_options);
+    Test_Parser p(u8"[a?: A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -834,19 +834,19 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
   }
 
   {
-    test_parser p(u8"[a: A, b?: B]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A, b?: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[a?: A, b?: B]"_sv, typescript_options);
+    Test_Parser p(u8"[a?: A, b?: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[a?: A, b : B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[a?: A, b : B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
@@ -854,14 +854,14 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[a?: A, b"), u8""_sv,
                 previous_optional_question, strlen(u8"[a"), u8"?"_sv),
         }));
   }
 
   {
-    test_parser p(u8"[a?: A, b?: B, c : C]"_sv, typescript_options,
+    Test_Parser p(u8"[a?: A, b?: B, c : C]"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
@@ -870,7 +870,7 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_required_tuple_element_after_optional_element,
+                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
                 expected_question, strlen(u8"[a?: A, b?: B, c"), u8""_sv,
                 previous_optional_question, strlen(u8"[a?: A, b"), u8"?"_sv),
         }))
@@ -878,10 +878,10 @@ TEST_F(test_parse_typescript_type, tuple_type_optional_named_element) {
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        tuple_type_optional_named_element_cannot_have_question_after_type) {
   {
-    test_parser p(u8"[a: A?]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[a: A?]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -891,14 +891,14 @@ TEST_F(test_parse_typescript_type,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_named_tuple_element_question_after_type,
+                p.code, Diag_TypeScript_Named_Tuple_Element_Question_After_Type,
                 question, strlen(u8"[a: A"), u8"?"_sv, expected_question,
                 strlen(u8"[a"), u8""_sv),
         }));
   }
 
   {
-    test_parser p(u8"[a?: A?]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[a?: A?]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -909,16 +909,16 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_named_tuple_element_question_after_name_and_type,
+                Diag_TypeScript_Named_Tuple_Element_Question_After_Name_And_Type,
                 type_question, strlen(u8"[a?: A"), u8"?"_sv, name_question,
                 strlen(u8"[a"), u8"?"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, tuple_type_named_spread_element) {
+TEST_F(Test_Parse_TypeScript_Type, tuple_type_named_spread_element) {
   {
-    test_parser p(u8"[...a: A]"_sv, typescript_options);
+    Test_Parser p(u8"[...a: A]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -927,36 +927,36 @@ TEST_F(test_parse_typescript_type, tuple_type_named_spread_element) {
   }
 
   {
-    test_parser p(u8"[a: A, ...b: B]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A, ...b: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[...a: A, b: B]"_sv, typescript_options);
+    Test_Parser p(u8"[...a: A, b: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   {
-    test_parser p(u8"[a: A, ...b: B, c: C]"_sv, typescript_options);
+    Test_Parser p(u8"[a: A, ...b: B, c: C]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        tuple_type_named_spread_element_with_optional_named_element) {
   // Rest element can follow optional element.
   {
-    test_parser p(u8"[a?: A, ...b: B]"_sv, typescript_options);
+    Test_Parser p(u8"[a?: A, ...b: B]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 
   // Optional element cannot follow rest element.
   {
-    test_parser p(u8"[...a: A, b?: B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...a: A, b?: B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
@@ -964,31 +964,31 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_optional_tuple_element_cannot_follow_spread_element,
+                Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element,
                 optional_question, strlen(u8"[...a: A, b"), u8"?"_sv,
                 previous_spread, strlen(u8"["), u8"..."_sv),
         }));
   }
 
   {
-    test_parser p(u8"[...a?: A, b: B]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...a?: A, b: B]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_spread_element_cannot_be_optional,
+                p.code, Diag_TypeScript_Spread_Element_Cannot_Be_Optional,
                 optional_question, strlen(u8"[...a"), u8"?"_sv, spread,
                 strlen(u8"["), u8"..."_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        tuple_type_spread_named_element_cannot_have_dot_dot_dot_before_type) {
   {
-    test_parser p(u8"[ a: ...A ]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[ a: ...A ]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -998,14 +998,14 @@ TEST_F(test_parse_typescript_type,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_named_tuple_element_spread_before_type,
+                p.code, Diag_TypeScript_Named_Tuple_Element_Spread_Before_Type,
                 spread, strlen(u8"[ a: "), u8"..."_sv, expected_spread,
                 strlen(u8"[ "), u8""_sv),
         }));
   }
 
   {
-    test_parser p(u8"[...a: ...A]"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"[...a: ...A]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
@@ -1016,29 +1016,29 @@ TEST_F(test_parse_typescript_type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_typescript_named_tuple_element_spread_before_name_and_type,
+                Diag_TypeScript_Named_Tuple_Element_Spread_Before_Name_And_Type,
                 type_spread, strlen(u8"[...a: "), u8"..."_sv, name_spread,
                 strlen(u8"["), u8"..."_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, empty_object_type) {
-  test_parser p(u8"{}"_sv, typescript_options);
+TEST_F(Test_Parse_TypeScript_Type, empty_object_type) {
+  Test_Parser p(u8"{}"_sv, typescript_options);
   p.parse_and_visit_typescript_type_expression();
   EXPECT_THAT(p.visits, IsEmpty());
   EXPECT_THAT(p.variable_uses, IsEmpty());
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_basic_properties) {
   {
-    test_parser p(u8"{ untypedProperty }"_sv, typescript_options);
+    Test_Parser p(u8"{ untypedProperty }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"{ property: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ property: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1047,7 +1047,7 @@ TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 
   {
-    test_parser p(u8"{ property: Type, }"_sv, typescript_options);
+    Test_Parser p(u8"{ property: Type, }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1055,7 +1055,7 @@ TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 
   {
-    test_parser p(u8"{ property: Type; }"_sv, typescript_options);
+    Test_Parser p(u8"{ property: Type; }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1063,7 +1063,7 @@ TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 
   {
-    test_parser p(u8"{ p1: Type1, p2: Type2 }"_sv, typescript_options);
+    Test_Parser p(u8"{ p1: Type1, p2: Type2 }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1073,7 +1073,7 @@ TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 
   {
-    test_parser p(u8"{ p1: Type1; p2: Type2 }"_sv, typescript_options);
+    Test_Parser p(u8"{ p1: Type1; p2: Type2 }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1083,9 +1083,9 @@ TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_allows_asi_between_properties) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_allows_asi_between_properties) {
   {
-    test_parser p(u8"{\n  p1: Type1\n  p2: Type2\n}"_sv, typescript_options);
+    Test_Parser p(u8"{\n  p1: Type1\n  p2: Type2\n}"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1095,10 +1095,10 @@ TEST_F(test_parse_typescript_type, object_type_allows_asi_between_properties) {
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        object_type_requires_separator_between_properties) {
   {
-    test_parser p(u8"{ p1: Type1 p2: Type2 }"_sv, typescript_options,
+    Test_Parser p(u8"{ p1: Type1 p2: Type2 }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1109,21 +1109,21 @@ TEST_F(test_parse_typescript_type,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_missing_separator_between_object_type_entries,
+                p.code, Diag_Missing_Separator_Between_Object_Type_Entries,
                 expected_separator, strlen(u8"{ p1: Type1"), u8""_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_readonly_properties) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_readonly_properties) {
   {
-    test_parser p(u8"{ readonly untypedProperty }"_sv, typescript_options);
+    Test_Parser p(u8"{ readonly untypedProperty }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"{ readonly property: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ readonly property: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1132,15 +1132,15 @@ TEST_F(test_parse_typescript_type, object_type_with_readonly_properties) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_optional_properties) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_optional_properties) {
   {
-    test_parser p(u8"{ untypedProperty? }"_sv, typescript_options);
+    Test_Parser p(u8"{ untypedProperty? }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"{ property?: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ property?: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1149,7 +1149,7 @@ TEST_F(test_parse_typescript_type, object_type_with_optional_properties) {
   }
 
   {
-    test_parser p(u8"{ method?(): Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ method?(): Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1160,9 +1160,9 @@ TEST_F(test_parse_typescript_type, object_type_with_optional_properties) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_method) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_method) {
   {
-    test_parser p(u8"{ method() }"_sv, typescript_options);
+    Test_Parser p(u8"{ method() }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1171,7 +1171,7 @@ TEST_F(test_parse_typescript_type, object_type_with_method) {
   }
 
   {
-    test_parser p(u8"{ method(param: Type) }"_sv, typescript_options);
+    Test_Parser p(u8"{ method(param: Type) }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1182,7 +1182,7 @@ TEST_F(test_parse_typescript_type, object_type_with_method) {
   }
 
   {
-    test_parser p(u8"{ method(): ReturnType }"_sv, typescript_options);
+    Test_Parser p(u8"{ method(): ReturnType }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1192,9 +1192,9 @@ TEST_F(test_parse_typescript_type, object_type_with_method) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_generic_method) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_generic_method) {
   {
-    test_parser p(u8"{ method<T>() }"_sv, typescript_options);
+    Test_Parser p(u8"{ method<T>() }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1206,9 +1206,9 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_method) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_getter) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_getter) {
   {
-    test_parser p(u8"{ get prop() }"_sv, typescript_options);
+    Test_Parser p(u8"{ get prop() }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // get prop
@@ -1217,7 +1217,7 @@ TEST_F(test_parse_typescript_type, object_type_with_getter) {
   }
 
   {
-    test_parser p(u8"{ get prop(): ReturnType }"_sv, typescript_options);
+    Test_Parser p(u8"{ get prop(): ReturnType }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // get prop
@@ -1227,9 +1227,9 @@ TEST_F(test_parse_typescript_type, object_type_with_getter) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_setter) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_setter) {
   {
-    test_parser p(u8"{ set prop(v) }"_sv, typescript_options);
+    Test_Parser p(u8"{ set prop(v) }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // set prop
@@ -1239,7 +1239,7 @@ TEST_F(test_parse_typescript_type, object_type_with_setter) {
   }
 
   {
-    test_parser p(u8"{ set prop(value: Type) }"_sv, typescript_options);
+    Test_Parser p(u8"{ set prop(value: Type) }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // set prop
@@ -1250,15 +1250,15 @@ TEST_F(test_parse_typescript_type, object_type_with_setter) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_computed_property) {
   {
-    test_parser p(u8"{ ['prop'] }"_sv, typescript_options);
+    Test_Parser p(u8"{ ['prop'] }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"{ ['prop']: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ ['prop']: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1266,7 +1266,7 @@ TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
   }
 
   {
-    test_parser p(u8"{ ['method']() }"_sv, typescript_options);
+    Test_Parser p(u8"{ ['method']() }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
@@ -1275,7 +1275,7 @@ TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
   }
 
   {
-    test_parser p(u8"{ [varName]: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ [varName]: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // varName
@@ -1285,7 +1285,7 @@ TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
   }
 
   {
-    test_parser p(u8"{ [ns.varName]: Type }"_sv, typescript_options);
+    Test_Parser p(u8"{ [ns.varName]: Type }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // ns
@@ -1295,9 +1295,9 @@ TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_index_signature) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_index_signature) {
   {
-    test_parser p(u8"{ [key: KeyType]: PropType }"_sv, typescript_options);
+    Test_Parser p(u8"{ [key: KeyType]: PropType }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_index_signature_scope",  //
@@ -1312,9 +1312,9 @@ TEST_F(test_parse_typescript_type, object_type_with_index_signature) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_mapped_types) {
   {
-    test_parser p(u8"{ [Key in Keys]: PropType }"_sv, typescript_options);
+    Test_Parser p(u8"{ [Key in Keys]: PropType }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_index_signature_scope",  //
@@ -1329,7 +1329,7 @@ TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
   }
 
   {
-    test_parser p(u8"{ [Key in Keys as KeyType]: PropType }"_sv,
+    Test_Parser p(u8"{ [Key in Keys as KeyType]: PropType }"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1347,13 +1347,13 @@ TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
-  for (string8 modifier : {u8"-?", u8"+?", u8"?"}) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_modified_optional) {
+  for (String8 modifier : {u8"-?", u8"+?", u8"?"}) {
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"{ [key: KeyType]"_sv, modifier, u8": PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1365,10 +1365,10 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
     }
 
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"{ [Key in Keys]"_sv, modifier, u8": PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1380,10 +1380,10 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
     }
 
     {
-      padded_string code(concat(u8"{ [Key in Keys as KeyType]"_sv, modifier,
+      Padded_String code(concat(u8"{ [Key in Keys as KeyType]"_sv, modifier,
                                 u8": PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1397,13 +1397,13 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
-  for (string8 modifier : {u8"-readonly", u8"+readonly", u8"readonly"}) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_modified_readonly) {
+  for (String8 modifier : {u8"-readonly", u8"+readonly", u8"readonly"}) {
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"{ "_sv, modifier, u8" [key: KeyType]: PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1415,10 +1415,10 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
     }
 
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"{ "_sv, modifier, u8" [Key in Keys]: PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1430,10 +1430,10 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
     }
 
     {
-      padded_string code(concat(u8"{ "_sv, modifier,
+      Padded_String code(concat(u8"{ "_sv, modifier,
                                 u8" [Key in Keys as KeyType]: PropType }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_index_signature_scope",  //
@@ -1447,9 +1447,9 @@ TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_call_signature) {
   {
-    test_parser p(u8"{ () }"_sv, typescript_options);
+    Test_Parser p(u8"{ () }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1458,7 +1458,7 @@ TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
   }
 
   {
-    test_parser p(u8"{ (param: ParamType): ReturnType }"_sv,
+    Test_Parser p(u8"{ (param: ParamType): ReturnType }"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1475,9 +1475,9 @@ TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_generic_call_signature) {
   {
-    test_parser p(u8"{ <T>(param): ReturnType }"_sv, typescript_options);
+    Test_Parser p(u8"{ <T>(param): ReturnType }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1493,20 +1493,20 @@ TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
   }
 }
 
-TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
-  for (string8 keyword : keywords) {
+TEST_F(Test_Parse_TypeScript_Type, object_type_with_keyword_named_properties) {
+  for (String8 keyword : keywords) {
     {
-      padded_string code(concat(u8"{ "_sv, keyword, u8" }"_sv));
+      Padded_String code(concat(u8"{ "_sv, keyword, u8" }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, IsEmpty());
     }
 
     {
-      padded_string code(concat(u8"{ "_sv, keyword, u8"() }"_sv));
+      Padded_String code(concat(u8"{ "_sv, keyword, u8"() }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",  //
@@ -1515,9 +1515,9 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(concat(u8"{ "_sv, keyword, u8": Type }"_sv));
+      Padded_String code(concat(u8"{ "_sv, keyword, u8": Type }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_type_use",  // Type
@@ -1525,9 +1525,9 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(concat(u8"{ readonly "_sv, keyword, u8": Type }"_sv));
+      Padded_String code(concat(u8"{ readonly "_sv, keyword, u8": Type }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_type_use",  // Type
@@ -1535,9 +1535,9 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
 
     {
-      padded_string code(concat(u8"{ "_sv, keyword, u8"?: Type }"_sv));
+      Padded_String code(concat(u8"{ "_sv, keyword, u8"?: Type }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_type_use",  // Type
@@ -1546,23 +1546,23 @@ TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        object_type_with_contextual_keyword_named_index_key) {
-  for (string8 keyword :
-       contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
+  for (String8 keyword :
+       contextual_keywords - Dirty_Set<String8>{u8"let", u8"static"}) {
     {
-      padded_string code(concat(u8"{ ["_sv, keyword, u8": T]: T }"_sv));
+      Padded_String code(concat(u8"{ ["_sv, keyword, u8": T]: T }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({index_signature_param_decl(keyword)}));
     }
 
     {
-      padded_string code(concat(u8"{ ["_sv, keyword, u8" in T]: T }"_sv));
+      Padded_String code(concat(u8"{ ["_sv, keyword, u8" in T]: T }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({generic_param_decl(keyword)}));
@@ -1570,9 +1570,9 @@ TEST_F(test_parse_typescript_type,
   }
 }
 
-TEST_F(test_parse_typescript_type, arrow_function) {
+TEST_F(Test_Parse_TypeScript_Type, arrow_function) {
   {
-    test_parser p(u8"() => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"() => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1583,7 +1583,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"(param) => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"(param) => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1597,7 +1597,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"(a, b, c,) => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"(a, b, c,) => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1615,7 +1615,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"(param: ParamType) => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"(param: ParamType) => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1631,7 +1631,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"([a, b, c]) => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"([a, b, c]) => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1649,7 +1649,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"({key: param}: {key: ParamType}) => ReturnType"_sv,
+    Test_Parser p(u8"({key: param}: {key: ParamType}) => ReturnType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1666,7 +1666,7 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 
   {
-    test_parser p(u8"(...params: ParamsType) => ReturnType"_sv,
+    Test_Parser p(u8"(...params: ParamsType) => ReturnType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1683,9 +1683,9 @@ TEST_F(test_parse_typescript_type, arrow_function) {
   }
 }
 
-TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
+TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
   {
-    test_parser p(
+    Test_Parser p(
         u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
@@ -1694,7 +1694,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_question_in_type_expression_should_be_void,
+                Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question,
                 strlen(u8"fs.promises.writeFile(outputPath, result).then((err: "
                        u8"Error"),
@@ -1703,7 +1703,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"fs.promises.writeFile(outputPath, result).then((err: ?Error) => {if (err) throw err;});"_sv,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
@@ -1712,7 +1712,7 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_question_in_type_expression_should_be_void,
+                Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question,
                 strlen(
                     u8"fs.promises.writeFile(outputPath, result).then((err: "),
@@ -1721,35 +1721,35 @@ TEST_F(test_parse_typescript_type, no_question_in_type_expression) {
   }
 
   {
-    test_parser p(u8"Type?"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"Type?"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_question_in_type_expression_should_be_void,
+                Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question, strlen(u8"Type"), u8"?"_sv),
         }));
   }
 
   {
-    test_parser p(u8"?Type"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"?Type"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_question_in_type_expression_should_be_void,
+                Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question, 0, u8"?"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, generic_arrow_function) {
+TEST_F(Test_Parse_TypeScript_Type, generic_arrow_function) {
   {
-    test_parser p(u8"<T>() => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"<T>() => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1763,7 +1763,7 @@ TEST_F(test_parse_typescript_type, generic_arrow_function) {
   }
 
   {
-    test_parser p(u8"new <T>() => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"new <T>() => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1777,9 +1777,9 @@ TEST_F(test_parse_typescript_type, generic_arrow_function) {
   }
 }
 
-TEST_F(test_parse_typescript_type, constructor_function) {
+TEST_F(Test_Parse_TypeScript_Type, constructor_function) {
   {
-    test_parser p(u8"new () => ReturnType"_sv, typescript_options);
+    Test_Parser p(u8"new () => ReturnType"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -1790,7 +1790,7 @@ TEST_F(test_parse_typescript_type, constructor_function) {
   }
 
   {
-    test_parser p(u8"new (param1, param2) => ReturnType"_sv,
+    Test_Parser p(u8"new (param1, param2) => ReturnType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -1807,9 +1807,9 @@ TEST_F(test_parse_typescript_type, constructor_function) {
   }
 }
 
-TEST_F(test_parse_typescript_type, array) {
+TEST_F(Test_Parse_TypeScript_Type, array) {
   {
-    test_parser p(u8"T[]"_sv, typescript_options);
+    Test_Parser p(u8"T[]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1818,7 +1818,7 @@ TEST_F(test_parse_typescript_type, array) {
   }
 
   {
-    test_parser p(u8"T[][][][][][]"_sv, typescript_options);
+    Test_Parser p(u8"T[][][][][][]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1826,7 +1826,7 @@ TEST_F(test_parse_typescript_type, array) {
   }
 
   {
-    test_parser p(u8"(((T)[])[])"_sv, typescript_options);
+    Test_Parser p(u8"(((T)[])[])"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1834,9 +1834,9 @@ TEST_F(test_parse_typescript_type, array) {
   }
 }
 
-TEST_F(test_parse_typescript_type, readonly_array) {
+TEST_F(Test_Parse_TypeScript_Type, readonly_array) {
   {
-    test_parser p(u8"readonly T[]"_sv, typescript_options);
+    Test_Parser p(u8"readonly T[]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1845,7 +1845,7 @@ TEST_F(test_parse_typescript_type, readonly_array) {
   }
 
   {
-    test_parser p(u8"readonly T[][][]"_sv, typescript_options);
+    Test_Parser p(u8"readonly T[][][]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1854,7 +1854,7 @@ TEST_F(test_parse_typescript_type, readonly_array) {
   }
 
   {
-    test_parser p(u8"(readonly ((T)[])[])"_sv, typescript_options);
+    Test_Parser p(u8"(readonly ((T)[])[])"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -1862,7 +1862,7 @@ TEST_F(test_parse_typescript_type, readonly_array) {
   }
 
   {
-    test_parser p(u8"readonly typeof v[]"_sv, typescript_options);
+    Test_Parser p(u8"readonly typeof v[]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // v
@@ -1870,9 +1870,9 @@ TEST_F(test_parse_typescript_type, readonly_array) {
   }
 }
 
-TEST_F(test_parse_typescript_type, indexed) {
+TEST_F(Test_Parse_TypeScript_Type, indexed) {
   {
-    test_parser p(u8"Type['key']"_sv, typescript_options);
+    Test_Parser p(u8"Type['key']"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1880,7 +1880,7 @@ TEST_F(test_parse_typescript_type, indexed) {
   }
 
   {
-    test_parser p(u8"Type[Key]"_sv, typescript_options);
+    Test_Parser p(u8"Type[Key]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1890,17 +1890,17 @@ TEST_F(test_parse_typescript_type, indexed) {
   }
 }
 
-TEST_F(test_parse_typescript_type, mixed_array_and_indexed) {
+TEST_F(Test_Parse_TypeScript_Type, mixed_array_and_indexed) {
   {
-    test_parser p(u8"Type[][K1][][K2]"_sv, typescript_options);
+    Test_Parser p(u8"Type[][K1][][K2]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type", u8"K1", u8"K2"}));
   }
 }
 
-TEST_F(test_parse_typescript_type, union_of_types) {
+TEST_F(Test_Parse_TypeScript_Type, union_of_types) {
   {
-    test_parser p(u8"Type1 | Type2"_sv, typescript_options);
+    Test_Parser p(u8"Type1 | Type2"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1910,22 +1910,22 @@ TEST_F(test_parse_typescript_type, union_of_types) {
   }
 
   {
-    test_parser p(u8"Type1 | Type2 | Type3 | Type4"_sv, typescript_options);
+    Test_Parser p(u8"Type1 | Type2 | Type3 | Type4"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"Type1", u8"Type2", u8"Type3", u8"Type4"}));
   }
 
   {
-    test_parser p(u8"| Type1"_sv, typescript_options);
+    Test_Parser p(u8"| Type1"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type1"}));
   }
 }
 
-TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
+TEST_F(Test_Parse_TypeScript_Type, union_disallows_consecutive_pipes) {
   {
-    test_parser p(u8"| | Type"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"| | Type"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1933,14 +1933,14 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_missing_type_between_intersection_or_union,
+                        p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
                         left_operator, strlen(u8""), u8"|"_sv, right_operator,
                         strlen(u8"| "), u8"|"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"Type1 | | Type2"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"Type1 | | Type2"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1949,16 +1949,16 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_missing_type_between_intersection_or_union,
+                        p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
                         left_operator, strlen(u8"Type1 "), u8"|"_sv,
                         right_operator, strlen(u8"Type1 | "), u8"|"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_type, intersection) {
+TEST_F(Test_Parse_TypeScript_Type, intersection) {
   {
-    test_parser p(u8"Type1 & Type2"_sv, typescript_options);
+    Test_Parser p(u8"Type1 & Type2"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -1968,23 +1968,23 @@ TEST_F(test_parse_typescript_type, intersection) {
   }
 
   {
-    test_parser p(u8"Type1 & Type2 & Type3 & Type4"_sv, typescript_options);
+    Test_Parser p(u8"Type1 & Type2 & Type3 & Type4"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"Type1", u8"Type2", u8"Type3", u8"Type4"}));
   }
 
   {
-    test_parser p(u8"& Type1"_sv, typescript_options);
+    Test_Parser p(u8"& Type1"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type1"}));
   }
 }
 
-TEST_F(test_parse_typescript_type,
+TEST_F(Test_Parse_TypeScript_Type,
        intersection_disallows_consecutive_ampersands) {
   {
-    test_parser p(u8"& & Type"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"& & Type"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -1992,14 +1992,14 @@ TEST_F(test_parse_typescript_type,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_missing_type_between_intersection_or_union,
+                        p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
                         left_operator, strlen(u8""), u8"&"_sv, right_operator,
                         strlen(u8"& "), u8"&"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"Type1 & & Type2"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"Type1 & & Type2"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
@@ -2008,16 +2008,16 @@ TEST_F(test_parse_typescript_type,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
-                        p.code, diag_missing_type_between_intersection_or_union,
+                        p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
                         left_operator, strlen(u8"Type1 "), u8"&"_sv,
                         right_operator, strlen(u8"Type1 & "), u8"&"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof) {
+TEST_F(Test_Parse_TypeScript_Type, typeof) {
   {
-    test_parser p(u8"typeof thing"_sv, typescript_options);
+    Test_Parser p(u8"typeof thing"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // thing
@@ -2026,7 +2026,7 @@ TEST_F(test_parse_typescript_type, typeof) {
   }
 
   {
-    test_parser p(u8"typeof Class.staticProperty"_sv, typescript_options);
+    Test_Parser p(u8"typeof Class.staticProperty"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // Class
@@ -2035,7 +2035,7 @@ TEST_F(test_parse_typescript_type, typeof) {
   }
 
   {
-    test_parser p(u8"typeof ns.Class.staticProperty"_sv, typescript_options);
+    Test_Parser p(u8"typeof ns.Class.staticProperty"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // ns
@@ -2043,10 +2043,10 @@ TEST_F(test_parse_typescript_type, typeof) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 
-  for (string8 keyword :
+  for (String8 keyword :
        keywords - typescript_special_type_keywords -
            strict_only_reserved_keywords -
-           dirty_set<string8>{
+           Dirty_Set<String8>{
                u8"this",
                // This list is derived experimentally from TypeScript version
                // 4.7.4. Some of these seem arbitrary. *shrug*
@@ -2059,9 +2059,9 @@ TEST_F(test_parse_typescript_type, typeof) {
                u8"yield",
            }) {
     {
-      padded_string code(u8"typeof " + keyword);
+      Padded_String code(u8"typeof " + keyword);
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_use",  // (keyword)
@@ -2070,11 +2070,11 @@ TEST_F(test_parse_typescript_type, typeof) {
     }
   }
 
-  for (string8 keyword : keywords) {
+  for (String8 keyword : keywords) {
     {
-      padded_string code(u8"typeof ns." + keyword);
+      Padded_String code(u8"typeof ns." + keyword);
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_typescript_type_expression();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_use",  // ns
@@ -2084,9 +2084,9 @@ TEST_F(test_parse_typescript_type, typeof) {
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof_generic) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_generic) {
   {
-    test_parser p(u8"typeof Class<T>"_sv, typescript_options);
+    Test_Parser p(u8"typeof Class<T>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // Class
@@ -2096,7 +2096,7 @@ TEST_F(test_parse_typescript_type, typeof_generic) {
   }
 
   {
-    test_parser p(u8"typeof ns.Class<T>"_sv, typescript_options);
+    Test_Parser p(u8"typeof ns.Class<T>"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // ns
@@ -2106,30 +2106,30 @@ TEST_F(test_parse_typescript_type, typeof_generic) {
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof_import) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_import) {
   {
-    test_parser p(u8"typeof import('some-module')"_sv, typescript_options);
+    Test_Parser p(u8"typeof import('some-module')"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"typeof import('some-module').exportedThing"_sv,
+    Test_Parser p(u8"typeof import('some-module').exportedThing"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof_this) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_this) {
   {
-    test_parser p(u8"typeof this"_sv, typescript_options);
+    Test_Parser p(u8"typeof this"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"typeof this.myProperty"_sv, typescript_options);
+    Test_Parser p(u8"typeof this.myProperty"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -2141,9 +2141,9 @@ TEST_F(test_parse_typescript_type, typeof_this) {
 // https://github.com/microsoft/TypeScript/issues/47595
 //
 // We support it anyway.
-TEST_F(test_parse_typescript_type, typeof_allows_private_properties) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_allows_private_properties) {
   {
-    test_parser p(u8"typeof Class.#myProperty"_sv, typescript_options);
+    Test_Parser p(u8"typeof Class.#myProperty"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // Class
@@ -2151,22 +2151,22 @@ TEST_F(test_parse_typescript_type, typeof_allows_private_properties) {
   }
 
   {
-    test_parser p(u8"typeof this.#myProperty"_sv, typescript_options);
+    Test_Parser p(u8"typeof this.#myProperty"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"typeof import('mod').Class.#myProperty"_sv,
+    Test_Parser p(u8"typeof import('mod').Class.#myProperty"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_generic_does_not_allow_dots_after) {
   {
-    test_parser p(u8"typeof Class<T>.member"_sv, typescript_options,
+    Test_Parser p(u8"typeof Class<T>.member"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Class", u8"T"}));
@@ -2174,28 +2174,28 @@ TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_dot_not_allowed_after_generic_arguments_in_type,
+                p.code, Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type,
                 dot, strlen(u8"typeof Class<T>"), u8"."_sv, property_name,
                 strlen(u8"typeof Class<T>."), u8"member"_sv),
         }));
   }
 
-  for (string8 keyword : keywords) {
-    test_parser p(concat(u8"typeof Class<T>."_sv, keyword), typescript_options,
+  for (String8 keyword : keywords) {
+    Test_Parser p(concat(u8"typeof Class<T>."_sv, keyword), typescript_options,
                   capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE(diag_dot_not_allowed_after_generic_arguments_in_type),
+            DIAG_TYPE(Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, typeof_allows_array_and_indexed) {
+TEST_F(Test_Parse_TypeScript_Type, typeof_allows_array_and_indexed) {
   {
-    test_parser p(u8"typeof ns.subns.thingy[KeyType]"_sv, typescript_options);
+    Test_Parser p(u8"typeof ns.subns.thingy[KeyType]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // ns
@@ -2205,7 +2205,7 @@ TEST_F(test_parse_typescript_type, typeof_allows_array_and_indexed) {
   }
 
   {
-    test_parser p(u8"typeof somevar[]"_sv, typescript_options);
+    Test_Parser p(u8"typeof somevar[]"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // somevar
@@ -2214,9 +2214,9 @@ TEST_F(test_parse_typescript_type, typeof_allows_array_and_indexed) {
   }
 }
 
-TEST_F(test_parse_typescript_type, keyof) {
+TEST_F(Test_Parse_TypeScript_Type, keyof) {
   {
-    test_parser p(u8"keyof Type"_sv, typescript_options);
+    Test_Parser p(u8"keyof Type"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
@@ -2225,9 +2225,9 @@ TEST_F(test_parse_typescript_type, keyof) {
   }
 }
 
-TEST_F(test_parse_typescript_type, extends_condition) {
+TEST_F(Test_Parse_TypeScript_Type, extends_condition) {
   {
-    test_parser p(u8"Derived extends Base ? TrueType : FalseType"_sv,
+    Test_Parser p(u8"Derived extends Base ? TrueType : FalseType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2244,7 +2244,7 @@ TEST_F(test_parse_typescript_type, extends_condition) {
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"Derived[DK] extends Base[BK] ? TrueType[TK] : FalseType[FK]"_sv,
         typescript_options);
     p.parse_and_visit_typescript_type_expression();
@@ -2255,9 +2255,9 @@ TEST_F(test_parse_typescript_type, extends_condition) {
   }
 }
 
-TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
+TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_infer) {
   {
-    test_parser p(u8"MyType extends infer T ? TrueType : FalseType"_sv,
+    Test_Parser p(u8"MyType extends infer T ? TrueType : FalseType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2275,7 +2275,7 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 
   {
-    test_parser p(u8"MyType extends infer T | U ? true : false"_sv,
+    Test_Parser p(u8"MyType extends infer T | U ? true : false"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType", u8"U"}));
@@ -2284,7 +2284,7 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 
   {
-    test_parser p(u8"MyType extends (infer T)[] ? true : false"_sv,
+    Test_Parser p(u8"MyType extends (infer T)[] ? true : false"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"}));
@@ -2293,7 +2293,7 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"MyType extends [infer A, infer B, infer C] ? true : false"_sv,
         typescript_options);
     p.parse_and_visit_typescript_type_expression();
@@ -2312,7 +2312,7 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"MyType extends (OtherType extends infer T ? infer U : InnerFalse) ? OuterTrue : OuterFalse"_sv,
         typescript_options);
     p.parse_and_visit_typescript_type_expression();
@@ -2339,7 +2339,7 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 
   {
-    test_parser p(u8"MyType extends infer T extends U ? true : false"_sv,
+    Test_Parser p(u8"MyType extends infer T extends U ? true : false"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2355,9 +2355,9 @@ TEST_F(test_parse_typescript_type, conditional_type_with_infer) {
   }
 }
 
-TEST_F(test_parse_typescript_type, keyof_in_extends_is_allowed) {
+TEST_F(Test_Parse_TypeScript_Type, keyof_in_extends_is_allowed) {
   {
-    test_parser p(u8"T extends keyof O ? TrueType : FalseType"_sv,
+    Test_Parser p(u8"T extends keyof O ? TrueType : FalseType"_sv,
                   typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2374,47 +2374,47 @@ TEST_F(test_parse_typescript_type, keyof_in_extends_is_allowed) {
   }
 }
 
-TEST_F(test_parse_typescript_type, infer_allows_certain_contextual_type_names) {
-  for (string8_view keyword :
+TEST_F(Test_Parse_TypeScript_Type, infer_allows_certain_contextual_type_names) {
+  for (String8_View keyword :
        (contextual_keywords - typescript_builtin_type_keywords -
         typescript_special_type_keywords -
-        dirty_set<string8>{
+        Dirty_Set<String8>{
             u8"let",
             u8"static",
             u8"yield",
         }) |
-           dirty_set<string8>{
+           Dirty_Set<String8>{
                // TODO(strager): Put 'async' in contextual_keywords.
                u8"async",
                // TypeScript allows 'infer undefined'.
                u8"undefined",
            }) {
-    padded_string code(concat(u8"MyType extends infer "_sv, keyword,
+    Padded_String code(concat(u8"MyType extends infer "_sv, keyword,
                               u8" ? TrueType : FalseType"_sv));
     SCOPED_TRACE(code);
-    test_parser p(code.string_view(), typescript_options);
+    Test_Parser p(code.string_view(), typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({infer_type_decl(keyword)}));
   }
 }
 
-TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
+TEST_F(Test_Parse_TypeScript_Type, infer_outside_conditional_type) {
   {
-    test_parser p(u8"infer T"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"infer T"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty())
         << "'infer T' should not declare or use 'T'";
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_typescript_infer_outside_conditional_type,
+                        p.code, Diag_TypeScript_Infer_Outside_Conditional_Type,
                         infer_keyword, 0, u8"infer"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"infer T extends U"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"infer T extends U"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // U
@@ -2424,15 +2424,15 @@ TEST_F(test_parse_typescript_type, infer_outside_conditional_type) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_typescript_infer_outside_conditional_type,
+                        p.code, Diag_TypeScript_Infer_Outside_Conditional_Type,
                         infer_keyword, 0, u8"infer"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_type, conditional_type_with_invalid_infer) {
+TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_invalid_infer) {
   {
-    test_parser p(u8"A extends infer T[] ? B : C"_sv, typescript_options,
+    Test_Parser p(u8"A extends infer T[] ? B : C"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -2447,71 +2447,71 @@ TEST_F(test_parse_typescript_type, conditional_type_with_invalid_infer) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_infer_requires_parentheses,      //
+                p.code, Diag_TypeScript_Infer_Requires_Parentheses,      //
                 infer_and_type, strlen(u8"A extends "), u8"infer T"_sv,  //
                 type, strlen(u8"A extends infer "), u8"T"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, missing) {
+TEST_F(Test_Parse_TypeScript_Type, missing) {
   // TODO(strager): Point to the ':' if there was one.
 
   {
-    test_parser p(u8" "_sv, typescript_options, capture_diags);
+    Test_Parser p(u8" "_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
                                       expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
   {
     // Example: const f = (param: ) => {};
-    test_parser p(u8" )"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8" )"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
                                       expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
   {
     // Example: interface I { myMethod(): }
-    test_parser p(u8" }"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8" }"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
                                       expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 
   {
     // Example: function f(param1: , param2: T2) {}
-    test_parser p(u8" ,"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8" ,"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, diag_missing_typescript_type,  //
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
                                       expected_type, strlen(u8" "), u8""_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_type, doesnt_warn_in_javascript_code) {
+TEST_F(Test_Parse_TypeScript_Type, doesnt_warn_in_javascript_code) {
   // When parsing a type in JavaScript code, we already reported elsewhere that
   // types are not supported. Therefore, we should not complain about things
   // like type annotations inside a type.
 
   {
-    test_parser p(u8"{ prop: MyType }"_sv, javascript_options);
+    Test_Parser p(u8"{ prop: MyType }"_sv, javascript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // MyType
@@ -2519,9 +2519,9 @@ TEST_F(test_parse_typescript_type, doesnt_warn_in_javascript_code) {
   }
 }
 
-TEST_F(test_parse_typescript_type, readonly_requires_tuple_or_array_type) {
+TEST_F(Test_Parse_TypeScript_Type, readonly_requires_tuple_or_array_type) {
   // In these cases, we recommend adding '[]' to the end of the type.
-  for (string8_view code : {
+  for (String8_View code : {
            u8"readonly Type"_sv,
            u8"readonly typeof Type"_sv,
            u8"readonly ns.Type<T>"_sv,
@@ -2544,22 +2544,22 @@ TEST_F(test_parse_typescript_type, readonly_requires_tuple_or_array_type) {
            u8"readonly (T[])"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code, typescript_options, capture_diags);
+    Test_Parser p(code, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_readonly_in_type_needs_array_or_tuple_type,
+                Diag_TypeScript_Readonly_In_Type_Needs_Array_Or_Tuple_Type,
                 readonly_keyword, 0, u8"readonly"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_type, mixed) {
+TEST_F(Test_Parse_TypeScript_Type, mixed) {
   {
-    test_parser p(u8"readonly A[] | readonly B[]"_sv, javascript_options);
+    Test_Parser p(u8"readonly A[] | readonly B[]"_sv, javascript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A

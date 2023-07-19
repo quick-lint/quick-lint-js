@@ -11,27 +11,27 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-vim_locator::vim_locator(padded_string_view input) noexcept : input_(input) {}
+Vim_Locator::Vim_Locator(Padded_String_View input) noexcept : input_(input) {}
 
-vim_source_range vim_locator::range(source_code_span span) const {
-  vim_source_position begin = this->position(span.begin());
-  vim_source_position end = this->position(span.end());
-  return vim_source_range{.begin = begin, .end = end};
+Vim_Source_Range Vim_Locator::range(Source_Code_Span span) const {
+  Vim_Source_Position begin = this->position(span.begin());
+  Vim_Source_Position end = this->position(span.end());
+  return Vim_Source_Range{.begin = begin, .end = end};
 }
 
-vim_source_position vim_locator::position(const char8 *source) const noexcept {
-  offset_type offset = this->offset(source);
+Vim_Source_Position Vim_Locator::position(const Char8 *source) const noexcept {
+  Offset_Type offset = this->offset(source);
   int line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-[[gnu::noinline]] void vim_locator::cache_offsets_of_lines() const {
-  auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
+[[gnu::noinline]] void Vim_Locator::cache_offsets_of_lines() const {
+  auto add_beginning_of_line = [this](const Char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
-        narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
+        narrow_cast<Offset_Type>(beginning_of_line - this->input_.data()));
   };
   this->offset_of_lines_.push_back(0);
-  for (const char8 *c = this->input_.data();
+  for (const Char8 *c = this->input_.data();
        c != this->input_.null_terminator();) {
     if (*c == '\n' || *c == '\r') {
       if (c[0] == '\r' && c[1] == '\n') {
@@ -47,7 +47,7 @@ vim_source_position vim_locator::position(const char8 *source) const noexcept {
   }
 }
 
-int vim_locator::find_line_at_offset(offset_type offset) const {
+int Vim_Locator::find_line_at_offset(Offset_Type offset) const {
   if (this->offset_of_lines_.empty()) {
     this->cache_offsets_of_lines();
   }
@@ -59,17 +59,17 @@ int vim_locator::find_line_at_offset(offset_type offset) const {
          1;
 }
 
-vim_locator::offset_type vim_locator::offset(const char8 *source) const
+Vim_Locator::Offset_Type Vim_Locator::offset(const Char8 *source) const
     noexcept {
-  return narrow_cast<offset_type>(source - this->input_.data());
+  return narrow_cast<Offset_Type>(source - this->input_.data());
 }
 
-vim_source_position vim_locator::position(int line_number,
-                                          offset_type offset) const noexcept {
-  offset_type beginning_of_line_offset =
+Vim_Source_Position Vim_Locator::position(int line_number,
+                                          Offset_Type offset) const noexcept {
+  Offset_Type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number - 1)];
   int col = narrow_cast<int>(offset - beginning_of_line_offset) + 1;
-  return vim_source_position{line_number, col};
+  return Vim_Source_Position{line_number, col};
 }
 }
 

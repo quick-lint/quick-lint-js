@@ -17,19 +17,19 @@ namespace {
 constexpr int default_buffer_size = 4096;
 }
 
-output_stream::output_stream()
-    : output_stream(/*buffer_size=*/default_buffer_size) {}
+Output_Stream::Output_Stream()
+    : Output_Stream(/*buffer_size=*/default_buffer_size) {}
 
-output_stream::output_stream(int buffer_size)
-    : buffer_(new char8[narrow_cast<std::size_t>(buffer_size)]),
+Output_Stream::Output_Stream(int buffer_size)
+    : buffer_(new Char8[narrow_cast<std::size_t>(buffer_size)]),
       buffer_size_(buffer_size) {
   QLJS_ASSERT(this->buffer_size_ >= this->minimum_buffer_size);
 }
 
-output_stream::~output_stream() = default;
+Output_Stream::~Output_Stream() = default;
 
-[[gnu::noinline]] void output_stream::append_copy(string8_view data) {
-  char8* out = this->reserve(narrow_cast<int>(data.size()));
+[[gnu::noinline]] void Output_Stream::append_copy(String8_View data) {
+  Char8* out = this->reserve(narrow_cast<int>(data.size()));
   if (out) {
     std::copy(data.begin(), data.end(), out);
   } else {
@@ -38,29 +38,29 @@ output_stream::~output_stream() = default;
   }
 }
 
-void output_stream::append_copy_small(string8_view data) {
+void Output_Stream::append_copy_small(String8_View data) {
   int data_size = narrow_cast<int>(data.size());
   QLJS_ASSERT(data_size <= this->buffer_size_);
-  char8* out = this->reserve(data_size);
+  Char8* out = this->reserve(data_size);
   QLJS_ASSERT(out);
   std::copy(data.begin(), data.end(), out);
 }
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
-void output_stream::append_copy(char8 data) {
-  char8* out = this->reserve(1);
+void Output_Stream::append_copy(Char8 data) {
+  Char8* out = this->reserve(1);
   QLJS_ASSERT(out);
   *out = data;
 }
 QLJS_WARNING_POP
 
-void output_stream::flush() {
+void Output_Stream::flush() {
   this->flush_impl(make_string_view(this->buffer_.get(), this->cursor_));
   this->cursor_ = this->buffer_.get();
 }
 
-char8* output_stream::reserve(int byte_count) {
+Char8* Output_Stream::reserve(int byte_count) {
   if (byte_count >= this->minimum_buffer_size &&
       byte_count > this->buffer_size_) {
     return nullptr;
@@ -68,31 +68,31 @@ char8* output_stream::reserve(int byte_count) {
   if (this->buffer_end_ - this->cursor_ < byte_count) {
     this->flush();
   }
-  char8* out = this->cursor_;
+  Char8* out = this->cursor_;
   this->cursor_ += byte_count;
   return out;
 }
 
 #if !defined(__EMSCRIPTEN__)
-file_output_stream::file_output_stream(platform_file_ref file)
-    : file_output_stream(file, /*buffer_size=*/default_buffer_size) {}
+File_Output_Stream::File_Output_Stream(Platform_File_Ref file)
+    : File_Output_Stream(file, /*buffer_size=*/default_buffer_size) {}
 
-file_output_stream::file_output_stream(platform_file_ref file, int buffer_size)
-    : output_stream(/*buffer_size=*/buffer_size), file_(file) {}
+File_Output_Stream::File_Output_Stream(Platform_File_Ref file, int buffer_size)
+    : Output_Stream(/*buffer_size=*/buffer_size), file_(file) {}
 
-file_output_stream::~file_output_stream() { this->flush(); }
+File_Output_Stream::~File_Output_Stream() { this->flush(); }
 
-file_output_stream* file_output_stream::get_stdout() {
-  static file_output_stream stream(platform_file_ref::get_stdout());
+File_Output_Stream* File_Output_Stream::get_stdout() {
+  static File_Output_Stream stream(Platform_File_Ref::get_stdout());
   return &stream;
 }
 
-file_output_stream* file_output_stream::get_stderr() {
-  static file_output_stream stream(platform_file_ref::get_stderr());
+File_Output_Stream* File_Output_Stream::get_stderr() {
+  static File_Output_Stream stream(Platform_File_Ref::get_stderr());
   return &stream;
 }
 
-void file_output_stream::flush_impl(string8_view data) {
+void File_Output_Stream::flush_impl(String8_View data) {
   // TODO(strager): What do we do with partial writes? Currently we only use
   // file_output_stream for TTYs/consoles, blocking pipes, and regular files
   // (stdout/stderr).
@@ -108,21 +108,21 @@ void file_output_stream::flush_impl(string8_view data) {
 }
 #endif
 
-memory_output_stream::memory_output_stream() : output_stream() {}
+Memory_Output_Stream::Memory_Output_Stream() : Output_Stream() {}
 
-memory_output_stream::memory_output_stream(int buffer_size)
-    : output_stream(/*buffer_size=*/buffer_size) {}
+Memory_Output_Stream::Memory_Output_Stream(int buffer_size)
+    : Output_Stream(/*buffer_size=*/buffer_size) {}
 
-string8 memory_output_stream::get_flushed_string8() const {
+String8 Memory_Output_Stream::get_flushed_string8() const {
   return this->data_;
 }
 
-void memory_output_stream::clear() {
+void Memory_Output_Stream::clear() {
   this->flush();
   this->data_.clear();
 }
 
-void memory_output_stream::flush_impl(string8_view data) {
+void Memory_Output_Stream::flush_impl(String8_View data) {
   this->data_ += data;
 }
 }

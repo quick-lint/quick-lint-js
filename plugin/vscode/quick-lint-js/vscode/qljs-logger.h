@@ -40,14 +40,14 @@
 // TODO(strager): Trim includes.
 
 namespace quick_lint_js {
-class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
+class QLJS_Logger : public Logger, public ::Napi::ObjectWrap<QLJS_Logger> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
     return DefineClass(env, "QLJSLogger", {});
   }
 
-  explicit qljs_logger(const ::Napi::CallbackInfo& info)
-      : ::Napi::ObjectWrap<qljs_logger>(info),
+  explicit QLJS_Logger(const ::Napi::CallbackInfo& info)
+      : ::Napi::ObjectWrap<QLJS_Logger>(info),
         output_channel_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
         flush_on_js_thread_(
             /*env=*/info.Env(),
@@ -84,15 +84,15 @@ class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
   void begin_flush_async() { this->flush_on_js_thread_.BlockingCall(); }
 
   static void flush_from_thread(::Napi::Env env, ::Napi::Object logger_object) {
-    qljs_logger* logger = qljs_logger::Unwrap(logger_object);
+    QLJS_Logger* logger = QLJS_Logger::Unwrap(logger_object);
     logger->flush(env);
   }
 
-  mutex mutex_;
+  Mutex mutex_;
   std::vector<std::string> pending_log_messages_;
 
   ::Napi::Reference<::Napi::Object> output_channel_ref_;
-  thread_safe_js_function<flush_from_thread> flush_on_js_thread_;
+  Thread_Safe_JS_Function<flush_from_thread> flush_on_js_thread_;
 };
 }
 

@@ -35,7 +35,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-struct http_response {
+struct HTTP_Response {
   std::optional<int> status;
   std::string data;
   std::vector<std::pair<std::string, std::string>> headers;
@@ -43,8 +43,8 @@ struct http_response {
   std::string_view get_last_header_value_or_empty(
       std::string_view header_name) const;
 
-  static http_response failed([[maybe_unused]] std::string_view error_message) {
-    return http_response();
+  static HTTP_Response failed([[maybe_unused]] std::string_view error_message) {
+    return HTTP_Response();
   }
 
   // Returns false if there was a failure when making the request.
@@ -53,40 +53,40 @@ struct http_response {
   }
 };
 
-http_response http_fetch(const char *url);
-http_response http_fetch(const std::string &url);
+HTTP_Response http_fetch(const char *url);
+HTTP_Response http_fetch(const std::string &url);
 
-class http_websocket_client;
+class HTTP_WebSocket_Client;
 
-class http_websocket_client_delegate {
+class HTTP_WebSocket_Client_Delegate {
  public:
-  virtual ~http_websocket_client_delegate() = default;
+  virtual ~HTTP_WebSocket_Client_Delegate() = default;
 
-  virtual void on_message_binary(http_websocket_client *, const void *message,
+  virtual void on_message_binary(HTTP_WebSocket_Client *, const void *message,
                                  std::size_t message_size) = 0;
 };
 
-class http_websocket_client {
+class HTTP_WebSocket_Client {
  public:
   static void connect_and_run(const char *url,
-                              http_websocket_client_delegate *);
+                              HTTP_WebSocket_Client_Delegate *);
 
   void stop();
 
  private:
   void callback(::mg_connection *c, int ev, void *ev_data);
 
-  explicit http_websocket_client(http_websocket_client_delegate *);
+  explicit HTTP_WebSocket_Client(HTTP_WebSocket_Client_Delegate *);
 
   bool done_ = false;
-  http_websocket_client_delegate *delegate_;
-  mongoose_mgr mgr_;
+  HTTP_WebSocket_Client_Delegate *delegate_;
+  Mongoose_Mgr mgr_;
 
   ::mg_connection *current_connection_;
 };
 
-using trace_event_callback = bool(debug_server &,
-                                  const parsed_trace_event &event,
+using Trace_Event_Callback = bool(Debug_Server &,
+                                  const Parsed_Trace_Event &event,
                                   std::uint64_t thread_index);
 
 // Creates a debug_server, connects to the trace WebSocket, and calls
@@ -94,26 +94,26 @@ using trace_event_callback = bool(debug_server &,
 //
 // test_web_socket keeps running until on_trace_event returns false or until a
 // timeout elapses, whichever comes first.
-void test_web_socket(function_ref<trace_event_callback> on_trace_event);
+void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event);
 
-class test_debug_server : public ::testing::Test {
+class Test_Debug_Server : public ::testing::Test {
  public:
-  ~test_debug_server() { set_lsp_server_documents(nullptr); }
+  ~Test_Debug_Server() { set_lsp_server_documents(nullptr); }
 };
 
-TEST_F(test_debug_server, start_thread_then_immediately_stop) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+TEST_F(Test_Debug_Server, start_thread_then_immediately_stop) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   server->stop_server_thread();
 }
 
-TEST_F(test_debug_server, serves_html_at_index) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+TEST_F(Test_Debug_Server, serves_html_at_index) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server->url("/"));
+  HTTP_Response response = http_fetch(server->url("/"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("<!DOCTYPE html>"));
@@ -122,13 +122,13 @@ TEST_F(test_debug_server, serves_html_at_index) {
                                ::testing::StartsWith("text/html;")));
 }
 
-TEST_F(test_debug_server, serves_javascript) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+TEST_F(Test_Debug_Server, serves_javascript) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server->url("/index.mjs"));
+  HTTP_Response response = http_fetch(server->url("/index.mjs"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 200);  // OK
   EXPECT_THAT(response.data, ::testing::StartsWith("//"));
@@ -137,19 +137,19 @@ TEST_F(test_debug_server, serves_javascript) {
                                ::testing::StartsWith("text/javascript;")));
 }
 
-TEST_F(test_debug_server, serves_not_found_page) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+TEST_F(Test_Debug_Server, serves_not_found_page) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  http_response response = http_fetch(server->url("/route-does-not-exist"));
+  HTTP_Response response = http_fetch(server->url("/route-does-not-exist"));
   ASSERT_TRUE(response);
   EXPECT_EQ(response.status, 404);  // Not Found
 }
 
-TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
-  std::shared_ptr<debug_server> server_a = debug_server::create();
+TEST_F(Test_Debug_Server, two_servers_listening_on_same_port_fails) {
+  std::shared_ptr<Debug_Server> server_a = Debug_Server::create();
   server_a->start_server_thread();
   auto a_wait_result = server_a->wait_for_server_start();
   ASSERT_TRUE(a_wait_result.ok()) << a_wait_result.error_to_string();
@@ -157,7 +157,7 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
   std::string server_a_address = server_a->url("");
   SCOPED_TRACE("server_a address: " + server_a_address);
 
-  std::shared_ptr<debug_server> server_b = debug_server::create();
+  std::shared_ptr<Debug_Server> server_b = Debug_Server::create();
   server_b->set_listen_address(server_a_address);
   server_b->start_server_thread();
   auto b_wait_result = server_b->wait_for_server_start();
@@ -165,29 +165,29 @@ TEST_F(test_debug_server, two_servers_listening_on_same_port_fails) {
 }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-TEST_F(test_debug_server,
+TEST_F(Test_Debug_Server,
        web_socket_publishes_vector_profile_stats_on_connect) {
-  vector_instrumentation::instance.clear();
+  Vector_Instrumentation::instance.clear();
   {
-    instrumented_vector<std::vector<int>> v("debug server test vector", {});
+    Instrumented_Vector<std::vector<int>> v("debug server test vector", {});
     ASSERT_EQ(v.size(), 0);
   }
 
   bool received_vector_max_size_histogram_by_owner_event = true;
   auto on_trace_event =
-      [&](debug_server &, const parsed_trace_event &event,
+      [&](Debug_Server &, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
     switch (event.type) {
-    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event: {
+    case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event: {
       // This should eventually be called.
-      const std::vector<parsed_vector_max_size_histogram_by_owner_entry>
+      const std::vector<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry>
           &entries = event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
         EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
-                        parsed_vector_max_size_histogram_entry{.max_size = 0,
+                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 0,
                                                                .count = 1},
                     }));
       }
@@ -196,22 +196,22 @@ TEST_F(test_debug_server,
       return false;
     }
 
-    case parsed_trace_event_type::error_invalid_magic:
-    case parsed_trace_event_type::error_invalid_uuid:
-    case parsed_trace_event_type::error_unsupported_compression_mode:
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       ADD_FAILURE();
       return false;
 
-    case parsed_trace_event_type::init_event:
-    case parsed_trace_event_type::lsp_client_to_server_message_event:
-    case parsed_trace_event_type::lsp_documents_event:
-    case parsed_trace_event_type::packet_header:
-    case parsed_trace_event_type::process_id_event:
-    case parsed_trace_event_type::vscode_document_changed_event:
-    case parsed_trace_event_type::vscode_document_closed_event:
-    case parsed_trace_event_type::vscode_document_opened_event:
-    case parsed_trace_event_type::vscode_document_sync_event:
+    case Parsed_Trace_Event_Type::init_event:
+    case Parsed_Trace_Event_Type::lsp_client_to_server_message_event:
+    case Parsed_Trace_Event_Type::lsp_documents_event:
+    case Parsed_Trace_Event_Type::packet_header:
+    case Parsed_Trace_Event_Type::process_id_event:
+    case Parsed_Trace_Event_Type::vscode_document_changed_event:
+    case Parsed_Trace_Event_Type::vscode_document_closed_event:
+    case Parsed_Trace_Event_Type::vscode_document_opened_event:
+    case Parsed_Trace_Event_Type::vscode_document_sync_event:
       return true;
     }
     QLJS_UNREACHABLE();
@@ -220,22 +220,22 @@ TEST_F(test_debug_server,
   EXPECT_TRUE(received_vector_max_size_histogram_by_owner_event);
 }
 
-TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
-  vector_instrumentation::instance.clear();
+TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
+  Vector_Instrumentation::instance.clear();
 
   bool received_vector_max_size_histogram_by_owner_event = false;
   auto on_trace_event =
-      [&](debug_server &server, const parsed_trace_event &event,
+      [&](Debug_Server &server, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
     switch (event.type) {
-    case parsed_trace_event_type::packet_header: {
+    case Parsed_Trace_Event_Type::packet_header: {
       // This should eventually be called.
-      instrumented_vector<std::vector<int>> v1("debug server test vector", {});
+      Instrumented_Vector<std::vector<int>> v1("debug server test vector", {});
       v1.push_back(100);
       v1.push_back(200);
       EXPECT_EQ(v1.size(), 2);
 
-      instrumented_vector<std::vector<int>> v2("debug server test vector", {});
+      Instrumented_Vector<std::vector<int>> v2("debug server test vector", {});
       v2.push_back(100);
       v2.push_back(200);
       v2.push_back(300);
@@ -246,7 +246,7 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
       return true;
     }
 
-    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event: {
+    case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event: {
       // This should eventually be called.
       if (event.vector_max_size_histogram_by_owner_event.entries.empty()) {
         // We will receive an initial vector_max_size_histogram_by_owner
@@ -254,16 +254,16 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
         return true;
       }
 
-      const std::vector<parsed_vector_max_size_histogram_by_owner_entry>
+      const std::vector<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry>
           &entries = event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
         EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
-                        parsed_vector_max_size_histogram_entry{.max_size = 2,
+                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 2,
                                                                .count = 1},
-                        parsed_vector_max_size_histogram_entry{.max_size = 4,
+                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 4,
                                                                .count = 1},
                     }));
       }
@@ -272,21 +272,21 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
       return false;
     }
 
-    case parsed_trace_event_type::error_invalid_magic:
-    case parsed_trace_event_type::error_invalid_uuid:
-    case parsed_trace_event_type::error_unsupported_compression_mode:
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       ADD_FAILURE();
       return false;
 
-    case parsed_trace_event_type::init_event:
-    case parsed_trace_event_type::lsp_client_to_server_message_event:
-    case parsed_trace_event_type::lsp_documents_event:
-    case parsed_trace_event_type::process_id_event:
-    case parsed_trace_event_type::vscode_document_changed_event:
-    case parsed_trace_event_type::vscode_document_closed_event:
-    case parsed_trace_event_type::vscode_document_opened_event:
-    case parsed_trace_event_type::vscode_document_sync_event:
+    case Parsed_Trace_Event_Type::init_event:
+    case Parsed_Trace_Event_Type::lsp_client_to_server_message_event:
+    case Parsed_Trace_Event_Type::lsp_documents_event:
+    case Parsed_Trace_Event_Type::process_id_event:
+    case Parsed_Trace_Event_Type::vscode_document_changed_event:
+    case Parsed_Trace_Event_Type::vscode_document_closed_event:
+    case Parsed_Trace_Event_Type::vscode_document_opened_event:
+    case Parsed_Trace_Event_Type::vscode_document_sync_event:
       return true;
     }
     QLJS_UNREACHABLE();
@@ -296,22 +296,22 @@ TEST_F(test_debug_server, vector_profile_probe_publishes_stats) {
 }
 #endif
 
-TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
-  trace_flusher &tracer = *trace_flusher::instance();
+TEST_F(Test_Debug_Server, trace_websocket_sends_trace_data) {
+  Trace_Flusher &tracer = *Trace_Flusher::instance();
 
-  mutex test_mutex;
-  condition_variable cond;
+  Mutex test_mutex;
+  Condition_Variable cond;
   bool registered_other_thread = false;
   bool finished_test = false;
 
   // Register two threads. The WebSocket server should send data for each thread
   // in separate messages.
   tracer.register_current_thread();
-  thread other_thread([&]() {
+  Thread other_thread([&]() {
     tracer.register_current_thread();
 
     {
-      std::unique_lock<mutex> lock(test_mutex);
+      std::unique_lock<Mutex> lock(test_mutex);
       registered_other_thread = true;
       cond.notify_all();
       cond.wait(lock, [&] { return finished_test; });
@@ -321,46 +321,46 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   });
 
   {
-    std::unique_lock<mutex> lock(test_mutex);
+    std::unique_lock<Mutex> lock(test_mutex);
     cond.wait(lock, [&] { return registered_other_thread; });
   }
 
-  struct thread_state {
+  struct Thread_State {
     bool got_packet_header = false;
     bool got_init_event = false;
   };
-  std::unordered_map<trace_flusher_thread_index, thread_state> thread_states;
+  std::unordered_map<Trace_Flusher_Thread_Index, Thread_State> thread_states;
 
-  auto on_trace_event = [&](debug_server &, const parsed_trace_event &event,
+  auto on_trace_event = [&](Debug_Server &, const Parsed_Trace_Event &event,
                             std::uint64_t thread_index) -> bool {
-    thread_state &state = thread_states[thread_index];
+    Thread_State &state = thread_states[thread_index];
     switch (event.type) {
-    case parsed_trace_event_type::packet_header:
+    case Parsed_Trace_Event_Type::packet_header:
       EXPECT_FALSE(state.got_packet_header);
       state.got_packet_header = true;
       break;
 
-    case parsed_trace_event_type::init_event:
+    case Parsed_Trace_Event_Type::init_event:
       EXPECT_FALSE(state.got_init_event);
       state.got_init_event = true;
       EXPECT_EQ(event.init_event.version, QUICK_LINT_JS_VERSION_STRING_U8_SV);
       break;
 
-    case parsed_trace_event_type::error_invalid_magic:
-    case parsed_trace_event_type::error_invalid_uuid:
-    case parsed_trace_event_type::error_unsupported_compression_mode:
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       ADD_FAILURE();
       return false;
 
-    case parsed_trace_event_type::lsp_client_to_server_message_event:
-    case parsed_trace_event_type::lsp_documents_event:
-    case parsed_trace_event_type::process_id_event:
-    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
-    case parsed_trace_event_type::vscode_document_changed_event:
-    case parsed_trace_event_type::vscode_document_closed_event:
-    case parsed_trace_event_type::vscode_document_opened_event:
-    case parsed_trace_event_type::vscode_document_sync_event:
+    case Parsed_Trace_Event_Type::lsp_client_to_server_message_event:
+    case Parsed_Trace_Event_Type::lsp_documents_event:
+    case Parsed_Trace_Event_Type::process_id_event:
+    case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event:
+    case Parsed_Trace_Event_Type::vscode_document_changed_event:
+    case Parsed_Trace_Event_Type::vscode_document_closed_event:
+    case Parsed_Trace_Event_Type::vscode_document_opened_event:
+    case Parsed_Trace_Event_Type::vscode_document_sync_event:
       return true;
     }
 
@@ -390,7 +390,7 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   }
 
   {
-    std::lock_guard<mutex> lock(test_mutex);
+    std::lock_guard<Mutex> lock(test_mutex);
     finished_test = true;
     cond.notify_all();
   }
@@ -399,10 +399,10 @@ TEST_F(test_debug_server, trace_websocket_sends_trace_data) {
   tracer.unregister_current_thread();
 }
 
-TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
-  synchronized<lsp_documents> documents;
-  std::unique_ptr<lsp_documents::lintable_document> example_doc =
-      std::make_unique<lsp_documents::lintable_document>();
+TEST_F(Test_Debug_Server, web_socket_publishes_lsp_documents_on_connect) {
+  Synchronized<LSP_Documents> documents;
+  std::unique_ptr<LSP_Documents::Lintable_Document> example_doc =
+      std::make_unique<LSP_Documents::Lintable_Document>();
   example_doc->doc.set_text(u8"hello"_sv);
   example_doc->language_id = "yabbascrip";
   example_doc->version_json = u8"123"_sv;
@@ -411,12 +411,12 @@ TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
 
   bool received_lsp_documents_event = false;
   auto on_trace_event =
-      [&](debug_server &, const parsed_trace_event &event,
+      [&](Debug_Server &, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
     switch (event.type) {
-    case parsed_trace_event_type::lsp_documents_event: {
+    case Parsed_Trace_Event_Type::lsp_documents_event: {
       // This should eventually be called.
-      const std::vector<parsed_lsp_document_state> &parsed_documents =
+      const std::vector<Parsed_LSP_Document_State> &parsed_documents =
           event.lsp_documents_event.documents;
       EXPECT_EQ(parsed_documents.size(), 1);
       if (parsed_documents.size() > 0) {
@@ -429,22 +429,22 @@ TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
       return false;
     }
 
-    case parsed_trace_event_type::error_invalid_magic:
-    case parsed_trace_event_type::error_invalid_uuid:
-    case parsed_trace_event_type::error_unsupported_compression_mode:
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       ADD_FAILURE();
       return false;
 
-    case parsed_trace_event_type::init_event:
-    case parsed_trace_event_type::lsp_client_to_server_message_event:
-    case parsed_trace_event_type::packet_header:
-    case parsed_trace_event_type::process_id_event:
-    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
-    case parsed_trace_event_type::vscode_document_changed_event:
-    case parsed_trace_event_type::vscode_document_closed_event:
-    case parsed_trace_event_type::vscode_document_opened_event:
-    case parsed_trace_event_type::vscode_document_sync_event:
+    case Parsed_Trace_Event_Type::init_event:
+    case Parsed_Trace_Event_Type::lsp_client_to_server_message_event:
+    case Parsed_Trace_Event_Type::packet_header:
+    case Parsed_Trace_Event_Type::process_id_event:
+    case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event:
+    case Parsed_Trace_Event_Type::vscode_document_changed_event:
+    case Parsed_Trace_Event_Type::vscode_document_closed_event:
+    case Parsed_Trace_Event_Type::vscode_document_opened_event:
+    case Parsed_Trace_Event_Type::vscode_document_sync_event:
       return true;
     }
     QLJS_UNREACHABLE();
@@ -453,19 +453,19 @@ TEST_F(test_debug_server, web_socket_publishes_lsp_documents_on_connect) {
   EXPECT_TRUE(received_lsp_documents_event);
 }
 
-TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
-  synchronized<lsp_documents> documents;
+TEST_F(Test_Debug_Server, lsp_documents_probe_publishes_state) {
+  Synchronized<LSP_Documents> documents;
   set_lsp_server_documents(&documents);
 
   bool received_lsp_documents_event = false;
   auto on_trace_event =
-      [&](debug_server &server, const parsed_trace_event &event,
+      [&](Debug_Server &server, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
     switch (event.type) {
-    case parsed_trace_event_type::packet_header: {
+    case Parsed_Trace_Event_Type::packet_header: {
       // This should eventually be called.
-      std::unique_ptr<lsp_documents::lintable_document> example_doc =
-          std::make_unique<lsp_documents::lintable_document>();
+      std::unique_ptr<LSP_Documents::Lintable_Document> example_doc =
+          std::make_unique<LSP_Documents::Lintable_Document>();
       example_doc->doc.set_text(u8"hello"_sv);
       example_doc->language_id = "yabbascrip";
       example_doc->version_json = u8"123"_sv;
@@ -476,14 +476,14 @@ TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
       return true;
     }
 
-    case parsed_trace_event_type::lsp_documents_event: {
+    case Parsed_Trace_Event_Type::lsp_documents_event: {
       // This should eventually be called.
       if (event.lsp_documents_event.documents.empty()) {
         // We will receive an initial lsp_documents event. Ignore it.
         return true;
       }
 
-      const std::vector<parsed_lsp_document_state> &parsed_documents =
+      const std::vector<Parsed_LSP_Document_State> &parsed_documents =
           event.lsp_documents_event.documents;
       EXPECT_EQ(parsed_documents.size(), 1);
       if (parsed_documents.size() > 0) {
@@ -496,21 +496,21 @@ TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
       return false;
     }
 
-    case parsed_trace_event_type::error_invalid_magic:
-    case parsed_trace_event_type::error_invalid_uuid:
-    case parsed_trace_event_type::error_unsupported_compression_mode:
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       ADD_FAILURE();
       return false;
 
-    case parsed_trace_event_type::init_event:
-    case parsed_trace_event_type::lsp_client_to_server_message_event:
-    case parsed_trace_event_type::process_id_event:
-    case parsed_trace_event_type::vector_max_size_histogram_by_owner_event:
-    case parsed_trace_event_type::vscode_document_changed_event:
-    case parsed_trace_event_type::vscode_document_closed_event:
-    case parsed_trace_event_type::vscode_document_opened_event:
-    case parsed_trace_event_type::vscode_document_sync_event:
+    case Parsed_Trace_Event_Type::init_event:
+    case Parsed_Trace_Event_Type::lsp_client_to_server_message_event:
+    case Parsed_Trace_Event_Type::process_id_event:
+    case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event:
+    case Parsed_Trace_Event_Type::vscode_document_changed_event:
+    case Parsed_Trace_Event_Type::vscode_document_closed_event:
+    case Parsed_Trace_Event_Type::vscode_document_opened_event:
+    case Parsed_Trace_Event_Type::vscode_document_sync_event:
       return true;
     }
     QLJS_UNREACHABLE();
@@ -519,31 +519,31 @@ TEST_F(test_debug_server, lsp_documents_probe_publishes_state) {
   EXPECT_TRUE(received_lsp_documents_event);
 }
 
-TEST_F(test_debug_server, instances_shows_new_instance) {
-  std::shared_ptr<debug_server> s = debug_server::create();
-  EXPECT_THAT(debug_server::instances(), ::testing::Contains(s));
+TEST_F(Test_Debug_Server, instances_shows_new_instance) {
+  std::shared_ptr<Debug_Server> s = Debug_Server::create();
+  EXPECT_THAT(Debug_Server::instances(), ::testing::Contains(s));
 }
 
-TEST_F(test_debug_server, destroying_debug_server_removes_from_instances) {
-  std::shared_ptr<debug_server> s = debug_server::create();
-  debug_server *s_raw = s.get();
+TEST_F(Test_Debug_Server, destroying_debug_server_removes_from_instances) {
+  std::shared_ptr<Debug_Server> s = Debug_Server::create();
+  Debug_Server *s_raw = s.get();
   s.reset();
 
-  for (std::shared_ptr<debug_server> &instance : debug_server::instances()) {
+  for (std::shared_ptr<Debug_Server> &instance : Debug_Server::instances()) {
     EXPECT_NE(instance.get(), s_raw);
   }
 }
 
-TEST_F(test_debug_server, find_debug_servers_finds_running_instance_SLOW) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+TEST_F(Test_Debug_Server, find_debug_servers_finds_running_instance_SLOW) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
   std::uint16_t server_port = server->tcp_port_number();
 
-  std::vector<found_debug_server> servers = find_debug_servers();
+  std::vector<Found_Debug_Server> servers = find_debug_servers();
   auto found_server_it =
-      find_first_if(servers, [&](const found_debug_server &s) -> bool {
+      find_first_if(servers, [&](const Found_Debug_Server &s) -> bool {
         return s.port_number == server_port;
       });
   ASSERT_NE(found_server_it, servers.end()) << "should find our server";
@@ -557,7 +557,7 @@ bool strings_equal_case_insensitive(std::string_view a, std::string_view b) {
       a, b, [](char x, char y) { return std::tolower(x) == std::tolower(y); });
 }
 
-std::string_view http_response::get_last_header_value_or_empty(
+std::string_view HTTP_Response::get_last_header_value_or_empty(
     std::string_view header_name) const {
   for (const auto &[name, value] : this->headers) {
     if (strings_equal_case_insensitive(name, header_name)) {
@@ -567,12 +567,12 @@ std::string_view http_response::get_last_header_value_or_empty(
   return ""sv;
 }
 
-http_response http_fetch(const char *url) {
-  mongoose_mgr mgr;
+HTTP_Response http_fetch(const char *url) {
+  Mongoose_Mgr mgr;
 
-  struct state {
+  struct State {
     const char *request_url;
-    http_response response;
+    HTTP_Response response;
     bool done = false;
     std::string protocol_error;
 
@@ -621,13 +621,13 @@ http_response http_fetch(const char *url) {
     }
   };
 
-  state s;
+  State s;
   s.request_url = url;
   ::mg_connection *connection = ::mg_http_connect(
-      mgr.get(), s.request_url, mongoose_callback<&state::callback>(), &s);
+      mgr.get(), s.request_url, mongoose_callback<&State::callback>(), &s);
   if (!connection) {
     ADD_FAILURE() << "mg_http_connect failed";
-    return http_response::failed("mg_http_connect failed");
+    return HTTP_Response::failed("mg_http_connect failed");
   }
 
   while (!s.done) {
@@ -637,22 +637,22 @@ http_response http_fetch(const char *url) {
 
   if (!s.protocol_error.empty()) {
     ADD_FAILURE() << "protocol error: " << s.protocol_error;
-    return http_response::failed(s.protocol_error);
+    return HTTP_Response::failed(s.protocol_error);
   }
 
   return std::move(s.response);
 }
 
-http_response http_fetch(const std::string &url) {
+HTTP_Response http_fetch(const std::string &url) {
   return http_fetch(url.c_str());
 }
 
-void http_websocket_client::connect_and_run(
-    const char *url, http_websocket_client_delegate *delegate) {
-  http_websocket_client client(delegate);
+void HTTP_WebSocket_Client::connect_and_run(
+    const char *url, HTTP_WebSocket_Client_Delegate *delegate) {
+  HTTP_WebSocket_Client client(delegate);
   ::mg_connection *connection = ::mg_ws_connect(
       client.mgr_.get(), url,
-      mongoose_callback<&http_websocket_client::callback>(), &client, nullptr);
+      mongoose_callback<&HTTP_WebSocket_Client::callback>(), &client, nullptr);
   if (!connection) {
     ADD_FAILURE() << "mg_ws_connect failed";
     return;
@@ -669,12 +669,12 @@ void http_websocket_client::connect_and_run(
   }
 }
 
-void http_websocket_client::stop() {
+void HTTP_WebSocket_Client::stop() {
   this->done_ = true;
   this->current_connection_->is_closing = true;
 }
 
-void http_websocket_client::callback(::mg_connection *c, int ev,
+void HTTP_WebSocket_Client::callback(::mg_connection *c, int ev,
                                      void *ev_data) {
   this->current_connection_ = c;
 
@@ -706,23 +706,23 @@ void http_websocket_client::callback(::mg_connection *c, int ev,
   this->current_connection_ = nullptr;
 }
 
-http_websocket_client::http_websocket_client(
-    http_websocket_client_delegate *delegate)
+HTTP_WebSocket_Client::HTTP_WebSocket_Client(
+    HTTP_WebSocket_Client_Delegate *delegate)
     : delegate_(delegate) {}
 
-void test_web_socket(function_ref<trace_event_callback> on_trace_event) {
-  std::shared_ptr<debug_server> server = debug_server::create();
+void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
+  std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
 
-  class test_delegate : public http_websocket_client_delegate {
+  class Test_Delegate : public HTTP_WebSocket_Client_Delegate {
    public:
-    explicit test_delegate(debug_server *server,
-                           function_ref<trace_event_callback> on_trace_event)
+    explicit Test_Delegate(Debug_Server *server,
+                           Function_Ref<Trace_Event_Callback> on_trace_event)
         : server(server), on_trace_event(on_trace_event) {}
 
-    void on_message_binary(http_websocket_client *client, const void *message,
+    void on_message_binary(HTTP_WebSocket_Client *client, const void *message,
                            std::size_t message_size) override {
       if (message_size < 8) {
         ADD_FAILURE() << "unexpected tiny message (size=" << message_size
@@ -731,15 +731,15 @@ void test_web_socket(function_ref<trace_event_callback> on_trace_event) {
         return;
       }
 
-      checked_binary_reader reader(
+      Checked_Binary_Reader reader(
           reinterpret_cast<const std::uint8_t *>(message), message_size,
           []() { QLJS_ALWAYS_ASSERT(false && "unexpected end of file"); });
       std::uint64_t thread_index = reader.u64_le();
 
-      trace_reader &r = this->get_trace_reader(thread_index);
+      Trace_Reader &r = this->get_trace_reader(thread_index);
       r.append_bytes(reader.cursor(), reader.remaining());
 
-      for (const parsed_trace_event &event : r.pull_new_events()) {
+      for (const Parsed_Trace_Event &event : r.pull_new_events()) {
         bool keep_going =
             this->on_trace_event(*this->server, event, thread_index);
         if (!keep_going) {
@@ -749,17 +749,17 @@ void test_web_socket(function_ref<trace_event_callback> on_trace_event) {
       }
     }
 
-    trace_reader &get_trace_reader(trace_flusher_thread_index thread_index) {
+    Trace_Reader &get_trace_reader(Trace_Flusher_Thread_Index thread_index) {
       auto [it, _inserted] = this->trace_readers.try_emplace(thread_index);
       return it->second;
     }
 
-    debug_server *server;
-    function_ref<trace_event_callback> on_trace_event;
-    std::map<trace_flusher_thread_index, trace_reader> trace_readers;
+    Debug_Server *server;
+    Function_Ref<Trace_Event_Callback> on_trace_event;
+    std::map<Trace_Flusher_Thread_Index, Trace_Reader> trace_readers;
   };
-  test_delegate delegate(server.get(), on_trace_event);
-  http_websocket_client::connect_and_run(
+  Test_Delegate delegate(server.get(), on_trace_event);
+  HTTP_WebSocket_Client::connect_and_run(
       server->websocket_url("/api/trace").c_str(), &delegate);
 }
 }

@@ -11,12 +11,12 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-arg_parser::arg_parser(int argc, char** argv) noexcept
+Arg_Parser::Arg_Parser(int argc, char** argv) noexcept
     : argc_(argc), argv_(argv) {
   this->parse_current_arg();
 }
 
-const char* arg_parser::match_option_with_value(
+const char* Arg_Parser::match_option_with_value(
     std::string_view option_name) noexcept {
   if (!this->option_.has_value() || !this->option_->arg_value) {
     return nullptr;
@@ -29,7 +29,7 @@ const char* arg_parser::match_option_with_value(
   return arg_value;
 }
 
-bool arg_parser::match_flag_shorthand(char option_shorthand) noexcept {
+bool Arg_Parser::match_flag_shorthand(char option_shorthand) noexcept {
   if (!this->option_.has_value()) {
     return false;
   }
@@ -41,7 +41,7 @@ bool arg_parser::match_flag_shorthand(char option_shorthand) noexcept {
   return matches;
 }
 
-bool arg_parser::match_flag_option(
+bool Arg_Parser::match_flag_option(
     std::string_view full_option_name,
     std::string_view partial_option_name) noexcept {
   if (!this->option_.has_value()) {
@@ -55,31 +55,31 @@ bool arg_parser::match_flag_option(
   return matches;
 }
 
-bool arg_parser::match_flag_option(
+bool Arg_Parser::match_flag_option(
     char option_shorthand, std::string_view full_option_name,
     std::string_view partial_option_name) noexcept {
   return this->match_flag_option(full_option_name, partial_option_name) ||
          this->match_flag_shorthand(option_shorthand);
 }
 
-const char* arg_parser::match_argument() noexcept {
+const char* Arg_Parser::match_argument() noexcept {
   if (this->option_.has_value()) {
     return nullptr;
   }
   return this->match_anything();
 }
 
-const char* arg_parser::match_anything() noexcept {
+const char* Arg_Parser::match_anything() noexcept {
   const char* anything = this->current_arg();
   this->advance(1);
   return anything;
 }
 
-bool arg_parser::done() const noexcept {
+bool Arg_Parser::done() const noexcept {
   return this->current_arg_index_ >= this->argc_;
 }
 
-void arg_parser::parse_current_arg() noexcept {
+void Arg_Parser::parse_current_arg() noexcept {
   if (this->done()) {
     return;
   }
@@ -96,7 +96,7 @@ void arg_parser::parse_current_arg() noexcept {
     this->option_ = std::nullopt;
   } else if (this->current_arg()[0] == '-') {
     const char* equal = std::strchr(this->current_arg(), '=');
-    option o;
+    Option o;
     o.arg_has_equal = equal != nullptr;
     if (o.arg_has_equal) {
       o.arg_key = make_string_view(this->current_arg(), equal);
@@ -113,12 +113,12 @@ void arg_parser::parse_current_arg() noexcept {
   }
 }
 
-void arg_parser::advance(int count) noexcept {
+void Arg_Parser::advance(int count) noexcept {
   this->current_arg_index_ += count;
   this->parse_current_arg();
 }
 
-const char* arg_parser::current_arg() noexcept {
+const char* Arg_Parser::current_arg() noexcept {
   QLJS_ASSERT(this->current_arg_index_ < this->argc_);
   return this->argv_[this->current_arg_index_];
 }

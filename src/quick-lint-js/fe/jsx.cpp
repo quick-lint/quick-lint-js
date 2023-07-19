@@ -14,11 +14,11 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-const hash_map<string8_view, jsx_attribute>& jsx_attribute_aliases() {
-  static linked_bump_allocator<1> string_allocator("jsx_attribute_aliases");
-  static const hash_map<string8_view, jsx_attribute> cache = [] {
+const Hash_Map<String8_View, JSX_Attribute>& jsx_attribute_aliases() {
+  static Linked_Bump_Allocator<1> string_allocator("jsx_attribute_aliases");
+  static const Hash_Map<String8_View, JSX_Attribute> cache = [] {
     // FIXME(strager): This is very inefficient.
-    hash_map<string8_view, jsx_attribute> aliases{
+    Hash_Map<String8_View, JSX_Attribute> aliases{
         {u8"class"_sv, {u8"className"_sv}},
     };
 
@@ -411,16 +411,16 @@ const hash_map<string8_view, jsx_attribute>& jsx_attribute_aliases() {
         "zoomAndPan\0"
         "\0";
     for (std::string_view raw_attribute_name :
-         c_string_list_view(attribute_names)) {
-      string8_view attribute_name = to_string8_view(raw_attribute_name);
-      char8* lowered_attribute_name =
-          string_allocator.allocate_uninitialized_array<char8>(
+         C_String_List_View(attribute_names)) {
+      String8_View attribute_name = to_string8_view(raw_attribute_name);
+      Char8* lowered_attribute_name =
+          string_allocator.allocate_uninitialized_array<Char8>(
               attribute_name.size());
       std::transform(attribute_name.begin(), attribute_name.end(),
                      lowered_attribute_name, tolower);
       auto [_it, inserted] = aliases.try_emplace(
-          string8_view(lowered_attribute_name, attribute_name.size()),
-          jsx_attribute{attribute_name});
+          String8_View(lowered_attribute_name, attribute_name.size()),
+          JSX_Attribute{attribute_name});
       QLJS_ASSERT(inserted);
     }
 

@@ -12,53 +12,53 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct emacs_source_position {
-  using offset_type = std::size_t;
+struct Emacs_Source_Position {
+  using Offset_Type = std::size_t;
 
-  offset_type offset;
+  Offset_Type offset;
 
-  bool operator==(const emacs_source_position& other) const noexcept {
+  bool operator==(const Emacs_Source_Position& other) const noexcept {
     return this->offset == other.offset;
   }
 
-  bool operator!=(const emacs_source_position& other) const noexcept {
+  bool operator!=(const Emacs_Source_Position& other) const noexcept {
     return !(*this == other);
   }
 };
 
-std::ostream& operator<<(std::ostream&, const emacs_source_position&);
+std::ostream& operator<<(std::ostream&, const Emacs_Source_Position&);
 
-class emacs_source_range {
+class Emacs_Source_Range {
  public:
-  using offset = emacs_source_position::offset_type;
+  using Offset = Emacs_Source_Position::Offset_Type;
 
-  explicit emacs_source_range(emacs_source_position begin,
-                              emacs_source_position end) noexcept
+  explicit Emacs_Source_Range(Emacs_Source_Position begin,
+                              Emacs_Source_Position end) noexcept
       : begin_(begin), end_(end) {}
 
-  offset begin_offset() const noexcept { return this->begin_.offset; }
-  emacs_source_position begin() const noexcept;
+  Offset begin_offset() const noexcept { return this->begin_.offset; }
+  Emacs_Source_Position begin() const noexcept;
 
-  offset end_offset() const noexcept { return this->end_.offset; }
-  emacs_source_position end() const noexcept;
+  Offset end_offset() const noexcept { return this->end_.offset; }
+  Emacs_Source_Position end() const noexcept;
 
  private:
-  emacs_source_position begin_;
-  emacs_source_position end_;
+  Emacs_Source_Position begin_;
+  Emacs_Source_Position end_;
 };
 
-class emacs_locator {
+class Emacs_Locator {
  public:
-  explicit emacs_locator(padded_string_view input) noexcept;
+  explicit Emacs_Locator(Padded_String_View input) noexcept;
 
-  emacs_source_range range(source_code_span) const;
-  emacs_source_position position(const char8*) const noexcept;
+  Emacs_Source_Range range(Source_Code_Span) const;
+  Emacs_Source_Position position(const Char8*) const noexcept;
 
  private:
-  emacs_source_position::offset_type offset(const char8*) const noexcept;
-  emacs_source_position position(
-      emacs_source_position::offset_type offset) const noexcept;
-  padded_string_view input_;
+  Emacs_Source_Position::Offset_Type offset(const Char8*) const noexcept;
+  Emacs_Source_Position position(
+      Emacs_Source_Position::Offset_Type offset) const noexcept;
+  Padded_String_View input_;
 };
 }
 

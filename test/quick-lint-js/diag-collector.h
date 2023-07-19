@@ -14,31 +14,31 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct diag_collector : public diag_reporter {
-  void report_impl(diag_type type, void *diag) override;
+struct Diag_Collector : public Diag_Reporter {
+  void report_impl(Diag_Type type, void *diag) override;
 
   // Like std::variant<(diag types)>, but with much faster compilation.
-  class diag {
+  class Diag {
    public:
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  explicit diag(const name &);
+  explicit Diag(const name &);
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-    diag_type type() const noexcept;
+    Diag_Type type() const noexcept;
     const char *error_code() const noexcept;
     const void *data() const noexcept;
 
-    template <class Diag>
-    friend const Diag &get(const diag &) noexcept;
+    template <class Diag_Type>
+    friend const Diag_Type &get(const Diag &) noexcept;
 
-    template <class Diag>
-    friend bool holds_alternative(const diag &) noexcept;
+    template <class Diag_Type>
+    friend bool holds_alternative(const Diag &) noexcept;
 
-    friend void PrintTo(const diag &, std::ostream *);
+    friend void PrintTo(const Diag &, std::ostream *);
 
    private:
-    diag_type type_;
+    Diag_Type type_;
     union {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   name variant_##name##_;
@@ -47,16 +47,16 @@ struct diag_collector : public diag_reporter {
     };
   };
 
-  std::vector<diag> errors;
+  std::vector<Diag> errors;
 };
 
-template <class Diag>
-const Diag &get(const diag_collector::diag &) noexcept;
+template <class Diag_Type>
+const Diag_Type &get(const Diag_Collector::Diag &) noexcept;
 
-template <class Diag>
-bool holds_alternative(const diag_collector::diag &) noexcept;
+template <class Diag_Type>
+bool holds_alternative(const Diag_Collector::Diag &) noexcept;
 
-void PrintTo(const diag_collector::diag &, std::ostream *);
+void PrintTo(const Diag_Collector::Diag &, std::ostream *);
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   void PrintTo(const name &, std::ostream *);

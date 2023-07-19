@@ -19,66 +19,66 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_async_byte_queue, is_empty_after_construction) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, is_empty_after_construction) {
+  Async_Byte_Queue q;
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, u8"");
 }
 
-TEST(test_async_byte_queue, append_and_commit_one_byte) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_and_commit_one_byte) {
+  Async_Byte_Queue q;
   q.append_copy(u8'x');
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, u8"x");
 }
 
-TEST(test_async_byte_queue, append_and_commit_one_two_bytes) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_and_commit_one_two_bytes) {
+  Async_Byte_Queue q;
   q.append_copy(u8'x');
   q.append_copy(u8'y');
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, u8"xy");
 }
 
-TEST(test_async_byte_queue, append_two_bytes_commit_one_byte) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_two_bytes_commit_one_byte) {
+  Async_Byte_Queue q;
   q.append_copy(u8'x');
   q.commit();
   q.append_copy(u8'y');
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, u8"x");
 }
 
-TEST(test_async_byte_queue, append_byte_after_take) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_byte_after_take) {
+  Async_Byte_Queue q;
 
   q.append_copy(u8'x');
   q.commit();
-  string8 taken_data_1 = q.take_committed_string8();
+  String8 taken_data_1 = q.take_committed_string8();
 
   q.append_copy(u8'y');
   q.commit();
-  string8 taken_data_2 = q.take_committed_string8();
+  String8 taken_data_2 = q.take_committed_string8();
   EXPECT_EQ(taken_data_2, u8"y");
 }
 
 #if QLJS_HAVE_THREADS
-TEST(test_async_byte_queue, appended_data_is_readable_by_another_thread) {
+TEST(Test_Async_Byte_Queue, appended_data_is_readable_by_another_thread) {
   constexpr int write_count = 1000;
 
-  async_byte_queue q;
-  string8 expected_data;
+  Async_Byte_Queue q;
+  String8 expected_data;
 
   std::atomic<bool> writer_done = false;
-  thread writer_thread([&]() {
+  Thread writer_thread([&]() {
     for (int i = 0; i < write_count; ++i) {
-      char8 c = static_cast<char8>(u8'0' + (i % 10));
+      Char8 c = static_cast<Char8>(u8'0' + (i % 10));
       q.append_copy(c);
       q.commit();
       expected_data.push_back(c);
@@ -86,7 +86,7 @@ TEST(test_async_byte_queue, appended_data_is_readable_by_another_thread) {
     writer_done.store(true);
   });
 
-  string8 taken_data;
+  String8 taken_data;
   while (!writer_done.load()) {
     taken_data += q.take_committed_string8();
   }
@@ -97,8 +97,8 @@ TEST(test_async_byte_queue, appended_data_is_readable_by_another_thread) {
 }
 #endif
 
-TEST(test_async_byte_queue, append_small_pieces_within_single_chunk) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_small_pieces_within_single_chunk) {
+  Async_Byte_Queue q;
   ASSERT_LT(4 + 8 + 4, q.default_chunk_size);
 
   void* piece_0 = q.append(4);
@@ -109,50 +109,50 @@ TEST(test_async_byte_queue, append_small_pieces_within_single_chunk) {
   std::memcpy(piece_2, u8"thr3", 4);
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, u8"one and two thr3");
 }
 
-TEST(test_async_byte_queue, append_small_pieces_within_multiple_chunks) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, append_small_pieces_within_multiple_chunks) {
+  Async_Byte_Queue q;
 
   static constexpr int piece_size = 3;
-  string8 expected_data;
-  for (async_byte_queue::size_type i = 0; i < q.default_chunk_size * 5;
+  String8 expected_data;
+  for (Async_Byte_Queue::Size_Type i = 0; i < q.default_chunk_size * 5;
        i += piece_size) {
-    std::array<char8, piece_size> piece;
+    std::array<Char8, piece_size> piece;
     fill(piece, u8'a' + (i % 26));
     std::memcpy(q.append(piece.size()), piece.data(), piece.size());
-    expected_data += string8_view(piece.data(), piece.size());
+    expected_data += String8_View(piece.data(), piece.size());
   }
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, expected_data);
 }
 
-TEST(test_async_byte_queue, take_multiple_chunks_then_append) {
-  async_byte_queue q;
+TEST(Test_Async_Byte_Queue, take_multiple_chunks_then_append) {
+  Async_Byte_Queue q;
 
   void* chunk_0 = q.append(q.default_chunk_size);
   std::memset(chunk_0, u8'a', q.default_chunk_size);
   void* chunk_1 = q.append(q.default_chunk_size);
   std::memset(chunk_1, u8'b', q.default_chunk_size);
   q.commit();
-  string8 taken_data_01 = q.take_committed_string8();
+  String8 taken_data_01 = q.take_committed_string8();
 
   void* data_2 = q.append(10);
   std::memcpy(data_2, u8"helloworld", 10);
   q.commit();
-  string8 taken_data_2 = q.take_committed_string8();
+  String8 taken_data_2 = q.take_committed_string8();
   EXPECT_EQ(taken_data_2, u8"helloworld");
 }
 
-TEST(test_async_byte_queue, append_multiple_chunks_without_taking) {
-  tracking_memory_resource leak_detecting_memory;
+TEST(Test_Async_Byte_Queue, append_multiple_chunks_without_taking) {
+  Tracking_Memory_Resource leak_detecting_memory;
 
   {
-    async_byte_queue q(&leak_detecting_memory);
+    Async_Byte_Queue q(&leak_detecting_memory);
     q.append(q.default_chunk_size);
     q.append(q.default_chunk_size);
   }
@@ -161,87 +161,87 @@ TEST(test_async_byte_queue, append_multiple_chunks_without_taking) {
       << "async_byte_queue should not have leaked memory";
 }
 
-TEST(test_async_byte_queue, commit_big_write_then_small_writes) {
-  async_byte_queue q;
-  string8 expected_data;
+TEST(Test_Async_Byte_Queue, commit_big_write_then_small_writes) {
+  Async_Byte_Queue q;
+  String8 expected_data;
 
-  char8* data_0 = static_cast<char8*>(q.append(q.default_chunk_size));
+  Char8* data_0 = static_cast<Char8*>(q.append(q.default_chunk_size));
   std::fill_n(data_0, q.default_chunk_size, u8'a');
-  expected_data += string8_view(data_0, q.default_chunk_size);
+  expected_data += String8_View(data_0, q.default_chunk_size);
   q.commit();
 
-  char8* data_1 = static_cast<char8*>(q.append(2));
+  Char8* data_1 = static_cast<Char8*>(q.append(2));
   std::fill_n(data_1, 2, u8'b');
-  expected_data += string8_view(data_1, 2);
+  expected_data += String8_View(data_1, 2);
   q.commit();
 
-  char8* data_2 = static_cast<char8*>(q.append(2));
+  Char8* data_2 = static_cast<Char8*>(q.append(2));
   std::fill_n(data_2, 2, u8'c');
-  expected_data += string8_view(data_2, 2);
+  expected_data += String8_View(data_2, 2);
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, expected_data);
 }
 
-TEST(test_async_byte_queue, oversized_chunk) {
-  async_byte_queue q;
-  string8 expected_data;
+TEST(Test_Async_Byte_Queue, oversized_chunk) {
+  Async_Byte_Queue q;
+  String8 expected_data;
 
-  char8* data_0 = static_cast<char8*>(q.append(q.default_chunk_size * 3));
+  Char8* data_0 = static_cast<Char8*>(q.append(q.default_chunk_size * 3));
   std::fill_n(data_0, q.default_chunk_size * 3, u8'a');
-  expected_data += string8_view(data_0, q.default_chunk_size * 3);
+  expected_data += String8_View(data_0, q.default_chunk_size * 3);
 
-  char8* data_1 = static_cast<char8*>(q.append(2));
+  Char8* data_1 = static_cast<Char8*>(q.append(2));
   std::fill_n(data_1, 2, u8'b');
-  expected_data += string8_view(data_1, 2);
+  expected_data += String8_View(data_1, 2);
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data, expected_data);
 }
 
-TEST(test_async_byte_queue,
+TEST(Test_Async_Byte_Queue,
      taking_multiple_chunks_keeps_all_chunks_alive_for_finalizer) {
-  async_byte_queue q;
+  Async_Byte_Queue q;
 
-  char8* chunk_0 = static_cast<char8*>(q.append(q.default_chunk_size));
+  Char8* chunk_0 = static_cast<Char8*>(q.append(q.default_chunk_size));
   std::fill_n(chunk_0, q.default_chunk_size, u8'a');
-  char8* chunk_1 = static_cast<char8*>(q.append(q.default_chunk_size));
+  Char8* chunk_1 = static_cast<Char8*>(q.append(q.default_chunk_size));
   std::fill_n(chunk_1, q.default_chunk_size, u8'b');
-  char8* chunk_2 = static_cast<char8*>(q.append(q.default_chunk_size / 4));
+  Char8* chunk_2 = static_cast<Char8*>(q.append(q.default_chunk_size / 4));
   std::fill_n(chunk_2, q.default_chunk_size, u8'c');
   q.commit();
 
-  std::vector<span<const std::byte>> chunks;
+  std::vector<Span<const std::byte>> chunks;
   bool finalize_called = false;
   q.take_committed(
-      [&](span<const std::byte> data) { chunks.push_back(data); },
+      [&](Span<const std::byte> data) { chunks.push_back(data); },
       [&]() {
         ASSERT_EQ(chunks.size(), 3);
 
         EXPECT_EQ(chunks[0].size(), q.default_chunk_size);
         EXPECT_EQ(chunks[0].data(), reinterpret_cast<std::byte*>(chunk_0));
-        EXPECT_EQ(static_cast<char8>(chunks[0][0]), u8'a');
+        EXPECT_EQ(static_cast<Char8>(chunks[0][0]), u8'a');
 
         EXPECT_EQ(chunks[1].size(), q.default_chunk_size);
         EXPECT_EQ(chunks[1].data(), reinterpret_cast<std::byte*>(chunk_1));
-        EXPECT_EQ(static_cast<char8>(chunks[1][0]), u8'b');
+        EXPECT_EQ(static_cast<Char8>(chunks[1][0]), u8'b');
 
         EXPECT_EQ(chunks[2].size(), q.default_chunk_size / 4);
         EXPECT_EQ(chunks[2].data(), reinterpret_cast<std::byte*>(chunk_2));
-        EXPECT_EQ(static_cast<char8>(chunks[2][0]), u8'c');
+        EXPECT_EQ(static_cast<Char8>(chunks[2][0]), u8'c');
 
         finalize_called = true;
       });
   EXPECT_TRUE(finalize_called);
 }
 
-TEST(test_async_byte_queue, append_aligned) {
-  async_byte_queue q;
-  string8 expected_data;
+TEST(Test_Async_Byte_Queue, append_aligned) {
+  Async_Byte_Queue q;
+  String8 expected_data;
 
-  char8* data_0 = static_cast<char8*>(q.append(1));
+  Char8* data_0 = static_cast<Char8*>(q.append(1));
   data_0[0] = u8'a';
 
   std::uint64_t* data_1;
@@ -267,15 +267,15 @@ TEST(test_async_byte_queue, append_aligned) {
 
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data.size(), 1 + sizeof(std::uint64_t) * 3);
 }
 
-TEST(test_async_byte_queue, append_aligned_with_rewind) {
-  async_byte_queue q;
-  string8 expected_data;
+TEST(Test_Async_Byte_Queue, append_aligned_with_rewind) {
+  Async_Byte_Queue q;
+  String8 expected_data;
 
-  char8* first_byte = static_cast<char8*>(q.append(1));
+  Char8* first_byte = static_cast<Char8*>(q.append(1));
   first_byte[0] = u8'a';
 
   q.append_aligned(sizeof(std::uint32_t) * 3, alignof(std::uint32_t),
@@ -288,7 +288,7 @@ TEST(test_async_byte_queue, append_aligned_with_rewind) {
 
   q.commit();
 
-  string8 taken_data = q.take_committed_string8();
+  String8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data.size(), 1 + sizeof(std::uint32_t) * 2);
   EXPECT_THAT(taken_data,
               ::testing::ElementsAreArray<std::uint8_t>({

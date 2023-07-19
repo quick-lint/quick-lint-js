@@ -27,21 +27,21 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_memory_output_stream, no_data_is_written_before_flush) {
-  memory_output_stream s(/*buffer_size=*/1024);
+TEST(Test_Memory_Output_Stream, no_data_is_written_before_flush) {
+  Memory_Output_Stream s(/*buffer_size=*/1024);
   s.append_copy(u8"hello world"_sv);
   EXPECT_EQ(s.get_flushed_string8(), u8""_sv);
 }
 
-TEST(test_memory_output_stream, initial_append_copy) {
-  memory_output_stream s(/*buffer_size=*/1024);
+TEST(Test_Memory_Output_Stream, initial_append_copy) {
+  Memory_Output_Stream s(/*buffer_size=*/1024);
   s.append_copy(u8"hello world"_sv);
   s.flush();
   EXPECT_EQ(s.get_flushed_string8(), u8"hello world"_sv);
 }
 
-TEST(test_memory_output_stream, append_copy_multiple_times) {
-  memory_output_stream s(/*buffer_size=*/1024);
+TEST(Test_Memory_Output_Stream, append_copy_multiple_times) {
+  Memory_Output_Stream s(/*buffer_size=*/1024);
   s.append_copy(u8"hello"_sv);
   s.append_copy(u8" "_sv);
   s.append_copy(u8"world"_sv);
@@ -49,25 +49,25 @@ TEST(test_memory_output_stream, append_copy_multiple_times) {
   EXPECT_EQ(s.get_flushed_string8(), u8"hello world"_sv);
 }
 
-TEST(test_memory_output_stream, append_copy_overflowing_buffer) {
-  memory_output_stream s(/*buffer_size=*/16);
+TEST(Test_Memory_Output_Stream, append_copy_overflowing_buffer) {
+  Memory_Output_Stream s(/*buffer_size=*/16);
   s.append_copy(u8"helloworld"_sv);  // total written: 10
   s.append_copy(u8"HELLOWORLD"_sv);  // total written: 20
   s.flush();
   EXPECT_EQ(s.get_flushed_string8(), u8"helloworldHELLOWORLD"_sv);
 }
 
-TEST(test_memory_output_stream,
+TEST(Test_Memory_Output_Stream,
      append_copy_more_than_buffer_size_flushes_immediately) {
-  memory_output_stream s(/*buffer_size=*/16);
+  Memory_Output_Stream s(/*buffer_size=*/16);
   s.append_copy(u8"the quick brown fox jumps over"_sv);
   // Omitted: s.flush();
   EXPECT_EQ(s.get_flushed_string8(), u8"the quick brown fox jumps over"_sv);
 }
 
-TEST(test_memory_output_stream,
+TEST(Test_Memory_Output_Stream,
      append_copy_more_than_buffer_size_preserves_previous_data) {
-  memory_output_stream s(/*buffer_size=*/16);
+  Memory_Output_Stream s(/*buffer_size=*/16);
   s.append_copy(u8"first "_sv);
   s.append_copy(u8"the quick brown fox jumps over"_sv);
   // Omitted: s.flush();
@@ -75,14 +75,14 @@ TEST(test_memory_output_stream,
             u8"first the quick brown fox jumps over"_sv);
 }
 
-TEST(test_memory_output_stream, append_small_with_callback) {
-  memory_output_stream s(/*buffer_size=*/1024);
+TEST(Test_Memory_Output_Stream, append_small_with_callback) {
+  Memory_Output_Stream s(/*buffer_size=*/1024);
 
-  s.append(4, [](char8* piece) -> int {
+  s.append(4, [](Char8* piece) -> int {
     std::memcpy(piece, u8"ab", 2);
     return 2;
   });
-  s.append(4, [](char8* piece) -> int {
+  s.append(4, [](Char8* piece) -> int {
     std::memcpy(piece, u8"cdef", 4);
     return 4;
   });
@@ -91,40 +91,40 @@ TEST(test_memory_output_stream, append_small_with_callback) {
   EXPECT_EQ(s.get_flushed_string8(), u8"abcdef"_sv);
 }
 
-TEST(test_memory_output_stream,
+TEST(Test_Memory_Output_Stream,
      append_small_with_callback_more_than_buffer_size) {
   static constexpr int buffer_size = 16;
-  memory_output_stream s(/*buffer_size=*/buffer_size);
+  Memory_Output_Stream s(/*buffer_size=*/buffer_size);
 
-  static constexpr char8 message_0[] = u8"the quick brown";
+  static constexpr Char8 message_0[] = u8"the quick brown";
   static int message_0_length = narrow_cast<int>(strlen(message_0));
-  static constexpr char8 message_1[] = u8" fox jumps";
+  static constexpr Char8 message_1[] = u8" fox jumps";
   static int message_1_length = narrow_cast<int>(strlen(message_1));
   ASSERT_LT(message_0_length, buffer_size);
   ASSERT_GT(message_0_length + message_1_length, buffer_size);
 
-  s.append(message_0_length, [](char8* piece) -> int {
+  s.append(message_0_length, [](Char8* piece) -> int {
     std::copy(message_0, &message_0[message_0_length], piece);
     return message_0_length;
   });
-  s.append(message_1_length, [](char8* piece) -> int {
+  s.append(message_1_length, [](Char8* piece) -> int {
     std::copy(message_1, &message_1[message_1_length], piece);
     return message_1_length;
   });
   s.flush();
 
-  EXPECT_EQ(s.get_flushed_string8(), string8(message_0) + message_1);
+  EXPECT_EQ(s.get_flushed_string8(), String8(message_0) + message_1);
 }
 
-TEST(test_memory_output_stream, append_with_callback_more_than_buffer_size) {
+TEST(Test_Memory_Output_Stream, append_with_callback_more_than_buffer_size) {
   static constexpr int buffer_size = 16;
-  memory_output_stream s(/*buffer_size=*/buffer_size);
+  Memory_Output_Stream s(/*buffer_size=*/buffer_size);
 
-  static constexpr char8 message_0[] = u8"the quick brown fox jumps";
+  static constexpr Char8 message_0[] = u8"the quick brown fox jumps";
   static int message_0_length = narrow_cast<int>(strlen(message_0));
   ASSERT_GT(message_0_length, buffer_size);
 
-  s.append(message_0_length, [](char8* piece) -> int {
+  s.append(message_0_length, [](Char8* piece) -> int {
     std::copy(message_0, &message_0[message_0_length], piece);
     return message_0_length;
   });
@@ -137,44 +137,44 @@ TEST(test_memory_output_stream, append_with_callback_more_than_buffer_size) {
 // No filesystem on web.
 #else
 
-class test_file_output_stream : public ::testing::Test,
-                                public filesystem_test {};
+class Test_File_Output_Stream : public ::testing::Test,
+                                public Filesystem_Test {};
 
 #if QLJS_HAVE_UNISTD_H
-TEST_F(test_file_output_stream, write_to_posix_file) {
+TEST_F(Test_File_Output_Stream, write_to_posix_file) {
   std::string temp_dir = this->make_temporary_directory();
   std::string temp_file_path = temp_dir + "/test.txt";
-  posix_fd_file file(::open(temp_file_path.c_str(), O_CREAT | O_WRONLY, 0644));
+  POSIX_FD_File file(::open(temp_file_path.c_str(), O_CREAT | O_WRONLY, 0644));
   ASSERT_TRUE(file.valid()) << std::strerror(errno);
 
-  file_output_stream s(file.ref(), /*buffer_size=*/1024);
+  File_Output_Stream s(file.ref(), /*buffer_size=*/1024);
   s.append_copy(u8"hello world"_sv);
   s.flush();
 
-  result<padded_string, read_file_io_error> contents =
+  Result<Padded_String, Read_File_IO_Error> contents =
       read_file(temp_file_path.c_str());
   ASSERT_TRUE(contents.ok()) << contents.error_to_string();
   EXPECT_EQ(contents->string_view(), u8"hello world"_sv);
 }
 
-TEST_F(test_file_output_stream, destructing_flushes_pending_data) {
+TEST_F(Test_File_Output_Stream, destructing_flushes_pending_data) {
   std::string temp_dir = this->make_temporary_directory();
   std::string temp_file_path = temp_dir + "/test.txt";
-  posix_fd_file file(::open(temp_file_path.c_str(), O_CREAT | O_WRONLY, 0644));
+  POSIX_FD_File file(::open(temp_file_path.c_str(), O_CREAT | O_WRONLY, 0644));
   ASSERT_TRUE(file.valid()) << std::strerror(errno);
 
   {
-    file_output_stream s(file.ref(), /*buffer_size=*/1024);
+    File_Output_Stream s(file.ref(), /*buffer_size=*/1024);
     s.append_copy(u8"hello world"_sv);
 
-    result<padded_string, read_file_io_error> before_contents =
+    Result<Padded_String, Read_File_IO_Error> before_contents =
         read_file(temp_file_path.c_str());
     ASSERT_TRUE(before_contents.ok()) << before_contents.error_to_string();
     EXPECT_EQ(before_contents->string_view(), u8""_sv)
         << "data should be unwritten before closing";
   }
 
-  result<padded_string, read_file_io_error> after_contents =
+  Result<Padded_String, Read_File_IO_Error> after_contents =
       read_file(temp_file_path.c_str());
   ASSERT_TRUE(after_contents.ok()) << after_contents.error_to_string();
   EXPECT_EQ(after_contents->string_view(), u8"hello world"_sv)

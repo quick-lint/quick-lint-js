@@ -5,12 +5,12 @@
 #define QUICK_LINT_JS_FE_LINTER_H
 
 namespace quick_lint_js {
-class diag_reporter;
-class global_declared_variable_set;
-class padded_string_view;
+class Diag_Reporter;
+class Global_Declared_Variable_Set;
+class Padded_String_View;
 
 // TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
-struct linter_options {
+struct Linter_Options {
   // If true, parse and lint JSX language extensions:
   // https://facebook.github.io/jsx/
   bool jsx = true;
@@ -22,8 +22,8 @@ struct linter_options {
   bool print_parser_visits = false;
 };
 
-void parse_and_lint(padded_string_view code, diag_reporter&,
-                    const global_declared_variable_set&, linter_options);
+void parse_and_lint(Padded_String_View code, Diag_Reporter&,
+                    const Global_Declared_Variable_Set&, Linter_Options);
 }
 
 #endif

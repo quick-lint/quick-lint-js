@@ -10,39 +10,39 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_dirty_set, empty) {
-  dirty_set<int> s = {};
+TEST(Test_Dirty_Set, empty) {
+  Dirty_Set<int> s = {};
   EXPECT_EQ(s.begin(), s.end());
 }
 
-TEST(test_dirty_set, one_int) {
-  dirty_set<int> s = {42};
+TEST(Test_Dirty_Set, one_int) {
+  Dirty_Set<int> s = {42};
   EXPECT_NE(s.begin(), s.end());
   EXPECT_EQ(*s.begin(), 42);
   EXPECT_EQ(std::next(s.begin(), 1), s.end());
   EXPECT_THAT(s, ElementsAreArray({42}));
 }
 
-TEST(test_dirty_set, duplicate_ints_are_deduplicated) {
-  dirty_set<int> s = {42, 69, 42, 69};
+TEST(Test_Dirty_Set, duplicate_ints_are_deduplicated) {
+  Dirty_Set<int> s = {42, 69, 42, 69};
   EXPECT_THAT(s, ElementsAreArray({42, 69}));
 }
 
-TEST(test_dirty_set, intersect) {
-  dirty_set<int> s1 = {10, 20};
-  dirty_set<int> s2 = {20, 30};
+TEST(Test_Dirty_Set, intersect) {
+  Dirty_Set<int> s1 = {10, 20};
+  Dirty_Set<int> s2 = {20, 30};
   EXPECT_THAT(s1 & s2, ElementsAreArray({20}));
 }
 
-TEST(test_dirty_set, union) {
-  dirty_set<int> s1 = {10, 20};
-  dirty_set<int> s2 = {20, 30};
+TEST(Test_Dirty_Set, union) {
+  Dirty_Set<int> s1 = {10, 20};
+  Dirty_Set<int> s2 = {20, 30};
   EXPECT_THAT(s1 | s2, ElementsAreArray({10, 20, 30}));
 }
 
-TEST(test_dirty_set, difference) {
-  dirty_set<int> s1 = {10, 20};
-  dirty_set<int> s2 = {20, 30};
+TEST(Test_Dirty_Set, difference) {
+  Dirty_Set<int> s1 = {10, 20};
+  Dirty_Set<int> s2 = {20, 30};
   EXPECT_THAT(s1 - s2, ElementsAreArray({10}));
 }
 }

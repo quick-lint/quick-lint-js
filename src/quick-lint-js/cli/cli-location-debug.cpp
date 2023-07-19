@@ -5,7 +5,7 @@
 #include <quick-lint-js/cli/cli-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const cli_source_position &p) {
+std::ostream &operator<<(std::ostream &out, const CLI_Source_Position &p) {
   out << "cli_source_position{" << p.line_number << ',' << p.column_number
       << ',' << p.offset << '}';
   return out;

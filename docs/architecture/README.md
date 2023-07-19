@@ -29,7 +29,7 @@ the interface used:
   WebAssembly API calls. Each change includes the full text.
 
 JavaScript code is always loaded into memory as a single continuous array of
-bytes (`padded_string`).
+bytes (`Padded_String`).
 
 ### Lexing and parsing
 

@@ -18,10 +18,10 @@
 #include <string>
 
 namespace quick_lint_js {
-class byte_buffer;
-class trace_flusher_websocket_backend;
+class Byte_Buffer;
+class Trace_Flusher_WebSocket_Backend;
 
-struct debug_server_io_error {
+struct Debug_Server_IO_Error {
   std::string error_message;
 
   std::string to_string() const { return this->error_message; }
@@ -29,17 +29,17 @@ struct debug_server_io_error {
 
 // Internally, debug_server manages a thread. The thread is called the 'server
 // thread'. All other threads are called 'other threads'.
-class debug_server {
+class Debug_Server {
  private:
-  struct create_tag {};
+  struct Create_Tag {};
 
  public:
-  static std::shared_ptr<debug_server> create();
-  static std::vector<std::shared_ptr<debug_server>> instances();
+  static std::shared_ptr<Debug_Server> create();
+  static std::vector<std::shared_ptr<Debug_Server>> instances();
 
-  explicit debug_server(create_tag);
+  explicit Debug_Server(Create_Tag);
 
-  ~debug_server();
+  ~Debug_Server();
 
   // Example address: "http://localhost:1234"
   //
@@ -53,7 +53,7 @@ class debug_server {
   void stop_server_thread();
 
   // Precondition: start_server_thread was called.
-  result<void, debug_server_io_error> wait_for_server_start();
+  Result<void, Debug_Server_IO_Error> wait_for_server_start();
 
   // Precondition: wait_for_server_start was called and it succeeded.
   std::string url();
@@ -65,11 +65,11 @@ class debug_server {
   void debug_probe_publish_vector_profile();
 
  private:
-  struct shared_state;
+  struct Shared_State;
 
   // Run on any thread:
   void wake_up_server_thread();
-  void wake_up_server_thread(lock_ptr<shared_state> &);
+  void wake_up_server_thread(Lock_Ptr<Shared_State> &);
 
   // Appends the host:port part of a URL to the given string.
   void get_host_and_port(std::string &out);
@@ -81,7 +81,7 @@ class debug_server {
   void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
   void publish_lsp_documents_if_needed();
 
-  struct shared_state {
+  struct Shared_State {
     std::string requested_listen_address = "http://localhost:0";
 
     // Written to by the server thread. Read by other threads.
@@ -94,10 +94,10 @@ class debug_server {
     std::uint16_t port_number() const;
   };
 
-  synchronized<shared_state> state_;
+  Synchronized<Shared_State> state_;
 
   // Signalled by the server thread after init_data_ or init_error_ is set.
-  mutable condition_variable initialized_;
+  mutable Condition_Variable initialized_;
 
   // Written to by other threads. Read by the server thread.
   std::atomic<bool> stop_server_thread_{false};
@@ -105,18 +105,18 @@ class debug_server {
   std::atomic<bool> need_publish_vector_profile_{false};
 
   // Used by other threads only:
-  thread server_thread_;
+  Thread server_thread_;
   bool did_wait_for_server_start_ = false;
 
   // Used by server thread only:
   // Each backend is associated with one WebSocket connection.
-  std::vector<std::unique_ptr<trace_flusher_websocket_backend>>
+  std::vector<std::unique_ptr<Trace_Flusher_WebSocket_Backend>>
       tracer_backends_;
 #if QLJS_FEATURE_VECTOR_PROFILING
-  vector_max_size_histogram_by_owner max_size_histogram_;
+  Vector_Max_Size_Histogram_By_Owner max_size_histogram_;
 #endif
 
-  friend class trace_flusher_websocket_backend;
+  friend class Trace_Flusher_WebSocket_Backend;
 };
 }
 

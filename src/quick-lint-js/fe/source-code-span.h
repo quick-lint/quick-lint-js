@@ -10,21 +10,21 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-class source_code_span {
+class Source_Code_Span {
  public:
-  // A source_code_span with no contained characters.
-  static source_code_span unit(const char8* c) noexcept {
-    return source_code_span(c, c);
+  // A Source_Code_Span with no contained characters.
+  static Source_Code_Span unit(const Char8* c) noexcept {
+    return Source_Code_Span(c, c);
   }
 
-  explicit source_code_span(const char8* begin, const char8* end) noexcept
+  explicit Source_Code_Span(const Char8* begin, const Char8* end) noexcept
       : begin_(begin), end_(end) {}
 
-  const char8* begin() const noexcept { return this->begin_; }
+  const Char8* begin() const noexcept { return this->begin_; }
 
-  const char8* end() const noexcept { return this->end_; }
+  const Char8* end() const noexcept { return this->end_; }
 
-  string8_view string_view() const noexcept {
+  String8_View string_view() const noexcept {
     return make_string_view(this->begin(), this->end());
   }
 
@@ -33,15 +33,15 @@ class source_code_span {
   }
 
  private:
-  const char8* begin_;
-  const char8* end_;
+  const Char8* begin_;
+  const Char8* end_;
 };
 
-// Returns true of the given source_code_span-s refer to the same span of code
+// Returns true of the given Source_Code_Span-s refer to the same span of code
 // (i.e. are completely identical).
-bool same_pointers(source_code_span, source_code_span) noexcept;
+bool same_pointers(Source_Code_Span, Source_Code_Span) noexcept;
 
-std::ostream& operator<<(std::ostream&, source_code_span);
+std::ostream& operator<<(std::ostream&, Source_Code_Span);
 }
 
 #endif

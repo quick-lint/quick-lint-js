@@ -9,20 +9,20 @@
 
 namespace quick_lint_js {
 template <class T>
-struct make_unsigned : public std::make_unsigned<T> {};
+struct Make_Unsigned : public std::make_unsigned<T> {};
 
 #if QLJS_HAVE_CHAR8_T
 // HACK(strager): Work around older versions of libc++ not supporting
 // std::make_unsigned<char8_t> despite the corresponding versions of Clang
 // supporting char8_t.
 template <>
-struct make_unsigned<char8_t> {
+struct Make_Unsigned<char8_t> {
   using type = char8_t;
 };
 #endif
 
 template <class T>
-using make_unsigned_t = typename make_unsigned<T>::type;
+using Make_Unsigned_T = typename Make_Unsigned<T>::type;
 }
 
 #endif

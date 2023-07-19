@@ -12,17 +12,17 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_c_string_list, iterate_empty_list) {
+TEST(Test_C_String_List, iterate_empty_list) {
   static constexpr char list_data[] = "\0";
-  c_string_list_view list(list_data);
+  C_String_List_View list(list_data);
   EXPECT_EQ(list.begin(), list.end());
 }
 
-TEST(test_c_string_list, iterate_one_string) {
+TEST(Test_C_String_List, iterate_one_string) {
   static constexpr char list_data[] = "hello\0";
-  c_string_list_view list(list_data);
+  C_String_List_View list(list_data);
 
-  c_string_list_iterator it = list.begin();
+  C_String_List_Iterator it = list.begin();
   EXPECT_NE(it, list.end());
   EXPECT_EQ(*it, "hello"sv);
   EXPECT_STREQ(it.c_str(), "hello");
@@ -31,10 +31,10 @@ TEST(test_c_string_list, iterate_one_string) {
   EXPECT_EQ(it, list.end());
 }
 
-TEST(test_c_string_list, iterate_many_strings) {
+TEST(Test_C_String_List, iterate_many_strings) {
   static constexpr char list_data[] =
       "one\0two\0three\0four\0five\0six\0seven\0eight\0nine\0ten\0";
-  c_string_list_view list(list_data);
+  C_String_List_View list(list_data);
   EXPECT_THAT(list, ElementsAreArray({
                         "one"sv,
                         "two"sv,
@@ -49,11 +49,11 @@ TEST(test_c_string_list, iterate_many_strings) {
                     }));
 }
 
-TEST(test_c_string_list, strings_from_iteration_are_null_terminated) {
+TEST(Test_C_String_List, strings_from_iteration_are_null_terminated) {
   static constexpr char list_data[] = "first\0second\0third\0";
-  c_string_list_view list(list_data);
+  C_String_List_View list(list_data);
 
-  c_string_list_iterator it = list.begin();
+  C_String_List_Iterator it = list.begin();
   EXPECT_EQ(std::strlen(it.c_str()), "first"sv.size());
   EXPECT_EQ(std::strlen((*it).data()), "first"sv.size());
 

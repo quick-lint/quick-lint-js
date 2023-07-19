@@ -13,33 +13,33 @@ QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
 namespace quick_lint_js {
 namespace {
-TEST(test_array, concat) {
+TEST(Test_Array, concat) {
   std::array<int, 3> lhs = {100, 200, 300};
   std::array<int, 4> rhs = {400, 500, 600, 700};
   std::array<int, 7> result = concat(lhs, rhs);
   EXPECT_THAT(result, ElementsAreArray({100, 200, 300, 400, 500, 600, 700}));
 }
 
-TEST(test_array, concat_not_default_constructible) {
-  struct initialized_int {
-    initialized_int() = delete;
+TEST(Test_Array, concat_not_default_constructible) {
+  struct Initialized_Int {
+    Initialized_Int() = delete;
 
-    /*implicit*/ initialized_int(int value) noexcept : value(value) {}
+    /*implicit*/ Initialized_Int(int value) noexcept : value(value) {}
 
-    bool operator==(initialized_int other) const noexcept {
+    bool operator==(Initialized_Int other) const noexcept {
       return this->value == other.value;
     }
 
-    bool operator!=(initialized_int other) const noexcept {
+    bool operator!=(Initialized_Int other) const noexcept {
       return !(*this == other);
     }
 
     int value;
   };
 
-  std::array<initialized_int, 3> lhs = {100, 200, 300};
-  std::array<initialized_int, 4> rhs = {400, 500, 600, 700};
-  std::array<initialized_int, 7> result = concat(lhs, rhs);
+  std::array<Initialized_Int, 3> lhs = {100, 200, 300};
+  std::array<Initialized_Int, 4> rhs = {400, 500, 600, 700};
+  std::array<Initialized_Int, 7> result = concat(lhs, rhs);
   EXPECT_THAT(result, ElementsAreArray({100, 200, 300, 400, 500, 600, 700}));
 }
 }

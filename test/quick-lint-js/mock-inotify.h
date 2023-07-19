@@ -9,18 +9,18 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_INOTIFY
-class mock_inotify_init_error_guard {
+class Mock_Inotify_Init_Error_Guard {
  public:
-  explicit mock_inotify_init_error_guard(int error) noexcept
+  explicit Mock_Inotify_Init_Error_Guard(int error) noexcept
       : old_error_(mock_inotify_force_init_error) {
     mock_inotify_force_init_error = error;
   }
 
-  mock_inotify_init_error_guard(const mock_inotify_init_error_guard&) = delete;
-  mock_inotify_init_error_guard& operator=(
-      const mock_inotify_init_error_guard&) = delete;
+  Mock_Inotify_Init_Error_Guard(const Mock_Inotify_Init_Error_Guard&) = delete;
+  Mock_Inotify_Init_Error_Guard& operator=(
+      const Mock_Inotify_Init_Error_Guard&) = delete;
 
-  ~mock_inotify_init_error_guard() {
+  ~Mock_Inotify_Init_Error_Guard() {
     mock_inotify_force_init_error = this->old_error_;
   }
 
@@ -28,19 +28,19 @@ class mock_inotify_init_error_guard {
   int old_error_;
 };
 
-class mock_inotify_add_watch_error_guard {
+class Mock_Inotify_Add_Watch_Error_Guard {
  public:
-  explicit mock_inotify_add_watch_error_guard(int error) noexcept
+  explicit Mock_Inotify_Add_Watch_Error_Guard(int error) noexcept
       : old_error_(mock_inotify_force_add_watch_error) {
     mock_inotify_force_add_watch_error = error;
   }
 
-  mock_inotify_add_watch_error_guard(
-      const mock_inotify_add_watch_error_guard&) = delete;
-  mock_inotify_add_watch_error_guard& operator=(
-      const mock_inotify_add_watch_error_guard&) = delete;
+  Mock_Inotify_Add_Watch_Error_Guard(
+      const Mock_Inotify_Add_Watch_Error_Guard&) = delete;
+  Mock_Inotify_Add_Watch_Error_Guard& operator=(
+      const Mock_Inotify_Add_Watch_Error_Guard&) = delete;
 
-  ~mock_inotify_add_watch_error_guard() {
+  ~Mock_Inotify_Add_Watch_Error_Guard() {
     mock_inotify_force_add_watch_error = this->old_error_;
   }
 

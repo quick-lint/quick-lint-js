@@ -26,24 +26,24 @@
 
 namespace quick_lint_js {
 // Receives JSON-RPC messages parsed by lsp_json_rpc_message_parser.
-class json_rpc_message_handler {
+class JSON_RPC_Message_Handler {
  public:
   // The type of IDs used for requests sent by this handler (thus responses
   // handled by this handler).
-  using request_id_type = std::uint64_t;
+  using Request_ID_Type = std::uint64_t;
 
-  virtual ~json_rpc_message_handler();
+  virtual ~JSON_RPC_Message_Handler();
 
   // It is the responsibility of the json_rpc_message_handler to create and send
   // a response back to the peer.
   virtual void handle_request(::simdjson::ondemand::object& request,
                               std::string_view method,
-                              string8_view id_json) = 0;
+                              String8_View id_json) = 0;
 
-  virtual void handle_response(request_id_type request_id,
+  virtual void handle_response(Request_ID_Type request_id,
                                ::simdjson::ondemand::value& result) = 0;
 
-  virtual void handle_error_response(request_id_type request_id,
+  virtual void handle_error_response(Request_ID_Type request_id,
                                      std::int64_t code,
                                      std::string_view message) = 0;
 
@@ -55,24 +55,24 @@ class json_rpc_message_handler {
 // dispatches them to json_rpc_message_handler.
 //
 // lsp_json_rpc_message_parser implements JSON-RPC.
-class lsp_json_rpc_message_parser
-    : private lsp_message_parser<lsp_json_rpc_message_parser> {
+class LSP_JSON_RPC_Message_Parser
+    : private LSP_Message_Parser<LSP_JSON_RPC_Message_Parser> {
  private:
-  using message_parser = lsp_message_parser<lsp_json_rpc_message_parser>;
+  using Message_Parser = LSP_Message_Parser<LSP_JSON_RPC_Message_Parser>;
 
  public:
-  explicit lsp_json_rpc_message_parser(json_rpc_message_handler* handler);
-  ~lsp_json_rpc_message_parser();
+  explicit LSP_JSON_RPC_Message_Parser(JSON_RPC_Message_Handler* handler);
+  ~LSP_JSON_RPC_Message_Parser();
 
-  lsp_json_rpc_message_parser(const lsp_json_rpc_message_parser&) = delete;
-  lsp_json_rpc_message_parser& operator=(const lsp_json_rpc_message_parser&) =
+  LSP_JSON_RPC_Message_Parser(const LSP_JSON_RPC_Message_Parser&) = delete;
+  LSP_JSON_RPC_Message_Parser& operator=(const LSP_JSON_RPC_Message_Parser&) =
       delete;
 
-  using message_parser::append;
+  using Message_Parser::append;
 
-  void message_parsed(string8_view message);
+  void message_parsed(String8_View message);
 
-  void flush_error_responses(lsp_endpoint_remote&);
+  void flush_error_responses(LSP_Endpoint_Remote&);
 
  private:
   void handle_message(::simdjson::ondemand::object& request);
@@ -82,15 +82,15 @@ class lsp_json_rpc_message_parser
 
   void write_invalid_request_error_response();
 
-  json_rpc_message_handler* handler_;
+  JSON_RPC_Message_Handler* handler_;
   std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
-  outgoing_json_rpc_message_queue error_responses_;
+  Outgoing_JSON_RPC_Message_Queue error_responses_;
 
-  friend message_parser;
+  friend Message_Parser;
 };
 
-extern template void lsp_message_parser<lsp_json_rpc_message_parser>::append(
-    string8_view);
+extern template void LSP_Message_Parser<LSP_JSON_RPC_Message_Parser>::append(
+    String8_View);
 }
 
 #endif

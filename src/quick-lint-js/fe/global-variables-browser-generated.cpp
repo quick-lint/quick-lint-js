@@ -8,7 +8,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-const char8 global_variables_browser[] =
+const Char8 global_variables_browser[] =
     u8"AbortController\0"
     u8"AbortSignal\0"
     u8"AbsoluteOrientationSensor\0"
@@ -1000,7 +1000,7 @@ const char8 global_variables_browser[] =
     u8"webkitURL\0"
     u8"window\0";
 
-const char8 global_variables_web_worker[] =
+const Char8 global_variables_web_worker[] =
     u8"AbortController\0"
     u8"AbortSignal\0"
     u8"BackgroundFetchManager\0"

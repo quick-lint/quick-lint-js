@@ -9,53 +9,53 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-identifier token::identifier_name() const noexcept {
+Identifier Token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
-  case token_type::identifier:
-  case token_type::private_identifier:
-  case token_type::reserved_keyword_with_escape_sequence:
+  case Token_Type::identifier:
+  case Token_Type::private_identifier:
+  case Token_Type::reserved_keyword_with_escape_sequence:
     break;
   default:
     QLJS_ASSERT(false);
     break;
   }
-  return identifier(this->span(),
+  return Identifier(this->span(),
                     /*normalized=*/this->normalized_identifier);
 }
 
-source_code_span token::span() const noexcept {
-  return source_code_span(this->begin, this->end);
+Source_Code_Span Token::span() const noexcept {
+  return Source_Code_Span(this->begin, this->end);
 }
 
-void token::report_errors_for_escape_sequences_in_keyword(
-    diag_reporter* reporter) const {
-  QLJS_ASSERT(this->type == token_type::reserved_keyword_with_escape_sequence);
+void Token::report_errors_for_escape_sequences_in_keyword(
+    Diag_Reporter* reporter) const {
+  QLJS_ASSERT(this->type == Token_Type::reserved_keyword_with_escape_sequence);
   QLJS_ASSERT(this->identifier_escape_sequences);
   QLJS_ASSERT(!this->identifier_escape_sequences->empty());
-  for (const source_code_span& escape_sequence :
+  for (const Source_Code_Span& escape_sequence :
        *this->identifier_escape_sequences) {
-    reporter->report(diag_keywords_cannot_contain_escape_sequences{
+    reporter->report(Diag_Keywords_Cannot_Contain_Escape_Sequences{
         .escape_sequence = escape_sequence});
   }
 }
 
-void token::report_errors_for_escape_sequences_in_template(
-    diag_reporter* reporter) const {
-  QLJS_ASSERT(this->type == token_type::complete_template ||
-              this->type == token_type::incomplete_template);
+void Token::report_errors_for_escape_sequences_in_template(
+    Diag_Reporter* reporter) const {
+  QLJS_ASSERT(this->type == Token_Type::complete_template ||
+              this->type == Token_Type::incomplete_template);
   if (this->template_escape_sequence_diagnostics) {
     this->template_escape_sequence_diagnostics->move_into(reporter);
   }
 }
 
-bool token::contains_escape_sequence() const {
+bool Token::contains_escape_sequence() const {
   return this->normalized_identifier.data() != this->begin;
 }
 
-[[gnu::noinline]] const char* to_string(token_type type) {
+[[gnu::noinline]] const char* to_string(Token_Type type) {
 #define QLJS_CASE(t)  \
-  case token_type::t: \
+  case Token_Type::t: \
     return #t;
   switch (type) {
     QLJS_CASE(ampersand)

@@ -27,7 +27,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-constexpr string8_view ignored_tests[] = {
+constexpr String8_View ignored_tests[] = {
     // This test errors even with the TypeScript compiler. Maybe one of the test
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
@@ -41,7 +41,7 @@ struct test_typescript_options {
 test_typescript_options parse_test_options(int argc, char** argv) {
   test_typescript_options o;
 
-  arg_parser parser(argc, argv);
+  Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) {
       o.test_case_paths.push_back(argument);
@@ -62,7 +62,7 @@ class expected_test_results {
     bool has_errors;
   };
 
-  result<void, platform_file_io_error> load_from_tests_directory(
+  Result<void, Platform_File_IO_Error> load_from_tests_directory(
       const char* baselines_path) {
     auto visit_entry = [&](const char* entry_name) -> void {
       static constexpr std::string_view errors_suffix = ".errors.txt"sv;
@@ -73,7 +73,7 @@ class expected_test_results {
         this->test_cases_expecting_error_.emplace(entry_name_view);
       }
     };
-    result<void, platform_file_io_error> list = list_directory(
+    Result<void, Platform_File_IO_Error> list = list_directory(
         concat(std::string_view(baselines_path), "/baselines/reference/"sv)
             .c_str(),
         visit_entry);
@@ -100,11 +100,11 @@ class expected_test_results {
   }
 
  private:
-  hash_set<std::string> test_cases_expecting_error_;
+  Hash_Set<std::string> test_cases_expecting_error_;
 };
 
-bool should_ignore_test(string8_view path) {
-  for (string8_view ignore_pattern : ignored_tests) {
+bool should_ignore_test(String8_View path) {
+  for (String8_View ignore_pattern : ignored_tests) {
     if (ends_with(path, ignore_pattern)) {
       return true;
     }
@@ -114,7 +114,7 @@ bool should_ignore_test(string8_view path) {
 
 void process_test_case_file(expected_test_results& expected_results,
                             const char* path) {
-  string8_view path_view = to_string8_view(path);
+  String8_View path_view = to_string8_view(path);
   if (should_ignore_test(path_view)) {
     std::fprintf(stderr, "note: ignoring %s\n", path);
     return;
@@ -128,23 +128,23 @@ void process_test_case_file(expected_test_results& expected_results,
     std::exit(1);
   }
 
-  result<padded_string, read_file_io_error> raw_source = read_file(path);
+  Result<Padded_String, Read_File_IO_Error> raw_source = read_file(path);
   if (!raw_source.ok()) {
     std::fprintf(stderr, "fatal: failed to load file %s: %s\n", path,
                  raw_source.error_to_string().c_str());
     std::exit(1);
   }
 
-  global_declared_variable_set globals;
+  Global_Declared_Variable_Set globals;
   globals.add_literally_everything();
 
-  memory_output_stream diags;
-  text_diag_reporter text_reporter(translator(), &diags,
+  Memory_Output_Stream diags;
+  Text_Diag_Reporter text_reporter(Translator(), &diags,
                                    /*escape_errors=*/false);
 
   for (typescript_test_unit& unit :
        extract_units_from_typescript_test(std::move(*raw_source), path_view)) {
-    std::optional<linter_options> options = unit.get_linter_options();
+    std::optional<Linter_Options> options = unit.get_linter_options();
     if (options.has_value()) {
       // TODO(strager): Indicate which unit we are looking at.
       text_reporter.set_source(&unit.data, path);
@@ -153,7 +153,7 @@ void process_test_case_file(expected_test_results& expected_results,
   }
   diags.flush();
 
-  string8 diags_text = diags.get_flushed_string8();
+  String8 diags_text = diags.get_flushed_string8();
   bool did_error = !diags_text.empty();
   bool should_error = expected->has_errors;
   if (did_error != should_error) {
@@ -179,7 +179,7 @@ void process_test_case_directory_or_file(
       process_test_case_file(expected_results, file_path.c_str());
     }
   };
-  auto on_error = [&](const platform_file_io_error& error, int depth) -> void {
+  auto on_error = [&](const Platform_File_IO_Error& error, int depth) -> void {
     if (depth == 0 && error.is_not_a_directory_error()) {
       process_test_case_file(expected_results, path);
       return;
@@ -192,14 +192,14 @@ void process_test_case_directory_or_file(
 }
 
 std::string find_typescript_tests_directory(const char* descendant_path) {
-  result<canonical_path_result, canonicalize_path_io_error> path_result =
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> path_result =
       canonicalize_path(descendant_path);
   if (!path_result.ok()) {
     std::fprintf(stderr, "fatal: failed to canonicalize: %s\n",
                  path_result.error_to_string().c_str());
     std::exit(1);
   }
-  canonical_path path = std::move(*path_result).canonical();
+  Canonical_Path path = std::move(*path_result).canonical();
   for (;;) {
     if (path_file_name(path.path()) == "tests") {
       return std::move(path).path();
@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
   }
 
   expected_test_results expected_results;
-  result<void, platform_file_io_error> load =
+  Result<void, Platform_File_IO_Error> load =
       expected_results.load_from_tests_directory(
           find_typescript_tests_directory(o.test_case_paths[0]).c_str());
   if (!load.ok()) {

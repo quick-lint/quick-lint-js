@@ -9,7 +9,7 @@
 
 namespace quick_lint_js {
 // clang-format off
-const translated_string test_translation_table[] = {
+const Translated_String test_translation_table[] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         {
@@ -913,14 +913,14 @@ const translated_string test_translation_table[] = {
         },
     },
     {
-        "Keywords in Typescript does not allow escape characters"_translatable,
+        "Keywords in TypeScript does not allow escape characters"_translatable,
         {
-            u8"Keywords in Typescript does not allow escape characters",
-            u8"Keywords in Typescript does not allow escape characters",
-            u8"Keywords in Typescript does not allow escape characters",
-            u8"Keywords in Typescript does not allow escape characters",
-            u8"Keywords in Typescript does not allow escape characters",
-            u8"Keywords in Typescript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
+            u8"Keywords in TypeScript does not allow escape characters",
         },
     },
     {

@@ -7,32 +7,32 @@
 #include <set>
 
 namespace quick_lint_js {
-// dirty_set is like std::set but with handy operators for quick-and-dirty set
+// Dirty_Set is like std::set but with handy operators for quick-and-dirty set
 // operations. It is unoptimized and designed for testing purposes only.
 template <class T>
-class dirty_set {
+class Dirty_Set {
  private:
-  using set_type = std::set<T>;
+  using Set_Type = std::set<T>;
 
  public:
   using value_type = T;
   using reference = T&;
   using const_reference = const T&;
-  using const_iterator = typename set_type::const_iterator;
+  using const_iterator = typename Set_Type::const_iterator;
   using iterator = const_iterator;
-  using difference_type = typename set_type::difference_type;
-  using size_type = typename set_type::size_type;
+  using difference_type = typename Set_Type::difference_type;
+  using size_type = typename Set_Type::size_type;
 
-  /*implicit*/ dirty_set() = default;
+  /*implicit*/ Dirty_Set() = default;
 
-  /*implicit*/ dirty_set(std::initializer_list<T> items)
+  /*implicit*/ Dirty_Set(std::initializer_list<T> items)
       : items_(std::move(items)) {}
 
   const_iterator begin() const { return this->items_.begin(); }
   const_iterator end() const { return this->items_.end(); }
 
-  friend dirty_set operator&(const dirty_set& lhs, const dirty_set& rhs) {
-    dirty_set result;
+  friend Dirty_Set operator&(const Dirty_Set& lhs, const Dirty_Set& rhs) {
+    Dirty_Set result;
     for (const T& x : lhs) {
       if (rhs.items_.count(x) > 0) {
         result.items_.insert(x);
@@ -41,14 +41,14 @@ class dirty_set {
     return result;
   }
 
-  friend dirty_set operator|(const dirty_set& lhs, const dirty_set& rhs) {
-    dirty_set result = lhs;
+  friend Dirty_Set operator|(const Dirty_Set& lhs, const Dirty_Set& rhs) {
+    Dirty_Set result = lhs;
     result.items_.insert(rhs.begin(), rhs.end());
     return result;
   }
 
-  friend dirty_set operator-(const dirty_set& lhs, const dirty_set& rhs) {
-    dirty_set result = lhs;
+  friend Dirty_Set operator-(const Dirty_Set& lhs, const Dirty_Set& rhs) {
+    Dirty_Set result = lhs;
     for (const T& x : rhs) {
       result.items_.erase(x);
     }

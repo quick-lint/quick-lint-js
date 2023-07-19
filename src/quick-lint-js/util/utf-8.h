@@ -9,7 +9,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+Char8* encode_utf_8(char32_t code_point, Char8* out);
 
 // There are three cases with decode_utf_8_result:
 //
@@ -18,13 +18,13 @@ char8* encode_utf_8(char32_t code_point, char8* out);
 //
 // 2. The input string starts with a valid character sequence.
 //    .ok == true && .size > 0. .code_point refers to the first Unicode code
-//    point in the input. .size is the number of char8-s in the first character
+//    point in the input. .size is the number of Char8-s in the first character
 //    sequence.
 //
 // 3. The input string starts with an invalid character sequence.
 //    .ok == false && .size > 0. .code_point is unspecified. .size is the number
-//    of char8-s you should skip.
-struct decode_utf_8_result {
+//    of Char8-s you should skip.
+struct Decode_UTF8_Result {
   // Invariant: !(this->ok && this->size == 0)
   std::ptrdiff_t size;
   // Valid only if this->ok == true.
@@ -32,12 +32,12 @@ struct decode_utf_8_result {
   bool ok;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
+Decode_UTF8_Result decode_utf_8(Padded_String_View) noexcept;
+std::size_t count_utf_8_characters(Padded_String_View, std::size_t) noexcept;
 
-const char8* advance_lsp_characters_in_utf_8(string8_view,
+const Char8* advance_lsp_characters_in_utf_8(String8_View,
                                              int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
+std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View,
                                              int offset) noexcept;
 }
 

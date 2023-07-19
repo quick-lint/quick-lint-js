@@ -43,7 +43,7 @@ std::vector<std::string_view> split(std::string_view s, char separator) {
 // TODO(strager): Reuse run_program from <quick-lint-js/port/child-process.h>.
 std::string run_program(std::vector<std::string> command,
                         std::optional<std::string> cwd) {
-  pipe_fds program_output = make_pipe();
+  Pipe_FDs program_output = make_pipe();
   ::posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
   posix_spawn_file_actions_adddup2(&file_actions, program_output.writer.get(),
@@ -140,9 +140,9 @@ std::string get_nodejs_version() {
 }
 }
 
-benchmark_config benchmark_config::load() {
-  std::vector<benchmark_config_server> servers = {
-      benchmark_config_server{
+Benchmark_Config Benchmark_Config::load() {
+  std::vector<Benchmark_Config_Server> servers = {
+      Benchmark_Config_Server{
           .name = "vscode-eslint-airbnb",
           .program_name = "ESLint",
           .command = {"node",
@@ -159,7 +159,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "vscode-eslint-react",
           .program_name = "ESLint",
           .command = {"node",
@@ -177,7 +177,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "vscode-eslint-typescript",
           .program_name = "ESLint",
           .command = {"node",
@@ -195,7 +195,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "vscode-eslint-vanilla",
           .program_name = "ESLint",
           .command = {"node",
@@ -212,7 +212,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "vscode-eslint-vue",
           .program_name = "ESLint",
           .command = {"node",
@@ -229,7 +229,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "Deno",
           .program_name = "Deno",
           .command = {"deno", "lsp"},
@@ -249,7 +249,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "Deno-nolint",
           .program_name = "Deno",
           .command = {"deno", "lsp"},
@@ -268,7 +268,7 @@ benchmark_config benchmark_config::load() {
           })",
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "Flow",
           .program_name = "Flow",
           .command = {"./run.sh"},
@@ -278,27 +278,27 @@ benchmark_config benchmark_config::load() {
           .wait_for_empty_diagnostics_on_open = false,
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "quick-lint-js",
           .program_name = "quick-lint-js",
           .command = {"quick-lint-js", "--lsp-server"},
           .supports_jsx = true,
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "RSLint",
           .program_name = "RSLint",
           .command = {"rslint-lsp"},
           .allow_incremental_changes = false,
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "Rome",
           .program_name = "Rome",
           .command = {"rome", "lsp-proxy"},
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "TypeScript",
           .program_name = "TypeScript",
           .command = {"node", "./node_modules/.bin/typescript-language-server",
@@ -308,7 +308,7 @@ benchmark_config benchmark_config::load() {
           .supports_jsx = false,
       },
 
-      benchmark_config_server{
+      Benchmark_Config_Server{
           .name = "TypeScript-JSX",
           .program_name = "TypeScript",
           .command = {"node", "./node_modules/.bin/typescript-language-server",
@@ -319,8 +319,8 @@ benchmark_config benchmark_config::load() {
       },
   };
 
-  std::vector<benchmark_config_program> programs = {
-      benchmark_config_program{
+  std::vector<Benchmark_Config_Program> programs = {
+      Benchmark_Config_Program{
           .name = "Deno",
           .get_metadata =
               []() {
@@ -346,7 +346,7 @@ benchmark_config benchmark_config::load() {
               },
       },
 
-      benchmark_config_program{
+      Benchmark_Config_Program{
           .name = "ESLint",
           .get_metadata =
               []() {
@@ -379,12 +379,12 @@ benchmark_config benchmark_config::load() {
               },
       },
 
-      benchmark_config_program{
+      Benchmark_Config_Program{
           .name = "Flow",
           .get_metadata = []() { return get_yarn_packages_versions("flow"); },
       },
 
-      benchmark_config_program{
+      Benchmark_Config_Program{
           .name = "quick-lint-js",
           .get_metadata =
               []() {
@@ -401,7 +401,7 @@ benchmark_config benchmark_config::load() {
               },
       },
 
-      benchmark_config_program{
+      Benchmark_Config_Program{
           .name = "Rome",
           .get_metadata =
               []() {
@@ -411,7 +411,7 @@ benchmark_config benchmark_config::load() {
               },
       },
 
-      benchmark_config_program{
+      Benchmark_Config_Program{
           .name = "TypeScript",
           .get_metadata =
               []() {
@@ -424,7 +424,7 @@ benchmark_config benchmark_config::load() {
       },
   };
 
-  return benchmark_config{
+  return Benchmark_Config{
       .servers = std::move(servers),
       .programs = std::move(programs),
   };

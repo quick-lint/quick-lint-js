@@ -11,28 +11,28 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-class identifier {
+class Identifier {
  public:
   // For tests only.
-  explicit identifier(source_code_span span) noexcept
+  explicit Identifier(Source_Code_Span span) noexcept
       : span_begin_(span.begin()),
         normalized_begin_(this->span_begin_),
         span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
         normalized_size_(this->span_size_) {}
 
-  explicit identifier(source_code_span span, string8_view normalized) noexcept
+  explicit Identifier(Source_Code_Span span, String8_View normalized) noexcept
       : span_begin_(span.begin()),
         normalized_begin_(normalized.data()),
         span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
         normalized_size_(narrow_cast<unsigned>(normalized.size())) {}
 
-  explicit identifier(source_code_span span,
-                      const char8* normalized) noexcept = delete;
+  explicit Identifier(Source_Code_Span span,
+                      const Char8* normalized) noexcept = delete;
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
-  source_code_span span() const noexcept {
-    return source_code_span(this->span_begin_,
+  Source_Code_Span span() const noexcept {
+    return Source_Code_Span(this->span_begin_,
                             this->span_begin_ + this->span_size_);
   }
   QLJS_WARNING_POP
@@ -45,13 +45,13 @@ class identifier {
   // The returned pointers might not reside within the source code string. In
   // other words, the normalized name might be heap-allocated. Call span()
   // instead if you want pointers within the source code input.
-  string8_view normalized_name() const noexcept {
-    return string8_view(this->normalized_begin_, this->normalized_size_);
+  String8_View normalized_name() const noexcept {
+    return String8_View(this->normalized_begin_, this->normalized_size_);
   }
 
  private:
-  const char8* span_begin_;
-  const char8* normalized_begin_;
+  const Char8* span_begin_;
+  const Char8* normalized_begin_;
   unsigned span_size_;
   unsigned normalized_size_;
 };

@@ -11,18 +11,18 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_CHAR8_T
-bool keyword_lexer::key_strings_equal(const char* a, const char* b,
+bool Keyword_Lexer::key_strings_equal(const char* a, const char* b,
                                       std::size_t size) {
   return key_strings_equal(reinterpret_cast<const char8_t*>(a),
                            reinterpret_cast<const char8_t*>(b), size);
 }
 #endif
 
-bool keyword_lexer::key_strings_equal(const char8* a, const char8* b,
+bool Keyword_Lexer::key_strings_equal(const Char8* a, const Char8* b,
                                       std::size_t size) {
 #if QLJS_HAVE_X86_SSE2
-  char_vector_16_sse2 a_unmasked = char_vector_16_sse2::load(a);
-  char_vector_16_sse2 b_unmasked = char_vector_16_sse2::load(b);
+  Char_Vector_16_SSE2 a_unmasked = Char_Vector_16_SSE2::load(a);
+  Char_Vector_16_SSE2 b_unmasked = Char_Vector_16_SSE2::load(b);
 
   // (uint32_t(x) << 32) is UB, so ensure the shift is less than 32.
   std::size_t mask_shift = (size & 31);

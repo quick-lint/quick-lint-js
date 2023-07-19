@@ -19,17 +19,17 @@ namespace quick_lint_js {
 //     https://sourceforge.net/p/mingw-w64/bugs/779/
 //     https://github.com/rohlem/gcc-max_align_t-bug-repro
 //     https://www.mail-archive.com/mingw-w64-public@lists.sourceforge.net/msg17995.html
-union max_align_t {
+union Max_Align_T {
   long double ld;
   long long ll;
 };
 #else
-using max_align_t = std::max_align_t;
+using Max_Align_T = std::max_align_t;
 #endif
 
 #if defined(_WIN32) && defined(__i386__)
 static_assert(
-    alignof(max_align_t) <= 8,
+    alignof(Max_Align_T) <= 8,
     "malloc only guarantees 8-byte-aligned pointers on Windows x86 (32-bit)");
 #endif
 }

@@ -10,55 +10,55 @@
 #include <string_view>
 
 namespace quick_lint_js {
-enum class parse_integer_exact_error {
+enum class Parse_Integer_Exact_Error {
   ok,
   out_of_range,
   invalid,
 };
 
 template <class T>
-parse_integer_exact_error parse_integer_exact(std::string_view, T &value);
-extern template parse_integer_exact_error parse_integer_exact(std::string_view,
+Parse_Integer_Exact_Error parse_integer_exact(std::string_view, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                               int &value);
-extern template parse_integer_exact_error parse_integer_exact(
+extern template Parse_Integer_Exact_Error parse_integer_exact(
     std::string_view, unsigned short &value);
-extern template parse_integer_exact_error parse_integer_exact(std::string_view,
+extern template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
                                                               unsigned &value);
-extern template parse_integer_exact_error parse_integer_exact(
+extern template Parse_Integer_Exact_Error parse_integer_exact(
     std::string_view, unsigned long &value);
-extern template parse_integer_exact_error parse_integer_exact(
+extern template Parse_Integer_Exact_Error parse_integer_exact(
     std::string_view, unsigned long long &value);
 
 template <class T>
-parse_integer_exact_error parse_integer_exact(std::wstring_view, T &value);
-extern template parse_integer_exact_error parse_integer_exact(
+Parse_Integer_Exact_Error parse_integer_exact(std::wstring_view, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(
     std::wstring_view, unsigned short &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_integer_exact_error parse_integer_exact(string8_view, T &value);
-extern template parse_integer_exact_error parse_integer_exact(string8_view,
+Parse_Integer_Exact_Error parse_integer_exact(String8_View, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                               unsigned &value);
-extern template parse_integer_exact_error parse_integer_exact(
-    string8_view, unsigned long &value);
-extern template parse_integer_exact_error parse_integer_exact(
-    string8_view, unsigned long long &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(
+    String8_View, unsigned long &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(
+    String8_View, unsigned long long &value);
 #endif
 
 template <class T>
-parse_integer_exact_error parse_integer_exact_hex(std::string_view, T &value);
-extern template parse_integer_exact_error parse_integer_exact_hex(
+Parse_Integer_Exact_Error parse_integer_exact_hex(std::string_view, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact_hex(
     std::string_view, unsigned char &value);
-extern template parse_integer_exact_error parse_integer_exact_hex(
+extern template Parse_Integer_Exact_Error parse_integer_exact_hex(
     std::string_view, char32_t &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
-parse_integer_exact_error parse_integer_exact_hex(string8_view, T &value);
-extern template parse_integer_exact_error parse_integer_exact_hex(
-    string8_view, unsigned char &value);
-extern template parse_integer_exact_error parse_integer_exact_hex(
-    string8_view, char32_t &value);
+Parse_Integer_Exact_Error parse_integer_exact_hex(String8_View, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    String8_View, unsigned char &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    String8_View, char32_t &value);
 #endif
 
 template <class T>
@@ -67,17 +67,17 @@ inline constexpr int integer_string_length =
     (std::numeric_limits<T>::is_signed ? 1 : 0);
 
 template <class T>
-char8 *write_integer(T, char8 *out);
+Char8 *write_integer(T, Char8 *out);
 
-extern template char8 *write_integer<unsigned short>(unsigned short,
-                                                     char8 *out);
-extern template char8 *write_integer<int>(int, char8 *out);
-extern template char8 *write_integer<long>(long, char8 *out);
-extern template char8 *write_integer<long long>(long long, char8 *out);
-extern template char8 *write_integer<unsigned>(unsigned, char8 *out);
-extern template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
-extern template char8 *write_integer<unsigned long long>(unsigned long long,
-                                                         char8 *out);
+extern template Char8 *write_integer<unsigned short>(unsigned short,
+                                                     Char8 *out);
+extern template Char8 *write_integer<int>(int, Char8 *out);
+extern template Char8 *write_integer<long>(long, Char8 *out);
+extern template Char8 *write_integer<long long>(long long, Char8 *out);
+extern template Char8 *write_integer<unsigned>(unsigned, Char8 *out);
+extern template Char8 *write_integer<unsigned long>(unsigned long, Char8 *out);
+extern template Char8 *write_integer<unsigned long long>(unsigned long long,
+                                                         Char8 *out);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>

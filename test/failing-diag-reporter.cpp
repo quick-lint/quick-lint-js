@@ -6,7 +6,7 @@
 #include <quick-lint-js/failing-diag-reporter.h>
 
 namespace quick_lint_js {
-void failing_diag_reporter::report_impl(diag_type type, void *) {
+void Failing_Diag_Reporter::report_impl(Diag_Type type, void *) {
   ADD_FAILURE() << "expected no errors, but got: " << type;
 }
 }

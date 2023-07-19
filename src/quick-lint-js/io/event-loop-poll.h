@@ -24,9 +24,9 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-// An event loop using POSIX poll(). See event_loop_base for details.
+// An event loop using POSIX poll(). See Event_Loop_Base for details.
 template <class Derived>
-class poll_event_loop : public event_loop_base<Derived> {
+class Poll_Event_Loop : public Event_Loop_Base<Derived> {
  public:
   void run() {
     for (;;) {
@@ -38,7 +38,7 @@ class poll_event_loop : public event_loop_base<Derived> {
       }
 
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
-      platform_file_ref pipe = this->const_derived().get_readable_pipe();
+      Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
       QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array< ::pollfd, 3> pollfds;
@@ -49,7 +49,7 @@ class poll_event_loop : public event_loop_base<Derived> {
           ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
 
       std::optional<std::size_t> write_pipe_index;
-      if (std::optional<posix_fd_file_ref> fd =
+      if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_pipe_write_fd()) {
         write_pipe_index = pollfd_count++;
         pollfds[*write_pipe_index] = ::pollfd{
@@ -61,7 +61,7 @@ class poll_event_loop : public event_loop_base<Derived> {
 
 #if QLJS_HAVE_INOTIFY
       std::optional<std::size_t> inotify_index;
-      if (std::optional<posix_fd_file_ref> fd =
+      if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_inotify_fd()) {
         inotify_index = pollfd_count++;
         pollfds[*inotify_index] = ::pollfd{

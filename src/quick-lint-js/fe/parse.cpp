@@ -22,55 +22,55 @@
 #include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
-// parser is a recursive-descent parser.
+// Parser is a recursive-descent parser.
 //
-// The parser class currently does not build an abstract syntax tree (AST) for
+// The Parser class currently does not build an abstract syntax tree (AST) for
 // statements. This allows the parser to send partial information to the lexer
 // incrementally, enabling single-pass parsing and linting.
 //
-// The parser class currently builds an AST for expressions. (See expression.h.)
+// The Parser class currently builds an AST for expressions. (See expression.h.)
 // Therefore, parsing and linting are not truly single-pass. This detail is not
 // exposed to the variable_analyzer, however; the variable_analyzer does not see
 // the expression ASTs.
 //
-// Each parser stores a lexer object internally. From the caller's perspective,
-// the parser class takes characters as input.
+// Each Parser stores a lexer object internally. From the caller's perspective,
+// the Parser class takes characters as input.
 
 namespace quick_lint_js {
-parser_transaction::parser_transaction(lexer* l,
-                                       diag_reporter** diag_reporter_pointer,
-                                       monotonic_allocator* allocator)
+Parser_Transaction::Parser_Transaction(Lexer* l,
+                                       Diag_Reporter** diag_reporter_pointer,
+                                       Monotonic_Allocator* allocator)
     : lex_transaction(l->begin_transaction()),
       reporter(allocator),
       old_diag_reporter(
           std::exchange(*diag_reporter_pointer, &this->reporter)) {}
 
-parser::parser(padded_string_view input, diag_reporter* diag_reporter,
-               parser_options options)
+Parser::Parser(Padded_String_View input, Diag_Reporter* diag_reporter,
+               Parser_Options options)
     : lexer_(input, diag_reporter),
       diag_reporter_(diag_reporter),
       options_(options) {}
 
-parser::function_guard parser::enter_function(function_attributes attributes) {
+Parser::Function_Guard Parser::enter_function(Function_Attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
   bool was_in_async_function = this->in_async_function_;
   bool was_in_generator_function = this->in_generator_function_;
   bool was_in_loop_statement = this->in_loop_statement_;
   bool was_in_switch_statement = this->in_switch_statement_;
   switch (attributes) {
-  case function_attributes::async:
+  case Function_Attributes::async:
     this->in_async_function_ = true;
     this->in_generator_function_ = false;
     break;
-  case function_attributes::async_generator:
+  case Function_Attributes::async_generator:
     this->in_async_function_ = true;
     this->in_generator_function_ = true;
     break;
-  case function_attributes::generator:
+  case Function_Attributes::generator:
     this->in_async_function_ = false;
     this->in_generator_function_ = true;
     break;
-  case function_attributes::normal:
+  case Function_Attributes::normal:
     this->in_async_function_ = false;
     this->in_generator_function_ = false;
     break;
@@ -78,78 +78,78 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   this->in_top_level_ = false;
   this->in_loop_statement_ = false;
   this->in_switch_statement_ = false;
-  return function_guard(this, was_in_top_level, was_in_async_function,
+  return Function_Guard(this, was_in_top_level, was_in_async_function,
                         was_in_generator_function, was_in_loop_statement,
                         was_in_switch_statement);
 }
 
-parser::loop_guard parser::enter_loop() {
-  return loop_guard(this, std::exchange(this->in_loop_statement_, true));
+Parser::Loop_Guard Parser::enter_loop() {
+  return Loop_Guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
-parser::class_guard parser::enter_class() {
-  return class_guard(this, std::exchange(this->in_class_, true));
+Parser::Class_Guard Parser::enter_class() {
+  return Class_Guard(this, std::exchange(this->in_class_, true));
 }
 
-parser::typescript_only_construct_guard
-parser::enter_typescript_only_construct() {
-  return typescript_only_construct_guard(
+Parser::TypeScript_Only_Construct_Guard
+Parser::enter_typescript_only_construct() {
+  return TypeScript_Only_Construct_Guard(
       this, std::exchange(this->in_typescript_only_construct_, true));
 }
 
-parser::switch_guard parser::enter_switch() {
-  return switch_guard(this, std::exchange(this->in_switch_statement_, true));
+Parser::Switch_Guard Parser::enter_switch() {
+  return Switch_Guard(this, std::exchange(this->in_switch_statement_, true));
 }
 
-parser::binary_expression_builder::binary_expression_builder(
-    monotonic_allocator* allocator, expression* first_child)
+Parser::Binary_Expression_Builder::Binary_Expression_Builder(
+    Monotonic_Allocator* allocator, Expression* first_child)
     : children_("binary_expression_builder children", allocator),
       operator_spans_("binary_expression_builder children", allocator) {
   this->children_.emplace_back(first_child);
 }
 
-expression* parser::binary_expression_builder::last_expression() const
+Expression* Parser::Binary_Expression_Builder::last_expression() const
     noexcept {
   return this->children_.back();
 }
 
-bool parser::binary_expression_builder::has_multiple_children() const noexcept {
+bool Parser::Binary_Expression_Builder::has_multiple_children() const noexcept {
   return this->children_.size() > 1;
 }
 
-expression* parser::binary_expression_builder::add_child(
-    source_code_span prior_operator_span, expression* child) {
+Expression* Parser::Binary_Expression_Builder::add_child(
+    Source_Code_Span prior_operator_span, Expression* child) {
   this->operator_spans_.emplace_back(prior_operator_span);
   return this->children_.emplace_back(child);
 }
 
-void parser::binary_expression_builder::replace_last(
-    expression* new_last_child) {
+void Parser::Binary_Expression_Builder::replace_last(
+    Expression* new_last_child) {
   this->children_.back() = new_last_child;
 }
 
-void parser::binary_expression_builder::reset_after_build(
-    expression* new_first_child) {
+void Parser::Binary_Expression_Builder::reset_after_build(
+    Expression* new_first_child) {
   this->children_.clear();
   this->children_.emplace_back(new_first_child);
   this->operator_spans_.clear();
 }
 
-expression_arena::array_ptr<expression*>
-parser::binary_expression_builder::move_expressions(
-    expression_arena& arena) noexcept {
+Expression_Arena::Array_Ptr<Expression*>
+Parser::Binary_Expression_Builder::move_expressions(
+    Expression_Arena& arena) noexcept {
   return arena.make_array(std::move(this->children_));
 }
 
-expression_arena::array_ptr<source_code_span>
-parser::binary_expression_builder::move_operator_spans(
-    expression_arena& arena) noexcept {
+Expression_Arena::Array_Ptr<Source_Code_Span>
+Parser::Binary_Expression_Builder::move_operator_spans(
+    Expression_Arena& arena) noexcept {
   return arena.make_array(std::move(this->operator_spans_));
 }
 
-expression* parser::build_expression(binary_expression_builder& builder) {
+Expression* Parser::build_expression(Binary_Expression_Builder& builder) {
   if (builder.has_multiple_children()) {
-    return this->make_expression<expression::binary_operator>(
+    return this->make_expression<Expression::Binary_Operator>(
         builder.move_expressions(this->expressions_),
         builder.move_operator_spans(this->expressions_));
   } else {
@@ -159,31 +159,31 @@ expression* parser::build_expression(binary_expression_builder& builder) {
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
-void parser::check_jsx_attribute(const identifier& attribute_name) {
-  const hash_map<string8_view, jsx_attribute>& aliases =
+void Parser::check_jsx_attribute(const Identifier& attribute_name) {
+  const Hash_Map<String8_View, JSX_Attribute>& aliases =
       jsx_attribute_aliases();
-  string8_view name = attribute_name.normalized_name();
+  String8_View name = attribute_name.normalized_name();
 
   bool is_event_attribute =
       name.size() >= 3 && name[0] == 'o' && name[1] == 'n';
 
   if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
-    const jsx_attribute& alias = alias_it->second;
+    const JSX_Attribute& alias = alias_it->second;
     if (name.size() != alias.expected.size()) {
-      this->diag_reporter_->report(diag_jsx_attribute_renamed_by_react{
+      this->diag_reporter_->report(Diag_JSX_Attribute_Renamed_By_React{
           .attribute_name = attribute_name.span(),
           .react_attribute_name = alias.expected,
       });
       return;
     } else if (is_event_attribute) {
       this->diag_reporter_->report(
-          diag_jsx_event_attribute_should_be_camel_case{
+          Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
               .attribute_name = attribute_name.span(),
               .expected_attribute_name = alias.expected,
           });
       return;
     } else {
-      this->diag_reporter_->report(diag_jsx_attribute_has_wrong_capitalization{
+      this->diag_reporter_->report(Diag_JSX_Attribute_Has_Wrong_Capitalization{
           .attribute_name = attribute_name.span(),
           .expected_attribute_name = alias.expected,
       });
@@ -194,28 +194,28 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
   bool name_has_upper = any_of(name, isupper);
 
   if (!name_has_upper && is_event_attribute) {
-    bump_vector<char8, monotonic_allocator> fixed_name(
+    Bump_Vector<Char8, Monotonic_Allocator> fixed_name(
         "check_jsx_attribute fixed_name", &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
-    this->diag_reporter_->report(diag_jsx_event_attribute_should_be_camel_case{
+    this->diag_reporter_->report(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
         .attribute_name = attribute_name.span(),
-        .expected_attribute_name = string8_view(fixed_name),
+        .expected_attribute_name = String8_View(fixed_name),
     });
     fixed_name.release();
   }
 
   if (name_has_upper) {
-    string8 lowered_name(name);
-    for (char8& c : lowered_name) {
+    String8 lowered_name(name);
+    for (Char8& c : lowered_name) {
       c = tolower(c);
     }
 
-    if (auto alias_it = aliases.find(string8_view(lowered_name));
+    if (auto alias_it = aliases.find(String8_View(lowered_name));
         alias_it != aliases.end()) {
       if (alias_it->second.expected != name) {
         this->diag_reporter_->report(
-            diag_jsx_attribute_has_wrong_capitalization{
+            Diag_JSX_Attribute_Has_Wrong_Capitalization{
                 .attribute_name = attribute_name.span(),
                 .expected_attribute_name = alias_it->second.expected,
             });
@@ -225,32 +225,32 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
 }
 QLJS_WARNING_POP
 
-std::optional<source_code_span> parser::parse_generator_star(
-    function_attributes* attributes) {
-  bool is_generator = this->peek().type == token_type::star;
+std::optional<Source_Code_Span> Parser::parse_generator_star(
+    Function_Attributes* attributes) {
+  bool is_generator = this->peek().type == Token_Type::star;
   if (is_generator) {
-    source_code_span star_span = this->peek().span();
+    Source_Code_Span star_span = this->peek().span();
     this->skip();
     switch (*attributes) {
-    case function_attributes::async:
-      *attributes = function_attributes::async_generator;
+    case Function_Attributes::async:
+      *attributes = Function_Attributes::async_generator;
       break;
-    case function_attributes::async_generator:
+    case Function_Attributes::async_generator:
       // This can happen if the user puts the generator * before and after the
       // function keyword:
       //
       //   (*async function* f() {})
-      *attributes = function_attributes::async_generator;
+      *attributes = Function_Attributes::async_generator;
       break;
-    case function_attributes::generator:
+    case Function_Attributes::generator:
       // This can happen if the user puts the generator * before and after the
       // function keyword:
       //
       //   (*function* f() {})
-      *attributes = function_attributes::generator;
+      *attributes = Function_Attributes::generator;
       break;
-    case function_attributes::normal:
-      *attributes = function_attributes::generator;
+    case Function_Attributes::normal:
+      *attributes = Function_Attributes::generator;
       break;
     }
     return star_span;
@@ -260,19 +260,19 @@ std::optional<source_code_span> parser::parse_generator_star(
   }
 }
 
-expression* parser::maybe_wrap_erroneous_arrow_function(
-    expression* arrow_function, expression* lhs) {
+Expression* Parser::maybe_wrap_erroneous_arrow_function(
+    Expression* arrow_function, Expression* lhs) {
   switch (lhs->kind()) {
   default:
     return arrow_function;
 
-  case expression_kind::trailing_comma: {
-    auto* parameter_list = expression_cast<expression::trailing_comma>(lhs);
-    expression* last_parameter =
+  case Expression_Kind::Trailing_Comma: {
+    auto* parameter_list = expression_cast<Expression::Trailing_Comma>(lhs);
+    Expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
-    if (last_parameter->kind() == expression_kind::spread) {
+    if (last_parameter->kind() == Expression_Kind::Spread) {
       this->diag_reporter_->report(
-          diag_comma_not_allowed_after_spread_parameter{
+          Diag_Comma_Not_Allowed_After_Spread_Parameter{
               .comma = parameter_list->comma_span(),
               .spread = last_parameter->span(),
           });
@@ -281,47 +281,47 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
   }
 
   // f() => {}         // Invalid.
-  case expression_kind::call: {
-    auto* call = expression_cast<expression::call>(lhs);
-    source_code_span missing_operator_span(call->span().begin(),
+  case Expression_Kind::Call: {
+    auto* call = expression_cast<Expression::Call>(lhs);
+    Source_Code_Span missing_operator_span(call->span().begin(),
                                            call->left_paren_span().end());
     this->diag_reporter_->report(
-        diag_missing_operator_between_expression_and_arrow_function{
+        Diag_Missing_Operator_Between_Expression_And_Arrow_Function{
             .where = missing_operator_span,
         });
-    std::array<expression*, 2> children{lhs->child_0(), arrow_function};
-    std::array<source_code_span, 1> operators{missing_operator_span};
-    return this->make_expression<expression::binary_operator>(
+    std::array<Expression*, 2> children{lhs->child_0(), arrow_function};
+    std::array<Source_Code_Span, 1> operators{missing_operator_span};
+    return this->make_expression<Expression::Binary_Operator>(
         this->expressions_.make_array(std::move(children)),
         this->expressions_.make_array(std::move(operators)));
   }
   }
 }
 
-void parser::error_on_sketchy_condition(expression* ast) {
-  if (ast->kind() == expression_kind::assignment &&
-      ast->child_1()->kind() == expression_kind::literal) {
-    auto* assignment = static_cast<expression::assignment*>(ast);
-    this->diag_reporter_->report(diag_assignment_makes_condition_constant{
+void Parser::error_on_sketchy_condition(Expression* ast) {
+  if (ast->kind() == Expression_Kind::Assignment &&
+      ast->child_1()->kind() == Expression_Kind::Literal) {
+    auto* assignment = static_cast<Expression::Assignment*>(ast);
+    this->diag_reporter_->report(Diag_Assignment_Makes_Condition_Constant{
         .assignment_operator = assignment->operator_span_,
     });
   }
 
   // checking if the third operand is either literal (includes 'null') or
   // 'undefined'
-  if (ast->kind() == expression_kind::binary_operator &&
+  if (ast->kind() == Expression_Kind::Binary_Operator &&
       ast->children().size() == 3 &&
-      ((ast->child(2)->kind() == expression_kind::literal) ||
-       ((ast->child(2)->kind() == expression_kind::variable) &&
-        (static_cast<expression::variable*>(ast->child(2))->type_ ==
-         token_type::kw_undefined)))) {
-    auto* binary = static_cast<expression::binary_operator*>(ast);
-    source_code_span left_operator = binary->operator_spans_[0];
-    source_code_span right_operator = binary->operator_spans_[1];
+      ((ast->child(2)->kind() == Expression_Kind::Literal) ||
+       ((ast->child(2)->kind() == Expression_Kind::Variable) &&
+        (static_cast<Expression::Variable*>(ast->child(2))->type_ ==
+         Token_Type::kw_undefined)))) {
+    auto* binary = static_cast<Expression::Binary_Operator*>(ast);
+    Source_Code_Span left_operator = binary->operator_spans_[0];
+    Source_Code_Span right_operator = binary->operator_spans_[1];
     if (right_operator.string_view() == u8"||"_sv &&
         (left_operator.string_view() == u8"=="_sv ||
          left_operator.string_view() == u8"==="_sv)) {
-      this->diag_reporter_->report(diag_equals_does_not_distribute_over_or{
+      this->diag_reporter_->report(Diag_Equals_Does_Not_Distribute_Over_Or{
           .or_operator = right_operator,
           .equals_operator = left_operator,
       });
@@ -329,70 +329,70 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
-void parser::warn_on_comma_operator_in_conditional_statement(expression* ast) {
-  if (ast->kind() != expression_kind::binary_operator) return;
+void Parser::warn_on_comma_operator_in_conditional_statement(Expression* ast) {
+  if (ast->kind() != Expression_Kind::Binary_Operator) return;
 
-  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+  auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
-  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
-    source_code_span op_span = binary_operator->operator_spans_[i];
+  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
       this->diag_reporter_->report(
-          diag_misleading_comma_operator_in_conditional_statement{.comma =
+          Diag_Misleading_Comma_Operator_In_Conditional_Statement{.comma =
                                                                       op_span});
       return;
     }
   }
 }
 
-void parser::warn_on_comma_operator_in_index(expression* ast,
-                                             source_code_span left_square) {
-  if (ast->kind() != expression_kind::binary_operator) return;
+void Parser::warn_on_comma_operator_in_index(Expression* ast,
+                                             Source_Code_Span left_square) {
+  if (ast->kind() != Expression_Kind::Binary_Operator) return;
 
-  auto is_comma = [](string8_view s) -> bool { return s == u8","_sv; };
+  auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<expression::binary_operator*>(ast);
-  for (span_size i = binary_operator->child_count() - 2; i >= 0; i--) {
-    source_code_span op_span = binary_operator->operator_spans_[i];
+  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
+    Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
       this->diag_reporter_->report(
-          diag_misleading_comma_operator_in_index_operation{
+          Diag_Misleading_Comma_Operator_In_Index_Operation{
               .comma = op_span, .left_square = left_square});
       return;
     }
   }
 }
 
-void parser::error_on_pointless_string_compare(
-    expression::binary_operator* ast) {
-  auto is_comparison_operator = [](string8_view s) {
+void Parser::error_on_pointless_string_compare(
+    Expression::Binary_Operator* ast) {
+  auto is_comparison_operator = [](String8_View s) {
     return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
            s == u8"!=="_sv;
   };
-  auto char_is_a_quote = [](const char8* s) {
+  auto char_is_a_quote = [](const Char8* s) {
     return *s == '"' || *s == '\'' || *s == '`';
   };
 
-  for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    expression* lhs = ast->child(i)->without_paren();
-    expression* rhs = ast->child(i + 1)->without_paren();
+  for (Span_Size i = 0; i < ast->child_count() - 1; i++) {
+    Expression* lhs = ast->child(i)->without_paren();
+    Expression* rhs = ast->child(i + 1)->without_paren();
 
-    if ((lhs->kind() == expression_kind::call &&
-         rhs->kind() == expression_kind::literal) ||
-        (lhs->kind() == expression_kind::literal &&
-         rhs->kind() == expression_kind::call)) {
-      source_code_span op_span = ast->operator_spans_[i];
+    if ((lhs->kind() == Expression_Kind::Call &&
+         rhs->kind() == Expression_Kind::Literal) ||
+        (lhs->kind() == Expression_Kind::Literal &&
+         rhs->kind() == Expression_Kind::Call)) {
+      Source_Code_Span op_span = ast->operator_spans_[i];
       if (!is_comparison_operator(op_span.string_view())) {
         continue;
       }
 
       // make sure the call is on the "left" and the literal on the "right"
-      if (lhs->kind() == expression_kind::literal) {
+      if (lhs->kind() == Expression_Kind::Literal) {
         std::swap(lhs, rhs);
       }
 
-      if (lhs->child_0()->kind() != expression_kind::dot) {
+      if (lhs->child_0()->kind() != Expression_Kind::Dot) {
         continue;
       }
       // Hack: The literal could also be a number like 0xeF.
@@ -400,41 +400,41 @@ void parser::error_on_pointless_string_compare(
         continue;
       }
 
-      string8_view call =
+      String8_View call =
           lhs->child_0()->variable_identifier().span().string_view();
-      string8_view literal = rhs->span().string_view();
+      String8_View literal = rhs->span().string_view();
 
-      if (literal.find(u8"\\"_sv) != string8_view::npos) {
+      if (literal.find(u8"\\"_sv) != String8_View::npos) {
         continue;
       }
 
       if (call == u8"toLowerCase"_sv) {
         if (hasupper(literal)) {
           this->diag_reporter_->report(
-              diag_pointless_string_comp_contains_upper{op_span});
+              Diag_Pointless_String_Comp_Contains_Upper{op_span});
         }
       } else if (call == u8"toUpperCase"_sv) {
         if (haslower(literal)) {
           this->diag_reporter_->report(
-              diag_pointless_string_comp_contains_lower{op_span});
+              Diag_Pointless_String_Comp_Contains_Lower{op_span});
         }
       }
     }
   }
 }
 
-void parser::error_on_invalid_as_const(expression* ast,
-                                       source_code_span as_const_span) {
+void Parser::error_on_invalid_as_const(Expression* ast,
+                                       Source_Code_Span as_const_span) {
   ast = ast->without_paren();
   switch (ast->kind()) {
-  case expression_kind::dot:
-  case expression_kind::array:
-  case expression_kind::object:
-  case expression_kind::_template:
+  case Expression_Kind::Dot:
+  case Expression_Kind::Array:
+  case Expression_Kind::Object:
+  case Expression_Kind::Template:
     break;
 
-  case expression_kind::literal: {
-    auto* literal = static_cast<expression::literal*>(ast);
+  case Expression_Kind::Literal: {
+    auto* literal = static_cast<Expression::Literal*>(ast);
     if (literal->is_null() || literal->is_regexp()) {
       goto invalid;
     }
@@ -444,7 +444,7 @@ void parser::error_on_invalid_as_const(expression* ast,
   invalid:
   default:
     this->diag_reporter_->report(
-        diag_typescript_as_const_with_non_literal_typeable{
+        Diag_TypeScript_As_Const_With_Non_Literal_Typeable{
             .expression = ast->span(),
             .as_const = as_const_span,
         });
@@ -452,15 +452,15 @@ void parser::error_on_invalid_as_const(expression* ast,
   }
 }
 
-void parser::error_on_pointless_compare_against_literal(
-    expression::binary_operator* ast) {
-  auto is_comparison_operator = [](string8_view s) -> bool {
+void Parser::error_on_pointless_compare_against_literal(
+    Expression::Binary_Operator* ast) {
+  auto is_comparison_operator = [](String8_View s) -> bool {
     return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
            s == u8"!=="_sv;
   };
 
-  for (span_size i = 0; i < ast->child_count() - 1; i++) {
-    source_code_span op_span = ast->operator_spans_[i];
+  for (Span_Size i = 0; i < ast->child_count() - 1; i++) {
+    Source_Code_Span op_span = ast->operator_spans_[i];
     if (is_comparison_operator(op_span.string_view())) {
       this->check_compare_against_literal(ast->child(i), ast->child(i + 1),
                                           op_span);
@@ -468,54 +468,54 @@ void parser::error_on_pointless_compare_against_literal(
   }
 }
 
-void parser::check_compare_against_literal(expression* lhs, expression* rhs,
-                                           source_code_span op_span) {
+void Parser::check_compare_against_literal(Expression* lhs, Expression* rhs,
+                                           Source_Code_Span op_span) {
   auto get_comparison_result =
-      [](string8_view equals_operator) -> string8_view {
+      [](String8_View equals_operator) -> String8_View {
     return (equals_operator == u8"==="_sv || equals_operator == u8"=="_sv)
                ? u8"false"_sv
                : u8"true"_sv;
   };
-  auto is_strict_operator = [](string8_view op) -> bool {
+  auto is_strict_operator = [](String8_View op) -> bool {
     return op == u8"==="_sv || op == u8"!=="_sv;
   };
 
-  for (expression* child : {lhs, rhs}) {
-    string8_view comparison_result =
+  for (Expression* child : {lhs, rhs}) {
+    String8_View comparison_result =
         get_comparison_result(op_span.string_view());
     child = child->without_paren();
     switch (child->kind()) {
-    case expression_kind::_class:
-      this->diag_reporter_->report(diag_pointless_comp_against_class_literal{
+    case Expression_Kind::Class:
+      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Class_Literal{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
-    case expression_kind::array:
+    case Expression_Kind::Array:
       if (is_strict_operator(op_span.string_view())) {
         if (child->child_count() == 0) {
           this->diag_reporter_->report(
-              diag_pointless_strict_comp_against_empty_array_literal{
+              Diag_Pointless_Strict_Comp_Against_Empty_Array_Literal{
                   .equals_operator = op_span,
                   .comparison_result = comparison_result});
         } else {
           this->diag_reporter_->report(
-              diag_pointless_strict_comp_against_array_literal{
+              Diag_Pointless_Strict_Comp_Against_Array_Literal{
                   .equals_operator = op_span});
         }
         return;
       }
       break;
-    case expression_kind::arrow_function:
-      this->diag_reporter_->report(diag_pointless_comp_against_arrow_function{
+    case Expression_Kind::Arrow_Function:
+      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Arrow_Function{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
-    case expression_kind::object:
-      this->diag_reporter_->report(diag_pointless_comp_against_object_literal{
+    case Expression_Kind::Object:
+      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Object_Literal{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
-    case expression_kind::literal:
-      if (static_cast<expression::literal*>(child)->is_regexp()) {
+    case Expression_Kind::Literal:
+      if (static_cast<Expression::Literal*>(child)->is_regexp()) {
         this->diag_reporter_->report(
-            diag_pointless_comp_against_regular_expression_literal{
+            Diag_Pointless_Comp_Against_Regular_Expression_Literal{
                 .equals_operator = op_span,
                 .comparison_result = comparison_result});
         return;
@@ -527,26 +527,26 @@ void parser::check_compare_against_literal(expression* lhs, expression* rhs,
   }
 }
 
-void parser::error_on_class_statement(statement_kind statement_kind) {
-  if (this->peek().type == token_type::kw_class) {
-    this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
+void Parser::error_on_class_statement(Statement_Kind statement_kind) {
+  if (this->peek().type == Token_Type::kw_class) {
+    this->diag_reporter_->report(Diag_Class_Statement_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
-            source_code_span::unit(this->lexer_.end_of_previous_token()),
+            Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
         .class_keyword = this->peek().span(),
     });
   }
 }
 
-void parser::error_on_lexical_declaration(statement_kind statement_kind) {
+void Parser::error_on_lexical_declaration(Statement_Kind statement_kind) {
   bool is_lexical_declaration;
   switch (this->peek().type) {
-  case token_type::kw_const:
+  case Token_Type::kw_const:
     is_lexical_declaration = true;
     break;
 
-  case token_type::kw_let: {
-    lexer_transaction transaction = this->lexer_.begin_transaction();
+  case Token_Type::kw_let: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
     is_lexical_declaration = !this->is_let_token_a_variable_reference(
         this->peek(), /*allow_declarations=*/false);
@@ -559,42 +559,42 @@ void parser::error_on_lexical_declaration(statement_kind statement_kind) {
     break;
   }
   if (is_lexical_declaration) {
-    this->diag_reporter_->report(diag_lexical_declaration_not_allowed_in_body{
+    this->diag_reporter_->report(Diag_Lexical_Declaration_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
-            source_code_span::unit(this->lexer_.end_of_previous_token()),
+            Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
         .declaring_keyword = this->peek().span(),
     });
   }
 }
 
-void parser::error_on_function_statement(statement_kind statement_kind) {
-  std::optional<source_code_span> function_keywords =
+void Parser::error_on_function_statement(Statement_Kind statement_kind) {
+  std::optional<Source_Code_Span> function_keywords =
       this->is_maybe_function_statement();
   if (function_keywords.has_value()) {
-    this->diag_reporter_->report(diag_function_statement_not_allowed_in_body{
+    this->diag_reporter_->report(Diag_Function_Statement_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
-            source_code_span::unit(this->lexer_.end_of_previous_token()),
+            Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
         .function_keywords = *function_keywords,
     });
   }
 }
 
-std::optional<source_code_span> parser::is_maybe_function_statement() {
+std::optional<Source_Code_Span> Parser::is_maybe_function_statement() {
   switch (this->peek().type) {
     // function f() {}
-  case token_type::kw_function:
+  case Token_Type::kw_function:
     return this->peek().span();
 
     // async;
     // async function f() {}
-  case token_type::kw_async: {
-    lexer_transaction transaction = this->lexer_.begin_transaction();
-    const char8* async_begin = this->peek().begin;
+  case Token_Type::kw_async: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    const Char8* async_begin = this->peek().begin;
     this->skip();
-    if (this->peek().type == token_type::kw_function) {
-      source_code_span span(async_begin, this->peek().end);
+    if (this->peek().type == Token_Type::kw_function) {
+      Source_Code_Span span(async_begin, this->peek().end);
       this->lexer_.roll_back_transaction(std::move(transaction));
       return span;
     } else {
@@ -608,41 +608,41 @@ std::optional<source_code_span> parser::is_maybe_function_statement() {
   }
 }
 
-std::optional<function_attributes>
-parser::try_parse_function_with_leading_star() {
-  QLJS_ASSERT(this->peek().type == token_type::star);
-  token star_token = this->peek();
-  lexer_transaction transaction = this->lexer_.begin_transaction();
+std::optional<Function_Attributes>
+Parser::try_parse_function_with_leading_star() {
+  QLJS_ASSERT(this->peek().type == Token_Type::star);
+  Token star_token = this->peek();
+  Lexer_Transaction transaction = this->lexer_.begin_transaction();
   this->skip();
   if (this->peek().has_leading_newline) {
     this->lexer_.roll_back_transaction(std::move(transaction));
     return std::nullopt;
   }
 
-  function_attributes attributes = function_attributes::generator;
-  bool has_leading_async = this->peek().type == token_type::kw_async;
+  Function_Attributes attributes = Function_Attributes::generator;
+  bool has_leading_async = this->peek().type == Token_Type::kw_async;
   // *async
   if (has_leading_async) {
-    attributes = function_attributes::async_generator;
+    attributes = Function_Attributes::async_generator;
     this->skip();
   }
 
-  if (this->peek().type != token_type::kw_function) {
+  if (this->peek().type != Token_Type::kw_function) {
     this->lexer_.roll_back_transaction(std::move(transaction));
     return std::nullopt;
   }
 
   // *function f() {}
   this->skip();
-  if (this->peek().type == token_type::identifier) {
+  if (this->peek().type == Token_Type::identifier) {
     this->diag_reporter_->report(
-        diag_generator_function_star_belongs_before_name{
+        Diag_Generator_Function_Star_Belongs_Before_Name{
             .function_name = this->peek().span(),
             .star = star_token.span(),
         });
   } else {
     this->diag_reporter_->report(
-        diag_generator_function_star_belongs_after_keyword_function{
+        Diag_Generator_Function_Star_Belongs_After_Keyword_Function{
             .star = star_token.span()});
   }
   this->lexer_.roll_back_transaction(std::move(transaction));
@@ -654,39 +654,39 @@ parser::try_parse_function_with_leading_star() {
   return attributes;
 }
 
-bool parser::is_let_token_a_variable_reference(
-    const token& following_token, bool allow_declarations) noexcept {
+bool Parser::is_let_token_a_variable_reference(
+    const Token& following_token, bool allow_declarations) noexcept {
   switch (following_token.type) {
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
   QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
-  case token_type::comma:
-  case token_type::complete_template:
-  case token_type::dot:
-  case token_type::end_of_file:
-  case token_type::equal:
-  case token_type::equal_greater:
-  case token_type::incomplete_template:
-  case token_type::left_paren:
-  case token_type::less:
-  case token_type::minus:
-  case token_type::minus_minus:
-  case token_type::plus:
-  case token_type::plus_plus:
-  case token_type::question:
-  case token_type::semicolon:
-  case token_type::slash:
+  case Token_Type::comma:
+  case Token_Type::complete_template:
+  case Token_Type::dot:
+  case Token_Type::end_of_file:
+  case Token_Type::equal:
+  case Token_Type::equal_greater:
+  case Token_Type::incomplete_template:
+  case Token_Type::left_paren:
+  case Token_Type::less:
+  case Token_Type::minus:
+  case Token_Type::minus_minus:
+  case Token_Type::plus:
+  case Token_Type::plus_plus:
+  case Token_Type::question:
+  case Token_Type::semicolon:
+  case Token_Type::slash:
     return true;
 
   QLJS_CASE_RESERVED_KEYWORD:
-    if (following_token.type == token_type::kw_in ||
-        following_token.type == token_type::kw_instanceof) {
+    if (following_token.type == Token_Type::kw_in ||
+        following_token.type == Token_Type::kw_instanceof) {
       return true;
     } else {
       return following_token.has_leading_newline;
     }
 
-  case token_type::left_square:
+  case Token_Type::left_square:
     return false;
 
   default:
@@ -698,23 +698,23 @@ bool parser::is_let_token_a_variable_reference(
   }
 }
 
-void parser::consume_semicolon_after_statement() {
-  this->consume_semicolon<diag_missing_semicolon_after_statement>();
+void Parser::consume_semicolon_after_statement() {
+  this->consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 }
 
-void parser::check_body_after_label() {
-  this->error_on_class_statement(statement_kind::labelled_statement);
-  this->error_on_lexical_declaration(statement_kind::labelled_statement);
+void Parser::check_body_after_label() {
+  this->error_on_class_statement(Statement_Kind::labelled_statement);
+  this->error_on_lexical_declaration(Statement_Kind::labelled_statement);
 }
 
 template <class MissingSemicolonDiagnostic>
-void parser::consume_semicolon() {
+void Parser::consume_semicolon() {
   switch (this->peek().type) {
-  case token_type::semicolon:
+  case Token_Type::semicolon:
     this->skip();
     break;
-  case token_type::end_of_file:
-  case token_type::right_curly:
+  case Token_Type::end_of_file:
+  case Token_Type::right_curly:
     // Automatically insert a semicolon, then consume it.
     break;
   default:
@@ -730,27 +730,27 @@ void parser::consume_semicolon() {
   }
 }
 
-void parser::error_on_pointless_nullish_coalescing_operator(
-    expression::binary_operator* ast) {
-  auto is_nullish_operator = [](string8_view s) -> bool {
+void Parser::error_on_pointless_nullish_coalescing_operator(
+    Expression::Binary_Operator* ast) {
+  auto is_nullish_operator = [](String8_View s) -> bool {
     return s == u8"??"_sv;
   };
 
-  source_code_span op_span = ast->operator_spans_[0];
+  Source_Code_Span op_span = ast->operator_spans_[0];
   if (is_nullish_operator(op_span.string_view())) {
     this->check_lhs_for_null_potential(ast->child(0)->without_paren(), op_span);
   }
 }
 
-void parser::check_lhs_for_null_potential(expression* lhs,
-                                          source_code_span op_span) {
+void Parser::check_lhs_for_null_potential(Expression* lhs,
+                                          Source_Code_Span op_span) {
   auto binary_operator_is_never_null =
-      [](expression::binary_operator* expr) -> bool {
+      [](Expression::Binary_Operator* expr) -> bool {
     // these 4 binary operators can resolve to a null value
-    string8_view can_resolve_to_null[4] = {u8"&&"_sv, u8"??"_sv, u8","_sv,
+    String8_View can_resolve_to_null[4] = {u8"&&"_sv, u8"??"_sv, u8","_sv,
                                            u8"||"_sv};
-    for (span_size i = 0; i < expr->child_count() - 1; i++) {
-      string8_view expr_op_span = expr->operator_spans_[i].string_view();
+    for (Span_Size i = 0; i < expr->child_count() - 1; i++) {
+      String8_View expr_op_span = expr->operator_spans_[i].string_view();
       if (contains(can_resolve_to_null, expr_op_span)) {
         return false;
       }
@@ -760,26 +760,26 @@ void parser::check_lhs_for_null_potential(expression* lhs,
 
   bool report_diag = false;
   switch (lhs->kind()) {
-  case expression_kind::literal:
+  case Expression_Kind::Literal:
     if (lhs->span().string_view() != u8"null"_sv) {
       report_diag = true;
     }
     break;
-  case expression_kind::rw_unary_suffix:
+  case Expression_Kind::RW_Unary_Suffix:
     report_diag = true;
     break;
-  case expression_kind::unary_operator: {
-    auto* maybe_void_lhs = static_cast<expression::unary_operator*>(lhs);
+  case Expression_Kind::Unary_Operator: {
+    auto* maybe_void_lhs = static_cast<Expression::Unary_Operator*>(lhs);
     if (!maybe_void_lhs->is_void_operator()) {
       report_diag = true;
     }
     break;
   }
-  case expression_kind::_typeof:
+  case Expression_Kind::Typeof:
     report_diag = true;
     break;
-  case expression_kind::binary_operator: {
-    auto* operator_lhs = static_cast<expression::binary_operator*>(lhs);
+  case Expression_Kind::Binary_Operator: {
+    auto* operator_lhs = static_cast<Expression::Binary_Operator*>(lhs);
     report_diag = binary_operator_is_never_null(operator_lhs);
     break;
   }
@@ -787,55 +787,55 @@ void parser::check_lhs_for_null_potential(expression* lhs,
     break;
   }
   if (report_diag) {
-    this->diag_reporter_->report(diag_pointless_nullish_coalescing_operator{
+    this->diag_reporter_->report(Diag_Pointless_Nullish_Coalescing_Operator{
         .question_question = op_span});
   }
 }
 
 template void
-parser::consume_semicolon<diag_missing_semicolon_after_abstract_method>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Abstract_Method>();
 template void
-parser::consume_semicolon<diag_missing_semicolon_after_declare_class_method>();
-template void parser::consume_semicolon<diag_missing_semicolon_after_field>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Declare_Class_Method>();
+template void Parser::consume_semicolon<Diag_Missing_Semicolon_After_Field>();
 template void
-parser::consume_semicolon<diag_missing_semicolon_after_interface_method>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
 template void
-parser::consume_semicolon<diag_missing_semicolon_after_index_signature>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Index_Signature>();
 template void
-parser::consume_semicolon<diag_missing_semicolon_after_statement>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 
-parser_transaction parser::begin_transaction() {
-  return parser_transaction(&this->lexer_, &this->diag_reporter_,
+Parser_Transaction Parser::begin_transaction() {
+  return Parser_Transaction(&this->lexer_, &this->diag_reporter_,
                             &this->temporary_memory_);
 }
 
-void parser::commit_transaction(parser_transaction&& transaction) {
+void Parser::commit_transaction(Parser_Transaction&& transaction) {
   auto* buffered_diagnostics =
-      static_cast<buffering_diag_reporter*>(this->diag_reporter_);
+      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   buffered_diagnostics->move_into(transaction.old_diag_reporter);
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
 }
 
-void parser::roll_back_transaction(parser_transaction&& transaction) {
+void Parser::roll_back_transaction(Parser_Transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
   this->lexer_.roll_back_transaction(std::move(transaction.lex_transaction));
 }
 
-void parser::crash_on_unimplemented_token(const char* qljs_file_name,
+void Parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
-  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
+  this->fatal_parse_error_stack_.raise_if_have_handler(Fatal_Parse_Error{
       this->peek().span(),
-      fatal_parse_error_kind::unexpected_token,
+      Fatal_Parse_Error_Kind::unexpected_token,
   });
 
   std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
                qljs_file_name, qljs_line, qljs_function_name,
                to_string(this->peek().type));
-  cli_locator locator(this->lexer_.original_input());
-  cli_source_position token_position = locator.position(this->peek().begin);
+  CLI_Locator locator(this->lexer_.original_input());
+  CLI_Source_Position token_position = locator.position(this->peek().begin);
   std::fprintf(stderr, " on line %d column %d", token_position.line_number,
                token_position.column_number);
   std::fprintf(stderr, "\n");
@@ -844,10 +844,10 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   QLJS_CRASH_ALLOWING_CORE_DUMP();
 }
 
-void parser::crash_on_depth_limit_exceeded() {
-  this->fatal_parse_error_stack_.raise_if_have_handler(fatal_parse_error{
+void Parser::crash_on_depth_limit_exceeded() {
+  this->fatal_parse_error_stack_.raise_if_have_handler(Fatal_Parse_Error{
       this->peek().span(),
-      fatal_parse_error_kind::depth_limit_exceeded,
+      Fatal_Parse_Error_Kind::depth_limit_exceeded,
   });
 
   std::fprintf(stderr, "Error: parser depth limit exceeded\n");
@@ -856,7 +856,7 @@ void parser::crash_on_depth_limit_exceeded() {
   QLJS_CRASH_ALLOWING_CORE_DUMP();
 }
 
-parser::function_guard::function_guard(parser* p, bool was_in_top_level,
+Parser::Function_Guard::Function_Guard(Parser* p, bool was_in_top_level,
                                        bool was_in_async_function,
                                        bool was_in_generator_function,
                                        bool was_in_loop_statement,
@@ -868,7 +868,7 @@ parser::function_guard::function_guard(parser* p, bool was_in_top_level,
       was_in_loop_statement_(was_in_loop_statement),
       was_in_switch_statement_(was_in_switch_statement) {}
 
-parser::function_guard::~function_guard() noexcept {
+Parser::Function_Guard::~Function_Guard() noexcept {
   this->parser_->in_top_level_ = this->was_in_top_level_;
   this->parser_->in_async_function_ = this->was_in_async_function_;
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
@@ -876,7 +876,7 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
 
-parser::depth_guard::depth_guard(parser* p) noexcept
+Parser::Depth_Guard::Depth_Guard(Parser* p) noexcept
     : parser_(p), old_depth_(p->depth_) {
   if (p->depth_ + 1 > p->stack_limit) {
     p->crash_on_depth_limit_exceeded();
@@ -884,22 +884,22 @@ parser::depth_guard::depth_guard(parser* p) noexcept
   p->depth_++;
 }
 
-parser::depth_guard::~depth_guard() noexcept {
+Parser::Depth_Guard::~Depth_Guard() noexcept {
   QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
   this->parser_->depth_ = this->old_depth_;
 }
 
-source_code_span parser::typescript_declare_context::declare_keyword_span()
+Source_Code_Span Parser::TypeScript_Declare_Context::declare_keyword_span()
     const {
   QLJS_ASSERT(this->declare_namespace_declare_keyword.has_value() ||
               this->direct_declare_keyword.has_value());
-  std::optional<source_code_span> span = this->maybe_declare_keyword_span();
+  std::optional<Source_Code_Span> span = this->maybe_declare_keyword_span();
   QLJS_ASSERT(span.has_value());
   return *span;
 }
 
-std::optional<source_code_span>
-parser::typescript_declare_context::maybe_declare_keyword_span() const {
+std::optional<Source_Code_Span>
+Parser::TypeScript_Declare_Context::maybe_declare_keyword_span() const {
   if (this->direct_declare_keyword.has_value()) {
     return this->direct_declare_keyword;
   }
@@ -909,35 +909,35 @@ parser::typescript_declare_context::maybe_declare_keyword_span() const {
   return std::nullopt;
 }
 
-parser::typescript_namespace_or_module_guard
-parser::enter_typescript_namespace_or_module(
-    source_code_span namespace_or_module_keyword_span, bool entering_module) {
-  return typescript_namespace_or_module_guard(
+Parser::TypeScript_Namespace_Or_Module_Guard
+Parser::enter_typescript_namespace_or_module(
+    Source_Code_Span namespace_or_module_keyword_span, bool entering_module) {
+  return TypeScript_Namespace_Or_Module_Guard(
       this,
       std::exchange(this->in_typescript_namespace_or_module_,
                     namespace_or_module_keyword_span),
       std::exchange(this->in_typescript_module_, entering_module));
 }
 
-parser::typescript_namespace_or_module_guard::
-    typescript_namespace_or_module_guard(
-        parser* parser,
-        std::optional<source_code_span> old_in_typescript_namespace_or_module,
+Parser::TypeScript_Namespace_Or_Module_Guard::
+    TypeScript_Namespace_Or_Module_Guard(
+        Parser* parser,
+        std::optional<Source_Code_Span> old_in_typescript_namespace_or_module,
         bool old_in_typescript_module)
     : parser_(parser),
       old_in_typescript_namespace_or_module_(
           old_in_typescript_namespace_or_module),
       old_in_typescript_module_(old_in_typescript_module) {}
 
-parser::typescript_namespace_or_module_guard::
-    ~typescript_namespace_or_module_guard() {
+Parser::TypeScript_Namespace_Or_Module_Guard::
+    ~TypeScript_Namespace_Or_Module_Guard() {
   this->parser_->in_typescript_namespace_or_module_ =
       this->old_in_typescript_namespace_or_module_;
   this->parser_->in_typescript_module_ = this->old_in_typescript_module_;
 }
 
-bool parser::parse_expression_cache_key::operator==(
-    const parser::parse_expression_cache_key& rhs) const noexcept {
+bool Parser::Parse_Expression_Cache_Key::operator==(
+    const Parser::Parse_Expression_Cache_Key& rhs) const noexcept {
   return this->begin == rhs.begin && this->in_top_level == rhs.in_top_level &&
          this->in_async_function == rhs.in_async_function &&
          this->in_generator_function == rhs.in_generator_function &&
@@ -946,19 +946,19 @@ bool parser::parse_expression_cache_key::operator==(
          this->in_class == rhs.in_class;
 }
 
-bool parser::parse_expression_cache_key::operator!=(
-    const parser::parse_expression_cache_key& rhs) const noexcept {
+bool Parser::Parse_Expression_Cache_Key::operator!=(
+    const Parser::Parse_Expression_Cache_Key& rhs) const noexcept {
   return !(*this == rhs);
 }
 
-std::size_t parser::parse_expression_cache_key::hash::operator()(
-    const parse_expression_cache_key& x) const noexcept {
-  return std::hash<const char8*>()(x.begin);
+std::size_t Parser::Parse_Expression_Cache_Key::Hash::operator()(
+    const Parse_Expression_Cache_Key& x) const noexcept {
+  return std::hash<const Char8*>()(x.begin);
 }
 
-parser::parse_expression_cache_key
-parser::parse_expression_cache_key_for_current_state() const {
-  return parse_expression_cache_key{
+Parser::Parse_Expression_Cache_Key
+Parser::parse_expression_cache_key_for_current_state() const {
+  return Parse_Expression_Cache_Key{
       .begin = this->peek().begin,
       .in_top_level = this->in_top_level_,
       .in_async_function = this->in_async_function_,

@@ -11,14 +11,14 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lsp_document_text, set_text) {
-  lsp_document_text doc;
+TEST(Test_LSP_Document_Text, set_text) {
+  LSP_Document_Text doc;
   doc.set_text(u8"content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"content goes here"_sv);
 }
 
-TEST(test_lsp_document_text, set_text_multiple_times) {
-  lsp_document_text doc;
+TEST(Test_LSP_Document_Text, set_text_multiple_times) {
+  LSP_Document_Text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.set_text(u8"newer content goes here"_sv);
   EXPECT_EQ(doc.string(), u8"newer content goes here"_sv);
@@ -26,12 +26,12 @@ TEST(test_lsp_document_text, set_text_multiple_times) {
   EXPECT_EQ(doc.string(), u8"finally"_sv);
 }
 
-TEST(test_lsp_document_text,
+TEST(Test_LSP_Document_Text,
      set_text_range_single_line_in_middle_of_document_same_length) {
-  lsp_document_text doc;
+  LSP_Document_Text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
@@ -39,12 +39,12 @@ TEST(test_lsp_document_text,
   EXPECT_EQ(doc.string(), u8"content were here"_sv);
 }
 
-TEST(test_lsp_document_text,
+TEST(Test_LSP_Document_Text,
      set_text_range_single_line_in_middle_of_document_smaller_length) {
-  lsp_document_text doc;
+  LSP_Document_Text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
@@ -52,12 +52,12 @@ TEST(test_lsp_document_text,
   EXPECT_EQ(doc.string(), u8"content was here"_sv);
 }
 
-TEST(test_lsp_document_text,
+TEST(Test_LSP_Document_Text,
      set_text_range_single_line_in_middle_of_document_larger_length) {
-  lsp_document_text doc;
+  LSP_Document_Text doc;
   doc.set_text(u8"content goes here"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
@@ -65,12 +65,12 @@ TEST(test_lsp_document_text,
   EXPECT_EQ(doc.string(), u8"content might go somewhere here"_sv);
 }
 
-TEST(test_lsp_document_text,
+TEST(Test_LSP_Document_Text,
      set_text_range_delete_line_excluding_line_terminator) {
-  lsp_document_text doc;
+  LSP_Document_Text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 0, .character = 1000},
       },
@@ -78,12 +78,12 @@ TEST(test_lsp_document_text,
   EXPECT_EQ(doc.string(), u8"\nworld\n"_sv);
 }
 
-TEST(test_lsp_document_text,
+TEST(Test_LSP_Document_Text,
      set_text_range_delete_line_including_line_terminator) {
-  lsp_document_text doc;
+  LSP_Document_Text doc;
   doc.set_text(u8"hello\nworld\n"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 1, .character = 0},
       },
@@ -91,23 +91,23 @@ TEST(test_lsp_document_text,
   EXPECT_EQ(doc.string(), u8"world\n"_sv);
 }
 
-TEST(test_lsp_document_text, replace_text_multiple_times) {
-  lsp_document_text doc;
+TEST(Test_LSP_Document_Text, replace_text_multiple_times) {
+  LSP_Document_Text doc;
   doc.set_text(u8"content\ngoes\nhere"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 7},
           .end = {.line = 1, .character = 3},
       },
       u8"I wa"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 1, .character = 0},
           .end = {.line = 1, .character = 0},
       },
       u8"somew"_sv);
   doc.replace_text(
-      lsp_range{
+      LSP_Range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 0, .character = 7},
       },

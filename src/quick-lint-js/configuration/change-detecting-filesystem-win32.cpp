@@ -27,8 +27,8 @@
 
 namespace quick_lint_js {
 namespace {
-void attach_handle_to_iocp(windows_handle_file_ref handle,
-                           windows_handle_file_ref iocp,
+void attach_handle_to_iocp(Windows_Handle_File_Ref handle,
+                           Windows_Handle_File_Ref iocp,
                            ULONG_PTR completionKey) noexcept;
 
 template <class Iterator, class Vector>
@@ -68,7 +68,7 @@ void swap_erase(Vector& v, Iterator it_to_remove) {
 ::DWORD mock_win32_force_directory_file_id_error = ERROR_SUCCESS;
 ::DWORD mock_win32_force_directory_ioctl_error = ERROR_SUCCESS;
 
-// change_detecting_filesystem_win32 implements directory and file change
+// Change_Detecting_Filesystem_Win32 implements directory and file change
 // notifications using a little-known feature called oplocks.
 //
 // For each directory we want to watch, we acquire an oplock. When a change
@@ -88,45 +88,45 @@ void swap_erase(Vector& v, Iterator it_to_remove) {
 // of 64 handles. This limit is low for our use case. To wait for any number of
 // directory handles, we wait for events using an I/O completion port
 // (io_completion_port_) pumped by event_loop.
-change_detecting_filesystem_win32::change_detecting_filesystem_win32(
-    windows_handle_file_ref io_completion_port, ::ULONG_PTR completion_key)
+Change_Detecting_Filesystem_Win32::Change_Detecting_Filesystem_Win32(
+    Windows_Handle_File_Ref io_completion_port, ::ULONG_PTR completion_key)
     : io_completion_port_(io_completion_port),
       completion_key_(completion_key) {}
 
-change_detecting_filesystem_win32::~change_detecting_filesystem_win32() {
+Change_Detecting_Filesystem_Win32::~Change_Detecting_Filesystem_Win32() {
   // Closing the directory handles will queue a bunch of errors onto the I/O
   // completion port. We don't care, though, because the LSP server exits by
   // calling ExitProcess thus shouldn't call this destructor anyway.
 }
 
-result<canonical_path_result, canonicalize_path_io_error>
-change_detecting_filesystem_win32::canonicalize_path(const std::string& path) {
+Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
+Change_Detecting_Filesystem_Win32::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-result<padded_string, read_file_io_error>
-change_detecting_filesystem_win32::read_file(const canonical_path& path) {
-  canonical_path directory = path;
+Result<Padded_String, Read_File_IO_Error>
+Change_Detecting_Filesystem_Win32::read_file(const Canonical_Path& path) {
+  Canonical_Path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    this->watch_errors_.emplace_back(watch_io_error{
+    this->watch_errors_.emplace_back(Watch_IO_Error{
         .path = std::move(directory).path(),
-        .io_error = windows_file_io_error{::GetLastError()},
+        .io_error = Windows_File_IO_Error{::GetLastError()},
     });
   }
 
-  result<padded_string, read_file_io_error> r =
+  Result<Padded_String, Read_File_IO_Error> r =
       quick_lint_js::read_file(path.c_str());
   if (!r.ok()) return r.propagate();
   return *std::move(r);
 }
 
-bool change_detecting_filesystem_win32::handle_event(
+bool Change_Detecting_Filesystem_Win32::handle_event(
     ::OVERLAPPED* overlapped, ::DWORD number_of_bytes_transferred,
     ::DWORD error) {
-  watched_directory* dir =
-      watched_directory::from_oplock_overlapped(overlapped);
+  Watched_Directory* dir =
+      Watched_Directory::from_oplock_overlapped(overlapped);
   switch (error) {
   case ERROR_SUCCESS:
     this->handle_oplock_broke_event(dir, number_of_bytes_transferred);
@@ -138,7 +138,7 @@ bool change_detecting_filesystem_win32::handle_event(
 
   default:
     std::fprintf(stderr,
-                 "error: change_detecting_filesystem_win32 received unexpected "
+                 "error: Change_Detecting_Filesystem_Win32 received unexpected "
                  "error: %lu (number_of_bytes_transferred=%lu)\n",
                  error, number_of_bytes_transferred);
     QLJS_UNIMPLEMENTED();
@@ -146,7 +146,7 @@ bool change_detecting_filesystem_win32::handle_event(
   }
 }
 
-void change_detecting_filesystem_win32::clear_watches() {
+void Change_Detecting_Filesystem_Win32::clear_watches() {
   while (!this->watched_directories_.empty()) {
     auto it = this->watched_directories_.begin();
     this->cancel_watch(std::move(it->second));
@@ -154,13 +154,13 @@ void change_detecting_filesystem_win32::clear_watches() {
   }
 }
 
-std::vector<watch_io_error>
-change_detecting_filesystem_win32::take_watch_errors() {
-  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
+std::vector<Watch_IO_Error>
+Change_Detecting_Filesystem_Win32::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<Watch_IO_Error>());
 }
 
-void change_detecting_filesystem_win32::cancel_watch(
-    std::unique_ptr<watched_directory>&& dir) {
+void Change_Detecting_Filesystem_Win32::cancel_watch(
+    std::unique_ptr<Watched_Directory>&& dir) {
   BOOL ok = ::CancelIoEx(dir->directory_handle.get(), nullptr);
   if (!ok) {
     DWORD error = ::GetLastError();
@@ -173,14 +173,14 @@ void change_detecting_filesystem_win32::cancel_watch(
   this->cancelling_watched_directories_.emplace_back(std::move(dir));
 }
 
-bool change_detecting_filesystem_win32::watch_directory(
-    const canonical_path& directory) {
+bool Change_Detecting_Filesystem_Win32::watch_directory(
+    const Canonical_Path& directory) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(directory.c_str());
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
 
-  windows_handle_file directory_handle(::CreateFileW(
+  Windows_Handle_File directory_handle(::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
       /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
       /*lpSecurityAttributes=*/nullptr,
@@ -200,14 +200,14 @@ bool change_detecting_filesystem_win32::watch_directory(
     return false;
   }
 
-  std::unique_ptr<watched_directory> new_dir =
-      std::make_unique<watched_directory>(std::move(directory_handle),
+  std::unique_ptr<Watched_Directory> new_dir =
+      std::make_unique<Watched_Directory>(std::move(directory_handle),
                                           directory_id);
-  watched_directory* dir = new_dir.get();
+  Watched_Directory* dir = new_dir.get();
   auto [watched_directory_it, inserted] =
       this->watched_directories_.try_emplace(directory, std::move(new_dir));
   if (!inserted) {
-    watched_directory* old_dir = watched_directory_it->second.get();
+    Watched_Directory* old_dir = watched_directory_it->second.get();
     bool already_watched =
         file_ids_equal(old_dir->directory_id, new_dir->directory_id);
     if (already_watched) {
@@ -258,18 +258,18 @@ bool change_detecting_filesystem_win32::watch_directory(
   return true;
 }
 
-void change_detecting_filesystem_win32::handle_oplock_aborted_event(
-    watched_directory* dir) {
+void Change_Detecting_Filesystem_Win32::handle_oplock_aborted_event(
+    Watched_Directory* dir) {
   auto directory_it =
       find_unique_existing_if(this->cancelling_watched_directories_,
-                              [&](const std::unique_ptr<watched_directory>& d) {
+                              [&](const std::unique_ptr<Watched_Directory>& d) {
                                 return d.get() == dir;
                               });
   swap_erase(this->cancelling_watched_directories_, directory_it);
 }
 
-void change_detecting_filesystem_win32::handle_oplock_broke_event(
-    watched_directory* dir,
+void Change_Detecting_Filesystem_Win32::handle_oplock_broke_event(
+    Watched_Directory* dir,
     [[maybe_unused]] ::DWORD number_of_bytes_transferred) {
   auto directory_it = find_unique_if(
       this->watched_directories_.begin(), this->watched_directories_.end(),
@@ -278,7 +278,7 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   if (!is_watched) {
     // An oplock broke, then someone called cancel_watch, then we polled the I/O
     // Completion Port and saw that the oplock broke. We think the watch is in a
-    // cancelled state; the watched_directory is in
+    // cancelled state; the Watched_Directory is in
     // cancelling_watched_directories_. Treat the event as a successful
     // cancellation. This will close dir.directory_handle, releasing the held
     // oplock.
@@ -304,13 +304,13 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   QLJS_ASSERT(dir->oplock_response.Flags &
               REQUEST_OPLOCK_OUTPUT_FLAG_ACK_REQUIRED);
 
-  // Erasing the watched_directory will close dir.directory_handle, releasing
+  // Erasing the Watched_Directory will close dir.directory_handle, releasing
   // the oplock.
   this->watched_directories_.erase(directory_it);
 }
 
-change_detecting_filesystem_win32::watched_directory::watched_directory(
-    windows_handle_file&& directory_handle, const FILE_ID_INFO& directory_id)
+Change_Detecting_Filesystem_Win32::Watched_Directory::Watched_Directory(
+    Windows_Handle_File&& directory_handle, const FILE_ID_INFO& directory_id)
     : directory_handle(std::move(directory_handle)),
       directory_id(directory_id) {
   QLJS_ASSERT(this->directory_handle.valid());
@@ -320,17 +320,17 @@ change_detecting_filesystem_win32::watched_directory::watched_directory(
   this->oplock_overlapped.hEvent = nullptr;
 }
 
-change_detecting_filesystem_win32::watched_directory*
-change_detecting_filesystem_win32::watched_directory::from_oplock_overlapped(
+Change_Detecting_Filesystem_Win32::Watched_Directory*
+Change_Detecting_Filesystem_Win32::Watched_Directory::from_oplock_overlapped(
     OVERLAPPED* overlapped) noexcept {
-  return reinterpret_cast<watched_directory*>(
+  return reinterpret_cast<Watched_Directory*>(
       reinterpret_cast<std::uintptr_t>(overlapped) -
-      offsetof(watched_directory, oplock_overlapped));
+      offsetof(Watched_Directory, oplock_overlapped));
 }
 
 namespace {
-void attach_handle_to_iocp(windows_handle_file_ref handle,
-                           windows_handle_file_ref iocp,
+void attach_handle_to_iocp(Windows_Handle_File_Ref handle,
+                           Windows_Handle_File_Ref iocp,
                            ULONG_PTR completionKey) noexcept {
   HANDLE iocp2 = CreateIoCompletionPort(
       /*FileHandle=*/handle.get(),

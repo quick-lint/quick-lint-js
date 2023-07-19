@@ -24,11 +24,11 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_declare_tsmodule : public test_parse_expression {};
+class Test_Parse_TypeScript_Declare_Tsmodule : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_declare_tsmodule, declare_module) {
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module) {
   {
-    test_parser p(u8"declare module 'my name space' {}"_sv, typescript_options);
+    Test_Parser p(u8"declare module 'my name space' {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -38,9 +38,9 @@ TEST_F(test_parse_typescript_declare_tsmodule, declare_module) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule, declare_module_permits_no_body) {
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
   {
-    test_parser p(u8"declare module 'my name space';"_sv, typescript_options);
+    Test_Parser p(u8"declare module 'my name space';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_end_of_module",
@@ -48,7 +48,7 @@ TEST_F(test_parse_typescript_declare_tsmodule, declare_module_permits_no_body) {
   }
 
   {
-    test_parser p(u8"declare module 'my name space'"_sv, typescript_options);
+    Test_Parser p(u8"declare module 'my name space'"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_end_of_module",
@@ -57,7 +57,7 @@ TEST_F(test_parse_typescript_declare_tsmodule, declare_module_permits_no_body) {
 
   {
     // ASI
-    test_parser p(u8"declare module 'my name space'\nhello;"_sv,
+    Test_Parser p(u8"declare module 'my name space'\nhello;"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -67,10 +67,10 @@ TEST_F(test_parse_typescript_declare_tsmodule, declare_module_permits_no_body) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declaring_module_is_not_allowed_inside_containing_namespace) {
   {
-    test_parser p(u8"namespace ns { declare module 'my name space' {} }"_sv,
+    Test_Parser p(u8"namespace ns { declare module 'my name space' {} }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -78,14 +78,14 @@ TEST_F(test_parse_typescript_declare_tsmodule,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_string_namespace_name_is_only_allowed_at_top_level,  //
+                Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level,  //
                 module_name, strlen(u8"namespace ns { declare module "),
                 u8"'my name space'"),
         }));
   }
 
   {
-    test_parser p(u8"declare namespace ns { module 'inner ns' { } }"_sv,
+    Test_Parser p(u8"declare namespace ns { module 'inner ns' { } }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -93,17 +93,17 @@ TEST_F(test_parse_typescript_declare_tsmodule,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_string_namespace_name_is_only_allowed_at_top_level,  //
+                Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level,  //
                 module_name, strlen(u8"declare namespace ns { module "),
                 u8"'inner ns'"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_import_from_module) {
   {
-    test_parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -115,7 +115,7 @@ TEST_F(test_parse_typescript_declare_tsmodule,
   }
 
   {
-    test_parser p(u8"declare module 'mymod' { import fs = require('fs'); }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { import fs = require('fs'); }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -127,38 +127,38 @@ TEST_F(test_parse_typescript_declare_tsmodule,
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_import_from_module_with_export_keyword) {
   {
-    test_parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_exporting_default) {
   {
-    test_parser p(u8"declare module 'mymod' { export default class C {} }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { export default class C {} }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"declare module 'mymod' { export default function f(); }"_sv,
         typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        export_default_of_variable_is_allowed_in_declare_module) {
   // NOTE[declare-module-export-default-var]: Unlike a normal 'export default',
   // 'export default' inside 'declare module' is an export use:
@@ -172,7 +172,7 @@ TEST_F(test_parse_typescript_declare_tsmodule,
   // }
 
   {
-    test_parser p(u8"declare module 'mymod' { export default Z; }"_sv,
+    Test_Parser p(u8"declare module 'mymod' { export default Z; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -183,16 +183,16 @@ TEST_F(test_parse_typescript_declare_tsmodule,
                           }));
   }
 
-  // See also test_parse_module
+  // See also Test_Parse_Module
   // export_default_with_contextual_keyword_variable_expression.
-  dirty_set<string8> variable_names =
+  Dirty_Set<String8> variable_names =
       // TODO(#73): Disallow 'interface'.
       // TODO(#73): Disallow 'protected', 'implements', etc.
       // (strict_only_reserved_keywords).
-      (contextual_keywords - dirty_set<string8>{u8"let", u8"interface"}) |
-      dirty_set<string8>{u8"await", u8"yield"};
-  for (string8_view variable_name : variable_names) {
-    test_parser p(concat(u8"declare module 'mymod' { export default "_sv,
+      (contextual_keywords - Dirty_Set<String8>{u8"let", u8"interface"}) |
+      Dirty_Set<String8>{u8"await", u8"yield"};
+  for (String8_View variable_name : variable_names) {
+    Test_Parser p(concat(u8"declare module 'mymod' { export default "_sv,
                          variable_name, u8"; }"_sv),
                   typescript_options);
     SCOPED_TRACE(p.code);
@@ -206,10 +206,10 @@ TEST_F(test_parse_typescript_declare_tsmodule,
     EXPECT_THAT(p.variable_uses, ElementsAreArray({variable_name}));
   }
 
-  // See also test_parse_module
+  // See also Test_Parse_Module
   // export_default_async_function_with_newline_inserts_semicolon.
   {
-    test_parser p(
+    Test_Parser p(
         u8"declare module 'mymod' { export default async\nfunction f(); }"_sv,
         typescript_options);
     p.parse_and_visit_module();

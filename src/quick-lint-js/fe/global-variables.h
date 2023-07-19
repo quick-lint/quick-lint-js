@@ -11,21 +11,21 @@
 namespace quick_lint_js {
 inline constexpr std::size_t global_group_count = 12;
 
-struct global_group {
-  const char8 *name;
-  const char8 *globals;
-  const char8 *non_writable_globals;
-  const char8 *non_shadowable_globals;
-  const char8 *type_only_globals;
+struct Global_Group {
+  const Char8 *name;
+  const Char8 *globals;
+  const Char8 *non_writable_globals;
+  const Char8 *non_shadowable_globals;
+  const Char8 *type_only_globals;
   std::int16_t globals_count;
   std::int16_t non_writable_globals_count;
   std::int16_t non_shadowable_globals_count;
   std::int16_t type_only_globals_count;
 };
-extern const global_group global_groups[];
+extern const Global_Group global_groups[];
 
-extern const char8 global_variables_browser[];
-extern const char8 global_variables_web_worker[];
+extern const Char8 global_variables_browser[];
+extern const Char8 global_variables_web_worker[];
 }
 
 #endif

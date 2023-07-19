@@ -6,14 +6,14 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_try_catch_stack, raise_if_have_handler_does_nothing_without_catch) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, raise_if_have_handler_does_nothing_without_catch) {
+  Try_Catch_Stack<int> stack;
   // Shouldn't crash.
   stack.raise_if_have_handler(10);
 }
 
-TEST(test_try_catch_stack, try_catch_does_not_call_catch_if_not_raised) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, try_catch_does_not_call_catch_if_not_raised) {
+  Try_Catch_Stack<int> stack;
   bool try_called = false;
   int result = stack.try_catch<int>(
       [&]() -> int {
@@ -28,8 +28,8 @@ TEST(test_try_catch_stack, try_catch_does_not_call_catch_if_not_raised) {
   EXPECT_EQ(result, 42);
 }
 
-TEST(test_try_catch_stack, try_catch_calls_catch_if_raised) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, try_catch_calls_catch_if_raised) {
+  Try_Catch_Stack<int> stack;
   bool catch_called = false;
   int result = stack.try_catch<int>(
       [&]() -> int {
@@ -45,8 +45,8 @@ TEST(test_try_catch_stack, try_catch_calls_catch_if_raised) {
   EXPECT_EQ(result, 69);
 }
 
-TEST(test_try_catch_stack, raise_does_not_return_inside_try) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, raise_does_not_return_inside_try) {
+  Try_Catch_Stack<int> stack;
   bool try_called = false;
   stack.try_catch<int>(
       [&]() -> int {
@@ -59,8 +59,8 @@ TEST(test_try_catch_stack, raise_does_not_return_inside_try) {
   EXPECT_TRUE(try_called) << "try callback should have been called";
 }
 
-TEST(test_try_catch_stack, if_catch_is_called_raise_stops_propagating) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, if_catch_is_called_raise_stops_propagating) {
+  Try_Catch_Stack<int> stack;
   bool inner_catch_called = false;
   int result = stack.try_catch<int>(
       [&]() -> int {
@@ -87,9 +87,9 @@ TEST(test_try_catch_stack, if_catch_is_called_raise_stops_propagating) {
   EXPECT_EQ(result, 69) << "inner try_catch should have returned";
 }
 
-TEST(test_try_catch_stack,
+TEST(Test_Try_Catch_Stack,
      try_catch_calls_catch_if_raised_inside_nested_catch) {
-  try_catch_stack<int> stack;
+  Try_Catch_Stack<int> stack;
   bool inner_catch_called = false;
   bool outer_catch_called = false;
   stack.try_catch<int>(
@@ -119,8 +119,8 @@ TEST(test_try_catch_stack,
       << "outer-most catch callback should have been called";
 }
 
-TEST(test_try_catch_stack, raise_returns_if_only_finally_is_on_stack) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, raise_returns_if_only_finally_is_on_stack) {
+  Try_Catch_Stack<int> stack;
   bool finally_called = false;
   bool raise_returned = false;
   stack.try_finally(
@@ -134,8 +134,8 @@ TEST(test_try_catch_stack, raise_returns_if_only_finally_is_on_stack) {
   EXPECT_TRUE(raise_returned);
 }
 
-TEST(test_try_catch_stack, raise_calls_catch_then_finally) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, raise_calls_catch_then_finally) {
+  Try_Catch_Stack<int> stack;
   bool catch_called = false;
   bool finally_called = false;
   stack.try_finally(
@@ -160,8 +160,8 @@ TEST(test_try_catch_stack, raise_calls_catch_then_finally) {
   EXPECT_TRUE(finally_called);
 }
 
-TEST(test_try_catch_stack, raise_calls_finally_then_catch) {
-  try_catch_stack<int> stack;
+TEST(Test_Try_Catch_Stack, raise_calls_finally_then_catch) {
+  Try_Catch_Stack<int> stack;
   bool catch_called = false;
   bool finally_called = false;
   stack.try_catch<int>(

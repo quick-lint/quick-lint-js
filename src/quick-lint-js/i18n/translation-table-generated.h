@@ -110,7 +110,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "C-style for loops have only three semicolon-separated components"sv,
           "JSON syntax error"sv,
           "JSX prop is missing an expression"sv,
-          "Keywords in Typescript does not allow escape characters"sv,
+          "Keywords in TypeScript does not allow escape characters"sv,
           "React/JSX is not allowed in TypeScript code"sv,
           "React/JSX is not allowed in vanilla JavaScript code"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,

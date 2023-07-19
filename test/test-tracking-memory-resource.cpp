@@ -7,15 +7,15 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_tracking_memory_resource, new_has_no_allocations) {
-  tracking_memory_resource memory;
+TEST(Test_Tracking_Memory_Resource, new_has_no_allocations) {
+  Tracking_Memory_Resource memory;
   EXPECT_EQ(memory.alive_bytes(), 0);
   EXPECT_EQ(memory.allocated_bytes(), 0);
   EXPECT_EQ(memory.deallocated_bytes(), 0);
 }
 
-TEST(test_tracking_memory_resource, allocating_increases_live_and_allocated) {
-  tracking_memory_resource memory;
+TEST(Test_Tracking_Memory_Resource, allocating_increases_live_and_allocated) {
+  Tracking_Memory_Resource memory;
   int* p = new_object<int>(&memory, 42);
   EXPECT_EQ(memory.alive_bytes(), sizeof(int));
   EXPECT_EQ(memory.allocated_bytes(), sizeof(int));
@@ -23,8 +23,8 @@ TEST(test_tracking_memory_resource, allocating_increases_live_and_allocated) {
   delete_object<int>(&memory, p);
 }
 
-TEST(test_tracking_memory_resource, deallocating_resets_live_to_zero) {
-  tracking_memory_resource memory;
+TEST(Test_Tracking_Memory_Resource, deallocating_resets_live_to_zero) {
+  Tracking_Memory_Resource memory;
   int* p1 = new_object<int>(&memory, 42);
   int* p2 = new_object<int>(&memory, 69);
   EXPECT_EQ(memory.alive_bytes(), sizeof(int) * 2);

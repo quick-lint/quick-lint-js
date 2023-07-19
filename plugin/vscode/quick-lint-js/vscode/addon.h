@@ -9,9 +9,9 @@
 
 namespace quick_lint_js {
 // State global to a specific Node.js instance/thread.
-class addon_state {
+class Addon_State {
  public:
-  static std::unique_ptr<addon_state> create(::Napi::Env env);
+  static std::unique_ptr<Addon_State> create(::Napi::Env env);
 
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;

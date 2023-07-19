@@ -32,10 +32,10 @@ extern char** environ;
 }
 
 namespace quick_lint_js {
-byte_buffer make_text_document_did_open_notification(string8_view uri,
+Byte_Buffer make_text_document_did_open_notification(String8_View uri,
                                                      std::int64_t version,
-                                                     string8_view text) {
-  byte_buffer notification;
+                                                     String8_View text) {
+  Byte_Buffer notification;
   notification.append_copy(
       u8R"({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":")"sv);
   write_json_escaped_string(notification, uri);
@@ -47,9 +47,9 @@ byte_buffer make_text_document_did_open_notification(string8_view uri,
   return notification;
 }
 
-byte_buffer make_text_document_did_fully_change_notification(
-    string8_view uri, std::int64_t version, string8_view text) {
-  byte_buffer notification;
+Byte_Buffer make_text_document_did_fully_change_notification(
+    String8_View uri, std::int64_t version, String8_View text) {
+  Byte_Buffer notification;
   notification.append_copy(
       u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
   notification.append_decimal_integer(version);
@@ -61,8 +61,8 @@ byte_buffer make_text_document_did_fully_change_notification(
   return notification;
 }
 
-byte_buffer make_text_document_did_close_notification(string8_view uri) {
-  byte_buffer notification;
+Byte_Buffer make_text_document_did_close_notification(String8_View uri) {
+  Byte_Buffer notification;
   notification.append_copy(
       u8R"({"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":")"sv);
   write_json_escaped_string(notification, uri);
@@ -70,10 +70,10 @@ byte_buffer make_text_document_did_close_notification(string8_view uri) {
   return notification;
 }
 
-lsp_server_process lsp_server_process::spawn(
-    const benchmark_config_server& config) {
-  pipe_fds server_to_client = make_pipe();
-  pipe_fds client_to_server = make_pipe();
+LSP_Server_Process LSP_Server_Process::spawn(
+    const Benchmark_Config_Server& config) {
+  Pipe_FDs server_to_client = make_pipe();
+  Pipe_FDs client_to_server = make_pipe();
 
   ::posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
@@ -117,12 +117,12 @@ lsp_server_process lsp_server_process::spawn(
   client_to_server.writer.set_pipe_non_blocking();
 #endif
 
-  return lsp_server_process(server_root, config, pid,
+  return LSP_Server_Process(server_root, config, pid,
                             std::move(server_to_client.reader),
                             std::move(client_to_server.writer));
 }
 
-void lsp_server_process::kill() {
+void LSP_Server_Process::kill() {
   int rc = ::kill(this->pid_, SIGKILL);
   if (rc != 0) {
     std::fprintf(stderr, "error: failed to kill process %lld: %s\n",
@@ -131,7 +131,7 @@ void lsp_server_process::kill() {
   }
 }
 
-void lsp_server_process::stop_future_writes() {
+void LSP_Server_Process::stop_future_writes() {
   // Caller should have flushed our writer.
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
   QLJS_ASSERT(!this->message_writer_.get_event_fd().has_value());
@@ -140,12 +140,12 @@ void lsp_server_process::stop_future_writes() {
   this->writer_.close();
 }
 
-void lsp_server_process::wait_for_exit() { wait_for_process_exit(this->pid_); }
+void LSP_Server_Process::wait_for_exit() { wait_for_process_exit(this->pid_); }
 
-bool lsp_server_process::wait_for_exit_for(std::chrono::milliseconds timeout) {
+bool LSP_Server_Process::wait_for_exit_for(std::chrono::milliseconds timeout) {
   using namespace std::chrono;
-  using clock = std::chrono::steady_clock;
-  auto deadline = clock::now() + timeout;
+  using Clock = std::chrono::steady_clock;
+  auto deadline = Clock::now() + timeout;
   for (;;) {
     int status;
     ::pid_t rc = ::waitpid(this->pid_, &status, /*options=*/WNOHANG);
@@ -158,22 +158,22 @@ bool lsp_server_process::wait_for_exit_for(std::chrono::milliseconds timeout) {
       return true;
     }
     QLJS_ASSERT(rc == 0);
-    bool timed_out = deadline >= clock::now();
+    bool timed_out = deadline >= Clock::now();
     if (timed_out) {
       return false;
     }
   }
 }
 
-lsp_task<void> lsp_server_process::initialize_lsp_async() {
+LSP_Task<void> LSP_Server_Process::initialize_lsp_async() {
   std::int64_t initialize_request_id = this->new_message_id();
-  byte_buffer initialize_request;
+  Byte_Buffer initialize_request;
   initialize_request.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
   initialize_request.append_decimal_integer(initialize_request_id);
   initialize_request.append_copy(
       u8R"(,"method":"initialize","params":{"rootPath":")"sv);
-  string8 server_root_8 = this->server_root_.u8string();
-  string8 server_root_uri = this->file_to_uri(server_root_8);
+  String8 server_root_8 = this->server_root_.u8string();
+  String8 server_root_uri = this->file_to_uri(server_root_8);
   write_json_escaped_string(initialize_request, server_root_8);
   initialize_request.append_copy(u8R"(","rootUri":")"sv);
   write_json_escaped_string(initialize_request, server_root_uri);
@@ -208,7 +208,7 @@ lsp_task<void> lsp_server_process::initialize_lsp_async() {
     }
   }
 
-  byte_buffer initialized_notification;
+  Byte_Buffer initialized_notification;
   initialized_notification.append_copy(
       u8R"({"jsonrpc":"2.0","method":"initialized","params":{}})"sv);
   this->send_message(std::move(initialized_notification));
@@ -216,9 +216,9 @@ lsp_task<void> lsp_server_process::initialize_lsp_async() {
   co_return;
 }
 
-lsp_task<void> lsp_server_process::shut_down_lsp() {
+LSP_Task<void> LSP_Server_Process::shut_down_lsp() {
   std::int64_t shutdown_request_id = this->new_message_id();
-  byte_buffer shutdown_request;
+  Byte_Buffer shutdown_request;
   shutdown_request.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
   shutdown_request.append_decimal_integer(shutdown_request_id);
   shutdown_request.append_copy(u8R"(,"method":"shutdown","params":null})"sv);
@@ -234,23 +234,23 @@ lsp_task<void> lsp_server_process::shut_down_lsp() {
     }
   }
 
-  byte_buffer exit_notification;
+  Byte_Buffer exit_notification;
   exit_notification.append_copy(
       u8R"({"jsonrpc":"2.0","method":"exit","params":{}})"sv);
   this->send_message(std::move(exit_notification));
 }
 
-void lsp_server_process::handle_misc_message(::boost::json::object& message) {
+void LSP_Server_Process::handle_misc_message(::boost::json::object& message) {
   if (::boost::json::string* method = if_string(message, "method")) {
     if (*method == "client/registerCapability") {
-      byte_buffer response;
+      Byte_Buffer response;
       response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
       response.append_decimal_integer(look_up(message, "id").get_int64());
       response.append_copy(u8R"(,"result":null})"sv);
       this->send_message(std::move(response));
       return;
     } else if (*method == "workspace/configuration") {
-      byte_buffer response;
+      Byte_Buffer response;
       response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
       response.append_decimal_integer(look_up(message, "id").get_int64());
       response.append_copy(u8R"(,"result":[)"sv);
@@ -263,8 +263,8 @@ void lsp_server_process::handle_misc_message(::boost::json::object& message) {
   }
 }
 
-lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
-    string8_view document_uri, std::int64_t document_version) {
+LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
+    String8_View document_uri, std::int64_t document_version) {
   co_return co_await this->wait_for_diagnostics_async(
       [&](::boost::json::object& params) {
         ::boost::json::string diagnostics_uri =
@@ -277,15 +277,15 @@ lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
       });
 }
 
-lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
+LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
     std::int64_t document_version) {
   return this->wait_for_diagnostics_ignoring_async(
       document_version,
       /*messages_to_ignore=*/this->diagnostics_messages_to_ignore_);
 }
 
-lsp_task<::boost::json::array>
-lsp_server_process::wait_for_diagnostics_after_incremental_change_async(
+LSP_Task<::boost::json::array>
+LSP_Server_Process::wait_for_diagnostics_after_incremental_change_async(
     std::int64_t document_version) {
   return this->wait_for_diagnostics_ignoring_async(
       document_version,
@@ -293,8 +293,8 @@ lsp_server_process::wait_for_diagnostics_after_incremental_change_async(
           ->diagnostics_messages_to_ignore_after_incremental_change_);
 }
 
-lsp_task<::boost::json::array>
-lsp_server_process::wait_for_diagnostics_ignoring_async(
+LSP_Task<::boost::json::array>
+LSP_Server_Process::wait_for_diagnostics_ignoring_async(
     std::int64_t document_version, std::int64_t messages_to_ignore) {
   co_return co_await this->wait_for_diagnostics_ignoring_async(
       [&](::boost::json::object& params) {
@@ -305,7 +305,7 @@ lsp_server_process::wait_for_diagnostics_ignoring_async(
 }
 
 template <class ParamsPredicate>
-lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
+LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
     ParamsPredicate&& predicate) {
   return this->wait_for_diagnostics_ignoring_async(
       std::forward<ParamsPredicate>(predicate),
@@ -313,8 +313,8 @@ lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
 }
 
 template <class ParamsPredicate>
-lsp_task<::boost::json::array>
-lsp_server_process::wait_for_diagnostics_ignoring_async(
+LSP_Task<::boost::json::array>
+LSP_Server_Process::wait_for_diagnostics_ignoring_async(
     ParamsPredicate&& predicate, std::int64_t messages_to_ignore) {
   ::boost::json::object notification =
       co_await this->wait_for_diagnostics_notification_async(
@@ -323,15 +323,15 @@ lsp_server_process::wait_for_diagnostics_ignoring_async(
   co_return look_up(notification, "params", "diagnostics").get_array();
 }
 
-lsp_task<::boost::json::object>
-lsp_server_process::wait_for_diagnostics_notification_async() {
+LSP_Task<::boost::json::object>
+LSP_Server_Process::wait_for_diagnostics_notification_async() {
   co_return co_await this->wait_for_diagnostics_notification_async(
       []([[maybe_unused]] ::boost::json::object& params) { return true; });
 }
 
 template <class ParamsPredicate>
-lsp_task<::boost::json::object>
-lsp_server_process::wait_for_diagnostics_notification_async(
+LSP_Task<::boost::json::object>
+LSP_Server_Process::wait_for_diagnostics_notification_async(
     ParamsPredicate&& predicate) {
   return this->wait_for_diagnostics_notification_async(
       std::forward<ParamsPredicate>(predicate),
@@ -339,8 +339,8 @@ lsp_server_process::wait_for_diagnostics_notification_async(
 }
 
 template <class ParamsPredicate>
-lsp_task<::boost::json::object>
-lsp_server_process::wait_for_diagnostics_notification_async(
+LSP_Task<::boost::json::object>
+LSP_Server_Process::wait_for_diagnostics_notification_async(
     ParamsPredicate&& predicate, std::int64_t messages_to_ignore) {
   for (std::int64_t i = 0; i < messages_to_ignore; ++i) {
     co_await this->wait_for_first_diagnostics_notification_async(predicate);
@@ -349,15 +349,15 @@ lsp_server_process::wait_for_diagnostics_notification_async(
       predicate);
 }
 
-lsp_task<::boost::json::object>
-lsp_server_process::wait_for_first_diagnostics_notification_async() {
+LSP_Task<::boost::json::object>
+LSP_Server_Process::wait_for_first_diagnostics_notification_async() {
   co_return co_await this->wait_for_first_diagnostics_notification_async(
       []([[maybe_unused]] ::boost::json::object& params) { return true; });
 }
 
 template <class ParamsPredicate>
-lsp_task<::boost::json::object>
-lsp_server_process::wait_for_first_diagnostics_notification_async(
+LSP_Task<::boost::json::object>
+LSP_Server_Process::wait_for_first_diagnostics_notification_async(
     ParamsPredicate&& predicate) {
   for (;;) {
     ::boost::json::object message =
@@ -374,7 +374,7 @@ lsp_server_process::wait_for_first_diagnostics_notification_async(
   }
 }
 
-void lsp_server_process::send_message(byte_buffer&& message) {
+void LSP_Server_Process::send_message(Byte_Buffer&& message) {
   if (log_file) {
     if (log_colors) {
       std::fprintf(log_file, "\x1b[33m");
@@ -393,12 +393,12 @@ void lsp_server_process::send_message(byte_buffer&& message) {
   this->message_writer_.send_message(std::move(message));
 }
 
-std::filesystem::path lsp_server_process::file_to_path(string8_view path) {
+std::filesystem::path LSP_Server_Process::file_to_path(String8_View path) {
   return this->server_root_ / path;
 }
 
-string8 lsp_server_process::file_to_uri(string8_view path) {
-  string8 uri = u8"file://" + this->file_to_path(path).u8string();
+String8 LSP_Server_Process::file_to_uri(String8_View path) {
+  String8 uri = u8"file://" + this->file_to_path(path).u8string();
   // HACK(strager): Flow's LSP server can't handle a trailing / in URIs.
   if (uri.ends_with(u8'/')) {
     uri.resize(uri.size() - 1);
@@ -406,7 +406,7 @@ string8 lsp_server_process::file_to_uri(string8_view path) {
   return uri;
 }
 
-void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
+void LSP_Server_Process::create_file_on_disk_if_needed(String8_View path) {
   if (this->need_files_on_disk_) {
     std::filesystem::path absolute_path = this->file_to_path(path);
     FILE* file = std::fopen(absolute_path.c_str(), "w");
@@ -419,7 +419,7 @@ void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
   }
 }
 
-::boost::json::value lsp_server_process::get_message_awaitable::await_resume() {
+::boost::json::value LSP_Server_Process::Get_Message_Awaitable::await_resume() {
   QLJS_ASSERT(!this->message_content_.empty());
   ::boost::json::error_code error;
   ::boost::json::value root =
@@ -431,8 +431,8 @@ void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
   return root;
 }
 
-void lsp_server_process::continuing_lsp_message_parser::message_parsed(
-    string8_view message_content) {
+void LSP_Server_Process::Continuing_LSP_Message_Parser::message_parsed(
+    String8_View message_content) {
   if (log_file) {
     if (log_colors) {
       std::fprintf(log_file, "\x1b[32m");
@@ -447,7 +447,7 @@ void lsp_server_process::continuing_lsp_message_parser::message_parsed(
 
   auto continuation = std::exchange(this->continuation_, nullptr);
   if (continuation) {
-    string8_view* out_message_content =
+    String8_View* out_message_content =
         std::exchange(this->out_message_content_, nullptr);
     QLJS_ALWAYS_ASSERT(out_message_content);
     *out_message_content = message_content;

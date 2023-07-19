@@ -22,12 +22,12 @@ inline constexpr const char *test_locale_names[] = {
 };
 // clang-format on
 
-struct translated_string {
-  translatable_message translatable;
-  const char8 *expected_per_locale[6];
+struct Translated_String {
+  Translatable_Message translatable;
+  const Char8 *expected_per_locale[6];
 };
 
-extern const translated_string test_translation_table[462];
+extern const Translated_String test_translation_table[462];
 }
 
 #endif

@@ -17,39 +17,39 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-class emacs_lisp_diag_formatter;
+class Emacs_Lisp_Diag_Formatter;
 
-class emacs_lisp_diag_reporter final : public diag_reporter {
+class Emacs_Lisp_Diag_Reporter final : public Diag_Reporter {
  public:
-  explicit emacs_lisp_diag_reporter(translator, output_stream *output);
+  explicit Emacs_Lisp_Diag_Reporter(Translator, Output_Stream *output);
 
-  void set_source(padded_string_view input);
+  void set_source(Padded_String_View input);
   void finish();
 
-  void report_impl(diag_type type, void *diag) override;
+  void report_impl(Diag_Type type, void *diag) override;
 
  private:
-  output_stream &output_;
-  translator translator_;
-  std::optional<emacs_locator> locator_;
+  Output_Stream &output_;
+  Translator translator_;
+  std::optional<Emacs_Locator> locator_;
 };
 
-class emacs_lisp_diag_formatter
-    : public diagnostic_formatter<emacs_lisp_diag_formatter> {
+class Emacs_Lisp_Diag_Formatter
+    : public Diagnostic_Formatter<Emacs_Lisp_Diag_Formatter> {
  public:
-  explicit emacs_lisp_diag_formatter(translator, output_stream *output,
-                                     emacs_locator &locator);
+  explicit Emacs_Lisp_Diag_Formatter(Translator, Output_Stream *output,
+                                     Emacs_Locator &locator);
 
-  void write_before_message(std::string_view code, diagnostic_severity,
-                            const source_code_span &origin);
-  void write_message_part(std::string_view code, diagnostic_severity,
-                          string8_view);
-  void write_after_message(std::string_view code, diagnostic_severity,
-                           const source_code_span &origin);
+  void write_before_message(std::string_view code, Diagnostic_Severity,
+                            const Source_Code_Span &origin);
+  void write_message_part(std::string_view code, Diagnostic_Severity,
+                          String8_View);
+  void write_after_message(std::string_view code, Diagnostic_Severity,
+                           const Source_Code_Span &origin);
 
  private:
-  output_stream &output_;
-  emacs_locator &locator_;
+  Output_Stream &output_;
+  Emacs_Locator &locator_;
 };
 }
 

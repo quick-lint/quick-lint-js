@@ -24,21 +24,21 @@ namespace quick_lint_js {
 // * Items are never copied or moved when adding or removing different items
 //   (like std::deque). Pointer stability.
 template <class T>
-class linked_vector {
+class Linked_Vector {
  public:
   static constexpr std::size_t default_chunk_byte_size = 4096;
   static constexpr std::size_t items_per_chunk =
       maximum(1U, (default_chunk_byte_size - sizeof(void*) * 3) / sizeof(T));
 
-  explicit linked_vector(memory_resource* memory) noexcept : memory_(memory) {}
+  explicit Linked_Vector(Memory_Resource* memory) noexcept : memory_(memory) {}
 
-  linked_vector(linked_vector&& other)
+  Linked_Vector(Linked_Vector&& other)
       : head_(other.head_), tail_(other.tail_), memory_(other.memory_) {
     other.head_ = nullptr;
     other.tail_ = nullptr;
   }
 
-  linked_vector& operator=(linked_vector&& other) {
+  Linked_Vector& operator=(Linked_Vector&& other) {
     this->clear();
     this->head_ = other.head_;
     this->tail_ = other.tail_;
@@ -47,11 +47,11 @@ class linked_vector {
     other.tail_ = nullptr;
   }
 
-  ~linked_vector() { this->clear(); }
+  ~Linked_Vector() { this->clear(); }
 
   template <class... Args>
   T& emplace_back(Args&&... args) {
-    chunk* c = this->tail_;
+    Chunk* c = this->tail_;
     if (!c || c->item_count == c->capacity) {
       c = this->append_new_chunk_slow();
     }
@@ -63,7 +63,7 @@ class linked_vector {
 
   void pop_back() {
     QLJS_ASSERT(!this->empty());
-    chunk* c = this->tail_;
+    Chunk* c = this->tail_;
     T& item = c->item(c->item_count - 1);
     item.~T();
     c->item_count -= 1;
@@ -73,9 +73,9 @@ class linked_vector {
   }
 
   void clear() {
-    chunk* c = this->head_;
+    Chunk* c = this->head_;
     while (c) {
-      chunk* next = c->next;
+      Chunk* next = c->next;
       std::destroy_n(c->data(), c->item_count);
       delete_object(this->memory_, c);
       c = next;
@@ -93,7 +93,7 @@ class linked_vector {
 
   template <class Func>
   void for_each(Func&& func) const {
-    chunk* c = this->head_;
+    Chunk* c = this->head_;
     while (c) {
       std::size_t items_in_chunk = c->item_count;
       for (std::size_t i = 0; i < items_in_chunk; ++i) {
@@ -105,9 +105,9 @@ class linked_vector {
   }
 
  private:
-  struct chunk {
-    chunk* prev = nullptr;
-    chunk* next = nullptr;
+  struct Chunk {
+    Chunk* prev = nullptr;
+    Chunk* next = nullptr;
     std::size_t item_count = 0;
     static constexpr std::size_t capacity = items_per_chunk;
     std::byte item_storage[capacity * sizeof(T)];
@@ -117,8 +117,8 @@ class linked_vector {
     T& item(std::size_t index) { return *std::launder(this->data() + index); }
   };
 
-  [[gnu::noinline]] chunk* append_new_chunk_slow() {
-    chunk* c = new_object<chunk>(this->memory_);
+  [[gnu::noinline]] Chunk* append_new_chunk_slow() {
+    Chunk* c = new_object<Chunk>(this->memory_);
     if (this->head_) {
       this->tail_->next = c;
     } else {
@@ -130,13 +130,13 @@ class linked_vector {
   }
 
   [[gnu::noinline]] void remove_tail_chunk_slow() {
-    chunk* old_tail = this->tail_;
+    Chunk* old_tail = this->tail_;
     QLJS_ASSERT(old_tail);
     QLJS_ASSERT(old_tail->item_count == 0);
 
-    chunk* new_tail = old_tail->prev;
+    Chunk* new_tail = old_tail->prev;
     QLJS_ASSERT((new_tail == nullptr) == (this->head_ == this->tail_));
-    delete_object<chunk>(this->memory_, old_tail);
+    delete_object<Chunk>(this->memory_, old_tail);
     if (new_tail) {
       new_tail->next = nullptr;
       this->tail_ = new_tail;
@@ -147,9 +147,9 @@ class linked_vector {
     }
   }
 
-  chunk* head_ = nullptr;
-  chunk* tail_ = nullptr;
-  memory_resource* memory_;
+  Chunk* head_ = nullptr;
+  Chunk* tail_ = nullptr;
+  Memory_Resource* memory_;
 };
 }
 

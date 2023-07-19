@@ -11,12 +11,12 @@
 namespace quick_lint_js {
 // Like ::Napi::TypedThreadSafeFunction, but with saner lifetime semantics.
 template <void (*Func)(::Napi::Env, ::Napi::Object)>
-class thread_safe_js_function {
+class Thread_Safe_JS_Function {
  public:
   // thread_safe_js_function holds a weak reference to 'object'. If 'object'
   // is garbage-collected, then this thread_safe_js_function will not call
   // 'Func'.
-  explicit thread_safe_js_function(::Napi::Env env, const char* resource_name,
+  explicit Thread_Safe_JS_Function(::Napi::Env env, const char* resource_name,
                                    ::Napi::Object object)
       : function_(::Napi::TypedThreadSafeFunction<
                   /*ContextType=*/void, /*DataType=*/void,

@@ -9,7 +9,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_string_view, ends_with) {
+TEST(Test_String_View, ends_with) {
   EXPECT_FALSE(ends_with(""sv, "suffix"sv));
   EXPECT_FALSE(ends_with("test string"sv, "suffix"sv));
   EXPECT_FALSE(ends_with("suffix not present"sv, "suffix"sv));
@@ -18,12 +18,12 @@ TEST(test_string_view, ends_with) {
   EXPECT_TRUE(ends_with("test suffix"sv, "suffix"sv));
 }
 
-TEST(test_string_view, ends_with_empty_is_always_true) {
+TEST(Test_String_View, ends_with_empty_is_always_true) {
   EXPECT_TRUE(ends_with("test string"sv, ""sv));
   EXPECT_TRUE(ends_with(""sv, ""sv));
 }
 
-TEST(test_string_view, remove_suffix_if_present_not_present) {
+TEST(Test_String_View, remove_suffix_if_present_not_present) {
   EXPECT_EQ(remove_suffix_if_present(""sv, "suffix"sv), ""sv);
   EXPECT_EQ(remove_suffix_if_present("test string"sv, "suffix"sv),
             "test string"sv);
@@ -31,13 +31,13 @@ TEST(test_string_view, remove_suffix_if_present_not_present) {
             "suffix not present"sv);
 }
 
-TEST(test_string_view, remove_suffix_if_present_present) {
+TEST(Test_String_View, remove_suffix_if_present_present) {
   EXPECT_EQ(remove_suffix_if_present("test"sv, ""sv), "test"sv);
   EXPECT_EQ(remove_suffix_if_present("suffix"sv, "suffix"sv), ""sv);
   EXPECT_EQ(remove_suffix_if_present("test suffix"sv, "suffix"sv), "test "sv);
 }
 
-TEST(test_string_view, trim_start) {
+TEST(Test_String_View, trim_start) {
   EXPECT_EQ(trim_start(""sv, " "sv), ""sv);
   EXPECT_EQ(trim_start("xyz"sv, " "sv), "xyz"sv);
   EXPECT_EQ(trim_start("x y z "sv, " "sv), "x y z "sv);
@@ -46,7 +46,7 @@ TEST(test_string_view, trim_start) {
   EXPECT_EQ(trim_start("   "sv, " "sv), ""sv);
 }
 
-TEST(test_string_view, trim_end) {
+TEST(Test_String_View, trim_end) {
   EXPECT_EQ(trim_end(""sv, " "sv), ""sv);
   EXPECT_EQ(trim_end("xyz"sv, " "sv), "xyz"sv);
   EXPECT_EQ(trim_end(" x y z"sv, " "sv), " x y z"sv);

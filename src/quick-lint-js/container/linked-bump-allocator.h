@@ -32,29 +32,29 @@ namespace quick_lint_js {
 // * in-place growing of allocations
 // * all allocations have the same alignment
 //
-// Internally, linked_bump_allocator maintains a linked list of chunks.
+// Internally, Linked_Bump_Allocator maintains a linked list of chunks.
 template <std::size_t Alignment>
-class linked_bump_allocator : public memory_resource {
+class Linked_Bump_Allocator : public Memory_Resource {
  private:
-  struct chunk_header;
+  struct Chunk_Header;
 
  public:
   static inline constexpr std::size_t alignment = Alignment;
 
-  explicit linked_bump_allocator(const char* debug_owner) {
+  explicit Linked_Bump_Allocator(const char* debug_owner) {
     static_cast<void>(debug_owner);
   }
 
-  linked_bump_allocator(const linked_bump_allocator&) = delete;
-  linked_bump_allocator& operator=(const linked_bump_allocator&) = delete;
+  Linked_Bump_Allocator(const Linked_Bump_Allocator&) = delete;
+  Linked_Bump_Allocator& operator=(const Linked_Bump_Allocator&) = delete;
 
-  ~linked_bump_allocator() override { this->release(); }
+  ~Linked_Bump_Allocator() override { this->release(); }
 
   void release() {
-    chunk_header* c = this->chunk_;
+    Chunk_Header* c = this->chunk_;
     while (c) {
-      chunk_header* previous = c->previous;
-      chunk_header::delete_chunk(c);
+      Chunk_Header* previous = c->previous;
+      Chunk_Header::delete_chunk(c);
       c = previous;
     }
     this->chunk_ = nullptr;
@@ -62,41 +62,41 @@ class linked_bump_allocator : public memory_resource {
     this->chunk_end_ = nullptr;
   }
 
-  struct rewind_state {
+  struct Rewind_State {
     // Private to linked_bump_allocator. Do not use.
-    chunk_header* chunk_;
+    Chunk_Header* chunk_;
     char* next_allocation_;
     char* chunk_end_;
   };
 
   // Calls allocator->rewind() when destructed.
-  class rewind_guard {
+  class Rewind_Guard {
    public:
-    explicit rewind_guard(linked_bump_allocator* allocator)
+    explicit Rewind_Guard(Linked_Bump_Allocator* allocator)
         : allocator_(allocator), rewind_(allocator->prepare_for_rewind()) {}
 
-    rewind_guard(const rewind_guard&) = delete;
-    rewind_guard& operator=(const rewind_guard&) = delete;
+    Rewind_Guard(const Rewind_Guard&) = delete;
+    Rewind_Guard& operator=(const Rewind_Guard&) = delete;
 
-    rewind_guard(rewind_guard&&) = delete;
-    rewind_guard& operator=(rewind_guard&&) = delete;
+    Rewind_Guard(Rewind_Guard&&) = delete;
+    Rewind_Guard& operator=(Rewind_Guard&&) = delete;
 
-    ~rewind_guard() { this->allocator_->rewind(std::move(this->rewind_)); }
+    ~Rewind_Guard() { this->allocator_->rewind(std::move(this->rewind_)); }
 
    private:
-    linked_bump_allocator* allocator_;
-    rewind_state rewind_;
+    Linked_Bump_Allocator* allocator_;
+    Rewind_State rewind_;
   };
 
-  rewind_state prepare_for_rewind() {
-    return rewind_state{
+  Rewind_State prepare_for_rewind() {
+    return Rewind_State{
         .chunk_ = this->chunk_,
         .next_allocation_ = this->next_allocation_,
         .chunk_end_ = this->chunk_end_,
     };
   }
 
-  void rewind(rewind_state&& r) {
+  void rewind(Rewind_State&& r) {
     bool allocated_new_chunk = this->chunk_ != r.chunk_;
     if (allocated_new_chunk) {
       // If we rewound to exactly where we were before, we might rewind near the
@@ -107,11 +107,11 @@ class linked_bump_allocator : public memory_resource {
       //
       // TODO(strager): Should we use the *oldest* chunk or the *newest* chunk?
       // Here we pick the *oldest* chunk.
-      chunk_header* c = this->chunk_;
+      Chunk_Header* c = this->chunk_;
       QLJS_ASSERT(c);
       while (c->previous != r.chunk_) {
-        chunk_header* previous = c->previous;
-        chunk_header::delete_chunk(c);
+        Chunk_Header* previous = c->previous;
+        Chunk_Header::delete_chunk(c);
         c = previous;
         QLJS_ASSERT(c);
       }
@@ -128,8 +128,8 @@ class linked_bump_allocator : public memory_resource {
         narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_));
   }
 
-  [[nodiscard]] rewind_guard make_rewind_guard() noexcept {
-    return rewind_guard(this);
+  [[nodiscard]] Rewind_Guard make_rewind_guard() noexcept {
+    return Rewind_Guard(this);
   }
 
   template <class T, class... Args>
@@ -177,9 +177,9 @@ class linked_bump_allocator : public memory_resource {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
 
-  class disable_guard {
+  class Disable_Guard {
    public:
-    ~disable_guard() {
+    ~Disable_Guard() {
 #if QLJS_DEBUG_BUMP_ALLOCATOR
       this->alloc_->disabled_count_ -= 1;
 #endif
@@ -192,17 +192,17 @@ class linked_bump_allocator : public memory_resource {
       this->alloc_->disabled_count_ += 1;
     }
 #else
-    explicit disable_guard(linked_bump_allocator*) noexcept {}
+    explicit Disable_Guard(Linked_Bump_Allocator*) noexcept {}
 #endif
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
     linked_bump_allocator* alloc_;
 #endif
 
-    friend class linked_bump_allocator;
+    friend class Linked_Bump_Allocator;
   };
 
-  [[nodiscard]] disable_guard disable() noexcept { return disable_guard(this); }
+  [[nodiscard]] Disable_Guard disable() noexcept { return Disable_Guard(this); }
 
  protected:
   void* do_allocate(std::size_t bytes, std::size_t align) override {
@@ -216,12 +216,12 @@ class linked_bump_allocator : public memory_resource {
   }
 
   bool do_is_equal(const memory_resource& other) const noexcept override {
-    return this == static_cast<const linked_bump_allocator*>(&other);
+    return this == static_cast<const Linked_Bump_Allocator*>(&other);
   }
 
  private:
-  struct alignas(maximum(Alignment, alignof(void*))) chunk_header {
-    chunk_header* previous;  // Linked list.
+  struct alignas(maximum(Alignment, alignof(void*))) Chunk_Header {
+    Chunk_Header* previous;  // Linked list.
     std::size_t size;        // Size of the data portion in bytes.
 
     char* data() noexcept {
@@ -230,14 +230,14 @@ class linked_bump_allocator : public memory_resource {
     char* data_end() noexcept { return this->data() + this->size; }
 
     static std::size_t allocation_size(std::size_t size) noexcept {
-      return sizeof(chunk_header) + size;
+      return sizeof(Chunk_Header) + size;
     }
 
     static std::align_val_t allocation_alignment() noexcept {
-      return std::align_val_t{maximum(Alignment, alignof(chunk_header))};
+      return std::align_val_t{maximum(Alignment, alignof(Chunk_Header))};
     }
 
-    static chunk_header* new_chunk(std::size_t size, chunk_header* previous) {
+    static Chunk_Header* new_chunk(std::size_t size, Chunk_Header* previous) {
 #if QLJS_HAVE_SIZED_ALIGNED_NEW
       void* chunk =
           ::operator new(allocation_size(size), allocation_alignment());
@@ -245,15 +245,15 @@ class linked_bump_allocator : public memory_resource {
       void* chunk = ::operator new(allocation_size(size));
       QLJS_ASSERT(is_aligned(chunk, Alignment));
 #endif
-      return new (chunk) chunk_header{
+      return new (chunk) Chunk_Header{
           .previous = previous,
           .size = size,
       };
     }
 
-    static void delete_chunk(chunk_header* c) {
+    static void delete_chunk(Chunk_Header* c) {
       [[maybe_unused]] std::size_t size = c->size;
-      c->~chunk_header();
+      c->~Chunk_Header();
 #if QLJS_HAVE_SIZED_ALIGNED_DELETE
       ::operator delete(c, allocation_size(size), allocation_alignment());
 #else
@@ -263,7 +263,7 @@ class linked_bump_allocator : public memory_resource {
   };
 
   static inline constexpr std::size_t default_chunk_size =
-      4096 - sizeof(chunk_header);
+      4096 - sizeof(Chunk_Header);
 
   static constexpr std::size_t align_up(std::size_t size) noexcept {
     return (size + Alignment - 1) & ~(Alignment - 1);
@@ -304,7 +304,7 @@ class linked_bump_allocator : public memory_resource {
   }
 
   void append_chunk(std::size_t size) {
-    this->chunk_ = chunk_header::new_chunk(size, this->chunk_);
+    this->chunk_ = Chunk_Header::new_chunk(size, this->chunk_);
     this->next_allocation_ = this->chunk_->data();
     this->chunk_end_ = this->chunk_->data_end();
   }
@@ -319,7 +319,7 @@ class linked_bump_allocator : public memory_resource {
   bool is_disabled() const noexcept { return this->disabled_count_ > 0; }
 #endif
 
-  chunk_header* chunk_ = nullptr;
+  Chunk_Header* chunk_ = nullptr;
   char* next_allocation_ = nullptr;
   char* chunk_end_ = nullptr;
 

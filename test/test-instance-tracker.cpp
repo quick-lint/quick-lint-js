@@ -10,37 +10,37 @@
 namespace quick_lint_js {
 namespace {
 // Helper class for tests only.
-struct trackable {
+struct Trackable {
   static inline int destruct_count = 0;
 
-  ~trackable() { destruct_count += 1; }
+  ~Trackable() { destruct_count += 1; }
 };
 
-TEST(test_instance_tracker, instances_shows_new_instance) {
-  std::shared_ptr<trackable> o = std::make_shared<trackable>();
-  instance_tracker<trackable>::track(o);
-  EXPECT_THAT(instance_tracker<trackable>::instances(), ::testing::Contains(o));
+TEST(Test_Instance_Tracker, instances_shows_new_instance) {
+  std::shared_ptr<Trackable> o = std::make_shared<Trackable>();
+  Instance_Tracker<Trackable>::track(o);
+  EXPECT_THAT(Instance_Tracker<Trackable>::instances(), ::testing::Contains(o));
 }
 
-TEST(test_instance_tracker, destroying_removes_from_instances) {
-  std::shared_ptr<trackable> o = std::make_shared<trackable>();
-  instance_tracker<trackable>::track(o);
-  trackable* o_raw = o.get();
+TEST(Test_Instance_Tracker, destroying_removes_from_instances) {
+  std::shared_ptr<Trackable> o = std::make_shared<Trackable>();
+  Instance_Tracker<Trackable>::track(o);
+  Trackable* o_raw = o.get();
   o.reset();
 
-  for (std::shared_ptr<trackable>& instance :
-       instance_tracker<trackable>::instances()) {
+  for (std::shared_ptr<Trackable>& instance :
+       Instance_Tracker<Trackable>::instances()) {
     EXPECT_NE(instance.get(), o_raw);
   }
 }
 
-TEST(test_instance_tracker,
+TEST(Test_Instance_Tracker,
      resetting_tracked_pointer_destructs_tracked_object) {
-  std::shared_ptr<trackable> o = std::make_shared<trackable>();
-  int old_destruct_count = trackable::destruct_count;
-  instance_tracker<trackable>::track(o);
+  std::shared_ptr<Trackable> o = std::make_shared<Trackable>();
+  int old_destruct_count = Trackable::destruct_count;
+  Instance_Tracker<Trackable>::track(o);
   o.reset();
-  EXPECT_EQ(trackable::destruct_count, old_destruct_count + 1);
+  EXPECT_EQ(Trackable::destruct_count, old_destruct_count + 1);
 }
 }
 }

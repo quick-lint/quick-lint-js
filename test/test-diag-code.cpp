@@ -10,11 +10,11 @@
 
 namespace quick_lint_js {
 namespace {
-struct diag_name_and_code {
+struct Diag_Name_And_Code {
   const char* name;
   const char* code;
 };
-static constexpr diag_name_and_code all_diags[] = {
+static constexpr Diag_Name_And_Code all_diags[] = {
 #define QLJS_DIAG_TYPE(diag_name, diag_code, severity, struct_body, format) \
   {.name = #diag_name, .code = diag_code},
     QLJS_X_DIAG_TYPES
@@ -30,7 +30,7 @@ std::string next_unused_diag_code() {
   for (int i = 1; i <= 9999; ++i) {
     char code[7];
     std::snprintf(code, sizeof(code), "E%04d", i);
-    bool in_use = any_of(all_diags, [&](const diag_name_and_code& diag) {
+    bool in_use = any_of(all_diags, [&](const Diag_Name_And_Code& diag) {
       return std::string_view(diag.code) == code;
     });
     if (!in_use) {
@@ -40,9 +40,9 @@ std::string next_unused_diag_code() {
   QLJS_UNIMPLEMENTED();
 }
 
-TEST(test_diag_code, diag_codes_are_unique) {
-  hash_map<std::string, const char*> code_to_diag_name;
-  for (const diag_name_and_code& diag : all_diags) {
+TEST(Test_Diag_Code, diag_codes_are_unique) {
+  Hash_Map<std::string, const char*> code_to_diag_name;
+  for (const Diag_Name_And_Code& diag : all_diags) {
     auto existing_it = code_to_diag_name.find(diag.code);
     if (existing_it == code_to_diag_name.end()) {
       code_to_diag_name.emplace(diag.code, diag.name);
@@ -55,8 +55,8 @@ TEST(test_diag_code, diag_codes_are_unique) {
   }
 }
 
-TEST(test_diag_code, diag_codes_are_well_formed) {
-  for (const diag_name_and_code& diag : all_diags) {
+TEST(Test_Diag_Code, diag_codes_are_well_formed) {
+  for (const Diag_Name_And_Code& diag : all_diags) {
 #if defined(_WIN32)
     constexpr const char* code_pattern = R"(^E\d\d\d\d$)";
 #else

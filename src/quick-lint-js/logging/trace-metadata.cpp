@@ -1,7 +1,7 @@
 #include <quick-lint-js/logging/trace-metadata.h>
 
 namespace quick_lint_js {
-const char8 trace_metadata[] =
+const Char8 trace_metadata[] =
     u8R"(/* CTF 1.8 */
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.

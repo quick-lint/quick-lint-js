@@ -30,7 +30,7 @@ bool log_colors = false;
 }
 
 namespace {
-struct benchmark_run_config {
+struct Benchmark_Run_Config {
   int warmup_iterations;
   int measurement_iterations;
 
@@ -41,7 +41,7 @@ struct parsed_args {
   std::string_view benchmark_filter = std::string_view();
   const char* output_json_path = nullptr;
   bool list_benchmarks = false;
-  benchmark_run_config run_config = {
+  Benchmark_Run_Config run_config = {
       .warmup_iterations = 1,
       .measurement_iterations = 10,
       .samples = 1,
@@ -62,14 +62,14 @@ parsed_args parse_arguments(int argc, char** argv);
 //     }
 //   ]
 // }
-class benchmark_results_writer {
+class Benchmark_Results_Writer {
  public:
   // json_output is optional.
   // verbose_output is optional.
-  explicit benchmark_results_writer(FILE* json_output, FILE* verbose_output)
+  explicit Benchmark_Results_Writer(FILE* json_output, FILE* verbose_output)
       : json_output_(json_output), verbose_output_(verbose_output) {}
 
-  void add_metadata(const benchmark_config_program& program_config) {
+  void add_metadata(const Benchmark_Config_Program& program_config) {
     if (this->json_output_) {
       ::boost::json::object out_metadata;
       for (auto& [key, value] : program_config.get_metadata()) {
@@ -80,7 +80,7 @@ class benchmark_results_writer {
   }
 
   void begin_benchmark(const char* name,
-                       const benchmark_run_config& run_config) {
+                       const Benchmark_Run_Config& run_config) {
     QLJS_ASSERT(this->current_benchmark_.empty());
     QLJS_ASSERT(this->current_benchmark_samples_.empty());
 
@@ -153,12 +153,12 @@ class benchmark_results_writer {
   std::vector<sample> current_benchmark_samples_;
 };
 
-void run_benchmark(benchmark_factory&, const benchmark_config_server&,
-                   const benchmark_run_config&,
-                   benchmark_results_writer& results);
-void run_benchmark_once(benchmark*, const benchmark_config_server&,
-                        const benchmark_run_config&,
-                        benchmark_results_writer& results);
+void run_benchmark(Benchmark_Factory&, const Benchmark_Config_Server&,
+                   const Benchmark_Run_Config&,
+                   Benchmark_Results_Writer& results);
+void run_benchmark_once(Benchmark*, const Benchmark_Config_Server&,
+                        const Benchmark_Run_Config&,
+                        Benchmark_Results_Writer& results);
 }
 
 int main(int argc, char** argv) {
@@ -173,16 +173,16 @@ int main(int argc, char** argv) {
       std::exit(1);
     }
   }
-  benchmark_results_writer results(/*json_output=*/output_json_file,
+  Benchmark_Results_Writer results(/*json_output=*/output_json_file,
                                    /*verbose_output=*/stdout);
 
-  benchmark_config config = benchmark_config::load();
-  std::vector<benchmark_factory> benchmark_factories =
+  Benchmark_Config config = Benchmark_Config::load();
+  std::vector<Benchmark_Factory> benchmark_factories =
       get_benchmark_factories();
 
-  for (benchmark_config_server& server_config : config.servers) {
-    for (benchmark_factory& factory : benchmark_factories) {
-      std::unique_ptr<benchmark> b = factory();
+  for (Benchmark_Config_Server& server_config : config.servers) {
+    for (Benchmark_Factory& factory : benchmark_factories) {
+      std::unique_ptr<Benchmark> b = factory();
       if (!b->is_supported(server_config)) {
         continue;
       }
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
         auto program_it = std::find_if(
             config.programs.begin(), config.programs.end(),
-            [&](const benchmark_config_program& program_config) {
+            [&](const Benchmark_Config_Program& program_config) {
               return program_config.name == server_config.program_name;
             });
         if (program_it != config.programs.end() &&
@@ -221,7 +221,7 @@ parsed_args parse_arguments(int argc, char** argv) {
   auto read_number = [](const char* arg_value) {
     int output_number;
     if (parse_integer_exact(std::string_view(arg_value), output_number) !=
-        parse_integer_exact_error::ok) {
+        Parse_Integer_Exact_Error::ok) {
       std::fprintf(stderr, "error: failed to parse number: %s\n", arg_value);
       std::exit(2);
     }
@@ -230,7 +230,7 @@ parsed_args parse_arguments(int argc, char** argv) {
 
   parsed_args args;
 
-  arg_parser parser(argc, argv);
+  Arg_Parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
       if (args.benchmark_filter.empty()) {
@@ -273,22 +273,22 @@ parsed_args parse_arguments(int argc, char** argv) {
   return args;
 }
 
-void run_benchmark(benchmark_factory& factory,
-                   const benchmark_config_server& server_config,
-                   const benchmark_run_config& run_config,
-                   benchmark_results_writer& results) {
+void run_benchmark(Benchmark_Factory& factory,
+                   const Benchmark_Config_Server& server_config,
+                   const Benchmark_Run_Config& run_config,
+                   Benchmark_Results_Writer& results) {
   for (int i = 0; i < run_config.samples; ++i) {
-    std::unique_ptr<benchmark> b = factory();
+    std::unique_ptr<Benchmark> b = factory();
     run_benchmark_once(b.get(), server_config, run_config, results);
   }
 }
 
-void run_benchmark_once(benchmark* b,
-                        const benchmark_config_server& server_config,
-                        const benchmark_run_config& run_config,
-                        benchmark_results_writer& results) {
-  lsp_server_process server = lsp_server_process::spawn(server_config);
-  server.run_and_kill([&]() -> lsp_task<void> {
+void run_benchmark_once(Benchmark* b,
+                        const Benchmark_Config_Server& server_config,
+                        const Benchmark_Run_Config& run_config,
+                        Benchmark_Results_Writer& results) {
+  LSP_Server_Process server = LSP_Server_Process::spawn(server_config);
+  server.run_and_kill([&]() -> LSP_Task<void> {
     co_await server.initialize_lsp_async();
 
     int total_iteration_count =

@@ -6,10 +6,10 @@
 #include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, diag_type type) {
+std::ostream& operator<<(std::ostream& out, Diag_Type type) {
   switch (type) {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  case diag_type::name:                                                \
+  case Diag_Type::name:                                                \
     return out << #name;
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE

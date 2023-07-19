@@ -17,9 +17,9 @@ namespace quick_lint_js {
 // Writes N-API strings into buffers.
 //
 // Use this as a StringWriter for trace_writer.
-class napi_string_writer {
+class NAPI_String_Writer {
  public:
-  explicit napi_string_writer(::Napi::Env env) : env_(env) {}
+  explicit NAPI_String_Writer(::Napi::Env env) : env_(env) {}
 
   std::size_t string_size(void* string) const noexcept {
     std::size_t size;
@@ -55,21 +55,21 @@ class napi_string_writer {
 };
 
 // Manages traces in the VS Code extension directory.
-class vscode_tracer {
+class VSCode_Tracer {
  public:
-  explicit vscode_tracer(const std::string& log_directory)
+  explicit VSCode_Tracer(const std::string& log_directory)
       : log_directory_(log_directory) {}
 
-  ~vscode_tracer() { this->disable(); }
+  ~VSCode_Tracer() { this->disable(); }
 
   void register_current_thread() {
-    trace_flusher* tracer = trace_flusher::instance();
+    Trace_Flusher* tracer = Trace_Flusher::instance();
     tracer->register_current_thread();
     tracer->flush_sync();
   }
 
   void unregister_current_thread() {
-    trace_flusher::instance()->unregister_current_thread();
+    Trace_Flusher::instance()->unregister_current_thread();
   }
 
   void enable() {
@@ -81,34 +81,34 @@ class vscode_tracer {
 
     this->disable();
 
-    auto new_backend = trace_flusher_directory_backend::create_child_directory(
+    auto new_backend = Trace_Flusher_Directory_Backend::create_child_directory(
         this->log_directory_);
     if (!new_backend) {
       return;
     }
 
-    this->tracer_backend_ = std::make_unique<trace_flusher_directory_backend>(
+    this->tracer_backend_ = std::make_unique<Trace_Flusher_Directory_Backend>(
         std::move(*new_backend));
-    trace_flusher::instance()->enable_backend(this->tracer_backend_.get());
+    Trace_Flusher::instance()->enable_backend(this->tracer_backend_.get());
     QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
                    this->tracer_backend_->trace_directory().c_str());
   }
 
   void disable() {
     if (this->tracer_backend_) {
-      trace_flusher::instance()->disable_backend(this->tracer_backend_.get());
+      Trace_Flusher::instance()->disable_backend(this->tracer_backend_.get());
     }
     this->tracer_backend_.reset();
   }
 
-  void trace_vscode_document_opened(::Napi::Env env, vscode_document vscode_doc,
+  void trace_vscode_document_opened(::Napi::Env env, VSCode_Document vscode_doc,
                                     void* doc) {
-    trace_writer* tw =
-        trace_flusher::instance()->trace_writer_for_current_thread();
+    Trace_Writer* tw =
+        Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_opened(
-          trace_event_vscode_document_opened{
+          Trace_Event_VSCode_Document_Opened{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(
@@ -116,18 +116,18 @@ class vscode_tracer {
               .language_id = ::napi_value(vscode_doc.get().Get("languageId")),
               .content = ::napi_value(vscode_doc.get_text()),
           },
-          napi_string_writer(env));
+          NAPI_String_Writer(env));
       tw->commit();
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
   }
 
   void trace_vscode_document_changed(::Napi::Env env, void* doc,
                                      ::Napi::Array changes) {
-    trace_writer* tw =
-        trace_flusher::instance()->trace_writer_for_current_thread();
+    Trace_Writer* tw =
+        Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
-      std::vector<trace_vscode_document_change> traced_changes(
+      std::vector<Trace_VSCode_Document_Change> traced_changes(
           changes.Length());
       for (std::size_t i = 0; i < traced_changes.size(); ++i) {
         ::Napi::Object change =
@@ -135,7 +135,7 @@ class vscode_tracer {
         ::Napi::Object range = change.Get("range").As<::Napi::Object>();
         ::Napi::Object start = range.Get("start").As<::Napi::Object>();
         ::Napi::Object end = range.Get("end").As<::Napi::Object>();
-        traced_changes[i] = trace_vscode_document_change{
+        traced_changes[i] = Trace_VSCode_Document_Change{
             .range =
                 {
                     .start =
@@ -155,46 +155,46 @@ class vscode_tracer {
         };
       }
       tw->write_event_vscode_document_changed(
-          trace_event_vscode_document_changed{
+          Trace_Event_VSCode_Document_Changed{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .changes = traced_changes.data(),
               .change_count = traced_changes.size(),
           },
-          napi_string_writer(env));
+          NAPI_String_Writer(env));
       tw->commit();
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
   }
 
-  void trace_vscode_document_closed(::Napi::Env env, vscode_document vscode_doc,
+  void trace_vscode_document_closed(::Napi::Env env, VSCode_Document vscode_doc,
                                     void* doc) {
-    trace_writer* tw =
-        trace_flusher::instance()->trace_writer_for_current_thread();
+    Trace_Writer* tw =
+        Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_closed(
-          trace_event_vscode_document_closed{
+          Trace_Event_VSCode_Document_Closed{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(
                   uri.Get("toString").As<::Napi::Function>().Call(uri, {})),
               .language_id = ::napi_value(vscode_doc.get().Get("languageId")),
           },
-          napi_string_writer(env));
+          NAPI_String_Writer(env));
       tw->commit();
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
   }
 
-  void trace_vscode_document_sync(::Napi::Env env, vscode_document vscode_doc,
+  void trace_vscode_document_sync(::Napi::Env env, VSCode_Document vscode_doc,
                                   void* doc) {
-    trace_writer* tw =
-        trace_flusher::instance()->trace_writer_for_current_thread();
+    Trace_Writer* tw =
+        Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_sync(
-          trace_event_vscode_document_sync{
+          Trace_Event_VSCode_Document_Sync{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(
@@ -202,9 +202,9 @@ class vscode_tracer {
               .language_id = ::napi_value(vscode_doc.get().Get("languageId")),
               .content = ::napi_value(vscode_doc.get_text()),
           },
-          napi_string_writer(env));
+          NAPI_String_Writer(env));
       tw->commit();
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
   }
 
@@ -215,7 +215,7 @@ class vscode_tracer {
   }
 
   std::string log_directory_;
-  std::unique_ptr<trace_flusher_directory_backend> tracer_backend_;
+  std::unique_ptr<Trace_Flusher_Directory_Backend> tracer_backend_;
 };
 }
 

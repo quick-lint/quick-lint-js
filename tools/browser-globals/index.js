@@ -437,11 +437,11 @@ function writeCPPFile({ browserGlobals, webWorkerGlobals, outputStream }) {
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-const char8 global_variables_browser[] =`);
+const Char8 global_variables_browser[] =`);
   writeStrings(browserGlobals);
   outputStream.write(`;
 
-const char8 global_variables_web_worker[] =`);
+const Char8 global_variables_web_worker[] =`);
   writeStrings(webWorkerGlobals);
   outputStream.write(`;
 }

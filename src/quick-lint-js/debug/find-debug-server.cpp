@@ -168,7 +168,7 @@ constexpr std::size_t max_thread_name_length = 256;
 #endif
 
 #if QLJS_CAN_FIND_DEBUG_SERVERS
-using thread_name_char_type = decltype(thread_name_prefix)::value_type;
+using Thread_Name_Char_Type = decltype(thread_name_prefix)::value_type;
 
 static_assert(thread_name_prefix.size() +
                       integer_string_length<std::uint16_t> <=
@@ -176,14 +176,14 @@ static_assert(thread_name_prefix.size() +
               "thread_name_prefix is too long");
 
 std::optional<std::uint16_t> parse_port_number_from_thread_name(
-    std::basic_string_view<thread_name_char_type> thread_name) {
+    std::basic_string_view<Thread_Name_Char_Type> thread_name) {
   if (!starts_with(thread_name, thread_name_prefix)) {
     return std::nullopt;
   }
-  std::basic_string_view<thread_name_char_type> port_string =
+  std::basic_string_view<Thread_Name_Char_Type> port_string =
       thread_name.substr(thread_name_prefix.size());
   std::uint16_t port;
-  if (parse_integer_exact(port_string, port) != parse_integer_exact_error::ok) {
+  if (parse_integer_exact(port_string, port) != Parse_Integer_Exact_Error::ok) {
     return std::nullopt;
   }
   return port;
@@ -193,8 +193,8 @@ std::optional<std::uint16_t> parse_port_number_from_thread_name(
 
 #if QLJS_FEATURE_DEBUG_SERVER
 void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
-  std::array<thread_name_char_type, max_thread_name_length + 1> name;
-  thread_name_char_type* out = std::copy(thread_name_prefix.begin(),
+  std::array<Thread_Name_Char_Type, max_thread_name_length + 1> name;
+  Thread_Name_Char_Type* out = std::copy(thread_name_prefix.begin(),
                                          thread_name_prefix.end(), name.data());
   out = write_integer(port_number, out);
   *out++ = '\0';
@@ -267,7 +267,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
       path.append(task_entry_name);
       path.append("/comm");
 
-      posix_fd_file thread_name_file(::open(path.c_str(), O_RDONLY));
+      POSIX_FD_File thread_name_file(::open(path.c_str(), O_RDONLY));
       if (!thread_name_file.valid()) {
         switch (errno) {
         case ENOENT:
@@ -281,7 +281,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
         }
       }
       char thread_name_buffer[max_thread_name_length + 1];
-      file_read_result read_result =
+      File_Read_Result read_result =
           thread_name_file.read(thread_name_buffer, sizeof(thread_name_buffer));
       if (!read_result.ok() || read_result.at_end_of_file()) {
         QLJS_DEBUG_LOG("%s: ignoring failure to get read %s: %s\n", func,
@@ -300,7 +300,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
           /*process_id_string=*/std::string_view(proc_entry_name),
           /*thread_name=*/thread_name);
     };
-    result<void, platform_file_io_error> list_task =
+    Result<void, Platform_File_IO_Error> list_task =
         list_directory(path.c_str(), visit_task_entry);
     if (!list_task.ok()) {
       path.resize(path_size_without_task_id);
@@ -308,7 +308,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
                      path.c_str(), list_task.error_to_string().c_str());
     }
   };
-  result<void, platform_file_io_error> list_proc =
+  Result<void, Platform_File_IO_Error> list_proc =
       list_directory(path.c_str(), visit_proc_entry);
   if (!list_proc.ok()) {
     QLJS_DEBUG_LOG("%s: ignoring failure to read /proc: %s\n", func,
@@ -318,19 +318,19 @@ void enumerate_all_process_thread_names(Callback&& callback) {
 #endif
 
 #if defined(__linux__)
-std::vector<found_debug_server> find_debug_servers() {
-  std::vector<found_debug_server> debug_servers;
+std::vector<Found_Debug_Server> find_debug_servers() {
+  std::vector<Found_Debug_Server> debug_servers;
 
   enumerate_all_process_thread_names(
       [&](std::string_view process_id_string, std::string_view thread_name) {
         if (std::optional<std::uint16_t> port_number =
                 parse_port_number_from_thread_name(thread_name)) {
           std::uint64_t process_id;
-          parse_integer_exact_error parse_error =
+          Parse_Integer_Exact_Error parse_error =
               parse_integer_exact(process_id_string, process_id);
-          QLJS_ASSERT(parse_error == parse_integer_exact_error::ok);
-          if (parse_error == parse_integer_exact_error::ok) {
-            debug_servers.push_back(found_debug_server{
+          QLJS_ASSERT(parse_error == Parse_Integer_Exact_Error::ok);
+          if (parse_error == Parse_Integer_Exact_Error::ok) {
+            debug_servers.push_back(Found_Debug_Server{
                 .process_id = process_id,
                 .port_number = *port_number,
             });
@@ -413,10 +413,10 @@ void enumerate_all_process_threads(Callback&& callback) {
 #endif
 
 #if defined(__APPLE__)
-std::vector<found_debug_server> find_debug_servers() {
+std::vector<Found_Debug_Server> find_debug_servers() {
   static constexpr char func[] = "find_debug_servers";
 
-  std::vector<found_debug_server> debug_servers;
+  std::vector<Found_Debug_Server> debug_servers;
   enumerate_all_process_threads([&](::pid_t process_id,
                                     std::uint64_t thread_id) -> void {
     ::proc_threadinfo thread_info;
@@ -437,7 +437,7 @@ std::vector<found_debug_server> find_debug_servers() {
         ::strnlen(thread_info.pth_name, MAXTHREADNAMESIZE));
     if (std::optional<std::uint16_t> port_number =
             parse_port_number_from_thread_name(thread_name)) {
-      debug_servers.push_back(found_debug_server{
+      debug_servers.push_back(Found_Debug_Server{
           .process_id = narrow_cast<std::uint64_t>(process_id),
           .port_number = *port_number,
       });
@@ -448,7 +448,7 @@ std::vector<found_debug_server> find_debug_servers() {
 #endif
 
 #if defined(__FreeBSD__)
-std::vector<found_debug_server> find_debug_servers() {
+std::vector<Found_Debug_Server> find_debug_servers() {
   static constexpr char func[] = "find_debug_servers";
 
   // NOTE(Nico): On FreeBSD we can just fetch the list of all active LWPs by
@@ -470,7 +470,7 @@ std::vector<found_debug_server> find_debug_servers() {
   size_t own_jid_size;
   ::kinfo_proc* p;
   ::kvm_t* kd;
-  std::vector<found_debug_server> debug_servers;
+  std::vector<Found_Debug_Server> debug_servers;
 
   // Query our own jail id
   own_jid_size = sizeof own_jid;
@@ -509,7 +509,7 @@ std::vector<found_debug_server> find_debug_servers() {
         ::strnlen(p[ti].ki_tdname, max_thread_name_length - 1));
     if (std::optional<std::uint16_t> port_number =
             parse_port_number_from_thread_name(thread_name)) {
-      debug_servers.push_back(found_debug_server{
+      debug_servers.push_back(Found_Debug_Server{
           .process_id = narrow_cast<std::uint64_t>(p[ti].ki_pid),
           .port_number = *port_number,
       });
@@ -526,7 +526,7 @@ error_open_kvm:
 #if defined(_WIN32)
 template <class Callback>
 void enumerate_all_process_threads(Callback&& callback) {
-  windows_handle_file thread_snapshot(
+  Windows_Handle_File thread_snapshot(
       ::CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0));
   if (!thread_snapshot.valid()) {
     QLJS_DEBUG_LOG("%s: ignoring failure to get thread list: %s\n", __func__,
@@ -566,13 +566,13 @@ void enumerate_all_process_threads(Callback&& callback) {
 #endif
 
 #if defined(_WIN32)
-std::vector<found_debug_server> find_debug_servers() {
+std::vector<Found_Debug_Server> find_debug_servers() {
   static constexpr char func[] = "find_debug_servers";
 
-  std::vector<found_debug_server> debug_servers;
+  std::vector<Found_Debug_Server> debug_servers;
   enumerate_all_process_threads([&](::DWORD process_id,
                                     ::DWORD thread_id) -> void {
-    windows_handle_file thread_handle(
+    Windows_Handle_File thread_handle(
         ::OpenThread(THREAD_QUERY_LIMITED_INFORMATION,
                      /*bInheritHandle=*/false, thread_id));
     if (!thread_handle.valid()) {
@@ -608,7 +608,7 @@ std::vector<found_debug_server> find_debug_servers() {
     if (std::optional<std::uint16_t> port_number =
             parse_port_number_from_thread_name(
                 std::wstring_view(thread_name))) {
-      debug_servers.push_back(found_debug_server{
+      debug_servers.push_back(Found_Debug_Server{
           .process_id = process_id,
           .port_number = *port_number,
       });
@@ -621,9 +621,9 @@ std::vector<found_debug_server> find_debug_servers() {
 #endif
 
 #if !QLJS_CAN_FIND_DEBUG_SERVERS
-std::vector<found_debug_server> find_debug_servers() {
+std::vector<Found_Debug_Server> find_debug_servers() {
 #warning "--debug-apps is not supported on this platform"
-  return std::vector<found_debug_server>();
+  return std::vector<Found_Debug_Server>();
 }
 #endif
 }

@@ -9,7 +9,7 @@
 
 namespace quick_lint_js {
 template <class FuncType>
-class heap_function;
+class Heap_Function;
 
 // heap_function is like std::function but with a few differences:
 //
@@ -20,19 +20,19 @@ class heap_function;
 // * heap_function does not support member function pointers and other
 //   craziness.
 template <class Result, class... Args>
-class heap_function<Result(Args...)> {
+class Heap_Function<Result(Args...)> {
  public:
-  /*implicit*/ heap_function() = default;
+  /*implicit*/ Heap_Function() = default;
 
   template <class Func, class = typename std::enable_if<
                             std::is_invocable_r_v<Result, Func, Args...>>::type>
-  /*implicit*/ heap_function(Func&& func)
-      : callable_(new dynamic_callable<Func>(std::move(func))) {}
+  /*implicit*/ Heap_Function(Func&& func)
+      : callable_(new Dynamic_Callable<Func>(std::move(func))) {}
 
-  heap_function(heap_function&& other) noexcept
+  Heap_Function(Heap_Function&& other) noexcept
       : callable_(std::exchange(other.callable_, nullptr)) {}
 
-  heap_function& operator=(heap_function&& other) noexcept {
+  Heap_Function& operator=(Heap_Function&& other) noexcept {
     if (this != &other) {
       delete this->callable_;
       this->callable_ = std::exchange(other.callable_, nullptr);
@@ -40,7 +40,7 @@ class heap_function<Result(Args...)> {
     return *this;
   }
 
-  ~heap_function() { delete this->callable_; }
+  ~Heap_Function() { delete this->callable_; }
 
   explicit operator bool() const noexcept { return this->callable_ != nullptr; }
 
@@ -49,17 +49,17 @@ class heap_function<Result(Args...)> {
   }
 
  private:
-  struct dynamic_callable_base {
-    virtual ~dynamic_callable_base() = default;
+  struct Dynamic_Callable_Base {
+    virtual ~Dynamic_Callable_Base() = default;
 
     virtual Result call(Args... args) = 0;
   };
 
   template <class Func>
-  struct dynamic_callable : dynamic_callable_base {
-    explicit dynamic_callable(Func&& func) : func(std::move(func)) {}
+  struct Dynamic_Callable : Dynamic_Callable_Base {
+    explicit Dynamic_Callable(Func&& func) : func(std::move(func)) {}
 
-    virtual ~dynamic_callable() override = default;
+    virtual ~Dynamic_Callable() override = default;
 
     Result call(Args... args) override {
       return this->func(std::forward<Args>(args)...);
@@ -68,7 +68,7 @@ class heap_function<Result(Args...)> {
     Func func;
   };
 
-  dynamic_callable_base* callable_ = nullptr;
+  Dynamic_Callable_Base* callable_ = nullptr;
 };
 }
 

@@ -6,12 +6,12 @@
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
-void PrintTo(const visited_variable_declaration &x, std::ostream *out) {
+void PrintTo(const Visited_Variable_Declaration &x, std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);
-  if (x.flags & variable_declaration_flags::initialized_with_equals) {
+  if (x.flags & Variable_Declaration_Flags::initialized_with_equals) {
     *out << " (initialized with '=')";
   }
-  if (x.flags & variable_declaration_flags::non_empty_namespace) {
+  if (x.flags & Variable_Declaration_Flags::non_empty_namespace) {
     *out << " (non-empty)";
   }
 }

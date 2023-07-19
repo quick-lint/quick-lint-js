@@ -11,32 +11,32 @@
 #include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
-class buffering_diag_reporter final : public diag_reporter {
+class Buffering_Diag_Reporter final : public Diag_Reporter {
  public:
-  explicit buffering_diag_reporter(memory_resource *);
+  explicit Buffering_Diag_Reporter(Memory_Resource *);
 
-  buffering_diag_reporter(buffering_diag_reporter &&);
-  buffering_diag_reporter &operator=(buffering_diag_reporter &&);
+  Buffering_Diag_Reporter(Buffering_Diag_Reporter &&);
+  Buffering_Diag_Reporter &operator=(Buffering_Diag_Reporter &&);
 
-  ~buffering_diag_reporter() override;
+  ~Buffering_Diag_Reporter() override;
 
-  void report_impl(diag_type type, void *diag) override;
+  void report_impl(Diag_Type type, void *diag) override;
 
-  void copy_into(diag_reporter *other) const;
-  void move_into(diag_reporter *other);
+  void copy_into(Diag_Reporter *other) const;
+  void move_into(Diag_Reporter *other);
 
   bool empty() const noexcept;
 
   void clear() noexcept;
 
  private:
-  struct impl;
+  struct Impl;
 
-  struct impl_deleter {
-    void operator()(impl *) noexcept;
+  struct Impl_Deleter {
+    void operator()(Impl *) noexcept;
   };
 
-  std::unique_ptr<impl, impl_deleter> impl_;
+  std::unique_ptr<Impl, Impl_Deleter> impl_;
 };
 }
 

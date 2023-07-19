@@ -11,12 +11,12 @@
 #include <quick-lint-js/io/file-handle.h>
 
 namespace quick_lint_js {
-struct pipe_fds {
-  platform_file reader;
-  platform_file writer;
+struct Pipe_FDs {
+  Platform_File reader;
+  Platform_File writer;
 };
 
-pipe_fds make_pipe();
+Pipe_FDs make_pipe();
 }
 
 #endif

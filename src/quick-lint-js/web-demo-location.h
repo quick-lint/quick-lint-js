@@ -9,26 +9,26 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-class source_code_span;
+class Source_Code_Span;
 
-using web_demo_source_offset = std::uint32_t;
+using Web_Demo_Source_Offset = std::uint32_t;
 
-struct web_demo_source_range {
-  web_demo_source_offset begin;
-  web_demo_source_offset end;
+struct Web_Demo_Source_Range {
+  Web_Demo_Source_Offset begin;
+  Web_Demo_Source_Offset end;
 };
 
-class web_demo_locator {
+class Web_Demo_Locator {
  public:
-  using range_type = web_demo_source_range;
+  using Range_Type = Web_Demo_Source_Range;
 
-  explicit web_demo_locator(padded_string_view input) noexcept;
+  explicit Web_Demo_Locator(Padded_String_View input) noexcept;
 
-  web_demo_source_range range(source_code_span) const;
-  web_demo_source_offset position(const char8*) const noexcept;
+  Web_Demo_Source_Range range(Source_Code_Span) const;
+  Web_Demo_Source_Offset position(const Char8*) const noexcept;
 
  private:
-  padded_string_view input_;
+  Padded_String_View input_;
 };
 }
 

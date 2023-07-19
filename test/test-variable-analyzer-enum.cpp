@@ -18,20 +18,20 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_enum,
+TEST(Test_Variable_Analyzer_Enum,
      member_initializers_can_reference_other_members) {
-  const char8 enum_declaration[] = u8"E";
-  const char8 member_use[] = u8"A";
+  const Char8 enum_declaration[] = u8"E";
+  const Char8 member_use[] = u8"A";
 
   // enum E {
   //   A = 42,
   //   B = A,
   // }
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration),
-                               variable_kind::_enum,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_enum,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_enum_scope();
   l.visit_variable_use(identifier_of(member_use));
   l.visit_exit_enum_scope();
@@ -40,22 +40,22 @@ TEST(test_variable_analyzer_enum,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_enum, enum_can_merge_with_another_enum) {
-  const char8 enum_declaration_1[] = u8"E";
-  const char8 enum_declaration_2[] = u8"E";
+TEST(Test_Variable_Analyzer_Enum, enum_can_merge_with_another_enum) {
+  const Char8 enum_declaration_1[] = u8"E";
+  const Char8 enum_declaration_2[] = u8"E";
 
   // enum E {}
   // enum E {}
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration_1),
-                               variable_kind::_enum,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_enum,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_enum_scope();
   l.visit_exit_enum_scope();
   l.visit_variable_declaration(identifier_of(enum_declaration_2),
-                               variable_kind::_enum,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_enum,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_enum_scope();
   l.visit_exit_enum_scope();
   l.visit_end_of_module();
@@ -63,25 +63,25 @@ TEST(test_variable_analyzer_enum, enum_can_merge_with_another_enum) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_enum, enum_can_shadow_catch_variables) {
-  const char8 catch_declaration[] = u8"e";
-  const char8 enum_declaration[] = u8"e";
+TEST(Test_Variable_Analyzer_Enum, enum_can_shadow_catch_variables) {
+  const Char8 catch_declaration[] = u8"e";
+  const Char8 enum_declaration[] = u8"e";
 
   // try {
   // } catch (e) {
   //   enum e {}
   // }
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_block_scope();
   l.visit_exit_block_scope();
   l.visit_enter_block_scope();
   l.visit_variable_declaration(identifier_of(catch_declaration),
-                               variable_kind::_catch,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_catch,
+                               Variable_Declaration_Flags::none);
   l.visit_variable_declaration(identifier_of(enum_declaration),
-                               variable_kind::_enum,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_enum,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_enum_scope();
   l.visit_exit_enum_scope();
   l.visit_exit_block_scope();
@@ -90,37 +90,37 @@ TEST(test_variable_analyzer_enum, enum_can_shadow_catch_variables) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_enum,
+TEST(Test_Variable_Analyzer_Enum,
      enum_conflicts_with_most_variables_in_same_scope) {
-  const char8 enum_declaration[] = u8"E";
-  const char8 other_declaration[] = u8"E";
+  const Char8 enum_declaration[] = u8"E";
+  const Char8 other_declaration[] = u8"E";
 
-  for (variable_kind other_kind : {
-           variable_kind::_arrow_parameter,
-           variable_kind::_class,
-           variable_kind::_const,
-           variable_kind::_function,
-           variable_kind::_function_parameter,
-           variable_kind::_generic_parameter,
-           variable_kind::_import,
+  for (Variable_Kind other_kind : {
+           Variable_Kind::_arrow_parameter,
+           Variable_Kind::_class,
+           Variable_Kind::_const,
+           Variable_Kind::_function,
+           Variable_Kind::_function_parameter,
+           Variable_Kind::_generic_parameter,
+           Variable_Kind::_import,
            // FIXME(strager): Is _index_signature_parameter even possible?
-           variable_kind::_index_signature_parameter,
-           variable_kind::_interface,
-           variable_kind::_let,
-           variable_kind::_var,
+           Variable_Kind::_index_signature_parameter,
+           Variable_Kind::_interface,
+           Variable_Kind::_let,
+           Variable_Kind::_var,
        }) {
     SCOPED_TRACE(other_kind);
 
     {
       // var E;
       // enum E {}  // ERROR
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, javascript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(other_declaration), other_kind,
-                                   variable_declaration_flags::none);
+                                   Variable_Declaration_Flags::none);
       l.visit_variable_declaration(identifier_of(enum_declaration),
-                                   variable_kind::_enum,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_enum,
+                                   Variable_Declaration_Flags::none);
       l.visit_enter_enum_scope();
       l.visit_exit_enum_scope();
       l.visit_end_of_module();
@@ -128,7 +128,7 @@ TEST(test_variable_analyzer_enum,
       EXPECT_THAT(v.errors,
                   ElementsAreArray({
                       DIAG_TYPE_2_SPANS(
-                          diag_redeclaration_of_variable,            //
+                          Diag_Redeclaration_Of_Variable,            //
                           redeclaration, span_of(enum_declaration),  //
                           original_declaration, span_of(other_declaration)),
                   }));
@@ -137,21 +137,21 @@ TEST(test_variable_analyzer_enum,
     {
       // enum E {}
       // var E;     // ERROR
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, javascript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(enum_declaration),
-                                   variable_kind::_enum,
-                                   variable_declaration_flags::none);
+                                   Variable_Kind::_enum,
+                                   Variable_Declaration_Flags::none);
       l.visit_enter_enum_scope();
       l.visit_exit_enum_scope();
       l.visit_variable_declaration(identifier_of(other_declaration), other_kind,
-                                   variable_declaration_flags::none);
+                                   Variable_Declaration_Flags::none);
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
                   ElementsAreArray({
                       DIAG_TYPE_2_SPANS(
-                          diag_redeclaration_of_variable,             //
+                          Diag_Redeclaration_Of_Variable,             //
                           redeclaration, span_of(other_declaration),  //
                           original_declaration, span_of(enum_declaration)),
                   }));
@@ -159,25 +159,25 @@ TEST(test_variable_analyzer_enum,
   }
 }
 
-TEST(test_variable_analyzer_enum, function_shadows_enum_in_outer_scope) {
-  const char8 enum_declaration[] = u8"E";
-  const char8 function_declaration[] = u8"E";
+TEST(Test_Variable_Analyzer_Enum, function_shadows_enum_in_outer_scope) {
+  const Char8 enum_declaration[] = u8"E";
+  const Char8 function_declaration[] = u8"E";
 
   // enum E {}
   // {
   //   function E() {}
   // }
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(enum_declaration),
-                               variable_kind::_enum,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_enum,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_enum_scope();
   l.visit_exit_enum_scope();
   l.visit_enter_block_scope();
   l.visit_variable_declaration(identifier_of(function_declaration),
-                               variable_kind::_function,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_function,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
@@ -187,33 +187,33 @@ TEST(test_variable_analyzer_enum, function_shadows_enum_in_outer_scope) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
-  const char8 enum_declaration[] = u8"e";
-  const char8 var_declaration[] = u8"e";
+TEST(Test_Variable_Analyzer_Enum, var_conflicts_with_enum_in_outer_scope) {
+  const Char8 enum_declaration[] = u8"e";
+  const Char8 var_declaration[] = u8"e";
 
   {
     // enum e {}
     // {
     //   var e;   // ERROR
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 variable_kind::_enum,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_enum,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(var_declaration),
-                                 variable_kind::_var,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_var,
+                                 Variable_Declaration_Flags::none);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,           //
+            DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,           //
                               redeclaration, span_of(var_declaration),  //
                               original_declaration, span_of(enum_declaration)),
         }));
@@ -224,16 +224,16 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     //   var e;
     // }
     // enum e {}  // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(var_declaration),
-                                 variable_kind::_var,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_var,
+                                 Variable_Declaration_Flags::none);
     l.visit_exit_block_scope();
     l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 variable_kind::_enum,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_enum,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
     l.visit_end_of_module();
@@ -241,44 +241,44 @@ TEST(test_variable_analyzer_enum, var_conflicts_with_enum_in_outer_scope) {
     EXPECT_THAT(
         v.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,            //
+            DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,            //
                               redeclaration, span_of(enum_declaration),  //
                               original_declaration, span_of(var_declaration)),
         }));
   }
 }
 
-TEST(test_variable_analyzer_enum, enum_shadows_most_variables_in_outer_scope) {
-  const char8 outer_declaration[] = u8"E";
-  const char8 enum_declaration[] = u8"E";
+TEST(Test_Variable_Analyzer_Enum, enum_shadows_most_variables_in_outer_scope) {
+  const Char8 outer_declaration[] = u8"E";
+  const Char8 enum_declaration[] = u8"E";
 
-  for (variable_kind outer_kind : {
-           variable_kind::_arrow_parameter,
-           variable_kind::_class,
-           variable_kind::_const,
-           variable_kind::_function,
-           variable_kind::_function_parameter,
-           variable_kind::_generic_parameter,
-           variable_kind::_import,
+  for (Variable_Kind outer_kind : {
+           Variable_Kind::_arrow_parameter,
+           Variable_Kind::_class,
+           Variable_Kind::_const,
+           Variable_Kind::_function,
+           Variable_Kind::_function_parameter,
+           Variable_Kind::_generic_parameter,
+           Variable_Kind::_import,
            // FIXME(strager): Is _index_signature_parameter even possible?
-           variable_kind::_index_signature_parameter,
-           variable_kind::_interface,
-           variable_kind::_let,
-           variable_kind::_var,
+           Variable_Kind::_index_signature_parameter,
+           Variable_Kind::_interface,
+           Variable_Kind::_let,
+           Variable_Kind::_var,
        }) {
     SCOPED_TRACE(outer_kind);
     // var E;
     // {
     //   enum E {}
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
-                                 variable_declaration_flags::none);
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 variable_kind::_enum,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_enum,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_enum_scope();
     l.visit_exit_enum_scope();
     l.visit_exit_block_scope();

@@ -10,17 +10,17 @@
 namespace quick_lint_js {
 // TODO(strager): Use std::source_location if available.
 #if QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE
-class source_location {
+class Source_Location {
  public:
   static constexpr bool valid() noexcept { return true; }
 
-  /*implicit*/ constexpr source_location() = default;
+  /*implicit*/ constexpr Source_Location() = default;
 
-  static source_location current(
+  static Source_Location current(
       const char* file_name = __builtin_FILE(),
       const char* function_name = __builtin_FUNCTION(),
       std::uint_least32_t line = __builtin_LINE()) noexcept {
-    return source_location(file_name, function_name, line);
+    return Source_Location(file_name, function_name, line);
   }
 
   constexpr const char* file_name() const noexcept { return this->file_name_; }
@@ -30,7 +30,7 @@ class source_location {
   constexpr std::uint_least32_t line() const noexcept { return this->line_; }
 
  private:
-  explicit source_location(const char* file_name, const char* function_name,
+  explicit Source_Location(const char* file_name, const char* function_name,
                            std::uint_least32_t line) noexcept
       : file_name_(file_name), function_name_(function_name), line_(line) {}
 
@@ -39,13 +39,13 @@ class source_location {
   std::uint_least32_t line_ = 0;
 };
 #else
-class source_location {
+class Source_Location {
  public:
   static constexpr bool valid() noexcept { return false; }
 
-  /*implicit*/ constexpr source_location() = default;
+  /*implicit*/ constexpr Source_Location() = default;
 
-  static source_location current() noexcept { return source_location(); }
+  static Source_Location current() noexcept { return Source_Location(); }
 
   constexpr const char* file_name() const noexcept { return nullptr; }
   constexpr const char* function_name() const noexcept { return nullptr; }

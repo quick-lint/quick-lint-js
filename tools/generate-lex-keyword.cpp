@@ -11,7 +11,7 @@
 // thousand attempts, no collision-free seed was found, the table size is
 // increased and the hashing is attempted again.
 //
-// [1] See the keyword_lexer class in <quick-lint-js/fe/keyword-lexer.h> for
+// [1] See the Keyword_Lexer class in <quick-lint-js/fe/keyword-lexer.h> for
 //     details on the hash function.
 
 #include <algorithm>
@@ -43,7 +43,7 @@ generate_lex_keyword_options parse_generate_lex_keyword_options(int argc,
                                                                 char** argv) {
   generate_lex_keyword_options o;
 
-  arg_parser parser(argc, argv);
+  Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) {
       std::fprintf(stderr, "error: unexpected argument: %s\n", argument);
@@ -68,30 +68,30 @@ void analyze_keys(const std::vector<std::string_view>& keys) {
 
   for (std::string_view key : keys) {
     std::size_t length = key.size();
-    if (length < keyword_lexer::minimum_key_length) {
+    if (length < Keyword_Lexer::minimum_key_length) {
       std::fprintf(stderr,
                    "error: minimum keyword length is %zu, but found keyword "
                    "with length %zu: %.*s\n",
-                   keyword_lexer::minimum_key_length, length,
+                   Keyword_Lexer::minimum_key_length, length,
                    narrow_cast<int>(length), key.data());
       ok = false;
     }
-    if (length > keyword_lexer::maximum_key_length) {
+    if (length > Keyword_Lexer::maximum_key_length) {
       std::fprintf(stderr,
                    "error: maximum keyword length is %zu, but found keyword "
                    "with length %zu: %.*s\n",
-                   keyword_lexer::maximum_key_length, length,
+                   Keyword_Lexer::maximum_key_length, length,
                    narrow_cast<int>(length), key.data());
       ok = false;
     }
   }
 
   if (ok) {  // Do not call select() with invalid keys.
-    std::unordered_map<keyword_lexer::selection_type, std::string_view>
+    std::unordered_map<Keyword_Lexer::Selection_Type, std::string_view>
         selections;
     for (std::string_view key : keys) {
-      keyword_lexer::selection_type selection =
-          keyword_lexer::select(key.data(), key.size());
+      Keyword_Lexer::Selection_Type selection =
+          Keyword_Lexer::select(key.data(), key.size());
       auto collision = selections.find(selection);
       if (collision != selections.end()) {
         std::fprintf(stderr,
@@ -113,13 +113,13 @@ void analyze_keys(const std::vector<std::string_view>& keys) {
 
 class table_seed {
  public:
-  keyword_lexer::seed_type get() const { return this->seed_; }
+  Keyword_Lexer::Seed_Type get() const { return this->seed_; }
 
   void next() { this->seed_ += 1; }
 
  private:
   // Arbitrary.
-  keyword_lexer::seed_type seed_ = 0x811c9dc5;  // FNV-1a 32-bit basis.
+  Keyword_Lexer::Seed_Type seed_ = 0x811c9dc5;  // FNV-1a 32-bit basis.
 };
 
 struct hash_table {
@@ -149,12 +149,12 @@ struct hash_table {
   bool try_fill(const std::vector<std::string_view>& keys) {
     this->current_generation += 1;
     for (std::string_view key : keys) {
-      keyword_lexer::selection_type selection =
-          keyword_lexer::select(key.data(), key.size());
-      keyword_lexer::hash_type hash =
-          keyword_lexer::mix(selection, this->seed.get());
-      keyword_lexer::hash_type index =
-          static_cast<keyword_lexer::hash_type>(hash % this->entries.size());
+      Keyword_Lexer::Selection_Type selection =
+          Keyword_Lexer::select(key.data(), key.size());
+      Keyword_Lexer::Hash_Type hash =
+          Keyword_Lexer::mix(selection, this->seed.get());
+      Keyword_Lexer::Hash_Type index =
+          static_cast<Keyword_Lexer::Hash_Type>(hash % this->entries.size());
       table_entry& entry = this->entries[index];
       if (entry.is_taken(this->current_generation)) {
         return false;
@@ -220,7 +220,7 @@ string_table make_string_table(const std::vector<std::string_view>& keys) {
   }
 
   strings.word_starts.push_back(strings.data.size());
-  strings.data.resize(strings.data.size() + keyword_lexer::padding_size);
+  strings.data.resize(strings.data.size() + Keyword_Lexer::padding_size);
 
   return strings;
 }
@@ -250,39 +250,39 @@ namespace {)");
 constexpr std::size_t hash_table_size = %zuLLU;
 constexpr std::size_t string_table_size = %zuLLU;
 
-constexpr keyword_lexer::seed_type hash_seed = %lluLLU;
+constexpr Keyword_Lexer::Seed_Type hash_seed = %lluLLU;
 )",
                t.entries.size(), strings.data.size(),
                static_cast<unsigned long long>(t.seed.get()));
 
   std::fprintf(f, "%s", R"(
-struct entry {
+struct Entry {
   std::uint16_t key_index;  // Index into tables::string_table.
   std::uint8_t key_length;
-  token_type value;
+  Token_Type value;
 };
 
 // The two tables are combined into one table to reduce the number of
 // instructions dedicated to address computation in the lookup function. (I did
 // not measure whether this technique actually improves performance, though.)
-struct tables_type {
-  entry hash_table[hash_table_size];
-  char8 string_table[string_table_size];
+struct Tables_Type {
+  Entry hash_table[hash_table_size];
+  Char8 string_table[string_table_size];
 };
 
 )");
 
   std::fprintf(f, "// clang-format off\n");
-  std::fprintf(f, "constexpr tables_type tables = {\n");
+  std::fprintf(f, "constexpr Tables_Type tables = {\n");
   std::fprintf(f, "    .hash_table =\n");
   std::fprintf(f, "        {\n");
   for (const hash_table::table_entry& e : t.entries) {
     std::fprintf(f, "            {");
     if (e.is_taken(t.current_generation)) {
-      std::fprintf(f, "%zu, %zu, token_type::kw_%.*s", strings.data.find(e.key),
+      std::fprintf(f, "%zu, %zu, Token_Type::kw_%.*s", strings.data.find(e.key),
                    e.key.size(), narrow_cast<int>(e.key.size()), e.key.data());
     } else {
-      std::fprintf(f, "0, 0, token_type::identifier");
+      std::fprintf(f, "0, 0, Token_Type::identifier");
     }
     std::fprintf(f, "},\n");
   }
@@ -314,29 +314,29 @@ struct tables_type {
   std::fprintf(f, "%s", R"(
 }
 
-token_type lexer::identifier_token_type(string8_view identifier) noexcept {
+Token_Type Lexer::identifier_token_type(String8_View identifier) noexcept {
   std::size_t identifier_size = identifier.size();
 
-  keyword_lexer::selection_type selection =
-      keyword_lexer::select(identifier.data(), identifier_size);
-  keyword_lexer::hash_type hash = keyword_lexer::mix(selection, hash_seed);
-  keyword_lexer::hash_type index =
-      static_cast<keyword_lexer::hash_type>(hash % hash_table_size);
+  Keyword_Lexer::Selection_Type selection =
+      Keyword_Lexer::select(identifier.data(), identifier_size);
+  Keyword_Lexer::Hash_Type hash = Keyword_Lexer::mix(selection, hash_seed);
+  Keyword_Lexer::Hash_Type index =
+      static_cast<Keyword_Lexer::Hash_Type>(hash % hash_table_size);
 
-  const entry& e = tables.hash_table[index];
-  const char8* e_key = &tables.string_table[e.key_index];
+  const Entry& e = tables.hash_table[index];
+  const Char8* e_key = &tables.string_table[e.key_index];
 
   // NOTE(strager): Use a result variable to encourage compilers to generate
   // conditional store instructions. Conditional stores can improve performance
   // significantly because lookups are somewhat unpredictable. (Unfortunately,
   // no compiler reliably generates conditional stores.)
-  token_type result = e.value;
-  if (!keyword_lexer::key_strings_equal(e_key, identifier.data(),
+  Token_Type result = e.value;
+  if (!Keyword_Lexer::key_strings_equal(e_key, identifier.data(),
                                         identifier_size)) {
-    result = token_type::identifier;
+    result = Token_Type::identifier;
   }
   if (identifier_size != e.key_length) {
-    result = token_type::identifier;
+    result = Token_Type::identifier;
   }
   return result;
 }

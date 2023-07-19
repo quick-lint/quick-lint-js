@@ -11,132 +11,132 @@
 #include <string>
 
 namespace quick_lint_js {
-using padded_string_size = std::ptrdiff_t;
+using Padded_String_Size = std::ptrdiff_t;
 
 // Like std::string, but guaranteed to have several null bytes at the end.
 //
-// padded_string enables using SIMD instructions without extra bounds checking.
-class padded_string {
+// Padded_String enables using SIMD instructions without extra bounds checking.
+class Padded_String {
  public:
-  using size_type = padded_string_size;
+  using Size_Type = Padded_String_Size;
 
-  static constexpr size_type padding_size = 64;
+  static constexpr Size_Type padding_size = 64;
 
-  explicit padded_string();
-  explicit padded_string(string8 &&);
-  explicit padded_string(string8_view);
-  explicit padded_string(const char8 *) = delete;
+  explicit Padded_String();
+  explicit Padded_String(String8 &&);
+  explicit Padded_String(String8_View);
+  explicit Padded_String(const Char8 *) = delete;
 
-  padded_string(const padded_string &) = delete;
-  padded_string &operator=(const padded_string &) = delete;
+  Padded_String(const Padded_String &) = delete;
+  Padded_String &operator=(const Padded_String &) = delete;
 
-  padded_string(padded_string &&);
-  padded_string &operator=(padded_string &&);
+  Padded_String(Padded_String &&);
+  Padded_String &operator=(Padded_String &&);
 
-  ~padded_string();
+  ~Padded_String();
 
-  const char8 *c_str() const noexcept { return this->data(); }
+  const Char8 *c_str() const noexcept { return this->data(); }
 
-  char8 *data() noexcept { return this->data_; }
-  const char8 *data() const noexcept { return this->data_; }
+  Char8 *data() noexcept { return this->data_; }
+  const Char8 *data() const noexcept { return this->data_; }
 
-  size_type size() const noexcept {
+  Size_Type size() const noexcept {
     return this->size_excluding_padding_bytes_;
   }
-  size_type padded_size() const noexcept {
+  Size_Type padded_size() const noexcept {
     return this->size() + this->padding_size;
   }
 
-  const char8 &operator[](size_type index) const noexcept {
+  const Char8 &operator[](Size_Type index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index <= this->size());
     return this->data_[narrow_cast<unsigned>(index)];
   }
 
-  void resize(size_type new_size);
-  void resize_grow_uninitialized(size_type new_size);
+  void resize(Size_Type new_size);
+  void resize_grow_uninitialized(Size_Type new_size);
 
-  char8 *begin() noexcept { return this->data(); }
-  char8 *end() noexcept { return this->data() + this->size(); }
+  Char8 *begin() noexcept { return this->data(); }
+  Char8 *end() noexcept { return this->data() + this->size(); }
 
-  const char8 *cbegin() const noexcept { return this->data(); }
-  const char8 *cend() const noexcept { return this->data() + this->size(); }
+  const Char8 *cbegin() const noexcept { return this->data(); }
+  const Char8 *cend() const noexcept { return this->data() + this->size(); }
 
-  const char8 *null_terminator() const noexcept {
+  const Char8 *null_terminator() const noexcept {
     return this->data() + this->size();
   }
 
-  string8_view string_view() const noexcept;
+  String8_View string_view() const noexcept;
 
-  friend std::ostream &operator<<(std::ostream &, const padded_string &);
+  friend std::ostream &operator<<(std::ostream &, const Padded_String &);
 
-  friend bool operator==(const padded_string &, const padded_string &) noexcept;
-  friend bool operator!=(const padded_string &, const padded_string &) noexcept;
-  friend bool operator==(string8_view, const padded_string &) noexcept;
-  friend bool operator!=(string8_view, const padded_string &) noexcept;
-  friend bool operator==(const padded_string &, string8_view) noexcept;
-  friend bool operator!=(const padded_string &, string8_view) noexcept;
+  friend bool operator==(const Padded_String &, const Padded_String &) noexcept;
+  friend bool operator!=(const Padded_String &, const Padded_String &) noexcept;
+  friend bool operator==(String8_View, const Padded_String &) noexcept;
+  friend bool operator!=(String8_View, const Padded_String &) noexcept;
+  friend bool operator==(const Padded_String &, String8_View) noexcept;
+  friend bool operator!=(const Padded_String &, String8_View) noexcept;
 
  private:
-  void free_and_set_storage(char8 *new_data,
-                            size_type new_size_excluding_padding_bytes);
+  void free_and_set_storage(Char8 *new_data,
+                            Size_Type new_size_excluding_padding_bytes);
 
-  char8 *data_;
-  size_type size_excluding_padding_bytes_;
+  Char8 *data_;
+  Size_Type size_excluding_padding_bytes_;
 };
 
-class padded_string_view {
+class Padded_String_View {
  public:
-  using size_type = padded_string::size_type;
+  using Size_Type = Padded_String::Size_Type;
 
-  /*implicit*/ padded_string_view(const padded_string *string)
+  /*implicit*/ Padded_String_View(const Padded_String *string)
       : data_(string->data()), length_(string->size()) {
     QLJS_ASSERT(*this->null_terminator() == u8'\0');
   }
 
-  explicit padded_string_view(const char8 *begin, const char8 *null_terminator)
+  explicit Padded_String_View(const Char8 *begin, const Char8 *null_terminator)
       : data_(begin),
-        length_(narrow_cast<size_type>(null_terminator - begin)) {}
+        length_(narrow_cast<Size_Type>(null_terminator - begin)) {}
 
-  padded_string_view(const padded_string_view &) noexcept = default;
-  padded_string_view &operator=(const padded_string_view &) noexcept = default;
+  Padded_String_View(const Padded_String_View &) noexcept = default;
+  Padded_String_View &operator=(const Padded_String_View &) noexcept = default;
 
-  padded_string_view(padded_string_view &&) noexcept = default;
-  padded_string_view &operator=(padded_string_view &&) noexcept = default;
+  Padded_String_View(Padded_String_View &&) noexcept = default;
+  Padded_String_View &operator=(Padded_String_View &&) noexcept = default;
 
-  const char8 *data() const noexcept { return this->data_; }
+  const Char8 *data() const noexcept { return this->data_; }
 
-  size_type size() const noexcept { return this->length_; }
-  size_type padded_size() const noexcept {
-    return this->size() + padded_string::padding_size;
+  Size_Type size() const noexcept { return this->length_; }
+  Size_Type padded_size() const noexcept {
+    return this->size() + Padded_String::padding_size;
   }
 
-  const char8 *null_terminator() const noexcept {
+  const Char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;
   }
 
-  const char8 &operator[](size_type index) const noexcept {
+  const Char8 &operator[](Size_Type index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index <= this->size());
     return this->data_[index];
   }
 
-  padded_string_view substr(size_type offset) const noexcept {
-    return padded_string_view(this->data() + offset, this->null_terminator());
+  Padded_String_View substr(Size_Type offset) const noexcept {
+    return Padded_String_View(this->data() + offset, this->null_terminator());
   }
 
-  string8_view string_view() const noexcept;
+  String8_View string_view() const noexcept;
 
-  friend std::ostream &operator<<(std::ostream &, const padded_string_view &);
+  friend std::ostream &operator<<(std::ostream &, const Padded_String_View &);
 
-  friend bool operator==(string8_view, const padded_string_view &) noexcept;
-  friend bool operator!=(string8_view, const padded_string_view &) noexcept;
-  friend bool operator==(const padded_string_view &, string8_view) noexcept;
-  friend bool operator!=(const padded_string_view &, string8_view) noexcept;
+  friend bool operator==(String8_View, const Padded_String_View &) noexcept;
+  friend bool operator!=(String8_View, const Padded_String_View &) noexcept;
+  friend bool operator==(const Padded_String_View &, String8_View) noexcept;
+  friend bool operator!=(const Padded_String_View &, String8_View) noexcept;
 
  private:
-  const char8 *data_;
-  size_type length_;
+  const Char8 *data_;
+  Size_Type length_;
 };
 }
 

@@ -26,13 +26,13 @@ namespace quick_lint_js {
 }
 
 #if QLJS_HAVE_CHAR8_T
-::boost::json::value parse_boost_json(string8_view json) {
+::boost::json::value parse_boost_json(String8_View json) {
   return parse_boost_json(to_string_view(json));
 }
 #endif
 
-::boost::json::value parse_boost_json(const byte_buffer &message) {
-  string8 message_json;
+::boost::json::value parse_boost_json(const Byte_Buffer &message) {
+  String8 message_json;
   message_json.resize(message.size());
   message.copy_to(message_json.data());
   return parse_boost_json(message_json);
@@ -58,7 +58,7 @@ namespace quick_lint_js {
   return simdjson_to_boost_json(unwrapped_value);
 }
 
-string8 json_to_string8(const ::boost::json::value &v) {
+String8 json_to_string8(const ::boost::json::value &v) {
   return to_string8(::boost::json::serialize(v));
 }
 }

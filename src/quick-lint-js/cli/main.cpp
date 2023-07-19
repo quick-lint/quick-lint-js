@@ -66,57 +66,57 @@ bool stderr_supports_terminal_escapes() {
 #endif
 }
 
-bool get_escape_errors(option_when escape_errors) {
+bool get_escape_errors(Option_When escape_errors) {
   switch (escape_errors) {
-  case option_when::auto_:
+  case Option_When::auto_:
     return stderr_supports_terminal_escapes();
-  case option_when::always:
+  case Option_When::always:
     return true;
-  case option_when::never:
+  case Option_When::never:
     return false;
   }
   QLJS_UNREACHABLE();
 }
 
-class any_diag_reporter {
+class Any_Diag_Reporter {
  public:
-  static any_diag_reporter make(output_format format, option_when escape_errors,
-                                compiled_diag_code_list *exit_fail_on) {
+  static Any_Diag_Reporter make(Output_Format format, Option_When escape_errors,
+                                Compiled_Diag_Code_List *exit_fail_on) {
     switch (format) {
-    case output_format::default_format:
-    case output_format::gnu_like:
-      return any_diag_reporter(reported_diag_statistics<text_diag_reporter>(
-          text_diag_reporter(
-              qljs_messages, file_output_stream::get_stderr(),
+    case Output_Format::default_format:
+    case Output_Format::gnu_like:
+      return Any_Diag_Reporter(Reported_Diag_Statistics<Text_Diag_Reporter>(
+          Text_Diag_Reporter(
+              qljs_messages, File_Output_Stream::get_stderr(),
               /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
-    case output_format::vim_qflist_json:
-      return any_diag_reporter(
-          reported_diag_statistics<vim_qflist_json_diag_reporter>(
-              vim_qflist_json_diag_reporter(qljs_messages,
-                                            file_output_stream::get_stdout()),
+    case Output_Format::vim_qflist_json:
+      return Any_Diag_Reporter(
+          Reported_Diag_Statistics<Vim_QFList_JSON_Diag_Reporter>(
+              Vim_QFList_JSON_Diag_Reporter(qljs_messages,
+                                            File_Output_Stream::get_stdout()),
               exit_fail_on));
-    case output_format::emacs_lisp:
-      return any_diag_reporter(
-          reported_diag_statistics<emacs_lisp_diag_reporter>(
-              emacs_lisp_diag_reporter(qljs_messages,
-                                       file_output_stream::get_stdout()),
+    case Output_Format::emacs_lisp:
+      return Any_Diag_Reporter(
+          Reported_Diag_Statistics<Emacs_Lisp_Diag_Reporter>(
+              Emacs_Lisp_Diag_Reporter(qljs_messages,
+                                       File_Output_Stream::get_stdout()),
               exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
 
-  void set_source(padded_string_view input, const file_to_lint &file) {
+  void set_source(Padded_String_View input, const File_To_Lint &file) {
     visit(
         [&](auto &r) {
-          using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<reported_diag_statistics<
-                                              vim_qflist_json_diag_reporter>,
-                                          reporter_type>) {
+          using Reporter_Type = std::decay_t<decltype(r)>;
+          if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
+                                              Vim_QFList_JSON_Diag_Reporter>,
+                                          Reporter_Type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
-          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
-                                                     emacs_lisp_diag_reporter>,
-                                                 reporter_type>) {
+          } else if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
+                                                     Emacs_Lisp_Diag_Reporter>,
+                                                 Reporter_Type>) {
             r.get_reporter()->set_source(input);
           } else {
             r.get_reporter()->set_source(input, file.path);
@@ -125,8 +125,8 @@ class any_diag_reporter {
         this->tape_);
   }
 
-  diag_reporter *get() noexcept {
-    return visit([](diag_reporter &r) { return &r; }, this->tape_);
+  Diag_Reporter *get() noexcept {
+    return visit([](Diag_Reporter &r) { return &r; }, this->tape_);
   }
 
   bool get_error() noexcept {
@@ -136,14 +136,14 @@ class any_diag_reporter {
   void finish() {
     visit(
         [&](auto &r) {
-          using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<reported_diag_statistics<
-                                              vim_qflist_json_diag_reporter>,
-                                          reporter_type>) {
+          using Reporter_Type = std::decay_t<decltype(r)>;
+          if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
+                                              Vim_QFList_JSON_Diag_Reporter>,
+                                          Reporter_Type>) {
             r.get_reporter()->finish();
-          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
-                                                     emacs_lisp_diag_reporter>,
-                                                 reporter_type>) {
+          } else if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
+                                                     Emacs_Lisp_Diag_Reporter>,
+                                                 Reporter_Type>) {
             r.get_reporter()->finish();
           }
         },
@@ -151,21 +151,21 @@ class any_diag_reporter {
   }
 
  private:
-  using tape_variant =
-      variant<reported_diag_statistics<text_diag_reporter>,
-              reported_diag_statistics<vim_qflist_json_diag_reporter>,
-              reported_diag_statistics<emacs_lisp_diag_reporter>>;
+  using Tape_Variant =
+      Variant<Reported_Diag_Statistics<Text_Diag_Reporter>,
+              Reported_Diag_Statistics<Vim_QFList_JSON_Diag_Reporter>,
+              Reported_Diag_Statistics<Emacs_Lisp_Diag_Reporter>>;
 
-  explicit any_diag_reporter(tape_variant &&tape) : tape_(tape) {}
+  explicit Any_Diag_Reporter(Tape_Variant &&tape) : tape_(tape) {}
 
-  tape_variant tape_;
+  Tape_Variant tape_;
 };
 
 void init();
 [[noreturn]] void run(int argc, char **argv);
-[[noreturn]] void run(options o);
+[[noreturn]] void run(Options o);
 
-linter_options get_linter_options_from_language(input_file_language);
+Linter_Options get_linter_options_from_language(Input_File_Language);
 
 void list_debug_apps();
 void run_lsp_server();
@@ -178,7 +178,7 @@ void print_version_information();
 #if defined(_WIN32)
 int wmain(int argc, wchar_t **wargv) {
   quick_lint_js::init();
-  quick_lint_js::mbargv m(argc, wargv);
+  quick_lint_js::MBArgv m(argc, wargv);
   quick_lint_js::run(m.size(), m.data());
 }
 #else
@@ -192,17 +192,17 @@ namespace quick_lint_js {
 namespace {
 void init() {
 #if QLJS_FEATURE_VECTOR_PROFILING
-  vector_instrumentation::register_dump_on_exit_if_requested();
+  Vector_Instrumentation::register_dump_on_exit_if_requested();
 #endif
   initialize_translations_from_environment();
 }
 
 void run(int argc, char **argv) {
-  options o = parse_options(argc, argv);
+  Options o = parse_options(argc, argv);
   run(o);
 }
 
-void run(options o) {
+void run(Options o) {
   if (o.snarky) {
     initialize_translations_from_locale("en_US@snarky");
   }
@@ -214,7 +214,7 @@ void run(options o) {
     print_version_information();
     std::exit(EXIT_SUCCESS);
   }
-  if (o.dump_errors(*file_output_stream::get_stderr())) {
+  if (o.dump_errors(*File_Output_Stream::get_stderr())) {
     std::exit(EXIT_FAILURE);
   }
   if (o.list_debug_apps) {
@@ -230,24 +230,24 @@ void run(options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  any_diag_reporter reporter = any_diag_reporter::make(
+  Any_Diag_Reporter reporter = Any_Diag_Reporter::make(
       o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
-  configuration default_config;
-  configuration_loader config_loader(
-      basic_configuration_filesystem::instance());
-  hash_set<loaded_config_file *> loaded_config_files;
-  for (const file_to_lint &file : o.files_to_lint) {
+  Configuration default_config;
+  Configuration_Loader config_loader(
+      Basic_Configuration_Filesystem::instance());
+  Hash_Set<Loaded_Config_File *> loaded_config_files;
+  for (const File_To_Lint &file : o.files_to_lint) {
     auto config_result = config_loader.load_for_file(file);
     if (!config_result.ok()) {
       std::fprintf(stderr, "error: %s\n",
                    config_result.error_to_string().c_str());
       std::exit(1);
     }
-    loaded_config_file *config_file = *config_result;
+    Loaded_Config_File *config_file = *config_result;
     if (config_file && !loaded_config_files.contains(config_file)) {
       reporter.set_source(&config_file->file_content,
-                          file_to_lint{
+                          File_To_Lint{
                               .path = config_file->config_path->c_str(),
                               .config_file = nullptr,
                               .language = std::nullopt,
@@ -262,17 +262,17 @@ void run(options o) {
   }
 
   if (!reporter.get_error()) {
-    for (const file_to_lint &file : o.files_to_lint) {
+    for (const File_To_Lint &file : o.files_to_lint) {
       auto config_result = config_loader.load_for_file(file);
       QLJS_ASSERT(config_result.ok());
-      configuration *config =
+      Configuration *config =
           *config_result ? &(*config_result)->config : &default_config;
-      result<padded_string, read_file_io_error> source =
+      Result<Padded_String, Read_File_IO_Error> source =
           file.is_stdin ? read_stdin() : read_file(file.path);
       if (!source.ok()) {
         source.error().print_and_exit();
       }
-      linter_options lint_options =
+      Linter_Options lint_options =
           get_linter_options_from_language(file.get_language());
       lint_options.print_parser_visits = o.print_parser_visits;
       reporter.set_source(&*source, file);
@@ -283,29 +283,29 @@ void run(options o) {
   reporter.finish();
 
   if (reporter.get_error() == true &&
-      o.output_format != output_format::emacs_lisp) {
+      o.output_format != Output_Format::emacs_lisp) {
     std::exit(EXIT_FAILURE);
   }
 
   std::exit(EXIT_SUCCESS);
 }
 
-linter_options get_linter_options_from_language(input_file_language language) {
-  linter_options o;
+Linter_Options get_linter_options_from_language(Input_File_Language language) {
+  Linter_Options o;
   switch (language) {
-  case input_file_language::javascript:
+  case Input_File_Language::javascript:
     o.jsx = false;
     o.typescript = false;
     break;
-  case input_file_language::javascript_jsx:
+  case Input_File_Language::javascript_jsx:
     o.jsx = true;
     o.typescript = false;
     break;
-  case input_file_language::typescript:
+  case Input_File_Language::typescript:
     o.jsx = false;
     o.typescript = true;
     break;
-  case input_file_language::typescript_jsx:
+  case Input_File_Language::typescript_jsx:
     o.jsx = true;
     o.typescript = true;
     break;
@@ -314,13 +314,13 @@ linter_options get_linter_options_from_language(input_file_language language) {
 }
 
 void list_debug_apps() {
-  struct table_row {
+  struct Table_Row {
     std::string process_id;
     std::string server_url;
   };
-  std::vector<table_row> table;
-  for (const found_debug_server &s : find_debug_servers()) {
-    table.push_back(table_row{
+  std::vector<Table_Row> table;
+  for (const Found_Debug_Server &s : find_debug_servers()) {
+    table.push_back(Table_Row{
         .process_id = std::to_string(s.process_id),
         .server_url =
             concat("http://localhost:"sv,
@@ -331,14 +331,14 @@ void list_debug_apps() {
   const char *process_id_column_header = "PROCESS ID";
   int process_id_column_width =
       narrow_cast<int>(std::strlen(process_id_column_header));
-  for (const table_row &row : table) {
+  for (const Table_Row &row : table) {
     process_id_column_width = std::max(process_id_column_width,
                                        narrow_cast<int>(row.process_id.size()));
   }
 
   std::printf("%-*s  SERVER URL\n", process_id_column_width,
               process_id_column_header);
-  for (const table_row &row : table) {
+  for (const Table_Row &row : table) {
     std::printf("%-*s  %s\n", process_id_column_width, row.process_id.c_str(),
                 row.server_url.c_str());
   }
@@ -346,18 +346,18 @@ void list_debug_apps() {
 
 void run_lsp_server() {
 #if defined(_WIN32)
-  windows_handle_file_ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
-  windows_handle_file_ref output_pipe(::GetStdHandle(STD_OUTPUT_HANDLE));
+  Windows_Handle_File_Ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
+  Windows_Handle_File_Ref output_pipe(::GetStdHandle(STD_OUTPUT_HANDLE));
 #else
-  posix_fd_file_ref input_pipe(STDIN_FILENO);
-  posix_fd_file_ref output_pipe(STDOUT_FILENO);
+  POSIX_FD_File_Ref input_pipe(STDIN_FILENO);
+  POSIX_FD_File_Ref output_pipe(STDOUT_FILENO);
 #endif
-  basic_configuration_filesystem fs;
+  Basic_Configuration_Filesystem fs;
 
-  class lsp_event_loop : public event_loop<lsp_event_loop> {
+  class LSP_Event_Loop : public Event_Loop<LSP_Event_Loop> {
    public:
-    explicit lsp_event_loop(platform_file_ref input_pipe,
-                            platform_file_ref output_pipe)
+    explicit LSP_Event_Loop(Platform_File_Ref input_pipe,
+                            Platform_File_Ref output_pipe)
         :
 #if QLJS_HAVE_KQUEUE
           fs_(this->kqueue_fd(),
@@ -370,7 +370,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
 #if QLJS_FEATURE_DEBUG_SERVER
-          debugger_(debug_server::create()),
+          debugger_(Debug_Server::create()),
 #endif
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_),
@@ -378,7 +378,7 @@ void run_lsp_server() {
           endpoint_(&this->handler_) {
       this->report_pending_watch_io_errors();
 
-      trace_flusher *tracer = trace_flusher::instance();
+      Trace_Flusher *tracer = Trace_Flusher::instance();
       tracer->register_current_thread();
       tracer->flush_sync();
       tracer->start_flushing_thread();
@@ -387,7 +387,7 @@ void run_lsp_server() {
       // NOTE(strager): The debug server will run on a random port. You can
       // query the port using the CLI: 'quick-lint-js --debug-apps'
       this->debugger_->start_server_thread();
-      result<void, debug_server_io_error> start_result =
+      Result<void, Debug_Server_IO_Error> start_result =
           this->debugger_->wait_for_server_start();
       // TODO(strager): Print this over the LSP connection instead.
       // TODO(strager): Allow the LSP client to customize the debug server port.
@@ -402,9 +402,9 @@ void run_lsp_server() {
 #endif
     }
 
-    platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
+    Platform_File_Ref get_readable_pipe() const { return this->input_pipe_; }
 
-    void append(string8_view data) {
+    void append(String8_View data) {
       this->endpoint_.append(data);
       this->endpoint_.flush_error_responses(this->writer_);
       this->handler_.flush_pending_notifications(this->writer_);
@@ -412,11 +412,11 @@ void run_lsp_server() {
       // processing a full message.
       this->report_pending_watch_io_errors();
 
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-    std::optional<posix_fd_file_ref> get_pipe_write_fd() {
+    std::optional<POSIX_FD_File_Ref> get_pipe_write_fd() {
       return this->writer_.get_event_fd();
     }
 #endif
@@ -440,7 +440,7 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-    std::optional<posix_fd_file_ref> get_inotify_fd() {
+    std::optional<POSIX_FD_File_Ref> get_inotify_fd() {
       return this->fs_.get_inotify_fd();
     }
 
@@ -466,7 +466,7 @@ void run_lsp_server() {
       this->handler_.filesystem_changed();
       this->handler_.flush_pending_notifications(this->writer_);
 
-      trace_flusher::instance()->flush_async();
+      Trace_Flusher::instance()->flush_async();
     }
 
     void report_pending_watch_io_errors() {
@@ -476,24 +476,24 @@ void run_lsp_server() {
 
    private:
 #if QLJS_HAVE_KQUEUE
-    change_detecting_filesystem_kqueue fs_;
+    Change_Detecting_Filesystem_Kqueue fs_;
 #elif QLJS_HAVE_INOTIFY
-    change_detecting_filesystem_inotify fs_;
+    Change_Detecting_Filesystem_Inotify fs_;
 #elif defined(_WIN32)
-    change_detecting_filesystem_win32 fs_;
+    Change_Detecting_Filesystem_Win32 fs_;
 #else
 #error "Unsupported platform"
 #endif
 
 #if QLJS_FEATURE_DEBUG_SERVER
-    std::shared_ptr<debug_server> debugger_;
+    std::shared_ptr<Debug_Server> debugger_;
 #endif
 
-    platform_file_ref input_pipe_;
-    lsp_javascript_linter linter_;
-    linting_lsp_server_handler handler_;
-    lsp_pipe_writer writer_;
-    lsp_json_rpc_message_parser endpoint_;
+    Platform_File_Ref input_pipe_;
+    LSP_JavaScript_Linter linter_;
+    Linting_LSP_Server_Handler handler_;
+    LSP_Pipe_Writer writer_;
+    LSP_JSON_RPC_Message_Parser endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
@@ -502,7 +502,7 @@ void run_lsp_server() {
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD
   output_pipe.set_pipe_non_blocking();
 #endif
-  lsp_event_loop server(input_pipe, output_pipe);
+  LSP_Event_Loop server(input_pipe, output_pipe);
   server.run();
 }
 

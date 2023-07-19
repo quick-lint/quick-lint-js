@@ -26,7 +26,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
   write_file_or_exit(path, u8"");
 
   for (auto _ : state) {
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    Configuration_Loader loader(Basic_Configuration_Filesystem::instance());
     auto config = loader.load_for_file(path);
     ::benchmark::DoNotOptimize(config);
   }

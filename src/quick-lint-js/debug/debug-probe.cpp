@@ -8,7 +8,7 @@
 namespace quick_lint_js {
 void debug_probe_publish_lsp_documents() {
 #if QLJS_FEATURE_DEBUG_SERVER
-  for (std::shared_ptr<debug_server>& s : debug_server::instances()) {
+  for (std::shared_ptr<Debug_Server>& s : Debug_Server::instances()) {
     s->debug_probe_publish_lsp_documents();
   }
 #endif
@@ -16,7 +16,7 @@ void debug_probe_publish_lsp_documents() {
 
 void debug_probe_publish_vector_profile() {
 #if QLJS_FEATURE_DEBUG_SERVER
-  for (std::shared_ptr<debug_server>& s : debug_server::instances()) {
+  for (std::shared_ptr<Debug_Server>& s : Debug_Server::instances()) {
     s->debug_probe_publish_vector_profile();
   }
 #endif

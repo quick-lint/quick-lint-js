@@ -25,11 +25,11 @@ using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_declare_class : public test_parse_expression {};
+class Test_Parse_TypeScript_Declare_Class : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_is_not_allowed_in_javascript) {
-  test_parser p(u8"declare class C {}"_sv, javascript_options, capture_diags);
+  Test_Parser p(u8"declare class C {}"_sv, javascript_options, capture_diags);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -42,15 +42,15 @@ TEST_F(test_parse_typescript_declare_class,
       p.errors,
       ElementsAreArray({
           DIAG_TYPE_OFFSETS(p.code,
-                            diag_declare_class_not_allowed_in_javascript,  //
+                            Diag_Declare_Class_Not_Allowed_In_JavaScript,  //
                             declare_keyword, strlen(u8""), u8"declare"_sv),
       }));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_abstract_class_is_not_allowed_in_javascript) {
   {
-    test_parser p(u8"declare abstract class C {}"_sv, javascript_options,
+    Test_Parser p(u8"declare abstract class C {}"_sv, javascript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -65,14 +65,14 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_declare_abstract_class_not_allowed_in_javascript,  //
+                Diag_Declare_Abstract_Class_Not_Allowed_In_JavaScript,  //
                 declare_keyword, strlen(u8""), u8"declare"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class, declare_empty_class) {
-  test_parser p(u8"declare class C {}"_sv, typescript_options);
+TEST_F(Test_Parse_TypeScript_Declare_Class, declare_empty_class) {
+  Test_Parser p(u8"declare class C {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -85,8 +85,8 @@ TEST_F(test_parse_typescript_declare_class, declare_empty_class) {
               ElementsAreArray({class_decl(u8"C"_sv)}));
 }
 
-TEST_F(test_parse_typescript_declare_class, declare_empty_abstract_class) {
-  test_parser p(u8"declare abstract class C {}"_sv, typescript_options);
+TEST_F(Test_Parse_TypeScript_Declare_Class, declare_empty_abstract_class) {
+  Test_Parser p(u8"declare abstract class C {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -99,9 +99,9 @@ TEST_F(test_parse_typescript_declare_class, declare_empty_abstract_class) {
               ElementsAreArray({class_decl(u8"C"_sv)}));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_before_class_keyword_triggers_asi) {
-  test_parser p(u8"declare\nclass C {}"_sv, typescript_options);
+  Test_Parser p(u8"declare\nclass C {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",            // declare
@@ -116,9 +116,9 @@ TEST_F(test_parse_typescript_declare_class,
               ElementsAreArray({class_decl(u8"C"_sv)}));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_before_abstract_keyword_triggers_asi) {
-  test_parser p(u8"declare\nabstract class C {}"_sv, typescript_options);
+  Test_Parser p(u8"declare\nabstract class C {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",            // declare
@@ -134,9 +134,9 @@ TEST_F(test_parse_typescript_declare_class,
 }
 
 TEST_F(
-    test_parse_typescript_declare_class,
+    Test_Parse_TypeScript_Declare_Class,
     newline_is_not_allowed_between_abstract_and_class_keyword_in_declare_abstract_class) {
-  test_parser p(u8"declare abstract\nclass C {}"_sv, typescript_options,
+  Test_Parser p(u8"declare abstract\nclass C {}"_sv, typescript_options,
                 capture_diags);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
@@ -152,14 +152,14 @@ TEST_F(
               ElementsAreArray({
                   DIAG_TYPE_OFFSETS(
                       p.code,
-                      diag_newline_not_allowed_after_abstract_keyword,  //
+                      Diag_Newline_Not_Allowed_After_Abstract_Keyword,  //
                       abstract_keyword, strlen(u8"declare "), u8"abstract"_sv),
               }));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_can_extend_and_implement) {
-  test_parser p(u8"declare class C extends B implements I {}"_sv,
+  Test_Parser p(u8"declare class C extends B implements I {}"_sv,
                 typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
@@ -174,8 +174,8 @@ TEST_F(test_parse_typescript_declare_class,
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"B"_sv, u8"I"_sv}));
 }
 
-TEST_F(test_parse_typescript_declare_class, declare_class_can_be_generic) {
-  test_parser p(u8"declare class C<T> {}"_sv, typescript_options);
+TEST_F(Test_Parse_TypeScript_Declare_Class, declare_class_can_be_generic) {
+  Test_Parser p(u8"declare class C<T> {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -190,9 +190,9 @@ TEST_F(test_parse_typescript_declare_class, declare_class_can_be_generic) {
       ElementsAreArray({generic_param_decl(u8"T"_sv), class_decl(u8"C"_sv)}));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_can_contain_empty_static_block) {
-  test_parser p(u8"declare class C { static { } }"_sv, typescript_options);
+  Test_Parser p(u8"declare class C { static { } }"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // {
@@ -205,32 +205,32 @@ TEST_F(test_parse_typescript_declare_class,
                         }));
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_contain_statements_in_static_block) {
-  for (string8_view static_block_body : {
+  for (String8_View static_block_body : {
            u8"console.log('hello');",
            u8"{}",
        }) {
-    padded_string code(concat(u8"declare class C { static { "_sv,
+    Padded_String code(concat(u8"declare class C { static { "_sv,
                               static_block_body, u8" } }"_sv));
     SCOPED_TRACE(code);
-    test_parser p(code.string_view(), typescript_options, capture_diags);
+    Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_declare_class_cannot_contain_static_block_statement,  //
+                Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement,  //
                 static_token, strlen(u8"declare class C { "), u8"static"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_can_have_method_signatures) {
   {
-    test_parser p(u8"declare class C { myMethod(); }"_sv, typescript_options);
+    Test_Parser p(u8"declare class C { myMethod(); }"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
@@ -245,7 +245,7 @@ TEST_F(test_parse_typescript_declare_class,
   }
 
   {
-    test_parser p(u8"declare class C { get myProperty(): number; }"_sv,
+    Test_Parser p(u8"declare class C { get myProperty(): number; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -261,7 +261,7 @@ TEST_F(test_parse_typescript_declare_class,
   }
 
   {
-    test_parser p(
+    Test_Parser p(
         u8"declare class C { set myProperty(value: number): void; }"_sv,
         typescript_options);
     p.parse_and_visit_module();
@@ -279,44 +279,44 @@ TEST_F(test_parse_typescript_declare_class,
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_contain_bodies) {
   {
-    test_parser p(u8"declare class C { myMethod() {} }"_sv, typescript_options,
+    Test_Parser p(u8"declare class C { myMethod() {} }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
-                        diag_declare_class_methods_cannot_contain_bodies,  //
+                        Diag_Declare_Class_Methods_Cannot_Contain_Bodies,  //
                         body_start, strlen(u8"declare class C { myMethod() "),
                         u8"{"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_must_be_semicolon_terminated) {
   {
-    test_parser p(u8"declare class C { myMethod() myOtherMethod() }"_sv,
+    Test_Parser p(u8"declare class C { myMethod() myOtherMethod() }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
-                        diag_missing_semicolon_after_declare_class_method,  //
+                        Diag_Missing_Semicolon_After_Declare_Class_Method,  //
                         expected_semicolon,
                         strlen(u8"declare class C { myMethod()"), u8""_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        non_abstract_declare_class_properties_cannot_be_abstract) {
   {
-    test_parser p(u8"declare class C { abstract myMethod(); }"_sv,
+    Test_Parser p(u8"declare class C { abstract myMethod(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
@@ -326,7 +326,7 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_abstract_property_not_allowed_in_non_abstract_class,  //
+                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
                 abstract_keyword, strlen(u8"declare class C { "),
                 u8"abstract"_sv, class_keyword, strlen(u8"declare "),
                 u8"class"_sv),
@@ -334,7 +334,7 @@ TEST_F(test_parse_typescript_declare_class,
   }
 
   {
-    test_parser p(u8"declare class C { abstract myField: any; }"_sv,
+    Test_Parser p(u8"declare class C { abstract myField: any; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
@@ -344,7 +344,7 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
-                diag_abstract_property_not_allowed_in_non_abstract_class,  //
+                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
                 abstract_keyword, strlen(u8"declare class C { "),
                 u8"abstract"_sv, class_keyword, strlen(u8"declare "),
                 u8"class"_sv),
@@ -352,25 +352,25 @@ TEST_F(test_parse_typescript_declare_class,
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        abstract_declare_class_properties_can_be_abstract) {
   {
-    test_parser p(u8"declare abstract class C { abstract myMethod(); }"_sv,
+    Test_Parser p(u8"declare abstract class C { abstract myMethod(); }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(u8"declare abstract class C { abstract myField: any; }"_sv,
+    Test_Parser p(u8"declare abstract class C { abstract myField: any; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_can_have_field_signatures) {
   {
-    test_parser p(u8"declare class C { myField; myOtherField: any; }"_sv,
+    Test_Parser p(u8"declare class C { myField; myOtherField: any; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -385,15 +385,15 @@ TEST_F(test_parse_typescript_declare_class,
   }
 
   {
-    test_parser p(u8"declare class C { 'myField'; }"_sv, typescript_options);
+    Test_Parser p(u8"declare class C { 'myField'; }"_sv, typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_field_with_initializer) {
   {
-    test_parser p(u8"declare class C { myField = 42; }"_sv, typescript_options,
+    Test_Parser p(u8"declare class C { myField = 42; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -401,16 +401,16 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_declare_class_fields_cannot_have_initializers,  //
+                Diag_Declare_Class_Fields_Cannot_Have_Initializers,  //
                 equal, strlen(u8"declare class C { myField "), u8"="_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_assignment_asserted_field) {
   {
-    test_parser p(u8"declare class C { myField!: any; }"_sv, typescript_options,
+    Test_Parser p(u8"declare class C { myField!: any; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -418,13 +418,13 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class,  //
+                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
                 bang, strlen(u8"declare class C { myField"), u8"!"_sv),
         }));
   }
 
   {
-    test_parser p(u8"declare class C { myField!: any = init; }"_sv,
+    Test_Parser p(u8"declare class C { myField!: any = init; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
@@ -432,123 +432,123 @@ TEST_F(test_parse_typescript_declare_class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_assignment_asserted_fields_not_allowed_in_declare_class,  //
+                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
                 bang, strlen(u8"declare class C { myField"), u8"!"_sv),
         }))
-        << "diag_declare_class_fields_cannot_have_initializers should not also "
+        << "Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also "
            "be reported";
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_properties_can_have_access_specifiers) {
-  for (string8_view keyword :
+  for (String8_View keyword :
        {u8"private"_sv, u8"protected"_sv, u8"public"_sv}) {
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"declare class C { "_sv, keyword, u8" myField; }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
     }
 
     {
-      padded_string code(
+      Padded_String code(
           concat(u8"declare class C { "_sv, keyword, u8" myMethod(); }"_sv));
       SCOPED_TRACE(code);
-      test_parser p(code.string_view(), typescript_options);
+      Test_Parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
     }
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_properties_can_be_optional) {
   {
-    test_parser p(u8"declare class C { myField?: any; }"_sv,
+    Test_Parser p(u8"declare class C { myField?: any; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(u8"declare class C { myMethod?(); }"_sv, typescript_options);
+    Test_Parser p(u8"declare class C { myMethod?(); }"_sv, typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_properties_can_be_private) {
   {
-    test_parser p(u8"declare class C { #myField; }"_sv, typescript_options);
+    Test_Parser p(u8"declare class C { #myField; }"_sv, typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(u8"declare class C { #myMethod(); }"_sv, typescript_options);
+    Test_Parser p(u8"declare class C { #myMethod(); }"_sv, typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_properties_can_be_static) {
   {
-    test_parser p(u8"declare class C { static myField; }"_sv,
+    Test_Parser p(u8"declare class C { static myField; }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser p(u8"declare class C { static myMethod(); }"_sv,
+    Test_Parser p(u8"declare class C { static myMethod(); }"_sv,
                   typescript_options);
     p.parse_and_visit_module();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_be_async_or_generator) {
   {
-    test_parser p(u8"declare class C { async myMethod(); }"_sv,
+    Test_Parser p(u8"declare class C { async myMethod(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_declare_class_methods_cannot_be_async,  //
+                              Diag_Declare_Class_Methods_Cannot_Be_Async,  //
                               async_keyword, strlen(u8"declare class C { "),
                               u8"async"_sv),
         }));
   }
 
   {
-    test_parser p(u8"declare class C { *myMethod(); }"_sv, typescript_options,
+    Test_Parser p(u8"declare class C { *myMethod(); }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
-                        diag_declare_class_methods_cannot_be_generators,  //
+                        Diag_Declare_Class_Methods_Cannot_Be_Generators,  //
                         star, strlen(u8"declare class C { "), u8"*"_sv),
                 }));
   }
 
   {
-    test_parser p(u8"declare class C { async *myMethod(); }"_sv,
+    Test_Parser p(u8"declare class C { async *myMethod(); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 UnorderedElementsAreArray({
-                    DIAG_TYPE(diag_declare_class_methods_cannot_be_generators),
-                    DIAG_TYPE(diag_declare_class_methods_cannot_be_async),
+                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Generators),
+                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Async),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_can_have_index_signature) {
   {
-    test_parser p(u8"declare class C { [key: KeyType]: ValueType; }"_sv,
+    Test_Parser p(u8"declare class C { [key: KeyType]: ValueType; }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -570,16 +570,16 @@ TEST_F(test_parse_typescript_declare_class,
   }
 
   {
-    test_parser p(u8"declare class C { static [key: KeyType]: ValueType; }"_sv,
+    Test_Parser p(u8"declare class C { static [key: KeyType]: ValueType; }"_sv,
                   typescript_options);
     p.parse_and_visit_statement();
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        call_signatures_are_disallowed_in_declare_classes) {
   {
-    test_parser p(u8"declare class C { (): any; }"_sv, typescript_options,
+    Test_Parser p(u8"declare class C { (): any; }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
@@ -596,19 +596,19 @@ TEST_F(test_parse_typescript_declare_class,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
-                                      diag_missing_class_method_name,  //
+                                      Diag_Missing_Class_Method_Name,  //
                                       expected_name,
                                       strlen(u8"declare class C { "), u8""_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_class,
+TEST_F(Test_Parse_TypeScript_Declare_Class,
        parameter_property_is_not_allowed_in_declare_class) {
-  for (string8_view keyword :
+  for (String8_View keyword :
        {u8"readonly"_sv, u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
     {
-      test_parser p(concat(u8"declare class C {\n"_sv
+      Test_Parser p(concat(u8"declare class C {\n"_sv
                            u8"  constructor("_sv,
                            keyword,
                            u8" field);\n"_sv
@@ -623,17 +623,17 @@ TEST_F(test_parse_typescript_declare_class,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,
-                  diag_typescript_parameter_property_not_allowed_in_declare_class,  //
+                  Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class,  //
                   property_keyword,
                   u8"declare class C {\n  constructor("_sv.size(), keyword),
           }));
     }
   }
 
-  for (string8_view keyword :
+  for (String8_View keyword :
        {u8"public"_sv, u8"protected"_sv, u8"private"_sv}) {
     {
-      test_parser p(concat(u8"declare class C {\n"_sv
+      Test_Parser p(concat(u8"declare class C {\n"_sv
                            u8"  constructor("_sv,
                            keyword,
                            u8" readonly field);\n"_sv
@@ -648,7 +648,7 @@ TEST_F(test_parse_typescript_declare_class,
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code,
-                  diag_typescript_parameter_property_not_allowed_in_declare_class,  //
+                  Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class,  //
                   property_keyword,
                   u8"declare class C {\n  constructor("_sv.size(), keyword,  //
                   declare_keyword, 0, u8"declare"_sv),

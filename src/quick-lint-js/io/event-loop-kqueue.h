@@ -24,26 +24,26 @@
 #include <sys/event.h>
 
 namespace quick_lint_js {
-// An event loop using BSD kqueue(). See event_loop_base for details.
+// An event loop using BSD kqueue(). See Event_Loop_Base for details.
 template <class Derived>
-class kqueue_event_loop : public event_loop_base<Derived> {
+class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
  public:
-  enum event_udata : std::uintptr_t {
+  enum Event_UData : std::uintptr_t {
     event_udata_readable_pipe,
     event_udata_pipe_write,
     event_udata_fs_changed,
   };
 
-  explicit kqueue_event_loop() : kqueue_fd_(::kqueue()) {
+  explicit Kqueue_Event_Loop() : kqueue_fd_(::kqueue()) {
     QLJS_ASSERT(this->kqueue_fd_.valid());
   }
 
-  posix_fd_file_ref kqueue_fd() noexcept { return this->kqueue_fd_.ref(); }
+  POSIX_FD_File_Ref kqueue_fd() noexcept { return this->kqueue_fd_.ref(); }
 
   void run() {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
-      platform_file_ref pipe = this->const_derived().get_readable_pipe();
+      Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
       QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array<struct ::kevent, 2> changes;
@@ -52,7 +52,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
       EV_SET(&changes[change_count++], pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
              reinterpret_cast<void*>(event_udata_readable_pipe));
 
-      if (std::optional<posix_fd_file_ref> fd =
+      if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_pipe_write_fd()) {
         EV_SET(&changes[change_count++], fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
                reinterpret_cast<void*>(event_udata_pipe_write));
@@ -122,7 +122,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
   }
 
  private:
-  posix_fd_file kqueue_fd_;
+  POSIX_FD_File kqueue_fd_;
 };
 }
 

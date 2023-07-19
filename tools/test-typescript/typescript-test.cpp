@@ -17,11 +17,11 @@ namespace {
 struct typescript_test_metadata_directive {
   std::size_t start_index;
   std::size_t end_index;
-  string8_view metadata_name;
-  string8_view metadata_value;
+  String8_View metadata_name;
+  String8_View metadata_value;
 
   bool is_filename_metadata() {
-    return ranges_equal(metadata_name, u8"filename"_sv, [](char8 x, char8 y) {
+    return ranges_equal(metadata_name, u8"filename"_sv, [](Char8 x, Char8 y) {
       QLJS_ASSERT(y == tolower(y));
       return tolower(x) == y;
     });
@@ -39,10 +39,10 @@ struct typescript_test_metadata_directive {
 // https://github.com/microsoft/TypeScript/blob/e83d61398ea0e4231e882121dd6c6bcfe4fdc9e4/src/harness/harnessIO.ts#L1171
 // /^[\/]{2}\s*@(\w+)\s*:\s*([^\r\n]*)/gm
 std::optional<typescript_test_metadata_directive>
-find_typescript_test_metadata_directive(string8_view sv,
+find_typescript_test_metadata_directive(String8_View sv,
                                         std::size_t search_start_index) {
   std::size_t comment_index = sv.find(u8"//"_sv, search_start_index);
-  if (comment_index == string8_view::npos) {
+  if (comment_index == String8_View::npos) {
     return std::nullopt;
   }
   bool comment_at_beginning_of_line = comment_index == 0 ||
@@ -53,7 +53,7 @@ find_typescript_test_metadata_directive(string8_view sv,
   }
 
   std::size_t at_index = sv.find_first_not_of(u8" \t"_sv, comment_index + 2);
-  if (at_index == string8_view::npos) {
+  if (at_index == String8_View::npos) {
     return std::nullopt;
   }
   if (sv[at_index] != u8'@') {
@@ -66,13 +66,13 @@ find_typescript_test_metadata_directive(string8_view sv,
          is_ascii_alpha(sv[metadata_name_end_index])) {
     metadata_name_end_index += 1;
   }
-  string8_view metadata_name =
+  String8_View metadata_name =
       sv.substr(metadata_name_begin_index,
                 metadata_name_end_index - metadata_name_begin_index);
 
   std::size_t colon_index =
       sv.find_first_not_of(u8" \t"_sv, metadata_name_end_index);
-  if (colon_index == string8_view::npos) {
+  if (colon_index == String8_View::npos) {
     return std::nullopt;
   }
   if (sv[colon_index] != u8':') {
@@ -82,16 +82,16 @@ find_typescript_test_metadata_directive(string8_view sv,
   std::size_t metadata_value_begin_index = colon_index + 1;
   std::size_t directive_terminator_index =
       sv.find_first_of(u8"\n\r"_sv, metadata_value_begin_index);
-  if (directive_terminator_index == string8_view::npos) {
+  if (directive_terminator_index == String8_View::npos) {
     directive_terminator_index = sv.size();
   }
-  string8_view metadata_value =
+  String8_View metadata_value =
       trim(sv.substr(metadata_value_begin_index,
                      directive_terminator_index - metadata_value_begin_index),
            u8" \t"_sv);
   std::size_t end_index =
       sv.find_first_not_of(u8"\n\r"_sv, directive_terminator_index + 1);
-  if (end_index == string8_view::npos) {
+  if (end_index == String8_View::npos) {
     end_index = sv.size();
   }
 
@@ -105,7 +105,7 @@ find_typescript_test_metadata_directive(string8_view sv,
 
 std::optional<typescript_test_metadata_directive>
 find_typescript_test_filename_metadata_directive(
-    string8_view sv, std::size_t search_start_index) {
+    String8_View sv, std::size_t search_start_index) {
   for (;;) {
     std::optional<typescript_test_metadata_directive> directive =
         find_typescript_test_metadata_directive(sv, search_start_index);
@@ -120,27 +120,27 @@ find_typescript_test_filename_metadata_directive(
 }
 }
 
-std::optional<linter_options> typescript_test_unit::get_linter_options() const
+std::optional<Linter_Options> typescript_test_unit::get_linter_options() const
     noexcept {
-  if (ends_with(string8_view(this->name), u8".json"_sv)) {
+  if (ends_with(String8_View(this->name), u8".json"_sv)) {
     return std::nullopt;
   }
-  if (ends_with(string8_view(this->name), u8".ts"_sv)) {
-    return linter_options{.jsx = false, .typescript = true};
+  if (ends_with(String8_View(this->name), u8".ts"_sv)) {
+    return Linter_Options{.jsx = false, .typescript = true};
   }
-  if (ends_with(string8_view(this->name), u8".tsx"_sv)) {
-    return linter_options{.jsx = true, .typescript = true};
+  if (ends_with(String8_View(this->name), u8".tsx"_sv)) {
+    return Linter_Options{.jsx = true, .typescript = true};
   }
   // FIXME(strager): Should we reject unknown file extensions?
-  return linter_options{.jsx = false, .typescript = true};
+  return Linter_Options{.jsx = false, .typescript = true};
 }
 
 typescript_test_units extract_units_from_typescript_test(
-    padded_string&& file, string8_view test_file_name) {
+    Padded_String&& file, String8_View test_file_name) {
   typescript_test_units units;
 
-  string8_view sv = file.string_view();
-  string8_view next_file_name = test_file_name;
+  String8_View sv = file.string_view();
+  String8_View next_file_name = test_file_name;
   for (;;) {
     std::optional<typescript_test_metadata_directive> filename_directive =
         find_typescript_test_filename_metadata_directive(sv, 0);
@@ -149,8 +149,8 @@ typescript_test_units extract_units_from_typescript_test(
     }
     if (filename_directive->start_index != 0) {
       units.push_back(typescript_test_unit{
-          .data = padded_string(sv.substr(0, filename_directive->start_index)),
-          .name = string8(next_file_name),
+          .data = Padded_String(sv.substr(0, filename_directive->start_index)),
+          .name = String8(next_file_name),
       });
       next_file_name = filename_directive->metadata_value;
     }
@@ -161,15 +161,15 @@ typescript_test_units extract_units_from_typescript_test(
   if (found_filename_directive) {
     if (!sv.empty()) {
       units.push_back(typescript_test_unit{
-          .data = padded_string(sv),
-          .name = string8(next_file_name),
+          .data = Padded_String(sv),
+          .name = String8(next_file_name),
       });
     }
   } else {
     // Don't copy the input string. Just move it.
     units.push_back(typescript_test_unit{
         .data = std::move(file),
-        .name = string8(next_file_name),
+        .name = String8(next_file_name),
     });
   }
   return units;

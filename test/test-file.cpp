@@ -61,33 +61,33 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-class test_file : public ::testing::Test, protected filesystem_test {};
+class Test_File : public ::testing::Test, protected Filesystem_Test {};
 
-TEST_F(test_file, read_regular_file) {
+TEST_F(Test_File, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
   write_file_or_exit(temp_file_path, u8"hello\nworld!\n"_sv);
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8"hello\nworld!\n"_sv);
 }
 
-TEST_F(test_file, read_empty_regular_file) {
+TEST_F(Test_File, read_empty_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
   write_file_or_exit(temp_file_path, u8""_sv);
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8""_sv);
 }
 
-TEST_F(test_file, read_non_existing_file) {
+TEST_F(Test_File, read_non_existing_file) {
   std::string temp_file_path =
       this->make_temporary_directory() + "/does-not-exist.js";
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
   EXPECT_TRUE(file_content.error().is_file_not_found_error());
@@ -101,10 +101,10 @@ TEST_F(test_file, read_non_existing_file) {
 #endif
 }
 
-TEST_F(test_file, read_directory) {
+TEST_F(Test_File, read_directory) {
   std::string temp_file_path = this->make_temporary_directory();
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
   EXPECT_FALSE(file_content.error().is_file_not_found_error());
@@ -119,14 +119,14 @@ TEST_F(test_file, read_directory) {
 }
 
 #if QLJS_HAVE_MKFIFO
-TEST_F(test_file, read_fifo) {
+TEST_F(Test_File, read_fifo) {
   std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
       [&]() { write_file_or_exit(temp_file_path, u8"hello from fifo"_sv); });
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
@@ -134,14 +134,14 @@ TEST_F(test_file, read_fifo) {
   writer_thread.join();
 }
 
-TEST_F(test_file, read_empty_fifo) {
+TEST_F(Test_File, read_empty_fifo) {
   std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
       [&]() { write_file_or_exit(temp_file_path, u8""_sv); });
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8""_sv);
@@ -149,7 +149,7 @@ TEST_F(test_file, read_empty_fifo) {
   writer_thread.join();
 }
 
-TEST_F(test_file, read_fifo_multiple_writes) {
+TEST_F(Test_File, read_fifo_multiple_writes) {
   std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
@@ -174,7 +174,7 @@ TEST_F(test_file, read_fifo_multiple_writes) {
     }
   });
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
@@ -183,8 +183,8 @@ TEST_F(test_file, read_fifo_multiple_writes) {
 }
 #endif
 
-TEST_F(test_file, read_pipe_multiple_writes) {
-  pipe_fds pipe = make_pipe();
+TEST_F(Test_File, read_pipe_multiple_writes) {
+  Pipe_FDs pipe = make_pipe();
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
@@ -201,7 +201,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
     pipe.writer.close();
   });
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8"hello from fifo"_sv);
@@ -212,8 +212,8 @@ TEST_F(test_file, read_pipe_multiple_writes) {
 // Windows and POSIX handle end-of-file for pipes differently. POSIX reports
 // end-of-file via an empty read; Windows reports end-of-file via an error code.
 // Try to confuse read_file.
-TEST_F(test_file, read_pipe_empty_writes) {
-  pipe_fds pipe = make_pipe();
+TEST_F(Test_File, read_pipe_empty_writes) {
+  Pipe_FDs pipe = make_pipe();
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
@@ -232,7 +232,7 @@ TEST_F(test_file, read_pipe_empty_writes) {
     pipe.writer.close();
   });
 
-  result<padded_string, read_file_io_error> file_content =
+  Result<Padded_String, Read_File_IO_Error> file_content =
       read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, u8"helloworld"_sv);
@@ -241,7 +241,7 @@ TEST_F(test_file, read_pipe_empty_writes) {
 }
 
 #if QLJS_HAVE_FORKPTY
-TEST_F(test_file, read_file_reads_from_pty_master) {
+TEST_F(Test_File, read_file_reads_from_pty_master) {
   // Flush buffered Google Test output. Otherwise, the child inherits the buffer
   // and Google Test output gets mixed in with our test string.
   std::fflush(stdout);
@@ -263,7 +263,7 @@ TEST_F(test_file, read_file_reads_from_pty_master) {
     std::exit(0);
   } else {
     // Parent.
-    auto output = read_file(posix_fd_file_ref(tty_fd));
+    auto output = read_file(POSIX_FD_File_Ref(tty_fd));
     if (!output.ok()) {
       ADD_FAILURE() << output.error_to_string();
       return;

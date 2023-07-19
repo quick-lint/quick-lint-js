@@ -69,15 +69,15 @@ namespace quick_lint_js {
   else if (variable = _arg_parser.match_anything())
 
 #define QLJS_ARG_PARSER_LOOP(parser)                        \
-  for (::quick_lint_js::arg_parser& _arg_parser = (parser); \
+  for (::quick_lint_js::Arg_Parser& _arg_parser = (parser); \
        !_arg_parser.done();)
 
-class arg_parser {
+class Arg_Parser {
  public:
-  explicit arg_parser(int argc, char** argv) noexcept;
+  explicit Arg_Parser(int argc, char** argv) noexcept;
 
-  arg_parser(const arg_parser&) = delete;
-  arg_parser& operator=(const arg_parser&) = delete;
+  Arg_Parser(const Arg_Parser&) = delete;
+  Arg_Parser& operator=(const Arg_Parser&) = delete;
 
   const char* match_option_with_value(std::string_view option_name) noexcept;
 
@@ -107,13 +107,13 @@ class arg_parser {
 
   const char* current_arg() noexcept;
 
-  struct option {
+  struct Option {
     std::string_view arg_key;
     const char* arg_value;
     bool arg_has_equal;
   };
 
-  std::optional<option> option_;
+  std::optional<Option> option_;
   bool is_ignoring_options_ = false;
   int current_arg_index_ = 1;
 

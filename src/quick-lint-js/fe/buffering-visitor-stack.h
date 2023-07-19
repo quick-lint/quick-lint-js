@@ -10,24 +10,24 @@
 #include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
-class stacked_buffering_visitor;
+class Stacked_Buffering_Visitor;
 
 // A stack of buffering_visitor objects.
 //
 // Use this class instead of allocating buffering_visitor instances as local
 // function variables so that the buffering_visitor instances can be deallocated
 // in case setjmp is called.
-class buffering_visitor_stack {
+class Buffering_Visitor_Stack {
  public:
-  explicit buffering_visitor_stack()
-      : buffering_visitor_stack(new_delete_resource()) {}
+  explicit Buffering_Visitor_Stack()
+      : Buffering_Visitor_Stack(new_delete_resource()) {}
 
-  explicit buffering_visitor_stack(memory_resource *memory) : stack_(memory) {}
+  explicit Buffering_Visitor_Stack(Memory_Resource *memory) : stack_(memory) {}
 
-  [[nodiscard]] stacked_buffering_visitor push();
+  [[nodiscard]] Stacked_Buffering_Visitor push();
 
  private:
-  void pop(buffering_visitor *v) {
+  void pop(Buffering_Visitor *v) {
     for (;;) {
       if (this->stack_.empty()) {
         QLJS_ASSERT(false);
@@ -43,35 +43,35 @@ class buffering_visitor_stack {
     }
   }
 
-  linked_vector<buffering_visitor> stack_;
+  Linked_Vector<Buffering_Visitor> stack_;
 
-  friend class stacked_buffering_visitor;
+  friend class Stacked_Buffering_Visitor;
 };
 
-class stacked_buffering_visitor {
+class Stacked_Buffering_Visitor {
  public:
-  stacked_buffering_visitor(const stacked_buffering_visitor &) = delete;
-  stacked_buffering_visitor &operator=(const stacked_buffering_visitor &) =
+  Stacked_Buffering_Visitor(const Stacked_Buffering_Visitor &) = delete;
+  Stacked_Buffering_Visitor &operator=(const Stacked_Buffering_Visitor &) =
       delete;
 
-  ~stacked_buffering_visitor() { this->stack_->pop(this->visitor_); }
+  ~Stacked_Buffering_Visitor() { this->stack_->pop(this->visitor_); }
 
-  buffering_visitor &visitor() { return *this->visitor_; }
+  Buffering_Visitor &visitor() { return *this->visitor_; }
 
  private:
-  explicit stacked_buffering_visitor(buffering_visitor_stack *stack,
-                                     buffering_visitor *visitor)
+  explicit Stacked_Buffering_Visitor(Buffering_Visitor_Stack *stack,
+                                     Buffering_Visitor *visitor)
       : stack_(stack), visitor_(visitor) {}
 
-  buffering_visitor_stack *stack_;
-  buffering_visitor *visitor_;
+  Buffering_Visitor_Stack *stack_;
+  Buffering_Visitor *visitor_;
 
-  friend class buffering_visitor_stack;
+  friend class Buffering_Visitor_Stack;
 };
 
-inline stacked_buffering_visitor buffering_visitor_stack::push() {
+inline Stacked_Buffering_Visitor Buffering_Visitor_Stack::push() {
   this->stack_.emplace_back(new_delete_resource());
-  return stacked_buffering_visitor(this, &this->stack_.back());
+  return Stacked_Buffering_Visitor(this, &this->stack_.back());
 }
 }
 

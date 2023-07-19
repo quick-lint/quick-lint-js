@@ -9,13 +9,13 @@
 #include <quick-lint-js/fe/parse-visitor.h>
 
 namespace quick_lint_js {
-class null_visitor final : public parse_visitor_base {
+class Null_Visitor final : public Parse_Visitor_Base {
  public:
   void visit_end_of_module() override {}
   void visit_enter_block_scope() override {}
   void visit_enter_with_scope() override {}
   void visit_enter_class_scope() override {}
-  void visit_enter_class_scope_body(const std::optional<identifier>&) override {
+  void visit_enter_class_scope_body(const std::optional<Identifier>&) override {
   }
   void visit_enter_conditional_type_scope() override {}
   void visit_enter_enum_scope() override {}
@@ -24,7 +24,7 @@ class null_visitor final : public parse_visitor_base {
   void visit_enter_function_scope_body() override {}
   void visit_enter_index_signature_scope() override {}
   void visit_enter_interface_scope() override {}
-  void visit_enter_named_function_scope(identifier) override {}
+  void visit_enter_named_function_scope(Identifier) override {}
   void visit_enter_namespace_scope() override {}
   void visit_enter_type_alias_scope() override {}
   void visit_exit_block_scope() override {}
@@ -38,20 +38,20 @@ class null_visitor final : public parse_visitor_base {
   void visit_exit_interface_scope() override {}
   void visit_exit_namespace_scope() override {}
   void visit_exit_type_alias_scope() override {}
-  void visit_keyword_variable_use(identifier) override {}
-  void visit_property_declaration(const std::optional<identifier>&) override {}
-  void visit_variable_assignment(identifier) override {}
-  void visit_variable_declaration(identifier, variable_kind,
-                                  variable_declaration_flags) override {}
-  void visit_variable_delete_use(identifier, source_code_span) override {}
-  void visit_variable_export_use(identifier) override {}
-  void visit_variable_namespace_use(identifier) override {}
-  void visit_variable_type_predicate_use(identifier) override {}
-  void visit_variable_type_use(identifier) override {}
-  void visit_variable_typeof_use(identifier) override {}
-  void visit_variable_use(identifier) override {}
+  void visit_keyword_variable_use(Identifier) override {}
+  void visit_property_declaration(const std::optional<Identifier>&) override {}
+  void visit_variable_assignment(Identifier) override {}
+  void visit_variable_declaration(Identifier, Variable_Kind,
+                                  Variable_Declaration_Flags) override {}
+  void visit_variable_delete_use(Identifier, Source_Code_Span) override {}
+  void visit_variable_export_use(Identifier) override {}
+  void visit_variable_namespace_use(Identifier) override {}
+  void visit_variable_type_predicate_use(Identifier) override {}
+  void visit_variable_type_use(Identifier) override {}
+  void visit_variable_typeof_use(Identifier) override {}
+  void visit_variable_use(Identifier) override {}
 
-  static null_visitor instance;
+  static Null_Visitor instance;
 };
 }
 

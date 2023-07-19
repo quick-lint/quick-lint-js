@@ -6,8 +6,8 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, source_code_span span) {
-  out << "source_code_span(\"" << out_string8(span.string_view()) << "\")";
+std::ostream& operator<<(std::ostream& out, Source_Code_Span span) {
+  out << "Source_Code_Span(\"" << out_string8(span.string_view()) << "\")";
   return out;
 }
 }

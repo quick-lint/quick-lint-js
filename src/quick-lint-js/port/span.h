@@ -11,37 +11,37 @@
 #include <vector>
 
 namespace quick_lint_js {
-using span_size = std::ptrdiff_t;
+using Span_Size = std::ptrdiff_t;
 
 // Like std::span.
 template <class T>
-class span {
+class Span {
  public:
   using value_type = T;
-  using size_type = span_size;
-  using difference_type = span_size;
+  using size_type = Span_Size;
+  using difference_type = Span_Size;
   using reference = T &;
   using const_reference = const T &;
   using pointer = T *;
   using const_pointer = const T *;
   using iterator = T *;
 
-  explicit span() noexcept : data_(nullptr), size_(0) {}
+  explicit Span() noexcept : data_(nullptr), size_(0) {}
 
   template <std::size_t N>
-  explicit span(const std::array<std::remove_const_t<T>, N> &data) noexcept
+  explicit Span(const std::array<std::remove_const_t<T>, N> &data) noexcept
       : data_(data.data()), size_(N) {}
 
   template <std::size_t N>
-  explicit span(T (&data)[N]) noexcept : data_(data), size_(N) {}
+  explicit Span(T (&data)[N]) noexcept : data_(data), size_(N) {}
 
-  explicit span(const std::vector<std::remove_const_t<T>> &data) noexcept
-      : data_(data.data()), size_(narrow_cast<span_size>(data.size())) {}
+  explicit Span(const std::vector<std::remove_const_t<T>> &data) noexcept
+      : data_(data.data()), size_(narrow_cast<Span_Size>(data.size())) {}
 
-  explicit span(T *data, size_type size) noexcept : data_(data), size_(size) {}
+  explicit Span(T *data, size_type size) noexcept : data_(data), size_(size) {}
 
-  explicit span(T *begin, T *end) noexcept
-      : data_(begin), size_(narrow_cast<span_size>(end - begin)) {}
+  explicit Span(T *begin, T *end) noexcept
+      : data_(begin), size_(narrow_cast<Span_Size>(end - begin)) {}
 
   T &operator[](size_type index) const noexcept {
     QLJS_ASSERT(index >= 0);
@@ -65,7 +65,7 @@ class span {
 
  private:
   T *data_;
-  span_size size_;
+  Span_Size size_;
 };
 }
 

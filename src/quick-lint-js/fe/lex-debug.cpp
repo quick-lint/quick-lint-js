@@ -5,7 +5,7 @@
 #include <quick-lint-js/fe/lex.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, token_type type) {
+std::ostream& operator<<(std::ostream& out, Token_Type type) {
   out << to_string(type);
   return out;
 }

@@ -27,12 +27,12 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_declare_interface : public test_parse_expression {};
+class Test_Parse_TypeScript_Declare_Interface : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_declare_interface,
+TEST_F(Test_Parse_TypeScript_Declare_Interface,
        declare_interface_acts_like_interface) {
   {
-    test_parser p(u8"declare interface I { }"_sv, typescript_options);
+    Test_Parser p(u8"declare interface I { }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
@@ -44,10 +44,10 @@ TEST_F(test_parse_typescript_declare_interface,
   }
 }
 
-TEST_F(test_parse_typescript_declare_interface,
+TEST_F(Test_Parse_TypeScript_Declare_Interface,
        declare_before_interface_keyword_triggers_asi) {
   {
-    test_parser p(u8"declare\ninterface I { }"_sv, typescript_options);
+    Test_Parser p(u8"declare\ninterface I { }"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",           // declare

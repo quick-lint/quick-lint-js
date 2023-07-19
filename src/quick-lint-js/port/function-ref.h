@@ -10,7 +10,7 @@
 
 namespace quick_lint_js {
 template <class FuncType>
-class function_ref;
+class Function_Ref;
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wcast-qual")
@@ -23,11 +23,11 @@ QLJS_WARNING_IGNORE_GCC("-Wold-style-cast")
 // Deviations from the specification:
 // * Our function_ref does not allow construction from rvalue functors.
 template <class Result, class... Args>
-class function_ref<Result(Args...)> {
+class Function_Ref<Result(Args...)> {
  public:
   // Construct a function_ref which will call a function pointer (no closure).
   template <class Func>
-  /*implicit*/ function_ref(
+  /*implicit*/ Function_Ref(
       Func&& func,
       std::enable_if_t<std::is_convertible_v<Func, Result (*)(Args...)>>* =
           nullptr)
@@ -43,7 +43,7 @@ class function_ref<Result(Args...)> {
   // This overload is disabled for function pointers and for functors which can
   // be converted into a function pointer.
   template <class Func>
-  /*implicit*/ function_ref(
+  /*implicit*/ Function_Ref(
       Func&& func,
       std::enable_if_t<std::is_invocable_r_v<Result, Func, Args...> &&
                        std::is_lvalue_reference_v<Func> &&
@@ -51,9 +51,9 @@ class function_ref<Result(Args...)> {
           nullptr)
       : callback_(callback<std::remove_reference_t<Func>>), closure_(&func) {}
 
-  function_ref(function_ref& func) = default;
-  function_ref(const function_ref& func) = default;
-  function_ref(function_ref&& func) = default;
+  Function_Ref(Function_Ref& func) = default;
+  Function_Ref(const Function_Ref& func) = default;
+  Function_Ref(Function_Ref&& func) = default;
 
   Result operator()(Args... args) {
     return this->callback_(std::forward<Args>(args)..., this->closure_);

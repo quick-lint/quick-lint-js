@@ -5,7 +5,7 @@
 #include <quick-lint-js/cli/vim-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const vim_source_position &p) {
+std::ostream &operator<<(std::ostream &out, const Vim_Source_Position &p) {
   out << "vim_source_position{" << p.lnum << ',' << p.col << '}';
   return out;
 }

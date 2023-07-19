@@ -7,7 +7,7 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_CHAR8_T
-std::ostream &operator<<(std::ostream &out, streamable_string8_view sv) {
+std::ostream &operator<<(std::ostream &out, Streamable_String8_View sv) {
   out << std::string_view(reinterpret_cast<const char *>(sv.sv_.data()),
                           sv.sv_.size());
   return out;

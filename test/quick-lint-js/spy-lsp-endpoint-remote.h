@@ -13,9 +13,9 @@
 #include <vector>
 
 namespace quick_lint_js {
-class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
+class Spy_LSP_Endpoint_Remote final : public LSP_Endpoint_Remote {
  public:
-  void send_message(byte_buffer&& message) override {
+  void send_message(Byte_Buffer&& message) override {
     // TODO(strager): SCOPED_TRACE(message);
     ::boost::json::value parsed_message = parse_boost_json(message);
     if (auto object = parsed_message.if_object()) {

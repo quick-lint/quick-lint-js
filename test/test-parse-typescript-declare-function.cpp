@@ -28,27 +28,27 @@ using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_declare_function : public test_parse_expression {};
+class Test_Parse_TypeScript_Declare_Function : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_is_not_allowed_in_javascript) {
   {
-    test_parser p(u8"declare function f();"_sv, javascript_options,
+    Test_Parser p(u8"declare function f();"_sv, javascript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
-                        diag_declare_function_not_allowed_in_javascript,  //
+                        Diag_Declare_Function_Not_Allowed_In_JavaScript,  //
                         declare_keyword, strlen(u8""), u8"declare"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_function, basic_declare_function) {
+TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
   {
-    test_parser p(u8"declare function f();"_sv, typescript_options);
+    Test_Parser p(u8"declare function f();"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // f
@@ -60,10 +60,10 @@ TEST_F(test_parse_typescript_declare_function, basic_declare_function) {
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_have_body) {
   {
-    test_parser p(u8"declare function f() { }"_sv, typescript_options,
+    Test_Parser p(u8"declare function f() { }"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -76,7 +76,7 @@ TEST_F(test_parse_typescript_declare_function,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(p.code,
-                                diag_declare_function_cannot_have_body,  //
+                                Diag_Declare_Function_Cannot_Have_Body,  //
                                 body_start, strlen(u8"declare function f() "),
                                 u8"{"_sv,  //
                                 declare_keyword, strlen(u8""), u8"declare"_sv),
@@ -84,7 +84,7 @@ TEST_F(test_parse_typescript_declare_function,
   }
 
   {
-    test_parser p(u8"declare function f() { } foo"_sv, typescript_options,
+    Test_Parser p(u8"declare function f() { } foo"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -96,16 +96,16 @@ TEST_F(test_parse_typescript_declare_function,
                               "visit_end_of_module",              //
                           }));
     EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(diag_declare_function_cannot_have_body),
+                              DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
                           }))
-        << "should not receive a diag_missing_semicolon_after_statement";
+        << "should not receive a Diag_Missing_Semicolon_After_Statement";
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_must_have_name) {
   {
-    test_parser p(u8"declare function ();"_sv, typescript_options,
+    Test_Parser p(u8"declare function ();"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -116,53 +116,53 @@ TEST_F(test_parse_typescript_declare_function,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_missing_name_in_function_statement,  //
+                              Diag_Missing_Name_In_Function_Statement,  //
                               where, strlen(u8"declare function "), u8""_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_be_async_or_generator) {
   {
-    test_parser p(u8"declare async function f();"_sv, typescript_options,
+    Test_Parser p(u8"declare async function f();"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_declare_function_cannot_be_async,  //
+                              Diag_Declare_Function_Cannot_Be_Async,  //
                               async_keyword, strlen(u8"declare "), u8"async"),
         }));
   }
 
   {
-    test_parser p(u8"declare function* f();"_sv, typescript_options,
+    Test_Parser p(u8"declare function* f();"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_declare_function_cannot_be_generator,  //
+                              Diag_Declare_Function_Cannot_Be_Generator,  //
                               star, strlen(u8"declare function"), u8"*"),
         }));
   }
 
   {
-    test_parser p(u8"declare async function* f();"_sv, typescript_options,
+    Test_Parser p(u8"declare async function* f();"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 UnorderedElementsAreArray({
-                    DIAG_TYPE(diag_declare_function_cannot_be_async),
-                    DIAG_TYPE(diag_declare_function_cannot_be_generator),
+                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Async),
+                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Generator),
                 }));
   }
 
   {
-    test_parser p(u8"declare async function f() { await(myPromise); }"_sv,
+    Test_Parser p(u8"declare async function f() { await(myPromise); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"_sv}))
@@ -170,13 +170,13 @@ TEST_F(test_parse_typescript_declare_function,
            "because the function's body should be parsed as if it was in an "
            "async function";
     EXPECT_THAT(p.errors, UnorderedElementsAreArray({
-                              DIAG_TYPE(diag_declare_function_cannot_be_async),
-                              DIAG_TYPE(diag_declare_function_cannot_have_body),
+                              DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Async),
+                              DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
                           }));
   }
 
   {
-    test_parser p(u8"declare function* f() { yield(myValue); }"_sv,
+    Test_Parser p(u8"declare function* f() { yield(myValue); }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"_sv}))
@@ -185,21 +185,21 @@ TEST_F(test_parse_typescript_declare_function,
            "generator function";
     EXPECT_THAT(p.errors,
                 UnorderedElementsAreArray({
-                    DIAG_TYPE(diag_declare_function_cannot_be_generator),
-                    DIAG_TYPE(diag_declare_function_cannot_have_body),
+                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Generator),
+                    DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_name_can_be_contextual_keyword) {
-  dirty_set<string8> function_names =
-      contextual_keywords | dirty_set<string8>{u8"await", u8"yield"};
-  for (const string8& function_name : function_names) {
-    padded_string code(
+  Dirty_Set<String8> function_names =
+      contextual_keywords | Dirty_Set<String8>{u8"await", u8"yield"};
+  for (const String8& function_name : function_names) {
+    Padded_String code(
         concat(u8"declare function "_sv, function_name, u8"(): void;"_sv));
     SCOPED_TRACE(code);
-    test_parser p(code.string_view(), typescript_options);
+    Test_Parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // (function_name)
@@ -211,10 +211,10 @@ TEST_F(test_parse_typescript_declare_function,
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_before_function_keyword_triggers_asi) {
   {
-    test_parser p(u8"declare\nfunction f() {}"_sv, typescript_options);
+    Test_Parser p(u8"declare\nfunction f() {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // declare
@@ -228,10 +228,10 @@ TEST_F(test_parse_typescript_declare_function,
   }
 }
 
-TEST_F(test_parse_typescript_declare_function,
+TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_requires_semicolon) {
   {
-    test_parser p(u8"declare function f() foo"_sv, typescript_options,
+    Test_Parser p(u8"declare function f() foo"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -245,15 +245,15 @@ TEST_F(test_parse_typescript_declare_function,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_missing_semicolon_after_statement,  //
+                              Diag_Missing_Semicolon_After_Statement,  //
                               where, strlen(u8"declare function f()"), u8""_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_declare_function, declare_function_performs_asi) {
+TEST_F(Test_Parse_TypeScript_Declare_Function, declare_function_performs_asi) {
   {
-    test_parser p(u8"declare function f()\nfoo"_sv, typescript_options);
+    Test_Parser p(u8"declare function f()\nfoo"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // f

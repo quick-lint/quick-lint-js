@@ -7,31 +7,31 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
-class diag_reporter {
+class Diag_Reporter {
  public:
-  diag_reporter() noexcept = default;
+  Diag_Reporter() noexcept = default;
 
-  diag_reporter(const diag_reporter &) noexcept = default;
-  diag_reporter &operator=(const diag_reporter &) noexcept = default;
+  Diag_Reporter(const Diag_Reporter &) noexcept = default;
+  Diag_Reporter &operator=(const Diag_Reporter &) noexcept = default;
 
-  diag_reporter(diag_reporter &&) noexcept = default;
-  diag_reporter &operator=(diag_reporter &&) noexcept = default;
+  Diag_Reporter(Diag_Reporter &&) noexcept = default;
+  Diag_Reporter &operator=(Diag_Reporter &&) noexcept = default;
 
-  virtual ~diag_reporter() = default;
+  virtual ~Diag_Reporter() = default;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   void report(name diag);
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-  virtual void report_impl(diag_type type, void *diag) = 0;
+  virtual void report_impl(Diag_Type type, void *diag) = 0;
 };
 
-class null_diag_reporter : public diag_reporter {
+class Null_Diag_Reporter : public Diag_Reporter {
  public:
-  static null_diag_reporter instance;
+  static Null_Diag_Reporter instance;
 
-  void report_impl(diag_type, void *) override {}
+  void report_impl(Diag_Type, void *) override {}
 };
 }
 

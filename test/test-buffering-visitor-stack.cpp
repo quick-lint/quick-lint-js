@@ -17,60 +17,60 @@ namespace {
 // buffering_visitor_stack), so instead of marking variables as 'volatile' we
 // use a lambda to make our mutated variables not technically local.
 
-class test_buffering_visitor_stack : public ::testing::Test {
+class Test_Buffering_Visitor_Stack : public ::testing::Test {
  protected:
   void TearDown() override {
     EXPECT_EQ(this->leak_detecting_memory_.alive_bytes(), 0)
         << "test should not have leaked memory";
   }
 
-  tracking_memory_resource leak_detecting_memory_;
+  Tracking_Memory_Resource leak_detecting_memory_;
 };
 
-TEST_F(test_buffering_visitor_stack, empty) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, empty) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
 }
 
-TEST_F(test_buffering_visitor_stack, push_one_pop_one) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, push_one_pop_one) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
   {
-    stacked_buffering_visitor v = stack.push();
+    Stacked_Buffering_Visitor v = stack.push();
     // pop
   }
 }
 
-TEST_F(test_buffering_visitor_stack, push_two_pop_two) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, push_two_pop_two) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
   {
-    stacked_buffering_visitor outer_v = stack.push();
+    Stacked_Buffering_Visitor outer_v = stack.push();
     {
-      stacked_buffering_visitor inner_v = stack.push();
+      Stacked_Buffering_Visitor inner_v = stack.push();
       // pop
     }
     // pop
   }
 }
 
-TEST_F(test_buffering_visitor_stack, push_pop_push_pop) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, push_pop_push_pop) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
   {
-    stacked_buffering_visitor v = stack.push();
+    Stacked_Buffering_Visitor v = stack.push();
     // pop
   }
   {
-    stacked_buffering_visitor v = stack.push();
+    Stacked_Buffering_Visitor v = stack.push();
     // pop
   }
 }
 
-TEST_F(test_buffering_visitor_stack, longjmp_around_pop) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, longjmp_around_pop) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
 
   bool pushed = false;
   [&] {  // See NOTE[setjmp-in-tests].
     std::jmp_buf buf;
     if (setjmp(buf) == 0) {
-      stacked_buffering_visitor v = stack.push();
+      Stacked_Buffering_Visitor v = stack.push();
       pushed = true;
       std::longjmp(buf, 1);
       // pop (doesn't execute)
@@ -79,17 +79,17 @@ TEST_F(test_buffering_visitor_stack, longjmp_around_pop) {
   ASSERT_TRUE(pushed);
 }
 
-TEST_F(test_buffering_visitor_stack, longjmp_around_pop_then_pop) {
-  buffering_visitor_stack stack(&this->leak_detecting_memory_);
+TEST_F(Test_Buffering_Visitor_Stack, longjmp_around_pop_then_pop) {
+  Buffering_Visitor_Stack stack(&this->leak_detecting_memory_);
 
   {
-    stacked_buffering_visitor outer_v = stack.push();
+    Stacked_Buffering_Visitor outer_v = stack.push();
 
     bool pushed_inner = false;
     [&] {  // See NOTE[setjmp-in-tests].
       std::jmp_buf buf;
       if (setjmp(buf) == 0) {
-        stacked_buffering_visitor inner_v = stack.push();
+        Stacked_Buffering_Visitor inner_v = stack.push();
         pushed_inner = true;
         std::longjmp(buf, 1);
         // pop (doesn't execute)

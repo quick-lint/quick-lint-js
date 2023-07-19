@@ -9,15 +9,15 @@
 
 namespace quick_lint_js {
 namespace {
-using unsigned_short = unsigned short;
+using Unsigned_Short = unsigned short;
 
 template <class T>
-string8 write_integer(T value) {
-  std::array<char8, integer_string_length<T>> chars;
+String8 write_integer(T value) {
+  std::array<Char8, integer_string_length<T>> chars;
   fill(chars, 'x');
-  char8* end = quick_lint_js::write_integer(value, chars.data());
+  Char8* end = quick_lint_js::write_integer(value, chars.data());
   EXPECT_LE(end - chars.data(), chars.size());
-  return string8(chars.data(), end);
+  return String8(chars.data(), end);
 }
 
 template <class T>
@@ -29,7 +29,7 @@ std::wstring write_integer_wchar_t(T value) {
   return std::wstring(chars.data(), end);
 }
 
-TEST(test_write_integer, common_integers) {
+TEST(Test_Write_Integer, common_integers) {
   EXPECT_EQ(write_integer(std::size_t{0}), u8"0");
   EXPECT_EQ(write_integer(std::size_t{1234}), u8"1234");
 
@@ -37,14 +37,14 @@ TEST(test_write_integer, common_integers) {
   EXPECT_EQ(write_integer(int{1234}), u8"1234");
   EXPECT_EQ(write_integer(int{-42}), u8"-42");
 
-  EXPECT_EQ(write_integer(unsigned_short{0}), u8"0");
-  EXPECT_EQ(write_integer(unsigned_short{1234}), u8"1234");
+  EXPECT_EQ(write_integer(Unsigned_Short{0}), u8"0");
+  EXPECT_EQ(write_integer(Unsigned_Short{1234}), u8"1234");
 
-  EXPECT_EQ(write_integer_wchar_t(unsigned_short{0}), L"0");
-  EXPECT_EQ(write_integer_wchar_t(unsigned_short{1234}), L"1234");
+  EXPECT_EQ(write_integer_wchar_t(Unsigned_Short{0}), L"0");
+  EXPECT_EQ(write_integer_wchar_t(Unsigned_Short{1234}), L"1234");
 }
 
-TEST(test_write_integer, maximum) {
+TEST(Test_Write_Integer, maximum) {
   if constexpr (std::numeric_limits<std::size_t>::max() >= 4294967295ULL) {
     EXPECT_EQ(write_integer(std::size_t{4294967295ULL}), u8"4294967295");
   }
@@ -59,10 +59,10 @@ TEST(test_write_integer, maximum) {
   }
 
   static_assert(std::numeric_limits<unsigned short>::max() == 65535);
-  EXPECT_EQ(write_integer(unsigned_short(65535)), u8"65535");
+  EXPECT_EQ(write_integer(Unsigned_Short(65535)), u8"65535");
 }
 
-TEST(test_write_integer, minimum) {
+TEST(Test_Write_Integer, minimum) {
   if constexpr (std::numeric_limits<int>::min() <= -2147483648LL) {
     EXPECT_EQ(write_integer(int(-2147483648LL)), u8"-2147483648");
   }

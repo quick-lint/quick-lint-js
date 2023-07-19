@@ -16,11 +16,11 @@
 #include <vector>
 
 namespace quick_lint_js {
-class byte_buffer;
+class Byte_Buffer;
 
 // lsp_workspace_configuration manages the LSP protocol bits for configuration
 // (e.g. workspace/configuration).
-class lsp_workspace_configuration {
+class LSP_Workspace_Configuration {
  public:
   // Register a configuration setting.
   //
@@ -28,13 +28,13 @@ class lsp_workspace_configuration {
   //
   // name must be have global lifetime (e.g. be a compile-time string).
   // name must be a JSON-encoded string (without surrounding quotation marks).
-  void add_item(string8_view name,
-                heap_function<void(std::string_view)>&& callback);
+  void add_item(String8_View name,
+                Heap_Function<void(std::string_view)>&& callback);
 
   // Create a workspace/configuration JSON-RPC request to send to the LSP
   // client.
-  void build_request(json_rpc_message_handler::request_id_type request_id,
-                     byte_buffer& request_json);
+  void build_request(JSON_RPC_Message_Handler::Request_ID_Type request_id,
+                     Byte_Buffer& request_json);
 
   // Handle a workspace/configuration JSON-RPC response sent by the LSP client.
   bool process_response(::simdjson::ondemand::value result);
@@ -51,15 +51,15 @@ class lsp_workspace_configuration {
       ::simdjson::ondemand::object initialization_options_configuration);
 
  private:
-  struct item {
-    string8_view name;
-    heap_function<void(std::string_view)> callback;
+  struct Item {
+    String8_View name;
+    Heap_Function<void(std::string_view)> callback;
   };
 
-  item* find_item(string8_view name);
-  bool set_item(item&, ::simdjson::ondemand::value);
+  Item* find_item(String8_View name);
+  bool set_item(Item&, ::simdjson::ondemand::value);
 
-  std::vector<item> items_;
+  std::vector<Item> items_;
 };
 }
 

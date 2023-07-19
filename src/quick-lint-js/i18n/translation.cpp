@@ -18,7 +18,7 @@ using namespace std::literals::string_view_literals;
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-translator qljs_messages;
+Translator qljs_messages;
 
 namespace {
 std::vector<std::string> split_on(const char* s, char separator) {
@@ -84,11 +84,11 @@ void initialize_translations_from_locale(const char* locale_name) {
   }
 }
 
-void translator::use_messages_from_source_code() {
+void Translator::use_messages_from_source_code() {
   this->locale_index_ = translation_table_locale_count;
 }
 
-bool translator::use_messages_from_locale(const char* locale_name) {
+bool Translator::use_messages_from_locale(const char* locale_name) {
   std::optional<int> locale_index =
       find_locale(translation_data.locale_table, locale_name);
   if (locale_index.has_value()) {
@@ -98,7 +98,7 @@ bool translator::use_messages_from_locale(const char* locale_name) {
   return false;
 }
 
-bool translator::use_messages_from_locales(
+bool Translator::use_messages_from_locales(
     const std::vector<std::string>& locale_names) {
   for (const std::string& locale : locale_names) {
     if (locale == "C" || locale == "POSIX") {
@@ -113,14 +113,14 @@ bool translator::use_messages_from_locales(
   return false;
 }
 
-const char8* translator::translate(const translatable_message& message) {
+const Char8* Translator::translate(const Translatable_Message& message) {
   // If the following assertion fails, it's likely that
   // translation-table-generated.h is out of date. Run
   // tools/update-translator-sources to rebuild that file.
   QLJS_ASSERT(message.valid());
 
   std::uint16_t mapping_index = message.translation_table_mapping_index();
-  const translation_table::mapping_entry& mapping =
+  const Translation_Table::Mapping_Entry& mapping =
       translation_data.mapping_table[mapping_index];
   std::uint32_t string_offset = mapping.string_offsets[this->locale_index_];
   if (string_offset == 0) {

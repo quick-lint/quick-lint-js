@@ -8,9 +8,9 @@
 #include <string>
 
 namespace quick_lint_js {
-std::string parse_file_from_lsp_uri(string8_view uri);
-std::string parse_file_from_lsp_uri_posix(string8_view uri);
-std::string parse_file_from_lsp_uri_win32(string8_view uri);
+std::string parse_file_from_lsp_uri(String8_View uri);
+std::string parse_file_from_lsp_uri_posix(String8_View uri);
+std::string parse_file_from_lsp_uri_win32(String8_View uri);
 }
 
 #endif

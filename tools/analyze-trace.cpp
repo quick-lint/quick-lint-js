@@ -38,8 +38,8 @@ struct analyze_options {
   std::uint64_t end_event_index = (std::numeric_limits<std::uint64_t>::max)();
 };
 
-lsp_range to_lsp_range(const parsed_vscode_document_range& range) {
-  return lsp_range{
+LSP_Range to_lsp_range(const Parsed_VSCode_Document_Range& range) {
+  return LSP_Range{
       .start =
           {
               .line = narrow_cast<int>(range.start.line),
@@ -58,43 +58,43 @@ class counting_trace_stream_event_visitor {
   // The first call to a visit_ function will set this to 0.
   std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
 
-  void visit_init_event(const parsed_init_event&) { ++this->event_index; }
+  void visit_init_event(const Parsed_Init_Event&) { ++this->event_index; }
 
   void visit_vscode_document_opened_event(
-      const parsed_vscode_document_opened_event&) {
+      const Parsed_VSCode_Document_Opened_Event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_closed_event(
-      const parsed_vscode_document_closed_event&) {
+      const Parsed_VSCode_Document_Closed_Event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_changed_event(
-      const parsed_vscode_document_changed_event&) {
+      const Parsed_VSCode_Document_Changed_Event&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_sync_event(
-      const parsed_vscode_document_sync_event&) {
+      const Parsed_VSCode_Document_Sync_Event&) {
     ++this->event_index;
   }
 
   void visit_lsp_client_to_server_message_event(
-      const parsed_lsp_client_to_server_message_event&) {
+      const Parsed_LSP_Client_To_Server_Message_Event&) {
     ++this->event_index;
   }
 
-  void visit_lsp_documents_event(const parsed_lsp_documents_event&) {
+  void visit_lsp_documents_event(const Parsed_LSP_Documents_Event&) {
     ++this->event_index;
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const parsed_vector_max_size_histogram_by_owner_event&) {
+      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event&) {
     ++this->event_index;
   }
 
-  void visit_process_id_event(const parsed_process_id_event&) {
+  void visit_process_id_event(const Parsed_Process_ID_Event&) {
     ++this->event_index;
   }
 };
@@ -123,10 +123,10 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const parsed_packet_header&) {}
+  void visit_packet_header(const Parsed_Packet_Header&) {}
 
   void visit_vscode_document_opened_event(
-      const parsed_vscode_document_opened_event& event) {
+      const Parsed_VSCode_Document_Opened_Event& event) {
     base::visit_vscode_document_opened_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -137,7 +137,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const parsed_vscode_document_closed_event& event) {
+      const Parsed_VSCode_Document_Closed_Event& event) {
     base::visit_vscode_document_closed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -148,7 +148,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const parsed_vscode_document_changed_event& event) {
+      const Parsed_VSCode_Document_Changed_Event& event) {
     base::visit_vscode_document_changed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -162,12 +162,12 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const parsed_vector_max_size_histogram_by_owner_event& event) {
+      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
     base::visit_vector_max_size_histogram_by_owner_event(event);
   }
 
   void print_document_content() {
-    padded_string_view s = this->doc_.string();
+    Padded_String_View s = this->doc_.string();
     std::fwrite(s.data(), 1, narrow_cast<std::size_t>(s.size()), stdout);
   }
 
@@ -176,7 +176,7 @@ class document_content_dumper : public counting_trace_stream_event_visitor {
     return this->event_index <= this->end_event_index_;
   }
 
-  lsp_document_text doc_;
+  LSP_Document_Text doc_;
   std::uint64_t document_id_;
   std::uint64_t end_event_index_;
 };
@@ -201,10 +201,10 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const parsed_packet_header&) {}
+  void visit_packet_header(const Parsed_Packet_Header&) {}
 
   void visit_vscode_document_opened_event(
-      const parsed_vscode_document_opened_event& event) {
+      const Parsed_VSCode_Document_Opened_Event& event) {
     base::visit_vscode_document_opened_event(event);
     if (event.document_id == 0) {
       return;
@@ -216,7 +216,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const parsed_vscode_document_closed_event& event) {
+      const Parsed_VSCode_Document_Closed_Event& event) {
     base::visit_vscode_document_closed_event(event);
     if (event.document_id == 0) {
       return;
@@ -225,7 +225,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const parsed_vscode_document_changed_event& event) {
+      const Parsed_VSCode_Document_Changed_Event& event) {
     base::visit_vscode_document_changed_event(event);
     if (event.document_id == 0) {
       return;
@@ -247,7 +247,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const parsed_vscode_document_sync_event& event) {
+      const Parsed_VSCode_Document_Sync_Event& event) {
     base::visit_vscode_document_sync_event(event);
     if (event.document_id == 0) {
       return;
@@ -261,8 +261,8 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     }
     document_info& doc = doc_it->second;
 
-    string8_view actual = doc.data.string().string_view();
-    string8 expected = utf_16_to_utf_8(event.content);
+    String8_View actual = doc.data.string().string_view();
+    String8 expected = utf_16_to_utf_8(event.content);
     if (actual != expected) {
       std::fprintf(stderr,
                    "error: document mismatch detected at event %" PRIu64
@@ -288,10 +288,10 @@ class document_content_checker : public counting_trace_stream_event_visitor {
  private:
   struct document_info {
     std::uint64_t last_sync = 0;
-    lsp_document_text data;
+    LSP_Document_Text data;
   };
 
-  hash_map<std::uint64_t, document_info> documents_;
+  Hash_Map<std::uint64_t, document_info> documents_;
 };
 
 class event_dumper : public counting_trace_stream_event_visitor {
@@ -318,9 +318,9 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const parsed_packet_header&) {}
+  void visit_packet_header(const Parsed_Packet_Header&) {}
 
-  void visit_init_event(const parsed_init_event& event) {
+  void visit_init_event(const Parsed_Init_Event& event) {
     base::visit_init_event(event);
     if (!this->should_dump()) return;
 
@@ -331,7 +331,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_opened_event(
-      const parsed_vscode_document_opened_event& event) {
+      const Parsed_VSCode_Document_Opened_Event& event) {
     base::visit_vscode_document_opened_event(event);
     if (!this->should_dump()) return;
 
@@ -344,7 +344,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const parsed_vscode_document_closed_event& event) {
+      const Parsed_VSCode_Document_Closed_Event& event) {
     base::visit_vscode_document_closed_event(event);
     if (!this->should_dump()) return;
 
@@ -357,7 +357,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const parsed_vscode_document_changed_event& event) {
+      const Parsed_VSCode_Document_Changed_Event& event) {
     base::visit_vscode_document_changed_event(event);
     if (!this->should_dump()) return;
 
@@ -377,7 +377,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const parsed_vscode_document_sync_event& event) {
+      const Parsed_VSCode_Document_Sync_Event& event) {
     base::visit_vscode_document_sync_event(event);
     if (!this->should_dump()) return;
 
@@ -390,7 +390,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_lsp_client_to_server_message_event(
-      const parsed_lsp_client_to_server_message_event& event) {
+      const Parsed_LSP_Client_To_Server_Message_Event& event) {
     base::visit_lsp_client_to_server_message_event(event);
     if (!this->should_dump()) return;
 
@@ -400,13 +400,13 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("\n");
   }
 
-  void visit_lsp_documents_event(const parsed_lsp_documents_event& event) {
+  void visit_lsp_documents_event(const Parsed_LSP_Documents_Event& event) {
     base::visit_lsp_documents_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
     std::printf("LSP documents:\n");
-    for (const parsed_lsp_document_state& doc : event.documents) {
+    for (const Parsed_LSP_Document_State& doc : event.documents) {
       std::printf("* ");
       this->print_utf8(doc.uri);
       std::printf("\n");
@@ -414,7 +414,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const parsed_vector_max_size_histogram_by_owner_event& event) {
+      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
     base::visit_vector_max_size_histogram_by_owner_event(event);
     if (!this->should_dump()) return;
 
@@ -422,7 +422,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
     std::printf("vector max size histogram by owner\n");
   }
 
-  void visit_process_id_event(const parsed_process_id_event& event) {
+  void visit_process_id_event(const Parsed_Process_ID_Event& event) {
     base::visit_process_id_event(event);
     if (!this->should_dump()) return;
 
@@ -447,7 +447,7 @@ class event_dumper : public counting_trace_stream_event_visitor {
     this->print_utf8(utf_16_to_utf_8(s));
   }
 
-  void print_utf8(string8_view s) {
+  void print_utf8(String8_View s) {
     std::fwrite(s.data(), 1, s.size(), stdout);
   }
 
@@ -462,25 +462,25 @@ class event_dumper : public counting_trace_stream_event_visitor {
 };
 
 template <class EventVisitor>
-void visit_events(const std::vector<parsed_trace_event>& events,
+void visit_events(const std::vector<Parsed_Trace_Event>& events,
                   EventVisitor& v) {
-  for (const parsed_trace_event& event : events) {
+  for (const Parsed_Trace_Event& event : events) {
     switch (event.type) {
-    case parsed_trace_event_type::error_invalid_magic:
+    case Parsed_Trace_Event_Type::error_invalid_magic:
       v.visit_error_invalid_magic();
       break;
-    case parsed_trace_event_type::error_invalid_uuid:
+    case Parsed_Trace_Event_Type::error_invalid_uuid:
       v.visit_error_invalid_uuid();
       break;
-    case parsed_trace_event_type::error_unsupported_compression_mode:
+    case Parsed_Trace_Event_Type::error_unsupported_compression_mode:
       v.visit_error_unsupported_compression_mode();
       break;
-    case parsed_trace_event_type::error_unsupported_lsp_document_type:
+    case Parsed_Trace_Event_Type::error_unsupported_lsp_document_type:
       v.visit_error_unsupported_lsp_document_type();
       break;
 
 #define VISIT(event_type)                   \
-  case parsed_trace_event_type::event_type: \
+  case Parsed_Trace_Event_Type::event_type: \
     v.visit_##event_type(event.event_type); \
     break;
 
@@ -503,7 +503,7 @@ void visit_events(const std::vector<parsed_trace_event>& events,
 analyze_options parse_analyze_options(int argc, char** argv) {
   analyze_options o;
 
-  arg_parser parser(argc, argv);
+  Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) { o.trace_files.push_back(argument); }
 
@@ -528,7 +528,7 @@ analyze_options parse_analyze_options(int argc, char** argv) {
     QLJS_OPTION(const char* begin_event_index_string, "--begin"sv) {
       if (parse_integer_exact(std::string_view(begin_event_index_string),
                               o.begin_event_index) !=
-          parse_integer_exact_error::ok) {
+          Parse_Integer_Exact_Error::ok) {
         std::fprintf(stderr, "error: unrecognized option: %s\n",
                      begin_event_index_string);
         std::exit(2);
@@ -538,7 +538,7 @@ analyze_options parse_analyze_options(int argc, char** argv) {
     QLJS_OPTION(const char* end_event_index_string, "--end"sv) {
       if (parse_integer_exact(std::string_view(end_event_index_string),
                               o.end_event_index) !=
-          parse_integer_exact_error::ok) {
+          Parse_Integer_Exact_Error::ok) {
         std::fprintf(stderr, "error: unrecognized option: %s\n",
                      end_event_index_string);
         std::exit(2);
@@ -574,9 +574,9 @@ int main(int argc, char** argv) {
     file.error().print_and_exit();
   }
 
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(file->data(), narrow_cast<std::size_t>(file->size()));
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
 
   if (o.check_document_consistency) {
     document_content_checker checker;

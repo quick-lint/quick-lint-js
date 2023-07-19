@@ -15,10 +15,10 @@ namespace quick_lint_js {
 // * anything trivially destructible
 // * container types like std::vector<U>, if U is winkable
 template <class T>
-struct is_winkable : std::is_trivially_destructible<T> {};
+struct Is_Winkable : std::is_trivially_destructible<T> {};
 
 template <class T>
-constexpr bool is_winkable_v = is_winkable<T>::value;
+constexpr bool is_winkable_v = Is_Winkable<T>::value;
 }
 
 #endif

@@ -7,13 +7,13 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-class byte_buffer;
-class output_stream;
+class Byte_Buffer;
+class Output_Stream;
 
-void write_json_escaped_string(byte_buffer &, string8_view);
-void write_json_escaped_string(output_stream &, string8_view);
+void write_json_escaped_string(Byte_Buffer &, String8_View);
+void write_json_escaped_string(Output_Stream &, String8_View);
 
-string8 to_json_escaped_string_with_quotes(string8_view);
+String8 to_json_escaped_string_with_quotes(String8_View);
 }
 
 #endif

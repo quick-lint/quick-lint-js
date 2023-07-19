@@ -47,56 +47,56 @@ char** get_posix_environment();
 #endif
 
 #if QLJS_HAVE_POSIX_SPAWN || QLJS_HAVE_WINDOWS_H
-void handle_process_io(const run_program_options& options,
-                       pipe_fds& program_input, pipe_fds& program_output,
-                       run_program_result& out);
+void handle_process_io(const Run_Program_Options& options,
+                       Pipe_FDs& program_input, Pipe_FDs& program_output,
+                       Run_Program_Result& out);
 #endif
 }
 
-run_program_result run_program(std::initializer_list<std::string> command) {
-  return run_program(span<const std::string>(command.begin(), command.end()));
+Run_Program_Result run_program(std::initializer_list<std::string> command) {
+  return run_program(Span<const std::string>(command.begin(), command.end()));
 }
 
-run_program_result run_program(std::initializer_list<const char*> command) {
-  return run_program(span<const char* const>(command.begin(), command.end()));
+Run_Program_Result run_program(std::initializer_list<const char*> command) {
+  return run_program(Span<const char* const>(command.begin(), command.end()));
 }
 
-run_program_result run_program(std::initializer_list<std::string> command,
-                               run_program_options options) {
-  return run_program(span<const std::string>(command.begin(), command.end()),
+Run_Program_Result run_program(std::initializer_list<std::string> command,
+                               Run_Program_Options options) {
+  return run_program(Span<const std::string>(command.begin(), command.end()),
                      options);
 }
 
-run_program_result run_program(std::initializer_list<const char*> command,
-                               run_program_options options) {
-  return run_program(span<const char* const>(command.begin(), command.end()),
+Run_Program_Result run_program(std::initializer_list<const char*> command,
+                               Run_Program_Options options) {
+  return run_program(Span<const char* const>(command.begin(), command.end()),
                      options);
 }
 
-run_program_result run_program(span<const std::string> command) {
-  return run_program(command, run_program_options());
+Run_Program_Result run_program(Span<const std::string> command) {
+  return run_program(command, Run_Program_Options());
 }
 
-run_program_result run_program(span<const char* const> command) {
-  return run_program(command, run_program_options());
+Run_Program_Result run_program(Span<const char* const> command) {
+  return run_program(command, Run_Program_Options());
 }
 
-run_program_result run_program(span<const std::string> command,
-                               run_program_options options) {
+Run_Program_Result run_program(Span<const std::string> command,
+                               Run_Program_Options options) {
   std::vector<const char*> command_raw;
   for (const std::string& arg : command) {
     command_raw.push_back(arg.c_str());
   }
-  return run_program(span<const char* const>(command_raw), options);
+  return run_program(Span<const char* const>(command_raw), options);
 }
 
 #if QLJS_HAVE_POSIX_SPAWN
-run_program_result run_program(span<const char* const> command,
-                               run_program_options options) {
+Run_Program_Result run_program(Span<const char* const> command,
+                               Run_Program_Options options) {
   QLJS_ASSERT(command.size() >= 1 && "expected at least path to .exe");
 
-  pipe_fds program_input = make_pipe();
-  pipe_fds program_output = make_pipe();
+  Pipe_FDs program_input = make_pipe();
+  Pipe_FDs program_output = make_pipe();
   ::posix_spawn_file_actions_t file_actions;
   ::posix_spawn_file_actions_init(&file_actions);
   ::posix_spawn_file_actions_adddup2(&file_actions, program_input.reader.get(),
@@ -106,7 +106,7 @@ run_program_result run_program(span<const char* const> command,
   ::posix_spawn_file_actions_adddup2(&file_actions, program_output.writer.get(),
                                      STDERR_FILENO);
 
-  result<std::string, platform_file_io_error> old_cwd;
+  Result<std::string, Platform_File_IO_Error> old_cwd;
   if (options.current_directory != nullptr) {
     old_cwd = get_current_working_directory();
     if (!old_cwd.ok()) {
@@ -143,7 +143,7 @@ run_program_result run_program(span<const char* const> command,
 
   ::posix_spawn_file_actions_destroy(&file_actions);
 
-  run_program_result result;
+  Run_Program_Result result;
   handle_process_io(options, program_input, program_output, result);
   result.exit_status = wait_for_process_exit(pid);
 
@@ -179,19 +179,19 @@ retry:
 
 #if QLJS_HAVE_WINDOWS_H
 namespace {
-class windows_thread_attribute_list {
+class Windows_Thread_Attribute_List {
  public:
   // thread_attribute_list must have been allocated with std::malloc (or
   // something compatible).
-  explicit windows_thread_attribute_list(
+  explicit Windows_Thread_Attribute_List(
       ::LPPROC_THREAD_ATTRIBUTE_LIST thread_attribute_list)
       : thread_attribute_list_(thread_attribute_list) {}
 
-  windows_thread_attribute_list(const windows_thread_attribute_list&) = delete;
-  windows_thread_attribute_list& operator=(
-      const windows_thread_attribute_list&) = delete;
+  Windows_Thread_Attribute_List(const Windows_Thread_Attribute_List&) = delete;
+  Windows_Thread_Attribute_List& operator=(
+      const Windows_Thread_Attribute_List&) = delete;
 
-  ~windows_thread_attribute_list() {
+  ~Windows_Thread_Attribute_List() {
     ::DeleteProcThreadAttributeList(this->thread_attribute_list_);
     std::free(this->thread_attribute_list_);
   }
@@ -200,8 +200,8 @@ class windows_thread_attribute_list {
     return this->thread_attribute_list_;
   }
 
-  static windows_thread_attribute_list make_for_inheriting_handles(
-      span<const ::HANDLE> handles) {
+  static Windows_Thread_Attribute_List make_for_inheriting_handles(
+      Span<const ::HANDLE> handles) {
     ::SIZE_T thread_attributes_size = 0;
     (void)::InitializeProcThreadAttributeList(
         nullptr, /*dwAttributeCount=*/1,
@@ -226,14 +226,14 @@ class windows_thread_attribute_list {
             /*lpReturnSize=*/nullptr)) {
       QLJS_UNIMPLEMENTED();
     }
-    return windows_thread_attribute_list(thread_attribute_list);
+    return Windows_Thread_Attribute_List(thread_attribute_list);
   }
 
  private:
   ::LPPROC_THREAD_ATTRIBUTE_LIST thread_attribute_list_;
 };
 
-struct windows_command_line_builder {
+struct Windows_Command_Line_Builder {
   std::wstring command_line;
 
   wchar_t* data() { return this->command_line.data(); }
@@ -261,8 +261,8 @@ struct windows_command_line_builder {
 };
 }
 
-run_program_result run_program(span<const char* const> command,
-                               run_program_options options) {
+Run_Program_Result run_program(Span<const char* const> command,
+                               Run_Program_Options options) {
   QLJS_ASSERT(command.size() >= 1 && "expected at least path to .exe");
 
   std::optional<std::wstring> application_name =
@@ -271,9 +271,9 @@ run_program_result run_program(span<const char* const> command,
     QLJS_UNIMPLEMENTED();
   }
 
-  windows_command_line_builder command_line;
+  Windows_Command_Line_Builder command_line;
   command_line.add_argument(*application_name);
-  for (span_size i = 1; i < command.size(); ++i) {
+  for (Span_Size i = 1; i < command.size(); ++i) {
     command_line.add_argument(command[i]);
   }
 
@@ -285,16 +285,16 @@ run_program_result run_program(span<const char* const> command,
     }
   }
 
-  pipe_fds program_input = make_pipe();
-  pipe_fds program_output = make_pipe();
+  Pipe_FDs program_input = make_pipe();
+  Pipe_FDs program_output = make_pipe();
 
   ::HANDLE handles_to_inherit[] = {
       program_input.reader.get(),
       program_output.writer.get(),
   };
-  windows_thread_attribute_list thread_attribute_list =
-      windows_thread_attribute_list::make_for_inheriting_handles(
-          span<const ::HANDLE>(handles_to_inherit));
+  Windows_Thread_Attribute_List thread_attribute_list =
+      Windows_Thread_Attribute_List::make_for_inheriting_handles(
+          Span<const ::HANDLE>(handles_to_inherit));
 
   ::STARTUPINFOEXW startup_info = {};
   startup_info.StartupInfo.cb = sizeof(startup_info);
@@ -324,9 +324,9 @@ run_program_result run_program(span<const char* const> command,
     QLJS_UNIMPLEMENTED();
   }
   ::CloseHandle(process_info.hThread);
-  windows_handle_file process_handle(process_info.hProcess);
+  Windows_Handle_File process_handle(process_info.hProcess);
 
-  run_program_result result;
+  Run_Program_Result result;
   handle_process_io(options, program_input, program_output, result);
 
   ::DWORD rc = ::WaitForSingleObject(process_handle.get(), INFINITE);
@@ -363,17 +363,17 @@ char** get_posix_environment() {
 #endif
 
 #if QLJS_HAVE_POSIX_SPAWN || QLJS_HAVE_WINDOWS_H
-void handle_process_io(const run_program_options& options,
-                       pipe_fds& program_input, pipe_fds& program_output,
-                       run_program_result& out) {
+void handle_process_io(const Run_Program_Options& options,
+                       Pipe_FDs& program_input, Pipe_FDs& program_output,
+                       Run_Program_Result& out) {
   program_input.reader.close();
   program_output.writer.close();
 
-  thread input_writer_thread;
+  Thread input_writer_thread;
   if (options.input.empty()) {
     program_input.writer.close();
   } else {
-    input_writer_thread = thread([&]() -> void {
+    input_writer_thread = Thread([&]() -> void {
       program_input.writer.write_full(options.input.data(),
                                       options.input.size());
       program_input.writer.close();

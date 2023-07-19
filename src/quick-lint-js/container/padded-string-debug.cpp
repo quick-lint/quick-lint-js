@@ -6,12 +6,12 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, const padded_string& x) {
+std::ostream& operator<<(std::ostream& out, const Padded_String& x) {
   out << out_string8(x.string_view());
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const padded_string_view& x) {
+std::ostream& operator<<(std::ostream& out, const Padded_String_View& x) {
   out << out_string8(x.string_view());
   return out;
 }

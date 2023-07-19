@@ -10,8 +10,8 @@
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
-  quick_lint_js::padded_string source(quick_lint_js::string8(
-      reinterpret_cast<const quick_lint_js::char8 *>(data), size));
+  quick_lint_js::Padded_String source(quick_lint_js::String8(
+      reinterpret_cast<const quick_lint_js::Char8 *>(data), size));
   quick_lint_js::lexer l(&source, &quick_lint_js::null_diag_reporter::instance);
   while (l.peek().type != quick_lint_js::token_type::end_of_file) {
     l.skip();

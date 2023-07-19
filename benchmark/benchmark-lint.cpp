@@ -31,18 +31,18 @@ void benchmark_lint(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  padded_string source = quick_lint_js::read_file_or_exit(source_path);
+  Padded_String source = quick_lint_js::read_file_or_exit(source_path);
 
-  configuration config;
-  parser_options p_options;
-  parser p(&source, &null_diag_reporter::instance, p_options);
-  buffering_visitor visitor(new_delete_resource());
+  Configuration config;
+  Parser_Options p_options;
+  Parser p(&source, &Null_Diag_Reporter::instance, p_options);
+  Buffering_Visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
-  variable_analyzer_options var_options;
+  Variable_Analyzer_Options var_options;
 
   for (auto _ : state) {
-    variable_analyzer l(&null_diag_reporter::instance, &config.globals(),
+    Variable_Analyzer l(&Null_Diag_Reporter::instance, &config.globals(),
                         var_options);
     visitor.copy_into(l);
   }
@@ -61,14 +61,14 @@ void benchmark_parse_and_lint(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  padded_string source = quick_lint_js::read_file_or_exit(source_path);
+  Padded_String source = quick_lint_js::read_file_or_exit(source_path);
 
-  parser_options p_options;
-  variable_analyzer_options var_options;
-  configuration config;
+  Parser_Options p_options;
+  Variable_Analyzer_Options var_options;
+  Configuration config;
   for (auto _ : state) {
-    parser p(&source, &null_diag_reporter::instance, p_options);
-    variable_analyzer l(&null_diag_reporter::instance, &config.globals(),
+    Parser p(&source, &Null_Diag_Reporter::instance, p_options);
+    Variable_Analyzer l(&Null_Diag_Reporter::instance, &config.globals(),
                         var_options);
     p.parse_and_visit_module(l);
   }
@@ -80,36 +80,36 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   int global_variable_count = 1000;
   int variable_use_count = 1000;
 
-  global_declared_variable_set globals;
+  Global_Declared_Variable_Set globals;
   for (int i = 0; i < global_variable_count; ++i) {
     globals.add_predefined_global_variable(
         to_string8("global" + std::to_string(i)).c_str(), /*is_writable=*/true);
   }
 
   std::vector<std::pair<std::size_t, std::size_t>> variable_use_ranges;
-  string8 variable_uses;
+  String8 variable_uses;
   for (int i = 0; i < variable_use_count; ++i) {
     // NOTE(strager): The implementation might short circuit based on identifier
     // length. Use the same prefix so more work needs to be done.
-    string8 variable_name = to_string8("usage_" + std::to_string(i));
+    String8 variable_name = to_string8("usage_" + std::to_string(i));
     std::size_t use_begin = variable_uses.size();
     variable_uses += variable_name;
     std::size_t use_end = variable_uses.size();
     variable_use_ranges.emplace_back(use_begin, use_end);
   }
 
-  std::vector<identifier> variable_use_identifiers;
+  std::vector<Identifier> variable_use_identifiers;
   for (auto [begin_index, end_index] : variable_use_ranges) {
-    const char8 *begin = &variable_uses[begin_index];
-    const char8 *end = &variable_uses[end_index];
-    variable_use_identifiers.emplace_back(source_code_span(begin, end),
+    const Char8 *begin = &variable_uses[begin_index];
+    const Char8 *end = &variable_uses[end_index];
+    variable_use_identifiers.emplace_back(Source_Code_Span(begin, end),
                                           make_string_view(begin, end));
   }
 
-  variable_analyzer_options var_options;
+  Variable_Analyzer_Options var_options;
   for (auto _ : state) {
-    variable_analyzer l(&null_diag_reporter::instance, &globals, var_options);
-    for (identifier &variable_use : variable_use_identifiers) {
+    Variable_Analyzer l(&Null_Diag_Reporter::instance, &globals, var_options);
+    for (Identifier &variable_use : variable_use_identifiers) {
       l.visit_variable_use(variable_use);
     }
     l.visit_end_of_module();

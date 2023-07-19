@@ -5,7 +5,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
+std::ostream &operator<<(std::ostream &stream, const LSP_Position &position) {
   stream << "line " << position.line << " character " << position.character;
   return stream;
 }

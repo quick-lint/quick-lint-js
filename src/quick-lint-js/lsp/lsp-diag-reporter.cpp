@@ -20,45 +20,45 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-lsp_diag_reporter::lsp_diag_reporter(translator t, byte_buffer &output,
-                                     padded_string_view input)
+LSP_Diag_Reporter::LSP_Diag_Reporter(Translator t, Byte_Buffer &output,
+                                     Padded_String_View input)
     : output_(output), locator_(input), translator_(t) {
   this->output_.append_copy(u8"["_sv);
 }
 
-void lsp_diag_reporter::finish() { this->output_.append_copy(u8"]"_sv); }
+void LSP_Diag_Reporter::finish() { this->output_.append_copy(u8"]"_sv); }
 
-void lsp_diag_reporter::report_impl(diag_type type, void *diag) {
+void LSP_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n"_sv);
   }
   this->need_comma_ = true;
-  lsp_diag_formatter formatter(/*output=*/this->output_,
+  LSP_Diag_Formatter formatter(/*output=*/this->output_,
                                /*locator=*/this->locator_, this->translator_);
   formatter.format(get_diagnostic_info(type), diag);
 }
 
-lsp_diag_formatter::lsp_diag_formatter(byte_buffer &output,
-                                       lsp_locator &locator, translator t)
-    : diagnostic_formatter(t), output_(output), locator_(locator) {}
+LSP_Diag_Formatter::LSP_Diag_Formatter(Byte_Buffer &output,
+                                       LSP_Locator &locator, Translator t)
+    : Diagnostic_Formatter(t), output_(output), locator_(locator) {}
 
-void lsp_diag_formatter::write_before_message(std::string_view code,
-                                              diagnostic_severity sev,
-                                              const source_code_span &origin) {
-  char8 severity_type{};
+void LSP_Diag_Formatter::write_before_message(std::string_view code,
+                                              Diagnostic_Severity sev,
+                                              const Source_Code_Span &origin) {
+  Char8 severity_type{};
   switch (sev) {
-  case diagnostic_severity::error:
+  case Diagnostic_Severity::error:
     severity_type = u8'1';
     break;
-  case diagnostic_severity::note:
+  case Diagnostic_Severity::note:
     // Don't write notes. Only write the main message.
     return;
-  case diagnostic_severity::warning:
+  case Diagnostic_Severity::warning:
     severity_type = u8'2';
     break;
   }
 
-  lsp_range r = this->locator_.range(origin);
+  LSP_Range r = this->locator_.range(origin);
   this->output_.append_copy(
       u8"{\"range\":{\"start\":"_sv
       u8"{\"line\":"_sv);
@@ -84,10 +84,10 @@ void lsp_diag_formatter::write_before_message(std::string_view code,
       u8",\"message\":\""_sv);
 }
 
-void lsp_diag_formatter::write_message_part(
-    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
-    string8_view message) {
-  if (sev == diagnostic_severity::note) {
+void LSP_Diag_Formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity sev,
+    String8_View message) {
+  if (sev == Diagnostic_Severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -95,10 +95,10 @@ void lsp_diag_formatter::write_message_part(
   write_json_escaped_string(this->output_, message);
 }
 
-void lsp_diag_formatter::write_after_message(
-    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
-    const source_code_span &) {
-  if (sev == diagnostic_severity::note) {
+void LSP_Diag_Formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity sev,
+    const Source_Code_Span &) {
+  if (sev == Diagnostic_Severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }

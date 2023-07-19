@@ -9,7 +9,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
-class tracking_memory_resource : public memory_resource {
+class Tracking_Memory_Resource : public Memory_Resource {
  public:
   std::uint64_t alive_bytes() const noexcept {
     return this->allocated_bytes_ - this->deallocated_bytes_;

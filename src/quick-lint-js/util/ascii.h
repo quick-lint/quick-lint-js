@@ -7,7 +7,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline bool is_ascii_alpha(char8 c) {
+inline bool is_ascii_alpha(Char8 c) {
   return (u8'a' <= c && c <= u8'z') || (u8'A' <= c && c <= u8'Z');
 }
 }

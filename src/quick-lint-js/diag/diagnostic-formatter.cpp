@@ -18,150 +18,150 @@
 #include <utility>
 
 namespace quick_lint_js {
-string8_view headlinese_enum_kind(enum_kind ek) noexcept {
+String8_View headlinese_enum_kind(Enum_Kind ek) noexcept {
   switch (ek) {
-  case enum_kind::const_enum:
+  case Enum_Kind::const_enum:
     return u8"const enum"_sv;
-  case enum_kind::declare_const_enum:
+  case Enum_Kind::declare_const_enum:
     return u8"declare const enum"_sv;
-  case enum_kind::declare_enum:
+  case Enum_Kind::declare_enum:
     return u8"declare enum"_sv;
-  case enum_kind::normal:
+  case Enum_Kind::normal:
     return u8"enum"_sv;
   }
   QLJS_UNREACHABLE();
 }
 
-translatable_message headlinese_statement_kind(statement_kind sk) noexcept {
+Translatable_Message headlinese_statement_kind(Statement_Kind sk) noexcept {
   switch (sk) {
-  case statement_kind::do_while_loop:
+  case Statement_Kind::do_while_loop:
     return QLJS_TRANSLATABLE("'do-while' loop");
-  case statement_kind::for_loop:
+  case Statement_Kind::for_loop:
     return QLJS_TRANSLATABLE("'for' loop");
-  case statement_kind::if_statement:
+  case Statement_Kind::if_statement:
     return QLJS_TRANSLATABLE("'if' statement");
-  case statement_kind::while_loop:
+  case Statement_Kind::while_loop:
     return QLJS_TRANSLATABLE("'while' loop");
-  case statement_kind::with_statement:
+  case Statement_Kind::with_statement:
     return QLJS_TRANSLATABLE("'with' statement");
-  case statement_kind::labelled_statement:
+  case Statement_Kind::labelled_statement:
     return QLJS_TRANSLATABLE("labelled statement");
   }
   QLJS_UNREACHABLE();
 }
 
-translatable_message singular_statement_kind(statement_kind sk) noexcept {
+Translatable_Message singular_statement_kind(Statement_Kind sk) noexcept {
   switch (sk) {
-  case statement_kind::do_while_loop:
+  case Statement_Kind::do_while_loop:
     return QLJS_TRANSLATABLE("a 'do-while' loop");
-  case statement_kind::for_loop:
+  case Statement_Kind::for_loop:
     return QLJS_TRANSLATABLE("a 'for' loop");
-  case statement_kind::if_statement:
+  case Statement_Kind::if_statement:
     return QLJS_TRANSLATABLE("an 'if' statement");
-  case statement_kind::while_loop:
+  case Statement_Kind::while_loop:
     return QLJS_TRANSLATABLE("a 'while' loop");
-  case statement_kind::with_statement:
+  case Statement_Kind::with_statement:
     return QLJS_TRANSLATABLE("a 'with' statement");
-  case statement_kind::labelled_statement:
+  case Statement_Kind::labelled_statement:
     return QLJS_TRANSLATABLE("a labelled statement");
   }
   QLJS_UNREACHABLE();
 }
 
-diagnostic_formatter_base::diagnostic_formatter_base(translator t)
+Diagnostic_Formatter_Base::Diagnostic_Formatter_Base(Translator t)
     : translator_(t) {}
 
-source_code_span diagnostic_formatter_base::get_argument_source_code_span(
-    const diagnostic_message_args& args, const void* diagnostic,
+Source_Code_Span Diagnostic_Formatter_Base::get_argument_source_code_span(
+    const Diagnostic_Message_Args& args, const void* diagnostic,
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case diagnostic_arg_type::source_code_span:
-    return *reinterpret_cast<const source_code_span*>(arg_data);
+  case Diagnostic_Arg_Type::Source_Code_Span:
+    return *reinterpret_cast<const Source_Code_Span*>(arg_data);
 
-  case diagnostic_arg_type::char8:
-  case diagnostic_arg_type::enum_kind:
-  case diagnostic_arg_type::invalid:
-  case diagnostic_arg_type::statement_kind:
-  case diagnostic_arg_type::string8_view:
-  case diagnostic_arg_type::variable_kind:
+  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::enum_kind:
+  case Diagnostic_Arg_Type::invalid:
+  case Diagnostic_Arg_Type::statement_kind:
+  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();
 }
 
-string8_view diagnostic_formatter_base::expand_argument(
-    const diagnostic_message_args& args, const void* diagnostic,
+String8_View Diagnostic_Formatter_Base::expand_argument(
+    const Diagnostic_Message_Args& args, const void* diagnostic,
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case diagnostic_arg_type::char8:
-    return string8_view(reinterpret_cast<const char8*>(arg_data), 1);
+  case Diagnostic_Arg_Type::Char8:
+    return String8_View(reinterpret_cast<const Char8*>(arg_data), 1);
 
-  case diagnostic_arg_type::source_code_span:
-    return reinterpret_cast<const source_code_span*>(arg_data)->string_view();
+  case Diagnostic_Arg_Type::Source_Code_Span:
+    return reinterpret_cast<const Source_Code_Span*>(arg_data)->string_view();
 
-  case diagnostic_arg_type::string8_view:
-    return *reinterpret_cast<const string8_view*>(arg_data);
+  case Diagnostic_Arg_Type::String8_View:
+    return *reinterpret_cast<const String8_View*>(arg_data);
 
-  case diagnostic_arg_type::enum_kind:
-  case diagnostic_arg_type::invalid:
-  case diagnostic_arg_type::statement_kind:
-  case diagnostic_arg_type::variable_kind:
+  case Diagnostic_Arg_Type::enum_kind:
+  case Diagnostic_Arg_Type::invalid:
+  case Diagnostic_Arg_Type::statement_kind:
+  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();
 }
 
-string8_view diagnostic_formatter_base::expand_argument_headlinese(
-    const diagnostic_message_args& args, const void* diagnostic,
+String8_View Diagnostic_Formatter_Base::expand_argument_headlinese(
+    const Diagnostic_Message_Args& args, const void* diagnostic,
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case diagnostic_arg_type::enum_kind:
-    return headlinese_enum_kind(*reinterpret_cast<const enum_kind*>(arg_data));
+  case Diagnostic_Arg_Type::enum_kind:
+    return headlinese_enum_kind(*reinterpret_cast<const Enum_Kind*>(arg_data));
 
-  case diagnostic_arg_type::statement_kind:
+  case Diagnostic_Arg_Type::statement_kind:
     return this->translator_.translate(headlinese_statement_kind(
-        *reinterpret_cast<const statement_kind*>(arg_data)));
+        *reinterpret_cast<const Statement_Kind*>(arg_data)));
 
-  case diagnostic_arg_type::char8:
-  case diagnostic_arg_type::invalid:
-  case diagnostic_arg_type::source_code_span:
-  case diagnostic_arg_type::string8_view:
-  case diagnostic_arg_type::variable_kind:
+  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::invalid:
+  case Diagnostic_Arg_Type::Source_Code_Span:
+  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();
 }
 
-string8_view diagnostic_formatter_base::expand_argument_singular(
-    const diagnostic_message_args& args, const void* diagnostic,
+String8_View Diagnostic_Formatter_Base::expand_argument_singular(
+    const Diagnostic_Message_Args& args, const void* diagnostic,
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case diagnostic_arg_type::statement_kind:
+  case Diagnostic_Arg_Type::statement_kind:
     return this->translator_.translate(singular_statement_kind(
-        *reinterpret_cast<const statement_kind*>(arg_data)));
+        *reinterpret_cast<const Statement_Kind*>(arg_data)));
 
-  case diagnostic_arg_type::enum_kind:
+  case Diagnostic_Arg_Type::enum_kind:
     QLJS_UNIMPLEMENTED();
     break;
 
-  case diagnostic_arg_type::char8:
-  case diagnostic_arg_type::invalid:
-  case diagnostic_arg_type::source_code_span:
-  case diagnostic_arg_type::string8_view:
-  case diagnostic_arg_type::variable_kind:
+  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::invalid:
+  case Diagnostic_Arg_Type::Source_Code_Span:
+  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();
 }
 
-std::pair<const void*, diagnostic_arg_type> diagnostic_formatter_base::get_arg(
-    const diagnostic_message_args& args, const void* diagnostic,
+std::pair<const void*, Diagnostic_Arg_Type> Diagnostic_Formatter_Base::get_arg(
+    const Diagnostic_Message_Args& args, const void* diagnostic,
     int arg_index) noexcept {
-  const diagnostic_message_arg_info& arg_info =
+  const Diagnostic_Message_Arg_Info& arg_info =
       args[narrow_cast<std::size_t>(arg_index)];
   const void* arg_data =
       reinterpret_cast<const char*>(diagnostic) + arg_info.offset();

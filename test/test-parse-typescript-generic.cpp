@@ -26,11 +26,11 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_generic : public test_parse_expression {};
+class Test_Parse_TypeScript_Generic : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
+TEST_F(Test_Parse_TypeScript_Generic, single_basic_generic_parameter) {
   {
-    test_parser p(u8"<T>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -41,9 +41,9 @@ TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
+TEST_F(Test_Parse_TypeScript_Generic, multiple_basic_generic_parameter) {
   {
-    test_parser p(u8"<T1, T2, T3>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T1, T2, T3>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T1
@@ -58,7 +58,7 @@ TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
   }
 
   {
-    test_parser p(u8"<T1, T2, T3,>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T1, T2, T3,>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T1
@@ -69,9 +69,9 @@ TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
+TEST_F(Test_Parse_TypeScript_Generic, parameters_require_commas_between) {
   {
-    test_parser p(u8"<T1 T2>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T1 T2>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T1
@@ -83,16 +83,16 @@ TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_missing_comma_between_generic_parameters,
+                        p.code, Diag_Missing_Comma_Between_Generic_Parameters,
                         expected_comma, strlen(u8"<T1"), u8""_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_leading_comma) {
   {
-    test_parser p(u8"<, T>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<, T>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -101,13 +101,13 @@ TEST_F(test_parse_typescript_generic,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
                 unexpected_comma, strlen(u8"<"), u8","_sv),
         }));
   }
 
   {
-    test_parser p(u8"<,,, T>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<,,, T>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -116,64 +116,64 @@ TEST_F(test_parse_typescript_generic,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
                 unexpected_comma, strlen(u8"<"), u8","_sv),
             DIAG_TYPE_OFFSETS(
-                p.code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
                 unexpected_comma, strlen(u8"<,"), u8","_sv),
             DIAG_TYPE_OFFSETS(
-                p.code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
                 unexpected_comma, strlen(u8"<,,"), u8","_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_must_contain_at_least_one_parameter) {
   {
-    test_parser p(u8"<>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_typescript_generic_parameter_list_is_empty,
+                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
                         expected_parameter, strlen(u8"<"), u8""_sv),
                 }));
   }
 
   {
-    test_parser p(u8"<,>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<,>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_typescript_generic_parameter_list_is_empty,
+                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
                         expected_parameter, strlen(u8"<"), u8""_sv),
                 }));
   }
 
   {
-    test_parser p(u8"<,,>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<,,>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_typescript_generic_parameter_list_is_empty,
+                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
                         expected_parameter, strlen(u8"<"), u8""_sv),
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
                         unexpected_comma, strlen(u8"<,"), u8","_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_multiple_trailing_commas) {
   {
-    test_parser p(u8"<T,,>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T,,>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -181,13 +181,13 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
                         unexpected_comma, strlen(u8"<T,"), u8","_sv),
                 }));
   }
 
   {
-    test_parser p(u8"<T , , ,>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T , , ,>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -195,19 +195,19 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
                         unexpected_comma, strlen(u8"<T , "), u8","_sv),
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
                         unexpected_comma, strlen(u8"<T , , "), u8","_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_consecutive_interior_commas) {
   {
-    test_parser p(u8"<T,,U>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T,,U>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -216,15 +216,15 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_multiple_commas_in_generic_parameter_list,
+                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
                         unexpected_comma, strlen(u8"<T,"), u8","_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic, parameter_list_extends) {
+TEST_F(Test_Parse_TypeScript_Generic, parameter_list_extends) {
   {
-    test_parser p(u8"<T extends U>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T extends U>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // U
@@ -237,9 +237,9 @@ TEST_F(test_parse_typescript_generic, parameter_list_extends) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends) {
+TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
   {
-    test_parser p(u8"<T: U>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T: U>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // U
@@ -251,15 +251,15 @@ TEST_F(test_parse_typescript_generic, unexpected_colon_in_parameter_extends) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
-                        p.code, diag_unexpected_colon_after_generic_definition,
+                        p.code, Diag_Unexpected_Colon_After_Generic_Definition,
                         colon, strlen(u8"<T"), u8":"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic, type_parameter_default) {
+TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default) {
   {
-    test_parser p(u8"<T = U>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<T = U>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // U
@@ -272,9 +272,9 @@ TEST_F(test_parse_typescript_generic, type_parameter_default) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, type_parameter_default_with_extends) {
+TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default_with_extends) {
   {
-    test_parser p(u8"<T extends U = Def>"_sv, typescript_options,
+    Test_Parser p(u8"<T extends U = Def>"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -289,9 +289,9 @@ TEST_F(test_parse_typescript_generic, type_parameter_default_with_extends) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, variance_specifiers) {
+TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
   {
-    test_parser p(u8"<in T>"_sv, typescript_options);
+    Test_Parser p(u8"<in T>"_sv, typescript_options);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -301,7 +301,7 @@ TEST_F(test_parse_typescript_generic, variance_specifiers) {
   }
 
   {
-    test_parser p(u8"<out T>"_sv, typescript_options);
+    Test_Parser p(u8"<out T>"_sv, typescript_options);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -311,7 +311,7 @@ TEST_F(test_parse_typescript_generic, variance_specifiers) {
   }
 
   {
-    test_parser p(u8"<in out T>"_sv, typescript_options);
+    Test_Parser p(u8"<in out T>"_sv, typescript_options);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -321,9 +321,9 @@ TEST_F(test_parse_typescript_generic, variance_specifiers) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, variance_specifiers_in_wrong_order) {
+TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers_in_wrong_order) {
   {
-    test_parser p(u8"<out in T>"_sv, typescript_options, capture_diags);
+    Test_Parser p(u8"<out in T>"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_generic_parameters();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
@@ -334,28 +334,28 @@ TEST_F(test_parse_typescript_generic, variance_specifiers_in_wrong_order) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, diag_typescript_variance_keywords_in_wrong_order,
+                p.code, Diag_TypeScript_Variance_Keywords_In_Wrong_Order,
                 in_keyword, strlen(u8"<out "), u8"in"_sv,  //
                 out_keyword, strlen(u8"<"), u8"out"_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        parameters_can_be_named_contextual_keywords) {
-  for (string8 name :
-       dirty_set<string8>{
+  for (String8 name :
+       Dirty_Set<String8>{
            u8"await",
            u8"undefined",
        } | (contextual_keywords - typescript_builtin_type_keywords -
             typescript_special_type_keywords - typescript_type_only_keywords -
-            dirty_set<string8>{
+            Dirty_Set<String8>{
                 u8"let",
                 u8"static",
                 u8"yield",
             })) {
     {
-      test_parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
+      Test_Parser p(concat(u8"<"_sv, name, u8">"_sv), typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_typescript_generic_parameters();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -366,7 +366,7 @@ TEST_F(test_parse_typescript_generic,
     }
 
     {
-      test_parser p(concat(u8"<in "_sv, name, u8">"_sv), typescript_options);
+      Test_Parser p(concat(u8"<in "_sv, name, u8">"_sv), typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_typescript_generic_parameters();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -377,7 +377,7 @@ TEST_F(test_parse_typescript_generic,
     }
 
     {
-      test_parser p(concat(u8"<out "_sv, name, u8">"_sv), typescript_options);
+      Test_Parser p(concat(u8"<out "_sv, name, u8">"_sv), typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_typescript_generic_parameters();
       EXPECT_THAT(p.visits, ElementsAreArray({
@@ -388,7 +388,7 @@ TEST_F(test_parse_typescript_generic,
     }
 
     {
-      test_parser p(concat(u8"<in out "_sv, name, u8">"_sv),
+      Test_Parser p(concat(u8"<in out "_sv, name, u8">"_sv),
                     typescript_options);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_typescript_generic_parameters();
@@ -401,10 +401,10 @@ TEST_F(test_parse_typescript_generic,
   }
 }
 
-TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
+TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
   {
-    test_parser p(u8"foo<T>(p)"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>(p)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -414,8 +414,8 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser p(u8"foo<<Param>() => ReturnType>(p)"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<<Param>() => ReturnType>(p)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -426,8 +426,8 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   }
 
   {
-    test_parser p(u8"foo?.<T>(p)"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo?.<T>(p)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -437,14 +437,14 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser p(u8"foo?.<<Param>() => ReturnType>(p)"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo?.<<Param>() => ReturnType>(p)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
   }
 
   {
-    test_parser p(u8"foo<T>`bar`"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>`bar`"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -453,8 +453,8 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   }
 
   {
-    test_parser p(u8"foo<T>`bar${baz}`"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>`bar${baz}`"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo, var baz)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -463,10 +463,10 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   }
 }
 
-TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
+TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
   {
-    test_parser p(u8"new Foo<T>;"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"new Foo<T>;"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -475,8 +475,8 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
   }
 
   {
-    test_parser p(u8"new Foo<T>"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"new Foo<T>"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -485,8 +485,8 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
   }
 
   {
-    test_parser p(u8"new Foo<T>(p)"_sv, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"new Foo<T>(p)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -496,9 +496,9 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser p(u8"new Foo<<Param>() => ReturnType>()"_sv,
+    Test_Parser p(u8"new Foo<<Param>() => ReturnType>()"_sv,
                   typescript_options);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
@@ -509,17 +509,17 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        variable_reference_with_generic_arguments) {
-  struct test_case {
-    string8_view code;
+  struct Test_Case {
+    String8_View code;
     const char* expected_ast;
-    const char8* variable_type_use;
+    const Char8* variable_type_use;
   };
 
-  for (const test_case& tc : {
+  for (const Test_Case& tc : {
            // clang-format off
-           test_case
+           Test_Case
            {u8"foo<T> /*EOF*/"_sv,     "var foo", u8"T"},
            {u8"foo<T>;"_sv,            "var foo", u8"T"},
            {u8"[foo<T>]"_sv,           "array(var foo)", u8"T"},
@@ -576,8 +576,8 @@ TEST_F(test_parse_typescript_generic,
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
-    test_parser p(tc.code, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(tc.code, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",
@@ -586,59 +586,59 @@ TEST_F(test_parse_typescript_generic,
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        generic_arguments_less_and_greater_are_operators_in_javascript) {
   {
-    test_parser p(u8"foo<T>(p)"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>(p)"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser p(u8"foo<<T>()=>{}>(p)"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<<T>()=>{}>(p)"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var foo, var T, arrowfunc(), paren(var p))");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"foo<T>`bar`"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>`bar`"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, literal)");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"foo<T>`bar${baz}`"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>`bar${baz}`"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, template(var baz))");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"foo<<T>() => number>`bar${baz}`"_sv, javascript_options,
+    Test_Parser p(u8"foo<<T>() => number>`bar${baz}`"_sv, javascript_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"new Foo<T>;"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"new Foo<T>;"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, missing))");
     EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(diag_missing_operand_for_operator),
+                              DIAG_TYPE(Diag_Missing_Operand_For_Operator),
                           }));
   }
 
   {
-    test_parser p(u8"new Foo<T>(p);"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"new Foo<T>(p);"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, paren(var p)))");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -649,16 +649,16 @@ TEST_F(test_parse_typescript_generic,
 // default is a bad plan. TypeScript parses foo<T>{} as < and > operations, but
 // also has type errors when using > with an object literal or when mixing < and
 // >.
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        less_and_greater_are_operators_by_default) {
-  struct test_case {
-    string8_view code;
+  struct Test_Case {
+    String8_View code;
     const char* expected_ast;
   };
 
-  for (const test_case& tc : {
+  for (const Test_Case& tc : {
            // clang-format off
-           test_case
+           Test_Case
            {u8"foo<T> rhs"_sv,           "binary(var foo, var T, var rhs)"},
            {u8"foo<T> delete x"_sv,      "binary(var foo, var T, delete(var x))"},
            {u8"foo<T> class {}"_sv,      "binary(var foo, var T, class)"},
@@ -673,8 +673,8 @@ TEST_F(test_parse_typescript_generic,
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
-    test_parser p(tc.code, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(tc.code, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.variable_uses, IsEmpty());
     EXPECT_THAT(p.visits, ::testing::AnyOf(
@@ -690,7 +690,7 @@ TEST_F(test_parse_typescript_generic,
 }
 
 TEST_F(
-    test_parse_typescript_generic,
+    Test_Parse_TypeScript_Generic,
     greater_equal_ending_generic_argument_list_requires_space_in_expression) {
   // TypeScript does not split '>=' into '>' and '='. This will always result in
   // an error:
@@ -708,8 +708,8 @@ TEST_F(
   // See NOTE[typescript-generic-expression-token-splitting].
 
   {
-    test_parser p(u8"foo<T>= rhs"_sv, typescript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T>= rhs"_sv, typescript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -720,14 +720,14 @@ TEST_F(
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_requires_space_between_greater_and_equal,
+                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
                 greater_equal, strlen(u8"foo<T"), u8">="_sv),
         }));
   }
 
   {
-    test_parser p(u8"foo<T<U>>= rhs"_sv, typescript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T<U>>= rhs"_sv, typescript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -739,14 +739,14 @@ TEST_F(
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_requires_space_between_greater_and_equal,
+                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
                 greater_equal, strlen(u8"foo<T<U>"), u8">="_sv),
         }));
   }
 
   {
-    test_parser p(u8"foo<T<U<V>>>= rhs"_sv, typescript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo<T<U<V>>>= rhs"_sv, typescript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
@@ -760,37 +760,37 @@ TEST_F(
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
-                diag_typescript_requires_space_between_greater_and_equal,
+                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
                 greater_equal, strlen(u8"foo<T<U<V>>"), u8">="_sv),
         }));
   }
 }
 
-TEST_F(test_parse_typescript_generic,
+TEST_F(Test_Parse_TypeScript_Generic,
        unambiguous_generic_arguments_are_parsed_in_javascript) {
   {
-    test_parser p(u8"foo?.<T>(p)"_sv, javascript_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"foo?.<T>(p)"_sv, javascript_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_typescript_generics_not_allowed_in_javascript,
+                p.code, Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,
                 opening_less, strlen(u8"foo?."), u8"<"_sv),
         }));
   }
 
   {
-    test_parser p(u8"foo?.<<T>() => void>(p)"_sv, javascript_options,
+    Test_Parser p(u8"foo?.<<T>() => void>(p)"_sv, javascript_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
-                p.code, diag_typescript_generics_not_allowed_in_javascript,
+                p.code, Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,
                 opening_less, strlen(u8"foo?."), u8"<"_sv),
         }));
   }

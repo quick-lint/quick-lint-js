@@ -35,33 +35,33 @@ std::vector<int> random_line_lengths(std::mt19937_64 &rng, int line_count) {
   return line_lengths;
 }
 
-padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const string8 &newline) {
-  string8 source;
+Padded_String make_source_code(const std::vector<int> &line_lengths,
+                               const String8 &newline) {
+  String8 source;
   for (int line_length : line_lengths) {
-    source += string8(narrow_cast<std::size_t>(line_length), u8'x');
+    source += String8(narrow_cast<std::size_t>(line_length), u8'x');
     source += newline;
   }
-  return padded_string(std::move(source));
+  return Padded_String(std::move(source));
 }
 
 source_code_with_spans make_realisticish_code(int line_count, int span_count) {
   std::mt19937_64 rng;
 
-  string8 newline = u8"\n";
+  String8 newline = u8"\n";
   std::vector<int> line_lengths = random_line_lengths(rng, line_count);
-  std::unique_ptr<padded_string> source =
-      std::make_unique<padded_string>(make_source_code(line_lengths, newline));
+  std::unique_ptr<Padded_String> source =
+      std::make_unique<Padded_String>(make_source_code(line_lengths, newline));
 
   std::uniform_int_distribution span_length_distribution(1, 10);
   auto random_span_in_line = [&](int line_length,
-                                 int line_begin_offset) -> source_code_span {
+                                 int line_begin_offset) -> Source_Code_Span {
     int span_length = std::min(span_length_distribution(rng), line_length);
     int span_begin_line_offset =
         std::uniform_int_distribution(0, line_length - span_length)(rng);
-    const char8 *span_begin =
+    const Char8 *span_begin =
         &(*source)[line_begin_offset + span_begin_line_offset];
-    return source_code_span(span_begin, span_begin + span_length);
+    return Source_Code_Span(span_begin, span_begin + span_length);
   };
 
   std::uniform_int_distribution span_line_number_distribution(1,
@@ -71,7 +71,7 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
     span_line_numbers.insert(span_line_number_distribution(rng));
   }
 
-  std::vector<source_code_span> spans;
+  std::vector<Source_Code_Span> spans;
   int line_begin_offset = 0;
   for (int line_index = 0; line_index < narrow_cast<int>(line_lengths.size());
        ++line_index) {
@@ -86,7 +86,7 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
     line_begin_offset += line_length + narrow_cast<int>(newline.size());
   }
 
-  sort(spans, [](const source_code_span &a, const source_code_span &b) {
+  sort(spans, [](const Source_Code_Span &a, const Source_Code_Span &b) {
     return a.begin() < b.begin();
   });
   partial_shuffle(spans, rng, /*rounds=*/5);

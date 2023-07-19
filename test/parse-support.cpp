@@ -11,9 +11,9 @@
 #include <string>
 
 namespace quick_lint_js {
-string8 escape_first_character_in_keyword(string8_view keyword) {
-  constexpr char8 alphabet[] = u8"0123456789abcdef";
-  string8 result;
+String8 escape_first_character_in_keyword(String8_View keyword) {
+  constexpr Char8 alphabet[] = u8"0123456789abcdef";
+  String8 result;
   std::size_t expected_size = keyword.size() + 6 - 1;
   result.reserve(expected_size);
   result += u8"\\u{";
@@ -25,7 +25,7 @@ string8 escape_first_character_in_keyword(string8_view keyword) {
   return result;
 }
 
-void summarize(const expression& expression, std::string& out) {
+void summarize(const Expression& expression, std::string& out) {
   auto children = [&] {
     bool need_comma = false;
     for (int i = 0; i < expression.child_count(); ++i) {
@@ -38,84 +38,84 @@ void summarize(const expression& expression, std::string& out) {
   };
   auto function_attributes = [&]() -> std::string_view {
     switch (expression.attributes()) {
-    case function_attributes::normal:
+    case Function_Attributes::normal:
       return ""sv;
-    case function_attributes::async:
+    case Function_Attributes::async:
       return "async"sv;
-    case function_attributes::async_generator:
+    case Function_Attributes::async_generator:
       return "asyncgenerator"sv;
-    case function_attributes::generator:
+    case Function_Attributes::generator:
       return "generator"sv;
     }
     QLJS_UNREACHABLE();
   };
   switch (expression.kind()) {
-  case expression_kind::_class:
+  case Expression_Kind::Class:
     out += "class";
     break;
-  case expression_kind::_delete:
+  case Expression_Kind::Delete:
     out += "delete(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::_invalid:
+  case Expression_Kind::Invalid:
     out += "invalid";
     break;
-  case expression_kind::_missing:
+  case Expression_Kind::Missing:
     out += "missing";
     break;
-  case expression_kind::_new:
+  case Expression_Kind::New:
     out += "new(";
     children();
     out += ")";
     break;
-  case expression_kind::_template:
+  case Expression_Kind::Template:
     out += "template(";
     children();
     out += ")";
     break;
-  case expression_kind::_typeof:
+  case Expression_Kind::Typeof:
     out += "typeof(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::angle_type_assertion:
+  case Expression_Kind::Angle_Type_Assertion:
     out += "typeassert(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::array:
+  case Expression_Kind::Array:
     out += "array(";
     children();
     out += ")";
     break;
-  case expression_kind::arrow_function:
+  case Expression_Kind::Arrow_Function:
     out += function_attributes();
     out += "arrowfunc(";
     children();
     out += ")";
     break;
-  case expression_kind::as_type_assertion:
+  case Expression_Kind::As_Type_Assertion:
     out += "as(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::assignment:
+  case Expression_Kind::Assignment:
     out += "assign(";
     children();
     out += ")";
     break;
-  case expression_kind::await:
+  case Expression_Kind::Await:
     out += "await(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::call:
+  case Expression_Kind::Call:
     out += "call(";
     children();
     out += ")";
     break;
-  case expression_kind::conditional:
+  case Expression_Kind::Conditional:
     out += "cond(";
     summarize(expression.child_0(), out);
     out += ", ";
@@ -124,27 +124,27 @@ void summarize(const expression& expression, std::string& out) {
     summarize(expression.child_2(), out);
     out += ")";
     break;
-  case expression_kind::dot:
+  case Expression_Kind::Dot:
     out += "dot(";
     summarize(expression.child_0(), out);
     out += ", ";
     out += to_string_view(expression.variable_identifier().normalized_name());
     out += ")";
     break;
-  case expression_kind::function:
+  case Expression_Kind::Function:
     out += "function";
     break;
-  case expression_kind::import:
+  case Expression_Kind::Import:
     out += "import";
     break;
-  case expression_kind::index:
+  case Expression_Kind::Index:
     out += "index(";
     children();
     out += ")";
     break;
-  case expression_kind::jsx_element: {
+  case Expression_Kind::JSX_Element: {
     const auto& jsx =
-        static_cast<const quick_lint_js::expression::jsx_element&>(expression);
+        static_cast<const quick_lint_js::Expression::JSX_Element&>(expression);
     out += "jsxelement(";
     out += to_string_view(jsx.tag.normalized_name());
     if (jsx.child_count() != 0) {
@@ -154,9 +154,9 @@ void summarize(const expression& expression, std::string& out) {
     out += ")";
     break;
   }
-  case expression_kind::jsx_element_with_members: {
+  case Expression_Kind::JSX_Element_With_Members: {
     const auto& jsx =
-        static_cast<const quick_lint_js::expression::jsx_element_with_members&>(
+        static_cast<const quick_lint_js::Expression::JSX_Element_With_Members&>(
             expression);
     out += "jsxmemberelement((";
     bool need_comma = false;
@@ -176,9 +176,9 @@ void summarize(const expression& expression, std::string& out) {
     out += ")";
     break;
   }
-  case expression_kind::jsx_element_with_namespace: {
+  case Expression_Kind::JSX_Element_With_Namespace: {
     const auto& jsx = static_cast<
-        const quick_lint_js::expression::jsx_element_with_namespace&>(
+        const quick_lint_js::Expression::JSX_Element_With_Namespace&>(
         expression);
     out += "jsxnselement(";
     out += to_string_view(jsx.ns.normalized_name());
@@ -191,27 +191,27 @@ void summarize(const expression& expression, std::string& out) {
     out += ")";
     break;
   }
-  case expression_kind::jsx_fragment:
+  case Expression_Kind::JSX_Fragment:
     out += "jsxfragment(";
     children();
     out += ")";
     break;
-  case expression_kind::literal:
+  case Expression_Kind::Literal:
     out += "literal";
     break;
-  case expression_kind::named_function:
+  case Expression_Kind::Named_Function:
     out += "function ";
     out += to_string_view(expression.variable_identifier().normalized_name());
     break;
-  case expression_kind::new_target:
+  case Expression_Kind::New_Target:
     out += "newtarget";
     break;
-  case expression_kind::non_null_assertion:
+  case Expression_Kind::Non_Null_Assertion:
     out += "nonnull(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::object: {
+  case Expression_Kind::Object: {
     out += "object(";
     bool need_comma = false;
     for (int i = 0; i < expression.object_entry_count(); ++i) {
@@ -233,97 +233,97 @@ void summarize(const expression& expression, std::string& out) {
     out += ")";
     break;
   }
-  case expression_kind::optional:
+  case Expression_Kind::Optional:
     out += "optional(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::paren:
+  case Expression_Kind::Paren:
     out += "paren(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::paren_empty:
+  case Expression_Kind::Paren_Empty:
     out += "parenempty";
     break;
-  case expression_kind::private_variable:
+  case Expression_Kind::Private_Variable:
     out += "var ";
     out += to_string_view(expression.variable_identifier().normalized_name());
     break;
-  case expression_kind::rw_unary_prefix:
+  case Expression_Kind::RW_Unary_Prefix:
     out += "rwunary(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::rw_unary_suffix:
+  case Expression_Kind::RW_Unary_Suffix:
     out += "rwunarysuffix(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::satisfies:
+  case Expression_Kind::Satisfies:
     out += "satisfies(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::spread:
+  case Expression_Kind::Spread:
     out += "spread(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::super:
+  case Expression_Kind::Super:
     out += "super";
     break;
-  case expression_kind::tagged_template_literal:
+  case Expression_Kind::Tagged_Template_Literal:
     out += "taggedtemplate(";
     children();
     out += ")";
     break;
-  case expression_kind::this_variable:
+  case Expression_Kind::This_Variable:
     out += "this";
     break;
-  case expression_kind::trailing_comma:
+  case Expression_Kind::Trailing_Comma:
     out += "trailingcomma(";
     children();
     out += ")";
     break;
-  case expression_kind::type_annotated:
+  case Expression_Kind::Type_Annotated:
     out += "typed(";
     children();
     out += ")";
     break;
-  case expression_kind::unary_operator:
+  case Expression_Kind::Unary_Operator:
     out += "unary(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::compound_assignment:
+  case Expression_Kind::Compound_Assignment:
     out += "upassign(";
     children();
     out += ")";
     break;
-  case expression_kind::conditional_assignment:
+  case Expression_Kind::Conditional_Assignment:
     out += "condassign(";
     children();
     out += ")";
     break;
-  case expression_kind::variable:
+  case Expression_Kind::Variable:
     out += "var ";
     out += to_string_view(expression.variable_identifier().normalized_name());
     break;
-  case expression_kind::binary_operator:
+  case Expression_Kind::Binary_Operator:
     out += "binary(";
     children();
     out += ")";
     break;
-  case expression_kind::yield_many:
+  case Expression_Kind::Yield_Many:
     out += "yieldmany(";
     summarize(expression.child_0(), out);
     out += ")";
     break;
-  case expression_kind::yield_none:
+  case Expression_Kind::Yield_None:
     out += "yieldnone";
     break;
-  case expression_kind::yield_one:
+  case Expression_Kind::Yield_One:
     out += "yield(";
     summarize(expression.child_0(), out);
     out += ")";
@@ -331,11 +331,11 @@ void summarize(const expression& expression, std::string& out) {
   }
 }
 
-void summarize(expression* expression, std::string& out) {
+void summarize(Expression* expression, std::string& out) {
   return summarize(*expression, out);
 }
 
-std::string summarize(expression* expression) {
+std::string summarize(Expression* expression) {
   std::string result;
   // At the time of writing, the biggest string in practice is 84 bytes. Let's
   // reserve more than that to avoid string copies.
@@ -344,7 +344,7 @@ std::string summarize(expression* expression) {
   return result;
 }
 
-std::string summarize(std::optional<expression*> expression) {
+std::string summarize(std::optional<Expression*> expression) {
   if (expression.has_value()) {
     return summarize(*expression);
   } else {

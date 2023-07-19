@@ -19,60 +19,60 @@ namespace quick_lint_js {
 //
 // * emplace might call operator= instead of destructing/constructing.
 template <class... Ts>
-class variant;
+class Variant;
 
-struct monostate {
-  friend bool operator==(monostate, monostate) noexcept { return true; }
-  friend bool operator!=(monostate, monostate) noexcept { return false; }
+struct Monostate {
+  friend bool operator==(Monostate, Monostate) noexcept { return true; }
+  friend bool operator!=(Monostate, Monostate) noexcept { return false; }
 };
 
 template <class T, class... Ts>
-bool holds_alternative(const variant<Ts...>& v) noexcept {
+bool holds_alternative(const Variant<Ts...>& v) noexcept {
   return v.template holds_alternative<T>();
 }
 
 template <class T, class... Ts>
-T& get(variant<Ts...>& v) noexcept {
+T& get(Variant<Ts...>& v) noexcept {
   return v.template get<T>();
 }
 
 template <class T, class... Ts>
-auto&& get(variant<Ts...>&& v) noexcept {
+auto&& get(Variant<Ts...>&& v) noexcept {
   return std::move(v).template get<T>();
 }
 
 template <class T, class... Ts>
-const T& get(const variant<Ts...>& v) noexcept {
+const T& get(const Variant<Ts...>& v) noexcept {
   return v.template get<T>();
 }
 
 template <std::size_t Index, class... Ts>
-auto& get(variant<Ts...>& v) noexcept {
+auto& get(Variant<Ts...>& v) noexcept {
   return v.template get<Index>();
 }
 
 template <std::size_t Index, class... Ts>
-auto&& get(variant<Ts...>&& v) noexcept {
+auto&& get(Variant<Ts...>&& v) noexcept {
   return std::move(v).template get<Index>();
 }
 
 template <std::size_t Index, class... Ts>
-const auto& get(const variant<Ts...>& v) noexcept {
+const auto& get(const Variant<Ts...>& v) noexcept {
   return v.template get<Index>();
 }
 
 template <class Visitor, class... Ts>
-auto visit(Visitor&& f, variant<Ts...>& v) {
+auto visit(Visitor&& f, Variant<Ts...>& v) {
   return v.visit(std::forward<Visitor>(f));
 }
 
 template <class Visitor, class... Ts>
-auto visit(Visitor&& f, variant<Ts...>&& v) {
+auto visit(Visitor&& f, Variant<Ts...>&& v) {
   return std::move(v).visit(std::forward<Visitor>(f));
 }
 
 template <class Visitor, class... Ts>
-auto visit(Visitor&& f, const variant<Ts...>& v) {
+auto visit(Visitor&& f, const Variant<Ts...>& v) {
   return v.visit(std::forward<Visitor>(f));
 }
 
@@ -84,7 +84,7 @@ auto visit(Visitor&& f, const variant<Ts...>& v) {
                                                                             \
   template <class T>                                                        \
   const T& get() const& noexcept {                                          \
-    return const_cast<variant*>(this)->template get<T>();                   \
+    return const_cast<Variant*>(this)->template get<T>();                   \
   }                                                                         \
                                                                             \
   template <std::size_t Index>                                              \
@@ -94,10 +94,10 @@ auto visit(Visitor&& f, const variant<Ts...>& v) {
                                                                             \
   template <std::size_t Index>                                              \
   const auto& get() const& noexcept {                                       \
-    return const_cast<variant*>(this)->template get<Index>();               \
+    return const_cast<Variant*>(this)->template get<Index>();               \
   }                                                                         \
                                                                             \
-  friend bool operator!=(const variant& lhs, const variant& rhs) noexcept { \
+  friend bool operator!=(const Variant& lhs, const Variant& rhs) noexcept { \
     return !(lhs == rhs);                                                   \
   }
 
@@ -116,27 +116,27 @@ auto visit(Visitor&& f, const variant<Ts...>& v) {
 // C++ citizen.
 
 template <class T0>
-class variant<T0> {
+class Variant<T0> {
  public:
   QLJS_VARIANT_MIXIN
 
-  /*implicit*/ variant(T0&& data) : data_0_(std::move(data)) {}
+  /*implicit*/ Variant(T0&& data) : data_0_(std::move(data)) {}
 
   template <class... Args>
-  explicit variant(std::in_place_type_t<T0>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T0>, Args&&... args)
       : data_0_(std::forward<Args>(args)...) {}
 
   template <class... Args>
-  explicit variant(std::in_place_index_t<0>, Args&&... args)
+  explicit Variant(std::in_place_index_t<0>, Args&&... args)
       : data_0_(std::forward<Args>(args)...) {}
 
-  variant(const variant&) = default;
-  variant& operator=(const variant&) = default;
+  Variant(const Variant&) = default;
+  Variant& operator=(const Variant&) = default;
 
-  variant(variant&&) = default;
-  variant& operator=(variant&&) = default;
+  Variant(Variant&&) = default;
+  Variant& operator=(Variant&&) = default;
 
-  ~variant() = default;
+  ~Variant() = default;
 
   std::size_t index() const noexcept { return 0; }
 
@@ -173,7 +173,7 @@ class variant<T0> {
     return std::forward<Visitor>(f)(this->data_0_);
   }
 
-  friend bool operator==(const variant& lhs, const variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
     return lhs.data_0_ == rhs.data_0_;
   }
 
@@ -188,28 +188,28 @@ class variant<T0> {
 };
 
 template <class T0, class T1>
-class variant<T0, T1> {
+class Variant<T0, T1> {
  public:
   QLJS_VARIANT_MIXIN
 
-  /*implicit*/ variant(T0&& data) : tag_(0), data_0_(std::move(data)) {}
-  /*implicit*/ variant(T1&& data) : tag_(1), data_1_(std::move(data)) {}
+  /*implicit*/ Variant(T0&& data) : tag_(0), data_0_(std::move(data)) {}
+  /*implicit*/ Variant(T1&& data) : tag_(1), data_1_(std::move(data)) {}
 
   template <class... Args>
-  explicit variant(std::in_place_type_t<T0>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T0>, Args&&... args)
       : tag_(0), data_0_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_type_t<T1>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T1>, Args&&... args)
       : tag_(1), data_1_(std::forward<Args>(args)...) {}
 
   template <class... Args>
-  explicit variant(std::in_place_index_t<0>, Args&&... args)
+  explicit Variant(std::in_place_index_t<0>, Args&&... args)
       : tag_(0), data_0_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_index_t<1>, Args&&... args)
+  explicit Variant(std::in_place_index_t<1>, Args&&... args)
       : tag_(1), data_1_(std::forward<Args>(args)...) {}
 
-  variant(const variant& other) : tag_(other.tag_) {
+  Variant(const Variant& other) : tag_(other.tag_) {
     switch (this->tag_) {
     case 0:
       new (&this->data_0_) T0(other.data_0_);
@@ -222,9 +222,9 @@ class variant<T0, T1> {
     }
   }
 
-  variant& operator=(const variant&) = delete;  // TODO(strager)
+  Variant& operator=(const Variant&) = delete;  // TODO(strager)
 
-  variant(variant&& other) : tag_(other.tag_) {
+  Variant(Variant&& other) : tag_(other.tag_) {
     switch (this->tag_) {
     case 0:
       new (&this->data_0_) T0(std::move(other.data_0_));
@@ -237,7 +237,7 @@ class variant<T0, T1> {
     }
   }
 
-  variant& operator=(variant&& other) {
+  Variant& operator=(Variant&& other) {
     if (&other == this) {
       return *this;
     }
@@ -250,7 +250,7 @@ class variant<T0, T1> {
     return *this;
   }
 
-  ~variant() { this->destruct(); }
+  ~Variant() { this->destruct(); }
 
   std::size_t index() const noexcept { return this->tag_; }
 
@@ -327,7 +327,7 @@ class variant<T0, T1> {
     }
   }
 
-  friend bool operator==(const variant& lhs, const variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
     if (lhs.tag_ != rhs.tag_) {
       return false;
     }
@@ -377,35 +377,35 @@ class variant<T0, T1> {
 };
 
 template <class T0, class T1, class T2>
-class variant<T0, T1, T2> {
+class Variant<T0, T1, T2> {
  public:
   QLJS_VARIANT_MIXIN
 
-  /*implicit*/ variant(T0&& data) : tag_(0), data_0_(std::move(data)) {}
-  /*implicit*/ variant(T1&& data) : tag_(1), data_1_(std::move(data)) {}
-  /*implicit*/ variant(T2&& data) : tag_(2), data_2_(std::move(data)) {}
+  /*implicit*/ Variant(T0&& data) : tag_(0), data_0_(std::move(data)) {}
+  /*implicit*/ Variant(T1&& data) : tag_(1), data_1_(std::move(data)) {}
+  /*implicit*/ Variant(T2&& data) : tag_(2), data_2_(std::move(data)) {}
 
   template <class... Args>
-  explicit variant(std::in_place_type_t<T0>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T0>, Args&&... args)
       : tag_(0), data_0_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_type_t<T1>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T1>, Args&&... args)
       : tag_(1), data_1_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_type_t<T2>, Args&&... args)
+  explicit Variant(std::in_place_type_t<T2>, Args&&... args)
       : tag_(2), data_2_(std::forward<Args>(args)...) {}
 
   template <class... Args>
-  explicit variant(std::in_place_index_t<0>, Args&&... args)
+  explicit Variant(std::in_place_index_t<0>, Args&&... args)
       : tag_(0), data_0_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_index_t<1>, Args&&... args)
+  explicit Variant(std::in_place_index_t<1>, Args&&... args)
       : tag_(1), data_1_(std::forward<Args>(args)...) {}
   template <class... Args>
-  explicit variant(std::in_place_index_t<2>, Args&&... args)
+  explicit Variant(std::in_place_index_t<2>, Args&&... args)
       : tag_(2), data_2_(std::forward<Args>(args)...) {}
 
-  variant(const variant& other) : tag_(other.tag_) {
+  Variant(const Variant& other) : tag_(other.tag_) {
     switch (this->tag_) {
     case 0:
       new (&this->data_0_) T0(other.data_0_);
@@ -421,9 +421,9 @@ class variant<T0, T1, T2> {
     }
   }
 
-  variant& operator=(const variant&) = delete;  // TODO(strager)
+  Variant& operator=(const Variant&) = delete;  // TODO(strager)
 
-  variant(variant&& other) : tag_(other.tag_) {
+  Variant(Variant&& other) : tag_(other.tag_) {
     switch (this->tag_) {
     case 0:
       new (&this->data_0_) T0(std::move(other.data_0_));
@@ -439,7 +439,7 @@ class variant<T0, T1, T2> {
     }
   }
 
-  variant& operator=(variant&& other) {
+  Variant& operator=(Variant&& other) {
     if (&other == this) {
       return *this;
     }
@@ -453,7 +453,7 @@ class variant<T0, T1, T2> {
     return *this;
   }
 
-  ~variant() { this->destruct(); }
+  ~Variant() { this->destruct(); }
 
   std::size_t index() const noexcept { return this->tag_; }
 
@@ -544,7 +544,7 @@ class variant<T0, T1, T2> {
     }
   }
 
-  friend bool operator==(const variant& lhs, const variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
     if (lhs.tag_ != rhs.tag_) {
       return false;
     }

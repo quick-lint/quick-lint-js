@@ -11,7 +11,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lsp_uri, file_from_lsp_uri_posix) {
+TEST(Test_LSP_URI, file_from_lsp_uri_posix) {
   auto parse = parse_file_from_lsp_uri_posix;
 
   EXPECT_EQ(parse(u8"file:///"_sv), "/");
@@ -37,7 +37,7 @@ TEST(test_lsp_uri, file_from_lsp_uri_posix) {
   EXPECT_EQ(parse(u8"file://server/x"_sv), "//server/x");
 }
 
-TEST(test_lsp_uri, file_from_lsp_uri_win32) {
+TEST(Test_LSP_URI, file_from_lsp_uri_win32) {
   auto parse = parse_file_from_lsp_uri_win32;
 
   EXPECT_EQ(parse(u8"file:///c:"_sv), R"(c:)");
@@ -80,7 +80,7 @@ TEST(test_lsp_uri, file_from_lsp_uri_win32) {
   EXPECT_EQ(parse(u8"file://c:/x"_sv), R"(\\c:\x)");
 }
 
-TEST(test_lsp_uri, file_from_lsp_uri_invalid_file_uri) {
+TEST(Test_LSP_URI, file_from_lsp_uri_invalid_file_uri) {
   for (auto parse :
        {parse_file_from_lsp_uri_posix, parse_file_from_lsp_uri_win32}) {
     EXPECT_EQ(parse(u8"http://example.com/path"_sv), "");

@@ -7,7 +7,7 @@
 #include <iosfwd>
 
 namespace quick_lint_js {
-enum class statement_kind {
+enum class Statement_Kind {
   do_while_loop,
   for_loop,  // TODO(strager): c_style_for_loop + for_in_loop + for_of_loop?
   if_statement,
@@ -16,14 +16,14 @@ enum class statement_kind {
   labelled_statement,
 };
 
-enum class enum_kind {
+enum class Enum_Kind {
   declare_const_enum,
   const_enum,
   declare_enum,
   normal,
 };
 
-enum class variable_kind {
+enum class Variable_Kind {
   _arrow_parameter,
   _catch,
   _class,
@@ -45,7 +45,7 @@ enum class variable_kind {
   _var,
 };
 
-enum variable_declaration_flags : unsigned char {
+enum Variable_Declaration_Flags : unsigned char {
   none = 0,
 
   // Only valid for _const, _let, and _var.
@@ -75,16 +75,16 @@ enum variable_declaration_flags : unsigned char {
   non_empty_namespace = 1 << 1,
 };
 
-std::ostream& operator<<(std::ostream&, variable_kind);
+std::ostream& operator<<(std::ostream&, Variable_Kind);
 
-enum class function_attributes {
+enum class Function_Attributes {
   async,
   async_generator,
   generator,
   normal,
 };
 
-std::ostream& operator<<(std::ostream&, function_attributes);
+std::ostream& operator<<(std::ostream&, Function_Attributes);
 }
 
 #endif

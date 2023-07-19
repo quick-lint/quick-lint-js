@@ -6,7 +6,7 @@
 #include <quick-lint-js/variable-analyzer-support.h>
 
 namespace quick_lint_js {
-global_declared_variable_set default_globals = configuration().globals();
+Global_Declared_Variable_Set default_globals = Configuration().globals();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

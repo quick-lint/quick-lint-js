@@ -32,18 +32,18 @@ constexpr std::array<std::uint8_t, 4+16+8+1> example_packet_header = {
 };
 // clang-format on
 
-TEST(test_trace_reader, empty_trace_has_packet_header) {
-  trace_reader reader;
+TEST(Test_Trace_Reader, empty_trace_has_packet_header) {
+  Trace_Reader reader;
   reader.append_bytes(example_packet_header.data(),
                       example_packet_header.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 1);
-  EXPECT_EQ(events[0].type, parsed_trace_event_type::packet_header);
+  EXPECT_EQ(events[0].type, Parsed_Trace_Event_Type::packet_header);
   EXPECT_EQ(events[0].packet_header.thread_id, 0x1234);
 }
 
-TEST(test_trace_reader, header_in_two_parts) {
+TEST(Test_Trace_Reader, header_in_two_parts) {
   for (std::size_t first_chunk_size = 1;
        first_chunk_size < example_packet_header.size() - 1;
        ++first_chunk_size) {
@@ -52,55 +52,55 @@ TEST(test_trace_reader, header_in_two_parts) {
     SCOPED_TRACE("first_chunk_size=" + std::to_string(first_chunk_size) +
                  " second_chunk_size=" + std::to_string(second_chunk_size));
 
-    trace_reader reader;
+    Trace_Reader reader;
     reader.append_bytes(example_packet_header.data(), first_chunk_size);
     reader.append_bytes(example_packet_header.data() + first_chunk_size,
                         second_chunk_size);
 
-    std::vector<parsed_trace_event> events = reader.pull_new_events();
+    std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
     ASSERT_EQ(events.size(), 1);
-    EXPECT_EQ(events[0].type, parsed_trace_event_type::packet_header);
+    EXPECT_EQ(events[0].type, Parsed_Trace_Event_Type::packet_header);
     EXPECT_EQ(events[0].packet_header.thread_id, 0x1234);
   }
 }
 
-TEST(test_trace_reader, invalid_magic_reports_error) {
+TEST(Test_Trace_Reader, invalid_magic_reports_error) {
   auto stream = example_packet_header;
   stream[0] = 0xc0;
   stream[3] = 0xc0;
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 1);
-  EXPECT_EQ(events[0].type, parsed_trace_event_type::error_invalid_magic);
+  EXPECT_EQ(events[0].type, Parsed_Trace_Event_Type::error_invalid_magic);
 }
 
-TEST(test_trace_reader, invalid_uuid_reports_error) {
+TEST(Test_Trace_Reader, invalid_uuid_reports_error) {
   auto stream = example_packet_header;
   stream[7] = 0xff;
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 1);
-  EXPECT_EQ(events[0].type, parsed_trace_event_type::error_invalid_uuid);
+  EXPECT_EQ(events[0].type, Parsed_Trace_Event_Type::error_invalid_uuid);
 }
 
-TEST(test_trace_reader, invalid_compression_mode_reports_error) {
+TEST(Test_Trace_Reader, invalid_compression_mode_reports_error) {
   auto stream = example_packet_header;
   stream[4 + 16 + 8] = 0xfe;
 
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 1);
   EXPECT_EQ(events[0].type,
-            parsed_trace_event_type::error_unsupported_compression_mode);
+            Parsed_Trace_Event_Type::error_unsupported_compression_mode);
 }
 
-TEST(test_trace_reader, init_event) {
+TEST(Test_Trace_Reader, init_event) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -111,17 +111,17 @@ TEST(test_trace_reader, init_event) {
 
                            // Version
                            u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0'));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and init event";
-  EXPECT_EQ(events[1].type, parsed_trace_event_type::init_event);
+  EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::init_event);
   EXPECT_EQ(events[1].init_event.timestamp, 0x5678);
   EXPECT_EQ(events[1].init_event.version, u8"1.0.0"_sv);
 }
 
-TEST(test_trace_reader, vscode_document_opened_event) {
+TEST(Test_Trace_Reader, vscode_document_opened_event) {
   auto stream =
       concat(example_packet_header,
              make_array_explicit<std::uint8_t>(
@@ -145,14 +145,14 @@ TEST(test_trace_reader, vscode_document_opened_event) {
                  // Content
                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
                  'h', 0, 'i', 0));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::vscode_document_opened_event);
-  parsed_vscode_document_opened_event& event =
+            Parsed_Trace_Event_Type::vscode_document_opened_event);
+  Parsed_VSCode_Document_Opened_Event& event =
       events[1].vscode_document_opened_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -161,7 +161,7 @@ TEST(test_trace_reader, vscode_document_opened_event) {
   EXPECT_EQ(event.content, u"hi"sv);
 }
 
-TEST(test_trace_reader, vscode_document_closed_event) {
+TEST(Test_Trace_Reader, vscode_document_closed_event) {
   auto stream =
       concat(example_packet_header,
              make_array_explicit<std::uint8_t>(
@@ -181,14 +181,14 @@ TEST(test_trace_reader, vscode_document_closed_event) {
                  // Language ID
                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
                  'j', 0, 's', 0));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::vscode_document_closed_event);
-  parsed_vscode_document_closed_event& event =
+            Parsed_Trace_Event_Type::vscode_document_closed_event);
+  Parsed_VSCode_Document_Closed_Event& event =
       events[1].vscode_document_closed_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -196,7 +196,7 @@ TEST(test_trace_reader, vscode_document_closed_event) {
   EXPECT_EQ(event.language_id, u"js"sv);
 }
 
-TEST(test_trace_reader, vscode_document_changed_event) {
+TEST(Test_Trace_Reader, vscode_document_changed_event) {
   auto stream = concat(
       example_packet_header,
       make_array_explicit<std::uint8_t>(
@@ -237,19 +237,19 @@ TEST(test_trace_reader, vscode_document_changed_event) {
           // Change 1 text
           0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
           'b', 0, 'y', 0, 'e', 0));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::vscode_document_changed_event);
-  parsed_vscode_document_changed_event& event =
+            Parsed_Trace_Event_Type::vscode_document_changed_event);
+  Parsed_VSCode_Document_Changed_Event& event =
       events[1].vscode_document_changed_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
   EXPECT_THAT(event.changes, ElementsAreArray({
-                                 parsed_vscode_document_change{
+                                 Parsed_VSCode_Document_Change{
                                      .range =
                                          {
                                              .start =
@@ -267,7 +267,7 @@ TEST(test_trace_reader, vscode_document_changed_event) {
                                      .range_length = 0x66,
                                      .text = u"hi",
                                  },
-                                 parsed_vscode_document_change{
+                                 Parsed_VSCode_Document_Change{
                                      .range =
                                          {
                                              .start =
@@ -288,7 +288,7 @@ TEST(test_trace_reader, vscode_document_changed_event) {
                              }));
 }
 
-TEST(test_trace_reader, vscode_document_sync_event) {
+TEST(Test_Trace_Reader, vscode_document_sync_event) {
   auto stream =
       concat(example_packet_header,
              make_array_explicit<std::uint8_t>(
@@ -312,14 +312,14 @@ TEST(test_trace_reader, vscode_document_sync_event) {
                  // Content
                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
                  'h', 0, 'i', 0));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::vscode_document_sync_event);
-  parsed_vscode_document_sync_event& event =
+            Parsed_Trace_Event_Type::vscode_document_sync_event);
+  Parsed_VSCode_Document_Sync_Event& event =
       events[1].vscode_document_sync_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -328,7 +328,7 @@ TEST(test_trace_reader, vscode_document_sync_event) {
   EXPECT_EQ(event.content, u"hi"sv);
 }
 
-TEST(test_trace_reader, lsp_client_to_server_message_event) {
+TEST(Test_Trace_Reader, lsp_client_to_server_message_event) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -340,20 +340,20 @@ TEST(test_trace_reader, lsp_client_to_server_message_event) {
                            // Body
                            2, 0, 0, 0, 0, 0, 0, 0,  // Size
                            '{', '}'));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::lsp_client_to_server_message_event);
-  parsed_lsp_client_to_server_message_event& event =
+            Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
+  Parsed_LSP_Client_To_Server_Message_Event& event =
       events[1].lsp_client_to_server_message_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.body, u8"{}"_sv);
 }
 
-TEST(test_trace_reader, read_lsp_client_to_server_message_event_in_two_parts) {
+TEST(Test_Trace_Reader, read_lsp_client_to_server_message_event_in_two_parts) {
   auto event = make_array_explicit<std::uint8_t>(
       // Timestamp
       0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -364,22 +364,22 @@ TEST(test_trace_reader, read_lsp_client_to_server_message_event_in_two_parts) {
       // Body
       2, 0, 0, 0, 0, 0, 0, 0,  // Size
       '{', '}');
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(example_packet_header.data(),
                       example_packet_header.size());
   reader.append_bytes(event.data(), event.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::lsp_client_to_server_message_event);
-  parsed_lsp_client_to_server_message_event& e =
+            Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
+  Parsed_LSP_Client_To_Server_Message_Event& e =
       events[1].lsp_client_to_server_message_event;
   EXPECT_EQ(e.timestamp, 0x5678);
   EXPECT_EQ(e.body, u8"{}"_sv);
 }
 
-TEST(test_trace_reader, vector_max_size_histogram_by_owner_event) {
+TEST(Test_Trace_Reader, vector_max_size_histogram_by_owner_event) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -406,14 +406,14 @@ TEST(test_trace_reader, vector_max_size_histogram_by_owner_event) {
                            1, 0, 0, 0, 0, 0, 0, 0,  // Count
                            3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
                            7, 0, 0, 0, 0, 0, 0, 0));  // Max size entry 0 count
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and histogram event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::vector_max_size_histogram_by_owner_event);
-  parsed_vector_max_size_histogram_by_owner_event& event =
+            Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event);
+  Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event =
       events[1].vector_max_size_histogram_by_owner_event;
   EXPECT_EQ(event.timestamp, 0x5678);
 
@@ -422,18 +422,18 @@ TEST(test_trace_reader, vector_max_size_histogram_by_owner_event) {
   EXPECT_THAT(
       event.entries[0].max_size_entries,
       ElementsAreArray({
-          parsed_vector_max_size_histogram_entry{.max_size = 0, .count = 4},
-          parsed_vector_max_size_histogram_entry{.max_size = 1, .count = 3},
+          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 0, .count = 4},
+          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 1, .count = 3},
       }));
   EXPECT_EQ(event.entries[1].owner, u8"o2"_sv);
   EXPECT_THAT(
       event.entries[1].max_size_entries,
       ElementsAreArray({
-          parsed_vector_max_size_histogram_entry{.max_size = 3, .count = 7},
+          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 3, .count = 7},
       }));
 }
 
-TEST(test_trace_reader, process_id_event) {
+TEST(Test_Trace_Reader, process_id_event) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -444,18 +444,18 @@ TEST(test_trace_reader, process_id_event) {
 
                            // Process ID
                            0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and process event";
-  EXPECT_EQ(events[1].type, parsed_trace_event_type::process_id_event);
-  parsed_process_id_event& event = events[1].process_id_event;
+  EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::process_id_event);
+  Parsed_Process_ID_Event& event = events[1].process_id_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.process_id, 0x0123);
 }
 
-TEST(test_trace_reader, lsp_documents_event) {
+TEST(Test_Trace_Reader, lsp_documents_event) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -481,22 +481,22 @@ TEST(test_trace_reader, lsp_documents_event) {
                            // Document 0: language ID
                            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
                            'j', 's'));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
-  EXPECT_EQ(events[1].type, parsed_trace_event_type::lsp_documents_event);
-  parsed_lsp_documents_event& event = events[1].lsp_documents_event;
+  EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::lsp_documents_event);
+  Parsed_LSP_Documents_Event& event = events[1].lsp_documents_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   ASSERT_EQ(event.documents.size(), 1);
-  EXPECT_EQ(event.documents[0].type, parsed_lsp_document_type::lintable);
+  EXPECT_EQ(event.documents[0].type, Parsed_LSP_Document_Type::lintable);
   EXPECT_EQ(event.documents[0].uri, u8"file:///f"_sv);
   EXPECT_EQ(event.documents[0].text, u8"hello"_sv);
   EXPECT_EQ(event.documents[0].language_id, u8"js"_sv);
 }
 
-TEST(test_trace_reader, invalid_lsp_document_type) {
+TEST(Test_Trace_Reader, invalid_lsp_document_type) {
   auto stream = concat(example_packet_header,
                        make_array_explicit<std::uint8_t>(
                            // Timestamp
@@ -519,18 +519,18 @@ TEST(test_trace_reader, invalid_lsp_document_type) {
 
                            // Document 0: language ID
                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
-  trace_reader reader;
+  Trace_Reader reader;
   reader.append_bytes(stream.data(), stream.size());
 
-  std::vector<parsed_trace_event> events = reader.pull_new_events();
+  std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 3)
       << "expected packet header, error event, and lsp event";
   EXPECT_EQ(events[1].type,
-            parsed_trace_event_type::error_unsupported_lsp_document_type);
-  EXPECT_EQ(events[2].type, parsed_trace_event_type::lsp_documents_event);
-  parsed_lsp_documents_event& event = events[2].lsp_documents_event;
+            Parsed_Trace_Event_Type::error_unsupported_lsp_document_type);
+  EXPECT_EQ(events[2].type, Parsed_Trace_Event_Type::lsp_documents_event);
+  Parsed_LSP_Documents_Event& event = events[2].lsp_documents_event;
   ASSERT_EQ(event.documents.size(), 1);
-  EXPECT_EQ(event.documents[0].type, parsed_lsp_document_type::unknown);
+  EXPECT_EQ(event.documents[0].type, Parsed_LSP_Document_Type::unknown);
 }
 }
 }

@@ -26,182 +26,182 @@ std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
   return listener.str();
 }
 
-TEST(test_diag_matcher, match_error_type) {
-  padded_string code(u8"hello"_sv);
+TEST(Test_Diag_Matcher, match_error_type) {
+  Padded_String code(u8"hello"_sv);
 
-  ::testing::Matcher<const diag_collector::diag &> continue_matcher =
-      DIAG_TYPE(diag_invalid_continue);
+  ::testing::Matcher<const Diag_Collector::Diag &> continue_matcher =
+      DIAG_TYPE(Diag_Invalid_Continue);
   EXPECT_TRUE(
-      continue_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-          .continue_statement = source_code_span(&code[0], &code[5]),
+      continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
       })));
-  EXPECT_FALSE(continue_matcher.Matches(diag_collector::diag(diag_invalid_break{
-      .break_statement = source_code_span(&code[0], &code[5]),
+  EXPECT_FALSE(continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
   })));
 
-  ::testing::Matcher<const diag_collector::diag &> break_matcher =
-      DIAG_TYPE(diag_invalid_break);
-  EXPECT_FALSE(break_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-      .continue_statement = source_code_span(&code[0], &code[5]),
+  ::testing::Matcher<const Diag_Collector::Diag &> break_matcher =
+      DIAG_TYPE(Diag_Invalid_Break);
+  EXPECT_FALSE(break_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+      .continue_statement = Source_Code_Span(&code[0], &code[5]),
   })));
-  EXPECT_TRUE(break_matcher.Matches(diag_collector::diag(diag_invalid_break{
-      .break_statement = source_code_span(&code[0], &code[5]),
+  EXPECT_TRUE(break_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
   })));
 }
 
-TEST(test_diag_matcher, match_error_type_message) {
-  padded_string code(u8"hello"_sv);
-  ::testing::Matcher<const diag_collector::diag &> matcher =
-      DIAG_TYPE(diag_invalid_break);
-  diag_collector::diag value(diag_invalid_continue{
-      .continue_statement = source_code_span(&code[0], &code[5]),
+TEST(Test_Diag_Matcher, match_error_type_message) {
+  Padded_String code(u8"hello"_sv);
+  ::testing::Matcher<const Diag_Collector::Diag &> matcher =
+      DIAG_TYPE(Diag_Invalid_Break);
+  Diag_Collector::Diag value(Diag_Invalid_Continue{
+      .continue_statement = Source_Code_Span(&code[0], &code[5]),
   });
   EXPECT_EQ(get_matcher_message(matcher, value),
-            "whose type (diag_invalid_continue) isn't diag_invalid_break");
+            "whose type (Diag_Invalid_Continue) isn't Diag_Invalid_Break");
 }
 
-TEST(test_diag_matcher, match_error_type_with_1_field) {
-  padded_string code(u8"hello"_sv);
+TEST(Test_Diag_Matcher, match_error_type_with_1_field) {
+  Padded_String code(u8"hello"_sv);
 
-  ::testing::Matcher<const diag_collector::diag &> continue_matcher =
-      DIAG_TYPE_OFFSETS(&code, diag_invalid_continue,  //
+  ::testing::Matcher<const Diag_Collector::Diag &> continue_matcher =
+      DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Continue,  //
                         continue_statement, 0, u8"hello"_sv);
   EXPECT_TRUE(
-      continue_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-          .continue_statement = source_code_span(&code[0], &code[5]),
+      continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
       })));
-  EXPECT_FALSE(continue_matcher.Matches(diag_collector::diag(diag_invalid_break{
-      .break_statement = source_code_span(&code[0], &code[5]),
+  EXPECT_FALSE(continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
   })));
 
-  ::testing::Matcher<const diag_collector::diag &> break_matcher =
-      DIAG_TYPE_OFFSETS(&code, diag_invalid_break,  //
+  ::testing::Matcher<const Diag_Collector::Diag &> break_matcher =
+      DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Break,  //
                         break_statement, 0, u8"hello"_sv);
-  EXPECT_FALSE(break_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-      .continue_statement = source_code_span(&code[0], &code[5]),
+  EXPECT_FALSE(break_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+      .continue_statement = Source_Code_Span(&code[0], &code[5]),
   })));
-  EXPECT_TRUE(break_matcher.Matches(diag_collector::diag(diag_invalid_break{
-      .break_statement = source_code_span(&code[0], &code[5]),
+  EXPECT_TRUE(break_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
   })));
 }
 
-TEST(test_diag_matcher, match_error_type_with_1_field_message) {
-  padded_string code(u8"hello"_sv);
-  ::testing::Matcher<const diag_collector::diag &> matcher =
-      DIAG_TYPE_OFFSETS(&code, diag_invalid_continue,  //
+TEST(Test_Diag_Matcher, match_error_type_with_1_field_message) {
+  Padded_String code(u8"hello"_sv);
+  ::testing::Matcher<const Diag_Collector::Diag &> matcher =
+      DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Continue,  //
                         continue_statement, 0, u8"hello"_sv);
-  diag_collector::diag value(diag_invalid_break{
-      .break_statement = source_code_span(&code[0], &code[5]),
+  Diag_Collector::Diag value(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
   });
   EXPECT_EQ(get_matcher_message(matcher, value),
-            "whose type (diag_invalid_break) isn't diag_invalid_continue");
+            "whose type (Diag_Invalid_Break) isn't Diag_Invalid_Continue");
 }
 
-TEST(test_diag_matcher, match_offsets_of_1_field_span) {
-  padded_string code(u8"hello"_sv);
+TEST(Test_Diag_Matcher, match_offsets_of_1_field_span) {
+  Padded_String code(u8"hello"_sv);
 
-  ::testing::Matcher<const diag_collector::diag &> continue_matcher =
-      DIAG_TYPE_OFFSETS(&code, diag_invalid_continue,  //
+  ::testing::Matcher<const Diag_Collector::Diag &> continue_matcher =
+      DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Continue,  //
                         continue_statement, 1, u8"ello"_sv);
   EXPECT_TRUE(
-      continue_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-          .continue_statement = source_code_span(&code[1], &code[5]),
+      continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[1], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-          .continue_statement = source_code_span(&code[0], &code[5]),
+      continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(diag_collector::diag(diag_invalid_continue{
-          .continue_statement = source_code_span(&code[0], &code[4]),
+      continue_matcher.Matches(Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[4]),
       })));
 }
 
-TEST(test_diag_matcher, match_offsets_of_1_field_identifier) {
-  padded_string code(u8"hello"_sv);
+TEST(Test_Diag_Matcher, match_offsets_of_1_field_identifier) {
+  Padded_String code(u8"hello"_sv);
 
-  ::testing::Matcher<const diag_collector::diag &> matcher =
-      DIAG_TYPE_OFFSETS(&code, diag_assignment_to_undeclared_variable,  //
+  ::testing::Matcher<const Diag_Collector::Diag &> matcher =
+      DIAG_TYPE_OFFSETS(&code, Diag_Assignment_To_Undeclared_Variable,  //
                         assignment, 1, u8"ello"_sv);
   EXPECT_TRUE(matcher.Matches(
-      diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = source_code_span(&code[1], &code[5]),
+      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
+          .assignment = Source_Code_Span(&code[1], &code[5]),
       })));
   EXPECT_FALSE(matcher.Matches(
-      diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = source_code_span(&code[0], &code[5]),
+      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
+          .assignment = Source_Code_Span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(matcher.Matches(
-      diag_collector::diag(diag_assignment_to_undeclared_variable{
-          .assignment = source_code_span(&code[0], &code[4]),
+      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
+          .assignment = Source_Code_Span(&code[0], &code[4]),
       })));
 }
 
-TEST(test_diag_matcher, match_offsets_of_1_field_message) {
-  padded_string code(u8"hello"_sv);
+TEST(Test_Diag_Matcher, match_offsets_of_1_field_message) {
+  Padded_String code(u8"hello"_sv);
   {
-    ::testing::Matcher<const diag_collector::diag &> matcher =
-        DIAG_TYPE_OFFSETS(&code, diag_invalid_continue,  //
+    ::testing::Matcher<const Diag_Collector::Diag &> matcher =
+        DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Continue,  //
                           continue_statement, 0, u8"hello"_sv);
-    diag_collector::diag value(diag_invalid_continue{
-        .continue_statement = source_code_span(&code[1], &code[4]),
+    Diag_Collector::Diag value(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[1], &code[4]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
               "whose .continue_statement (1-4) doesn't equal 0-5");
   }
 
   {
-    ::testing::Matcher<const diag_collector::diag &> matcher =
-        DIAG_TYPE_OFFSETS(&code, diag_invalid_break,  //
+    ::testing::Matcher<const Diag_Collector::Diag &> matcher =
+        DIAG_TYPE_OFFSETS(&code, Diag_Invalid_Break,  //
                           break_statement, 0, u8"hello"_sv);
-    diag_collector::diag value(diag_invalid_break{
-        .break_statement = source_code_span(&code[1], &code[4]),
+    Diag_Collector::Diag value(Diag_Invalid_Break{
+        .break_statement = Source_Code_Span(&code[1], &code[4]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
               "whose .break_statement (1-4) doesn't equal 0-5");
   }
 }
 
-TEST(test_diag_matcher, match_offsets_of_2_fields_span) {
-  padded_string code(u8"...x,"_sv);
+TEST(Test_Diag_Matcher, match_offsets_of_2_fields_span) {
+  Padded_String code(u8"...x,"_sv);
 
-  ::testing::Matcher<const diag_collector::diag &> matcher =
+  ::testing::Matcher<const Diag_Collector::Diag &> matcher =
       DIAG_TYPE_2_OFFSETS(&code,
-                          diag_comma_not_allowed_after_spread_parameter,  //
+                          Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
                           comma, strlen(u8"...x"), u8","_sv, spread, 0,
                           u8"..."_sv);
   EXPECT_TRUE(matcher.Matches(
-      diag_collector::diag(diag_comma_not_allowed_after_spread_parameter{
-          .comma = source_code_span(&code[4], &code[5]),
-          .spread = source_code_span(&code[0], &code[3]),
+      Diag_Collector::Diag(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+          .comma = Source_Code_Span(&code[4], &code[5]),
+          .spread = Source_Code_Span(&code[0], &code[3]),
       })));
   EXPECT_FALSE(matcher.Matches(
-      diag_collector::diag(diag_comma_not_allowed_after_spread_parameter{
-          .comma = source_code_span(&code[3], &code[5]),
-          .spread = source_code_span(&code[0], &code[3]),
+      Diag_Collector::Diag(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+          .comma = Source_Code_Span(&code[3], &code[5]),
+          .spread = Source_Code_Span(&code[0], &code[3]),
       })))
       << "when first doesn't match";
   EXPECT_FALSE(matcher.Matches(
-      diag_collector::diag(diag_comma_not_allowed_after_spread_parameter{
-          .comma = source_code_span(&code[4], &code[5]),
-          .spread = source_code_span(&code[1], &code[3]),
+      Diag_Collector::Diag(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+          .comma = Source_Code_Span(&code[4], &code[5]),
+          .spread = Source_Code_Span(&code[1], &code[3]),
       })))
       << "when second doesn't match";
 }
 
-TEST(test_diag_matcher, match_offsets_of_2_fields_message) {
-  padded_string code(u8"...x,"_sv);
+TEST(Test_Diag_Matcher, match_offsets_of_2_fields_message) {
+  Padded_String code(u8"...x,"_sv);
 
   // Two wrong fields:
   {
-    ::testing::Matcher<const diag_collector::diag &> matcher =
+    ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
-                            diag_comma_not_allowed_after_spread_parameter,  //
+                            Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
                             comma, strlen(u8"...x"), u8","_sv, spread, 0,
                             u8"..."_sv);
-    diag_collector::diag value(diag_comma_not_allowed_after_spread_parameter{
-        .comma = source_code_span(&code[3], &code[5]),
-        .spread = source_code_span(&code[1], &code[3]),
+    Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+        .comma = Source_Code_Span(&code[3], &code[5]),
+        .spread = Source_Code_Span(&code[1], &code[3]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
               "whose .comma (3-5) doesn't equal 4-5 and whose .spread (1-3) "
@@ -210,14 +210,14 @@ TEST(test_diag_matcher, match_offsets_of_2_fields_message) {
 
   // Only first field is wrong:
   {
-    ::testing::Matcher<const diag_collector::diag &> matcher =
+    ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
-                            diag_comma_not_allowed_after_spread_parameter,  //
+                            Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
                             comma, strlen(u8"...x"), u8","_sv, spread, 0,
                             u8"..."_sv);
-    diag_collector::diag value(diag_comma_not_allowed_after_spread_parameter{
-        .comma = source_code_span(&code[3], &code[5]),
-        .spread = source_code_span(&code[0], &code[3]),
+    Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+        .comma = Source_Code_Span(&code[3], &code[5]),
+        .spread = Source_Code_Span(&code[0], &code[3]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
               "whose .comma (3-5) doesn't equal 4-5 and whose .spread (0-3) "
@@ -226,14 +226,14 @@ TEST(test_diag_matcher, match_offsets_of_2_fields_message) {
 
   // Only second field is wrong:
   {
-    ::testing::Matcher<const diag_collector::diag &> matcher =
+    ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
-                            diag_comma_not_allowed_after_spread_parameter,  //
+                            Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
                             comma, strlen(u8"...x"), u8","_sv, spread, 0,
                             u8"..."_sv);
-    diag_collector::diag value(diag_comma_not_allowed_after_spread_parameter{
-        .comma = source_code_span(&code[4], &code[5]),
-        .spread = source_code_span(&code[1], &code[3]),
+    Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+        .comma = Source_Code_Span(&code[4], &code[5]),
+        .spread = Source_Code_Span(&code[1], &code[3]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
               "whose .comma (4-5) equals 4-5 and whose .spread (1-3) doesn't "

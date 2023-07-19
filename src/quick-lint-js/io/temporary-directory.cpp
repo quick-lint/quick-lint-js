@@ -70,20 +70,20 @@ std::string get_temp_dir() {
 }
 #endif
 
-std::string create_directory_io_error::to_string() const {
+std::string Create_Directory_IO_Error::to_string() const {
   return this->io_error.to_string();
 }
 
 #if QLJS_HAVE_MKDTEMP
-result<void, platform_file_io_error> make_unique_directory(std::string &path) {
+Result<void, Platform_File_IO_Error> make_unique_directory(std::string &path) {
   path += ".XXXXXX";
   if (!::mkdtemp(path.data())) {
-    return failed_result(platform_file_io_error{.error = errno});
+    return failed_result(Platform_File_IO_Error{.error = errno});
   }
   return {};
 }
 #elif QLJS_HAVE_STD_FILESYSTEM
-result<void, platform_file_io_error> make_unique_directory(std::string &path) {
+Result<void, Platform_File_IO_Error> make_unique_directory(std::string &path) {
   std::string_view characters = "abcdefghijklmnopqrstuvwxyz";
   std::uniform_int_distribution<std::size_t> character_index_distribution(
       0, characters.size() - 1);
@@ -97,7 +97,7 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
       suffix += characters[character_index_distribution(rng)];
     }
 
-    result<void, create_directory_io_error> create_result =
+    Result<void, Create_Directory_IO_Error> create_result =
         create_directory(path + suffix);
     if (!create_result.ok()) {
       continue;
@@ -108,7 +108,7 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
   }
 
   // TODO(strager): Return the proper error code from 'create_result'.
-  return failed_result(platform_file_io_error{
+  return failed_result(Platform_File_IO_Error{
       .error = 0,
   });
 }
@@ -156,7 +156,7 @@ std::string make_temporary_directory() {
 #error "Unsupported platform"
 #endif
 
-result<void, create_directory_io_error> create_directory(
+Result<void, Create_Directory_IO_Error> create_directory(
     const std::string &path) {
 #if QLJS_HAVE_WINDOWS_H
   std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
@@ -172,9 +172,9 @@ result<void, create_directory_io_error> create_directory(
         directory_existed = attributes & FILE_ATTRIBUTE_DIRECTORY;
       }
     }
-    return failed_result(create_directory_io_error{
+    return failed_result(Create_Directory_IO_Error{
         .io_error =
-            windows_file_io_error{
+            Windows_File_IO_Error{
                 .error = error,
             },
         .is_directory_already_exists_error = directory_existed,
@@ -191,9 +191,9 @@ result<void, create_directory_io_error> create_directory(
         directory_existed = S_ISDIR(s.st_mode);
       }
     }
-    return failed_result(create_directory_io_error{
+    return failed_result(Create_Directory_IO_Error{
         .io_error =
-            posix_file_io_error{
+            POSIX_File_IO_Error{
                 .error = error,
             },
         .is_directory_already_exists_error = directory_existed,
@@ -206,7 +206,7 @@ result<void, create_directory_io_error> create_directory(
     // TODO(strager): Return the proper error code from 'error'.
     return failed_result(create_directory_io_error{
         .io_error =
-            platform_file_io_error{
+            Platform_File_IO_Error{
                 .error = 0,
             },
     });
@@ -228,7 +228,7 @@ void create_directory_or_exit(const std::string &path) {
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wformat-nonliteral")
-result<std::string, platform_file_io_error> make_timestamped_directory(
+Result<std::string, Platform_File_IO_Error> make_timestamped_directory(
     std::string_view parent_directory, const char *format) {
   std::time_t now = std::time(nullptr);
   std::tm *now_tm = std::localtime(&now);
@@ -263,9 +263,9 @@ bool is_dot_or_dot_dot(const Char *path) {
 }
 
 #if QLJS_HAVE_WINDOWS_H
-result<void, platform_file_io_error> list_directory_raw(
+Result<void, Platform_File_IO_Error> list_directory_raw(
     const char *directory,
-    function_ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
+    Function_Ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
   std::optional<std::wstring> search_pattern = mbstring_to_wstring(directory);
   if (!search_pattern.has_value()) {
     QLJS_UNIMPLEMENTED();
@@ -275,7 +275,7 @@ result<void, platform_file_io_error> list_directory_raw(
   ::WIN32_FIND_DATAW entry;
   ::HANDLE finder = ::FindFirstFileW(search_pattern->c_str(), &entry);
   if (finder == INVALID_HANDLE_VALUE) {
-    return failed_result(windows_file_io_error{
+    return failed_result(Windows_File_IO_Error{
         .error = ::GetLastError(),
     });
   }
@@ -285,7 +285,7 @@ result<void, platform_file_io_error> list_directory_raw(
 
   ::DWORD error = ::GetLastError();
   if (error != ERROR_NO_MORE_FILES) {
-    return failed_result(windows_file_io_error{
+    return failed_result(Windows_File_IO_Error{
         .error = error,
     });
   }
@@ -296,11 +296,11 @@ result<void, platform_file_io_error> list_directory_raw(
 #endif
 
 #if QLJS_HAVE_DIRENT_H
-result<void, platform_file_io_error> list_directory_raw(
-    const char *directory, function_ref<void(::dirent *)> visit_entry) {
+Result<void, Platform_File_IO_Error> list_directory_raw(
+    const char *directory, Function_Ref<void(::dirent *)> visit_entry) {
   ::DIR *d = ::opendir(directory);
   if (d == nullptr) {
-    return failed_result(posix_file_io_error{
+    return failed_result(POSIX_File_IO_Error{
         .error = errno,
     });
   }
@@ -309,7 +309,7 @@ result<void, platform_file_io_error> list_directory_raw(
     ::dirent *entry = ::readdir(d);
     if (!entry) {
       if (errno != 0) {
-        return failed_result(posix_file_io_error{
+        return failed_result(POSIX_File_IO_Error{
             .error = errno,
         });
       }
@@ -323,8 +323,8 @@ result<void, platform_file_io_error> list_directory_raw(
 #endif
 }
 
-result<void, platform_file_io_error> list_directory(
-    const char *directory, function_ref<void(const char *)> visit_file) {
+Result<void, Platform_File_IO_Error> list_directory(
+    const char *directory, Function_Ref<void(const char *)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
   auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
@@ -350,9 +350,9 @@ result<void, platform_file_io_error> list_directory(
 #endif
 }
 
-result<void, platform_file_io_error> list_directory(
+Result<void, Platform_File_IO_Error> list_directory(
     const char *directory,
-    function_ref<void(const char *, bool is_directory)> visit_file) {
+    Function_Ref<void(const char *, bool is_directory)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
   auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
@@ -402,12 +402,12 @@ result<void, platform_file_io_error> list_directory(
 }
 
 void list_directory_recursively(
-    const char *directory, function_ref<void(const std::string &)> visit_file,
-    function_ref<void(const platform_file_io_error &, int depth)> on_error) {
-  struct finder {
+    const char *directory, Function_Ref<void(const std::string &)> visit_file,
+    Function_Ref<void(const Platform_File_IO_Error &, int depth)> on_error) {
+  struct Finder {
     std::string path;
-    function_ref<void(const std::string &)> visit_file;
-    function_ref<void(const platform_file_io_error &, int depth)> on_error;
+    Function_Ref<void(const std::string &)> visit_file;
+    Function_Ref<void(const Platform_File_IO_Error &, int depth)> on_error;
 
     void recurse(int depth) {
       std::size_t path_length = this->path.size();
@@ -425,20 +425,20 @@ void list_directory_recursively(
       };
       // TODO(strager): Reduce allocations on Windows. Windows uses wchar_t
       // paths and also needs a "\*" suffix.
-      result<void, platform_file_io_error> list =
+      Result<void, Platform_File_IO_Error> list =
           list_directory(this->path.c_str(), visit_child);
       if (!list.ok()) {
         this->on_error(list.error(), depth);
       }
     }
   };
-  finder f = {directory, visit_file, on_error};
+  Finder f = {directory, visit_file, on_error};
   f.recurse(0);
 }
 
-result<std::string, platform_file_io_error> get_current_working_directory() {
+Result<std::string, Platform_File_IO_Error> get_current_working_directory() {
   std::string cwd;
-  result<void, platform_file_io_error> r = get_current_working_directory(cwd);
+  Result<void, Platform_File_IO_Error> r = get_current_working_directory(cwd);
   if (!r.ok()) {
     return r.propagate();
   }
@@ -446,10 +446,10 @@ result<std::string, platform_file_io_error> get_current_working_directory() {
 }
 
 #if QLJS_HAVE_WINDOWS_H
-result<void, platform_file_io_error> get_current_working_directory(
+Result<void, Platform_File_IO_Error> get_current_working_directory(
     std::string &out) {
   std::wstring cwd;
-  result<void, platform_file_io_error> r = get_current_working_directory(cwd);
+  Result<void, Platform_File_IO_Error> r = get_current_working_directory(cwd);
   if (!r.ok()) {
     return r.propagate();
   }
@@ -461,7 +461,7 @@ result<void, platform_file_io_error> get_current_working_directory(
   return {};
 }
 
-result<void, platform_file_io_error> get_current_working_directory(
+Result<void, Platform_File_IO_Error> get_current_working_directory(
     std::wstring &out) {
   // size includes the null terminator.
   DWORD size = ::GetCurrentDirectoryW(0, nullptr);
@@ -481,13 +481,13 @@ result<void, platform_file_io_error> get_current_working_directory(
   return {};
 }
 #else
-result<void, platform_file_io_error> get_current_working_directory(
+Result<void, Platform_File_IO_Error> get_current_working_directory(
     std::string &out) {
   // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
   // buffer?
   out.resize(PATH_MAX);
   if (!::getcwd(out.data(), out.size() + 1)) {
-    return failed_result(posix_file_io_error{errno});
+    return failed_result(POSIX_File_IO_Error{errno});
   }
   out.resize(std::strlen(out.c_str()));
   return {};

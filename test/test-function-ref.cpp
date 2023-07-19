@@ -7,10 +7,10 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_function_ref, references_temporary_lambda_with_no_captures) {
+TEST(Test_Function_Ref, references_temporary_lambda_with_no_captures) {
   static int calls;
   calls = 0;
-  function_ref<std::string()> f([]() -> std::string {
+  Function_Ref<std::string()> f([]() -> std::string {
     calls += 1;
     return "called";
   });
@@ -21,14 +21,14 @@ TEST(test_function_ref, references_temporary_lambda_with_no_captures) {
   EXPECT_EQ(result, "called");
 }
 
-TEST(test_function_ref, references_temporary_lambda_lvalue_with_no_captures) {
+TEST(Test_Function_Ref, references_temporary_lambda_lvalue_with_no_captures) {
   static int calls;
   calls = 0;
   auto functor = []() -> std::string {
     calls += 1;
     return "called";
   };
-  function_ref<std::string()> f(functor);
+  Function_Ref<std::string()> f(functor);
 
   EXPECT_EQ(calls, 0);
   std::string result = f();
@@ -36,11 +36,11 @@ TEST(test_function_ref, references_temporary_lambda_lvalue_with_no_captures) {
   EXPECT_EQ(result, "called");
 }
 
-TEST(test_function_ref,
+TEST(Test_Function_Ref,
      converts_implicitly_from_temporary_lambda_with_no_captures) {
   static int calls;
   calls = 0;
-  auto test = [](function_ref<std::string()> f) -> void {
+  auto test = [](Function_Ref<std::string()> f) -> void {
     EXPECT_EQ(calls, 0);
     std::string result = f();
     EXPECT_EQ(calls, 1);
@@ -52,7 +52,7 @@ TEST(test_function_ref,
   });
 }
 
-TEST(test_function_ref, references_lambda_with_captures_if_stack_allocated) {
+TEST(Test_Function_Ref, references_lambda_with_captures_if_stack_allocated) {
   static int calls;
   calls = 0;
   int captured;
@@ -60,7 +60,7 @@ TEST(test_function_ref, references_lambda_with_captures_if_stack_allocated) {
     calls += 1;
     return captured;
   };
-  function_ref<int()> f(functor);
+  Function_Ref<int()> f(functor);
 
   EXPECT_EQ(calls, 0);
   captured = 42;
@@ -69,7 +69,7 @@ TEST(test_function_ref, references_lambda_with_captures_if_stack_allocated) {
   EXPECT_EQ(result, 42);
 }
 
-TEST(test_function_ref,
+TEST(Test_Function_Ref,
      references_const_lambda_with_captures_if_stack_allocated) {
   static int calls;
   calls = 0;
@@ -78,7 +78,7 @@ TEST(test_function_ref,
     calls += 1;
     return captured;
   };
-  function_ref<int()> f(functor);
+  Function_Ref<int()> f(functor);
 
   EXPECT_EQ(calls, 0);
   captured = 42;
@@ -89,9 +89,9 @@ TEST(test_function_ref,
 
 // TODO(strager): Test that the following programs do not compile:
 #if 0
-TEST(test_function_ref, cannot_reference_lambda_rvalue_with_captures) {
+TEST(Test_Function_Ref, cannot_reference_lambda_rvalue_with_captures) {
    int captured = 0;
-   function_ref<int()> f([captured]() -> int {
+   Function_Ref<int()> f([captured]() -> int {
      return captured;
    });
    f();  // Undefined behavior (if the code compiled).

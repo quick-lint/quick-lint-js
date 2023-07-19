@@ -18,101 +18,101 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-using test_parse_integer_exact_decimal_types =
+using Test_Parse_Integer_Exact_Decimal_Types =
     ::testing::Types<unsigned short, int, std::size_t>;
 template <class T>
-class test_parse_integer_exact_decimal : public ::testing::Test {};
-TYPED_TEST_SUITE(test_parse_integer_exact_decimal,
-                 test_parse_integer_exact_decimal_types,
+class Test_Parse_Integer_Exact_Decimal : public ::testing::Test {};
+TYPED_TEST_SUITE(Test_Parse_Integer_Exact_Decimal,
+                 Test_Parse_Integer_Exact_Decimal_Types,
                  ::testing::internal::DefaultNameGenerator);
 
-TYPED_TEST(test_parse_integer_exact_decimal, common_non_negative_integers) {
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal, common_non_negative_integers) {
   {
     TypeParam number;
-    parse_integer_exact_error parse_error = parse_integer_exact("0"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    Parse_Integer_Exact_Error parse_error = parse_integer_exact("0"sv, number);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
     EXPECT_EQ(number, 0);
   }
 
   {
     TypeParam number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("1234"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
     EXPECT_EQ(number, 1234);
   }
 }
 
-TEST(test_parse_integer_exact_wchars_decimal_unsigned_short, common_integers) {
+TEST(Test_Parse_Integer_Exact_Wchars_Decimal_Unsigned_Short, common_integers) {
   {
     unsigned short number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact(L"1234"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
     EXPECT_EQ(number, 1234);
   }
 }
 
-TEST(test_parse_integer_exact_decimal_int, common_negative_integers) {
+TEST(Test_Parse_Integer_Exact_Decimal_Int, common_negative_integers) {
   {
     int number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("-1234"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
     EXPECT_EQ(number, -1234);
   }
 }
 
-TEST(test_parse_integer_exact_decimal_int, minimum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Int, minimum_integer) {
   static_assert(std::numeric_limits<int>::min() == -2147483648LL);
   int number;
-  parse_integer_exact_error parse_error =
+  Parse_Integer_Exact_Error parse_error =
       parse_integer_exact("-2147483648"sv, number);
-  EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
   EXPECT_EQ(number, -2147483648LL);
 }
 
-TEST(test_parse_integer_exact_decimal_unsigned_short, maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Unsigned_Short, maximum_integer) {
   static_assert(std::numeric_limits<unsigned short>::max() == 65535);
   unsigned short number;
-  parse_integer_exact_error parse_error =
+  Parse_Integer_Exact_Error parse_error =
       parse_integer_exact("65535"sv, number);
   EXPECT_EQ(number, 65535);
-  EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
 }
 
-TEST(test_parse_integer_exact_decimal_int, maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Int, maximum_integer) {
   static_assert(std::numeric_limits<int>::max() == 2147483647);
   int number;
-  parse_integer_exact_error parse_error =
+  Parse_Integer_Exact_Error parse_error =
       parse_integer_exact("2147483647"sv, number);
   EXPECT_EQ(number, 2147483647);
-  EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+  EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
 }
 
-TEST(test_parse_integer_exact_decimal_size_t, maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Size_T, maximum_integer) {
   static_assert(std::numeric_limits<std::size_t>::max() == 4294967295ULL ||
                 std::numeric_limits<std::size_t>::max() ==
                     18446744073709551615ULL);
 
   {
     std::size_t number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("4294967295"sv, number);
     EXPECT_EQ(number, 4294967295ULL);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
   }
 
   if (std::numeric_limits<std::size_t>::max() >= 18446744073709551615ULL) {
     std::size_t number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("18446744073709551615"sv, number);
     EXPECT_EQ(number, 18446744073709551615ULL);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
   }
 }
 
-TEST(test_parse_integer_exact_decimal_unsigned_short, exhausive_ok_SLOW) {
+TEST(Test_Parse_Integer_Exact_Decimal_Unsigned_Short, exhausive_ok_SLOW) {
   static constexpr unsigned short max_ushort =
       std::numeric_limits<unsigned short>::max();
   static_assert(max_ushort < std::numeric_limits<unsigned>::max());
@@ -123,29 +123,29 @@ TEST(test_parse_integer_exact_decimal_unsigned_short, exhausive_ok_SLOW) {
     SCOPED_TRACE(string);
 
     unsigned short parsed_number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact(string, parsed_number);
     EXPECT_EQ(parsed_number, i);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
   }
 }
 
-TEST(test_parse_integer_exact_decimal_unsigned_short, over_maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Unsigned_Short, over_maximum_integer) {
   static_assert(std::numeric_limits<unsigned short>::max() < 65536);
 
   {
     unsigned short number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("65536"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     unsigned short number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("9999999999999999999"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
@@ -154,8 +154,8 @@ TEST(test_parse_integer_exact_decimal_unsigned_short, over_maximum_integer) {
   for (std::string_view input : {"72817"sv, "72820"sv}) {
     SCOPED_TRACE(input);
     unsigned short number = 42;
-    parse_integer_exact_error parse_error = parse_integer_exact(input, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    Parse_Integer_Exact_Error parse_error = parse_integer_exact(input, number);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
@@ -164,149 +164,149 @@ TEST(test_parse_integer_exact_decimal_unsigned_short, over_maximum_integer) {
   for (std::string_view input : {"100000"sv, "438223"sv, "655369"sv}) {
     SCOPED_TRACE(input);
     unsigned short number = 42;
-    parse_integer_exact_error parse_error = parse_integer_exact(input, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    Parse_Integer_Exact_Error parse_error = parse_integer_exact(input, number);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TEST(test_parse_integer_exact_decimal_int, over_maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Int, over_maximum_integer) {
   static_assert(std::numeric_limits<int>::max() < 2147483648LL);
 
   {
     int number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("2147483648"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     int number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("9999999999999999999"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TEST(test_parse_integer_exact_decimal_size_t, over_maximum_integer) {
+TEST(Test_Parse_Integer_Exact_Decimal_Size_T, over_maximum_integer) {
   static_assert(std::numeric_limits<std::size_t>::max() == 4294967295ULL ||
                 std::numeric_limits<std::size_t>::max() ==
                     18446744073709551615ULL);
 
   if (std::numeric_limits<std::size_t>::max() <= 4294967295ULL) {
     std::size_t number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("4294967296"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     std::size_t number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("18446744073709551616"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     int number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("9999999999999999999999"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::out_of_range);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::out_of_range);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TEST(test_parse_integer_exact_decimal_size_t,
+TEST(Test_Parse_Integer_Exact_Decimal_Size_T,
      negative_integers_are_disallowed) {
   {
     std::size_t number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("-9001"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TYPED_TEST(test_parse_integer_exact_decimal,
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal,
            extra_characters_after_are_not_parsed) {
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("1234abcd"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("123   "sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TYPED_TEST(test_parse_integer_exact_decimal, extra_characters_before) {
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal, extra_characters_before) {
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("  123"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("--123"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("+123"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
-TYPED_TEST(test_parse_integer_exact_decimal, radix_prefix_is_not_special) {
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal, radix_prefix_is_not_special) {
   {
     TypeParam number = 42;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("0x123a"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
     EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 
   {
     TypeParam number;
-    parse_integer_exact_error parse_error =
+    Parse_Integer_Exact_Error parse_error =
         parse_integer_exact("0777"sv, number);
-    EXPECT_EQ(parse_error, parse_integer_exact_error::ok);
+    EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::ok);
     EXPECT_EQ(number, 777);
   }
 }
 
-TYPED_TEST(test_parse_integer_exact_decimal,
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal,
            empty_input_string_is_unrecognized) {
   TypeParam number = 42;
-  parse_integer_exact_error parse_error = parse_integer_exact(""sv, number);
-  EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+  Parse_Integer_Exact_Error parse_error = parse_integer_exact(""sv, number);
+  EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 
-TYPED_TEST(test_parse_integer_exact_decimal,
+TYPED_TEST(Test_Parse_Integer_Exact_Decimal,
            minus_sign_without_digits_is_unrecognized) {
   TypeParam number = 42;
-  parse_integer_exact_error parse_error = parse_integer_exact("- 1"sv, number);
-  EXPECT_EQ(parse_error, parse_integer_exact_error::invalid);
+  Parse_Integer_Exact_Error parse_error = parse_integer_exact("- 1"sv, number);
+  EXPECT_EQ(parse_error, Parse_Integer_Exact_Error::invalid);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
 }

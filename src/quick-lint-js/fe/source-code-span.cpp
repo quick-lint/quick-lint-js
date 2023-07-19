@@ -5,7 +5,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-bool same_pointers(source_code_span x, source_code_span y) noexcept {
+bool same_pointers(Source_Code_Span x, Source_Code_Span y) noexcept {
   return x.begin() == y.begin() && x.end() == y.end();
 }
 }

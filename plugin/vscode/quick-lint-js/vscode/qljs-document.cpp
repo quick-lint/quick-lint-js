@@ -13,21 +13,21 @@
 #include <string_view>
 
 namespace quick_lint_js {
-void qljs_config_document::after_modification(::Napi::Env env,
-                                              qljs_workspace& workspace,
-                                              vscode_diagnostic_collection) {
+void QLJS_Config_Document::after_modification(::Napi::Env env,
+                                              QLJS_Workspace& workspace,
+                                              VSCode_Diagnostic_Collection) {
   workspace.check_for_config_file_changes(env);
 }
 
-void qljs_lintable_document::after_modification(
-    ::Napi::Env env, qljs_workspace& workspace,
-    vscode_diagnostic_collection diagnostic_collection) {
+void QLJS_Lintable_Document::after_modification(
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection) {
   this->lint_javascript_and_publish_diagnostics(env, workspace.vscode_,
                                                 diagnostic_collection);
 }
 
-void qljs_lintable_document::finish_init(
-    ::Napi::Env env, qljs_workspace& workspace,
+void QLJS_Lintable_Document::finish_init(
+    ::Napi::Env env, QLJS_Workspace& workspace,
     const std::optional<std::string>& file_path) {
   this->config_ = &workspace.default_config_;
   if (file_path.has_value()) {
@@ -36,7 +36,7 @@ void qljs_lintable_document::finish_init(
     auto loaded_config_result =
         workspace.config_loader_.watch_and_load_for_file(*file_path, this);
     if (loaded_config_result.ok()) {
-      loaded_config_file* loaded_config = *loaded_config_result;
+      Loaded_Config_File* loaded_config = *loaded_config_result;
       if (loaded_config) {
         if (!loaded_config->errors.empty()) {
           QLJS_ASSERT(loaded_config->config_path);
@@ -75,8 +75,8 @@ void qljs_lintable_document::finish_init(
   }
 }
 
-void qljs_config_document::finish_init(
-    ::Napi::Env env, qljs_workspace& workspace,
+void QLJS_Config_Document::finish_init(
+    ::Napi::Env env, QLJS_Workspace& workspace,
     const std::optional<std::string>& file_path) {
   QLJS_ASSERT(file_path.has_value());
   QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", &workspace,
@@ -93,35 +93,35 @@ void qljs_config_document::finish_init(
   }
 }
 
-void qljs_config_document::on_config_file_changed(
-    ::Napi::Env env, qljs_workspace& workspace,
-    vscode_diagnostic_collection diagnostic_collection,
-    loaded_config_file* config_file) {
+void QLJS_Config_Document::on_config_file_changed(
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection,
+    Loaded_Config_File* config_file) {
   this->lint_config_and_publish_diagnostics(env, workspace.vscode_,
                                             diagnostic_collection, config_file);
 }
 
-void qljs_config_document::lint_config_and_publish_diagnostics(
-    ::Napi::Env env, vscode_module& vscode,
-    vscode_diagnostic_collection diagnostic_collection,
-    loaded_config_file* loaded_config) {
+void QLJS_Config_Document::lint_config_and_publish_diagnostics(
+    ::Napi::Env env, VSCode_Module& vscode,
+    VSCode_Diagnostic_Collection diagnostic_collection,
+    Loaded_Config_File* loaded_config) {
   diagnostic_collection.set(this->uri(),
                             this->lint_config(env, &vscode, loaded_config));
 }
 
-void qljs_lintable_document::on_config_file_changed(
-    ::Napi::Env env, qljs_workspace& workspace,
-    vscode_diagnostic_collection diagnostic_collection,
-    loaded_config_file* config_file) {
+void QLJS_Lintable_Document::on_config_file_changed(
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection,
+    Loaded_Config_File* config_file) {
   this->config_ =
       config_file ? &config_file->config : &workspace.default_config_;
   this->lint_javascript_and_publish_diagnostics(env, workspace.vscode_,
                                                 diagnostic_collection);
 }
 
-void qljs_lintable_document::lint_javascript_and_publish_diagnostics(
-    ::Napi::Env env, vscode_module& vscode,
-    vscode_diagnostic_collection diagnostic_collection) {
+void QLJS_Lintable_Document::lint_javascript_and_publish_diagnostics(
+    ::Napi::Env env, VSCode_Module& vscode,
+    VSCode_Diagnostic_Collection diagnostic_collection) {
   diagnostic_collection.set(this->uri(), this->lint_javascript(env, &vscode));
 }
 }

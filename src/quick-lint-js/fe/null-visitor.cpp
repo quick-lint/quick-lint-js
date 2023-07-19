@@ -4,7 +4,7 @@
 #include <quick-lint-js/fe/null-visitor.h>
 
 namespace quick_lint_js {
-null_visitor null_visitor::instance;
+Null_Visitor Null_Visitor::instance;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -19,26 +19,26 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_interface,
+TEST(Test_Variable_Analyzer_Interface,
      interface_body_can_reference_types_outside) {
-  const char8 interface_declaration[] = u8"I";
-  const char8 type_declaration[] = u8"C";
-  const char8 type_use[] = u8"C";
-  const char8 method_name[] = u8"method";
+  const Char8 interface_declaration[] = u8"I";
+  const Char8 type_declaration[] = u8"C";
+  const Char8 type_use[] = u8"C";
+  const Char8 method_name[] = u8"method";
 
   {
     // import {C} from "other-module";
     // interface I {
     //   method(): C;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
-                                 variable_kind::_import,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_import,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
@@ -54,11 +54,11 @@ TEST(test_variable_analyzer_interface,
     // interface I {
     //   method(): C;  // ERROR
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
@@ -68,32 +68,32 @@ TEST(test_variable_analyzer_interface,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
                                              span_of(type_use)),
                           }));
   }
 }
 
-TEST(test_variable_analyzer_interface,
+TEST(Test_Variable_Analyzer_Interface,
      generic_interface_parameters_are_usable_inside) {
-  const char8 interface_declaration[] = u8"I";
-  const char8 parameter_declaration[] = u8"T";
-  const char8 parameter_use[] = u8"T";
-  const char8 method_name[] = u8"method";
+  const Char8 interface_declaration[] = u8"I";
+  const Char8 parameter_declaration[] = u8"T";
+  const Char8 parameter_use[] = u8"T";
+  const Char8 method_name[] = u8"method";
 
   {
     // interface I<T> {
     //   method(): T;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 variable_kind::_generic_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_generic_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_property_declaration(identifier_of(method_name));
     l.visit_enter_function_scope();
     l.visit_variable_type_use(identifier_of(parameter_use));
@@ -105,33 +105,33 @@ TEST(test_variable_analyzer_interface,
   }
 }
 
-TEST(test_variable_analyzer_interface,
+TEST(Test_Variable_Analyzer_Interface,
      interface_index_signature_can_use_outside_types) {
-  const char8 type_declaration[] = u8"C";
-  const char8 interface_declaration[] = u8"I";
-  const char8 index_declaration[] = u8"index";
-  const char8 type_use_1[] = u8"C";
-  const char8 type_use_2[] = u8"C";
+  const Char8 type_declaration[] = u8"C";
+  const Char8 interface_declaration[] = u8"I";
+  const Char8 index_declaration[] = u8"index";
+  const Char8 type_use_1[] = u8"C";
+  const Char8 type_use_2[] = u8"C";
 
   {
     // import {C} from "other-module";
     // interface I {
     //   [index: C]: C;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(type_declaration),
-                                 variable_kind::_import,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_import,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_index_signature_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_index_signature_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
@@ -144,50 +144,50 @@ TEST(test_variable_analyzer_interface,
     // interface I {
     //   [index: C]: C;  // ERROR
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_type_use(identifier_of(type_use_1));
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_index_signature_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_index_signature_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_type_use(identifier_of(type_use_2));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, UnorderedElementsAre(
-                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
                                              span_of(type_use_1)),
-                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
                                              span_of(type_use_2))));
   }
 }
 
-TEST(test_variable_analyzer_interface,
+TEST(Test_Variable_Analyzer_Interface,
      interface_index_signature_variable_is_usable_inside) {
-  const char8 interface_declaration[] = u8"I";
-  const char8 index_declaration[] = u8"index";
-  const char8 index_use[] = u8"index";
+  const Char8 interface_declaration[] = u8"I";
+  const Char8 index_declaration[] = u8"index";
+  const Char8 index_use[] = u8"index";
 
   {
     // interface I {
     //   [index: number]: typeof index;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_index_signature_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_index_signature_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_variable_use(identifier_of(index_use));
     l.visit_exit_index_signature_scope();
     l.visit_exit_interface_scope();
@@ -197,13 +197,13 @@ TEST(test_variable_analyzer_interface,
   }
 }
 
-TEST(test_variable_analyzer_interface,
+TEST(Test_Variable_Analyzer_Interface,
      interface_index_signature_variable_is_not_usable_outside) {
-  const char8 interface_declaration[] = u8"I";
-  const char8 index_declaration[] = u8"index";
-  const char8 property_declaration[] = u8"index";
-  const char8 index_use_inside_interface[] = u8"index";
-  const char8 index_use_outside_interface[] = u8"index";
+  const Char8 interface_declaration[] = u8"I";
+  const Char8 index_declaration[] = u8"index";
+  const Char8 property_declaration[] = u8"index";
+  const Char8 index_use_inside_interface[] = u8"index";
+  const Char8 index_use_outside_interface[] = u8"index";
 
   {
     // interface I {
@@ -211,16 +211,16 @@ TEST(test_variable_analyzer_interface,
     //   other: typeof index;  // ERROR
     // }
     // index;  // ERROR
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 variable_kind::_interface,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_interface,
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_interface_scope();
     l.visit_enter_index_signature_scope();
     l.visit_variable_declaration(identifier_of(index_declaration),
-                                 variable_kind::_index_signature_parameter,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_index_signature_parameter,
+                                 Variable_Declaration_Flags::none);
     l.visit_exit_index_signature_scope();
     l.visit_property_declaration(identifier_of(property_declaration));
     l.visit_variable_use(identifier_of(index_use_inside_interface));
@@ -230,9 +230,9 @@ TEST(test_variable_analyzer_interface,
 
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
                                    span_of(index_use_inside_interface)),
-                    DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
                                    span_of(index_use_outside_interface))));
   }
 }

@@ -9,24 +9,24 @@
 
 namespace quick_lint_js {
 template <class T>
-struct numeric_limits : public std::numeric_limits<T> {};
+struct Numeric_Limits : public std::numeric_limits<T> {};
 
 #if QLJS_HAVE_CHAR8_T
 // HACK(strager): Work around older versions of libc++ not supporting
 // std::numeric_limits<char8_t> despite the corresponding versions of Clang
 // supporting char8_t.
 template <>
-struct numeric_limits<char8_t> {
+struct Numeric_Limits<char8_t> {
   static constexpr char8_t lowest() noexcept {
-    return static_cast<char8_t>(uchar_limits::lowest());
+    return static_cast<char8_t>(UChar_Limits::lowest());
   }
 
   static constexpr char8_t(max)() noexcept {
-    return static_cast<char8_t>((uchar_limits::max)());
+    return static_cast<char8_t>((UChar_Limits::max)());
   }
 
  private:
-  using uchar_limits = numeric_limits<unsigned char>;
+  using UChar_Limits = Numeric_Limits<unsigned char>;
 };
 #endif
 }

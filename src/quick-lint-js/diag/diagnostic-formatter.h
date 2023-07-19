@@ -20,61 +20,61 @@
 #include <utility>
 
 namespace quick_lint_js {
-string8_view headlinese_enum_kind(enum_kind) noexcept;
-translatable_message headlinese_statement_kind(statement_kind) noexcept;
-translatable_message singular_statement_kind(statement_kind) noexcept;
+String8_View headlinese_enum_kind(Enum_Kind) noexcept;
+Translatable_Message headlinese_statement_kind(Statement_Kind) noexcept;
+Translatable_Message singular_statement_kind(Statement_Kind) noexcept;
 
-class diagnostic_formatter_base {
+class Diagnostic_Formatter_Base {
  public:
-  explicit diagnostic_formatter_base(translator t);
+  explicit Diagnostic_Formatter_Base(Translator t);
 
-  source_code_span get_argument_source_code_span(
-      const diagnostic_message_args& args, const void* diagnostic,
+  Source_Code_Span get_argument_source_code_span(
+      const Diagnostic_Message_Args& args, const void* diagnostic,
       int arg_index);
 
-  string8_view expand_argument(const diagnostic_message_args& args,
+  String8_View expand_argument(const Diagnostic_Message_Args& args,
                                const void* diagnostic, int arg_index);
 
-  string8_view expand_argument_headlinese(const diagnostic_message_args& args,
+  String8_View expand_argument_headlinese(const Diagnostic_Message_Args& args,
                                           const void* diagnostic,
                                           int arg_index);
 
-  string8_view expand_argument_singular(const diagnostic_message_args& args,
+  String8_View expand_argument_singular(const Diagnostic_Message_Args& args,
                                         const void* diagnostic, int arg_index);
 
  protected:
-  translator translator_;
+  Translator translator_;
 
  private:
-  std::pair<const void*, diagnostic_arg_type> get_arg(
-      const diagnostic_message_args& args, const void* diagnostic,
+  std::pair<const void*, Diagnostic_Arg_Type> get_arg(
+      const Diagnostic_Message_Args& args, const void* diagnostic,
       int arg_index) noexcept;
 };
 
 template <class Derived>
-class diagnostic_formatter : private diagnostic_formatter_base {
+class Diagnostic_Formatter : private Diagnostic_Formatter_Base {
  public:
-  using diagnostic_formatter_base::diagnostic_formatter_base;
+  using Diagnostic_Formatter_Base::Diagnostic_Formatter_Base;
 
   // Assumed member functions in Derived:
   //
   // void write_before_message(std::string_view code, diagnostic_severity,
-  //                           const source_code_span &origin);
+  //                           const Source_Code_Span &origin);
   // void write_message_part(std::string_view code,
-  //                         diagnostic_severity, string8_view);
+  //                         diagnostic_severity, String8_View);
   // void write_after_message(std::string_view code, diagnostic_severity,
-  //                          const source_code_span &origin);
+  //                          const Source_Code_Span &origin);
 
-  void format(const diagnostic_info& info, const void* diagnostic);
+  void format(const Diagnostic_Info& info, const void* diagnostic);
 
-  void format_message(std::string_view code, diagnostic_severity severity,
-                      translatable_message format,
-                      const diagnostic_message_args& args,
+  void format_message(std::string_view code, Diagnostic_Severity severity,
+                      Translatable_Message format,
+                      const Diagnostic_Message_Args& args,
                       const void* diagnostic);
 };
 
 template <class Derived>
-inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
+inline void Diagnostic_Formatter<Derived>::format(const Diagnostic_Info& info,
                                                   const void* diagnostic) {
   auto code_string = info.code_string();
   std::string_view code_string_view(code_string.data(), code_string.size());
@@ -82,28 +82,28 @@ inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
   this->format_message(code_string_view, info.severity, info.message_formats[0],
                        info.message_args[0], diagnostic);
   if (info.message_formats[1].valid()) {
-    this->format_message(code_string_view, diagnostic_severity::note,
+    this->format_message(code_string_view, Diagnostic_Severity::note,
                          info.message_formats[1], info.message_args[1],
                          diagnostic);
   }
 }
 
 template <class Derived>
-inline void diagnostic_formatter<Derived>::format_message(
-    std::string_view code, diagnostic_severity severity,
-    translatable_message message_format, const diagnostic_message_args& args,
+inline void Diagnostic_Formatter<Derived>::format_message(
+    std::string_view code, Diagnostic_Severity severity,
+    Translatable_Message message_format, const Diagnostic_Message_Args& args,
     const void* diagnostic) {
-  static constexpr auto npos = string8_view::npos;
-  using string8_pos = string8_view::size_type;
+  static constexpr auto npos = String8_View::npos;
+  using String8_Pos = String8_View::size_type;
 
   Derived* self = static_cast<Derived*>(this);
 
-  source_code_span origin_span =
+  Source_Code_Span origin_span =
       get_argument_source_code_span(args, diagnostic, 0);
   self->write_before_message(code, severity, origin_span);
 
-  string8_view remaining_message(this->translator_.translate(message_format));
-  string8_pos left_curly_index;
+  String8_View remaining_message(this->translator_.translate(message_format));
+  String8_Pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
     QLJS_ASSERT(left_curly_index != remaining_message.size() &&
                 "invalid message format: { at end of string has no matching }");
@@ -119,14 +119,14 @@ inline void diagnostic_formatter<Derived>::format_message(
     self->write_message_part(code, severity,
                              remaining_message.substr(0, left_curly_index));
 
-    string8_pos right_curly_index =
+    String8_Pos right_curly_index =
         remaining_message.find(u8'}', left_curly_index + 1);
     QLJS_ASSERT(right_curly_index != npos &&
                 "invalid message format: missing }");
-    string8_view curly_content = remaining_message.substr(
+    String8_View curly_content = remaining_message.substr(
         left_curly_index + 1, right_curly_index - (left_curly_index + 1));
 
-    string8_view expanded_parameter;
+    String8_View expanded_parameter;
     if (curly_content == u8"0"_sv) {
       expanded_parameter = this->expand_argument(args, diagnostic, 0);
     } else if (curly_content == u8"1"_sv) {

@@ -32,14 +32,14 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-class test_pipe_writer : public ::testing::Test {
+class Test_Pipe_Writer : public ::testing::Test {
  public:
-  pipe_fds pipe = make_pipe_for_pipe_writer();
-  pipe_writer writer{this->pipe.writer.ref()};
+  Pipe_FDs pipe = make_pipe_for_pipe_writer();
+  Pipe_Writer writer{this->pipe.writer.ref()};
 
  private:
-  static pipe_fds make_pipe_for_pipe_writer() {
-    pipe_fds pipe = make_pipe();
+  static Pipe_FDs make_pipe_for_pipe_writer() {
+    Pipe_FDs pipe = make_pipe();
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD
     pipe.writer.set_pipe_non_blocking();
 #endif
@@ -47,47 +47,47 @@ class test_pipe_writer : public ::testing::Test {
   }
 };
 
-byte_buffer byte_buffer_of(string8_view data) {
-  byte_buffer bb;
+Byte_Buffer byte_buffer_of(String8_View data) {
+  Byte_Buffer bb;
   bb.append_copy(data);
   return bb;
 }
 
-TEST_F(test_pipe_writer, large_write_sends_fully) {
-  std::future<result<padded_string, read_file_io_error> > data_future =
+TEST_F(Test_Pipe_Writer, large_write_sends_fully) {
+  std::future<Result<Padded_String, Read_File_IO_Error> > data_future =
       std::async(std::launch::async, [this] {
         return read_file("<pipe>", this->pipe.reader.ref());
       });
 
-  string8 to_write =
-      u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
+  String8 to_write =
+      u8"[" + String8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
       u8"]";
   this->writer.write(byte_buffer_of(to_write));
   this->writer.flush();
   this->pipe.writer.close();
 
-  result<padded_string, read_file_io_error> data = data_future.get();
+  Result<Padded_String, Read_File_IO_Error> data = data_future.get();
   ASSERT_TRUE(data.ok()) << data.error().to_string();
   EXPECT_EQ(*data, to_write);
 }
 
 // pipe_reader_thread reads data from a pipe using a background thread. When
 // expected_data_size bytes are received, a promise's value is set.
-class pipe_reader_thread {
+class Pipe_Reader_Thread {
  public:
-  void start(platform_file_ref pipe) {
+  void start(Platform_File_Ref pipe) {
     this->receiving_thread_ =
         std::async(std::launch::async, [this, pipe]() mutable -> void {
           for (;;) {
-            std::array<char8, (1 << 16)> buffer;
-            file_read_result read_result =
+            std::array<Char8, (1 << 16)> buffer;
+            File_Read_Result read_result =
                 pipe.read(buffer.data(), buffer.size());
             if (!read_result.ok()) QLJS_UNIMPLEMENTED();
             if (read_result.at_end_of_file()) {
               return;
             } else {
-              std::unique_lock<mutex> lock(this->mutex_);
-              this->received_data.append(string8_view(
+              std::unique_lock<Mutex> lock(this->mutex_);
+              this->received_data.append(String8_View(
                   buffer.data(),
                   narrow_cast<std::size_t>(read_result.bytes_read())));
               this->data_received_.notify_one();
@@ -97,7 +97,7 @@ class pipe_reader_thread {
   }
 
   void wait_until_size(std::size_t expected_data_size) {
-    std::unique_lock<mutex> lock(this->mutex_);
+    std::unique_lock<Mutex> lock(this->mutex_);
     this->data_received_.wait(
         lock, [&] { return this->received_data.size() >= expected_data_size; });
   }
@@ -105,21 +105,21 @@ class pipe_reader_thread {
   void join() { this->receiving_thread_.get(); }
 
   // Locked by mutex_:
-  string8 received_data;
+  String8 received_data;
 
  private:
-  mutex mutex_;
-  condition_variable data_received_;
+  Mutex mutex_;
+  Condition_Variable data_received_;
   std::future<void> receiving_thread_;
 };
 
-TEST_F(test_pipe_writer, large_write_with_no_reader_does_not_block) {
-  string8 to_write =
-      u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
+TEST_F(Test_Pipe_Writer, large_write_with_no_reader_does_not_block) {
+  String8 to_write =
+      u8"[" + String8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
       u8"]";
   this->writer.write(byte_buffer_of(to_write));  // Shouldn't block.
 
-  pipe_reader_thread read_thread;
+  Pipe_Reader_Thread read_thread;
   read_thread.start(this->pipe.reader.ref());
 
   this->writer.flush();
@@ -132,16 +132,16 @@ TEST_F(test_pipe_writer, large_write_with_no_reader_does_not_block) {
       << "more data should not have arrived after closing the pipe";
 }
 
-TEST_F(test_pipe_writer,
+TEST_F(Test_Pipe_Writer,
        multiple_small_messages_with_no_reader_does_not_block) {
   this->writer.write(byte_buffer_of(u8"hello"_sv));  // Shouldn't block.
   this->writer.write(byte_buffer_of(u8", "_sv));     // Shouldn't block.
   std::this_thread::sleep_for(1ms);  // Attempt to expose a race condition.
   this->writer.write(byte_buffer_of(u8"world"_sv));  // Shouldn't block.
   this->writer.write(byte_buffer_of(u8"!"_sv));      // Shouldn't block.
-  string8 expected_data = u8"hello, world!";
+  String8 expected_data = u8"hello, world!";
 
-  pipe_reader_thread read_thread;
+  Pipe_Reader_Thread read_thread;
   read_thread.start(this->pipe.reader.ref());
 
   this->writer.flush();
@@ -154,18 +154,18 @@ TEST_F(test_pipe_writer,
       << "more data should not have arrived after closing the pipe";
 }
 
-TEST_F(test_pipe_writer,
+TEST_F(Test_Pipe_Writer,
        multiple_large_messages_with_no_reader_does_not_block) {
-  string8 xs(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x');
-  string8 ys(this->pipe.writer.get_pipe_buffer_size() * 2, u8'y');
+  String8 xs(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x');
+  String8 ys(this->pipe.writer.get_pipe_buffer_size() * 2, u8'y');
   this->writer.write(byte_buffer_of(xs));  // Shouldn't block.
   std::this_thread::sleep_for(
       std::chrono::milliseconds(1));  // Attempt to expose a race condition.
   this->writer.write(byte_buffer_of(ys));  // Shouldn't block.
-  static string8 expected_data;
+  static String8 expected_data;
   expected_data = xs + ys;
 
-  pipe_reader_thread read_thread;
+  Pipe_Reader_Thread read_thread;
   read_thread.start(this->pipe.reader.ref());
 
   this->writer.flush();

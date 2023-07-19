@@ -24,40 +24,40 @@
 #include <utility>
 
 namespace quick_lint_js {
-bool windows_file_io_error::is_file_not_found_error() const noexcept {
+bool Windows_File_IO_Error::is_file_not_found_error() const noexcept {
   return this->error == ERROR_FILE_NOT_FOUND;
 }
 
-bool windows_file_io_error::is_not_a_directory_error() const noexcept {
+bool Windows_File_IO_Error::is_not_a_directory_error() const noexcept {
   return this->error == ERROR_DIRECTORY;
 }
 
-std::string windows_file_io_error::to_string() const {
+std::string Windows_File_IO_Error::to_string() const {
   return windows_error_message(this->error);
 }
 
-bool operator==(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+bool operator==(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) noexcept {
   return lhs.error == rhs.error;
 }
 
-bool operator!=(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+bool operator!=(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) noexcept {
   return !(lhs == rhs);
 }
 
-windows_handle_file_ref::windows_handle_file_ref() noexcept
+Windows_Handle_File_Ref::Windows_Handle_File_Ref() noexcept
     : handle_(this->invalid_handle_1) {}
 
-windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
+Windows_Handle_File_Ref::Windows_Handle_File_Ref(HANDLE handle) noexcept
     : handle_(handle) {}
 
-bool windows_handle_file_ref::valid() const noexcept {
+bool Windows_Handle_File_Ref::valid() const noexcept {
   return this->handle_ != this->invalid_handle_1 &&
          this->handle_ != this->invalid_handle_2;
 }
 
-HANDLE windows_handle_file_ref::get() noexcept { return this->handle_; }
+HANDLE Windows_Handle_File_Ref::get() noexcept { return this->handle_; }
 
-file_read_result windows_handle_file_ref::read(void *buffer,
+File_Read_Result Windows_Handle_File_Ref::read(void *buffer,
                                                int buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
   DWORD read_size;
@@ -67,11 +67,11 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     DWORD error = ::GetLastError();
     switch (error) {
     case ERROR_BROKEN_PIPE:
-      return file_read_result::end_of_file();
+      return File_Read_Result::end_of_file();
     case ERROR_NO_DATA:
       return 0;
     default:
-      return failed_result(windows_file_io_error{error});
+      return failed_result(Windows_File_IO_Error{error});
     };
   }
   // TODO(strager): Microsoft's documentation for ReadFile claims the following:
@@ -85,23 +85,23 @@ file_read_result windows_handle_file_ref::read(void *buffer,
   // In my experiments, I haven't been able to make ReadFile give 0-bytes-read
   // in this case. However, given the documentation, when we get 0 bytes read,
   // we should ask the pipe if we reached EOF.
-  return read_size == 0 ? file_read_result::end_of_file()
-                        : file_read_result(narrow_cast<int>(read_size));
+  return read_size == 0 ? File_Read_Result::end_of_file()
+                        : File_Read_Result(narrow_cast<int>(read_size));
 }
 
-result<std::size_t, windows_file_io_error> windows_handle_file_ref::write(
+Result<std::size_t, Windows_File_IO_Error> Windows_Handle_File_Ref::write(
     const void *buffer, std::size_t buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
   ::DWORD size_to_write = narrow_cast<::DWORD>(buffer_size);
   ::DWORD write_size;
   if (!::WriteFile(this->handle_, buffer, size_to_write, &write_size,
                    /*lpOverlapped=*/nullptr)) {
-    return failed_result(windows_file_io_error{::GetLastError()});
+    return failed_result(Windows_File_IO_Error{::GetLastError()});
   }
   return write_size;
 }
 
-result<void, windows_file_io_error> windows_handle_file_ref::write_full(
+Result<void, Windows_File_IO_Error> Windows_Handle_File_Ref::write_full(
     const void *buffer, std::size_t buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
   auto write_result = this->write(buffer, buffer_size);
@@ -110,12 +110,12 @@ result<void, windows_file_io_error> windows_handle_file_ref::write_full(
   }
   if (*write_result != buffer_size) {
     // TODO(strager): Should we retry with the remaining buffer?
-    return failed_result(windows_file_io_error{ERROR_PARTIAL_COPY});
+    return failed_result(Windows_File_IO_Error{ERROR_PARTIAL_COPY});
   }
   return {};
 }
 
-bool windows_handle_file_ref::is_pipe_non_blocking() {
+bool Windows_Handle_File_Ref::is_pipe_non_blocking() {
   QLJS_ASSERT(this->valid());
   DWORD state;
   BOOL ok = ::GetNamedPipeHandleStateA(this->get(),
@@ -131,7 +131,7 @@ bool windows_handle_file_ref::is_pipe_non_blocking() {
   return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
 }
 
-void windows_handle_file_ref::set_pipe_non_blocking() {
+void Windows_Handle_File_Ref::set_pipe_non_blocking() {
   QLJS_ASSERT(this->valid());
   DWORD mode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
   BOOL ok = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode,
@@ -142,7 +142,7 @@ void windows_handle_file_ref::set_pipe_non_blocking() {
   }
 }
 
-std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
+std::size_t Windows_Handle_File_Ref::get_pipe_buffer_size() {
   QLJS_ASSERT(this->valid());
   DWORD outBufferSize = 0;
   BOOL ok =
@@ -155,15 +155,15 @@ std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
   return outBufferSize;
 }
 
-std::string windows_handle_file_ref::get_last_error_message() {
+std::string Windows_Handle_File_Ref::get_last_error_message() {
   return windows_last_error_message();
 }
 
-windows_handle_file_ref windows_handle_file_ref::get_stdout() noexcept {
-  return windows_handle_file_ref(::GetStdHandle(STD_OUTPUT_HANDLE));
+Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stdout() noexcept {
+  return Windows_Handle_File_Ref(::GetStdHandle(STD_OUTPUT_HANDLE));
 }
 
-windows_handle_file_ref windows_handle_file_ref::get_stderr() noexcept {
+Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stderr() noexcept {
   // HACK(strager): During a death test, Google Test closes the standard error
   // handle. Make our own copy of the handle to avoid conflicts with Google
   // Test.
@@ -183,20 +183,20 @@ windows_handle_file_ref windows_handle_file_ref::get_stderr() noexcept {
     QLJS_ALWAYS_ASSERT(ok);
     return new_handle;
   }();
-  return windows_handle_file_ref(stderr_copy);
+  return Windows_Handle_File_Ref(stderr_copy);
 }
 
-windows_handle_file::windows_handle_file() noexcept = default;
+Windows_Handle_File::Windows_Handle_File() noexcept = default;
 
-windows_handle_file::windows_handle_file(HANDLE handle) noexcept
-    : windows_handle_file_ref(handle) {}
+Windows_Handle_File::Windows_Handle_File(HANDLE handle) noexcept
+    : Windows_Handle_File_Ref(handle) {}
 
-windows_handle_file::windows_handle_file(windows_handle_file &&other) noexcept
-    : windows_handle_file_ref(
+Windows_Handle_File::Windows_Handle_File(Windows_Handle_File &&other) noexcept
+    : Windows_Handle_File_Ref(
           std::exchange(other.handle_, this->invalid_handle_1)) {}
 
-windows_handle_file &windows_handle_file::operator=(
-    windows_handle_file &&other) noexcept {
+Windows_Handle_File &Windows_Handle_File::operator=(
+    Windows_Handle_File &&other) noexcept {
   if (this->valid()) {
     this->close();
   }
@@ -205,13 +205,13 @@ windows_handle_file &windows_handle_file::operator=(
   return *this;
 }
 
-windows_handle_file::~windows_handle_file() {
+Windows_Handle_File::~Windows_Handle_File() {
   if (this->valid()) {
     this->close();
   }
 }
 
-void windows_handle_file::close() {
+void Windows_Handle_File::close() {
   QLJS_ASSERT(this->valid());
   if (!::CloseHandle(this->handle_)) {
     std::fprintf(stderr, "error: failed to close file\n");
@@ -219,7 +219,7 @@ void windows_handle_file::close() {
   this->handle_ = this->invalid_handle_1;
 }
 
-windows_handle_file_ref windows_handle_file::ref() const noexcept {
+Windows_Handle_File_Ref Windows_Handle_File::ref() const noexcept {
   return *this;
 }
 }

@@ -12,70 +12,70 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_CHAR8_T
-using char8 = char8_t;
+using Char8 = char8_t;
 #else
-using char8 = char;
+using Char8 = char;
 #endif
 
 // Alias std::u8string or std::string.
-using string8 = std::basic_string<char8>;
-using string8_view = std::basic_string_view<char8>;
+using String8 = std::basic_string<Char8>;
+using String8_View = std::basic_string_view<Char8>;
 
 #if QLJS_HAVE_CHAR8_T
-class streamable_string8_view {
+class Streamable_String8_View {
  public:
-  friend std::ostream &operator<<(std::ostream &, streamable_string8_view);
+  friend std::ostream &operator<<(std::ostream &, Streamable_String8_View);
 
  private:
-  explicit streamable_string8_view(string8_view) noexcept;
+  explicit Streamable_String8_View(String8_View) noexcept;
 
-  friend streamable_string8_view out_string8(string8_view) noexcept;
+  friend Streamable_String8_View out_string8(String8_View) noexcept;
 
-  string8_view sv_;
+  String8_View sv_;
 };
 
-streamable_string8_view out_string8(string8_view) noexcept;
+Streamable_String8_View out_string8(String8_View) noexcept;
 #else
-inline string8_view out_string8(string8_view sv) noexcept { return sv; }
+inline String8_View out_string8(String8_View sv) noexcept { return sv; }
 #endif
 
-string8 to_string8(const std::string &);
-string8 to_string8(std::string_view);
-std::string to_string(const string8_view &);
+String8 to_string8(const std::string &);
+String8 to_string8(std::string_view);
+std::string to_string(const String8_View &);
 
-std::string_view to_string_view(string8_view);
-string8_view to_string8_view(std::string_view);
+std::string_view to_string_view(String8_View);
+String8_View to_string8_view(std::string_view);
 
-std::size_t strlen(const char8 *);
-int strlen_i(const char8 *);
-const char8 *strchr(const char8 *haystack, char8 needle);
-const char8 *strstr(const char8 *haystack, const char8 *needle);
-std::size_t strspn(const char8 *haystack, const char8 *needles);
+std::size_t strlen(const Char8 *);
+int strlen_i(const Char8 *);
+const Char8 *strchr(const Char8 *haystack, Char8 needle);
+const Char8 *strstr(const Char8 *haystack, const Char8 *needle);
+std::size_t strspn(const Char8 *haystack, const Char8 *needles);
 
 // The following functions treat ASCII A-Z as upper, a-z as lower, and all other
 // code units as neither upper nor lower.
-char8 toupper(char8) noexcept;
-char8 tolower(char8) noexcept;
-bool islower(char8) noexcept;
-bool isupper(char8) noexcept;
+Char8 toupper(Char8) noexcept;
+Char8 tolower(Char8) noexcept;
+bool islower(Char8) noexcept;
+bool isupper(Char8) noexcept;
 
-bool haslower(string8_view);
-bool hasupper(string8_view);
+bool haslower(String8_View);
+bool hasupper(String8_View);
 
-inline constexpr string8_view operator""_sv(const char8 *string,
+inline constexpr String8_View operator""_sv(const Char8 *string,
                                             std::size_t length) noexcept {
-  return string8_view(string, length);
+  return String8_View(string, length);
 }
 
 #if QLJS_HAVE_CHAR8_T
-inline string8_view operator""_s8v(const char *string,
+inline String8_View operator""_s8v(const char *string,
                                    std::size_t length) noexcept {
-  return string8_view(reinterpret_cast<const char8 *>(string), length);
+  return String8_View(reinterpret_cast<const Char8 *>(string), length);
 }
 #else
-inline string8_view operator""_s8v(const char *string,
+inline String8_View operator""_s8v(const char *string,
                                    std::size_t length) noexcept {
-  return string8_view(string, length);
+  return String8_View(string, length);
 }
 #endif
 }

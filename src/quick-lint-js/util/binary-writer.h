@@ -10,9 +10,9 @@
 
 namespace quick_lint_js {
 // binary_writer does no bounds checking.
-class binary_writer {
+class Binary_Writer {
  public:
-  explicit binary_writer(std::uint8_t *out) noexcept : out_(out) {}
+  explicit Binary_Writer(std::uint8_t *out) noexcept : out_(out) {}
 
   void u8(std::uint8_t data) noexcept { *this->out_++ = data; }
 

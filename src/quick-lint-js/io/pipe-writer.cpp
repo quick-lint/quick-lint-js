@@ -25,35 +25,35 @@
 
 namespace quick_lint_js {
 #if QLJS_PIPE_WRITER_SEPARATE_THREAD
-background_thread_pipe_writer::background_thread_pipe_writer(
-    platform_file_ref pipe)
+Background_Thread_Pipe_Writer::Background_Thread_Pipe_Writer(
+    Platform_File_Ref pipe)
     : pipe_(pipe) {
   QLJS_ASSERT(!this->pipe_.is_pipe_non_blocking());
-  this->flushing_thread_ = thread([this] { this->run_flushing_thread(); });
+  this->flushing_thread_ = Thread([this] { this->run_flushing_thread(); });
 }
 
-background_thread_pipe_writer::~background_thread_pipe_writer() {
+Background_Thread_Pipe_Writer::~Background_Thread_Pipe_Writer() {
   this->stop_ = true;
   this->data_is_pending_.notify_one();
   this->flushing_thread_.join();
 }
 
-void background_thread_pipe_writer::flush() {
-  std::unique_lock<mutex> lock(this->mutex_);
+void Background_Thread_Pipe_Writer::flush() {
+  std::unique_lock<Mutex> lock(this->mutex_);
   QLJS_ASSERT(!this->stop_);
   this->data_is_flushed_.wait(
       lock, [this] { return !this->writing_ && this->pending_.empty(); });
 }
 
-void background_thread_pipe_writer::write(byte_buffer&& data) {
-  std::unique_lock<mutex> lock(this->mutex_);
+void Background_Thread_Pipe_Writer::write(Byte_Buffer&& data) {
+  std::unique_lock<Mutex> lock(this->mutex_);
   QLJS_ASSERT(!this->stop_);
   this->pending_.append(std::move(data));
   this->data_is_pending_.notify_one();
 }
 
-void background_thread_pipe_writer::write_all_now_blocking(
-    byte_buffer_iovec& data) {
+void Background_Thread_Pipe_Writer::write_all_now_blocking(
+    Byte_Buffer_IOVec& data) {
   while (data.iovec_count() != 0) {
 #if QLJS_HAVE_WRITEV
     ::ssize_t raw_bytes_written =
@@ -63,7 +63,7 @@ void background_thread_pipe_writer::write_all_now_blocking(
     }
     std::size_t bytes_written = narrow_cast<std::size_t>(raw_bytes_written);
 #else
-    const byte_buffer_chunk& chunk = data.iovec()[0];
+    const Byte_Buffer_Chunk& chunk = data.iovec()[0];
     QLJS_ASSERT(chunk.size != 0);  // Writing can hang if given size 0.
     auto write_result = this->pipe_.write(chunk.data, chunk.size);
     if (!write_result.ok()) {
@@ -79,8 +79,8 @@ void background_thread_pipe_writer::write_all_now_blocking(
   }
 }
 
-void background_thread_pipe_writer::run_flushing_thread() {
-  std::unique_lock<mutex> lock(this->mutex_);
+void Background_Thread_Pipe_Writer::run_flushing_thread() {
+  std::unique_lock<Mutex> lock(this->mutex_);
   for (;;) {
     this->data_is_pending_.wait(
         lock, [this] { return this->stop_ || !this->pending_.empty(); });
@@ -90,7 +90,7 @@ void background_thread_pipe_writer::run_flushing_thread() {
     QLJS_ASSERT(!this->pending_.empty());
 
     {
-      byte_buffer_iovec to_write = std::move(this->pending_);
+      Byte_Buffer_IOVec to_write = std::move(this->pending_);
       this->writing_ = true;
       lock.unlock();
       this->write_all_now_blocking(to_write);
@@ -106,14 +106,14 @@ void background_thread_pipe_writer::run_flushing_thread() {
 #endif
 
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD
-non_blocking_pipe_writer::non_blocking_pipe_writer(platform_file_ref pipe)
+Non_Blocking_Pipe_Writer::Non_Blocking_Pipe_Writer(Platform_File_Ref pipe)
     : pipe_(pipe) {
   QLJS_ASSERT(this->pipe_.is_pipe_non_blocking());
 }
 
-void non_blocking_pipe_writer::flush() {
+void Non_Blocking_Pipe_Writer::flush() {
 #if QLJS_HAVE_POLL
-  while (std::optional<posix_fd_file_ref> fd = this->get_event_fd()) {
+  while (std::optional<POSIX_FD_File_Ref> fd = this->get_event_fd()) {
     ::pollfd event = {
         .fd = fd->get(),
         .events = POLLOUT,
@@ -131,8 +131,8 @@ void non_blocking_pipe_writer::flush() {
 }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-std::optional<posix_fd_file_ref>
-non_blocking_pipe_writer::get_event_fd() noexcept {
+std::optional<POSIX_FD_File_Ref>
+Non_Blocking_Pipe_Writer::get_event_fd() noexcept {
   if (this->pending_.empty()) {
     return std::nullopt;
   } else {
@@ -142,7 +142,7 @@ non_blocking_pipe_writer::get_event_fd() noexcept {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-void non_blocking_pipe_writer::on_poll_event(const struct ::kevent& event) {
+void Non_Blocking_Pipe_Writer::on_poll_event(const struct ::kevent& event) {
   QLJS_ASSERT(narrow_cast<int>(event.ident) != this->pipe_.get());
   if (event.flags & EV_ERROR) {
     QLJS_UNIMPLEMENTED();
@@ -155,7 +155,7 @@ void non_blocking_pipe_writer::on_poll_event(const struct ::kevent& event) {
 #endif
 
 #if QLJS_HAVE_POLL
-void non_blocking_pipe_writer::on_poll_event(const ::pollfd& fd) {
+void Non_Blocking_Pipe_Writer::on_poll_event(const ::pollfd& fd) {
   QLJS_ASSERT(fd.revents != 0);
   if (fd.revents & POLLERR) {
     QLJS_UNIMPLEMENTED();
@@ -166,13 +166,13 @@ void non_blocking_pipe_writer::on_poll_event(const ::pollfd& fd) {
 }
 #endif
 
-void non_blocking_pipe_writer::write(byte_buffer&& data) {
+void Non_Blocking_Pipe_Writer::write(Byte_Buffer&& data) {
   this->pending_.append(std::move(data));
   this->write_as_much_as_possible_now_non_blocking(this->pending_);
 }
 
-void non_blocking_pipe_writer::write_as_much_as_possible_now_non_blocking(
-    byte_buffer_iovec& data) {
+void Non_Blocking_Pipe_Writer::write_as_much_as_possible_now_non_blocking(
+    Byte_Buffer_IOVec& data) {
   QLJS_ASSERT(this->pipe_.is_pipe_non_blocking());
   while (data.iovec_count() != 0) {
 #if QLJS_HAVE_WRITEV
@@ -186,7 +186,7 @@ void non_blocking_pipe_writer::write_as_much_as_possible_now_non_blocking(
     }
     std::size_t bytes_written = narrow_cast<std::size_t>(raw_bytes_written);
 #else
-    const byte_buffer_chunk& chunk = data.iovec()[0];
+    const Byte_Buffer_Chunk& chunk = data.iovec()[0];
     QLJS_ASSERT(chunk.size != 0);  // Writing can hang if given size 0.
     auto write_result = this->pipe_.write(chunk.data, chunk.size);
     if (!write_result.ok()) {

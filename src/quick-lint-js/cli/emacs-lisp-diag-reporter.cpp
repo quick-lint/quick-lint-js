@@ -11,40 +11,40 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-emacs_lisp_diag_reporter::emacs_lisp_diag_reporter(translator t,
-                                                   output_stream *output)
+Emacs_Lisp_Diag_Reporter::Emacs_Lisp_Diag_Reporter(Translator t,
+                                                   Output_Stream *output)
     : output_(*output), translator_(t) {
   this->output_.append_copy(u8'(');
 }
 
-void emacs_lisp_diag_reporter::finish() { this->output_.append_copy(u8')'); }
+void Emacs_Lisp_Diag_Reporter::finish() { this->output_.append_copy(u8')'); }
 
-void emacs_lisp_diag_reporter::set_source(padded_string_view input) {
+void Emacs_Lisp_Diag_Reporter::set_source(Padded_String_View input) {
   this->locator_.emplace(input);
 }
 
-void emacs_lisp_diag_reporter::report_impl(diag_type type, void *diag) {
+void Emacs_Lisp_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->locator_.has_value());
-  emacs_lisp_diag_formatter formatter(this->translator_,
+  Emacs_Lisp_Diag_Formatter formatter(this->translator_,
                                       /*output=*/&this->output_,
                                       /*locator=*/*this->locator_);
   formatter.format(get_diagnostic_info(type), diag);
 }
 
-emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(translator t,
-                                                     output_stream *output,
-                                                     emacs_locator &locator)
-    : diagnostic_formatter(t), output_(*output), locator_(locator) {}
+Emacs_Lisp_Diag_Formatter::Emacs_Lisp_Diag_Formatter(Translator t,
+                                                     Output_Stream *output,
+                                                     Emacs_Locator &locator)
+    : Diagnostic_Formatter(t), output_(*output), locator_(locator) {}
 
-void emacs_lisp_diag_formatter::write_before_message(
-    std::string_view code, diagnostic_severity sev,
-    const source_code_span &origin) {
-  if (sev == diagnostic_severity::note) {
+void Emacs_Lisp_Diag_Formatter::write_before_message(
+    std::string_view code, Diagnostic_Severity sev,
+    const Source_Code_Span &origin) {
+  if (sev == Diagnostic_Severity::note) {
     return;
   }
-  emacs_source_range r = this->locator_.range(origin);
-  emacs_source_position::offset_type beg = r.begin().offset;
-  emacs_source_position::offset_type end = r.end().offset;
+  Emacs_Source_Range r = this->locator_.range(origin);
+  Emacs_Source_Position::Offset_Type beg = r.begin().offset;
+  Emacs_Source_Position::Offset_Type end = r.end().offset;
   this->output_.append_literal(u8"(("_sv);
   this->output_.append_decimal_integer(beg);
   this->output_.append_literal(u8" . "_sv);
@@ -57,8 +57,8 @@ void emacs_lisp_diag_formatter::write_before_message(
 }
 
 namespace {
-void write_elisp_stringp_escaped_message(output_stream &output,
-                                         string8_view message) {
+void write_elisp_stringp_escaped_message(Output_Stream &output,
+                                         String8_View message) {
   for (const auto &v : message) {
     switch (v) {
     case '\\':
@@ -70,19 +70,19 @@ void write_elisp_stringp_escaped_message(output_stream &output,
 }
 }
 
-void emacs_lisp_diag_formatter::write_message_part(
-    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
-    string8_view message) {
-  if (sev == diagnostic_severity::note) {
+void Emacs_Lisp_Diag_Formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity sev,
+    String8_View message) {
+  if (sev == Diagnostic_Severity::note) {
     return;
   }
   write_elisp_stringp_escaped_message(this->output_, message);
 }
 
-void emacs_lisp_diag_formatter::write_after_message(
-    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
-    const source_code_span &) {
-  if (sev == diagnostic_severity::note) {
+void Emacs_Lisp_Diag_Formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity sev,
+    const Source_Code_Span &) {
+  if (sev == Diagnostic_Severity::note) {
     return;
   }
   this->output_.append_literal(u8"\")"_sv);

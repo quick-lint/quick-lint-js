@@ -9,16 +9,16 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline source_code_span span_of(const char8 *code) {
-  return source_code_span(&code[0], &code[strlen(code)]);
+inline Source_Code_Span span_of(const Char8 *code) {
+  return Source_Code_Span(&code[0], &code[strlen(code)]);
 }
 
-inline source_code_span span_of(const padded_string &code) {
-  return source_code_span(code.data(), code.null_terminator());
+inline Source_Code_Span span_of(const Padded_String &code) {
+  return Source_Code_Span(code.data(), code.null_terminator());
 }
 
-inline identifier identifier_of(const char8 *name) {
-  return identifier(span_of(name));
+inline Identifier identifier_of(const Char8 *name) {
+  return Identifier(span_of(name));
 }
 }
 

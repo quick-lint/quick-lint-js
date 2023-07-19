@@ -9,10 +9,10 @@
 // clang-format off
 
 namespace quick_lint_js {
-static_assert(lexer::unicode_table_chunk_size == 256);
-static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, std::uint8_t>);
+static_assert(Lexer::unicode_table_chunk_size == 256);
+static_assert(std::is_same_v<Lexer::Unicode_Table_Chunk_Index_Type, std::uint8_t>);
 
-const std::uint8_t lexer::unicode_tables_chunks[] = {
+const std::uint8_t Lexer::unicode_tables_chunks[] = {
   0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
   0xfe, 0xff, 0xff, 0x87, 0xfe, 0xff, 0xff, 0x07,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x20, 0x04,
@@ -783,7 +783,7 @@ const std::uint8_t lexer::unicode_tables_chunks[] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00,
 };
 
-const lexer::unicode_table_chunk_index_type lexer::identifier_start_chunk_indexes[] = {
+const Lexer::Unicode_Table_Chunk_Index_Type Lexer::identifier_start_chunk_indexes[] = {
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
   0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
   0x10, 0x01, 0x11, 0x12, 0x13, 0x01, 0x14, 0x15,
@@ -886,9 +886,9 @@ const lexer::unicode_table_chunk_index_type lexer::identifier_start_chunk_indexe
   0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
   0x01, 0x01, 0x01, 0x74,
 };
-static_assert(lexer::identifier_start_chunk_indexes_size == sizeof(lexer::identifier_start_chunk_indexes));
+static_assert(Lexer::identifier_start_chunk_indexes_size == sizeof(Lexer::identifier_start_chunk_indexes));
 
-const lexer::unicode_table_chunk_index_type lexer::identifier_part_chunk_indexes[] = {
+const Lexer::Unicode_Table_Chunk_Index_Type Lexer::identifier_part_chunk_indexes[] = {
   0x75, 0x01, 0x02, 0x76, 0x77, 0x78, 0x79, 0x7a,
   0x7b, 0x7c, 0x7d, 0x7e, 0x7f, 0x80, 0x81, 0x82,
   0x83, 0x01, 0x11, 0x84, 0x13, 0x01, 0x14, 0x85,
@@ -1339,7 +1339,7 @@ const lexer::unicode_table_chunk_index_type lexer::identifier_part_chunk_indexes
   0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f,
   0x1f, 0xbf,
 };
-static_assert(lexer::identifier_part_chunk_indexes_size == sizeof(lexer::identifier_part_chunk_indexes));
+static_assert(Lexer::identifier_part_chunk_indexes_size == sizeof(Lexer::identifier_part_chunk_indexes));
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

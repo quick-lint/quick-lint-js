@@ -9,11 +9,11 @@
 #include <vector>
 
 namespace quick_lint_js {
-trace_reader::trace_reader() = default;
+Trace_Reader::Trace_Reader() = default;
 
-trace_reader::~trace_reader() = default;
+Trace_Reader::~Trace_Reader() = default;
 
-void trace_reader::append_bytes(const void* data, std::size_t data_size) {
+void Trace_Reader::append_bytes(const void* data, std::size_t data_size) {
   const std::uint8_t* new_bytes = reinterpret_cast<const std::uint8_t*>(data);
   this->queue_.insert(this->queue_.end(), new_bytes, new_bytes + data_size);
 
@@ -22,7 +22,7 @@ void trace_reader::append_bytes(const void* data, std::size_t data_size) {
     std::longjmp(buf, 1);
     QLJS_UNREACHABLE();
   };
-  checked_binary_reader r(this->queue_.data(), this->queue_.size(),
+  Checked_Binary_Reader r(this->queue_.data(), this->queue_.size(),
                           unexpected_end_of_file);
 
   const std::uint8_t* committed = r.cursor();
@@ -39,19 +39,19 @@ void trace_reader::append_bytes(const void* data, std::size_t data_size) {
                      this->queue_.begin() + (committed - this->queue_.data()));
 }
 
-std::vector<parsed_trace_event> trace_reader::pull_new_events() {
-  std::vector<parsed_trace_event> result;
+std::vector<Parsed_Trace_Event> Trace_Reader::pull_new_events() {
+  std::vector<Parsed_Trace_Event> result;
   this->pull_new_events(result);
   return result;
 }
 
-void trace_reader::pull_new_events(std::vector<parsed_trace_event>& out) {
+void Trace_Reader::pull_new_events(std::vector<Parsed_Trace_Event>& out) {
   out.insert(out.end(), this->parsed_events_.begin(),
              this->parsed_events_.end());
   this->parsed_events_.clear();
 }
 
-void trace_reader::parse_one(checked_binary_reader& r) {
+void Trace_Reader::parse_one(Checked_Binary_Reader& r) {
   if (this->parsed_header_) {
     this->parse_event(r);
   } else {
@@ -59,12 +59,12 @@ void trace_reader::parse_one(checked_binary_reader& r) {
   }
 }
 
-void trace_reader::parse_header(checked_binary_reader& r) {
+void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
   QLJS_ASSERT(!this->parsed_header_);
 
   std::uint32_t magic = r.u32_le();
   if (magic != 0xc1fc1fc1) {
-    this->on_error(parsed_trace_event_type::error_invalid_magic);
+    this->on_error(Parsed_Trace_Event_Type::error_invalid_magic);
     return;
   }
 
@@ -75,7 +75,7 @@ void trace_reader::parse_header(checked_binary_reader& r) {
   const std::uint8_t* uuid = r.advance(std::size(quick_lint_js_uuid));
   if (!std::equal(std::begin(quick_lint_js_uuid), std::end(quick_lint_js_uuid),
                   uuid)) {
-    this->on_error(parsed_trace_event_type::error_invalid_uuid);
+    this->on_error(Parsed_Trace_Event_Type::error_invalid_uuid);
     return;
   }
 
@@ -83,21 +83,21 @@ void trace_reader::parse_header(checked_binary_reader& r) {
 
   std::uint8_t compression_mode = r.u8();
   if (compression_mode != 0) {
-    this->on_error(parsed_trace_event_type::error_unsupported_compression_mode);
+    this->on_error(Parsed_Trace_Event_Type::error_unsupported_compression_mode);
     return;
   }
 
-  this->parsed_events_.push_back(parsed_trace_event{
-      .type = parsed_trace_event_type::packet_header,
+  this->parsed_events_.push_back(Parsed_Trace_Event{
+      .type = Parsed_Trace_Event_Type::packet_header,
       .packet_header =
-          parsed_packet_header{
+          Parsed_Packet_Header{
               .thread_id = thread_id,
           },
   });
   this->parsed_header_ = true;
 }
 
-void trace_reader::parse_event(checked_binary_reader& r) {
+void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   auto read_utf16le_string = [&r]() -> std::u16string {
     std::uint64_t length = r.u64_le();
     const std::uint8_t* bytes = r.advance(length * 2);
@@ -105,28 +105,28 @@ void trace_reader::parse_event(checked_binary_reader& r) {
     // TODO(strager): This assumes the native endian is little endian.
     return std::u16string(reinterpret_cast<const char16_t*>(bytes), length);
   };
-  auto read_utf8_string = [&r]() -> string8 {
+  auto read_utf8_string = [&r]() -> String8 {
     std::uint64_t length = r.u64_le();
     const std::uint8_t* bytes = r.advance(length);
-    static_assert(sizeof(char8) == sizeof(std::uint8_t));
-    return string8(reinterpret_cast<const char8*>(bytes), length);
+    static_assert(sizeof(Char8) == sizeof(std::uint8_t));
+    return String8(reinterpret_cast<const Char8*>(bytes), length);
   };
-  auto read_utf8_zstring = [&r]() -> string8 {
+  auto read_utf8_zstring = [&r]() -> String8 {
     const std::uint8_t* bytes = r.cursor();
     r.find_and_skip_byte(0x00);
     const std::uint8_t* end = r.cursor() - 1;
-    return string8(reinterpret_cast<const char8*>(bytes),
+    return String8(reinterpret_cast<const Char8*>(bytes),
                    narrow_cast<std::size_t>(end - bytes));
   };
-  auto read_lsp_document_type = [&]() -> parsed_lsp_document_type {
+  auto read_lsp_document_type = [&]() -> Parsed_LSP_Document_Type {
     std::uint8_t raw_type = r.u8();
     if (raw_type > static_cast<std::uint8_t>(last_parsed_lsp_document_type)) {
-      this->parsed_events_.push_back(parsed_trace_event{
-          .type = parsed_trace_event_type::error_unsupported_lsp_document_type,
+      this->parsed_events_.push_back(Parsed_Trace_Event{
+          .type = Parsed_Trace_Event_Type::error_unsupported_lsp_document_type,
       });
-      return parsed_lsp_document_type::unknown;
+      return Parsed_LSP_Document_Type::unknown;
     }
-    return static_cast<parsed_lsp_document_type>(raw_type);
+    return static_cast<Parsed_LSP_Document_Type>(raw_type);
   };
 
   std::uint64_t timestamp = r.u64_le();
@@ -135,23 +135,23 @@ void trace_reader::parse_event(checked_binary_reader& r) {
   case 0x01: {
     const std::uint8_t* version_string = r.cursor();
     r.find_and_skip_byte(0x00);
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::init_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::init_event,
         .init_event =
-            parsed_init_event{
+            Parsed_Init_Event{
                 .timestamp = timestamp,
                 .version =
-                    string8(reinterpret_cast<const char8*>(version_string)),
+                    String8(reinterpret_cast<const Char8*>(version_string)),
             },
     });
     break;
   }
 
   case 0x02:
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::vscode_document_opened_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::vscode_document_opened_event,
         .vscode_document_opened_event =
-            parsed_vscode_document_opened_event{
+            Parsed_VSCode_Document_Opened_Event{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string(),
@@ -162,10 +162,10 @@ void trace_reader::parse_event(checked_binary_reader& r) {
     break;
 
   case 0x03:
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::vscode_document_closed_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::vscode_document_closed_event,
         .vscode_document_closed_event =
-            parsed_vscode_document_closed_event{
+            Parsed_VSCode_Document_Closed_Event{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string(),
@@ -177,9 +177,9 @@ void trace_reader::parse_event(checked_binary_reader& r) {
   case 0x04: {
     std::uint64_t document_id = r.u64_le();
     std::uint64_t change_count = r.u64_le();
-    std::vector<parsed_vscode_document_change> changes;
+    std::vector<Parsed_VSCode_Document_Change> changes;
     for (std::uint64_t i = 0; i < change_count; ++i) {
-      changes.push_back(parsed_vscode_document_change{
+      changes.push_back(Parsed_VSCode_Document_Change{
           .range =
               {
                   .start =
@@ -198,10 +198,10 @@ void trace_reader::parse_event(checked_binary_reader& r) {
           .text = read_utf16le_string(),
       });
     }
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::vscode_document_changed_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::vscode_document_changed_event,
         .vscode_document_changed_event =
-            parsed_vscode_document_changed_event{
+            Parsed_VSCode_Document_Changed_Event{
                 .timestamp = timestamp,
                 .document_id = document_id,
                 .changes = std::move(changes),
@@ -211,10 +211,10 @@ void trace_reader::parse_event(checked_binary_reader& r) {
   }
 
   case 0x05:
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::vscode_document_sync_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::vscode_document_sync_event,
         .vscode_document_sync_event =
-            parsed_vscode_document_sync_event{
+            Parsed_VSCode_Document_Sync_Event{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string(),
@@ -225,10 +225,10 @@ void trace_reader::parse_event(checked_binary_reader& r) {
     break;
 
   case 0x06:
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::lsp_client_to_server_message_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::lsp_client_to_server_message_event,
         .lsp_client_to_server_message_event =
-            parsed_lsp_client_to_server_message_event{
+            Parsed_LSP_Client_To_Server_Message_Event{
                 .timestamp = timestamp,
                 .body = read_utf8_string(),
             },
@@ -237,24 +237,24 @@ void trace_reader::parse_event(checked_binary_reader& r) {
 
   case 0x07: {
     std::uint64_t entry_count = r.u64_le();
-    std::vector<parsed_vector_max_size_histogram_by_owner_entry> entries;
+    std::vector<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
     for (std::uint64_t i = 0; i < entry_count; ++i) {
       entries.emplace_back();
-      parsed_vector_max_size_histogram_by_owner_entry& entry = entries.back();
+      Parsed_Vector_Max_Size_Histogram_By_Owner_Entry& entry = entries.back();
       entry.owner = read_utf8_zstring();
       std::uint64_t max_size_entry_count = r.u64_le();
       for (std::uint64_t j = 0; j < max_size_entry_count; ++j) {
-        entry.max_size_entries.push_back(parsed_vector_max_size_histogram_entry{
+        entry.max_size_entries.push_back(Parsed_Vector_Max_Size_Histogram_Entry{
             .max_size = r.u64_le(),
             .count = r.u64_le(),
         });
       }
     }
-    this->parsed_events_.push_back(parsed_trace_event{
+    this->parsed_events_.push_back(Parsed_Trace_Event{
         .type =
-            parsed_trace_event_type::vector_max_size_histogram_by_owner_event,
+            Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event,
         .vector_max_size_histogram_by_owner_event =
-            parsed_vector_max_size_histogram_by_owner_event{
+            Parsed_Vector_Max_Size_Histogram_By_Owner_Event{
                 .timestamp = timestamp,
                 .entries = std::move(entries),
             },
@@ -264,10 +264,10 @@ void trace_reader::parse_event(checked_binary_reader& r) {
 
   case 0x08: {
     std::uint64_t process_id = r.u64_le();
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::process_id_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::process_id_event,
         .process_id_event =
-            parsed_process_id_event{
+            Parsed_Process_ID_Event{
                 .timestamp = timestamp,
                 .process_id = process_id,
             },
@@ -277,19 +277,19 @@ void trace_reader::parse_event(checked_binary_reader& r) {
 
   case 0x09: {
     std::uint64_t entry_count = r.u64_le();
-    std::vector<parsed_lsp_document_state> documents;
+    std::vector<Parsed_LSP_Document_State> documents;
     for (std::uint64_t i = 0; i < entry_count; ++i) {
-      documents.push_back(parsed_lsp_document_state{
+      documents.push_back(Parsed_LSP_Document_State{
           .type = read_lsp_document_type(),
           .uri = read_utf8_string(),
           .text = read_utf8_string(),
           .language_id = read_utf8_string(),
       });
     }
-    this->parsed_events_.push_back(parsed_trace_event{
-        .type = parsed_trace_event_type::lsp_documents_event,
+    this->parsed_events_.push_back(Parsed_Trace_Event{
+        .type = Parsed_Trace_Event_Type::lsp_documents_event,
         .lsp_documents_event =
-            parsed_lsp_documents_event{
+            Parsed_LSP_Documents_Event{
                 .timestamp = timestamp,
                 .documents = std::move(documents),
             },
@@ -303,15 +303,15 @@ void trace_reader::parse_event(checked_binary_reader& r) {
   }
 }
 
-void trace_reader::on_error(parsed_trace_event_type error) {
-  this->parsed_events_.push_back(parsed_trace_event{
+void Trace_Reader::on_error(Parsed_Trace_Event_Type error) {
+  this->parsed_events_.push_back(Parsed_Trace_Event{
       .type = error,
   });
   this->encountered_error_ = true;
 }
 
-bool parsed_vscode_document_change::operator==(
-    const parsed_vscode_document_change& other) const noexcept {
+bool Parsed_VSCode_Document_Change::operator==(
+    const Parsed_VSCode_Document_Change& other) const noexcept {
   return this->range.start.line == other.range.start.line &&
          this->range.start.character == other.range.start.character &&
          this->range.end.line == other.range.end.line &&
@@ -320,8 +320,8 @@ bool parsed_vscode_document_change::operator==(
          this->range_length == other.range_length && this->text == other.text;
 }
 
-bool parsed_vscode_document_change::operator!=(
-    const parsed_vscode_document_change& other) const noexcept {
+bool Parsed_VSCode_Document_Change::operator!=(
+    const Parsed_VSCode_Document_Change& other) const noexcept {
   return !(*this == other);
 }
 }

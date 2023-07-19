@@ -16,62 +16,62 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_web_demo_location, ranges_on_first_line) {
-  padded_string code(u8"let x = 2;"_sv);
-  web_demo_locator l(&code);
-  web_demo_source_range x_range = l.range(source_code_span(&code[4], &code[5]));
+TEST(Test_Web_Demo_Location, ranges_on_first_line) {
+  Padded_String code(u8"let x = 2;"_sv);
+  Web_Demo_Locator l(&code);
+  Web_Demo_Source_Range x_range = l.range(Source_Code_Span(&code[4], &code[5]));
 
   EXPECT_EQ(x_range.begin, 4);
   EXPECT_EQ(x_range.end, 5);
 }
 
-TEST(test_web_demo_location, ranges_on_second_line) {
-  for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string code(
+TEST(Test_Web_Demo_Location, ranges_on_second_line) {
+  for (String8_View line_terminator : line_terminators_except_ls_ps) {
+    Padded_String code(
         concat(u8"let x = 2;"_sv, line_terminator, u8"let y = 3;"_sv));
-    const char8* y = strchr(code.c_str(), u8'y');
-    web_demo_locator l(&code);
-    web_demo_source_range x_range = l.range(source_code_span(y, y + 1));
+    const Char8* y = strchr(code.c_str(), u8'y');
+    Web_Demo_Locator l(&code);
+    Web_Demo_Source_Range x_range = l.range(Source_Code_Span(y, y + 1));
 
     EXPECT_EQ(x_range.begin, y - code.c_str());
     EXPECT_EQ(x_range.end, y + 1 - code.c_str());
   }
 }
 
-TEST(test_web_demo_location, lf_cr_is_two_line_terminators) {
-  padded_string code(u8"let x = 2;\n\rlet y = 3;"_sv);
-  const char8* y = strchr(code.c_str(), u8'y');
-  web_demo_locator l(&code);
-  web_demo_source_range y_range = l.range(source_code_span(y, y + 1));
+TEST(Test_Web_Demo_Location, lf_cr_is_two_line_terminators) {
+  Padded_String code(u8"let x = 2;\n\rlet y = 3;"_sv);
+  const Char8* y = strchr(code.c_str(), u8'y');
+  Web_Demo_Locator l(&code);
+  Web_Demo_Source_Range y_range = l.range(Source_Code_Span(y, y + 1));
 
   EXPECT_EQ(y_range.begin, y - code.c_str());
 }
 
-TEST(test_web_demo_location, location_after_null_byte) {
-  padded_string code(string8(u8"hello\0beautiful\nworld"_sv));
-  const char8* r = &code[18];
+TEST(Test_Web_Demo_Location, location_after_null_byte) {
+  Padded_String code(String8(u8"hello\0beautiful\nworld"_sv));
+  const Char8* r = &code[18];
   ASSERT_EQ(*r, u8'r');
 
-  web_demo_locator l(&code);
-  web_demo_source_range r_range = l.range(source_code_span(r, r + 1));
+  Web_Demo_Locator l(&code);
+  Web_Demo_Source_Range r_range = l.range(Source_Code_Span(r, r + 1));
 
   EXPECT_EQ(r_range.begin, r - code.c_str());
 }
 
-TEST(test_web_demo_location, position_backwards) {
-  padded_string code(u8"ab\nc\n\nd\nefg\nh"_sv);
+TEST(Test_Web_Demo_Location, position_backwards) {
+  Padded_String code(u8"ab\nc\n\nd\nefg\nh"_sv);
 
-  std::vector<web_demo_source_offset> expected_positions;
+  std::vector<Web_Demo_Source_Offset> expected_positions;
   {
-    web_demo_locator l(&code);
+    Web_Demo_Locator l(&code);
     for (int i = 0; i < narrow_cast<int>(code.size()); ++i) {
       expected_positions.push_back(l.position(&code[i]));
     }
   }
 
-  std::vector<web_demo_source_offset> actual_positions;
+  std::vector<Web_Demo_Source_Offset> actual_positions;
   {
-    web_demo_locator l(&code);
+    Web_Demo_Locator l(&code);
     for (int i = narrow_cast<int>(code.size()) - 1; i >= 0; --i) {
       actual_positions.push_back(l.position(&code[i]));
     }
@@ -81,21 +81,21 @@ TEST(test_web_demo_location, position_backwards) {
   EXPECT_EQ(actual_positions, expected_positions);
 }
 
-TEST(test_web_demo_location, position_after_multi_byte_character) {
+TEST(Test_Web_Demo_Location, position_after_multi_byte_character) {
   // U+2603 has three UTF-8 code units: e2 98 83
   // U+2603 has one UTF-16 code unit: 2603
-  padded_string code(u8"\u2603 x"_sv);
-  const char8* x = strchr(code.c_str(), u8'x');
-  web_demo_locator l(&code);
+  Padded_String code(u8"\u2603 x"_sv);
+  const Char8* x = strchr(code.c_str(), u8'x');
+  Web_Demo_Locator l(&code);
   EXPECT_EQ(l.position(x), 2);
 }
 
-TEST(test_web_demo_location, position_after_wide_multi_byte_character) {
+TEST(Test_Web_Demo_Location, position_after_wide_multi_byte_character) {
   // U+1f496 has four UTF-8 code units: f0 9f 92 96
   // U+1f496 has two UTF-16 code units: D83D DC96
-  padded_string code(u8"\U0001f496 x"_sv);
-  const char8* x = strchr(code.c_str(), u8'x');
-  web_demo_locator l(&code);
+  Padded_String code(u8"\U0001f496 x"_sv);
+  const Char8* x = strchr(code.c_str(), u8'x');
+  Web_Demo_Locator l(&code);
   EXPECT_EQ(l.position(x), 3);
 }
 }

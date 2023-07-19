@@ -9,55 +9,55 @@
 #include <vector>
 
 namespace quick_lint_js {
-class output_stream;
+class Output_Stream;
 
-enum class output_format {
+enum class Output_Format {
   default_format,
   gnu_like,
   vim_qflist_json,
   emacs_lisp,
 };
 
-enum class input_file_language : unsigned char {
+enum class Input_File_Language : unsigned char {
   javascript,
   javascript_jsx,
   typescript,
   typescript_jsx,
 };
 
-enum class option_when { auto_, always, never };
+enum class Option_When { auto_, always, never };
 
-struct file_to_lint {
+struct File_To_Lint {
   const char *path;
   const char *config_file = nullptr;
   const char *path_for_config_search = nullptr;
 
   // nullopt means --language=default: the language should be derived from the
   // file extension.
-  std::optional<input_file_language> language;
+  std::optional<Input_File_Language> language;
 
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
 
-  input_file_language get_language() const noexcept;
+  Input_File_Language get_language() const noexcept;
 };
 
-input_file_language get_language(
+Input_File_Language get_language(
     const char *config_file,
-    const std::optional<input_file_language> &language) noexcept;
+    const std::optional<Input_File_Language> &language) noexcept;
 
-struct options {
+struct Options {
   bool help = false;
   bool list_debug_apps = false;
   bool version = false;
   bool print_parser_visits = false;
   bool lsp_server = false;
   bool snarky = false;
-  quick_lint_js::output_format output_format =
-      quick_lint_js::output_format::default_format;
-  option_when diagnostic_hyperlinks = option_when::auto_;
-  std::vector<file_to_lint> files_to_lint;
-  compiled_diag_code_list exit_fail_on;
+  quick_lint_js::Output_Format output_format =
+      quick_lint_js::Output_Format::default_format;
+  Option_When diagnostic_hyperlinks = Option_When::auto_;
+  std::vector<File_To_Lint> files_to_lint;
+  Compiled_Diag_Code_List exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
   std::vector<const char *> warning_vim_bufnr_without_file;
@@ -67,10 +67,10 @@ struct options {
   bool has_language = false;
   bool has_vim_file_bufnr = false;
 
-  bool dump_errors(output_stream &) const;
+  bool dump_errors(Output_Stream &) const;
 };
 
-options parse_options(int argc, char **argv);
+Options parse_options(int argc, char **argv);
 }
 
 #endif

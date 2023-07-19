@@ -19,27 +19,27 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_typeof,
+TEST(Test_Variable_Analyzer_Typeof,
      using_undeclared_variable_in_typeof_is_not_an_error) {
-  const char8 use[] = u8"v";
+  const Char8 use[] = u8"v";
 
   // typeof v;
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_typeof, typeof_declares_variable_automagically) {
-  const char8 typeof_use[] = u8"v";
-  const char8 other_use[] = u8"v";
+TEST(Test_Variable_Analyzer_Typeof, typeof_declares_variable_automagically) {
+  const Char8 typeof_use[] = u8"v";
+  const Char8 other_use[] = u8"v";
 
   // typeof v;
   // v;
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(typeof_use));
   l.visit_variable_use(identifier_of(other_use));
   l.visit_end_of_module();
@@ -47,19 +47,19 @@ TEST(test_variable_analyzer_typeof, typeof_declares_variable_automagically) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_typeof,
+TEST(Test_Variable_Analyzer_Typeof,
      typeof_declares_variable_automagically_in_parent_function) {
-  const char8 use_before[] = u8"v";
-  const char8 typeof_use[] = u8"v";
-  const char8 use_after[] = u8"v";
+  const Char8 use_before[] = u8"v";
+  const Char8 typeof_use[] = u8"v";
+  const Char8 use_after[] = u8"v";
 
   // v;
   // (() => {
   //   typeof v;
   // });
   // v;
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -71,52 +71,52 @@ TEST(test_variable_analyzer_typeof,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_typeof,
+TEST(Test_Variable_Analyzer_Typeof,
      typeof_refers_to_already_declared_variable) {
-  const char8 declaration[] = u8"v";
-  const char8 use[] = u8"v";
+  const Char8 declaration[] = u8"v";
+  const Char8 use[] = u8"v";
 
   // let v;
   // typeof v;
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_declaration_flags::none);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
+  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
+                               Variable_Declaration_Flags::none);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_typeof,
+TEST(Test_Variable_Analyzer_Typeof,
      typeof_variable_declared_later_is_an_error) {
-  const char8 declaration[] = u8"v";
-  const char8 use[] = u8"v";
+  const Char8 declaration[] = u8"v";
+  const Char8 use[] = u8"v";
 
   // typeof v;  // ERROR
   // let v;
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_typeof_use(identifier_of(use));
-  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_declaration_flags::none);
+  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
+                               Variable_Declaration_Flags::none);
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
               ElementsAreArray({
-                  DIAG_TYPE_2_SPANS(diag_variable_used_before_declaration,  //
+                  DIAG_TYPE_2_SPANS(Diag_Variable_Used_Before_Declaration,  //
                                     use, span_of(use),                      //
                                     declaration, span_of(declaration)),
               }));
 }
 
 TEST(
-    test_variable_analyzer_typeof,
+    Test_Variable_Analyzer_Typeof,
     typeof_already_declared_variable_does_not_declare_variable_in_parent_function) {
-  const char8 use_before[] = u8"v";
-  const char8 declaration[] = u8"v";
-  const char8 typeof_use[] = u8"v";
-  const char8 use_after[] = u8"v";
+  const Char8 use_before[] = u8"v";
+  const Char8 declaration[] = u8"v";
+  const Char8 typeof_use[] = u8"v";
+  const Char8 use_after[] = u8"v";
 
   // v;           // ERROR
   // (() => {
@@ -124,22 +124,22 @@ TEST(
   //   typeof v;
   // });
   // v;           // ERROR
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_declaration_flags::none);
+  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
+                               Variable_Declaration_Flags::none);
   l.visit_variable_typeof_use(identifier_of(typeof_use));
   l.visit_exit_function_scope();
   l.visit_variable_use(identifier_of(use_after));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, ElementsAreArray({
-                            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
                                            name, span_of(use_before)),
-                            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
                                            name, span_of(use_after)),
                         }));
 }

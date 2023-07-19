@@ -7,18 +7,18 @@
 #include <quick-lint-js/fe/variable-analyzer.h>
 
 namespace quick_lint_js {
-class global_declared_variable_set;
+class Global_Declared_Variable_Set;
 
-extern global_declared_variable_set default_globals;
+extern Global_Declared_Variable_Set default_globals;
 
-constexpr variable_analyzer_options javascript_var_options =
-    variable_analyzer_options{
+constexpr Variable_Analyzer_Options javascript_var_options =
+    Variable_Analyzer_Options{
         .allow_deleting_typescript_variable = true,
         .eval_can_declare_variables = true,
     };
 
-constexpr variable_analyzer_options typescript_var_options =
-    variable_analyzer_options{
+constexpr Variable_Analyzer_Options typescript_var_options =
+    Variable_Analyzer_Options{
         .allow_deleting_typescript_variable = false,
         .eval_can_declare_variables = false,
     };

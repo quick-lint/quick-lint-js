@@ -11,14 +11,14 @@
 #include <vector>
 
 namespace quick_lint_js {
-lsp_endpoint_remote::~lsp_endpoint_remote() = default;
+LSP_Endpoint_Remote::~LSP_Endpoint_Remote() = default;
 
-byte_buffer& outgoing_json_rpc_message_queue::new_message() {
+Byte_Buffer& Outgoing_JSON_RPC_Message_Queue::new_message() {
   return this->messages_.emplace_back();
 }
 
-void outgoing_json_rpc_message_queue::send(lsp_endpoint_remote& remote) {
-  for (byte_buffer& notification_json : this->messages_) {
+void Outgoing_JSON_RPC_Message_Queue::send(LSP_Endpoint_Remote& remote) {
+  for (Byte_Buffer& notification_json : this->messages_) {
     remote.send_message(std::move(notification_json));
   }
   this->messages_.clear();

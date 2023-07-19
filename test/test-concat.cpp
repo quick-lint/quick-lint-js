@@ -12,7 +12,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_concat, string_literals_are_not_supported) {
+TEST(Test_Concat, string_literals_are_not_supported) {
   // TODO(strager): Compile test.
 #if 0
   concat("hello", "world");
@@ -25,7 +25,7 @@ TEST(test_concat, string_literals_are_not_supported) {
 #endif
 }
 
-TEST(test_concat, string_views) {
+TEST(Test_Concat, string_views) {
   EXPECT_EQ(concat("hello"sv, "world"sv), "helloworld"s);
   EXPECT_EQ(concat("hello"sv, "beautiful"sv, "world"sv),
             "hellobeautifulworld"s);
@@ -39,7 +39,7 @@ TEST(test_concat, string_views) {
             u8"hellobeautifulworld!"s);
 }
 
-TEST(test_concat, std_strings) {
+TEST(Test_Concat, std_strings) {
   EXPECT_EQ(concat("hello"s, "world"s), "helloworld"s);
   EXPECT_EQ(concat("hello"s, "beautiful"s, "world"s), "hellobeautifulworld"s);
   EXPECT_EQ(concat("hello"s, "beautiful"s, "world"s, "!"s),

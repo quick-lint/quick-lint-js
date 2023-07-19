@@ -23,9 +23,9 @@
 // message: failure was caused by out of range index 3; allowed range is 0 <=
 //          index < 2
 // message: while evaluating constexpr function
-//          diagnostic_info_builder<diag_adjacent_jsx_without_parent>::add
+//          diagnostic_info_builder<Diag_Adjacent_JSX_Without_Parent>::add
 // message: while evaluating constexpr function
-//          info_for_diagnostic<diag_adjacent_jsx_without_parent>::get
+//          info_for_diagnostic<Diag_Adjacent_JSX_Without_Parent>::get
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE /* */
 #else
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE constexpr
@@ -58,12 +58,12 @@ std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) noexcept {
 }
 
 // Convert a QLJS_DIAG_TYPE user into a diagnostic_info.
-class diagnostic_info_builder {
+class Diagnostic_Info_Builder {
  public:
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wconversion")
-  constexpr explicit diagnostic_info_builder(const char* code_string,
-                                             diagnostic_severity sev) {
+  constexpr explicit Diagnostic_Info_Builder(const char* code_string,
+                                             Diagnostic_Severity sev) {
     this->info_.severity = sev;
     this->info_.code = parse_code_string(code_string);
   }
@@ -71,12 +71,12 @@ class diagnostic_info_builder {
 
   // Each of Args must be a diagnostic_message_arg_info.
   template <class... Args>
-  constexpr diagnostic_info_builder add(const translatable_message& message,
+  constexpr Diagnostic_Info_Builder add(const Translatable_Message& message,
                                         const Args&... arg_infos) {
     this->info_.message_formats[this->current_message_index_] = message;
 
     std::size_t current_arg_index = 0;
-    diagnostic_message_args& args =
+    Diagnostic_Message_Args& args =
         this->info_.message_args[this->current_message_index_];
     ((args[current_arg_index++] = arg_infos), ...);
 
@@ -84,24 +84,24 @@ class diagnostic_info_builder {
     return *this;
   }
 
-  constexpr diagnostic_info build() noexcept { return this->info_; }
+  constexpr Diagnostic_Info build() noexcept { return this->info_; }
 
  private:
-  diagnostic_info info_{};
+  Diagnostic_Info info_{};
   int current_message_index_ = 0;
 };
 
 template <class Diag>
-struct info_for_diagnostic;
+struct Info_For_Diagnostic;
 
 #define MAKE_ARGS(...) MAKE_ARGS_N(QLJS_COUNT_ARGS(__VA_ARGS__), __VA_ARGS__)
 #define MAKE_ARGS_N(...) MAKE_ARGS_N_(__VA_ARGS__)
 #define MAKE_ARGS_N_(count, ...) MAKE_ARGS_##count(__VA_ARGS__)
 
 #define MAKE_ARGS_1(arg0)         \
-  diagnostic_message_arg_info(    \
-      offsetof(diag_class, arg0), \
-      get_diagnostic_message_arg_type<decltype(diag_class::arg0)>())
+  Diagnostic_Message_Arg_Info(    \
+      offsetof(Diag_Class, arg0), \
+      get_diagnostic_message_arg_type<decltype(Diag_Class::arg0)>())
 #define MAKE_ARGS_2(arg0, arg1) MAKE_ARGS_1(arg0), MAKE_ARGS_1(arg1)
 #define MAKE_ARGS_3(arg0, arg1, arg2) MAKE_ARGS_2(arg0, arg1), MAKE_ARGS_1(arg2)
 
@@ -110,11 +110,11 @@ struct info_for_diagnostic;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)       \
   template <>                                                                \
-  struct info_for_diagnostic<name> {                                         \
-    using diag_class = name;                                                 \
+  struct Info_For_Diagnostic<name> {                                         \
+    using Diag_Class = name;                                                 \
                                                                              \
-    static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE diagnostic_info get() noexcept { \
-      return diagnostic_info_builder(code, severity) format_call.build();    \
+    static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE Diagnostic_Info get() noexcept { \
+      return Diagnostic_Info_Builder(code, severity) format_call.build();    \
     }                                                                        \
   };
 QLJS_X_DIAG_TYPES
@@ -124,19 +124,19 @@ QLJS_X_DIAG_TYPES
 // If you see an error with the following lines, translation-table-generated.h
 // is probably out of date. Run tools/update-translator-sources to rebuild this
 // file.
-DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
+DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const Diagnostic_Info
     all_diagnostic_infos[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  info_for_diagnostic<name>::get(),
+  Info_For_Diagnostic<name>::get(),
         QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 };
 
-const diagnostic_info& get_diagnostic_info(diag_type type) noexcept {
+const Diagnostic_Info& get_diagnostic_info(Diag_Type type) noexcept {
   return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
 }
 
-std::array<char, 5> diagnostic_info::code_string() const noexcept {
+std::array<char, 5> Diagnostic_Info::code_string() const noexcept {
   return diag_code_to_string(this->code);
 }
 
@@ -145,16 +145,16 @@ QLJS_WARNING_PUSH
 // is.
 QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
 
-std::optional<diag_type> diag_type_from_code_slow(
+std::optional<Diag_Type> diag_type_from_code_slow(
     std::string_view code) noexcept {
-  for (int i = 0; i < diag_type_count; ++i) {
+  for (int i = 0; i < Diag_Type_Count; ++i) {
     // TODO(strager): Parse the incoming code instead of stringifying each code
     // in the table.
     auto diag_code_string = all_diagnostic_infos[i].code_string();
     std::string_view diag_code_string_view(diag_code_string.data(),
                                            diag_code_string.size());
     if (diag_code_string_view == code) {
-      return static_cast<diag_type>(i);
+      return static_cast<Diag_Type>(i);
     }
   }
   return std::nullopt;

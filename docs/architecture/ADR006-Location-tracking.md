@@ -23,24 +23,24 @@ counting columns.
 The lexer does not count line or column numbers. The lexer only communicates a
 pointer inside the input string (effectively a byte offset).
 
-Different `_locator` classes are used to implement different rules used by
-different editors. Each `_locator` class is independent and has a different
-interface suited for the protocol. (A CLI `_locator` class has different needs
-from an LSP server `_locator` class.)
+Different `_Locator` classes are used to implement different rules used by
+different editors. Each `_Locator` class is independent and has a different
+interface suited for the protocol. (A CLI `_Locator` class has different needs
+from an LSP server `_Locator` class.)
 
-When reporting an error, it is the responsibility of an `error_reporter` derived
-class to give the input string pointer (i.e. byte offset) to the `_locator`.
+When reporting an error, it is the responsibility of an `Error_Reporter` derived
+class to give the input string pointer (i.e. byte offset) to the `_Locator`.
 
 ## Consequences
 
 For the CLI, if source code has no errors, location information is not needed,
 thus quick-lint-js avoids redundant work.
 
-The `_locator` system came in handy when implementing the LSP server. When
+The `_Locator` system came in handy when implementing the LSP server. When
 applying line-number-based edits from the LSP client, line numbers don't need to
 be recomputed in order to find which byte to edit in the input string.
 
-Different `_locator` classes can coexist while reusing the same lexer code. The
+Different `_Locator` classes can coexist while reusing the same lexer code. The
 lexer doesn't need a polymorphic (e.g. template parameter) reference to any
 state to keep track of line numbers.
 
@@ -49,7 +49,7 @@ and end). This representation is pretty compact compared to a bunch of integers.
 For identifiers, we need the pointers anyway (though Unicode escapes in
 identifiers tarnish the utopia of only needing two pointers).
 
-If multiple diagnostics need to be reported, then the `_locator` classes need
+If multiple diagnostics need to be reported, then the `_Locator` classes need
 caching to avoid scanning the input multiple times. This caching is hard to get
 right, and has lead to several bugs (e.g. Git commits
 e33b0a4ed72d236ccee9615ba42978ee72a92aff and

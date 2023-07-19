@@ -26,21 +26,21 @@
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-json_rpc_message_handler::~json_rpc_message_handler() = default;
+JSON_RPC_Message_Handler::~JSON_RPC_Message_Handler() = default;
 
-lsp_json_rpc_message_parser::lsp_json_rpc_message_parser(
-    json_rpc_message_handler* handler)
+LSP_JSON_RPC_Message_Parser::LSP_JSON_RPC_Message_Parser(
+    JSON_RPC_Message_Handler* handler)
     : handler_(handler),
       json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
 
-lsp_json_rpc_message_parser::~lsp_json_rpc_message_parser() = default;
+LSP_JSON_RPC_Message_Parser::~LSP_JSON_RPC_Message_Parser() = default;
 
-void lsp_json_rpc_message_parser::message_parsed(string8_view message) {
-  trace_writer* tw =
-      trace_flusher::instance()->trace_writer_for_current_thread();
+void LSP_JSON_RPC_Message_Parser::message_parsed(String8_View message) {
+  Trace_Writer* tw =
+      Trace_Flusher::instance()->trace_writer_for_current_thread();
   if (tw) {
     tw->write_event_lsp_client_to_server_message(
-        trace_event_lsp_client_to_server_message{
+        Trace_Event_LSP_Client_To_Server_Message{
             .timestamp = 0,  // TODO(strager)
             .body = message,
         });
@@ -77,18 +77,18 @@ void lsp_json_rpc_message_parser::message_parsed(string8_view message) {
   }
 }
 
-void lsp_json_rpc_message_parser::flush_error_responses(
-    lsp_endpoint_remote& remote) {
+void LSP_JSON_RPC_Message_Parser::flush_error_responses(
+    LSP_Endpoint_Remote& remote) {
   this->error_responses_.send(remote);
 }
 
-void lsp_json_rpc_message_parser::handle_message(
+void LSP_JSON_RPC_Message_Parser::handle_message(
     ::simdjson::ondemand::object& message) {
   using namespace std::literals::string_view_literals;
 
   bool have_id;
-  string8_view id_json;
-  json_rpc_message_handler::request_id_type int_id = 0;
+  String8_View id_json;
+  JSON_RPC_Message_Handler::Request_ID_Type int_id = 0;
   ::simdjson::error_code int_id_rc = ::simdjson::NO_SUCH_FIELD;
 
   ::simdjson::ondemand::value id;
@@ -196,8 +196,8 @@ void lsp_json_rpc_message_parser::handle_message(
   }
 }
 
-void lsp_json_rpc_message_parser::write_json_parse_error_response() {
-  byte_buffer& response_json = this->error_responses_.new_message();
+void LSP_JSON_RPC_Message_Parser::write_json_parse_error_response() {
+  Byte_Buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -211,9 +211,9 @@ void lsp_json_rpc_message_parser::write_json_parse_error_response() {
   // clang-format on
 }
 
-void lsp_json_rpc_message_parser::
+void LSP_JSON_RPC_Message_Parser::
     write_json_batch_messages_not_supported_error() {
-  byte_buffer& response_json = this->error_responses_.new_message();
+  Byte_Buffer& response_json = this->error_responses_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
@@ -225,8 +225,8 @@ void lsp_json_rpc_message_parser::
   u8R"(})"_sv);
 }
 
-void lsp_json_rpc_message_parser::write_invalid_request_error_response() {
-  byte_buffer& response_json = this->error_responses_.new_message();
+void LSP_JSON_RPC_Message_Parser::write_invalid_request_error_response() {
+  Byte_Buffer& response_json = this->error_responses_.new_message();
   using namespace std::literals::string_view_literals;
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -240,8 +240,8 @@ void lsp_json_rpc_message_parser::write_invalid_request_error_response() {
   // clang-format on
 }
 
-template void lsp_message_parser<lsp_json_rpc_message_parser>::append(
-    string8_view);
+template void LSP_Message_Parser<LSP_JSON_RPC_Message_Parser>::append(
+    String8_View);
 }
 
 #endif

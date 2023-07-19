@@ -23,25 +23,25 @@
 #endif
 
 namespace quick_lint_js {
-class source_code_span;
-enum class diag_type;
-enum class enum_kind;
-enum class statement_kind;
+class Source_Code_Span;
+enum class Diag_Type;
+enum class Enum_Kind;
+enum class Statement_Kind;
 
-enum class diagnostic_severity : std::uint8_t {
+enum class Diagnostic_Severity : std::uint8_t {
   error,
   note,
   warning,
 };
 
-enum class diagnostic_arg_type : std::uint8_t {
+enum class Diagnostic_Arg_Type : std::uint8_t {
   invalid = 0,
 
-  char8,
+  Char8,
   enum_kind,
-  source_code_span,
+  Source_Code_Span,
   statement_kind,
-  string8_view,
+  String8_View,
   variable_kind,
 };
 
@@ -49,7 +49,7 @@ enum class diagnostic_arg_type : std::uint8_t {
 // plugin needs to be updated. See NOTE(multiple notes).
 constexpr int diagnostic_max_message_count = 2;
 
-struct diagnostic_message_arg_info {
+struct Diagnostic_Message_Arg_Info {
   // offset_shift is how many bits are removed in compact_offset.
   //
   // For example, if offset_shift is 3, then an arg must be 8-byte aligned.
@@ -57,14 +57,14 @@ struct diagnostic_message_arg_info {
   static constexpr int offset_mask = (1 << offset_shift) - 1;
   static constexpr int offset_bits = 5;
 
-  /*implicit*/ constexpr diagnostic_message_arg_info() noexcept
-      : compact_offset(0), type(diagnostic_arg_type::invalid) {}
+  /*implicit*/ constexpr Diagnostic_Message_Arg_Info() noexcept
+      : compact_offset(0), type(Diagnostic_Arg_Type::invalid) {}
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_CLANG("-Wimplicit-int-conversion")
   QLJS_WARNING_IGNORE_GCC("-Wconversion")
-  /*implicit*/ constexpr diagnostic_message_arg_info(
-      std::size_t offset, diagnostic_arg_type type) noexcept
+  /*implicit*/ constexpr Diagnostic_Message_Arg_Info(
+      std::size_t offset, Diagnostic_Arg_Type type) noexcept
       : compact_offset(offset >> offset_shift), type(type) {
     // offset should be small.
     QLJS_CONSTEXPR_ASSERT((offset >> offset_shift) < (1 << offset_bits));
@@ -78,53 +78,52 @@ struct diagnostic_message_arg_info {
   }
 
   std::uint8_t compact_offset : offset_bits QLJS_WORK_AROUND_GCC_BUG_105191;
-  diagnostic_arg_type type : (8 - offset_bits) QLJS_WORK_AROUND_GCC_BUG_105191;
+  Diagnostic_Arg_Type type : (8 - offset_bits) QLJS_WORK_AROUND_GCC_BUG_105191;
 };
 
-using diagnostic_message_args = std::array<diagnostic_message_arg_info, 3>;
+using Diagnostic_Message_Args = std::array<Diagnostic_Message_Arg_Info, 3>;
 
-struct diagnostic_info {
+struct Diagnostic_Info {
   std::array<char, 5> code_string() const noexcept;
 
   std::uint16_t code : 14;
-  diagnostic_severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
+  Diagnostic_Severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
 
-  translatable_message message_formats[diagnostic_max_message_count];
-  diagnostic_message_args message_args[diagnostic_max_message_count];
+  Translatable_Message message_formats[diagnostic_max_message_count];
+  Diagnostic_Message_Args message_args[diagnostic_max_message_count];
 };
 
-const diagnostic_info &get_diagnostic_info(diag_type) noexcept;
-std::optional<diag_type> diag_type_from_code_slow(
+const Diagnostic_Info &get_diagnostic_info(Diag_Type) noexcept;
+std::optional<Diag_Type> diag_type_from_code_slow(
     std::string_view code) noexcept;
 
 template <class ArgType>
-constexpr diagnostic_arg_type get_diagnostic_message_arg_type() noexcept;
+constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type() noexcept;
 template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<char8>() noexcept {
-  return diagnostic_arg_type::char8;
+constexpr Diagnostic_Arg_Type
+get_diagnostic_message_arg_type<Char8>() noexcept {
+  return Diagnostic_Arg_Type::Char8;
 }
 template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<enum_kind>() noexcept {
-  return diagnostic_arg_type::enum_kind;
+constexpr Diagnostic_Arg_Type
+get_diagnostic_message_arg_type<Enum_Kind>() noexcept {
+  return Diagnostic_Arg_Type::enum_kind;
 }
 template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<source_code_span>() noexcept {
-  return diagnostic_arg_type::source_code_span;
+constexpr Diagnostic_Arg_Type
+get_diagnostic_message_arg_type<Source_Code_Span>() noexcept {
+  return Diagnostic_Arg_Type::Source_Code_Span;
 }
 template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<statement_kind>() noexcept {
-  return diagnostic_arg_type::statement_kind;
+constexpr Diagnostic_Arg_Type
+get_diagnostic_message_arg_type<Statement_Kind>() noexcept {
+  return Diagnostic_Arg_Type::statement_kind;
 }
 template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<string8_view>() noexcept {
-  return diagnostic_arg_type::string8_view;
+constexpr Diagnostic_Arg_Type
+get_diagnostic_message_arg_type<String8_View>() noexcept {
+  return Diagnostic_Arg_Type::String8_View;
 }
-
 }
 
 #undef QLJS_WORK_AROUND_GCC_BUG_105191

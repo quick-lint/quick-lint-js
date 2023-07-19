@@ -36,58 +36,60 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wshadow-field")
 
 namespace quick_lint_js {
-class expression;
+class Expression;
 
-enum class expression_kind {
-  _class,
-  _delete,
-  _invalid,
-  _missing,
-  _new,
-  _template,
-  _typeof,
-  array,
-  arrow_function,
-  angle_type_assertion,  // TypeScript only.
-  as_type_assertion,     // TypeScript only.
-  assignment,
-  await,
-  binary_operator,
-  call,
-  compound_assignment,
-  conditional,
-  conditional_assignment,
-  dot,
-  function,
-  import,
-  index,
-  jsx_element,
-  jsx_element_with_members,
-  jsx_element_with_namespace,
-  jsx_fragment,
-  literal,
-  named_function,
-  new_target,
-  non_null_assertion,  // TypeScript only.
-  object,
-  optional,  // TypeScript only.
-  paren,
-  paren_empty,
-  private_variable,
-  rw_unary_prefix,
-  rw_unary_suffix,
-  satisfies,  // TypeScript only.
-  spread,
-  super,
-  tagged_template_literal,
-  this_variable,
-  trailing_comma,
-  type_annotated,  // TypeScript only.
-  unary_operator,
-  variable,
-  yield_many,
-  yield_none,
-  yield_one,
+// NOTE(strager): Enum members in Expression_Kind are Upper_Snake_Case (matching
+// the type names) instead of the usual lower_snake_case.
+enum class Expression_Kind {
+  Class,
+  Delete,
+  Invalid,
+  Missing,
+  New,
+  Template,
+  Typeof,
+  Array,
+  Arrow_Function,
+  Angle_Type_Assertion,  // TypeScript only.
+  As_Type_Assertion,     // TypeScript only.
+  Assignment,
+  Await,
+  Binary_Operator,
+  Call,
+  Compound_Assignment,
+  Conditional,
+  Conditional_Assignment,
+  Dot,
+  Function,
+  Import,
+  Index,
+  JSX_Element,
+  JSX_Element_With_Members,
+  JSX_Element_With_Namespace,
+  JSX_Fragment,
+  Literal,
+  Named_Function,
+  New_Target,
+  Non_Null_Assertion,  // TypeScript only.
+  Object,
+  Optional,  // TypeScript only.
+  Paren,
+  Paren_Empty,
+  Private_Variable,
+  RW_Unary_Prefix,
+  RW_Unary_Suffix,
+  Satisfies,  // TypeScript only.
+  Spread,
+  Super,
+  Tagged_Template_Literal,
+  This_Variable,
+  Trailing_Comma,
+  Type_Annotated,  // TypeScript only.
+  Unary_Operator,
+  Variable,
+  Yield_Many,
+  Yield_None,
+  Yield_One,
 };
 
 // property is present:
@@ -111,17 +113,17 @@ enum class expression_kind {
 // * { property: value }
 // * { propertyAndValue }
 // * { ...value }
-struct object_property_value_pair {
+struct Object_Property_Value_Pair {
   // property is optional.
-  explicit object_property_value_pair(expression *property,
-                                      expression *value) noexcept
+  explicit Object_Property_Value_Pair(Expression *property,
+                                      Expression *value) noexcept
       : property(property), value(value), init(nullptr) {}
 
   // property is required.
   // init is required.
-  explicit object_property_value_pair(expression *property, expression *value,
-                                      expression *init,
-                                      const char8 *init_equal_begin) noexcept
+  explicit Object_Property_Value_Pair(Expression *property, Expression *value,
+                                      Expression *init,
+                                      const Char8 *init_equal_begin) noexcept
       : property(property),
         value(value),
         init(init),
@@ -132,10 +134,10 @@ struct object_property_value_pair {
   }
 
   // Precondition: init is not null.
-  source_code_span init_equals_span() const {
+  Source_Code_Span init_equals_span() const {
     QLJS_ASSERT(this->init);
     QLJS_ASSERT(this->init_equal_begin);
-    return source_code_span(this->init_equal_begin, this->init_equal_begin + 1);
+    return Source_Code_Span(this->init_equal_begin, this->init_equal_begin + 1);
   }
 
   // true examples:
@@ -147,40 +149,40 @@ struct object_property_value_pair {
   // * {x: x = z}
   bool is_merged_property_and_value_shorthand();
 
-  expression *property;           // Optional.
-  expression *value;              // Required.
-  expression *init;               // Optional.
-  const char8 *init_equal_begin;  // Used only if init is not null.
+  Expression *property;           // Optional.
+  Expression *value;              // Required.
+  Expression *init;               // Optional.
+  const Char8 *init_equal_begin;  // Used only if init is not null.
 };
 
-class expression_arena {
+class Expression_Arena {
  public:
   // TODO(strager): Inline.
   template <class T>
-  using array_ptr = span<const T>;
+  using Array_Ptr = Span<const T>;
 
-  using buffering_visitor_ptr = buffering_visitor *;
+  using Buffering_Visitor_Ptr = Buffering_Visitor *;
 
   template <class T>
-  using vector = bump_vector<T, monotonic_allocator>;
+  using Vector = Bump_Vector<T, Monotonic_Allocator>;
 
   template <class T>
   static inline constexpr bool is_allocatable =
       is_winkable_v<std::remove_reference_t<T>>;
 
   template <class Expression, class... Args>
-  expression *make_expression(Args &&... args);
+  Expression *make_expression(Args &&... args);
 
   template <class T>
-  array_ptr<T> make_array(bump_vector<T, monotonic_allocator> &&);
+  Array_Ptr<T> make_array(Bump_Vector<T, Monotonic_Allocator> &&);
 
   template <class T>
-  array_ptr<T> make_array(T *begin, T *end);
+  Array_Ptr<T> make_array(T *begin, T *end);
 
   template <class T, std::size_t Size>
-  array_ptr<T> make_array(std::array<T, Size> &&);
+  Array_Ptr<T> make_array(std::array<T, Size> &&);
 
-  monotonic_allocator *allocator() noexcept { return &this->allocator_; }
+  Monotonic_Allocator *allocator() noexcept { return &this->allocator_; }
 
  private:
   template <class T, class... Args>
@@ -198,108 +200,108 @@ class expression_arena {
     return result;
   }
 
-  monotonic_allocator allocator_{"expression_arena"};
+  Monotonic_Allocator allocator_{"expression_arena"};
 };
 
-class expression {
+class Expression {
  public:
-  class expression_with_prefix_operator_base;
-  class jsx_base;
+  class Expression_With_Prefix_Operator_Base;
+  class JSX_Base;
 
-  class _class;
-  class _delete;
-  class _invalid;
-  class _missing;
-  class _new;
-  class _template;
-  class _typeof;
-  class array;
-  class arrow_function;
-  class angle_type_assertion;
-  class as_type_assertion;
-  class assignment;
-  class await;
-  class binary_operator;
-  class call;
-  class conditional;
-  class dot;
-  class function;
-  class import;
-  class index;
-  class jsx_element;
-  class jsx_element_with_members;
-  class jsx_element_with_namespace;
-  class jsx_fragment;
-  class literal;
-  class named_function;
-  class new_target;
-  class non_null_assertion;
-  class object;
-  class optional;
-  class paren;
-  class paren_empty;
-  class private_variable;
-  class rw_unary_prefix;
-  class rw_unary_suffix;
-  class satisfies;
-  class spread;
-  class super;
-  class tagged_template_literal;
-  class this_variable;
-  class trailing_comma;
-  class type_annotated;
-  class unary_operator;
-  class variable;
-  class yield_many;
-  class yield_none;
-  class yield_one;
+  class Class;
+  class Delete;
+  class Invalid;
+  class Missing;
+  class New;
+  class Template;
+  class Typeof;
+  class Array;
+  class Arrow_Function;
+  class Angle_Type_Assertion;
+  class As_Type_Assertion;
+  class Assignment;
+  class Await;
+  class Binary_Operator;
+  class Call;
+  class Conditional;
+  class Dot;
+  class Function;
+  class Import;
+  class Index;
+  class JSX_Element;
+  class JSX_Element_With_Members;
+  class JSX_Element_With_Namespace;
+  class JSX_Fragment;
+  class Literal;
+  class Named_Function;
+  class New_Target;
+  class Non_Null_Assertion;
+  class Object;
+  class Optional;
+  class Paren;
+  class Paren_Empty;
+  class Private_Variable;
+  class RW_Unary_Prefix;
+  class RW_Unary_Suffix;
+  class Satisfies;
+  class Spread;
+  class Super;
+  class Tagged_Template_Literal;
+  class This_Variable;
+  class Trailing_Comma;
+  class Type_Annotated;
+  class Unary_Operator;
+  class Variable;
+  class Yield_Many;
+  class Yield_None;
+  class Yield_One;
 
-  expression_kind kind() const noexcept { return this->kind_; }
+  Expression_Kind kind() const noexcept { return this->kind_; }
 
-  identifier variable_identifier() const noexcept;
-  token_type variable_identifier_token_type() const noexcept;
+  Identifier variable_identifier() const noexcept;
+  Token_Type variable_identifier_token_type() const noexcept;
 
-  span_size child_count() const noexcept;
+  Span_Size child_count() const noexcept;
 
-  expression *child_0() const noexcept { return this->child(0); }
-  expression *child_1() const noexcept { return this->child(1); }
-  expression *child_2() const noexcept { return this->child(2); }
+  Expression *child_0() const noexcept { return this->child(0); }
+  Expression *child_1() const noexcept { return this->child(1); }
+  Expression *child_2() const noexcept { return this->child(2); }
 
-  expression *child(span_size) const noexcept;
+  Expression *child(Span_Size) const noexcept;
 
-  expression_arena::array_ptr<expression *> children() const noexcept;
+  Expression_Arena::Array_Ptr<Expression *> children() const noexcept;
 
   // Remove wrapping paren expressions, if any.
-  expression *without_paren() const noexcept;
+  Expression *without_paren() const noexcept;
 
-  span_size object_entry_count() const noexcept;
+  Span_Size object_entry_count() const noexcept;
 
-  object_property_value_pair object_entry(span_size) const noexcept;
+  Object_Property_Value_Pair object_entry(Span_Size) const noexcept;
 
-  source_code_span span() const noexcept;
+  Source_Code_Span span() const noexcept;
 
-  const char8 *span_begin() const noexcept;
-  const char8 *span_end() const noexcept;
+  const Char8 *span_begin() const noexcept;
+  const Char8 *span_end() const noexcept;
 
-  function_attributes attributes() const noexcept;
+  Function_Attributes attributes() const noexcept;
 
  protected:
-  explicit expression(expression_kind kind) noexcept : kind_(kind) {}
+  explicit Expression(Expression_Kind kind) noexcept : kind_(kind) {}
 
  private:
-  expression_kind kind_;
+  Expression_Kind kind_;
 };
 
 inline bool
-object_property_value_pair::is_merged_property_and_value_shorthand() {
-  return this->property && this->property->kind() == expression_kind::literal &&
-         this->value->kind() == expression_kind::variable &&
+Object_Property_Value_Pair::is_merged_property_and_value_shorthand() {
+  return this->property && this->property->kind() == Expression_Kind::Literal &&
+         this->value->kind() == Expression_Kind::Variable &&
          this->property->span().begin() == this->value->span().begin();
 }
 
 template <class Derived>
-Derived *expression_cast(expression *p) noexcept {
-  // TODO(strager): Assert that Derived matches the expression's run-time
+Derived *expression_cast(Expression *p) noexcept {
+  // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
   return static_cast<Derived *>(&*p);
 }
@@ -309,181 +311,181 @@ template <class Derived, class Expression>
 Derived *expression_cast(Expression *) noexcept = delete;
 
 template <class Expression, class... Args>
-expression *expression_arena::make_expression(Args &&... args) {
-  expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
+Expression *Expression_Arena::make_expression(Args &&... args) {
+  Expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
 }
 
 template <class T>
-inline expression_arena::array_ptr<T> expression_arena::make_array(
-    bump_vector<T, monotonic_allocator> &&elements) {
+inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(
+    Bump_Vector<T, Monotonic_Allocator> &&elements) {
   QLJS_ASSERT(elements.get_allocator() == &this->allocator_);
   // NOTE(strager): Adopt the pointer instead of copying.
-  array_ptr<T> result(elements.data(), elements.size());
+  Array_Ptr<T> result(elements.data(), elements.size());
   elements.release();
   return result;
 }
 
 template <class T>
-inline expression_arena::array_ptr<T> expression_arena::make_array(T *begin,
+inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(T *begin,
                                                                    T *end) {
   T *result_begin = this->allocate_array_move(begin, end);
-  span_size size = narrow_cast<span_size>(end - begin);
-  return array_ptr<T>(result_begin, size);
+  Span_Size size = narrow_cast<Span_Size>(end - begin);
+  return Array_Ptr<T>(result_begin, size);
 }
 
 template <class T, std::size_t Size>
-inline expression_arena::array_ptr<T> expression_arena::make_array(
+inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(
     std::array<T, Size> &&elements) {
   return this->make_array(elements.data(), elements.data() + elements.size());
 }
 
-class expression::expression_with_prefix_operator_base : public expression {
+class Expression::Expression_With_Prefix_Operator_Base : public Expression {
  public:
-  explicit expression_with_prefix_operator_base(
-      expression_kind kind, expression *child,
-      source_code_span operator_span) noexcept
-      : expression(kind),
+  explicit Expression_With_Prefix_Operator_Base(
+      Expression_Kind kind, Expression *child,
+      Source_Code_Span operator_span) noexcept
+      : Expression(kind),
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
 
-  const char8 *unary_operator_begin_;
-  expression *child_;
+  const Char8 *unary_operator_begin_;
+  Expression *child_;
 };
 
-class expression::_delete final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Delete final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::_delete;
+  static constexpr Expression_Kind kind = Expression_Kind::Delete;
 
-  explicit _delete(expression *child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Delete(Expression *child, Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {
     QLJS_ASSERT(operator_span.string_view() == u8"delete"_sv);
   }
 
-  source_code_span unary_operator_span() {
-    const char8 *operator_begin = unary_operator_begin_;
-    return source_code_span(operator_begin,
+  Source_Code_Span unary_operator_span() {
+    const Char8 *operator_begin = unary_operator_begin_;
+    return Source_Code_Span(operator_begin,
                             operator_begin + strlen(u8"delete"));
   }
 };
-static_assert(expression_arena::is_allocatable<expression::_delete>);
+static_assert(Expression_Arena::is_allocatable<Expression::Delete>);
 
-class expression::_class : public expression {
+class Expression::Class : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::_class;
+  static constexpr Expression_Kind kind = Expression_Kind::Class;
 
-  explicit _class(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Class(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::_class>);
+static_assert(Expression_Arena::is_allocatable<Expression::Class>);
 
-class expression::_invalid final : public expression {
+class Expression::Invalid final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::_invalid;
+  static constexpr Expression_Kind kind = Expression_Kind::Invalid;
 
-  explicit _invalid(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Invalid(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::_invalid>);
+static_assert(Expression_Arena::is_allocatable<Expression::Invalid>);
 
-class expression::_missing final : public expression {
+class Expression::Missing final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::_missing;
+  static constexpr Expression_Kind kind = Expression_Kind::Missing;
 
-  explicit _missing(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Missing(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::_missing>);
+static_assert(Expression_Arena::is_allocatable<Expression::Missing>);
 
-class expression::_new final : public expression {
+class Expression::New final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::_new;
+  static constexpr Expression_Kind kind = Expression_Kind::New;
 
-  explicit _new(expression_arena::array_ptr<expression *> children,
-                source_code_span span) noexcept
-      : expression(kind), span_(span), children_(children) {}
+  explicit New(Expression_Arena::Array_Ptr<Expression *> children,
+               Source_Code_Span span) noexcept
+      : Expression(kind), span_(span), children_(children) {}
 
-  source_code_span span_;
-  expression_arena::array_ptr<expression *> children_;
+  Source_Code_Span span_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::_new>);
+static_assert(Expression_Arena::is_allocatable<Expression::New>);
 
-class expression::_template final : public expression {
+class Expression::Template final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::_template;
+  static constexpr Expression_Kind kind = Expression_Kind::Template;
 
-  explicit _template(expression_arena::array_ptr<expression *> children,
-                     source_code_span span) noexcept
-      : expression(kind), span_(span), children_(children) {}
+  explicit Template(Expression_Arena::Array_Ptr<Expression *> children,
+                    Source_Code_Span span) noexcept
+      : Expression(kind), span_(span), children_(children) {}
 
-  source_code_span span_;
-  expression_arena::array_ptr<expression *> children_;
+  Source_Code_Span span_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::_template>);
+static_assert(Expression_Arena::is_allocatable<Expression::Template>);
 
-class expression::_typeof final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Typeof final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::_typeof;
+  static constexpr Expression_Kind kind = Expression_Kind::Typeof;
 
-  explicit _typeof(expression *child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Typeof(Expression *child, Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
-  source_code_span unary_operator_span() {
-    return source_code_span(this->unary_operator_begin_,
+  Source_Code_Span unary_operator_span() {
+    return Source_Code_Span(this->unary_operator_begin_,
                             this->unary_operator_begin_ + strlen(u8"typeof"));
   }
 };
-static_assert(expression_arena::is_allocatable<expression::_typeof>);
+static_assert(Expression_Arena::is_allocatable<Expression::Typeof>);
 
-class expression::array final : public expression {
+class Expression::Array final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::array;
+  static constexpr Expression_Kind kind = Expression_Kind::Array;
 
-  explicit array(expression_arena::array_ptr<expression *> children,
-                 source_code_span span) noexcept
-      : expression(kind), span_(span), children_(children) {
+  explicit Array(Expression_Arena::Array_Ptr<Expression *> children,
+                 Source_Code_Span span) noexcept
+      : Expression(kind), span_(span), children_(children) {
     QLJS_ASSERT(span.string_view().substr(0, 1) == u8"["_sv);
   }
 
-  source_code_span left_square_span() const {
-    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  Source_Code_Span left_square_span() const {
+    return Source_Code_Span(this->span_.begin(), this->span_.begin() + 1);
   }
 
-  source_code_span span_;
-  expression_arena::array_ptr<expression *> children_;
+  Source_Code_Span span_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::array>);
+static_assert(Expression_Arena::is_allocatable<Expression::Array>);
 
-class expression::arrow_function final : public expression {
+class Expression::Arrow_Function final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::arrow_function;
+  static constexpr Expression_Kind kind = Expression_Kind::Arrow_Function;
 
-  explicit arrow_function(function_attributes attributes,
-                          const char8 *parameter_list_begin,
-                          const char8 *span_end) noexcept
-      : expression(kind),
+  explicit Arrow_Function(Function_Attributes attributes,
+                          const Char8 *parameter_list_begin,
+                          const Char8 *span_end) noexcept
+      : Expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end) {
     QLJS_ASSERT(this->parameter_list_begin_);
   }
 
-  explicit arrow_function(function_attributes attributes,
-                          expression_arena::array_ptr<expression *> parameters,
-                          const char8 *parameter_list_begin,
-                          const char8 *span_end) noexcept
-      : expression(kind),
+  explicit Arrow_Function(Function_Attributes attributes,
+                          Expression_Arena::Array_Ptr<Expression *> parameters,
+                          const Char8 *parameter_list_begin,
+                          const Char8 *span_end) noexcept
+      : Expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
@@ -493,562 +495,562 @@ class expression::arrow_function final : public expression {
     }
   }
 
-  function_attributes function_attributes_;
-  const char8 *parameter_list_begin_;
-  const char8 *span_end_;
-  expression_arena::array_ptr<expression *> children_;
+  Function_Attributes function_attributes_;
+  const Char8 *parameter_list_begin_;
+  const Char8 *span_end_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::arrow_function>);
+static_assert(Expression_Arena::is_allocatable<Expression::Arrow_Function>);
 
-class expression::angle_type_assertion final : public expression {
+class Expression::Angle_Type_Assertion final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::angle_type_assertion;
+  static constexpr Expression_Kind kind = Expression_Kind::Angle_Type_Assertion;
 
-  explicit angle_type_assertion(source_code_span bracketed_type_span,
-                                expression *child) noexcept
-      : expression(kind),
+  explicit Angle_Type_Assertion(Source_Code_Span bracketed_type_span,
+                                Expression *child) noexcept
+      : Expression(kind),
         bracketed_type_span_(bracketed_type_span),
         child_(child) {}
 
-  source_code_span bracketed_type_span_;
-  expression *child_;
+  Source_Code_Span bracketed_type_span_;
+  Expression *child_;
 };
 static_assert(
-    expression_arena::is_allocatable<expression::angle_type_assertion>);
+    Expression_Arena::is_allocatable<Expression::Angle_Type_Assertion>);
 
-class expression::as_type_assertion final : public expression {
+class Expression::As_Type_Assertion final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::as_type_assertion;
+  static constexpr Expression_Kind kind = Expression_Kind::As_Type_Assertion;
 
-  explicit as_type_assertion(expression *child, source_code_span as_span,
-                             const char8 *span_end) noexcept
-      : expression(kind),
+  explicit As_Type_Assertion(Expression *child, Source_Code_Span as_span,
+                             const Char8 *span_end) noexcept
+      : Expression(kind),
         child_(child),
         as_keyword_(as_span.begin()),
         span_end_(span_end) {
     QLJS_ASSERT(as_span.string_view() == u8"as"_sv);
   }
 
-  source_code_span as_span() const noexcept {
-    return source_code_span(this->as_keyword_, this->as_keyword_ + 2);
+  Source_Code_Span as_span() const noexcept {
+    return Source_Code_Span(this->as_keyword_, this->as_keyword_ + 2);
   }
 
-  expression *child_;
-  const char8 *as_keyword_;
-  const char8 *span_end_;
+  Expression *child_;
+  const Char8 *as_keyword_;
+  const Char8 *span_end_;
 };
-static_assert(expression_arena::is_allocatable<expression::as_type_assertion>);
+static_assert(Expression_Arena::is_allocatable<Expression::As_Type_Assertion>);
 
-class expression::assignment final : public expression {
+class Expression::Assignment final : public Expression {
  public:
-  explicit assignment(expression_kind kind, expression *lhs, expression *rhs,
-                      source_code_span operator_span) noexcept
-      : expression(kind), children_{lhs, rhs}, operator_span_(operator_span) {
-    QLJS_ASSERT(kind == expression_kind::assignment ||
-                kind == expression_kind::compound_assignment ||
-                kind == expression_kind::conditional_assignment);
+  explicit Assignment(Expression_Kind kind, Expression *lhs, Expression *rhs,
+                      Source_Code_Span operator_span) noexcept
+      : Expression(kind), children_{lhs, rhs}, operator_span_(operator_span) {
+    QLJS_ASSERT(kind == Expression_Kind::Assignment ||
+                kind == Expression_Kind::Compound_Assignment ||
+                kind == Expression_Kind::Conditional_Assignment);
   }
 
-  std::array<expression *, 2> children_;
-  source_code_span operator_span_;
+  std::array<Expression *, 2> children_;
+  Source_Code_Span operator_span_;
 };
-static_assert(expression_arena::is_allocatable<expression::assignment>);
+static_assert(Expression_Arena::is_allocatable<Expression::Assignment>);
 
-class expression::await final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Await final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::await;
+  static constexpr Expression_Kind kind = Expression_Kind::Await;
 
-  explicit await(expression *child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Await(Expression *child, Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
-  source_code_span unary_operator_span() const noexcept {
-    return source_code_span(this->unary_operator_begin_,
+  Source_Code_Span unary_operator_span() const noexcept {
+    return Source_Code_Span(this->unary_operator_begin_,
                             this->unary_operator_begin_ + 5);
   }
 };
-static_assert(expression_arena::is_allocatable<expression::await>);
+static_assert(Expression_Arena::is_allocatable<Expression::Await>);
 
-class expression::binary_operator final : public expression {
+class Expression::Binary_Operator final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::binary_operator;
+  static constexpr Expression_Kind kind = Expression_Kind::Binary_Operator;
 
-  explicit binary_operator(
-      expression_arena::array_ptr<expression *> children,
-      expression_arena::array_ptr<source_code_span> operator_spans) noexcept
-      : expression(kind),
+  explicit Binary_Operator(
+      Expression_Arena::Array_Ptr<Expression *> children,
+      Expression_Arena::Array_Ptr<Source_Code_Span> operator_spans) noexcept
+      : Expression(kind),
         children_(children),
         operator_spans_(operator_spans.data()) {
     QLJS_ASSERT(children.size() >= 2);
     QLJS_ASSERT(operator_spans.size() == children.size() - 1);
   }
 
-  expression_arena::array_ptr<expression *> children_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
   // An array of size this->children_.size()-1.
-  const source_code_span *operator_spans_;
+  const Source_Code_Span *operator_spans_;
 };
-static_assert(expression_arena::is_allocatable<expression::binary_operator>);
+static_assert(Expression_Arena::is_allocatable<Expression::Binary_Operator>);
 
-class expression::call final : public expression {
+class Expression::Call final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::call;
+  static constexpr Expression_Kind kind = Expression_Kind::Call;
 
-  explicit call(expression_arena::array_ptr<expression *> children,
-                source_code_span left_paren_span,
-                const char8 *span_end) noexcept
-      : expression(kind),
+  explicit Call(Expression_Arena::Array_Ptr<Expression *> children,
+                Source_Code_Span left_paren_span,
+                const Char8 *span_end) noexcept
+      : Expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
         span_end_(span_end),
         children_(children) {
     QLJS_ASSERT(left_paren_span.size() == 1);
   }
 
-  source_code_span left_paren_span() const noexcept {
-    return source_code_span(this->call_left_paren_begin_,
+  Source_Code_Span left_paren_span() const noexcept {
+    return Source_Code_Span(this->call_left_paren_begin_,
                             this->call_left_paren_begin_ + 1);
   }
 
-  const char8 *call_left_paren_begin_;
-  const char8 *span_end_;
-  expression_arena::array_ptr<expression *> children_;
+  const Char8 *call_left_paren_begin_;
+  const Char8 *span_end_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::call>);
+static_assert(Expression_Arena::is_allocatable<Expression::Call>);
 
-class expression::conditional final : public expression {
+class Expression::Conditional final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::conditional;
+  static constexpr Expression_Kind kind = Expression_Kind::Conditional;
 
-  explicit conditional(expression *condition, expression *true_branch,
-                       expression *false_branch) noexcept
-      : expression(kind), children_{condition, true_branch, false_branch} {}
+  explicit Conditional(Expression *condition, Expression *true_branch,
+                       Expression *false_branch) noexcept
+      : Expression(kind), children_{condition, true_branch, false_branch} {}
 
-  std::array<expression *, 3> children_;
+  std::array<Expression *, 3> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::conditional>);
+static_assert(Expression_Arena::is_allocatable<Expression::Conditional>);
 
-class expression::dot final : public expression {
+class Expression::Dot final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::dot;
+  static constexpr Expression_Kind kind = Expression_Kind::Dot;
 
-  explicit dot(expression *lhs, identifier rhs) noexcept
-      : expression(kind), variable_identifier_(rhs), child_(lhs) {}
+  explicit Dot(Expression *lhs, Identifier rhs) noexcept
+      : Expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
-  identifier variable_identifier_;
-  expression *child_;
+  Identifier variable_identifier_;
+  Expression *child_;
 };
-static_assert(expression_arena::is_allocatable<expression::dot>);
+static_assert(Expression_Arena::is_allocatable<Expression::Dot>);
 
-class expression::function final : public expression {
+class Expression::Function final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::function;
+  static constexpr Expression_Kind kind = Expression_Kind::Function;
 
-  explicit function(function_attributes attributes,
-                    source_code_span span) noexcept
-      : expression(kind), function_attributes_(attributes), span_(span) {}
+  explicit Function(Function_Attributes attributes,
+                    Source_Code_Span span) noexcept
+      : Expression(kind), function_attributes_(attributes), span_(span) {}
 
-  function_attributes function_attributes_;
-  source_code_span span_;
+  Function_Attributes function_attributes_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::function>);
+static_assert(Expression_Arena::is_allocatable<Expression::Function>);
 
-class expression::import final : public expression {
+class Expression::Import final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::import;
+  static constexpr Expression_Kind kind = Expression_Kind::Import;
 
-  explicit import(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Import(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::import>);
+static_assert(Expression_Arena::is_allocatable<Expression::Import>);
 
-class expression::index final : public expression {
+class Expression::Index final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::index;
+  static constexpr Expression_Kind kind = Expression_Kind::Index;
 
-  explicit index(expression *container, expression *subscript,
-                 source_code_span left_square_span,
-                 const char8 *subscript_end) noexcept
-      : expression(kind),
+  explicit Index(Expression *container, Expression *subscript,
+                 Source_Code_Span left_square_span,
+                 const Char8 *subscript_end) noexcept
+      : Expression(kind),
         index_subscript_end_(subscript_end),
         left_square_span(left_square_span),
         children_{container, subscript} {}
 
-  const char8 *index_subscript_end_;
-  source_code_span left_square_span;
-  std::array<expression *, 2> children_;
+  const Char8 *index_subscript_end_;
+  Source_Code_Span left_square_span;
+  std::array<Expression *, 2> children_;
 };
-static_assert(expression_arena::is_allocatable<expression::index>);
+static_assert(Expression_Arena::is_allocatable<Expression::Index>);
 
-class expression::jsx_base : public expression {
+class Expression::JSX_Base : public Expression {
  public:
-  explicit jsx_base(expression_kind kind, source_code_span span,
-                    expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind), span(span), children(children) {}
+  explicit JSX_Base(Expression_Kind kind, Source_Code_Span span,
+                    Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      : Expression(kind), span(span), children(children) {}
 
-  source_code_span span;
-  expression_arena::array_ptr<expression *> children;
+  Source_Code_Span span;
+  Expression_Arena::Array_Ptr<Expression *> children;
 };
-static_assert(expression_arena::is_allocatable<expression::jsx_base>);
+static_assert(Expression_Arena::is_allocatable<Expression::JSX_Base>);
 
-class expression::jsx_element final : public jsx_base {
+class Expression::JSX_Element final : public JSX_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::jsx_element;
+  static constexpr Expression_Kind kind = Expression_Kind::JSX_Element;
 
-  explicit jsx_element(
-      source_code_span span, const identifier &tag,
-      expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, span, children), tag(tag) {}
+  explicit JSX_Element(
+      Source_Code_Span span, const Identifier &tag,
+      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      : JSX_Base(kind, span, children), tag(tag) {}
 
   bool is_intrinsic() const noexcept { return is_intrinsic(this->tag); }
 
-  static bool is_intrinsic(const identifier &tag) noexcept {
+  static bool is_intrinsic(const Identifier &tag) noexcept {
     // TODO(strager): Have the lexer do this work for us.
-    string8_view name = tag.normalized_name();
+    String8_View name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());
-    char8 first_char = name[0];
+    Char8 first_char = name[0];
     return islower(first_char) || contains(name, u8'-');
   }
 
-  identifier tag;
+  Identifier tag;
 };
-static_assert(expression_arena::is_allocatable<expression::jsx_element>);
+static_assert(Expression_Arena::is_allocatable<Expression::JSX_Element>);
 
-class expression::jsx_element_with_members final : public jsx_base {
+class Expression::JSX_Element_With_Members final : public JSX_Base {
  public:
-  static constexpr expression_kind kind =
-      expression_kind::jsx_element_with_members;
+  static constexpr Expression_Kind kind =
+      Expression_Kind::JSX_Element_With_Members;
 
-  explicit jsx_element_with_members(
-      source_code_span span, expression_arena::array_ptr<identifier> members,
-      expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, span, children), members(members) {}
+  explicit JSX_Element_With_Members(
+      Source_Code_Span span, Expression_Arena::Array_Ptr<Identifier> members,
+      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      : JSX_Base(kind, span, children), members(members) {}
 
   bool is_intrinsic() const noexcept { return false; }
 
-  expression_arena::array_ptr<identifier> members;
+  Expression_Arena::Array_Ptr<Identifier> members;
 };
 static_assert(
-    expression_arena::is_allocatable<expression::jsx_element_with_members>);
+    Expression_Arena::is_allocatable<Expression::JSX_Element_With_Members>);
 
-class expression::jsx_element_with_namespace final : public jsx_base {
+class Expression::JSX_Element_With_Namespace final : public JSX_Base {
  public:
-  static constexpr expression_kind kind =
-      expression_kind::jsx_element_with_namespace;
+  static constexpr Expression_Kind kind =
+      Expression_Kind::JSX_Element_With_Namespace;
 
-  explicit jsx_element_with_namespace(
-      source_code_span span, const identifier &ns, const identifier &tag,
-      expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, span, children), ns(ns), tag(tag) {}
+  explicit JSX_Element_With_Namespace(
+      Source_Code_Span span, const Identifier &ns, const Identifier &tag,
+      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      : JSX_Base(kind, span, children), ns(ns), tag(tag) {}
 
   bool is_intrinsic() const noexcept { return true; }
 
-  identifier ns;   // Namespace (before ':').
-  identifier tag;  // After ':'.
+  Identifier ns;   // Namespace (before ':').
+  Identifier tag;  // After ':'.
 };
 static_assert(
-    expression_arena::is_allocatable<expression::jsx_element_with_namespace>);
+    Expression_Arena::is_allocatable<Expression::JSX_Element_With_Namespace>);
 
-class expression::jsx_fragment final : public jsx_base {
+class Expression::JSX_Fragment final : public JSX_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::jsx_fragment;
+  static constexpr Expression_Kind kind = Expression_Kind::JSX_Fragment;
 
-  explicit jsx_fragment(
-      source_code_span span,
-      expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, span, children) {}
+  explicit JSX_Fragment(
+      Source_Code_Span span,
+      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      : JSX_Base(kind, span, children) {}
 };
-static_assert(expression_arena::is_allocatable<expression::jsx_fragment>);
+static_assert(Expression_Arena::is_allocatable<Expression::JSX_Fragment>);
 
-class expression::literal final : public expression {
+class Expression::Literal final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::literal;
+  static constexpr Expression_Kind kind = Expression_Kind::Literal;
 
-  explicit literal(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Literal(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
   bool is_null() const { return this->span_.string_view()[0] == u8'n'; }
 
   bool is_regexp() const { return this->span_.string_view()[0] == u8'/'; }
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::literal>);
+static_assert(Expression_Arena::is_allocatable<Expression::Literal>);
 
-class expression::named_function final : public expression {
+class Expression::Named_Function final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::named_function;
+  static constexpr Expression_Kind kind = Expression_Kind::Named_Function;
 
-  explicit named_function(function_attributes attributes, identifier name,
-                          source_code_span span) noexcept
-      : expression(kind),
+  explicit Named_Function(Function_Attributes attributes, Identifier name,
+                          Source_Code_Span span) noexcept
+      : Expression(kind),
         function_attributes_(attributes),
         variable_identifier_(name),
         span_(span) {}
 
-  function_attributes function_attributes_;
-  identifier variable_identifier_;
-  source_code_span span_;
+  Function_Attributes function_attributes_;
+  Identifier variable_identifier_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::named_function>);
+static_assert(Expression_Arena::is_allocatable<Expression::Named_Function>);
 
-class expression::new_target final : public expression {
+class Expression::New_Target final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::new_target;
+  static constexpr Expression_Kind kind = Expression_Kind::New_Target;
 
-  explicit new_target(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit New_Target(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::new_target>);
+static_assert(Expression_Arena::is_allocatable<Expression::New_Target>);
 
-class expression::non_null_assertion final : public expression {
+class Expression::Non_Null_Assertion final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::non_null_assertion;
+  static constexpr Expression_Kind kind = Expression_Kind::Non_Null_Assertion;
 
-  explicit non_null_assertion(expression *child,
-                              source_code_span bang_span) noexcept
-      : expression(kind), bang_end_(bang_span.end()), child_(child) {
+  explicit Non_Null_Assertion(Expression *child,
+                              Source_Code_Span bang_span) noexcept
+      : Expression(kind), bang_end_(bang_span.end()), child_(child) {
     QLJS_ASSERT(same_pointers(this->bang_span(), bang_span));
   }
 
-  source_code_span bang_span() const noexcept {
-    return source_code_span(this->bang_end_ - 1, this->bang_end_);
+  Source_Code_Span bang_span() const noexcept {
+    return Source_Code_Span(this->bang_end_ - 1, this->bang_end_);
   }
 
-  const char8 *bang_end_;
-  expression *child_;
+  const Char8 *bang_end_;
+  Expression *child_;
 };
-static_assert(expression_arena::is_allocatable<expression::non_null_assertion>);
+static_assert(Expression_Arena::is_allocatable<Expression::Non_Null_Assertion>);
 
-class expression::object final : public expression {
+class Expression::Object final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::object;
+  static constexpr Expression_Kind kind = Expression_Kind::Object;
 
-  explicit object(
-      expression_arena::array_ptr<object_property_value_pair> entries,
-      source_code_span span) noexcept
-      : expression(kind), span_(span), entries_(entries) {
+  explicit Object(
+      Expression_Arena::Array_Ptr<Object_Property_Value_Pair> entries,
+      Source_Code_Span span) noexcept
+      : Expression(kind), span_(span), entries_(entries) {
     QLJS_ASSERT(span.string_view().substr(0, 1) == u8"{"_sv);
   }
 
-  source_code_span left_curly_span() const {
-    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  Source_Code_Span left_curly_span() const {
+    return Source_Code_Span(this->span_.begin(), this->span_.begin() + 1);
   }
 
-  source_code_span span_;
-  expression_arena::array_ptr<object_property_value_pair> entries_;
+  Source_Code_Span span_;
+  Expression_Arena::Array_Ptr<Object_Property_Value_Pair> entries_;
 };
-static_assert(expression_arena::is_allocatable<expression::object>);
+static_assert(Expression_Arena::is_allocatable<Expression::Object>);
 
-class expression::optional final : public expression {
+class Expression::Optional final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::optional;
+  static constexpr Expression_Kind kind = Expression_Kind::Optional;
 
-  explicit optional(expression *child, source_code_span question_span) noexcept
-      : expression(kind), child_(child), question_end_(question_span.end()) {
+  explicit Optional(Expression *child, Source_Code_Span question_span) noexcept
+      : Expression(kind), child_(child), question_end_(question_span.end()) {
     QLJS_ASSERT(question_span.end() - question_span.begin() == 1);
   }
 
-  source_code_span question_span() const noexcept {
-    return source_code_span(this->question_end_ - 1, this->question_end_);
+  Source_Code_Span question_span() const noexcept {
+    return Source_Code_Span(this->question_end_ - 1, this->question_end_);
   }
 
-  expression *child_;
-  const char8 *question_end_;
+  Expression *child_;
+  const Char8 *question_end_;
 };
-static_assert(expression_arena::is_allocatable<expression::optional>);
+static_assert(Expression_Arena::is_allocatable<Expression::Optional>);
 
-class expression::paren final : public expression {
+class Expression::Paren final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::paren;
+  static constexpr Expression_Kind kind = Expression_Kind::Paren;
 
-  explicit paren(source_code_span span, expression *child) noexcept
-      : expression(kind), span_(span), child_(child) {}
+  explicit Paren(Source_Code_Span span, Expression *child) noexcept
+      : Expression(kind), span_(span), child_(child) {}
 
-  source_code_span span_;
-  expression *child_;
+  Source_Code_Span span_;
+  Expression *child_;
 };
-static_assert(expression_arena::is_allocatable<expression::paren>);
+static_assert(Expression_Arena::is_allocatable<Expression::Paren>);
 
-class expression::paren_empty final : public expression {
+class Expression::Paren_Empty final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::paren_empty;
+  static constexpr Expression_Kind kind = Expression_Kind::Paren_Empty;
 
-  explicit paren_empty(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Paren_Empty(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span left_paren_span() const noexcept {
-    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  Source_Code_Span left_paren_span() const noexcept {
+    return Source_Code_Span(this->span_.begin(), this->span_.begin() + 1);
   }
 
-  source_code_span right_paren_span() const noexcept {
-    return source_code_span(this->span_.end() - 1, this->span_.end());
+  Source_Code_Span right_paren_span() const noexcept {
+    return Source_Code_Span(this->span_.end() - 1, this->span_.end());
   }
 
-  void report_missing_expression_error(diag_reporter *reporter) {
-    reporter->report(diag_missing_expression_between_parentheses{
+  void report_missing_expression_error(Diag_Reporter *reporter) {
+    reporter->report(Diag_Missing_Expression_Between_Parentheses{
         .left_paren_to_right_paren = this->span_,
         .left_paren = this->left_paren_span(),
         .right_paren = this->right_paren_span(),
     });
   }
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::paren_empty>);
+static_assert(Expression_Arena::is_allocatable<Expression::Paren_Empty>);
 
-class expression::private_variable final : public expression {
+class Expression::Private_Variable final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::private_variable;
+  static constexpr Expression_Kind kind = Expression_Kind::Private_Variable;
 
-  explicit private_variable(identifier variable_identifier) noexcept
-      : expression(kind), variable_identifier_(variable_identifier) {}
+  explicit Private_Variable(Identifier variable_identifier) noexcept
+      : Expression(kind), variable_identifier_(variable_identifier) {}
 
-  identifier variable_identifier_;
+  Identifier variable_identifier_;
 };
-static_assert(expression_arena::is_allocatable<expression::private_variable>);
+static_assert(Expression_Arena::is_allocatable<Expression::Private_Variable>);
 
-class expression::rw_unary_prefix final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::RW_Unary_Prefix final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::rw_unary_prefix;
+  static constexpr Expression_Kind kind = Expression_Kind::RW_Unary_Prefix;
 
-  explicit rw_unary_prefix(expression *child,
-                           source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit RW_Unary_Prefix(Expression *child,
+                           Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 };
-static_assert(expression_arena::is_allocatable<expression::rw_unary_prefix>);
+static_assert(Expression_Arena::is_allocatable<Expression::RW_Unary_Prefix>);
 
-class expression::rw_unary_suffix final : public expression {
+class Expression::RW_Unary_Suffix final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::rw_unary_suffix;
+  static constexpr Expression_Kind kind = Expression_Kind::RW_Unary_Suffix;
 
-  explicit rw_unary_suffix(expression *child,
-                           source_code_span operator_span) noexcept
-      : expression(kind),
+  explicit RW_Unary_Suffix(Expression *child,
+                           Source_Code_Span operator_span) noexcept
+      : Expression(kind),
         unary_operator_end_(operator_span.end()),
         child_(child) {}
 
-  const char8 *unary_operator_end_;
-  expression *child_;
+  const Char8 *unary_operator_end_;
+  Expression *child_;
 };
-static_assert(expression_arena::is_allocatable<expression::rw_unary_suffix>);
+static_assert(Expression_Arena::is_allocatable<Expression::RW_Unary_Suffix>);
 
-class expression::satisfies final : public expression {
+class Expression::Satisfies final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::satisfies;
+  static constexpr Expression_Kind kind = Expression_Kind::Satisfies;
 
-  explicit satisfies(expression *child, source_code_span satisfies_span,
-                     const char8 *span_end) noexcept
-      : expression(kind),
+  explicit Satisfies(Expression *child, Source_Code_Span satisfies_span,
+                     const Char8 *span_end) noexcept
+      : Expression(kind),
         child_(child),
         satisfies_keyword_(satisfies_span.begin()),
         span_end_(span_end) {
     QLJS_ASSERT(satisfies_span.string_view() == u8"satisfies"_sv);
   }
 
-  source_code_span satisfies_span() const noexcept {
-    return source_code_span(this->satisfies_keyword_,
+  Source_Code_Span satisfies_span() const noexcept {
+    return Source_Code_Span(this->satisfies_keyword_,
                             this->satisfies_keyword_ + 9);
   }
 
-  expression *child_;
-  const char8 *satisfies_keyword_;
-  const char8 *span_end_;
+  Expression *child_;
+  const Char8 *satisfies_keyword_;
+  const Char8 *span_end_;
 };
-static_assert(expression_arena::is_allocatable<expression::satisfies>);
+static_assert(Expression_Arena::is_allocatable<Expression::Satisfies>);
 
-class expression::spread final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Spread final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::spread;
+  static constexpr Expression_Kind kind = Expression_Kind::Spread;
 
-  explicit spread(expression *child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Spread(Expression *child, Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {
     QLJS_ASSERT(operator_span.end() - operator_span.begin() ==
                 this->spread_operator_length);
   }
 
-  source_code_span spread_operator_span() const noexcept {
-    return source_code_span(
+  Source_Code_Span spread_operator_span() const noexcept {
+    return Source_Code_Span(
         this->unary_operator_begin_,
         this->unary_operator_begin_ + this->spread_operator_length);
   }
 
   static constexpr int spread_operator_length = 3;  // "..."
 };
-static_assert(expression_arena::is_allocatable<expression::spread>);
+static_assert(Expression_Arena::is_allocatable<Expression::Spread>);
 
-class expression::super final : public expression {
+class Expression::Super final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::super;
+  static constexpr Expression_Kind kind = Expression_Kind::Super;
 
-  explicit super(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Super(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::super>);
+static_assert(Expression_Arena::is_allocatable<Expression::Super>);
 
-class expression::tagged_template_literal final : public expression {
+class Expression::Tagged_Template_Literal final : public Expression {
  public:
-  explicit tagged_template_literal(
-      expression_arena::array_ptr<expression *> tag_and_template_children,
-      source_code_span template_span) noexcept
-      : expression(expression_kind::tagged_template_literal),
+  explicit Tagged_Template_Literal(
+      Expression_Arena::Array_Ptr<Expression *> tag_and_template_children,
+      Source_Code_Span template_span) noexcept
+      : Expression(Expression_Kind::Tagged_Template_Literal),
         tag_and_template_children_(tag_and_template_children),
         template_span_end_(template_span.end()) {
     QLJS_ASSERT(!tag_and_template_children.empty());
   }
 
-  expression_arena::array_ptr<expression *> tag_and_template_children_;
-  const char8 *template_span_end_;
+  Expression_Arena::Array_Ptr<Expression *> tag_and_template_children_;
+  const Char8 *template_span_end_;
 };
 static_assert(
-    expression_arena::is_allocatable<expression::tagged_template_literal>);
+    Expression_Arena::is_allocatable<Expression::Tagged_Template_Literal>);
 
-class expression::this_variable final : public expression {
+class Expression::This_Variable final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::this_variable;
+  static constexpr Expression_Kind kind = Expression_Kind::This_Variable;
 
-  explicit this_variable(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit This_Variable(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::this_variable>);
+static_assert(Expression_Arena::is_allocatable<Expression::This_Variable>);
 
-class expression::trailing_comma final : public expression {
+class Expression::Trailing_Comma final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::trailing_comma;
+  static constexpr Expression_Kind kind = Expression_Kind::Trailing_Comma;
 
-  explicit trailing_comma(expression_arena::array_ptr<expression *> children,
-                          source_code_span comma_span) noexcept
-      : expression(kind), children_(children), comma_end_(comma_span.end()) {
+  explicit Trailing_Comma(Expression_Arena::Array_Ptr<Expression *> children,
+                          Source_Code_Span comma_span) noexcept
+      : Expression(kind), children_(children), comma_end_(comma_span.end()) {
     QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
   }
 
-  source_code_span comma_span() const noexcept {
-    return source_code_span(this->comma_end_ - 1, this->comma_end_);
+  Source_Code_Span comma_span() const noexcept {
+    return Source_Code_Span(this->comma_end_ - 1, this->comma_end_);
   }
 
-  expression_arena::array_ptr<expression *> children_;
-  const char8 *comma_end_;
+  Expression_Arena::Array_Ptr<Expression *> children_;
+  const Char8 *comma_end_;
 };
 
-class expression::type_annotated final : public expression {
+class Expression::Type_Annotated final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::type_annotated;
+  static constexpr Expression_Kind kind = Expression_Kind::Type_Annotated;
 
-  explicit type_annotated(expression *child, source_code_span colon_span,
-                          buffering_visitor &&type_visits,
-                          const char8 *span_end) noexcept
-      : expression(kind),
+  explicit Type_Annotated(Expression *child, Source_Code_Span colon_span,
+                          Buffering_Visitor &&type_visits,
+                          const Char8 *span_end) noexcept
+      : Expression(kind),
         child_(child),
         colon_(colon_span.begin()),
         type_visits_(std::move(type_visits)),
@@ -1057,103 +1059,103 @@ class expression::type_annotated final : public expression {
     QLJS_ASSERT(colon_span.size() == 1);
   }
 
-  source_code_span colon_span() const noexcept {
-    return source_code_span(this->colon_, this->colon_ + 1);
+  Source_Code_Span colon_span() const noexcept {
+    return Source_Code_Span(this->colon_, this->colon_ + 1);
   }
 
-  void visit_type_annotation(parse_visitor_base &v) {
+  void visit_type_annotation(Parse_Visitor_Base &v) {
     std::move(this->type_visits_).move_into(v);
   }
 
-  expression *child_;
-  const char8 *colon_;
-  buffering_visitor type_visits_{nullptr};
-  const char8 *span_end_;
+  Expression *child_;
+  const Char8 *colon_;
+  Buffering_Visitor type_visits_{nullptr};
+  const Char8 *span_end_;
 };
 template <>
-struct is_winkable<expression::type_annotated>
-    : is_winkable<buffering_visitor> {};
-static_assert(expression_arena::is_allocatable<expression::type_annotated>);
+struct Is_Winkable<Expression::Type_Annotated>
+    : Is_Winkable<Buffering_Visitor> {};
+static_assert(Expression_Arena::is_allocatable<Expression::Type_Annotated>);
 
-class expression::unary_operator final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Unary_Operator final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::unary_operator;
+  static constexpr Expression_Kind kind = Expression_Kind::Unary_Operator;
 
-  explicit unary_operator(expression *child,
-                          source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Unary_Operator(Expression *child,
+                          Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
   bool is_void_operator() const {
-    // HACK(strager): Should we create expression::_void?
+    // HACK(strager): Should we create Expression::_void?
     return this->unary_operator_begin_[0] == u8'v';
   }
 };
-static_assert(expression_arena::is_allocatable<expression::unary_operator>);
+static_assert(Expression_Arena::is_allocatable<Expression::Unary_Operator>);
 
-class expression::variable final : public expression {
+class Expression::Variable final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::variable;
+  static constexpr Expression_Kind kind = Expression_Kind::Variable;
 
-  explicit variable(identifier variable_identifier, token_type type) noexcept
-      : expression(kind),
+  explicit Variable(Identifier variable_identifier, Token_Type type) noexcept
+      : Expression(kind),
         type_(type),
         variable_identifier_(variable_identifier) {}
 
-  token_type type_;
-  identifier variable_identifier_;
+  Token_Type type_;
+  Identifier variable_identifier_;
 };
-static_assert(expression_arena::is_allocatable<expression::variable>);
+static_assert(Expression_Arena::is_allocatable<Expression::Variable>);
 
-class expression::yield_many final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Yield_Many final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::yield_many;
+  static constexpr Expression_Kind kind = Expression_Kind::Yield_Many;
 
-  explicit yield_many(expression *child,
-                      source_code_span yield_operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Yield_Many(Expression *child,
+                      Source_Code_Span yield_operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          yield_operator_span) {}
 };
-static_assert(expression_arena::is_allocatable<expression::yield_many>);
+static_assert(Expression_Arena::is_allocatable<Expression::Yield_Many>);
 
-class expression::yield_none final : public expression {
+class Expression::Yield_None final : public Expression {
  public:
-  static constexpr expression_kind kind = expression_kind::yield_none;
+  static constexpr Expression_Kind kind = Expression_Kind::Yield_None;
 
-  explicit yield_none(source_code_span span) noexcept
-      : expression(kind), span_(span) {}
+  explicit Yield_None(Source_Code_Span span) noexcept
+      : Expression(kind), span_(span) {}
 
-  source_code_span span_;
+  Source_Code_Span span_;
 };
-static_assert(expression_arena::is_allocatable<expression::yield_none>);
+static_assert(Expression_Arena::is_allocatable<Expression::Yield_None>);
 
-class expression::yield_one final
-    : public expression::expression_with_prefix_operator_base {
+class Expression::Yield_One final
+    : public Expression::Expression_With_Prefix_Operator_Base {
  public:
-  static constexpr expression_kind kind = expression_kind::yield_one;
+  static constexpr Expression_Kind kind = Expression_Kind::Yield_One;
 
-  explicit yield_one(expression *child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
+  explicit Yield_One(Expression *child, Source_Code_Span operator_span) noexcept
+      : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 };
-static_assert(expression_arena::is_allocatable<expression::yield_one>);
+static_assert(Expression_Arena::is_allocatable<Expression::Yield_One>);
 
-inline identifier expression::variable_identifier() const noexcept {
+inline Identifier Expression::variable_identifier() const noexcept {
   switch (this->kind_) {
-  case expression_kind::dot:
-    return static_cast<const expression::dot *>(this)->variable_identifier_;
-  case expression_kind::jsx_element:
-    return static_cast<const expression::jsx_element *>(this)->tag;
-  case expression_kind::named_function:
-    return static_cast<const expression::named_function *>(this)
+  case Expression_Kind::Dot:
+    return static_cast<const Expression::Dot *>(this)->variable_identifier_;
+  case Expression_Kind::JSX_Element:
+    return static_cast<const Expression::JSX_Element *>(this)->tag;
+  case Expression_Kind::Named_Function:
+    return static_cast<const Expression::Named_Function *>(this)
         ->variable_identifier_;
-  case expression_kind::private_variable:
-    return static_cast<const expression::private_variable *>(this)
+  case Expression_Kind::Private_Variable:
+    return static_cast<const Expression::Private_Variable *>(this)
         ->variable_identifier_;
-  case expression_kind::variable:
-    return static_cast<const expression::variable *>(this)
+  case Expression_Kind::Variable:
+    return static_cast<const Expression::Variable *>(this)
         ->variable_identifier_;
 
   default:
@@ -1161,119 +1163,119 @@ inline identifier expression::variable_identifier() const noexcept {
   }
 }
 
-inline token_type expression::variable_identifier_token_type() const noexcept {
+inline Token_Type Expression::variable_identifier_token_type() const noexcept {
   switch (this->kind_) {
-  case expression_kind::variable:
-    return static_cast<const expression::variable *>(this)->type_;
+  case Expression_Kind::Variable:
+    return static_cast<const Expression::Variable *>(this)->type_;
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 }
 
-inline span_size expression::child_count() const noexcept {
+inline Span_Size Expression::child_count() const noexcept {
   return this->children().size();
 }
 
-inline expression *expression::child(span_size index) const noexcept {
+inline Expression *Expression::child(Span_Size index) const noexcept {
   return this->children()[index];
 }
 
-inline expression_arena::array_ptr<expression *> expression::children() const
+inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const
     noexcept {
   switch (this->kind_) {
-  case expression_kind::assignment:
-  case expression_kind::compound_assignment:
-  case expression_kind::conditional_assignment: {
-    auto *assignment = static_cast<const expression::assignment *>(this);
-    return expression_arena::array_ptr<expression *>(assignment->children_);
+  case Expression_Kind::Assignment:
+  case Expression_Kind::Compound_Assignment:
+  case Expression_Kind::Conditional_Assignment: {
+    auto *assignment = static_cast<const Expression::Assignment *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(assignment->children_);
   }
 
-  case expression_kind::_delete:
-  case expression_kind::_typeof:
-  case expression_kind::await:
-  case expression_kind::rw_unary_prefix:
-  case expression_kind::spread:
-  case expression_kind::unary_operator:
-  case expression_kind::yield_many:
-  case expression_kind::yield_one: {
+  case Expression_Kind::Delete:
+  case Expression_Kind::Typeof:
+  case Expression_Kind::Await:
+  case Expression_Kind::RW_Unary_Prefix:
+  case Expression_Kind::Spread:
+  case Expression_Kind::Unary_Operator:
+  case Expression_Kind::Yield_Many:
+  case Expression_Kind::Yield_One: {
     auto *ast =
-        static_cast<const expression::expression_with_prefix_operator_base *>(
+        static_cast<const Expression::Expression_With_Prefix_Operator_Base *>(
             this);
-    return expression_arena::array_ptr<expression *>(&ast->child_, 1);
+    return Expression_Arena::Array_Ptr<Expression *>(&ast->child_, 1);
   }
 
-  case expression_kind::jsx_element:
-  case expression_kind::jsx_element_with_members:
-  case expression_kind::jsx_element_with_namespace:
-  case expression_kind::jsx_fragment: {
-    auto *jsx = static_cast<const expression::jsx_base *>(this);
+  case Expression_Kind::JSX_Element:
+  case Expression_Kind::JSX_Element_With_Members:
+  case Expression_Kind::JSX_Element_With_Namespace:
+  case Expression_Kind::JSX_Fragment: {
+    auto *jsx = static_cast<const Expression::JSX_Base *>(this);
     return jsx->children;
   }
 
-  case expression_kind::_new:
-    return static_cast<const expression::_new *>(this)->children_;
-  case expression_kind::_template:
-    return static_cast<const expression::_template *>(this)->children_;
-  case expression_kind::angle_type_assertion: {
+  case Expression_Kind::New:
+    return static_cast<const Expression::New *>(this)->children_;
+  case Expression_Kind::Template:
+    return static_cast<const Expression::Template *>(this)->children_;
+  case Expression_Kind::Angle_Type_Assertion: {
     auto *assertion =
-        static_cast<const expression::angle_type_assertion *>(this);
-    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
+        static_cast<const Expression::Angle_Type_Assertion *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
-  case expression_kind::array:
-    return static_cast<const expression::array *>(this)->children_;
-  case expression_kind::arrow_function:
-    return static_cast<const expression::arrow_function *>(this)->children_;
-  case expression_kind::as_type_assertion: {
-    auto *assertion = static_cast<const expression::as_type_assertion *>(this);
-    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
+  case Expression_Kind::Array:
+    return static_cast<const Expression::Array *>(this)->children_;
+  case Expression_Kind::Arrow_Function:
+    return static_cast<const Expression::Arrow_Function *>(this)->children_;
+  case Expression_Kind::As_Type_Assertion: {
+    auto *assertion = static_cast<const Expression::As_Type_Assertion *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
-  case expression_kind::binary_operator:
-    return static_cast<const expression::binary_operator *>(this)->children_;
-  case expression_kind::call:
-    return static_cast<const expression::call *>(this)->children_;
-  case expression_kind::conditional: {
-    auto *conditional = static_cast<const expression::conditional *>(this);
-    return expression_arena::array_ptr<expression *>(conditional->children_);
+  case Expression_Kind::Binary_Operator:
+    return static_cast<const Expression::Binary_Operator *>(this)->children_;
+  case Expression_Kind::Call:
+    return static_cast<const Expression::Call *>(this)->children_;
+  case Expression_Kind::Conditional: {
+    auto *conditional = static_cast<const Expression::Conditional *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(conditional->children_);
   }
-  case expression_kind::dot: {
-    auto *dot = static_cast<const expression::dot *>(this);
-    return expression_arena::array_ptr<expression *>(&dot->child_, 1);
+  case Expression_Kind::Dot: {
+    auto *dot = static_cast<const Expression::Dot *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&dot->child_, 1);
   }
-  case expression_kind::index: {
-    auto *index = static_cast<const expression::index *>(this);
-    return expression_arena::array_ptr<expression *>(index->children_);
+  case Expression_Kind::Index: {
+    auto *index = static_cast<const Expression::Index *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(index->children_);
   }
-  case expression_kind::non_null_assertion: {
-    auto *assertion = static_cast<const expression::non_null_assertion *>(this);
-    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
+  case Expression_Kind::Non_Null_Assertion: {
+    auto *assertion = static_cast<const Expression::Non_Null_Assertion *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
-  case expression_kind::paren: {
-    auto *paren = static_cast<const expression::paren *>(this);
-    return expression_arena::array_ptr<expression *>(&paren->child_, 1);
+  case Expression_Kind::Paren: {
+    auto *paren = static_cast<const Expression::Paren *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&paren->child_, 1);
   }
-  case expression_kind::optional: {
-    auto *optional = static_cast<const expression::optional *>(this);
-    return expression_arena::array_ptr<expression *>(&optional->child_, 1);
+  case Expression_Kind::Optional: {
+    auto *optional = static_cast<const Expression::Optional *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&optional->child_, 1);
   }
-  case expression_kind::rw_unary_suffix: {
+  case Expression_Kind::RW_Unary_Suffix: {
     auto *rw_unary_suffix =
-        static_cast<const expression::rw_unary_suffix *>(this);
-    return expression_arena::array_ptr<expression *>(&rw_unary_suffix->child_,
+        static_cast<const Expression::RW_Unary_Suffix *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&rw_unary_suffix->child_,
                                                      1);
   }
-  case expression_kind::satisfies: {
-    auto *satisfies = static_cast<const expression::satisfies *>(this);
-    return expression_arena::array_ptr<expression *>(&satisfies->child_, 1);
+  case Expression_Kind::Satisfies: {
+    auto *satisfies = static_cast<const Expression::Satisfies *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&satisfies->child_, 1);
   }
-  case expression_kind::tagged_template_literal:
-    return static_cast<const expression::tagged_template_literal *>(this)
+  case Expression_Kind::Tagged_Template_Literal:
+    return static_cast<const Expression::Tagged_Template_Literal *>(this)
         ->tag_and_template_children_;
-  case expression_kind::trailing_comma:
-    return static_cast<const expression::trailing_comma *>(this)->children_;
-  case expression_kind::type_annotated: {
-    auto *annotated = static_cast<const expression::type_annotated *>(this);
-    return expression_arena::array_ptr<expression *>(&annotated->child_, 1);
+  case Expression_Kind::Trailing_Comma:
+    return static_cast<const Expression::Trailing_Comma *>(this)->children_;
+  case Expression_Kind::Type_Annotated: {
+    auto *annotated = static_cast<const Expression::Type_Annotated *>(this);
+    return Expression_Arena::Array_Ptr<Expression *>(&annotated->child_, 1);
   }
 
   default:
@@ -1281,207 +1283,207 @@ inline expression_arena::array_ptr<expression *> expression::children() const
   }
 }
 
-inline expression *expression::without_paren() const noexcept {
-  const expression *ast = this;
-  while (ast->kind_ == expression_kind::paren) {
-    ast = static_cast<const paren *>(ast)->child_;
+inline Expression *Expression::without_paren() const noexcept {
+  const Expression *ast = this;
+  while (ast->kind_ == Expression_Kind::Paren) {
+    ast = static_cast<const Paren *>(ast)->child_;
   }
   // TODO(strager): Remove const_cast.
-  return const_cast<expression *>(ast);
+  return const_cast<Expression *>(ast);
 }
 
-inline span_size expression::object_entry_count() const noexcept {
+inline Span_Size Expression::object_entry_count() const noexcept {
   switch (this->kind_) {
-  case expression_kind::object:
-    return static_cast<const expression::object *>(this)->entries_.size();
+  case Expression_Kind::Object:
+    return static_cast<const Expression::Object *>(this)->entries_.size();
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 }
 
-inline object_property_value_pair expression::object_entry(
-    span_size index) const noexcept {
+inline Object_Property_Value_Pair Expression::object_entry(
+    Span_Size index) const noexcept {
   switch (this->kind_) {
-  case expression_kind::object:
-    return static_cast<const expression::object *>(this)->entries_[index];
+  case Expression_Kind::Object:
+    return static_cast<const Expression::Object *>(this)->entries_[index];
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 }
 
-inline source_code_span expression::span() const noexcept {
+inline Source_Code_Span Expression::span() const noexcept {
   switch (this->kind_) {
-  case expression_kind::assignment:
-  case expression_kind::compound_assignment:
-  case expression_kind::conditional_assignment: {
-    auto *assignment = static_cast<const expression::assignment *>(this);
-    return source_code_span(assignment->children_.front()->span().begin(),
+  case Expression_Kind::Assignment:
+  case Expression_Kind::Compound_Assignment:
+  case Expression_Kind::Conditional_Assignment: {
+    auto *assignment = static_cast<const Expression::Assignment *>(this);
+    return Source_Code_Span(assignment->children_.front()->span().begin(),
                             assignment->children_.back()->span().end());
   }
 
-  case expression_kind::_delete:
-  case expression_kind::_typeof:
-  case expression_kind::await:
-  case expression_kind::rw_unary_prefix:
-  case expression_kind::spread:
-  case expression_kind::unary_operator:
-  case expression_kind::yield_many:
-  case expression_kind::yield_one: {
+  case Expression_Kind::Delete:
+  case Expression_Kind::Typeof:
+  case Expression_Kind::Await:
+  case Expression_Kind::RW_Unary_Prefix:
+  case Expression_Kind::Spread:
+  case Expression_Kind::Unary_Operator:
+  case Expression_Kind::Yield_Many:
+  case Expression_Kind::Yield_One: {
     auto *prefix =
-        static_cast<const expression::expression_with_prefix_operator_base *>(
+        static_cast<const Expression::Expression_With_Prefix_Operator_Base *>(
             this);
-    return source_code_span(prefix->unary_operator_begin_,
+    return Source_Code_Span(prefix->unary_operator_begin_,
                             prefix->child_->span().end());
   }
 
-  case expression_kind::jsx_element:
-  case expression_kind::jsx_element_with_members:
-  case expression_kind::jsx_element_with_namespace:
-  case expression_kind::jsx_fragment:
-    return static_cast<const jsx_base *>(this)->span;
+  case Expression_Kind::JSX_Element:
+  case Expression_Kind::JSX_Element_With_Members:
+  case Expression_Kind::JSX_Element_With_Namespace:
+  case Expression_Kind::JSX_Fragment:
+    return static_cast<const JSX_Base *>(this)->span;
 
-  case expression_kind::_class:
-    return static_cast<const _class *>(this)->span_;
-  case expression_kind::_invalid:
-    return static_cast<const _invalid *>(this)->span_;
-  case expression_kind::_missing:
-    return static_cast<const _missing *>(this)->span_;
-  case expression_kind::_new:
-    return static_cast<const _new *>(this)->span_;
-  case expression_kind::_template:
-    return static_cast<const _template *>(this)->span_;
-  case expression_kind::angle_type_assertion: {
-    auto *assertion = static_cast<const angle_type_assertion *>(this);
-    return source_code_span(assertion->bracketed_type_span_.begin(),
+  case Expression_Kind::Class:
+    return static_cast<const Class *>(this)->span_;
+  case Expression_Kind::Invalid:
+    return static_cast<const Invalid *>(this)->span_;
+  case Expression_Kind::Missing:
+    return static_cast<const Missing *>(this)->span_;
+  case Expression_Kind::New:
+    return static_cast<const New *>(this)->span_;
+  case Expression_Kind::Template:
+    return static_cast<const Template *>(this)->span_;
+  case Expression_Kind::Angle_Type_Assertion: {
+    auto *assertion = static_cast<const Angle_Type_Assertion *>(this);
+    return Source_Code_Span(assertion->bracketed_type_span_.begin(),
                             assertion->child_->span().end());
   }
-  case expression_kind::array:
-    return static_cast<const array *>(this)->span_;
-  case expression_kind::arrow_function: {
-    auto *arrow = static_cast<const expression::arrow_function *>(this);
+  case Expression_Kind::Array:
+    return static_cast<const Array *>(this)->span_;
+  case Expression_Kind::Arrow_Function: {
+    auto *arrow = static_cast<const Expression::Arrow_Function *>(this);
     if (arrow->parameter_list_begin_) {
-      return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
+      return Source_Code_Span(arrow->parameter_list_begin_, arrow->span_end_);
     } else {
-      return source_code_span(arrow->children_.front()->span().begin(),
+      return Source_Code_Span(arrow->children_.front()->span().begin(),
                               arrow->span_end_);
     }
   }
-  case expression_kind::as_type_assertion: {
-    auto *assertion = static_cast<const as_type_assertion *>(this);
-    return source_code_span(assertion->child_->span().begin(),
+  case Expression_Kind::As_Type_Assertion: {
+    auto *assertion = static_cast<const As_Type_Assertion *>(this);
+    return Source_Code_Span(assertion->child_->span().begin(),
                             assertion->span_end_);
   }
-  case expression_kind::binary_operator: {
-    auto *binary = static_cast<const expression::binary_operator *>(this);
-    return source_code_span(binary->children_.front()->span().begin(),
+  case Expression_Kind::Binary_Operator: {
+    auto *binary = static_cast<const Expression::Binary_Operator *>(this);
+    return Source_Code_Span(binary->children_.front()->span().begin(),
                             binary->children_.back()->span().end());
   }
-  case expression_kind::call: {
-    auto *call = static_cast<const expression::call *>(this);
-    return source_code_span(call->children_.front()->span().begin(),
+  case Expression_Kind::Call: {
+    auto *call = static_cast<const Expression::Call *>(this);
+    return Source_Code_Span(call->children_.front()->span().begin(),
                             call->span_end_);
   }
-  case expression_kind::conditional: {
-    auto *conditional = static_cast<const expression::conditional *>(this);
-    return source_code_span(conditional->children_.front()->span().begin(),
+  case Expression_Kind::Conditional: {
+    auto *conditional = static_cast<const Expression::Conditional *>(this);
+    return Source_Code_Span(conditional->children_.front()->span().begin(),
                             conditional->children_.back()->span().end());
   }
-  case expression_kind::dot: {
-    auto *dot = static_cast<const expression::dot *>(this);
-    return source_code_span(dot->child_0()->span().begin(),
+  case Expression_Kind::Dot: {
+    auto *dot = static_cast<const Expression::Dot *>(this);
+    return Source_Code_Span(dot->child_0()->span().begin(),
                             dot->variable_identifier_.span().end());
   }
-  case expression_kind::function:
-    return static_cast<const function *>(this)->span_;
-  case expression_kind::import:
-    return static_cast<const import *>(this)->span_;
-  case expression_kind::index: {
-    auto *index = static_cast<const expression::index *>(this);
-    return source_code_span(index->child_0()->span().begin(),
+  case Expression_Kind::Function:
+    return static_cast<const Function *>(this)->span_;
+  case Expression_Kind::Import:
+    return static_cast<const Import *>(this)->span_;
+  case Expression_Kind::Index: {
+    auto *index = static_cast<const Expression::Index *>(this);
+    return Source_Code_Span(index->child_0()->span().begin(),
                             index->index_subscript_end_);
   }
-  case expression_kind::literal:
-    return static_cast<const literal *>(this)->span_;
-  case expression_kind::named_function:
-    return static_cast<const named_function *>(this)->span_;
-  case expression_kind::new_target:
-    return static_cast<const new_target *>(this)->span_;
-  case expression_kind::non_null_assertion: {
-    auto *assertion = static_cast<const non_null_assertion *>(this);
-    return source_code_span(assertion->child_->span().begin(),
+  case Expression_Kind::Literal:
+    return static_cast<const Literal *>(this)->span_;
+  case Expression_Kind::Named_Function:
+    return static_cast<const Named_Function *>(this)->span_;
+  case Expression_Kind::New_Target:
+    return static_cast<const New_Target *>(this)->span_;
+  case Expression_Kind::Non_Null_Assertion: {
+    auto *assertion = static_cast<const Non_Null_Assertion *>(this);
+    return Source_Code_Span(assertion->child_->span().begin(),
                             assertion->bang_end_);
   }
-  case expression_kind::object:
-    return static_cast<const object *>(this)->span_;
-  case expression_kind::optional: {
-    auto *optional = static_cast<const expression::optional *>(this);
-    return source_code_span(optional->child_->span().begin(),
+  case Expression_Kind::Object:
+    return static_cast<const Object *>(this)->span_;
+  case Expression_Kind::Optional: {
+    auto *optional = static_cast<const Expression::Optional *>(this);
+    return Source_Code_Span(optional->child_->span().begin(),
                             optional->question_end_);
   }
-  case expression_kind::paren:
-    return static_cast<const paren *>(this)->span_;
-  case expression_kind::paren_empty:
-    return static_cast<const paren_empty *>(this)->span_;
-  case expression_kind::private_variable:
-    return static_cast<const private_variable *>(this)
+  case Expression_Kind::Paren:
+    return static_cast<const Paren *>(this)->span_;
+  case Expression_Kind::Paren_Empty:
+    return static_cast<const Paren_Empty *>(this)->span_;
+  case Expression_Kind::Private_Variable:
+    return static_cast<const Private_Variable *>(this)
         ->variable_identifier_.span();
-  case expression_kind::rw_unary_suffix: {
-    auto *suffix = static_cast<const rw_unary_suffix *>(this);
-    return source_code_span(suffix->child_->span().begin(),
+  case Expression_Kind::RW_Unary_Suffix: {
+    auto *suffix = static_cast<const RW_Unary_Suffix *>(this);
+    return Source_Code_Span(suffix->child_->span().begin(),
                             suffix->unary_operator_end_);
   }
-  case expression_kind::satisfies: {
-    auto *s = static_cast<const satisfies *>(this);
-    return source_code_span(s->child_->span().begin(), s->span_end_);
+  case Expression_Kind::Satisfies: {
+    auto *s = static_cast<const Satisfies *>(this);
+    return Source_Code_Span(s->child_->span().begin(), s->span_end_);
   }
-  case expression_kind::super:
-    return static_cast<const super *>(this)->span_;
-  case expression_kind::tagged_template_literal: {
-    auto *literal = static_cast<const tagged_template_literal *>(this);
-    return source_code_span(
+  case Expression_Kind::Super:
+    return static_cast<const Super *>(this)->span_;
+  case Expression_Kind::Tagged_Template_Literal: {
+    auto *literal = static_cast<const Tagged_Template_Literal *>(this);
+    return Source_Code_Span(
         literal->tag_and_template_children_[0]->span().begin(),
         literal->template_span_end_);
   }
-  case expression_kind::this_variable:
-    return static_cast<const this_variable *>(this)->span_;
-  case expression_kind::trailing_comma: {
-    auto *comma = static_cast<const trailing_comma *>(this);
-    return source_code_span(comma->children_.front()->span().begin(),
+  case Expression_Kind::This_Variable:
+    return static_cast<const This_Variable *>(this)->span_;
+  case Expression_Kind::Trailing_Comma: {
+    auto *comma = static_cast<const Trailing_Comma *>(this);
+    return Source_Code_Span(comma->children_.front()->span().begin(),
                             comma->comma_end_);
   }
-  case expression_kind::type_annotated: {
-    auto *annotated = static_cast<const type_annotated *>(this);
-    return source_code_span(annotated->child_->span().begin(),
+  case Expression_Kind::Type_Annotated: {
+    auto *annotated = static_cast<const Type_Annotated *>(this);
+    return Source_Code_Span(annotated->child_->span().begin(),
                             annotated->span_end_);
   }
-  case expression_kind::variable:
-    return static_cast<const variable *>(this)->variable_identifier_.span();
-  case expression_kind::yield_none:
-    return static_cast<const yield_none *>(this)->span_;
+  case Expression_Kind::Variable:
+    return static_cast<const Variable *>(this)->variable_identifier_.span();
+  case Expression_Kind::Yield_None:
+    return static_cast<const Yield_None *>(this)->span_;
   }
   QLJS_UNREACHABLE();
 }
 
-inline const char8 *expression::span_begin() const noexcept {
+inline const Char8 *Expression::span_begin() const noexcept {
   return this->span().begin();
 }
 
-inline const char8 *expression::span_end() const noexcept {
+inline const Char8 *Expression::span_end() const noexcept {
   return this->span().end();
 }
 
-inline function_attributes expression::attributes() const noexcept {
+inline Function_Attributes Expression::attributes() const noexcept {
   switch (this->kind_) {
-  case expression_kind::arrow_function:
-    return static_cast<const expression::arrow_function *>(this)
+  case Expression_Kind::Arrow_Function:
+    return static_cast<const Expression::Arrow_Function *>(this)
         ->function_attributes_;
-  case expression_kind::function:
-    return static_cast<const expression::function *>(this)
+  case Expression_Kind::Function:
+    return static_cast<const Expression::Function *>(this)
         ->function_attributes_;
-  case expression_kind::named_function:
-    return static_cast<const expression::named_function *>(this)
+  case Expression_Kind::Named_Function:
+    return static_cast<const Expression::Named_Function *>(this)
         ->function_attributes_;
 
   default:

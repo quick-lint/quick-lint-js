@@ -40,20 +40,20 @@
 
 namespace quick_lint_js {
 template <class UnderlyingFilesystem>
-class thread_safe_configuration_filesystem : public configuration_filesystem {
+class Thread_Safe_Configuration_Filesystem : public Configuration_Filesystem {
  public:
   template <class... Args>
-  explicit thread_safe_configuration_filesystem(Args&&... args)
+  explicit Thread_Safe_Configuration_Filesystem(Args&&... args)
       : underlying_fs_(std::forward<Args>(args)...) {}
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string& path) override {
     std::lock_guard lock(this->lock_);
     return this->underlying_fs_.canonicalize_path(path);
   }
 
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path& path) override {
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path& path) override {
     std::lock_guard lock(this->lock_);
     return this->underlying_fs_.read_file(path);
   }
@@ -94,43 +94,43 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
   }
 
  private:
-  mutex lock_;
+  Mutex lock_;
   UnderlyingFilesystem underlying_fs_;
 };
 
 // A configuration_filesystem which allows unsaved VS Code documents to appear
 // as real files.
-class vscode_configuration_filesystem : public configuration_filesystem {
+class VSCode_Configuration_Filesystem : public Configuration_Filesystem {
  public:
-  explicit vscode_configuration_filesystem(
-      configuration_filesystem* underlying_fs)
+  explicit VSCode_Configuration_Filesystem(
+      Configuration_Filesystem* underlying_fs)
       : underlying_fs_(underlying_fs) {}
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string& path) override {
     return this->underlying_fs_->canonicalize_path(path);
   }
 
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path& path) override {
-    qljs_document_base* doc = this->find_document(path.path());
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path& path) override {
+    QLJS_Document_Base* doc = this->find_document(path.path());
     if (!doc) {
       QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
       return this->underlying_fs_->read_file(path);
     }
     QLJS_DEBUG_LOG("Reading file from open document: %s\n", path.c_str());
-    return padded_string(doc->document_string().string_view());
+    return Padded_String(doc->document_string().string_view());
   }
 
   void clear() { this->overlaid_documents_.clear(); }
 
-  void overlay_document(const std::string& file_path, qljs_document_base* doc) {
+  void overlay_document(const std::string& file_path, QLJS_Document_Base* doc) {
     auto [_it, inserted] =
         this->overlaid_documents_.try_emplace(file_path, doc);
     QLJS_ASSERT(inserted);
   }
 
-  void forget_document(qljs_document_base* doc) {
+  void forget_document(QLJS_Document_Base* doc) {
     auto doc_it = std::find_if(this->overlaid_documents_.begin(),
                                this->overlaid_documents_.end(),
                                [&](auto& pair) { return pair.second == doc; });
@@ -145,7 +145,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
   }
 
  private:
-  qljs_document_base* find_document(std::string_view path) {
+  QLJS_Document_Base* find_document(std::string_view path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
     std::string_view key = path;
 #else
@@ -158,8 +158,8 @@ class vscode_configuration_filesystem : public configuration_filesystem {
     return doc_it->second;
   }
 
-  hash_map<std::string, qljs_document_base*> overlaid_documents_;
-  configuration_filesystem* underlying_fs_;
+  Hash_Map<std::string, QLJS_Document_Base*> overlaid_documents_;
+  Configuration_Filesystem* underlying_fs_;
 };
 }
 

@@ -15,7 +15,7 @@ namespace quick_lint_js {
 namespace {
 constexpr const char locale_part_separators[] = "_.@";
 
-struct locale_parts {
+struct Locale_Parts {
   // language, territory, codeset, modifier
   std::array<std::string_view, 4> parts;
 
@@ -29,32 +29,32 @@ struct locale_parts {
   }
 };
 
-locale_parts parse_locale(const char* locale_name) {
-  struct found_separator {
+Locale_Parts parse_locale(const char* locale_name) {
+  struct Found_Separator {
     std::size_t length;
     std::size_t which_separator;
   };
   auto find_next_separator = [](const char* c,
-                                const char* separators) -> found_separator {
+                                const char* separators) -> Found_Separator {
     std::size_t length = std::strcspn(c, separators);
     if (c[length] == '\0') {
-      return found_separator{.length = length,
+      return Found_Separator{.length = length,
                              .which_separator = static_cast<std::size_t>(-1)};
     }
     const char* separator = std::strchr(separators, c[length]);
     QLJS_ASSERT(separator);
-    return found_separator{
+    return Found_Separator{
         .length = length,
         .which_separator = narrow_cast<std::size_t>(separator - separators)};
   };
 
-  locale_parts parts;
+  Locale_Parts parts;
 
   const char* current_separators = &locale_part_separators[0];
   std::string_view* current_part = &parts.language();
   const char* c = locale_name;
   for (;;) {
-    found_separator part = find_next_separator(c, current_separators);
+    Found_Separator part = find_next_separator(c, current_separators);
     *current_part = std::string_view(c, part.length);
     c += part.length;
     if (*c == '\0') {
@@ -74,7 +74,7 @@ void locale_name_combinations(const char* locale_name, Func&& callback);
 }
 
 std::optional<int> find_locale(const char* locales, const char* locale_name) {
-  c_string_list_view locales_list(locales);
+  C_String_List_View locales_list(locales);
   std::optional<int> found_entry = std::nullopt;
   locale_name_combinations(locale_name,
                            [&](std::string_view current_locale_name) -> bool {
@@ -107,7 +107,7 @@ QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 template <class Func>
 void locale_name_combinations(const char* locale_name, Func&& callback) {
-  locale_parts parts = parse_locale(locale_name);
+  Locale_Parts parts = parse_locale(locale_name);
 
   std::vector<char> locale;
   std::size_t max_locale_size = std::strlen(locale_name);
@@ -121,9 +121,9 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
   }
 
   enum {
-    TERRITORY = 1 << locale_parts::territory_index,
-    CODESET = 1 << locale_parts::codeset_index,
-    MODIFIER = 1 << locale_parts::modifier_index,
+    TERRITORY = 1 << Locale_Parts::territory_index,
+    CODESET = 1 << Locale_Parts::codeset_index,
+    MODIFIER = 1 << Locale_Parts::modifier_index,
   };
   // clang-format off
   unsigned char masks[] = {

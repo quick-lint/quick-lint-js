@@ -12,63 +12,63 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_json, escapes_backslashes) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_backslashes) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8R"(hello\world)"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\\world)");
 }
 
-TEST(test_json, escapes_double_quotes) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_double_quotes) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8R"(hello"world)"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\"world)");
 }
 
-TEST(test_json, escapes_newlines) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_newlines) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8"hello\nworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\nworld)");
 }
 
-TEST(test_json, escapes_tabs) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_tabs) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8"hello\tworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\tworld)");
 }
 
-TEST(test_json, escapes_carriage_returns) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_carriage_returns) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8"hello\rworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\rworld)");
 }
 
-TEST(test_json, escapes_backspaces) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_backspaces) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8"hello\bworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\bworld)");
 }
 
-TEST(test_json, escapes_form_feeds) {
-  memory_output_stream json;
+TEST(Test_JSON, escapes_form_feeds) {
+  Memory_Output_Stream json;
   write_json_escaped_string(json, u8"hello\fworld"_sv);
   json.flush();
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\fworld)");
 }
 
-TEST(test_json, ascii_characters_are_parsable_by_boost_json) {
+TEST(Test_JSON, ascii_characters_are_parsable_by_boost_json) {
   for (int c = 0; c < 128; ++c) {
-    string8 string = string8(u8"hello") + narrow_cast<char8>(c) + u8"world";
+    String8 string = String8(u8"hello") + narrow_cast<Char8>(c) + u8"world";
     SCOPED_TRACE(out_string8(string));
 
-    memory_output_stream json;
+    Memory_Output_Stream json;
     json.append_copy(u8'"');
-    write_json_escaped_string(json, string8_view(string));
+    write_json_escaped_string(json, String8_View(string));
     json.append_copy(u8'"');
     json.flush();
     SCOPED_TRACE(out_string8(json.get_flushed_string8()));

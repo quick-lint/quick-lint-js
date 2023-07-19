@@ -21,32 +21,32 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-class byte_buffer;
+class Byte_Buffer;
 
 namespace {
-class null_lsp_writer final : public lsp_endpoint_remote {
+class Null_LSP_Writer final : public LSP_Endpoint_Remote {
  public:
-  void send_message(byte_buffer&& message) override {
+  void send_message(Byte_Buffer&& message) override {
     ::benchmark::ClobberMemory();
     ::benchmark::DoNotOptimize(message);
   }
 };
 
-string8 make_message(string8_view content) {
-  return string8(u8"Content-Length: ") +
+String8 make_message(String8_View content) {
+  return String8(u8"Content-Length: ") +
          to_string8(std::to_string(content.size())) + u8"\r\n\r\n" +
-         string8(content);
+         String8(content);
 }
 
 void benchmark_lsp_full_text_change_on_tiny_document(
     ::benchmark::State& state) {
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
-  basic_configuration_filesystem fs;
-  lsp_javascript_linter linter;
-  linting_lsp_server_handler handler(&fs, &linter);
-  null_lsp_writer remote;
-  lsp_json_rpc_message_parser lsp_server(&handler);
+  Basic_Configuration_Filesystem fs;
+  LSP_JavaScript_Linter linter;
+  Linting_LSP_Server_Handler handler(&fs, &linter);
+  Null_LSP_Writer remote;
+  LSP_JSON_RPC_Message_Parser lsp_server(&handler);
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -61,7 +61,7 @@ void benchmark_lsp_full_text_change_on_tiny_document(
         }
       })"));
 
-  std::array<string8, 2> change_messages = {
+  std::array<String8, 2> change_messages = {
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -107,23 +107,23 @@ BENCHMARK(benchmark_lsp_full_text_change_on_tiny_document);
 
 void benchmark_lsp_full_text_change_on_large_document(
     ::benchmark::State& state) {
-  string8_view code_line = u8"console.log('HELLO');\n";
+  String8_View code_line = u8"console.log('HELLO');\n";
   int line_count = 1000;
 
-  string8 document_text;
+  String8 document_text;
   for (int line = 0; line < line_count; ++line) {
     document_text += code_line;
   }
-  string8 document_text_json =
+  String8 document_text_json =
       to_json_escaped_string_with_quotes(document_text);
 
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
-  basic_configuration_filesystem fs;
-  lsp_javascript_linter linter;
-  linting_lsp_server_handler handler(&fs, &linter);
-  null_lsp_writer remote;
-  lsp_json_rpc_message_parser lsp_server(&handler);
+  Basic_Configuration_Filesystem fs;
+  LSP_JavaScript_Linter linter;
+  Linting_LSP_Server_Handler handler(&fs, &linter);
+  Null_LSP_Writer remote;
+  LSP_JSON_RPC_Message_Parser lsp_server(&handler);
 
   lsp_server.append(
       make_message(u8R"({
@@ -140,7 +140,7 @@ void benchmark_lsp_full_text_change_on_large_document(
         }
       })"));
 
-  std::array<string8, 2> change_messages = {
+  std::array<String8, 2> change_messages = {
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -187,10 +187,10 @@ void benchmark_lsp_full_text_change_on_large_document(
 BENCHMARK(benchmark_lsp_full_text_change_on_large_document);
 
 void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
-  string8_view code_line = u8"console.log('HELLO');\n";
+  String8_View code_line = u8"console.log('HELLO');\n";
   int line_count = 1000;
 
-  memory_output_stream did_open_message_json;
+  Memory_Output_Stream did_open_message_json;
   did_open_message_json.append_copy(
       u8R"(
     {
@@ -212,7 +212,7 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
     })"sv);
   did_open_message_json.flush();
 
-  std::array<string8, 2> change_messages = {
+  std::array<String8, 2> change_messages = {
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -255,11 +255,11 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
 
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
-  basic_configuration_filesystem fs;
-  lsp_javascript_linter linter;
-  linting_lsp_server_handler handler(&fs, &linter);
-  null_lsp_writer remote;
-  lsp_json_rpc_message_parser lsp_server(&handler);
+  Basic_Configuration_Filesystem fs;
+  LSP_JavaScript_Linter linter;
+  Linting_LSP_Server_Handler handler(&fs, &linter);
+  Null_LSP_Writer remote;
+  LSP_JSON_RPC_Message_Parser lsp_server(&handler);
   lsp_server.append(make_message(did_open_message_json.get_flushed_string8()));
 
   for (auto _ : state) {

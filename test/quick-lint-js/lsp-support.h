@@ -14,7 +14,7 @@
 #include <string_view>
 
 namespace quick_lint_js {
-inline string8 make_message(string8_view content) {
+inline String8 make_message(String8_View content) {
   return concat(u8"Content-Length: "_sv,
                 to_string8_view(std::to_string(content.size())),
                 u8"\r\n\r\n"_sv, content);

@@ -8,65 +8,65 @@
 
 namespace quick_lint_js {
 template <class Data>
-class lock_ptr;
+class Lock_Ptr;
 
 // A wrapper around data and a mutex.
 //
 // Inspired by folly::Synchronized.
 template <class Data>
-class synchronized {
+class Synchronized {
  public:
   // Acquire the mutex. When the returned lock_ptr is destructed, the mutex is
   // released.
-  lock_ptr<Data> lock();
+  Lock_Ptr<Data> lock();
 
   // get_unsafe does not acquire the mutex.
   Data* get_without_lock_unsafe() { return &this->data_; }
 
  private:
-  mutex mutex_;
+  Mutex mutex_;
   Data data_;
 
-  friend class lock_ptr<Data>;
+  friend class Lock_Ptr<Data>;
 };
 
 // Like std::lock_guard, but with additional access to lock-protected data.
 //
-// To create a lock_ptr, see the synchronized class.
+// To create a Lock_Ptr, see the Synchronized class.
 template <class Data>
-class lock_ptr {
+class Lock_Ptr {
  private:
   // Do not call directly. Call synchronized<Data>::lock instead.
-  explicit lock_ptr(synchronized<Data>* synchronized)
+  explicit Lock_Ptr(Synchronized<Data>* synchronized)
       : synchronized_(synchronized) {
     this->lock();
   }
 
  public:
-  lock_ptr(const lock_ptr&) = delete;
-  lock_ptr& operator=(const lock_ptr&) = delete;
+  Lock_Ptr(const Lock_Ptr&) = delete;
+  Lock_Ptr& operator=(const Lock_Ptr&) = delete;
 
   // Releases the lock.
-  ~lock_ptr() { this->unlock(); }
+  ~Lock_Ptr() { this->unlock(); }
 
   // Gives access to the lock-protected data.
   Data& operator*() { return this->synchronized_->data_; }
   Data* operator->() { return &this->synchronized_->data_; }
 
-  mutex* get_mutex_unsafe() { return &this->synchronized_->mutex_; }
+  Mutex* get_mutex_unsafe() { return &this->synchronized_->mutex_; }
 
  private:
   void lock() { return this->synchronized_->mutex_.lock(); }
   void unlock() { return this->synchronized_->mutex_.unlock(); }
 
-  synchronized<Data>* synchronized_;
+  Synchronized<Data>* synchronized_;
 
-  friend class synchronized<Data>;
+  friend class Synchronized<Data>;
 };
 
 template <class Data>
-inline lock_ptr<Data> synchronized<Data>::lock() {
-  return lock_ptr<Data>(this);
+inline Lock_Ptr<Data> Synchronized<Data>::lock() {
+  return Lock_Ptr<Data>(this);
 }
 }
 

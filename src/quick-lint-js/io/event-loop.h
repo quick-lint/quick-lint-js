@@ -15,13 +15,13 @@
 
 namespace quick_lint_js {
 template <class Derived>
-using event_loop =
+using Event_Loop =
 #if QLJS_HAVE_KQUEUE
-    kqueue_event_loop
+    Kqueue_Event_Loop
 #elif QLJS_HAVE_POLL
-    poll_event_loop
+    Poll_Event_Loop
 #elif defined(_WIN32)
-    windows_event_loop
+    Windows_Event_Loop
 #else
 #error "Unknown platform"
 #endif

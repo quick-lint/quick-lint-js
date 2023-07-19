@@ -9,11 +9,11 @@
 
 namespace quick_lint_js {
 namespace {
-void benchmark_lex(::benchmark::State &state, string8_view raw_source) {
-  padded_string source(raw_source);
+void benchmark_lex(::benchmark::State &state, String8_View raw_source) {
+  Padded_String source(raw_source);
   for (auto _ : state) {
-    lexer l(&source, &null_diag_reporter::instance);
-    while (l.peek().type != token_type::end_of_file) {
+    Lexer l(&source, &Null_Diag_Reporter::instance);
+    while (l.peek().type != Token_Type::end_of_file) {
       l.skip();
     }
     ::benchmark::DoNotOptimize(l.peek().type);

@@ -46,29 +46,29 @@ int mockable_directory_open(const char* path, int flags) {
 std::string vnode_event_flags_to_string(std::uint32_t flags);
 }
 
-change_detecting_filesystem_kqueue::change_detecting_filesystem_kqueue(
-    posix_fd_file_ref kqueue_fd, void* udata)
+Change_Detecting_Filesystem_Kqueue::Change_Detecting_Filesystem_Kqueue(
+    POSIX_FD_File_Ref kqueue_fd, void* udata)
     : kqueue_fd_(kqueue_fd), udata_(udata) {}
 
-change_detecting_filesystem_kqueue::~change_detecting_filesystem_kqueue() {
+Change_Detecting_Filesystem_Kqueue::~Change_Detecting_Filesystem_Kqueue() {
   // NOTE(strager): Closing the file descriptors will remove the filters from
   // kqueue_fd_ (I think).
 }
 
-result<canonical_path_result, canonicalize_path_io_error>
-change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
+Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
+Change_Detecting_Filesystem_Kqueue::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path, this);
 }
 
-result<padded_string, read_file_io_error>
-change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
-  canonical_path directory = path;
+Result<Padded_String, Read_File_IO_Error>
+Change_Detecting_Filesystem_Kqueue::read_file(const Canonical_Path& path) {
+  Canonical_Path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    this->watch_errors_.emplace_back(watch_io_error{
+    this->watch_errors_.emplace_back(Watch_IO_Error{
         .path = std::move(directory).path(),
-        .io_error = posix_file_io_error{errno},
+        .io_error = POSIX_File_IO_Error{errno},
     });
     // FIXME(strager): Recovering now is probably pointless. If watch_directory
     // failed because open() returned EMFILE, then the following open() call is
@@ -77,44 +77,44 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
-  posix_fd_file file(::open(path.c_str(), O_RDONLY));
+  POSIX_FD_File file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return failed_result(read_file_io_error{
+    return failed_result(Read_File_IO_Error{
         .path = path.c_str(),
-        .io_error = posix_file_io_error{errno},
+        .io_error = POSIX_File_IO_Error{errno},
     });
   }
 
-  auto watch_it = this->watch_file(canonical_path(path), std::move(file));
-  result<padded_string, read_file_io_error> r =
+  auto watch_it = this->watch_file(Canonical_Path(path), std::move(file));
+  Result<Padded_String, Read_File_IO_Error> r =
       quick_lint_js::read_file(path.c_str(), watch_it->second.fd.ref());
   if (!r.ok()) return r.propagate();
   return *std::move(r);
 }
 
-void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+void Change_Detecting_Filesystem_Kqueue::on_canonicalize_child_of_directory(
     const char* path) {
-  bool ok = this->watch_directory(canonical_path(path));
+  bool ok = this->watch_directory(Canonical_Path(path));
   if (!ok) {
-    this->watch_errors_.emplace_back(watch_io_error{
+    this->watch_errors_.emplace_back(Watch_IO_Error{
         .path = path,
-        .io_error = posix_file_io_error{errno},
+        .io_error = POSIX_File_IO_Error{errno},
     });
   }
 }
 
-std::vector<watch_io_error>
-change_detecting_filesystem_kqueue::take_watch_errors() {
-  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
+std::vector<Watch_IO_Error>
+Change_Detecting_Filesystem_Kqueue::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<Watch_IO_Error>());
 }
 
-void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+void Change_Detecting_Filesystem_Kqueue::on_canonicalize_child_of_directory(
     const wchar_t*) {
   // We don't use wchar_t paths on BSDs.
   QLJS_UNREACHABLE();
 }
 
-void change_detecting_filesystem_kqueue::handle_kqueue_event(
+void Change_Detecting_Filesystem_Kqueue::handle_kqueue_event(
     const struct ::kevent& event) {
   QLJS_ASSERT(event.filter == EVFILT_VNODE);
 
@@ -134,18 +134,18 @@ void change_detecting_filesystem_kqueue::handle_kqueue_event(
   }
 }
 
-bool change_detecting_filesystem_kqueue::watch_directory(
-    const canonical_path& directory) {
+bool Change_Detecting_Filesystem_Kqueue::watch_directory(
+    const Canonical_Path& directory) {
   int flags = O_RDONLY;
 #if defined(O_EVTONLY)
   flags |= O_EVTONLY;
 #endif
-  posix_fd_file dir(mockable_directory_open(directory.c_str(), flags));
+  POSIX_FD_File dir(mockable_directory_open(directory.c_str(), flags));
   if (!dir.valid()) {
     return false;
   }
 
-  auto register_watch = [this](posix_fd_file_ref fd) -> void {
+  auto register_watch = [this](POSIX_FD_File_Ref fd) -> void {
     struct ::kevent change;
     EV_SET(
         /*kev=*/&change,
@@ -169,10 +169,10 @@ bool change_detecting_filesystem_kqueue::watch_directory(
     }
   };
 
-  watched_file new_watch(std::move(dir));
+  Watched_File new_watch(std::move(dir));
   auto [watch_it, inserted] =
       this->watched_files_.try_emplace(directory, std::move(new_watch));
-  watched_file& existing_watch = watch_it->second;
+  Watched_File& existing_watch = watch_it->second;
   if (inserted) {
     // The directory is brand new. Start watching the new directory.
     register_watch(existing_watch.fd.ref());
@@ -193,11 +193,11 @@ bool change_detecting_filesystem_kqueue::watch_directory(
   return true;
 }
 
-hash_map<canonical_path,
-         change_detecting_filesystem_kqueue::watched_file>::iterator
-change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
-                                               posix_fd_file file) {
-  auto register_watch = [this](posix_fd_file_ref fd) -> void {
+Hash_Map<Canonical_Path,
+         Change_Detecting_Filesystem_Kqueue::Watched_File>::iterator
+Change_Detecting_Filesystem_Kqueue::watch_file(Canonical_Path&& path,
+                                               POSIX_FD_File file) {
+  auto register_watch = [this](POSIX_FD_File_Ref fd) -> void {
     struct ::kevent change;
     EV_SET(
         /*kev=*/&change,
@@ -221,10 +221,10 @@ change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
     }
   };
 
-  watched_file new_watch(std::move(file));
+  Watched_File new_watch(std::move(file));
   auto [watch_it, inserted] =
       this->watched_files_.try_emplace(path, std::move(new_watch));
-  watched_file& existing_watch = watch_it->second;
+  Watched_File& existing_watch = watch_it->second;
   if (inserted) {
     // The file is brand new. Start watching the new file.
     register_watch(existing_watch.fd.ref());
@@ -246,37 +246,37 @@ change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
   return watch_it;
 }
 
-change_detecting_filesystem_kqueue::file_id
-change_detecting_filesystem_kqueue::file_id::from_open_file(
-    posix_fd_file_ref fd) {
+Change_Detecting_Filesystem_Kqueue::File_ID
+Change_Detecting_Filesystem_Kqueue::File_ID::from_open_file(
+    POSIX_FD_File_Ref fd) {
   struct ::stat s;
   if (::fstat(fd.get(), &s) == -1) {
     QLJS_UNIMPLEMENTED();
   }
-  return file_id{.device = s.st_dev, .inode = s.st_ino};
+  return File_ID{.device = s.st_dev, .inode = s.st_ino};
 }
 
-bool change_detecting_filesystem_kqueue::file_id::operator==(
-    const change_detecting_filesystem_kqueue::file_id& rhs) const noexcept {
+bool Change_Detecting_Filesystem_Kqueue::File_ID::operator==(
+    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const noexcept {
   return this->device == rhs.device && this->inode == rhs.inode;
 }
 
-bool change_detecting_filesystem_kqueue::file_id::operator!=(
-    const change_detecting_filesystem_kqueue::file_id& rhs) const noexcept {
+bool Change_Detecting_Filesystem_Kqueue::File_ID::operator!=(
+    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const noexcept {
   return !(*this == rhs);
 }
 
-change_detecting_filesystem_kqueue::watched_file::watched_file(
-    posix_fd_file&& fd)
-    : fd(std::move(fd)), id(file_id::from_open_file(this->fd.ref())) {}
+Change_Detecting_Filesystem_Kqueue::Watched_File::Watched_File(
+    POSIX_FD_File&& fd)
+    : fd(std::move(fd)), id(File_ID::from_open_file(this->fd.ref())) {}
 
 namespace {
 std::string vnode_event_flags_to_string(std::uint32_t flags) {
-  struct flag_entry {
+  struct Flag_Entry {
     std::uint32_t flag;
     const char name[13];
   };
-  static constexpr flag_entry known_flags[] = {
+  static constexpr Flag_Entry known_flags[] = {
     {NOTE_ATTRIB, "NOTE_ATTRIB"},
     {NOTE_DELETE, "NOTE_DELETE"},
     {NOTE_EXTEND, "NOTE_EXTEND"},
@@ -294,7 +294,7 @@ std::string vnode_event_flags_to_string(std::uint32_t flags) {
   }
 
   std::string result;
-  for (const flag_entry& flag : known_flags) {
+  for (const Flag_Entry& flag : known_flags) {
     if (flags & flag.flag) {
       if (!result.empty()) {
         result += "|";

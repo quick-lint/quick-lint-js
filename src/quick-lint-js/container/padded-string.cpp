@@ -13,38 +13,38 @@
 #include <utility>
 
 namespace quick_lint_js {
-static_assert(padded_string::padding_size >= ::simdjson::SIMDJSON_PADDING,
-              "padded_string must have enough padded to satisfy simdjson");
+static_assert(Padded_String::padding_size >= ::simdjson::SIMDJSON_PADDING,
+              "Padded_String must have enough padded to satisfy simdjson");
 
 namespace {
-std::array<char8, padded_string::padding_size> empty_string = {};
+std::array<Char8, Padded_String::padding_size> empty_string = {};
 }
 
-padded_string::padded_string() {
+Padded_String::Padded_String() {
   this->data_ = empty_string.data();
   this->size_excluding_padding_bytes_ = 0;
 }
 
-padded_string::padded_string(string8&& string)
-    : padded_string(string8_view(string)) {}
+Padded_String::Padded_String(String8&& string)
+    : Padded_String(String8_View(string)) {}
 
-padded_string::padded_string(string8_view string) {
-  this->size_excluding_padding_bytes_ = narrow_cast<size_type>(string.size());
-  size_type size_including_padding_bytes =
+Padded_String::Padded_String(String8_View string) {
+  this->size_excluding_padding_bytes_ = narrow_cast<Size_Type>(string.size());
+  Size_Type size_including_padding_bytes =
       this->size_excluding_padding_bytes_ + this->padding_size;
-  this->data_ = reinterpret_cast<char8*>(std::malloc(
-      narrow_cast<std::size_t>(size_including_padding_bytes) * sizeof(char8)));
-  char8* padding_bytes = std::copy(string.begin(), string.end(), this->data_);
+  this->data_ = reinterpret_cast<Char8*>(std::malloc(
+      narrow_cast<std::size_t>(size_including_padding_bytes) * sizeof(Char8)));
+  Char8* padding_bytes = std::copy(string.begin(), string.end(), this->data_);
   std::fill_n(padding_bytes, this->padding_size, u8'\0');
 }
 
-padded_string::padded_string(padded_string&& other) {
+Padded_String::Padded_String(Padded_String&& other) {
   this->data_ = std::exchange(other.data_, empty_string.data());
   this->size_excluding_padding_bytes_ =
       std::exchange(other.size_excluding_padding_bytes_, 0);
 }
 
-padded_string& padded_string::operator=(padded_string&& other) {
+Padded_String& Padded_String::operator=(Padded_String&& other) {
   if (this != &other) {
     this->free_and_set_storage(other.data_,
                                other.size_excluding_padding_bytes_);
@@ -54,10 +54,10 @@ padded_string& padded_string::operator=(padded_string&& other) {
   return *this;
 }
 
-padded_string::~padded_string() { this->free_and_set_storage(nullptr, 0); }
+Padded_String::~Padded_String() { this->free_and_set_storage(nullptr, 0); }
 
-void padded_string::resize(size_type new_size) {
-  size_type old_size = this->size_excluding_padding_bytes_;
+void Padded_String::resize(Size_Type new_size) {
+  Size_Type old_size = this->size_excluding_padding_bytes_;
   if (new_size == old_size) {
     // Do nothing.
   } else if (new_size < old_size) {
@@ -71,16 +71,16 @@ void padded_string::resize(size_type new_size) {
   }
 }
 
-void padded_string::resize_grow_uninitialized(size_type new_size) {
-  size_type old_size = this->size_excluding_padding_bytes_;
+void Padded_String::resize_grow_uninitialized(Size_Type new_size) {
+  Size_Type old_size = this->size_excluding_padding_bytes_;
   QLJS_ASSERT(new_size > old_size);
 
-  char8* old_data = this->data_ == empty_string.data() ? nullptr : this->data_;
-  size_type new_size_including_padding_bytes = new_size + this->padding_size;
+  Char8* old_data = this->data_ == empty_string.data() ? nullptr : this->data_;
+  Size_Type new_size_including_padding_bytes = new_size + this->padding_size;
 
-  char8* new_data = reinterpret_cast<char8*>(std::realloc(
+  Char8* new_data = reinterpret_cast<Char8*>(std::realloc(
       old_data, narrow_cast<std::size_t>(new_size_including_padding_bytes) *
-                    sizeof(char8)));
+                    sizeof(Char8)));
   // Only null-terminate. Do not write between &new_data[old_size] and
   // &new_data[new_size].
   std::fill_n(&new_data[new_size], this->padding_size, u8'\0');
@@ -89,12 +89,12 @@ void padded_string::resize_grow_uninitialized(size_type new_size) {
   this->size_excluding_padding_bytes_ = new_size;
 }
 
-string8_view padded_string::string_view() const noexcept {
-  return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
+String8_View Padded_String::string_view() const noexcept {
+  return String8_View(this->data(), narrow_cast<std::size_t>(this->size()));
 }
 
-void padded_string::free_and_set_storage(
-    char8* new_data, size_type new_size_excluding_padding_bytes) {
+void Padded_String::free_and_set_storage(
+    Char8* new_data, Size_Type new_size_excluding_padding_bytes) {
   if (this->data_ != empty_string.data()) {
     std::free(this->data_);
   }
@@ -102,47 +102,47 @@ void padded_string::free_and_set_storage(
   this->size_excluding_padding_bytes_ = new_size_excluding_padding_bytes;
 }
 
-bool operator==(const padded_string& x, const padded_string& y) noexcept {
+bool operator==(const Padded_String& x, const Padded_String& y) noexcept {
   return x.string_view() == y.string_view();
 }
 
-bool operator!=(const padded_string& x, const padded_string& y) noexcept {
+bool operator!=(const Padded_String& x, const Padded_String& y) noexcept {
   return !(x == y);
 }
 
-bool operator==(string8_view x, const padded_string& y) noexcept {
+bool operator==(String8_View x, const Padded_String& y) noexcept {
   return y == x;
 }
 
-bool operator!=(string8_view x, const padded_string& y) noexcept {
+bool operator!=(String8_View x, const Padded_String& y) noexcept {
   return !(x == y);
 }
 
-bool operator==(const padded_string& x, string8_view y) noexcept {
+bool operator==(const Padded_String& x, String8_View y) noexcept {
   return x.string_view() == y;
 }
 
-bool operator!=(const padded_string& x, string8_view y) noexcept {
+bool operator!=(const Padded_String& x, String8_View y) noexcept {
   return !(x == y);
 }
 
-string8_view padded_string_view::string_view() const noexcept {
-  return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
+String8_View Padded_String_View::string_view() const noexcept {
+  return String8_View(this->data(), narrow_cast<std::size_t>(this->size()));
 }
 
-bool operator==(string8_view x, const padded_string_view& y) noexcept {
+bool operator==(String8_View x, const Padded_String_View& y) noexcept {
   return y == x;
 }
 
-bool operator!=(string8_view x, const padded_string_view& y) noexcept {
+bool operator!=(String8_View x, const Padded_String_View& y) noexcept {
   return !(x == y);
 }
 
-bool operator==(const padded_string_view& x, string8_view y) noexcept {
+bool operator==(const Padded_String_View& x, String8_View y) noexcept {
   return x.string_view() == y;
 }
 
-bool operator!=(const padded_string_view& x, string8_view y) noexcept {
+bool operator!=(const Padded_String_View& x, String8_View y) noexcept {
   return !(x == y);
 }
 }

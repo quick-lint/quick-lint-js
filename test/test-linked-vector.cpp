@@ -17,27 +17,27 @@ using ::testing::IsEmpty;
 namespace quick_lint_js {
 namespace {
 template <class T>
-std::vector<T> to_vector(const linked_vector<T>& v) {
+std::vector<T> to_vector(const Linked_Vector<T>& v) {
   std::vector<T> result;
   v.for_each([&](auto& x) { result.push_back(x); });
   return result;
 }
 
-TEST(test_linked_vector, empty) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, empty) {
+  Linked_Vector<int> v(new_delete_resource());
   EXPECT_TRUE(v.empty());
   EXPECT_THAT(to_vector(v), IsEmpty());
 }
 
-TEST(test_linked_vector, emplace_back_one) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_one) {
+  Linked_Vector<int> v(new_delete_resource());
   v.emplace_back(42);
   EXPECT_FALSE(v.empty());
   EXPECT_THAT(to_vector(v), ElementsAreArray({42}));
 }
 
-TEST(test_linked_vector, emplace_back_full_chunk) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_full_chunk) {
+  Linked_Vector<int> v(new_delete_resource());
   std::vector<int> expected_items;
   for (int i = 0; i < narrow_cast<int>(v.items_per_chunk); ++i) {
     v.emplace_back(i);
@@ -46,8 +46,8 @@ TEST(test_linked_vector, emplace_back_full_chunk) {
   EXPECT_THAT(to_vector(v), ContainerEq(expected_items));
 }
 
-TEST(test_linked_vector, emplace_back_full_chunk_and_one) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_full_chunk_and_one) {
+  Linked_Vector<int> v(new_delete_resource());
   std::vector<int> expected_items;
   for (int i = 0; i < narrow_cast<int>(v.items_per_chunk) + 1; ++i) {
     v.emplace_back(i);
@@ -56,16 +56,16 @@ TEST(test_linked_vector, emplace_back_full_chunk_and_one) {
   EXPECT_THAT(to_vector(v), ContainerEq(expected_items));
 }
 
-TEST(test_linked_vector, emplace_back_one_then_pop_back) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_one_then_pop_back) {
+  Linked_Vector<int> v(new_delete_resource());
   v.emplace_back(42);
   v.pop_back();
   EXPECT_TRUE(v.empty());
   EXPECT_THAT(to_vector(v), ElementsAre());
 }
 
-TEST(test_linked_vector, emplace_back_two_then_pop_back) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_two_then_pop_back) {
+  Linked_Vector<int> v(new_delete_resource());
   v.emplace_back(42);
   v.emplace_back(69);
   v.pop_back();
@@ -74,8 +74,8 @@ TEST(test_linked_vector, emplace_back_two_then_pop_back) {
   EXPECT_EQ(v.back(), 42);
 }
 
-TEST(test_linked_vector, emplace_back_full_chunk_then_pop_back) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_full_chunk_then_pop_back) {
+  Linked_Vector<int> v(new_delete_resource());
   std::vector<int> expected_items;
   for (int i = 0; i < narrow_cast<int>(v.items_per_chunk); ++i) {
     v.emplace_back(i);
@@ -87,8 +87,8 @@ TEST(test_linked_vector, emplace_back_full_chunk_then_pop_back) {
   EXPECT_EQ(v.back(), expected_items.back());
 }
 
-TEST(test_linked_vector, emplace_back_full_chunk_plus_one_then_pop_back) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_full_chunk_plus_one_then_pop_back) {
+  Linked_Vector<int> v(new_delete_resource());
   std::vector<int> expected_items;
   for (int i = 0; i < narrow_cast<int>(v.items_per_chunk) + 1; ++i) {
     v.emplace_back(i);
@@ -100,8 +100,8 @@ TEST(test_linked_vector, emplace_back_full_chunk_plus_one_then_pop_back) {
   EXPECT_EQ(v.back(), expected_items.back());
 }
 
-TEST(test_linked_vector, emplace_back_full_chunk_plus_one_then_pop_back_most) {
-  linked_vector<int> v(new_delete_resource());
+TEST(Test_Linked_Vector, emplace_back_full_chunk_plus_one_then_pop_back_most) {
+  Linked_Vector<int> v(new_delete_resource());
   std::vector<int> expected_items;
   for (int i = 0; i < narrow_cast<int>(v.items_per_chunk) + 1; ++i) {
     v.emplace_back(i);

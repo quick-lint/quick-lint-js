@@ -13,10 +13,10 @@
 
 namespace quick_lint_js {
 template <typename T>
-class reported_diag_statistics final : public diag_reporter {
+class Reported_Diag_Statistics final : public Diag_Reporter {
  public:
-  explicit reported_diag_statistics(T reporter,
-                                    const compiled_diag_code_list *predicate)
+  explicit Reported_Diag_Statistics(T reporter,
+                                    const Compiled_Diag_Code_List *predicate)
       : reporter_(reporter), predicate_(predicate) {}
 
   T *get_reporter() { return &(this->reporter_); }
@@ -25,7 +25,7 @@ class reported_diag_statistics final : public diag_reporter {
     return this->found_matching_diag_;
   }
 
-  void report_impl(diag_type type, void *diag) override final {
+  void report_impl(Diag_Type type, void *diag) override final {
     if (this->predicate_->is_present(type)) {
       this->found_matching_diag_ = true;
     }
@@ -35,7 +35,7 @@ class reported_diag_statistics final : public diag_reporter {
  private:
   T reporter_;
 
-  const compiled_diag_code_list *predicate_;
+  const Compiled_Diag_Code_List *predicate_;
   bool found_matching_diag_ = false;
 };
 }

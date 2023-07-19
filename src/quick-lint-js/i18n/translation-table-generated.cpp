@@ -8,8 +8,8 @@
 #include <quick-lint-js/i18n/translation-table.h>
 
 namespace quick_lint_js {
-const translation_table translation_data = {
-    .mapping_table = translation_table::absolute_mapping_table_from_relative({{
+const Translation_Table translation_data = {
+    .mapping_table = Translation_Table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
         {1, 11639, 20705, 31370, 0, 57225},  //
         {50, 61, 79, 49, 0, 40},             //
@@ -1832,7 +1832,7 @@ const translation_table translation_data = {
         u8"C-style for loops have only three semicolon-separated components\0"
         u8"JSON syntax error\0"
         u8"JSX prop is missing an expression\0"
-        u8"Keywords in Typescript does not allow escape characters\0"
+        u8"Keywords in TypeScript does not allow escape characters\0"
         u8"React/JSX is not allowed in TypeScript code\0"
         u8"React/JSX is not allowed in vanilla JavaScript code\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"

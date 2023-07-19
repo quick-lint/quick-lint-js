@@ -12,11 +12,11 @@
 #include <vector>
 
 namespace quick_lint_js {
-class lsp_endpoint_remote {
+class LSP_Endpoint_Remote {
  public:
-  virtual ~lsp_endpoint_remote();
+  virtual ~LSP_Endpoint_Remote();
 
-  virtual void send_message(byte_buffer&& message) = 0;
+  virtual void send_message(Byte_Buffer&& message) = 0;
 };
 
 // List of asynchronous JSON-RPC/LSP messages (requests, responses, and
@@ -24,14 +24,14 @@ class lsp_endpoint_remote {
 //
 // Each message excludes the LSP header; each message should only be the JSON
 // message content.
-class outgoing_json_rpc_message_queue {
+class Outgoing_JSON_RPC_Message_Queue {
  public:
-  byte_buffer& new_message();
+  Byte_Buffer& new_message();
 
-  void send(lsp_endpoint_remote&);
+  void send(LSP_Endpoint_Remote&);
 
  private:
-  std::vector<byte_buffer> messages_;
+  std::vector<Byte_Buffer> messages_;
 };
 }
 

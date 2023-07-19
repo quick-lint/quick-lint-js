@@ -9,21 +9,21 @@
 #include <utility>
 
 namespace quick_lint_js {
-struct empty_hash_map_value {};
+struct Empty_Hash_Map_Value {};
 
 // Like std::unordered_set.
 template <class Key>
-class hash_set {
+class Hash_Set {
  private:
-  using map = hash_map<Key, empty_hash_map_value>;
+  using Map = Hash_Map<Key, Empty_Hash_Map_Value>;
 
  public:
-  using size_type = typename map::size_type;
+  using size_type = typename Map::size_type;
 
-  class iterator {
+  class Iterator {
    public:
-    using difference_type = typename map::iterator::difference_type;
-    using iterator_category = typename map::iterator::iterator_category;
+    using difference_type = typename Map::iterator::difference_type;
+    using iterator_category = typename Map::iterator::iterator_category;
     using pointer = const Key*;
     using reference = const Key&;
     using value_type = Key;
@@ -32,37 +32,37 @@ class hash_set {
 
     const Key* operator->() const noexcept { return &**this; }
 
-    iterator& operator++() noexcept {
+    Iterator& operator++() noexcept {
       ++this->it_;
       return *this;
     }
 
-    iterator& operator++(int) noexcept {
-      iterator old = *this;
+    Iterator& operator++(int) noexcept {
+      Iterator old = *this;
       ++*this;
       return old;
     }
 
-    friend bool operator==(const iterator& lhs, const iterator& rhs) {
+    friend bool operator==(const Iterator& lhs, const Iterator& rhs) {
       return lhs.it_ == rhs.it_;
     }
 
-    friend bool operator!=(const iterator& lhs, const iterator& rhs) {
+    friend bool operator!=(const Iterator& lhs, const Iterator& rhs) {
       return !(lhs == rhs);
     }
 
    private:
-    explicit iterator(typename map::iterator it) : it_(it) {}
+    explicit Iterator(typename Map::iterator it) : it_(it) {}
 
-    typename map::iterator it_;
+    typename Map::iterator it_;
 
-    friend class hash_set;
+    friend class Hash_Set;
   };
 
-  class const_iterator {
+  class Const_Iterator {
    public:
-    using difference_type = typename map::const_iterator::difference_type;
-    using iterator_category = typename map::const_iterator::iterator_category;
+    using difference_type = typename Map::const_iterator::difference_type;
+    using iterator_category = typename Map::const_iterator::iterator_category;
     using pointer = const Key*;
     using reference = const Key&;
     using value_type = Key;
@@ -71,33 +71,33 @@ class hash_set {
 
     const Key* operator->() const noexcept { return &**this; }
 
-    const_iterator& operator++() noexcept {
+    Const_Iterator& operator++() noexcept {
       ++this->it_;
       return *this;
     }
 
-    const_iterator& operator++(int) noexcept {
-      const_iterator old = *this;
+    Const_Iterator& operator++(int) noexcept {
+      Const_Iterator old = *this;
       ++*this;
       return old;
     }
 
-    friend bool operator==(const const_iterator& lhs,
-                           const const_iterator& rhs) {
+    friend bool operator==(const Const_Iterator& lhs,
+                           const Const_Iterator& rhs) {
       return lhs.it_ == rhs.it_;
     }
 
-    friend bool operator!=(const const_iterator& lhs,
-                           const const_iterator& rhs) {
+    friend bool operator!=(const Const_Iterator& lhs,
+                           const Const_Iterator& rhs) {
       return !(lhs == rhs);
     }
 
    private:
-    explicit const_iterator(typename map::const_iterator it) : it_(it) {}
+    explicit Const_Iterator(typename Map::const_iterator it) : it_(it) {}
 
-    typename map::const_iterator it_;
+    typename Map::const_iterator it_;
 
-    friend class hash_set;
+    friend class Hash_Set;
   };
 
   template <class K>
@@ -106,22 +106,22 @@ class hash_set {
   }
 
   template <class K>
-  const_iterator find(const K& key) const noexcept {
-    return iterator(this->set_.find(key));
+  Const_Iterator find(const K& key) const noexcept {
+    return Iterator(this->set_.find(key));
   }
   template <class K>
-  iterator find(const K& key) noexcept {
-    return iterator(this->set_.find(key));
+  Iterator find(const K& key) noexcept {
+    return Iterator(this->set_.find(key));
   }
 
-  iterator begin() noexcept { return iterator(this->set_.begin()); }
-  const_iterator begin() const noexcept {
-    return const_iterator(this->set_.begin());
+  Iterator begin() noexcept { return Iterator(this->set_.begin()); }
+  Const_Iterator begin() const noexcept {
+    return Const_Iterator(this->set_.begin());
   }
 
-  iterator end() noexcept { return iterator(this->set_.end()); }
-  const_iterator end() const noexcept {
-    return const_iterator(this->set_.end());
+  Iterator end() noexcept { return Iterator(this->set_.end()); }
+  Const_Iterator end() const noexcept {
+    return Const_Iterator(this->set_.end());
   }
 
   bool empty() const noexcept { return this->set_.empty(); }
@@ -129,16 +129,16 @@ class hash_set {
   size_type size() const noexcept { return this->set_.size(); }
 
   // Copies the key on insertion.
-  std::pair<iterator, bool> insert(const Key& key) {
+  std::pair<Iterator, bool> insert(const Key& key) {
     return this->emplace(key);
   }
 
   template <class... Args>
-  std::pair<iterator, bool> emplace(Args&&... args) {
+  std::pair<Iterator, bool> emplace(Args&&... args) {
     auto [it, inserted] = this->set_.emplace(
         std::piecewise_construct, std::forward_as_tuple<Args...>(args...),
-        std::tuple<empty_hash_map_value>(empty_hash_map_value()));
-    return std::pair<iterator, bool>(iterator(it), inserted);
+        std::tuple<Empty_Hash_Map_Value>(Empty_Hash_Map_Value()));
+    return std::pair<Iterator, bool>(Iterator(it), inserted);
   }
 
   template <class K>
@@ -151,12 +151,12 @@ class hash_set {
     return 1;
   }
 
-  void erase(iterator it) { this->set_.erase(it.it_); }
+  void erase(Iterator it) { this->set_.erase(it.it_); }
 
   void reserve(size_type size) { this->set_.reserve(size); }
 
  private:
-  map set_;
+  Map set_;
 };
 }
 

@@ -7,7 +7,7 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_bit_countl_zero, uint32) {
+TEST(Test_Bit_Countl_Zero, uint32) {
   EXPECT_EQ(countl_zero(std::uint32_t(0)), 32);
 
   EXPECT_EQ(
@@ -25,7 +25,7 @@ TEST(test_bit_countl_zero, uint32) {
   }
 }
 
-TEST(test_bit_countl_zero, uint64) {
+TEST(Test_Bit_Countl_Zero, uint64) {
   EXPECT_EQ(countl_zero(std::uint64_t(0)), 64);
 
   EXPECT_EQ(
@@ -43,7 +43,7 @@ TEST(test_bit_countl_zero, uint64) {
   }
 }
 
-TEST(test_bit_width, uint32) {
+TEST(Test_Bit_Width, uint32) {
   EXPECT_EQ(bit_width(std::uint32_t{0b0}), 0);
   EXPECT_EQ(bit_width(std::uint32_t{0b101}), 3);
   EXPECT_EQ(bit_width(std::uint32_t{0xffffffff}), 32);
@@ -55,7 +55,7 @@ TEST(test_bit_width, uint32) {
   }
 }
 
-TEST(test_has_single_bit, uint32) {
+TEST(Test_Has_Single_Bit, uint32) {
   EXPECT_FALSE(has_single_bit(std::uint32_t(0)));
   EXPECT_FALSE(has_single_bit(std::uint32_t(0b11)));
   EXPECT_FALSE(has_single_bit(std::uint32_t(0b110)));
@@ -67,35 +67,35 @@ TEST(test_has_single_bit, uint32) {
   }
 }
 
-TEST(test_bit_ceil_uint32, zero_maps_to_one) {
+TEST(Test_Bit_Ceil_UInt32, zero_maps_to_one) {
   EXPECT_EQ(bit_ceil(std::uint32_t(0)), 1) << "result must be a power of 2";
 }
 
-TEST(test_bit_ceil_uint64, zero_maps_to_one) {
+TEST(Test_Bit_Ceil_UInt64, zero_maps_to_one) {
   EXPECT_EQ(bit_ceil(std::uint64_t(0)), 1) << "result must be a power of 2";
 }
 
-TEST(test_bit_ceil_uint32, powers_of_2_remain_unchanged) {
+TEST(Test_Bit_Ceil_UInt32, powers_of_2_remain_unchanged) {
   for (std::uint32_t shift = 0; shift < 32; ++shift) {
     std::uint32_t x = (std::uint32_t(1) << shift);
     EXPECT_EQ(bit_ceil(x), x) << "x = " << x << "; shift = " << shift;
   }
 }
 
-TEST(test_bit_ceil_uint64, powers_of_2_remain_unchanged) {
+TEST(Test_Bit_Ceil_UInt64, powers_of_2_remain_unchanged) {
   for (std::uint64_t shift = 0; shift < 64; ++shift) {
     std::uint64_t x = (std::uint64_t(1) << shift);
     EXPECT_EQ(bit_ceil(x), x) << "x = " << x << "; shift = " << shift;
   }
 }
 
-TEST(test_bit_ceil_uint32, non_powers_of_2_are_rounded_up) {
+TEST(Test_Bit_Ceil_UInt32, non_powers_of_2_are_rounded_up) {
   EXPECT_EQ(bit_ceil(std::uint32_t(3)), 4);
   EXPECT_EQ(bit_ceil(std::uint32_t(0b101010)), 0b1'000000);
   EXPECT_EQ(bit_ceil(std::uint32_t(0x7fff'ffff)), 0x8000'0000);
 }
 
-TEST(test_bit_ceil_uint64, non_powers_of_2_are_rounded_up) {
+TEST(Test_Bit_Ceil_UInt64, non_powers_of_2_are_rounded_up) {
   EXPECT_EQ(bit_ceil(std::uint64_t(3)), 4);
   EXPECT_EQ(bit_ceil(std::uint64_t(0b101010)), 0b1'000000);
   EXPECT_EQ(bit_ceil(std::uint64_t(0x7fff'ffff)), 0x8000'0000);

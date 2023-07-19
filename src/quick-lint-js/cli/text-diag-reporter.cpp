@@ -18,20 +18,20 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-text_diag_reporter::text_diag_reporter(translator t, output_stream *output,
+Text_Diag_Reporter::Text_Diag_Reporter(Translator t, Output_Stream *output,
                                        bool escape_errors)
     : output_(*output), translator_(t), format_escape_errors_(escape_errors) {}
 
-void text_diag_reporter::set_source(padded_string_view input,
+void Text_Diag_Reporter::set_source(Padded_String_View input,
                                     const char *file_path) {
   this->locator_.emplace(input);
   this->file_path_ = file_path;
 }
 
-void text_diag_reporter::report_impl(diag_type type, void *diag) {
+void Text_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-  text_diag_formatter formatter(
+  Text_Diag_Formatter formatter(
       this->translator_,
       /*output=*/&this->output_,
       /*file_path=*/this->file_path_,
@@ -40,21 +40,21 @@ void text_diag_reporter::report_impl(diag_type type, void *diag) {
   formatter.format(get_diagnostic_info(type), diag);
 }
 
-text_diag_formatter::text_diag_formatter(translator t, output_stream *output,
+Text_Diag_Formatter::Text_Diag_Formatter(Translator t, Output_Stream *output,
                                          const char *file_path,
-                                         cli_locator &locator,
+                                         CLI_Locator &locator,
                                          bool format_escape_errors)
-    : diagnostic_formatter(t),
+    : Diagnostic_Formatter(t),
       output_(*output),
       file_path_(file_path),
       locator_(locator),
       format_escape_errors_(format_escape_errors) {}
 
-void text_diag_formatter::write_before_message(
-    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
-    const source_code_span &origin) {
-  cli_source_range r = this->locator_.range(origin);
-  cli_source_position p = r.begin();
+void Text_Diag_Formatter::write_before_message(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity sev,
+    const Source_Code_Span &origin) {
+  CLI_Source_Range r = this->locator_.range(origin);
+  CLI_Source_Position p = r.begin();
   this->output_.append_copy(to_string8_view(this->file_path_));
   this->output_.append_copy(u8':');
   this->output_.append_decimal_integer(p.line_number);
@@ -62,27 +62,27 @@ void text_diag_formatter::write_before_message(
   this->output_.append_decimal_integer(p.column_number);
   this->output_.append_literal(u8": "_sv);
   switch (sev) {
-  case diagnostic_severity::error:
+  case Diagnostic_Severity::error:
     this->output_.append_literal(u8"error: "_sv);
     break;
-  case diagnostic_severity::note:
+  case Diagnostic_Severity::note:
     this->output_.append_literal(u8"note: "_sv);
     break;
-  case diagnostic_severity::warning:
+  case Diagnostic_Severity::warning:
     this->output_.append_literal(u8"warning: "_sv);
     break;
   }
 }
 
-void text_diag_formatter::write_message_part(
-    [[maybe_unused]] std::string_view code, diagnostic_severity,
-    string8_view message) {
+void Text_Diag_Formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, Diagnostic_Severity,
+    String8_View message) {
   this->output_.append_copy(message);
 }
 
-void text_diag_formatter::write_after_message(std::string_view code,
-                                              diagnostic_severity,
-                                              const source_code_span &) {
+void Text_Diag_Formatter::write_after_message(std::string_view code,
+                                              Diagnostic_Severity,
+                                              const Source_Code_Span &) {
   if (this->format_escape_errors_) {
     this->output_.append_copy(
         u8" [\x1B]8;;https://quick-lint-js.com/errors/"_sv);

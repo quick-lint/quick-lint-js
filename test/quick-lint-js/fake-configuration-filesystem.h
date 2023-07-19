@@ -20,32 +20,32 @@
 #include <utility>
 
 namespace quick_lint_js {
-class fake_configuration_filesystem : public configuration_filesystem {
+class Fake_Configuration_Filesystem : public Configuration_Filesystem {
  public:
-  using read_file_result = result<padded_string, read_file_io_error>;
+  using Read_File_Result = Result<Padded_String, Read_File_IO_Error>;
 
-  explicit fake_configuration_filesystem();
-  ~fake_configuration_filesystem() override;
+  explicit Fake_Configuration_Filesystem();
+  ~Fake_Configuration_Filesystem() override;
 
   // Create a new file, or modify an existing file.
-  void create_file(const canonical_path& path, string8_view content);
-  void create_file(const canonical_path& path,
-                   heap_function<read_file_result()> callback);
+  void create_file(const Canonical_Path& path, String8_View content);
+  void create_file(const Canonical_Path& path,
+                   Heap_Function<Read_File_Result()> callback);
 
-  canonical_path rooted(const char* path) const;
+  Canonical_Path rooted(const char* path) const;
 
-  string8 file_uri_prefix_8() const;
+  String8 file_uri_prefix_8() const;
 
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string& path) override;
 
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path& path) override;
+  Result<Padded_String, Read_File_IO_Error> read_file(
+      const Canonical_Path& path) override;
 
   void clear();
 
  private:
-  hash_map<canonical_path, heap_function<read_file_result()> > files_;
+  Hash_Map<Canonical_Path, Heap_Function<Read_File_Result()> > files_;
 };
 }
 

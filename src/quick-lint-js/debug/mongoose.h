@@ -22,17 +22,17 @@ void mongoose_begin_capturing_logs_on_current_thread(std::string *out);
 void mongoose_stop_capturing_logs_on_current_thread();
 
 // RAII wrapper around mg_mgr.
-class mongoose_mgr {
+class Mongoose_Mgr {
  public:
-  explicit mongoose_mgr() {
+  explicit Mongoose_Mgr() {
     mongoose_init_if_needed();
     ::mg_mgr_init(&this->mgr_);
   }
 
-  mongoose_mgr(const mongoose_mgr &) = delete;
-  mongoose_mgr &operator=(const mongoose_mgr &) = delete;
+  Mongoose_Mgr(const Mongoose_Mgr &) = delete;
+  Mongoose_Mgr &operator=(const Mongoose_Mgr &) = delete;
 
-  ~mongoose_mgr() { ::mg_mgr_free(&this->mgr_); }
+  ~Mongoose_Mgr() { ::mg_mgr_free(&this->mgr_); }
 
   ::mg_mgr *get() noexcept { return &this->mgr_; }
 
@@ -42,8 +42,8 @@ class mongoose_mgr {
 
 template <auto MemberFunctionPointer>
 mg_event_handler_t mongoose_callback() {
-  using Self = typename member_function_pointer_traits<decltype(
-      MemberFunctionPointer)>::class_type;
+  using Self = typename Member_Function_Pointer_Traits<decltype(
+      MemberFunctionPointer)>::Class_Type;
   return [](::mg_connection *c, int ev, void *ev_data, void *fn_data) -> void {
     (static_cast<Self *>(fn_data)->*MemberFunctionPointer)(c, ev, ev_data);
   };

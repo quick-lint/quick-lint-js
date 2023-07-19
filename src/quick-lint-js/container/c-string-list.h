@@ -9,13 +9,13 @@
 #include <string_view>
 
 namespace quick_lint_js {
-// See c_string_list_view.
-class c_string_list_sentinel {};
+// See C_String_List_View.
+class C_String_List_Sentinel {};
 
-// See c_string_list_view.
-class c_string_list_iterator {
+// See C_String_List_View.
+class C_String_List_Iterator {
  public:
-  explicit c_string_list_iterator(const char* cursor) noexcept
+  explicit C_String_List_Iterator(const char* cursor) noexcept
       : cursor_(cursor), current_string_size_(std::strlen(cursor)) {}
 
   // The returned view's .data() is guaranteed to be null-terminated.
@@ -25,27 +25,27 @@ class c_string_list_iterator {
 
   const char* c_str() const noexcept { return this->cursor_; }
 
-  c_string_list_iterator& operator++() noexcept {
+  C_String_List_Iterator& operator++() noexcept {
     *this =
-        c_string_list_iterator(this->cursor_ + this->current_string_size_ + 1);
+        C_String_List_Iterator(this->cursor_ + this->current_string_size_ + 1);
     return *this;
   }
 
-  friend bool operator==(c_string_list_iterator it,
-                         c_string_list_sentinel) noexcept {
+  friend bool operator==(C_String_List_Iterator it,
+                         C_String_List_Sentinel) noexcept {
     return *it.cursor_ == '\0';
   }
-  friend bool operator!=(c_string_list_iterator it,
-                         c_string_list_sentinel sentinel) noexcept {
+  friend bool operator!=(C_String_List_Iterator it,
+                         C_String_List_Sentinel sentinel) noexcept {
     return !(it == sentinel);
   }
 
-  friend bool operator==(c_string_list_sentinel sentinel,
-                         c_string_list_iterator it) noexcept {
+  friend bool operator==(C_String_List_Sentinel sentinel,
+                         C_String_List_Iterator it) noexcept {
     return it == sentinel;
   }
-  friend bool operator!=(c_string_list_sentinel sentinel,
-                         c_string_list_iterator it) noexcept {
+  friend bool operator!=(C_String_List_Sentinel sentinel,
+                         C_String_List_Iterator it) noexcept {
     return !(sentinel == it);
   }
 
@@ -55,24 +55,24 @@ class c_string_list_iterator {
 };
 
 // A list of non-empty null-terminated strings.
-class c_string_list_view {
+class C_String_List_View {
  public:
   using value_type = std::string_view;
-  using iterator = c_string_list_iterator;
-  using const_iterator = c_string_list_iterator;
+  using iterator = C_String_List_Iterator;
+  using const_iterator = C_String_List_Iterator;
 
   // begin must be in the form "string1\0string2\0string3\0".
   //
   // Note that the list is terminated by two null bytes (one written
   // explicitly and one added by C++'s "" syntax.)
-  explicit c_string_list_view(const char* begin) noexcept : begin_(begin) {}
+  explicit C_String_List_View(const char* begin) noexcept : begin_(begin) {}
 
-  c_string_list_iterator begin() const noexcept {
-    return c_string_list_iterator(this->begin_);
+  C_String_List_Iterator begin() const noexcept {
+    return C_String_List_Iterator(this->begin_);
   }
 
-  c_string_list_sentinel end() const noexcept {
-    return c_string_list_sentinel();
+  C_String_List_Sentinel end() const noexcept {
+    return C_String_List_Sentinel();
   }
 
  private:

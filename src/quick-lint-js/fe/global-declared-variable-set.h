@@ -12,8 +12,8 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct global_declared_variable {
-  string8_view name;
+struct Global_Declared_Variable {
+  String8_View name;
   bool is_writable;
   // If false, the variable was already lexically declared in the module thus
   // cannot be declared by the user with 'let'.
@@ -22,42 +22,42 @@ struct global_declared_variable {
   // expressions.
   bool is_type_only;
 
-  variable_kind kind() const noexcept;
-  variable_declaration_flags flags() const noexcept {
-    return variable_declaration_flags::none;
+  Variable_Kind kind() const noexcept;
+  Variable_Declaration_Flags flags() const noexcept {
+    return Variable_Declaration_Flags::none;
   }
 };
 
-class global_declared_variable_set {
+class Global_Declared_Variable_Set {
  public:
-  using found_variable_type = std::optional<global_declared_variable>;
+  using Found_Variable_Type = std::optional<Global_Declared_Variable>;
 
-  void add_predefined_global_variable(const char8 *name, bool is_writable);
+  void add_predefined_global_variable(const Char8 *name, bool is_writable);
 
-  void add_global_variable(global_declared_variable);
+  void add_global_variable(Global_Declared_Variable);
 
   void add_literally_everything();
 
   void reserve_more_global_variables(std::size_t extra_count,
                                      bool is_shadowable, bool is_writable);
 
-  std::optional<global_declared_variable> find(identifier name) const noexcept;
-  std::optional<global_declared_variable> find(string8_view name) const
+  std::optional<Global_Declared_Variable> find(Identifier name) const noexcept;
+  std::optional<Global_Declared_Variable> find(String8_View name) const
       noexcept;
 
   // See variable_analyzer::declared_variable_set::find_runtime.
-  std::optional<global_declared_variable> find_runtime(identifier name) const
+  std::optional<Global_Declared_Variable> find_runtime(Identifier name) const
       noexcept;
 
   // See variable_analyzer::declared_variable_set::find_type.
-  std::optional<global_declared_variable> find_type(identifier name) const
+  std::optional<Global_Declared_Variable> find_type(Identifier name) const
       noexcept;
 
   // For testing only:
-  std::vector<string8_view> get_all_variable_names() const;
+  std::vector<String8_View> get_all_variable_names() const;
 
  private:
-  struct variable_options {
+  struct Variable_Options {
     // See global_declared_variable::is_writable.
     bool is_writable;
     // See global_declared_variable::is_shadowable.
@@ -66,7 +66,7 @@ class global_declared_variable_set {
     bool is_type_only;
   };
 
-  hash_map<string8_view, variable_options> variables_;
+  Hash_Map<String8_View, Variable_Options> variables_;
   bool all_variables_declared_ = false;
 };
 }

@@ -39,18 +39,18 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-constexpr json_rpc_message_handler::request_id_type
+constexpr JSON_RPC_Message_Handler::Request_ID_Type
     initial_configuration_request_id = 1;
 
 // Returns std::nullopt on failure (e.g. missing key or not a string).
-std::optional<string_json_token> maybe_get_string_token(
+std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::ondemand::value& string);
-std::optional<string_json_token> maybe_get_string_token(
+std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
-struct lsp_language {
-  constexpr lsp_language(std::string_view language_id,
-                         linter_options lint_options)
+struct LSP_Language {
+  constexpr LSP_Language(std::string_view language_id,
+                         Linter_Options lint_options)
       : lint_options(lint_options) {
     quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
@@ -62,68 +62,68 @@ struct lsp_language {
   }
 
   // Returns nullptr if the language does not exist.
-  static const lsp_language* find(std::string_view language_id) noexcept {
-    static constexpr linter_options jsx = {
+  static const LSP_Language* find(std::string_view language_id) noexcept {
+    static constexpr Linter_Options jsx = {
         .jsx = true,
         .typescript = false,
         .print_parser_visits = false,
     };
-    static constexpr linter_options ts = {
+    static constexpr Linter_Options ts = {
         .jsx = false,
         .typescript = true,
         .print_parser_visits = false,
     };
-    static constexpr linter_options tsx = {
+    static constexpr Linter_Options tsx = {
         .jsx = true,
         .typescript = true,
         .print_parser_visits = false,
     };
-    static constexpr lsp_language languages[] = {
+    static constexpr LSP_Language languages[] = {
         // Keep in sync with docs/lsp.adoc.
-        lsp_language("javascript"sv, jsx),
-        lsp_language("javascriptreact"sv, jsx),
-        lsp_language("js"sv, jsx),
-        lsp_language("js-jsx"sv, jsx),
+        LSP_Language("javascript"sv, jsx),
+        LSP_Language("javascriptreact"sv, jsx),
+        LSP_Language("js"sv, jsx),
+        LSP_Language("js-jsx"sv, jsx),
 
-        lsp_language("typescript"sv, ts),
+        LSP_Language("typescript"sv, ts),
 
-        lsp_language("tsx"sv, tsx),
-        lsp_language("typescriptreact"sv, tsx),
+        LSP_Language("tsx"sv, tsx),
+        LSP_Language("typescriptreact"sv, tsx),
     };
-    const lsp_language* lang = find_unique_if(
+    const LSP_Language* lang = find_unique_if(
         std::begin(languages), std::end(languages),
-        [&](const lsp_language& l) { return l.language_id() == language_id; });
+        [&](const LSP_Language& l) { return l.language_id() == language_id; });
     return lang == std::end(languages) ? nullptr : lang;
   }
 
   char raw_language_id[16] = {};
   unsigned char language_id_size = 0;
-  linter_options lint_options;
+  Linter_Options lint_options;
 };
 
-std::atomic<synchronized<lsp_documents>*> latest_lsp_server_documents{nullptr};
+std::atomic<Synchronized<LSP_Documents>*> latest_lsp_server_documents{nullptr};
 }
 
-lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
-    configuration_filesystem* underlying_fs)
+LSP_Overlay_Configuration_Filesystem::LSP_Overlay_Configuration_Filesystem(
+    Configuration_Filesystem* underlying_fs)
     : underlying_fs_(underlying_fs) {}
 
-result<canonical_path_result, canonicalize_path_io_error>
-lsp_overlay_configuration_filesystem::canonicalize_path(
+Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
+LSP_Overlay_Configuration_Filesystem::canonicalize_path(
     const std::string& path) {
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-linting_lsp_server_handler::~linting_lsp_server_handler() {
+Linting_LSP_Server_Handler::~Linting_LSP_Server_Handler() {
   // We are going to deallocate this->tracer_backend_, so unregister it with
   // the trace_flusher.
   if (this->tracer_backend_) {
-    trace_flusher::instance()->disable_backend(this->tracer_backend_.get());
+    Trace_Flusher::instance()->disable_backend(this->tracer_backend_.get());
   }
 }
 
-result<padded_string, read_file_io_error>
-lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
+Result<Padded_String, Read_File_IO_Error>
+LSP_Overlay_Configuration_Filesystem::read_file(const Canonical_Path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
   std::string_view key = path.path();
 #else
@@ -133,46 +133,46 @@ lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
   if (doc_it == this->overlaid_documents_.end()) {
     return this->underlying_fs_->read_file(path);
   }
-  return padded_string(doc_it->second->string().string_view());
+  return Padded_String(doc_it->second->string().string_view());
 }
 
-void lsp_overlay_configuration_filesystem::open_document(
-    const std::string& path, lsp_document_text* doc) {
+void LSP_Overlay_Configuration_Filesystem::open_document(
+    const std::string& path, LSP_Document_Text* doc) {
   auto [_it, inserted] = this->overlaid_documents_.emplace(path, doc);
   QLJS_ASSERT(inserted);
 }
 
-void lsp_overlay_configuration_filesystem::close_document(
+void LSP_Overlay_Configuration_Filesystem::close_document(
     const std::string& path) {
   std::size_t erased = this->overlaid_documents_.erase(path);
   QLJS_ASSERT(erased > 0);
 }
 
-lsp_documents::document_base::document_base(document_type type) : type(type) {}
+LSP_Documents::Document_Base::Document_Base(Document_Type type) : type(type) {}
 
-trace_lsp_document_type lsp_documents::document_base::trace_type() const {
+Trace_LSP_Document_Type LSP_Documents::Document_Base::trace_type() const {
   switch (this->type) {
-  case document_type::config:
-    return trace_lsp_document_type::config;
-  case document_type::lintable:
-    return trace_lsp_document_type::lintable;
-  case document_type::unknown:
-    return trace_lsp_document_type::unknown;
+  case Document_Type::config:
+    return Trace_LSP_Document_Type::config;
+  case Document_Type::lintable:
+    return Trace_LSP_Document_Type::lintable;
+  case Document_Type::unknown:
+    return Trace_LSP_Document_Type::unknown;
   }
   QLJS_UNREACHABLE();
 }
 
-lsp_documents::config_document::config_document()
-    : document_base(document_type::config) {}
+LSP_Documents::Config_Document::Config_Document()
+    : Document_Base(Document_Type::config) {}
 
-lsp_documents::lintable_document::lintable_document()
-    : document_base(document_type::lintable) {}
+LSP_Documents::Lintable_Document::Lintable_Document()
+    : Document_Base(Document_Type::lintable) {}
 
-lsp_documents::unknown_document::unknown_document()
-    : document_base(document_type::unknown) {}
+LSP_Documents::Unknown_Document::Unknown_Document()
+    : Document_Base(Document_Type::unknown) {}
 
-linting_lsp_server_handler::linting_lsp_server_handler(
-    configuration_filesystem* fs, lsp_linter* linter)
+Linting_LSP_Server_Handler::Linting_LSP_Server_Handler(
+    Configuration_Filesystem* fs, LSP_Linter* linter)
     : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {
   set_lsp_server_documents(&this->documents_);
 
@@ -183,19 +183,19 @@ linting_lsp_server_handler::linting_lsp_server_handler(
         if (changed) {
           this->server_config_.tracing_directory = new_value;
           if (this->tracer_backend_) {
-            trace_flusher::instance()->disable_backend(
+            Trace_Flusher::instance()->disable_backend(
                 this->tracer_backend_.get());
             this->tracer_backend_.reset();
           }
           if (!this->server_config_.tracing_directory.empty()) {
             auto new_backend =
-                trace_flusher_directory_backend::create_child_directory(
+                Trace_Flusher_Directory_Backend::create_child_directory(
                     this->server_config_.tracing_directory);
             if (new_backend) {
               this->tracer_backend_ =
-                  std::make_unique<trace_flusher_directory_backend>(
+                  std::make_unique<Trace_Flusher_Directory_Backend>(
                       std::move(*new_backend));
-              trace_flusher::instance()->enable_backend(
+              Trace_Flusher::instance()->enable_backend(
                   this->tracer_backend_.get());
               QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
                              this->tracer_backend_->trace_directory().c_str());
@@ -205,9 +205,9 @@ linting_lsp_server_handler::linting_lsp_server_handler(
       });
 }
 
-void linting_lsp_server_handler::handle_request(
+void Linting_LSP_Server_Handler::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
-    string8_view id_json) {
+    String8_View id_json) {
   if (method == "initialize") {
     this->handle_initialize_request(request, id_json);
   } else if (method == "shutdown") {
@@ -217,8 +217,8 @@ void linting_lsp_server_handler::handle_request(
   }
 }
 
-void linting_lsp_server_handler::handle_response(
-    json_rpc_message_handler::request_id_type request_id,
+void Linting_LSP_Server_Handler::handle_response(
+    JSON_RPC_Message_Handler::Request_ID_Type request_id,
     ::simdjson::ondemand::value& result) {
   if (request_id == initial_configuration_request_id) {
     this->handle_workspace_configuration_response(result);
@@ -228,8 +228,8 @@ void linting_lsp_server_handler::handle_response(
   }
 }
 
-void linting_lsp_server_handler::handle_error_response(
-    json_rpc_message_handler::request_id_type request_id, std::int64_t code,
+void Linting_LSP_Server_Handler::handle_error_response(
+    JSON_RPC_Message_Handler::Request_ID_Type request_id, std::int64_t code,
     std::string_view message) {
   static_cast<void>(code);
   static_cast<void>(message);
@@ -241,7 +241,7 @@ void linting_lsp_server_handler::handle_error_response(
   }
 }
 
-void linting_lsp_server_handler::handle_notification(
+void Linting_LSP_Server_Handler::handle_notification(
     ::simdjson::ondemand::object& request, std::string_view method) {
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request);
@@ -268,19 +268,19 @@ void linting_lsp_server_handler::handle_notification(
   }
 }
 
-void linting_lsp_server_handler::filesystem_changed() {
-  std::vector<configuration_change> config_changes =
+void Linting_LSP_Server_Handler::filesystem_changed() {
+  std::vector<Configuration_Change> config_changes =
       this->config_loader_.refresh();
   {
-    lock_ptr<lsp_documents> documents = this->documents_.lock();
+    Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
     this->handle_config_file_changes(documents, config_changes);
   }
 }
 
-void linting_lsp_server_handler::add_watch_io_errors(
-    const std::vector<watch_io_error>& errors) {
+void Linting_LSP_Server_Handler::add_watch_io_errors(
+    const std::vector<Watch_IO_Error>& errors) {
   if (!errors.empty() && !this->did_report_watch_io_error_) {
-    byte_buffer& out_json = this->outgoing_messages_.new_message();
+    Byte_Buffer& out_json = this->outgoing_messages_.new_message();
     // clang-format off
     out_json.append_copy(u8R"--({)--"
       u8R"--("jsonrpc":"2.0",)--"
@@ -295,8 +295,8 @@ void linting_lsp_server_handler::add_watch_io_errors(
   }
 }
 
-void linting_lsp_server_handler::handle_initialize_request(
-    ::simdjson::ondemand::object& request, string8_view id_json) {
+void Linting_LSP_Server_Handler::handle_initialize_request(
+    ::simdjson::ondemand::object& request, String8_View id_json) {
   ::simdjson::ondemand::object params;
   if (get_object(request, "params", &params)) {
     ::simdjson::ondemand::object initialization_options;
@@ -315,7 +315,7 @@ void linting_lsp_server_handler::handle_initialize_request(
     }
   }
 
-  byte_buffer& response_json = this->outgoing_messages_.new_message();
+  Byte_Buffer& response_json = this->outgoing_messages_.new_message();
   response_json.append_copy(u8R"--({"id":)--"_sv);
   response_json.append_copy(id_json);
   // clang-format off
@@ -334,16 +334,16 @@ void linting_lsp_server_handler::handle_initialize_request(
   // clang-format on
 }
 
-void linting_lsp_server_handler::handle_shutdown_request(
-    ::simdjson::ondemand::object&, string8_view id_json) {
-  byte_buffer& response_json = this->outgoing_messages_.new_message();
+void Linting_LSP_Server_Handler::handle_shutdown_request(
+    ::simdjson::ondemand::object&, String8_View id_json) {
+  Byte_Buffer& response_json = this->outgoing_messages_.new_message();
   this->shutdown_requested_ = true;
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"_sv);
   response_json.append_copy(id_json);
   response_json.append_copy(u8R"--(,"result":null})--"_sv);
 }
 
-void linting_lsp_server_handler::handle_workspace_configuration_response(
+void Linting_LSP_Server_Handler::handle_workspace_configuration_response(
     ::simdjson::ondemand::value& result) {
   bool ok = this->workspace_configuration_.process_response(result);
   if (!ok) {
@@ -353,20 +353,20 @@ void linting_lsp_server_handler::handle_workspace_configuration_response(
   }
 }
 
-void linting_lsp_server_handler::handle_initialized_notification() {
-  byte_buffer& request_json = this->outgoing_messages_.new_message();
+void Linting_LSP_Server_Handler::handle_initialized_notification() {
+  Byte_Buffer& request_json = this->outgoing_messages_.new_message();
   this->workspace_configuration_.build_request(initial_configuration_request_id,
                                                request_json);
 }
 
-void linting_lsp_server_handler::handle_text_document_did_change_notification(
+void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
     ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (!get_object(request, "params", "textDocument", &text_document)) {
     // Ignore invalid notification.
     return;
   }
-  std::optional<string_json_token> uri =
+  std::optional<String_JSON_Token> uri =
       maybe_get_string_token(text_document["uri"]);
   if (!uri.has_value()) {
     // Ignore invalid notification.
@@ -385,7 +385,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   }
 
   this->handle_text_document_did_change_notification(
-      lsp_text_document_did_change_notification{
+      LSP_Text_Document_Did_Change_Notification{
           .uri = *uri,
           .version_json = get_raw_json(version),
           .changes = changes,
@@ -394,15 +394,15 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   debug_probe_publish_lsp_documents();
 }
 
-void linting_lsp_server_handler::handle_text_document_did_change_notification(
-    const lsp_text_document_did_change_notification& notification) {
-  lock_ptr<lsp_documents> documents = this->documents_.lock();
-  auto document_it = documents->documents.find(string8(notification.uri.data));
+void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
+    const LSP_Text_Document_Did_Change_Notification& notification) {
+  Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
+  auto document_it = documents->documents.find(String8(notification.uri.data));
   bool url_is_tracked = document_it != documents->documents.end();
   if (!url_is_tracked) {
     return;
   }
-  lsp_documents::document_base& doc = *document_it->second;
+  LSP_Documents::Document_Base& doc = *document_it->second;
 
   std::string document_path = parse_file_from_lsp_uri(notification.uri.data);
   if (document_path.empty()) {
@@ -414,40 +414,40 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   doc.version_json = notification.version_json;
 
   switch (doc.type) {
-  case lsp_documents::document_type::config: {
-    std::vector<configuration_change> config_changes =
+  case LSP_Documents::Document_Type::config: {
+    std::vector<Configuration_Change> config_changes =
         this->config_loader_.refresh();
     this->handle_config_file_changes(documents, config_changes);
     break;
   }
 
-  case lsp_documents::document_type::lintable:
-    this->linter_.lint(static_cast<lsp_documents::lintable_document&>(doc),
+  case LSP_Documents::Document_Type::lintable:
+    this->linter_.lint(static_cast<LSP_Documents::Lintable_Document&>(doc),
                        notification.uri.json, this->outgoing_messages_);
     break;
 
-  case lsp_documents::document_type::unknown:
+  case LSP_Documents::Document_Type::unknown:
     break;
   }
 }
 
-void linting_lsp_server_handler::handle_text_document_did_close_notification(
+void Linting_LSP_Server_Handler::handle_text_document_did_close_notification(
     ::simdjson::ondemand::object& request) {
-  string8_view uri;
+  String8_View uri;
   if (!get_string8(request, "params", "textDocument", "uri", &uri)) {
     // Ignore invalid notification.
     return;
   }
   this->handle_text_document_did_close_notification(
-      lsp_text_document_did_close_notification{
+      LSP_Text_Document_Did_Close_Notification{
           .uri = uri,
       });
 
   debug_probe_publish_lsp_documents();
 }
 
-void linting_lsp_server_handler::handle_text_document_did_close_notification(
-    const lsp_text_document_did_close_notification& notification) {
+void Linting_LSP_Server_Handler::handle_text_document_did_close_notification(
+    const LSP_Text_Document_Did_Close_Notification& notification) {
   std::string path = parse_file_from_lsp_uri(notification.uri);
   if (path.empty()) {
     // TODO(strager): Report a warning.
@@ -456,7 +456,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.lock()->documents.erase(string8(notification.uri));
+  this->documents_.lock()->documents.erase(String8(notification.uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -464,7 +464,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
   this->filesystem_changed();
 }
 
-void linting_lsp_server_handler::handle_text_document_did_open_notification(
+void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
     ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (!get_object(request, "params", "textDocument", &text_document)) {
@@ -476,7 +476,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     // Ignore invalid notification.
     return;
   }
-  std::optional<string_json_token> uri =
+  std::optional<String_JSON_Token> uri =
       maybe_get_string_token(text_document["uri"]);
   if (!uri.has_value()) {
     // Ignore invalid notification.
@@ -487,14 +487,14 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     // Ignore invalid notification.
     return;
   }
-  string8_view text;
+  String8_View text;
   if (!get_string8(text_document, "text", &text)) {
     // Ignore invalid notification.
     return;
   }
 
   this->handle_text_document_did_open_notification(
-      lsp_text_document_did_open_notification{
+      LSP_Text_Document_Did_Open_Notification{
           .language_id = language_id,
           .uri = *uri,
           .version_json = get_raw_json(version),
@@ -504,15 +504,15 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   debug_probe_publish_lsp_documents();
 }
 
-void linting_lsp_server_handler::handle_text_document_did_open_notification(
-    const lsp_text_document_did_open_notification& notification) {
+void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
+    const LSP_Text_Document_Did_Open_Notification& notification) {
   std::string document_path = parse_file_from_lsp_uri(notification.uri.data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
 
-  auto init_document = [&](lsp_documents::document_base& doc) {
+  auto init_document = [&](LSP_Documents::Document_Base& doc) {
     this->config_fs_.open_document(document_path, &doc.doc);
 
     doc.doc.set_text(notification.text);
@@ -520,9 +520,9 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     doc.version_json = notification.version_json;
   };
 
-  std::unique_ptr<lsp_documents::document_base> doc_ptr;
-  if (const lsp_language* lang = lsp_language::find(notification.language_id)) {
-    auto doc = std::make_unique<lsp_documents::lintable_document>();
+  std::unique_ptr<LSP_Documents::Document_Base> doc_ptr;
+  if (const LSP_Language* lang = LSP_Language::find(notification.language_id)) {
+    auto doc = std::make_unique<LSP_Documents::Lintable_Document>();
     init_document(*doc);
     doc->lint_options = lang->lint_options;
 
@@ -533,7 +533,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       if (*config_file) {
         doc->config = &(*config_file)->config;
         if (!(*config_file)->errors.empty()) {
-          byte_buffer& message_json = this->outgoing_messages_.new_message();
+          Byte_Buffer& message_json = this->outgoing_messages_.new_message();
           this->write_configuration_errors_notification(
               document_path, *config_file, message_json);
         }
@@ -542,7 +542,7 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       }
     } else {
       doc->config = &this->default_config_;
-      byte_buffer& message_json = this->outgoing_messages_.new_message();
+      Byte_Buffer& message_json = this->outgoing_messages_.new_message();
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
     }
@@ -550,39 +550,39 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
     doc_ptr = std::move(doc);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
-    auto doc = std::make_unique<lsp_documents::config_document>();
+    auto doc = std::make_unique<LSP_Documents::Config_Document>();
     init_document(*doc);
 
     auto config_file =
         this->config_loader_.watch_and_load_config_file(document_path,
                                                         /*token=*/doc.get());
     QLJS_ASSERT(config_file.ok());
-    byte_buffer& config_diagnostics_json =
+    Byte_Buffer& config_diagnostics_json =
         this->outgoing_messages_.new_message();
     this->get_config_file_diagnostics_notification(
         *config_file, notification.uri.json, doc->version_json,
         config_diagnostics_json);
 
-    std::vector<configuration_change> config_changes =
+    std::vector<Configuration_Change> config_changes =
         this->config_loader_.refresh();
     {
-      lock_ptr<lsp_documents> documents = this->documents_.lock();
+      Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
       this->handle_config_file_changes(documents, config_changes);
     }
 
     doc_ptr = std::move(doc);
   } else {
-    doc_ptr = std::make_unique<lsp_documents::unknown_document>();
+    doc_ptr = std::make_unique<LSP_Documents::Unknown_Document>();
     init_document(*doc_ptr);
   }
 
   // If the document already exists, deallocate that document_base and use ours.
   // TODO(strager): Should we report a warning if a document already existed?
-  this->documents_.lock()->documents[string8(notification.uri.data)] =
+  this->documents_.lock()->documents[String8(notification.uri.data)] =
       std::move(doc_ptr);
 }
 
-void linting_lsp_server_handler::
+void Linting_LSP_Server_Handler::
     handle_workspace_did_change_configuration_notification(
         ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object settings;
@@ -600,15 +600,15 @@ void linting_lsp_server_handler::
   }
 }
 
-void linting_lsp_server_handler::handle_config_file_changes(
-    lock_ptr<lsp_documents>& documents,
-    const std::vector<configuration_change>& config_changes) {
+void Linting_LSP_Server_Handler::handle_config_file_changes(
+    Lock_Ptr<LSP_Documents>& documents,
+    const std::vector<Configuration_Change>& config_changes) {
   for (auto& entry : documents->documents) {
-    const string8& document_uri = entry.first;
-    lsp_documents::document_base& doc = *entry.second;
+    const String8& document_uri = entry.first;
+    LSP_Documents::Document_Base& doc = *entry.second;
 
     auto change_it =
-        find_unique_if(config_changes, [&](const configuration_change& change) {
+        find_unique_if(config_changes, [&](const Configuration_Change& change) {
           return change.token == &doc;
         });
     if (change_it == config_changes.end()) {
@@ -619,12 +619,12 @@ void linting_lsp_server_handler::handle_config_file_changes(
   }
 }
 
-void lsp_documents::config_document::on_config_file_changed(
-    linting_lsp_server_handler& handler, string8_view document_uri,
-    const configuration_change& change) {
+void LSP_Documents::Config_Document::on_config_file_changed(
+    Linting_LSP_Server_Handler& handler, String8_View document_uri,
+    const Configuration_Change& change) {
   QLJS_ASSERT(change.config_file);
   if (change.config_file) {
-    byte_buffer& config_diagnostics_json =
+    Byte_Buffer& config_diagnostics_json =
         handler.outgoing_messages_.new_message();
     handler.get_config_file_diagnostics_notification(
         change.config_file, to_json_escaped_string_with_quotes(document_uri),
@@ -632,20 +632,20 @@ void lsp_documents::config_document::on_config_file_changed(
   }
 }
 
-void lsp_documents::lintable_document::on_config_file_changed(
-    linting_lsp_server_handler& handler, string8_view document_uri,
-    const configuration_change& change) {
+void LSP_Documents::Lintable_Document::on_config_file_changed(
+    Linting_LSP_Server_Handler& handler, String8_View document_uri,
+    const Configuration_Change& change) {
   std::string document_path = parse_file_from_lsp_uri(document_uri);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
   if (change.error) {
-    byte_buffer& message_json = handler.outgoing_messages_.new_message();
+    Byte_Buffer& message_json = handler.outgoing_messages_.new_message();
     handler.write_configuration_loader_error_notification(
         document_path, change.error->error_to_string(), message_json);
   }
-  configuration* config = change.config_file ? &change.config_file->config
+  Configuration* config = change.config_file ? &change.config_file->config
                                              : &handler.default_config_;
   this->config = config;
   // TODO(strager): Don't copy document_uri if it contains only non-special
@@ -655,14 +655,14 @@ void lsp_documents::lintable_document::on_config_file_changed(
                        handler.outgoing_messages_);
 }
 
-void lsp_documents::unknown_document::on_config_file_changed(
-    linting_lsp_server_handler&, string8_view, const configuration_change&) {
+void LSP_Documents::Unknown_Document::on_config_file_changed(
+    Linting_LSP_Server_Handler&, String8_View, const Configuration_Change&) {
   // Do nothing.
 }
 
-void linting_lsp_server_handler::get_config_file_diagnostics_notification(
-    loaded_config_file* config_file, string8_view uri_json,
-    string8_view version_json, byte_buffer& notification_json) {
+void Linting_LSP_Server_Handler::get_config_file_diagnostics_notification(
+    Loaded_Config_File* config_file, String8_View uri_json,
+    String8_View version_json, Byte_Buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -676,7 +676,7 @@ void linting_lsp_server_handler::get_config_file_diagnostics_notification(
   notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--"_sv);
-  lsp_diag_reporter diag_reporter(qljs_messages, notification_json,
+  LSP_Diag_Reporter diag_reporter(qljs_messages, notification_json,
                                   &config_file->file_content);
   config_file->errors.copy_into(&diag_reporter);
   diag_reporter.finish();
@@ -684,9 +684,9 @@ void linting_lsp_server_handler::get_config_file_diagnostics_notification(
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
 }
 
-void linting_lsp_server_handler::write_configuration_loader_error_notification(
+void Linting_LSP_Server_Handler::write_configuration_loader_error_notification(
     std::string_view document_path, std::string_view error_details,
-    byte_buffer& out_json) {
+    Byte_Buffer& out_json) {
   // clang-format off
   out_json.append_copy(u8R"--({)--"
     u8R"--("jsonrpc":"2.0",)--"
@@ -701,9 +701,9 @@ void linting_lsp_server_handler::write_configuration_loader_error_notification(
   out_json.append_copy(u8"\"}}"_sv);
 }
 
-void linting_lsp_server_handler::write_configuration_errors_notification(
-    std::string_view document_path, loaded_config_file* config_file,
-    byte_buffer& out_json) {
+void Linting_LSP_Server_Handler::write_configuration_errors_notification(
+    std::string_view document_path, Loaded_Config_File* config_file,
+    Byte_Buffer& out_json) {
   // clang-format off
   out_json.append_copy(u8R"--({)--"
     u8R"--("jsonrpc":"2.0",)--"
@@ -720,8 +720,8 @@ void linting_lsp_server_handler::write_configuration_errors_notification(
   out_json.append_copy(u8").\"}}"_sv);
 }
 
-void linting_lsp_server_handler::apply_document_changes(
-    lsp_document_text& doc, ::simdjson::ondemand::array& changes) {
+void Linting_LSP_Server_Handler::apply_document_changes(
+    LSP_Document_Text& doc, ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
     ::simdjson::ondemand::object change_object;
@@ -733,16 +733,16 @@ void linting_lsp_server_handler::apply_document_changes(
   }
 }
 
-void linting_lsp_server_handler::apply_document_change(
-    lsp_document_text& doc, ::simdjson::ondemand::object& raw_change) {
-  lsp_document_change change;
+void Linting_LSP_Server_Handler::apply_document_change(
+    LSP_Document_Text& doc, ::simdjson::ondemand::object& raw_change) {
+  LSP_Document_Change change;
   if (!get_string8(raw_change, "text", &change.text)) {
     // Ignore invalid change.
     return;
   }
   ::simdjson::ondemand::object raw_range;
   if (get_object(raw_change, "range", &raw_range)) {
-    lsp_range& range = change.range.emplace();
+    LSP_Range& range = change.range.emplace();
 
     ::simdjson::ondemand::object start;
     if (!(get_object(raw_range, "start", &start) &&
@@ -764,8 +764,8 @@ void linting_lsp_server_handler::apply_document_change(
   apply_document_change(doc, change);
 }
 
-void linting_lsp_server_handler::apply_document_change(
-    lsp_document_text& doc, const lsp_document_change& change) {
+void Linting_LSP_Server_Handler::apply_document_change(
+    LSP_Document_Text& doc, const LSP_Document_Change& change) {
   if (change.range.has_value()) {
     doc.replace_text(*change.range, change.text);
   } else {
@@ -773,9 +773,9 @@ void linting_lsp_server_handler::apply_document_change(
   }
 }
 
-void linting_lsp_server_handler::write_method_not_found_error_response(
-    string8_view request_id_json) {
-  byte_buffer& response_json = this->outgoing_messages_.new_message();
+void Linting_LSP_Server_Handler::write_method_not_found_error_response(
+    String8_View request_id_json) {
+  Byte_Buffer& response_json = this->outgoing_messages_.new_message();
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
@@ -790,20 +790,20 @@ void linting_lsp_server_handler::write_method_not_found_error_response(
   // clang-format on
 }
 
-lsp_linter::~lsp_linter() = default;
+LSP_Linter::~LSP_Linter() = default;
 
-void lsp_linter::lint(lsp_documents::lintable_document& doc,
-                      string8_view uri_json,
-                      outgoing_json_rpc_message_queue& outgoing_messages) {
+void LSP_Linter::lint(LSP_Documents::Lintable_Document& doc,
+                      String8_View uri_json,
+                      Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
   this->lint(*doc.config, doc.lint_options, doc.doc.string(), uri_json,
              doc.version_json, outgoing_messages);
 }
 
-void lsp_javascript_linter::lint(
-    configuration& config, linter_options lint_options, padded_string_view code,
-    string8_view uri_json, string8_view version_json,
-    outgoing_json_rpc_message_queue& outgoing_messages) {
-  byte_buffer& notification_json = outgoing_messages.new_message();
+void LSP_JavaScript_Linter::lint(
+    Configuration& config, Linter_Options lint_options, Padded_String_View code,
+    String8_View uri_json, String8_View version_json,
+    Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
+  Byte_Buffer& notification_json = outgoing_messages.new_message();
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -822,40 +822,40 @@ void lsp_javascript_linter::lint(
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
 }
 
-void lsp_javascript_linter::lint_and_get_diagnostics(
-    configuration& config, linter_options lint_options, padded_string_view code,
-    byte_buffer& diagnostics_json) {
-  lsp_diag_reporter diag_reporter(qljs_messages, diagnostics_json, code);
+void LSP_JavaScript_Linter::lint_and_get_diagnostics(
+    Configuration& config, Linter_Options lint_options, Padded_String_View code,
+    Byte_Buffer& diagnostics_json) {
+  LSP_Diag_Reporter diag_reporter(qljs_messages, diagnostics_json, code);
   parse_and_lint(code, diag_reporter, config.globals(), lint_options);
   diag_reporter.finish();
 }
 
-synchronized<lsp_documents>* get_lsp_server_documents() {
+Synchronized<LSP_Documents>* get_lsp_server_documents() {
   return latest_lsp_server_documents.load();
 }
 
-void set_lsp_server_documents(synchronized<lsp_documents>* documents) {
+void set_lsp_server_documents(Synchronized<LSP_Documents>* documents) {
   latest_lsp_server_documents.store(documents);
 }
 
 namespace {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-std::optional<string_json_token> maybe_get_string_token(
+std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::ondemand::value& string) {
   std::string_view s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {
     return std::nullopt;
   }
-  string8_view data(reinterpret_cast<const char8*>(s.data()), s.size());
-  return string_json_token{
+  String8_View data(reinterpret_cast<const Char8*>(s.data()), s.size());
+  return String_JSON_Token{
       .data = data,
       .json = to_string8_view(string.raw_json_token()),
   };
 }
 QLJS_WARNING_POP
 
-std::optional<string_json_token> maybe_get_string_token(
+std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
   ::simdjson::ondemand::value s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {

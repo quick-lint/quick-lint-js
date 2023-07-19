@@ -15,49 +15,49 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-source_code_span empty_span(nullptr, nullptr);
+Source_Code_Span empty_span(nullptr, nullptr);
 
-class string_diagnostic_formatter
-    : public diagnostic_formatter<string_diagnostic_formatter> {
+class String_Diagnostic_Formatter
+    : public Diagnostic_Formatter<String_Diagnostic_Formatter> {
  public:
-  explicit string_diagnostic_formatter()
-      : diagnostic_formatter<string_diagnostic_formatter>(translator()) {}
+  explicit String_Diagnostic_Formatter()
+      : Diagnostic_Formatter<String_Diagnostic_Formatter>(Translator()) {}
 
-  void write_before_message(std::string_view, diagnostic_severity,
-                            const source_code_span&) {}
+  void write_before_message(std::string_view, Diagnostic_Severity,
+                            const Source_Code_Span&) {}
 
-  void write_message_part(std::string_view, diagnostic_severity,
-                          string8_view message_part) {
+  void write_message_part(std::string_view, Diagnostic_Severity,
+                          String8_View message_part) {
     this->message += message_part;
   }
 
-  void write_after_message(std::string_view, diagnostic_severity,
-                           const source_code_span&) {
+  void write_after_message(std::string_view, Diagnostic_Severity,
+                           const Source_Code_Span&) {
     this->message += u8'\n';
   }
 
-  string8 message;
+  String8 message;
 };
 
-TEST(test_diagnostic_formatter, origin_span) {
-  static constexpr const char8* code = u8"hello world";
-  static const source_code_span span(&code[0], &code[5]);
+TEST(Test_Diagnostic_Formatter, origin_span) {
+  static constexpr const Char8* code = u8"hello world";
+  static const Source_Code_Span span(&code[0], &code[5]);
 
-  struct test_diagnostic_formatter
-      : public diagnostic_formatter<test_diagnostic_formatter> {
-    using diagnostic_formatter<test_diagnostic_formatter>::diagnostic_formatter;
+  struct Test_Diagnostic_Formatter
+      : public Diagnostic_Formatter<Test_Diagnostic_Formatter> {
+    using Diagnostic_Formatter<Test_Diagnostic_Formatter>::Diagnostic_Formatter;
 
-    void write_before_message(std::string_view, diagnostic_severity,
-                              const source_code_span& origin_span) {
+    void write_before_message(std::string_view, Diagnostic_Severity,
+                              const Source_Code_Span& origin_span) {
       EXPECT_TRUE(same_pointers(origin_span, span));
       this->write_before_message_call_count += 1;
     }
 
-    void write_message_part(std::string_view, diagnostic_severity,
-                            string8_view) {}
+    void write_message_part(std::string_view, Diagnostic_Severity,
+                            String8_View) {}
 
-    void write_after_message(std::string_view, diagnostic_severity,
-                             const source_code_span& origin_span) {
+    void write_after_message(std::string_view, Diagnostic_Severity,
+                             const Source_Code_Span& origin_span) {
       EXPECT_TRUE(same_pointers(origin_span, span));
       this->write_after_message_call_count += 1;
     }
@@ -66,14 +66,14 @@ TEST(test_diagnostic_formatter, origin_span) {
     int write_after_message_call_count = 0;
   };
 
-  translator t;
+  Translator t;
   t.use_messages_from_source_code();
 
-  test_diagnostic_formatter formatter(t);
-  formatter.format_message("E9999"sv, diagnostic_severity::error,
+  Test_Diagnostic_Formatter formatter(t);
+  formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("something happened"),
-                           diagnostic_message_args{{
-                               {0, diagnostic_arg_type::source_code_span},
+                           Diagnostic_Message_Args{{
+                               {0, Diagnostic_Arg_Type::Source_Code_Span},
                            }},
                            &span);
 
@@ -81,39 +81,39 @@ TEST(test_diagnostic_formatter, origin_span) {
   EXPECT_EQ(formatter.write_after_message_call_count, 1);
 }
 
-TEST(test_diagnostic_formatter, single_span_simple_message) {
-  string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, diagnostic_severity::error,
+TEST(Test_Diagnostic_Formatter, single_span_simple_message) {
+  String_Diagnostic_Formatter formatter;
+  formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("something happened"),
-                           diagnostic_message_args{{
-                               {0, diagnostic_arg_type::source_code_span},
+                           Diagnostic_Message_Args{{
+                               {0, Diagnostic_Arg_Type::Source_Code_Span},
                            }},
                            &empty_span);
   EXPECT_EQ(formatter.message, u8"something happened\n");
 }
 
-TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
-  constexpr diagnostic_info info = {
+TEST(Test_Diagnostic_Formatter, diagnostic_with_single_message) {
+  constexpr Diagnostic_Info info = {
       .code = 9999,
-      .severity = diagnostic_severity::error,
+      .severity = Diagnostic_Severity::error,
       .message_formats = {QLJS_TRANSLATABLE("something happened")},
       .message_args =
           {
-              diagnostic_message_args{{
-                  {0, diagnostic_arg_type::source_code_span},
+              Diagnostic_Message_Args{{
+                  {0, Diagnostic_Arg_Type::Source_Code_Span},
               }},
           },
   };
 
-  string_diagnostic_formatter formatter;
+  String_Diagnostic_Formatter formatter;
   formatter.format(info, &empty_span);
   EXPECT_EQ(formatter.message, u8"something happened\n");
 }
 
-TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
-  constexpr diagnostic_info info = {
+TEST(Test_Diagnostic_Formatter, diagnostic_with_two_messages) {
+  constexpr Diagnostic_Info info = {
       .code = 9999,
-      .severity = diagnostic_severity::error,
+      .severity = Diagnostic_Severity::error,
       .message_formats =
           {
               QLJS_TRANSLATABLE("something happened"),
@@ -121,281 +121,281 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
           },
       .message_args =
           {
-              diagnostic_message_args{{
-                  {0, diagnostic_arg_type::source_code_span},
+              Diagnostic_Message_Args{{
+                  {0, Diagnostic_Arg_Type::Source_Code_Span},
               }},
-              diagnostic_message_args{
+              Diagnostic_Message_Args{
                   {
-                      {0, diagnostic_arg_type::source_code_span},
+                      {0, Diagnostic_Arg_Type::Source_Code_Span},
                   },
               },
           },
   };
 
-  string_diagnostic_formatter formatter;
+  String_Diagnostic_Formatter formatter;
   formatter.format(info, &empty_span);
   EXPECT_EQ(formatter.message,
             u8"something happened\n"
             u8"see here\n");
 }
 
-TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
-  const char8* code = u8"hello world";
-  source_code_span hello_span(&code[0], &code[5]);
+TEST(Test_Diagnostic_Formatter, message_with_zero_placeholder) {
+  const Char8* code = u8"hello world";
+  Source_Code_Span hello_span(&code[0], &code[5]);
 
-  string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, diagnostic_severity::error,
+  String_Diagnostic_Formatter formatter;
+  formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("this {0} looks fishy"),
-                           diagnostic_message_args{{
-                               {0, diagnostic_arg_type::source_code_span},
+                           Diagnostic_Message_Args{{
+                               {0, Diagnostic_Arg_Type::Source_Code_Span},
                            }},
                            &hello_span);
   EXPECT_EQ(formatter.message, u8"this hello looks fishy\n");
 }
 
-TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
-  const char8* code = u8"let me = be(free);";
-  struct test_diag {
-    source_code_span let_span;
-    source_code_span me_span;
-    source_code_span be_span;
+TEST(Test_Diagnostic_Formatter, message_with_multiple_span_placeholders) {
+  const Char8* code = u8"let me = be(free);";
+  struct Test_Diag {
+    Source_Code_Span let_span;
+    Source_Code_Span me_span;
+    Source_Code_Span be_span;
   };
-  test_diag diag = {
-      .let_span = source_code_span(&code[0], &code[3]),
-      .me_span = source_code_span(&code[4], &code[6]),
-      .be_span = source_code_span(&code[9], &code[11]),
+  Test_Diag diag = {
+      .let_span = Source_Code_Span(&code[0], &code[3]),
+      .me_span = Source_Code_Span(&code[4], &code[6]),
+      .be_span = Source_Code_Span(&code[9], &code[11]),
   };
   ASSERT_EQ(diag.let_span.string_view(), u8"let"_sv);
   ASSERT_EQ(diag.me_span.string_view(), u8"me"_sv);
   ASSERT_EQ(diag.be_span.string_view(), u8"be"_sv);
 
-  string_diagnostic_formatter formatter;
+  String_Diagnostic_Formatter formatter;
   formatter.format_message(
-      "E9999"sv, diagnostic_severity::error,
+      "E9999"sv, Diagnostic_Severity::error,
       QLJS_TRANSLATABLE("free {1} and {0} {1} {2}"),
-      diagnostic_message_args{{
-          {offsetof(test_diag, let_span),
-           diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, me_span), diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, be_span), diagnostic_arg_type::source_code_span},
+      Diagnostic_Message_Args{{
+          {offsetof(Test_Diag, let_span),
+           Diagnostic_Arg_Type::Source_Code_Span},
+          {offsetof(Test_Diag, me_span), Diagnostic_Arg_Type::Source_Code_Span},
+          {offsetof(Test_Diag, be_span), Diagnostic_Arg_Type::Source_Code_Span},
       }},
       &diag);
   EXPECT_EQ(formatter.message, u8"free me and let me be\n");
 }
 
-TEST(test_diagnostic_formatter, message_with_char_placeholder) {
-  struct test_diag {
-    source_code_span span;
-    char8 c;
+TEST(Test_Diagnostic_Formatter, message_with_char_placeholder) {
+  struct Test_Diag {
+    Source_Code_Span span;
+    Char8 c;
   };
-  test_diag diag = {
+  Test_Diag diag = {
       .span = empty_span,
       .c = u8'Q',
   };
-  string_diagnostic_formatter formatter;
+  String_Diagnostic_Formatter formatter;
   formatter.format_message(
-      "E9999"sv, diagnostic_severity::error,
+      "E9999"sv, Diagnostic_Severity::error,
       QLJS_TRANSLATABLE("what is this '{1}' nonsense?"),
-      diagnostic_message_args{{
-          {offsetof(test_diag, span), diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, c), diagnostic_arg_type::char8},
+      Diagnostic_Message_Args{{
+          {offsetof(Test_Diag, span), Diagnostic_Arg_Type::Source_Code_Span},
+          {offsetof(Test_Diag, c), Diagnostic_Arg_Type::Char8},
       }},
       &diag);
   EXPECT_EQ(formatter.message, u8"what is this 'Q' nonsense?\n");
 }
 
-TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
-  const char8* code = u8"hello world";
-  source_code_span code_span(&code[0], &code[3]);
+TEST(Test_Diagnostic_Formatter, message_with_escaped_curlies) {
+  const Char8* code = u8"hello world";
+  Source_Code_Span code_span(&code[0], &code[3]);
 
-  string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, diagnostic_severity::error,
+  String_Diagnostic_Formatter formatter;
+  formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("a {{0} b }} c"),
-                           diagnostic_message_args{{
-                               {0, diagnostic_arg_type::source_code_span},
+                           Diagnostic_Message_Args{{
+                               {0, Diagnostic_Arg_Type::Source_Code_Span},
                            }},
                            &code_span);
   EXPECT_EQ(formatter.message, u8"a {0} b }} c\n");
 }
 
-TEST(test_diagnostic_formatter, enum_kind_placeholder) {
-  struct test_diag {
-    source_code_span empty_span;
-    enum_kind kind;
+TEST(Test_Diagnostic_Formatter, enum_kind_placeholder) {
+  struct Test_Diag {
+    Source_Code_Span empty_span;
+    Enum_Kind kind;
   };
-  constexpr diagnostic_message_args message_args = {
-      diagnostic_message_args{{
-          {offsetof(test_diag, empty_span),
-           diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, kind), diagnostic_arg_type::enum_kind},
+  constexpr Diagnostic_Message_Args message_args = {
+      Diagnostic_Message_Args{{
+          {offsetof(Test_Diag, empty_span),
+           Diagnostic_Arg_Type::Source_Code_Span},
+          {offsetof(Test_Diag, kind), Diagnostic_Arg_Type::enum_kind},
       }},
   };
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .kind = enum_kind::normal,
+        .kind = Enum_Kind::normal,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected enum\n");
   }
 }
 
-TEST(test_diagnostic_formatter, statement_kind_placeholder) {
-  struct test_diag {
-    source_code_span empty_span;
-    statement_kind statement;
+TEST(Test_Diagnostic_Formatter, statement_kind_placeholder) {
+  struct Test_Diag {
+    Source_Code_Span empty_span;
+    Statement_Kind statement;
   };
-  constexpr diagnostic_message_args message_args = {
-      diagnostic_message_args{{
-          {offsetof(test_diag, empty_span),
-           diagnostic_arg_type::source_code_span},
-          {offsetof(test_diag, statement), diagnostic_arg_type::statement_kind},
+  constexpr Diagnostic_Message_Args message_args = {
+      Diagnostic_Message_Args{{
+          {offsetof(Test_Diag, empty_span),
+           Diagnostic_Arg_Type::Source_Code_Span},
+          {offsetof(Test_Diag, statement), Diagnostic_Arg_Type::statement_kind},
       }},
   };
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::do_while_loop,
+        .statement = Statement_Kind::do_while_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'do-while' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::do_while_loop,
+        .statement = Statement_Kind::do_while_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'do-while' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::for_loop,
+        .statement = Statement_Kind::for_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'for' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::for_loop,
+        .statement = Statement_Kind::for_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'for' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::if_statement,
+        .statement = Statement_Kind::if_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'if' statement\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::if_statement,
+        .statement = Statement_Kind::if_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected an 'if' statement\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::while_loop,
+        .statement = Statement_Kind::while_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'while' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::while_loop,
+        .statement = Statement_Kind::while_loop,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'while' loop\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::with_statement,
+        .statement = Statement_Kind::with_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'with' statement\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::with_statement,
+        .statement = Statement_Kind::with_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'with' statement\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::labelled_statement,
+        .statement = Statement_Kind::labelled_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:headlinese}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected labelled statement\n");
   }
 
   {
-    test_diag diag = {
+    Test_Diag diag = {
         .empty_span = empty_span,
-        .statement = statement_kind::labelled_statement,
+        .statement = Statement_Kind::labelled_statement,
     };
-    string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, diagnostic_severity::error,
+    String_Diagnostic_Formatter formatter;
+    formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                              QLJS_TRANSLATABLE("expected {1:singular}"),
                              message_args, &diag);
     EXPECT_EQ(formatter.message, u8"expected a labelled statement\n");

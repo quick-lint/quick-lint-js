@@ -17,17 +17,17 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-void lsp_workspace_configuration::add_item(
-    string8_view name, heap_function<void(std::string_view)>&& callback) {
-  this->items_.push_back(item{
+void LSP_Workspace_Configuration::add_item(
+    String8_View name, Heap_Function<void(std::string_view)>&& callback) {
+  this->items_.push_back(Item{
       .name = name,
       .callback = std::move(callback),
   });
 }
 
-void lsp_workspace_configuration::build_request(
-    json_rpc_message_handler::request_id_type request_id,
-    byte_buffer& request_json) {
+void LSP_Workspace_Configuration::build_request(
+    JSON_RPC_Message_Handler::Request_ID_Type request_id,
+    Byte_Buffer& request_json) {
   request_json.append_copy(u8R"--({"id":)--"_sv);
   request_json.append_decimal_integer(request_id);
   // clang-format off
@@ -38,7 +38,7 @@ void lsp_workspace_configuration::build_request(
       u8R"--("items":[)--"_sv);
   // clang-format on
   bool need_comma = false;
-  for (const item& i : this->items_) {
+  for (const Item& i : this->items_) {
     if (need_comma) {
       request_json.append_copy(u8',');
     }
@@ -50,7 +50,7 @@ void lsp_workspace_configuration::build_request(
   request_json.append_copy(u8R"--(]},"jsonrpc":"2.0"})--"_sv);
 }
 
-bool lsp_workspace_configuration::process_response(
+bool LSP_Workspace_Configuration::process_response(
     ::simdjson::ondemand::value result) {
   ::simdjson::ondemand::array result_array;
   if (result.get_array().get(result_array) != ::simdjson::SUCCESS) {
@@ -80,7 +80,7 @@ bool lsp_workspace_configuration::process_response(
   return spec_it == spec_end && result_it == result_end;
 }
 
-bool lsp_workspace_configuration::process_notification(
+bool LSP_Workspace_Configuration::process_notification(
     ::simdjson::ondemand::object settings) {
   for (simdjson::simdjson_result< ::simdjson::ondemand::field> setting_field :
        settings) {
@@ -92,7 +92,7 @@ bool lsp_workspace_configuration::process_notification(
     if (setting_field.value().get(value) != ::simdjson::SUCCESS) {
       return false;
     }
-    item* i = this->find_item(to_string8_view(name));
+    Item* i = this->find_item(to_string8_view(name));
     if (!i) {
       // Ignore unknown settings.
       continue;
@@ -104,14 +104,14 @@ bool lsp_workspace_configuration::process_notification(
   return true;
 }
 
-bool lsp_workspace_configuration::process_initialization_options(
+bool LSP_Workspace_Configuration::process_initialization_options(
     ::simdjson::ondemand::object initialization_options_configuration) {
   return this->process_notification(initialization_options_configuration);
 }
 
-lsp_workspace_configuration::item* lsp_workspace_configuration::find_item(
-    string8_view name) {
-  for (item& i : this->items_) {
+LSP_Workspace_Configuration::Item* LSP_Workspace_Configuration::find_item(
+    String8_View name) {
+  for (Item& i : this->items_) {
     if (i.name == name) {
       return &i;
     }
@@ -119,7 +119,7 @@ lsp_workspace_configuration::item* lsp_workspace_configuration::find_item(
   return nullptr;
 }
 
-bool lsp_workspace_configuration::set_item(item& i,
+bool LSP_Workspace_Configuration::set_item(Item& i,
                                            ::simdjson::ondemand::value value) {
   ::simdjson::ondemand::json_type type;
   if (value.type().get(type) != ::simdjson::SUCCESS) {

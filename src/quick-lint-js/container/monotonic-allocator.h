@@ -7,7 +7,7 @@
 #include <quick-lint-js/container/linked-bump-allocator.h>
 
 namespace quick_lint_js {
-using monotonic_allocator = linked_bump_allocator<alignof(void*)>;
+using Monotonic_Allocator = Linked_Bump_Allocator<alignof(void*)>;
 }
 
 #endif

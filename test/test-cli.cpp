@@ -45,11 +45,11 @@ const char* get_quick_lint_js_executable_path() {
   return path;
 }
 
-int count_occurences(string8_view haystack, string8_view needle) {
+int count_occurences(String8_View haystack, String8_View needle) {
   int count = 0;
   for (;;) {
     std::size_t index = haystack.find(needle);
-    if (index == string8_view::npos) {
+    if (index == String8_View::npos) {
       return count;
     }
     count += 1;
@@ -57,40 +57,40 @@ int count_occurences(string8_view haystack, string8_view needle) {
   }
 }
 
-class test_cli : public ::testing::Test, protected filesystem_test {};
+class Test_CLI : public ::testing::Test, protected Filesystem_Test {};
 
-TEST_F(test_cli, no_files_fails) {
+TEST_F(Test_CLI, no_files_fails) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  run_program_result r = run_program({get_quick_lint_js_executable_path()});
+  Run_Program_Result r = run_program({get_quick_lint_js_executable_path()});
   EXPECT_EQ(r.exit_status, 1);
 }
 
-TEST_F(test_cli, good_file_lints_ok) {
+TEST_F(Test_CLI, good_file_lints_ok) {
   std::string test_file = this->make_temporary_directory() + "/test.js";
   write_file_or_exit(test_file, u8"console.log('hello world');\n"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), test_file});
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, file_with_syntax_errors_fails) {
+TEST_F(Test_CLI, file_with_syntax_errors_fails) {
   std::string test_file = this->make_temporary_directory() + "/test.js";
   write_file_or_exit(
       test_file, u8"var parenthesesMissing;\nif parenthesesMissing { }\n"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), test_file});
   EXPECT_EQ(r.exit_status, 1);
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0017"));
 }
 
-TEST_F(test_cli, file_with_escaped_syntax_errors_fails) {
+TEST_F(Test_CLI, file_with_escaped_syntax_errors_fails) {
   std::string test_file = this->make_temporary_directory() + "/test.js";
   write_file_or_exit(
       test_file, u8"var parenthesesMissing;\nif parenthesesMissing { }\n"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(),
                    "--diagnostic-hyperlinks=always", test_file});
   EXPECT_EQ(r.exit_status, 1);
@@ -99,20 +99,20 @@ TEST_F(test_cli, file_with_escaped_syntax_errors_fails) {
                         "\u001b\\E0017\u001b]8;;\u001b\\]"));
 }
 
-TEST_F(test_cli,
+TEST_F(Test_CLI,
        file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail) {
   std::string test_file = this->make_temporary_directory() + "/test.js";
   write_file_or_exit(
       test_file, u8"var parenthesesMissing;\nif parenthesesMissing { }\n"_sv);
 
-  run_program_result r = run_program(
+  Run_Program_Result r = run_program(
       {get_quick_lint_js_executable_path(), "--exit-fail-on=E0057", test_file});
   EXPECT_EQ(r.exit_status, 0);
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0017"))
       << "Error should be printed";
 }
 
-TEST_F(test_cli, single_config_file) {
+TEST_F(Test_CLI, single_config_file) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file = test_directory + "/test.js";
@@ -122,28 +122,28 @@ TEST_F(test_cli, single_config_file) {
   write_file_or_exit(config_file,
                      u8R"({"globals":{"myGlobalVariable": true}})"_sv);
 
-  run_program_result r = run_program({get_quick_lint_js_executable_path(),
+  Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
                                       "--config-file", config_file, test_file});
   EXPECT_EQ(r.output, u8""_sv);
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, config_file_for_stdin) {
+TEST_F(Test_CLI, config_file_for_stdin) {
   std::string config_file = this->make_temporary_directory() + "/config.json";
   write_file_or_exit(config_file,
                      u8R"({"globals":{"myGlobalVariable": true}})"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), "--config-file",
                    config_file, "--stdin"},
-                  run_program_options{
+                  Run_Program_Options{
                       .input = u8"console.log(myGlobalVariable);"_sv,
                   });
   EXPECT_EQ(r.output, u8""_sv);
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, missing_explicit_config_file) {
+TEST_F(Test_CLI, missing_explicit_config_file) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file = test_directory + "/test.js";
@@ -151,14 +151,14 @@ TEST_F(test_cli, missing_explicit_config_file) {
 
   std::string config_file = test_directory + "/config.json";
 
-  run_program_result r = run_program({get_quick_lint_js_executable_path(),
+  Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
                                       "--config-file", config_file, test_file});
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("config.json"));
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("error:"));
   EXPECT_EQ(r.exit_status, 1);
 }
 
-TEST_F(test_cli, automatically_find_config_file) {
+TEST_F(Test_CLI, automatically_find_config_file) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file = test_directory + "/test.js";
@@ -168,21 +168,21 @@ TEST_F(test_cli, automatically_find_config_file) {
   write_file_or_exit(config_file,
                      u8R"({"globals":{"myGlobalVariable": true}})"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), test_file});
   EXPECT_EQ(r.output, u8""_sv);
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, stdin_does_not_automatically_find_config_file) {
+TEST_F(Test_CLI, stdin_does_not_automatically_find_config_file) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string config_file = test_directory + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8R"({"global-groups":["emscripten"]})"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), "--stdin"},
-                  run_program_options{
+                  Run_Program_Options{
                       .current_directory = test_directory.c_str(),
                       .input = u8"document"_sv,
                   });
@@ -190,7 +190,7 @@ TEST_F(test_cli, stdin_does_not_automatically_find_config_file) {
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, automatically_find_config_file_given_path_for_config_search) {
+TEST_F(Test_CLI, automatically_find_config_file_given_path_for_config_search) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file = test_directory + "/test.js";
@@ -202,7 +202,7 @@ TEST_F(test_cli, automatically_find_config_file_given_path_for_config_search) {
   write_file_or_exit(config_file,
                      u8R"({"globals":{"myGlobalVariable": true}})"_sv);
 
-  run_program_result r = run_program({
+  Run_Program_Result r = run_program({
       get_quick_lint_js_executable_path(),
       "--path-for-config-search",
       config_file_dir + "/app.js",
@@ -212,7 +212,7 @@ TEST_F(test_cli, automatically_find_config_file_given_path_for_config_search) {
   EXPECT_EQ(r.exit_status, 0);
 }
 
-TEST_F(test_cli, config_file_parse_error_prevents_lint) {
+TEST_F(Test_CLI, config_file_parse_error_prevents_lint) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file = test_directory + "/test.js";
@@ -221,7 +221,7 @@ TEST_F(test_cli, config_file_parse_error_prevents_lint) {
   std::string config_file = test_directory + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"INVALID JSON"_sv);
 
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(), test_file});
   EXPECT_EQ(r.exit_status, 1);
 
@@ -239,7 +239,7 @@ TEST_F(test_cli, config_file_parse_error_prevents_lint) {
       << "quick-lint-js.config should have errors";
 }
 
-TEST_F(test_cli, config_error_for_multiple_js_files_is_printed_only_once) {
+TEST_F(Test_CLI, config_error_for_multiple_js_files_is_printed_only_once) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_file_1 = test_directory + "/test1.js";
@@ -251,14 +251,14 @@ TEST_F(test_cli, config_error_for_multiple_js_files_is_printed_only_once) {
   std::string config_file = test_directory + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"INVALID JSON"_sv);
 
-  run_program_result r = run_program(
+  Run_Program_Result r = run_program(
       {get_quick_lint_js_executable_path(), test_file_1, test_file_2});
   EXPECT_EQ(r.exit_status, 1);
   EXPECT_EQ(count_occurences(r.output.string_view(), u8"E0164"_sv), 1)
       << r.output;
 }
 
-TEST_F(test_cli, errors_for_all_config_files_are_printed) {
+TEST_F(Test_CLI, errors_for_all_config_files_are_printed) {
   std::string test_directory = this->make_temporary_directory();
 
   std::string test_dir_1 = test_directory + "/dir1";
@@ -275,7 +275,7 @@ TEST_F(test_cli, errors_for_all_config_files_are_printed) {
   std::string config_file_2 = test_dir_2 + "/quick-lint-js.config";
   write_file_or_exit(config_file_2, u8"INVALID JSON"_sv);
 
-  run_program_result r = run_program(
+  Run_Program_Result r = run_program(
       {get_quick_lint_js_executable_path(), test_file_1, test_file_2});
   EXPECT_EQ(r.exit_status, 1);
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("dir1"));
@@ -284,22 +284,22 @@ TEST_F(test_cli, errors_for_all_config_files_are_printed) {
       << r.output;
 }
 
-TEST_F(test_cli, language_javascript) {
-  run_program_result r = run_program(
+TEST_F(Test_CLI, language_javascript) {
+  Run_Program_Result r = run_program(
       {get_quick_lint_js_executable_path(), "--language=javascript", "--stdin"},
-      run_program_options{
+      Run_Program_Options{
           .input = u8"let c = <JSX />;"_sv,
       });
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0177"));
   EXPECT_EQ(r.exit_status, 1);
 }
 
-TEST_F(test_cli,
+TEST_F(Test_CLI,
        language_typescript_warns_about_undeclared_variables_despite_eval) {
-  run_program_result r =
+  Run_Program_Result r =
       run_program({get_quick_lint_js_executable_path(),
                    "--language=experimental-typescript", "--stdin"},
-                  run_program_options{
+                  Run_Program_Options{
                       .input = u8"eval('var x = 42;'); console.log(x);"_sv,
                   });
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0057"))
@@ -308,7 +308,7 @@ TEST_F(test_cli,
 }
 
 #if QLJS_HAVE_FORKPTY
-TEST_F(test_cli, auto_hyperlinks_are_not_printed_in_dumb_terminals) {
+TEST_F(Test_CLI, auto_hyperlinks_are_not_printed_in_dumb_terminals) {
   std::string test_file = this->make_temporary_directory() + "/test.js";
   write_file_or_exit(
       test_file, u8"var parenthesesMissing;\nif parenthesesMissing { }\n"_sv);
@@ -328,7 +328,7 @@ TEST_F(test_cli, auto_hyperlinks_are_not_printed_in_dumb_terminals) {
     std::exit(100);
   } else {
     // Parent.
-    auto output = read_file(posix_fd_file_ref(tty_fd));
+    auto output = read_file(POSIX_FD_File_Ref(tty_fd));
     if (!output.ok()) {
       ADD_FAILURE() << output.error_to_string();
       return;

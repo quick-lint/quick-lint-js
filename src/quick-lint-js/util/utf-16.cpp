@@ -20,26 +20,26 @@
 
 namespace quick_lint_js {
 #if defined(_WIN32)
-mbargv::mbargv(int argc, wchar_t **wargv) {
+MBArgv::MBArgv(int argc, wchar_t **wargv) {
   this->wargv_to_mbargv(argc, wargv);
 }
 
-mbargv::~mbargv() {
+MBArgv::~MBArgv() {
   for (char *mbarg : this->mbargv_) {
     delete[] mbarg;
   }
 }
 
-char **mbargv::data() { return this->mbargv_.data(); }
-int mbargv::size() { return narrow_cast<int>(this->mbargv_.size()); }
+char **MBArgv::data() { return this->mbargv_.data(); }
+int MBArgv::size() { return narrow_cast<int>(this->mbargv_.size()); }
 
-void mbargv::wargv_to_mbargv(int argc, wchar_t **wargv) {
+void MBArgv::wargv_to_mbargv(int argc, wchar_t **wargv) {
   for (size_t i = 0; i < argc; i++) {
     this->mbargv_.emplace_back(warg_to_mbarg(wargv[i]));
   }
 }
 
-char *mbargv::warg_to_mbarg(wchar_t *warg) {
+char *MBArgv::warg_to_mbarg(wchar_t *warg) {
   int size_required = WideCharToMultiByte(
       /*CodePage=*/CP_UTF8,
       /*dwFlags=*/0,
@@ -68,7 +68,7 @@ char *mbargv::warg_to_mbarg(wchar_t *warg) {
   return mbarg;
 }
 
-void mbargv::conversion_failed(wchar_t *warg) {
+void MBArgv::conversion_failed(wchar_t *warg) {
   std::fprintf(stderr, "error: failed to convert %Ls to mbstring\n", warg);
   std::fprintf(stderr, "%s\n", windows_last_error_message().c_str());
   std::exit(EXIT_FAILURE);
@@ -164,8 +164,8 @@ std::size_t count_utf_8_code_units(std::wstring_view utf_16) noexcept {
 }
 #endif
 
-string8 utf_16_to_utf_8(std::u16string_view s) {
-  string8 result;
+String8 utf_16_to_utf_8(std::u16string_view s) {
+  String8 result;
   result.reserve(s.size());
   auto end = s.end();
   auto it = s.begin();
@@ -178,10 +178,10 @@ string8 utf_16_to_utf_8(std::u16string_view s) {
         char32_t cp = 0x1'0000 +
                       ((static_cast<char32_t>(c & 0x3ff) << 10) | (c2 & 0x3ff));
         // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        result += static_cast<char8>(((cp >> (3 * 6)) & 0x07) | 0b1111'0000);
-        result += static_cast<char8>(((cp >> (2 * 6)) & 0x3f) | 0b1000'0000);
-        result += static_cast<char8>(((cp >> (1 * 6)) & 0x3f) | 0b1000'0000);
-        result += static_cast<char8>(((cp >> (0 * 6)) & 0x3f) | 0b1000'0000);
+        result += static_cast<Char8>(((cp >> (3 * 6)) & 0x07) | 0b1111'0000);
+        result += static_cast<Char8>(((cp >> (2 * 6)) & 0x3f) | 0b1000'0000);
+        result += static_cast<Char8>(((cp >> (1 * 6)) & 0x3f) | 0b1000'0000);
+        result += static_cast<Char8>(((cp >> (0 * 6)) & 0x3f) | 0b1000'0000);
         it += 2;
       } else {
         // Incomplete surrogate pair (invalid).
@@ -193,17 +193,17 @@ string8 utf_16_to_utf_8(std::u16string_view s) {
     } else if (c >= 0x0800) {
     three_byte_output:
       // 1110xxxx 10xxxxxx 10xxxxxx
-      result += static_cast<char8>(((c >> (2 * 6)) & 0x0f) | 0b1110'0000);
-      result += static_cast<char8>(((c >> (1 * 6)) & 0x3f) | 0b1000'0000);
-      result += static_cast<char8>(((c >> (0 * 6)) & 0x3f) | 0b1000'0000);
+      result += static_cast<Char8>(((c >> (2 * 6)) & 0x0f) | 0b1110'0000);
+      result += static_cast<Char8>(((c >> (1 * 6)) & 0x3f) | 0b1000'0000);
+      result += static_cast<Char8>(((c >> (0 * 6)) & 0x3f) | 0b1000'0000);
       it += 1;
     } else if (c >= 0x0080) {
       // 110xxxxx 10xxxxxx
-      result += static_cast<char8>(((c >> 6) & 0x1f) | 0b1100'0000);
-      result += static_cast<char8>(((c >> 0) & 0x3f) | 0b1000'0000);
+      result += static_cast<Char8>(((c >> 6) & 0x1f) | 0b1100'0000);
+      result += static_cast<Char8>(((c >> 0) & 0x3f) | 0b1000'0000);
       it += 1;
     } else {
-      result += narrow_cast<char8>(c);
+      result += narrow_cast<Char8>(c);
       it += 1;
     }
   }

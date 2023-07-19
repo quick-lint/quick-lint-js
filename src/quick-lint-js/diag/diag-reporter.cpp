@@ -6,13 +6,13 @@
 
 namespace quick_lint_js {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void diag_reporter::report(name diag) {                         \
-    this->report_impl(diag_type_from_type<name>, &diag);          \
+  void Diag_Reporter::report(name diag) {                         \
+    this->report_impl(Diag_Type_From_Type<name>, &diag);          \
   }
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-null_diag_reporter null_diag_reporter::instance;
+Null_Diag_Reporter Null_Diag_Reporter::instance;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

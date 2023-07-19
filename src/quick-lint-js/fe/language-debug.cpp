@@ -5,9 +5,9 @@
 #include <quick-lint-js/fe/language.h>
 
 namespace quick_lint_js {
-std::ostream& operator<<(std::ostream& out, variable_kind kind) {
+std::ostream& operator<<(std::ostream& out, Variable_Kind kind) {
 #define QLJS_CASE(k)     \
-  case variable_kind::k: \
+  case Variable_Kind::k: \
     out << #k;           \
     return out;
   switch (kind) {
@@ -36,9 +36,9 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, function_attributes attributes) {
+std::ostream& operator<<(std::ostream& out, Function_Attributes attributes) {
 #define QLJS_CASE(a)           \
-  case function_attributes::a: \
+  case Function_Attributes::a: \
     out << #a;                 \
     return out;
   switch (attributes) {

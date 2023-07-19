@@ -16,28 +16,28 @@
 #endif
 
 namespace quick_lint_js {
-struct run_program_options {
+struct Run_Program_Options {
   const char* current_directory = nullptr;
-  string8_view input;
+  String8_View input;
 };
 
-struct run_program_result {
-  padded_string output;
+struct Run_Program_Result {
+  Padded_String output;
   std::uint32_t exit_status;
 };
 
-run_program_result run_program(std::initializer_list<std::string> command);
-run_program_result run_program(std::initializer_list<const char*> command);
-run_program_result run_program(std::initializer_list<std::string> command,
-                               run_program_options);
-run_program_result run_program(std::initializer_list<const char*> command,
-                               run_program_options);
-run_program_result run_program(span<const std::string> command);
-run_program_result run_program(span<const char* const> command);
-run_program_result run_program(span<const std::string> command,
-                               run_program_options);
-run_program_result run_program(span<const char* const> command,
-                               run_program_options);
+Run_Program_Result run_program(std::initializer_list<std::string> command);
+Run_Program_Result run_program(std::initializer_list<const char*> command);
+Run_Program_Result run_program(std::initializer_list<std::string> command,
+                               Run_Program_Options);
+Run_Program_Result run_program(std::initializer_list<const char*> command,
+                               Run_Program_Options);
+Run_Program_Result run_program(Span<const std::string> command);
+Run_Program_Result run_program(Span<const char* const> command);
+Run_Program_Result run_program(Span<const std::string> command,
+                               Run_Program_Options);
+Run_Program_Result run_program(Span<const char* const> command,
+                               Run_Program_Options);
 
 #if QLJS_HAVE_SYS_WAIT_H
 std::uint32_t wait_for_process_exit(::pid_t);

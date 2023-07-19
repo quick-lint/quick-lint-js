@@ -12,10 +12,10 @@
 #include <type_traits>
 
 namespace quick_lint_js {
-struct buffering_diag_reporter::impl {
-  explicit impl(memory_resource *memory) noexcept : memory_(memory) {}
+struct Buffering_Diag_Reporter::Impl {
+  explicit Impl(Memory_Resource *memory) noexcept : memory_(memory) {}
 
-  struct any_diag {
+  struct Any_Diag {
     union underlying_diag {
       explicit underlying_diag() noexcept {}
 
@@ -27,32 +27,32 @@ struct buffering_diag_reporter::impl {
 #undef QLJS_DIAG_TYPE
     };
 
-    diag_type type;
+    Diag_Type type;
     underlying_diag diag;
   };
 
-  memory_resource *memory_;
-  linked_vector<any_diag> diagnostics_{this->memory_};
+  Memory_Resource *memory_;
+  Linked_Vector<Any_Diag> diagnostics_{this->memory_};
 };
 
-void buffering_diag_reporter::impl_deleter::operator()(impl *i) noexcept {
+void Buffering_Diag_Reporter::Impl_Deleter::operator()(Impl *i) noexcept {
   if (i) {
     delete_object(i->memory_, i);
   }
 }
 
-buffering_diag_reporter::buffering_diag_reporter(memory_resource *memory)
-    : impl_(new_object<impl>(memory, memory)) {}
+Buffering_Diag_Reporter::Buffering_Diag_Reporter(Memory_Resource *memory)
+    : impl_(new_object<Impl>(memory, memory)) {}
 
-buffering_diag_reporter::buffering_diag_reporter(buffering_diag_reporter &&) =
+Buffering_Diag_Reporter::Buffering_Diag_Reporter(Buffering_Diag_Reporter &&) =
     default;
 
-buffering_diag_reporter &buffering_diag_reporter::operator=(
-    buffering_diag_reporter &&) = default;
+Buffering_Diag_Reporter &Buffering_Diag_Reporter::operator=(
+    Buffering_Diag_Reporter &&) = default;
 
-buffering_diag_reporter::~buffering_diag_reporter() = default;
+Buffering_Diag_Reporter::~Buffering_Diag_Reporter() = default;
 
-void buffering_diag_reporter::report_impl(diag_type type, void *diag) {
+void Buffering_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   static constexpr unsigned char diag_sizes[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),
@@ -60,28 +60,28 @@ void buffering_diag_reporter::report_impl(diag_type type, void *diag) {
 #undef QLJS_DIAG_TYPE
   };
 
-  impl::any_diag &e = this->impl_->diagnostics_.emplace_back();
+  Impl::Any_Diag &e = this->impl_->diagnostics_.emplace_back();
   e.type = type;
   std::memcpy(&e.diag, diag, diag_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
-void buffering_diag_reporter::copy_into(diag_reporter *other) const {
-  this->impl_->diagnostics_.for_each([&](const impl::any_diag &diag) {
+void Buffering_Diag_Reporter::copy_into(Diag_Reporter *other) const {
+  this->impl_->diagnostics_.for_each([&](const Impl::Any_Diag &diag) {
     // TODO(strager): Make report_impl accept a const pointer to remove this
     // const_cast.
-    other->report_impl(diag.type, &const_cast<impl::any_diag &>(diag).diag);
+    other->report_impl(diag.type, &const_cast<Impl::Any_Diag &>(diag).diag);
   });
 }
 
-void buffering_diag_reporter::move_into(diag_reporter *other) {
+void Buffering_Diag_Reporter::move_into(Diag_Reporter *other) {
   this->copy_into(other);
 }
 
-bool buffering_diag_reporter::empty() const noexcept {
+bool Buffering_Diag_Reporter::empty() const noexcept {
   return this->impl_->diagnostics_.empty();
 }
 
-void buffering_diag_reporter::clear() noexcept {
+void Buffering_Diag_Reporter::clear() noexcept {
   return this->impl_->diagnostics_.clear();
 }
 }

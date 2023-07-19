@@ -28,9 +28,9 @@ inline std::uint64_t multiply_u64_get_top_64(std::uint64_t lhs,
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wpedantic")
 
-  using uint128_t = unsigned __int128;
+  using U128 = unsigned __int128;
   return static_cast<std::uint64_t>(
-      (static_cast<uint128_t>(lhs) * static_cast<uint128_t>(rhs)) >> 64);
+      (static_cast<U128>(lhs) * static_cast<U128>(rhs)) >> 64);
 
   QLJS_WARNING_POP
 #elif QLJS_HAVE_UMULH

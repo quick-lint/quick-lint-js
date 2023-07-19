@@ -15,8 +15,8 @@ namespace quick_lint_js {
 //
 // This object caches commonly-used classes and primitives from the 'vscode'
 // module.
-struct vscode_module {
-  explicit vscode_module(::Napi::Object module)
+struct VSCode_Module {
+  explicit VSCode_Module(::Napi::Object module)
       : diagnostic_class(::Napi::Persistent(
             module.Get("Diagnostic").As<::Napi::Function>())),
         diagnostic_related_information_class(::Napi::Persistent(
@@ -73,7 +73,7 @@ struct vscode_module {
   template <class Func>
   void open_text_document_by_path(::Napi::Env env, const std::string& path,
                                   Func&& callback) {
-    struct async_state {
+    struct Async_State {
       ::Napi::ObjectReference workspace_namespace;
       ::Napi::FunctionReference workspace_open_text_document;
       ::Napi::FunctionReference uri_class;
@@ -81,7 +81,7 @@ struct vscode_module {
       Func callback;
       std::string path;
     };
-    std::shared_ptr<async_state> state(new async_state{
+    std::shared_ptr<Async_State> state(new Async_State{
         .workspace_namespace =
             ::Napi::Persistent(this->workspace_namespace.Value()),
         .workspace_open_text_document =
@@ -119,11 +119,11 @@ struct vscode_module {
 
   void open_and_show_text_document_by_path(::Napi::Env env,
                                            const std::string& path) {
-    struct async_state {
+    struct Async_State {
       ::Napi::ObjectReference window_namespace;
       ::Napi::FunctionReference window_show_text_document;
     };
-    std::shared_ptr<async_state> state(new async_state{
+    std::shared_ptr<Async_State> state(new Async_State{
         .window_namespace = ::Napi::Persistent(this->window_namespace.Value()),
         .window_show_text_document =
             ::Napi::Persistent(this->window_show_text_document.Value()),
@@ -221,16 +221,16 @@ struct vscode_module {
 };
 
 // A non-owning wrapper around a vscode.Document.
-class vscode_document {
+class VSCode_Document {
  public:
   // Do not call.
-  explicit vscode_document() : vscode_document(::Napi::Object()) {}
+  explicit VSCode_Document() : VSCode_Document(::Napi::Object()) {}
 
   // Do not call.
-  explicit vscode_document(napi_env env, napi_value value)
-      : vscode_document(::Napi::Object(env, value)) {}
+  explicit VSCode_Document(napi_env env, napi_value value)
+      : VSCode_Document(::Napi::Object(env, value)) {}
 
-  explicit vscode_document(::Napi::Object doc) : doc_(doc) {}
+  explicit VSCode_Document(::Napi::Object doc) : doc_(doc) {}
 
   // vscode.Document#getText()
   ::Napi::String get_text() {
@@ -256,17 +256,17 @@ class vscode_document {
 };
 
 // A non-owning wrapper around a vscode.DiagnosticCollection.
-class vscode_diagnostic_collection {
+class VSCode_Diagnostic_Collection {
  public:
   // Do not call.
-  explicit vscode_diagnostic_collection()
-      : vscode_diagnostic_collection(::Napi::Object()) {}
+  explicit VSCode_Diagnostic_Collection()
+      : VSCode_Diagnostic_Collection(::Napi::Object()) {}
 
   // Do not call.
-  explicit vscode_diagnostic_collection(napi_env env, napi_value value)
-      : vscode_diagnostic_collection(::Napi::Object(env, value)) {}
+  explicit VSCode_Diagnostic_Collection(napi_env env, napi_value value)
+      : VSCode_Diagnostic_Collection(::Napi::Object(env, value)) {}
 
-  explicit vscode_diagnostic_collection(::Napi::Object collection)
+  explicit VSCode_Diagnostic_Collection(::Napi::Object collection)
       : collection_(collection) {}
 
   // vscode.DiagnosticCollection#set(uri, diagnostics)

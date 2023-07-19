@@ -13,22 +13,22 @@
 
 namespace quick_lint_js {
 namespace {
-class test_vim_qflist_json_diag_reporter : public ::testing::Test {
+class Test_Vim_QFList_JSON_Diag_Reporter : public ::testing::Test {
  protected:
-  vim_qflist_json_diag_reporter make_reporter() {
-    return vim_qflist_json_diag_reporter(translator(), &this->stream_);
+  Vim_QFList_JSON_Diag_Reporter make_reporter() {
+    return Vim_QFList_JSON_Diag_Reporter(Translator(), &this->stream_);
   }
 
-  vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
+  Vim_QFList_JSON_Diag_Reporter make_reporter(Padded_String_View input,
                                               int vim_bufnr) {
-    vim_qflist_json_diag_reporter reporter(translator(), &this->stream_);
+    Vim_QFList_JSON_Diag_Reporter reporter(Translator(), &this->stream_);
     reporter.set_source(input, /*vim_bufnr=*/vim_bufnr);
     return reporter;
   }
 
-  vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
+  Vim_QFList_JSON_Diag_Reporter make_reporter(Padded_String_View input,
                                               const char *file_name) {
-    vim_qflist_json_diag_reporter reporter(translator(), &this->stream_);
+    Vim_QFList_JSON_Diag_Reporter reporter(Translator(), &this->stream_);
     reporter.set_source(input, /*file_name=*/file_name);
     return reporter;
   }
@@ -41,20 +41,20 @@ class test_vim_qflist_json_diag_reporter : public ::testing::Test {
     return root;
   }
 
-  memory_output_stream stream_;
+  Memory_Output_Stream stream_;
 };
 
-TEST_F(test_vim_qflist_json_diag_reporter,
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter,
        assignment_before_variable_declaration) {
-  padded_string input(u8"x=0;let x;"_sv);
-  source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
+  Padded_String input(u8"x=0;let x;"_sv);
+  Source_Code_Span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
-  source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
+  Source_Code_Span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_assignment_before_variable_declaration{
+  reporter.report(Diag_Assignment_Before_Variable_Declaration{
       .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
 
@@ -71,17 +71,17 @@ TEST_F(test_vim_qflist_json_diag_reporter,
             "variable assigned before its declaration");
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, multiple_errors) {
-  padded_string input(u8"abc"_sv);
-  source_code_span a_span(&input[0], &input[1]);
-  source_code_span b_span(&input[1], &input[2]);
-  source_code_span c_span(&input[2], &input[3]);
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, multiple_errors) {
+  Padded_String input(u8"abc"_sv);
+  Source_Code_Span a_span(&input[0], &input[1]);
+  Source_Code_Span b_span(&input[1], &input[2]);
+  Source_Code_Span c_span(&input[2], &input[3]);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(diag_assignment_to_const_global_variable{a_span});
-  reporter.report(diag_assignment_to_const_global_variable{b_span});
-  reporter.report(diag_assignment_to_const_global_variable{c_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{a_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{b_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{c_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -89,14 +89,14 @@ TEST_F(test_vim_qflist_json_diag_reporter, multiple_errors) {
   ASSERT_EQ(qflist.size(), 3);
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter,
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter,
        errors_have_buffer_number_if_requested) {
-  padded_string input(u8""_sv);
-  source_code_span span(&input[0], &input[0]);
+  Padded_String input(u8""_sv);
+  Source_Code_Span span(&input[0], &input[0]);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(diag_assignment_to_const_global_variable{span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -106,17 +106,17 @@ TEST_F(test_vim_qflist_json_diag_reporter,
   EXPECT_FALSE(qflist[0].as_object().contains("filename"));
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, errors_have_file_name_if_requested) {
-  padded_string input(u8""_sv);
-  source_code_span span(&input[0], &input[0]);
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, errors_have_file_name_if_requested) {
+  Padded_String input(u8""_sv);
+  Source_Code_Span span(&input[0], &input[0]);
 
   for (const char *file_name : {"hello.js", "file\\name\\with\\backslashes.js",
                                 "file\"name\'with\nfunky\tcharacters"}) {
     SCOPED_TRACE(file_name);
 
-    vim_qflist_json_diag_reporter reporter =
+    Vim_QFList_JSON_Diag_Reporter reporter =
         this->make_reporter(&input, /*file_name=*/file_name);
-    reporter.report(diag_assignment_to_const_global_variable{span});
+    reporter.report(Diag_Assignment_To_Const_Global_Variable{span});
     reporter.finish();
 
     ::boost::json::array qflist =
@@ -127,14 +127,14 @@ TEST_F(test_vim_qflist_json_diag_reporter, errors_have_file_name_if_requested) {
   }
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter,
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter,
        errors_have_file_name_and_buffer_number_if_requested) {
-  padded_string input(u8""_sv);
-  source_code_span span(&input[0], &input[0]);
+  Padded_String input(u8""_sv);
+  Source_Code_Span span(&input[0], &input[0]);
 
-  vim_qflist_json_diag_reporter reporter = this->make_reporter();
+  Vim_QFList_JSON_Diag_Reporter reporter = this->make_reporter();
   reporter.set_source(&input, /*file_name=*/"hello.js", /*vim_bufnr=*/1337);
-  reporter.report(diag_assignment_to_const_global_variable{span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -144,23 +144,23 @@ TEST_F(test_vim_qflist_json_diag_reporter,
   EXPECT_EQ(look_up(qflist, 0, "filename"), "hello.js");
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, change_source) {
-  vim_qflist_json_diag_reporter reporter = this->make_reporter();
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, change_source) {
+  Vim_QFList_JSON_Diag_Reporter reporter = this->make_reporter();
 
-  padded_string input_1(u8"aaaaaaaa"_sv);
+  Padded_String input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
-  reporter.report(diag_assignment_to_const_global_variable{
-      source_code_span::unit(&input_1[4 - 1])});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{
+      Source_Code_Span::unit(&input_1[4 - 1])});
 
-  padded_string input_2(u8"bbbbbbbb"_sv);
+  Padded_String input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
-  reporter.report(diag_assignment_to_const_global_variable{
-      source_code_span::unit(&input_2[5 - 1])});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{
+      Source_Code_Span::unit(&input_2[5 - 1])});
 
-  padded_string input_3(u8"cccccccc"_sv);
+  Padded_String input_3(u8"cccccccc"_sv);
   reporter.set_source(&input_3, /*vim_bufnr=*/2);
-  reporter.report(diag_assignment_to_const_global_variable{
-      source_code_span::unit(&input_3[6 - 1])});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{
+      Source_Code_Span::unit(&input_3[6 - 1])});
 
   reporter.finish();
 
@@ -181,15 +181,15 @@ TEST_F(test_vim_qflist_json_diag_reporter, change_source) {
   EXPECT_FALSE(qflist[2].as_object().contains("filename"));
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter,
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter,
        assignment_to_const_global_variable) {
-  padded_string input(u8"to Infinity and beyond"_sv);
-  source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
+  Padded_String input(u8"to Infinity and beyond"_sv);
+  Source_Code_Span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report(diag_assignment_to_const_global_variable{infinity_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{infinity_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -205,16 +205,16 @@ TEST_F(test_vim_qflist_json_diag_reporter,
   EXPECT_EQ(look_up(qflist, 0, "vcol"), 0);
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, redeclaration_of_variable) {
-  padded_string input(u8"let myvar; let myvar;"_sv);
-  source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, redeclaration_of_variable) {
+  Padded_String input(u8"let myvar; let myvar;"_sv);
+  Source_Code_Span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(original_declaration_span.string_view(), u8"myvar"_sv);
-  source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
+  Source_Code_Span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_redeclaration_of_variable{redeclaration_span,
+  reporter.report(Diag_Redeclaration_Of_Variable{redeclaration_span,
                                                  original_declaration_span});
   reporter.finish();
 
@@ -230,14 +230,14 @@ TEST_F(test_vim_qflist_json_diag_reporter, redeclaration_of_variable) {
   EXPECT_EQ(look_up(qflist, 0, "text"), "redeclaration of variable: myvar");
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, unexpected_hash_character) {
-  padded_string input(u8"#"_sv);
-  source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, unexpected_hash_character) {
+  Padded_String input(u8"#"_sv);
+  Source_Code_Span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#"_sv);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_unexpected_hash_character{hash_span});
+  reporter.report(Diag_Unexpected_Hash_Character{hash_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -252,14 +252,14 @@ TEST_F(test_vim_qflist_json_diag_reporter, unexpected_hash_character) {
   EXPECT_EQ(look_up(qflist, 0, "text"), "unexpected '#'");
 }
 
-TEST_F(test_vim_qflist_json_diag_reporter, use_of_undeclared_variable) {
-  padded_string input(u8"myvar;"_sv);
-  source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
+TEST_F(Test_Vim_QFList_JSON_Diag_Reporter, use_of_undeclared_variable) {
+  Padded_String input(u8"myvar;"_sv);
+  Source_Code_Span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
-  vim_qflist_json_diag_reporter reporter =
+  Vim_QFList_JSON_Diag_Reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(diag_use_of_undeclared_variable{myvar_span});
+  reporter.report(Diag_Use_Of_Undeclared_Variable{myvar_span});
   reporter.finish();
 
   ::boost::json::array qflist =
@@ -274,25 +274,25 @@ TEST_F(test_vim_qflist_json_diag_reporter, use_of_undeclared_variable) {
   EXPECT_EQ(look_up(qflist, 0, "type"), "W");
 }
 
-TEST(test_vim_qflist_json_diag_formatter, single_span_simple_message) {
-  constexpr diagnostic_info diag_info = {
+TEST(Test_Vim_Qflist_JSON_Diag_Formatter, single_span_simple_message) {
+  constexpr Diagnostic_Info diag_info = {
       .code = 9999,
-      .severity = diagnostic_severity::error,
+      .severity = Diagnostic_Severity::error,
       .message_formats = {QLJS_TRANSLATABLE("something happened")},
       .message_args =
           {
-              diagnostic_message_args{{
-                  {0, diagnostic_arg_type::source_code_span},
+              Diagnostic_Message_Args{{
+                  {0, Diagnostic_Arg_Type::Source_Code_Span},
               }},
           },
   };
 
-  padded_string code(u8"hello world"_sv);
-  source_code_span hello_span(&code[0], &code[5]);
-  vim_locator locator(&code);
+  Padded_String code(u8"hello world"_sv);
+  Source_Code_Span hello_span(&code[0], &code[5]);
+  Vim_Locator locator(&code);
 
-  memory_output_stream stream;
-  vim_qflist_json_diag_formatter formatter(translator(), &stream, locator,
+  Memory_Output_Stream stream;
+  Vim_QFList_JSON_Diag_Formatter formatter(Translator(), &stream, locator,
                                            "FILE",
                                            /*bufnr=*/std::string_view());
   formatter.format(diag_info, &hello_span);
@@ -307,38 +307,38 @@ TEST(test_vim_qflist_json_diag_formatter, single_span_simple_message) {
   EXPECT_EQ(object["text"], "something happened");
 }
 
-TEST(test_vim_qflist_json_diag_formatter, message_with_note_ignores_note) {
-  struct test_diag {
-    source_code_span hello_span;
-    source_code_span world_span;
+TEST(Test_Vim_Qflist_JSON_Diag_Formatter, message_with_note_ignores_note) {
+  struct Test_Diag {
+    Source_Code_Span hello_span;
+    Source_Code_Span world_span;
   };
-  constexpr diagnostic_info diag_info = {
+  constexpr Diagnostic_Info diag_info = {
       .code = 9999,
-      .severity = diagnostic_severity::error,
+      .severity = Diagnostic_Severity::error,
       .message_formats = {QLJS_TRANSLATABLE("something happened"),
                           QLJS_TRANSLATABLE("here")},
       .message_args =
           {
-              diagnostic_message_args{{
-                  {offsetof(test_diag, hello_span),
-                   diagnostic_arg_type::source_code_span},
+              Diagnostic_Message_Args{{
+                  {offsetof(Test_Diag, hello_span),
+                   Diagnostic_Arg_Type::Source_Code_Span},
               }},
-              diagnostic_message_args{{
-                  {offsetof(test_diag, world_span),
-                   diagnostic_arg_type::source_code_span},
+              Diagnostic_Message_Args{{
+                  {offsetof(Test_Diag, world_span),
+                   Diagnostic_Arg_Type::Source_Code_Span},
               }},
           },
   };
 
-  padded_string code(u8"hello world"_sv);
-  vim_locator locator(&code);
+  Padded_String code(u8"hello world"_sv);
+  Vim_Locator locator(&code);
 
-  memory_output_stream stream;
-  test_diag diag = {
-      .hello_span = source_code_span(&code[0], &code[5]),
-      .world_span = source_code_span(&code[6], &code[11]),
+  Memory_Output_Stream stream;
+  Test_Diag diag = {
+      .hello_span = Source_Code_Span(&code[0], &code[5]),
+      .world_span = Source_Code_Span(&code[6], &code[11]),
   };
-  vim_qflist_json_diag_formatter formatter(translator(), &stream, locator,
+  Vim_QFList_JSON_Diag_Formatter formatter(Translator(), &stream, locator,
                                            "FILE",
                                            /*bufnr=*/std::string_view());
   formatter.format(diag_info, &diag);

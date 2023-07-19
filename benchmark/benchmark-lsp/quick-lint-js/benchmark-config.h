@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct benchmark_config_server {
+struct Benchmark_Config_Server {
   std::string name;
   std::string program_name;
   std::vector<std::string> command;
@@ -27,18 +27,18 @@ struct benchmark_config_server {
   std::string workspace_configuration_json = "{}";
 };
 
-struct benchmark_config_program {
+struct Benchmark_Config_Program {
   std::string name;
   std::map<std::string, std::string> (*get_metadata)();
 
   bool dumped_metadata = false;
 };
 
-struct benchmark_config {
-  std::vector<benchmark_config_server> servers;
-  std::vector<benchmark_config_program> programs;
+struct Benchmark_Config {
+  std::vector<Benchmark_Config_Server> servers;
+  std::vector<Benchmark_Config_Program> programs;
 
-  static benchmark_config load();
+  static Benchmark_Config load();
 };
 }
 

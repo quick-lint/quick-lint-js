@@ -25,11 +25,11 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_generic_arrow : public test_parse_expression {};
+class Test_Parse_TypeScript_Generic_Arrow : public Test_Parse_Expression {};
 
-TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
+TEST_F(Test_Parse_TypeScript_Generic_Arrow, generic_arrow_function) {
   {
-    test_parser p(u8"<Type>() => {}"_sv, typescript_options);
+    Test_Parser p(u8"<Type>() => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -42,7 +42,7 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
   }
 
   {
-    test_parser p(u8"<Type>(param) => {}"_sv, typescript_options);
+    Test_Parser p(u8"<Type>(param) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -57,7 +57,7 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
   }
 
   {
-    test_parser p(u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
+    Test_Parser p(u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -83,42 +83,42 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
 //
 //   f = <T>(text)</T>,
 //   f = () => {}
-string8_view ambiguous_jsx_generic_arrow =
+String8_View ambiguous_jsx_generic_arrow =
     u8R"(
     f = <T>(
         p // </T>, f = (
     ) => {}
 )"_sv;
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_function_in_ts_mode_can_look_like_jsx_element) {
   {
-    test_parser p(ambiguous_jsx_generic_arrow, typescript_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(ambiguous_jsx_generic_arrow, typescript_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var f, arrowfunc(var p))");
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        jsx_element_in_tsx_mode_can_look_like_generic_arrow_function) {
   {
-    test_parser p(ambiguous_jsx_generic_arrow, typescript_jsx_options);
-    expression* ast = p.parse_expression();
+    Test_Parser p(ambiguous_jsx_generic_arrow, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(
         summarize(ast),
         "binary(assign(var f, jsxelement(T)), assign(var f, arrowfunc()))");
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        unambiguous_generic_arrow_is_not_allowed_in_tsx) {
   {
     SCOPED_TRACE(
         "'>' is invalid in JSX, so this code cannot be interpreted as legal "
         "JSX");
-    test_parser p(u8"<T>() => {body} // </T>"_sv, typescript_jsx_options,
+    Test_Parser p(u8"<T>() => {body} // </T>"_sv, typescript_jsx_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -132,7 +132,7 @@ TEST_F(test_parse_typescript_generic_arrow,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code,
-                diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
                 generic_parameters_less, 0, u8"<"_sv,                   //
                 expected_comma, strlen(u8"<T"), u8""_sv,                //
                 arrow, strlen(u8"<T>() "), u8"=>"_sv),
@@ -145,34 +145,34 @@ TEST_F(test_parse_typescript_generic_arrow,
   // TODO(strager): <T>(f)() => </T>      // Not an arrow function.
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        unambiguous_generic_arrow_is_treated_as_jsx_in_non_typescript) {
   {
-    test_parser p(u8"<T>() => {body} // </T>"_sv, jsx_options, capture_diags);
-    expression* ast = p.parse_expression();
+    Test_Parser p(u8"<T>() => {body} // </T>"_sv, jsx_options, capture_diags);
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
-                                      diag_unexpected_greater_in_jsx_text,  //
+                                      Diag_Unexpected_Greater_In_JSX_Text,  //
                                       greater, strlen(u8"<T>() ="), u8">"_sv),
                 }));
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        arrow_without_parentheses_in_tsx_is_interpreted_as_jsx_element) {
   {
-    test_parser p(u8"<T>param => {body} // </T>"_sv, typescript_jsx_options,
+    Test_Parser p(u8"<T>param => {body} // </T>"_sv, typescript_jsx_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
-                              diag_unexpected_greater_in_jsx_text,  //
+                              Diag_Unexpected_Greater_In_JSX_Text,  //
                               greater, strlen(u8"<T>param ="), u8">"_sv),
         }));
   }
@@ -180,19 +180,19 @@ TEST_F(test_parse_typescript_generic_arrow,
 
 // TypeScript rejects this code. This seems like a TypeScript compiler bug to
 // me...
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_async_arrow_with_lone_parameter_is_not_allowed_in_tsx) {
   {
-    test_parser p(u8"async <T>() => {}"_sv, typescript_jsx_options,
+    Test_Parser p(u8"async <T>() => {}"_sv, typescript_jsx_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code,
-                diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
                 generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
                 expected_comma, strlen(u8"async <T"), u8""_sv,          //
                 arrow, strlen(u8"async <T>() "), u8"=>"_sv),
@@ -200,16 +200,16 @@ TEST_F(test_parse_typescript_generic_arrow,
   }
 
   {
-    test_parser p(u8"async <T>(): ReturnType => {}"_sv, typescript_jsx_options,
+    Test_Parser p(u8"async <T>(): ReturnType => {}"_sv, typescript_jsx_options,
                   capture_diags);
-    expression* ast = p.parse_expression();
+    Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code,
-                diag_typescript_generic_arrow_needs_comma_in_jsx_mode,  //
+                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
                 generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
                 expected_comma, strlen(u8"async <T"), u8""_sv,          //
                 arrow, strlen(u8"async <T>(): ReturnType "), u8"=>"_sv),
@@ -217,10 +217,10 @@ TEST_F(test_parse_typescript_generic_arrow,
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_comma_is_allowed_in_tsx) {
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser p(u8"<T,>(param) => {}"_sv, o);
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
+    Test_Parser p(u8"<T,>(param) => {}"_sv, o);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -234,8 +234,8 @@ TEST_F(test_parse_typescript_generic_arrow,
                                   arrow_param_decl(u8"param"_sv)}));
   }
 
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser p(u8"<T,>(): ReturnType => {}"_sv, o);
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
+    Test_Parser p(u8"<T,>(): ReturnType => {}"_sv, o);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
@@ -250,11 +250,11 @@ TEST_F(test_parse_typescript_generic_arrow,
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_extends_is_allowed_in_tsx) {
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
     {
-      test_parser p(u8"<T extends U>(param) => {}"_sv, o);
+      Test_Parser p(u8"<T extends U>(param) => {}"_sv, o);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
@@ -271,7 +271,7 @@ TEST_F(test_parse_typescript_generic_arrow,
     }
 
     {
-      test_parser p(u8"async <T extends U>() => { await myPromise; }"_sv, o);
+      Test_Parser p(u8"async <T extends U>() => { await myPromise; }"_sv, o);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
@@ -288,11 +288,11 @@ TEST_F(test_parse_typescript_generic_arrow,
   }
 }
 
-TEST_F(test_parse_typescript_generic_arrow,
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_default_is_allowed_in_tsx) {
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
     {
-      test_parser p(u8"<T = U>(param) => {}"_sv, o);
+      Test_Parser p(u8"<T = U>(param) => {}"_sv, o);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
@@ -309,7 +309,7 @@ TEST_F(test_parse_typescript_generic_arrow,
     }
 
     {
-      test_parser p(u8"async <T = U>() => { await myPromise; }"_sv, o);
+      Test_Parser p(u8"async <T = U>() => { await myPromise; }"_sv, o);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //

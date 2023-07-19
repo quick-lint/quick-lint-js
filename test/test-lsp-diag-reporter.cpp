@@ -21,14 +21,14 @@ namespace {
 constexpr int lsp_error_severity = 1;
 constexpr int lsp_warning_severity = 2;
 
-class test_lsp_diag_reporter : public ::testing::Test {
+class Test_LSP_Diag_Reporter : public ::testing::Test {
  protected:
-  lsp_diag_reporter make_reporter(padded_string_view input) {
-    return lsp_diag_reporter(translator(), this->buffer_, input);
+  LSP_Diag_Reporter make_reporter(Padded_String_View input) {
+    return LSP_Diag_Reporter(Translator(), this->buffer_, input);
   }
 
   ::boost::json::value parse_json() {
-    string8 json;
+    String8 json;
     json.resize(this->buffer_.size());
     this->buffer_.copy_to(json.data());
     SCOPED_TRACE(out_string8(json));
@@ -39,16 +39,16 @@ class test_lsp_diag_reporter : public ::testing::Test {
     return root;
   }
 
-  byte_buffer buffer_;
+  Byte_Buffer buffer_;
 };
 
-TEST_F(test_lsp_diag_reporter, big_int_literal_contains_decimal_point) {
-  padded_string input(u8"12.34n"_sv);
-  source_code_span number_span(&input[0], &input[6]);
+TEST_F(Test_LSP_Diag_Reporter, big_int_literal_contains_decimal_point) {
+  Padded_String input(u8"12.34n"_sv);
+  Source_Code_Span number_span(&input[0], &input[6]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n"_sv);
 
-  lsp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_big_int_literal_contains_decimal_point{number_span});
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(Diag_Big_Int_Literal_Contains_Decimal_Point{number_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
@@ -66,15 +66,15 @@ TEST_F(test_lsp_diag_reporter, big_int_literal_contains_decimal_point) {
             "https://quick-lint-js.com/errors/E0005/");
 }
 
-TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
-  padded_string input(u8"x=0;let x;"_sv);
-  source_code_span assignment_span(&input[0], &input[1]);
+TEST_F(Test_LSP_Diag_Reporter, assignment_before_variable_declaration) {
+  Padded_String input(u8"x=0;let x;"_sv);
+  Source_Code_Span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
-  source_code_span declaration_span(&input[8], &input[9]);
+  Source_Code_Span declaration_span(&input[8], &input[9]);
   ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
-  lsp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_assignment_before_variable_declaration{
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(Diag_Assignment_Before_Variable_Declaration{
       .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
 
@@ -94,14 +94,14 @@ TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
   // TODO(#200): Show the declaration as relatedInformation.
 }
 
-TEST_F(test_lsp_diag_reporter, assignment_to_undeclared_variable) {
-  padded_string input(u8"x=5;"_sv);
-  source_code_span assignment_span(&input[0], &input[1]);
+TEST_F(Test_LSP_Diag_Reporter, assignment_to_undeclared_variable) {
+  Padded_String input(u8"x=5;"_sv);
+  Source_Code_Span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
 
-  lsp_diag_reporter reporter = this->make_reporter(&input);
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
   reporter.report(
-      diag_assignment_to_undeclared_variable{.assignment = assignment_span});
+      Diag_Assignment_To_Undeclared_Variable{.assignment = assignment_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
@@ -118,31 +118,31 @@ TEST_F(test_lsp_diag_reporter, assignment_to_undeclared_variable) {
             "https://quick-lint-js.com/errors/E0059/");
 }
 
-TEST_F(test_lsp_diag_reporter, multiple_errors) {
-  padded_string input(u8"abc"_sv);
-  source_code_span a_span(&input[0], &input[1]);
-  source_code_span b_span(&input[1], &input[2]);
-  source_code_span c_span(&input[2], &input[3]);
+TEST_F(Test_LSP_Diag_Reporter, multiple_errors) {
+  Padded_String input(u8"abc"_sv);
+  Source_Code_Span a_span(&input[0], &input[1]);
+  Source_Code_Span b_span(&input[1], &input[2]);
+  Source_Code_Span c_span(&input[2], &input[3]);
 
-  lsp_diag_reporter reporter = this->make_reporter(&input);
-  reporter.report(diag_assignment_to_const_global_variable{a_span});
-  reporter.report(diag_assignment_to_const_global_variable{b_span});
-  reporter.report(diag_assignment_to_const_global_variable{c_span});
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{a_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{b_span});
+  reporter.report(Diag_Assignment_To_Const_Global_Variable{c_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
   EXPECT_EQ(diagnostics.as_array().size(), 3);
 }
 
-TEST_F(test_lsp_diag_reporter, messages_use_translator) {
-  translator t;
+TEST_F(Test_LSP_Diag_Reporter, messages_use_translator) {
+  Translator t;
   t.use_messages_from_locale("en_US@snarky");
 
-  padded_string input(u8"0e1n"_sv);
+  Padded_String input(u8"0e1n"_sv);
 
-  lsp_diag_reporter reporter(t, this->buffer_, &input);
-  reporter.report(diag_big_int_literal_contains_exponent{
-      .where = source_code_span(&input[1], &input[2]),
+  LSP_Diag_Reporter reporter(t, this->buffer_, &input);
+  reporter.report(Diag_Big_Int_Literal_Contains_Exponent{
+      .where = Source_Code_Span(&input[1], &input[2]),
   });
   reporter.finish();
 

@@ -9,14 +9,14 @@
 #include <string_view>
 
 namespace quick_lint_js {
-struct string_json_token {
+struct String_JSON_Token {
   // The string data.
-  string8_view data;
+  String8_View data;
   // The string data in JSON format.
-  string8_view json;
+  String8_View json;
 };
 
-string8_view get_raw_json(::simdjson::ondemand::value&);
+String8_View get_raw_json(::simdjson::ondemand::value&);
 
 // Returns true on success.
 //
@@ -48,11 +48,11 @@ bool get_string(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
                 const char* key, std::string_view* out);
 
 bool get_string8(::simdjson::ondemand::object& root, const char* key,
-                 string8_view* out);
+                 String8_View* out);
 bool get_string8(::simdjson::ondemand::object& root, const char* key1,
-                 const char* key2, const char* key3, string8_view* out);
+                 const char* key2, const char* key3, String8_View* out);
 bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
-                 const char* key, string8_view* out);
+                 const char* key, String8_View* out);
 
 // TODO(strager): What do we do if the value is integral but is out of range of
 // 'int'?

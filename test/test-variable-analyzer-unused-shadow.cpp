@@ -19,22 +19,22 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_initialized_var_without_use_in_block_scope_is_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
 
-  struct test_case {
-    variable_kind outer_declaration_kind;
-    variable_kind inner_declaration_kind;
+  struct Test_Case {
+    Variable_Kind outer_declaration_kind;
+    Variable_Kind inner_declaration_kind;
   };
-  for (test_case tc : {
-           test_case{variable_kind::_const, variable_kind::_const},
-           test_case{variable_kind::_const, variable_kind::_let},
-           test_case{variable_kind::_let, variable_kind::_const},
-           test_case{variable_kind::_let, variable_kind::_let},
-           test_case{variable_kind::_var, variable_kind::_const},
-           test_case{variable_kind::_var, variable_kind::_let},
+  for (Test_Case tc : {
+           Test_Case{Variable_Kind::_const, Variable_Kind::_const},
+           Test_Case{Variable_Kind::_const, Variable_Kind::_let},
+           Test_Case{Variable_Kind::_let, Variable_Kind::_const},
+           Test_Case{Variable_Kind::_let, Variable_Kind::_let},
+           Test_Case{Variable_Kind::_var, Variable_Kind::_const},
+           Test_Case{Variable_Kind::_var, Variable_Kind::_let},
        }) {
     SCOPED_TRACE(tc.outer_declaration_kind);
     SCOPED_TRACE(tc.inner_declaration_kind);
@@ -46,22 +46,22 @@ TEST(test_variable_analyzer_unused_shadow,
       //   // const/let/etc.
       //   let x = 6;  // WARNING
       // }
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, javascript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(
           identifier_of(outer_declaration), tc.outer_declaration_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_enter_block_scope();
       l.visit_variable_declaration(
           identifier_of(inner_declaration), tc.inner_declaration_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
                   ElementsAreArray({
                       DIAG_TYPE_2_SPANS(
-                          diag_unused_variable_shadows,                       //
+                          Diag_Unused_Variable_Shadows,                       //
                           shadowing_declaration, span_of(inner_declaration),  //
                           shadowed_declaration, span_of(outer_declaration)),
                   }));
@@ -77,16 +77,16 @@ TEST(test_variable_analyzer_unused_shadow,
       //     let x = 6;  // WARNING
       //   }
       // }
-      diag_collector v;
-      variable_analyzer l(&v, &default_globals, javascript_var_options);
+      Diag_Collector v;
+      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(
           identifier_of(outer_declaration), tc.outer_declaration_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_enter_block_scope();
       l.visit_enter_block_scope();
       l.visit_variable_declaration(
           identifier_of(inner_declaration), tc.inner_declaration_kind,
-          variable_declaration_flags::initialized_with_equals);
+          Variable_Declaration_Flags::initialized_with_equals);
       l.visit_exit_block_scope();
       l.visit_exit_block_scope();
       l.visit_end_of_module();
@@ -94,7 +94,7 @@ TEST(test_variable_analyzer_unused_shadow,
       EXPECT_THAT(v.errors,
                   ElementsAreArray({
                       DIAG_TYPE_2_SPANS(
-                          diag_unused_variable_shadows,                       //
+                          Diag_Unused_Variable_Shadows,                       //
                           shadowing_declaration, span_of(inner_declaration),  //
                           shadowed_declaration, span_of(outer_declaration)),
                   }));
@@ -102,25 +102,25 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_function_scope_var_without_use_in_block_scope_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
 
   {
     // var x = 5;
     // {
     //   var x = 6;  // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_var,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_var,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_var,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_var,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
@@ -128,25 +128,25 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_unassigned_var_in_block_scope_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
 
   {
     // let x = 5;
     // {
     //   let x;  // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(inner_declaration),
-                                 variable_kind::_let,
-                                 variable_declaration_flags::none);
+                                 Variable_Kind::_let,
+                                 Variable_Declaration_Flags::none);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
@@ -154,26 +154,26 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_var_without_use_in_function_scope_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
 
   {
     // let x = 5;
     // (function() {
     //   let x = 6;  // no warning
     // });
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -181,27 +181,27 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_parameter_is_not_a_warning) {
-  const char8 parameter[] = u8"x";
-  const char8 let[] = u8"x";
+  const Char8 parameter[] = u8"x";
+  const Char8 let[] = u8"x";
 
   // (function(x) {
   //   {
   //     let x = 6;  // no warning
   //   }
   // });
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter),
-                               variable_kind::_function_parameter,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_function_parameter,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_function_scope_body();
   l.visit_enter_block_scope();
   l.visit_variable_declaration(
-      identifier_of(let), variable_kind::_let,
-      variable_declaration_flags::initialized_with_equals);
+      identifier_of(let), Variable_Kind::_let,
+      Variable_Declaration_Flags::initialized_with_equals);
   l.visit_exit_block_scope();
   l.visit_exit_function_scope();
   l.visit_end_of_module();
@@ -209,14 +209,14 @@ TEST(test_variable_analyzer_unused_shadow,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_class_or_function_or_import_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"C";
-  const char8 inner_declaration[] = u8"C";
+  const Char8 outer_declaration[] = u8"C";
+  const Char8 inner_declaration[] = u8"C";
 
-  for (variable_kind outer_kind :
-       {variable_kind::_class, variable_kind::_function,
-        variable_kind::_import}) {
+  for (Variable_Kind outer_kind :
+       {Variable_Kind::_class, Variable_Kind::_function,
+        Variable_Kind::_import}) {
     SCOPED_TRACE(outer_kind);
 
     // class C {}
@@ -228,14 +228,14 @@ TEST(test_variable_analyzer_unused_shadow,
     // {
     //   let C = 6;  // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
-                                 variable_declaration_flags::none);
+                                 Variable_Declaration_Flags::none);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
@@ -243,10 +243,10 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_catch_variable_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"e";
-  const char8 inner_declaration[] = u8"e";
+  const Char8 outer_declaration[] = u8"e";
+  const Char8 inner_declaration[] = u8"e";
 
   // try {
   // } catch (e) {
@@ -254,18 +254,18 @@ TEST(test_variable_analyzer_unused_shadow,
   //     let e = 6;  // no warning
   //   }
   // }
-  diag_collector v;
-  variable_analyzer l(&v, &default_globals, javascript_var_options);
+  Diag_Collector v;
+  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   l.visit_enter_block_scope();  // try
   l.visit_exit_block_scope();
   l.visit_enter_block_scope();  // catch
   l.visit_variable_declaration(identifier_of(outer_declaration),
-                               variable_kind::_catch,
-                               variable_declaration_flags::none);
+                               Variable_Kind::_catch,
+                               Variable_Declaration_Flags::none);
   l.visit_enter_block_scope();
   l.visit_variable_declaration(
-      identifier_of(inner_declaration), variable_kind::_let,
-      variable_declaration_flags::initialized_with_equals);
+      identifier_of(inner_declaration), Variable_Kind::_let,
+      Variable_Declaration_Flags::initialized_with_equals);
   l.visit_exit_block_scope();
   l.visit_exit_block_scope();
   l.visit_end_of_module();
@@ -273,11 +273,11 @@ TEST(test_variable_analyzer_unused_shadow,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      using_shadowing_variable_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
-  const char8 use[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
+  const Char8 use[] = u8"x";
 
   {
     // let x = 5;
@@ -285,15 +285,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     //   x;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_block_scope();
     l.visit_end_of_module();
@@ -309,15 +309,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     x;
     //   }
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_block_scope();
@@ -335,15 +335,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     x;
     //   });
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
@@ -355,11 +355,11 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      using_shadowing_variable_before_its_declaration_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
-  const char8 use[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
+  const Char8 use[] = u8"x";
 
   {
     // let x = 5;
@@ -367,21 +367,21 @@ TEST(test_variable_analyzer_unused_shadow,
     //   x;          // ERROR
     //   let x = 6;  // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(diag_variable_used_before_declaration),
+                              DIAG_TYPE(Diag_Variable_Used_Before_Declaration),
                           }));
   }
 
@@ -393,23 +393,23 @@ TEST(test_variable_analyzer_unused_shadow,
     //   }
     //   let x = 6;  // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(diag_variable_used_before_declaration),
+                              DIAG_TYPE(Diag_Variable_Used_Before_Declaration),
                           }));
   }
 
@@ -421,19 +421,19 @@ TEST(test_variable_analyzer_unused_shadow,
     //   });
     //   let x = 6;    // no warning
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
@@ -441,11 +441,11 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      using_shadowing_variable_with_eval_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
-  const char8 use_eval[] = u8"eval";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
+  const Char8 use_eval[] = u8"eval";
 
   {
     // let x = 5;
@@ -453,15 +453,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     //   eval("x");
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
     l.visit_end_of_module();
@@ -477,15 +477,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     eval("x");
     //   }
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
@@ -505,15 +505,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     }
     //   }
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
@@ -533,15 +533,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     eval("x");
     //   });
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
@@ -562,15 +562,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //     });
     //   });
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
@@ -585,11 +585,11 @@ TEST(test_variable_analyzer_unused_shadow,
   }
 }
 
-TEST(test_variable_analyzer_unused_shadow,
+TEST(Test_Variable_Analyzer_Unused_Shadow,
      assigning_to_shadowing_variable_is_not_a_warning) {
-  const char8 outer_declaration[] = u8"x";
-  const char8 inner_declaration[] = u8"x";
-  const char8 assignment[] = u8"x";
+  const Char8 outer_declaration[] = u8"x";
+  const Char8 inner_declaration[] = u8"x";
+  const Char8 assignment[] = u8"x";
 
   {
     // let x = 5;
@@ -597,15 +597,15 @@ TEST(test_variable_analyzer_unused_shadow,
     //   let x = 6;  // no warning
     //   x = 7;
     // }
-    diag_collector v;
-    variable_analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_Collector v;
+    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_variable_declaration(
-        identifier_of(outer_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(outer_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(
-        identifier_of(inner_declaration), variable_kind::_let,
-        variable_declaration_flags::initialized_with_equals);
+        identifier_of(inner_declaration), Variable_Kind::_let,
+        Variable_Declaration_Flags::initialized_with_equals);
     l.visit_variable_assignment(identifier_of(assignment));
     l.visit_exit_block_scope();
     l.visit_end_of_module();

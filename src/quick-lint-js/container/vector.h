@@ -23,9 +23,9 @@
 
 namespace quick_lint_js {
 // Wraps a vector class so it has the same interface as
-// instrumented_vector<Vector> (but without the instrumentation overhead).
+// Instrumented_Vector<Vector> (but without the instrumentation overhead).
 template <class Vector>
-class uninstrumented_vector : private Vector {
+class Uninstrumented_Vector : private Vector {
  public:
   using typename Vector::allocator_type;
   using typename Vector::const_iterator;
@@ -38,27 +38,27 @@ class uninstrumented_vector : private Vector {
   using typename Vector::size_type;
   using typename Vector::value_type;
 
-  explicit uninstrumented_vector(
+  explicit Uninstrumented_Vector(
       const char *, const typename Vector::allocator_type &allocator) noexcept
       : Vector(allocator) {}
 
-  explicit uninstrumented_vector(
+  explicit Uninstrumented_Vector(
       const char *, const typename Vector::allocator_type &allocator,
       const typename Vector::value_type *begin,
       const typename Vector::value_type *end)
       : Vector(begin, end, allocator) {}
 
-  uninstrumented_vector(const uninstrumented_vector &) = delete;
-  uninstrumented_vector &operator=(const uninstrumented_vector &) = delete;
+  Uninstrumented_Vector(const Uninstrumented_Vector &) = delete;
+  Uninstrumented_Vector &operator=(const Uninstrumented_Vector &) = delete;
 
-  uninstrumented_vector(uninstrumented_vector &&other) = default;
+  Uninstrumented_Vector(Uninstrumented_Vector &&other) = default;
 
-  uninstrumented_vector(const char *, uninstrumented_vector &&other)
-      : uninstrumented_vector(std::move(other)) {}
+  Uninstrumented_Vector(const char *, Uninstrumented_Vector &&other)
+      : Uninstrumented_Vector(std::move(other)) {}
 
-  uninstrumented_vector &operator=(uninstrumented_vector &&other) = default;
+  Uninstrumented_Vector &operator=(Uninstrumented_Vector &&other) = default;
 
-  ~uninstrumented_vector() = default;
+  ~Uninstrumented_Vector() = default;
 
   using Vector::back;
   using Vector::begin;
@@ -84,15 +84,15 @@ class uninstrumented_vector : private Vector {
   using Vector::release;
 };
 
-using bump_vector_size = std::ptrdiff_t;
+using Bump_Vector_Size = std::ptrdiff_t;
 
 template <class T, class BumpAllocator>
-class raw_bump_vector {
+class Raw_Bump_Vector {
  public:
   using value_type = T;
   using allocator_type = BumpAllocator *;
-  using size_type = bump_vector_size;
-  using difference_type = bump_vector_size;
+  using size_type = Bump_Vector_Size;
+  using difference_type = Bump_Vector_Size;
   using reference = T &;
   using const_reference = const T &;
   using pointer = T *;
@@ -102,13 +102,13 @@ class raw_bump_vector {
 
   static_assert(is_winkable_v<T>);
 
-  explicit raw_bump_vector(BumpAllocator *allocator) noexcept
+  explicit Raw_Bump_Vector(BumpAllocator *allocator) noexcept
       : allocator_(allocator) {}
 
-  raw_bump_vector(const raw_bump_vector &) = delete;
-  raw_bump_vector &operator=(const raw_bump_vector &) = delete;
+  Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
+  Raw_Bump_Vector &operator=(const Raw_Bump_Vector &) = delete;
 
-  raw_bump_vector(raw_bump_vector &&other)
+  Raw_Bump_Vector(Raw_Bump_Vector &&other)
       : data_(other.data_),
         data_end_(other.data_end_),
         capacity_end_(other.capacity_end_),
@@ -118,7 +118,7 @@ class raw_bump_vector {
     other.capacity_end_ = nullptr;
   }
 
-  ~raw_bump_vector() { this->clear(); }
+  ~Raw_Bump_Vector() { this->clear(); }
 
   BumpAllocator *get_allocator() const noexcept { return this->allocator_; }
 
@@ -224,13 +224,13 @@ class raw_bump_vector {
   }
 
   // Similar to std::basic_string::operator+=.
-  raw_bump_vector &operator+=(std::basic_string_view<T> values) {
+  Raw_Bump_Vector &operator+=(std::basic_string_view<T> values) {
     this->append(values.data(), values.data() + values.size());
     return *this;
   }
 
   // Similar to std::basic_string::operator+=.
-  raw_bump_vector &operator+=(T value) {
+  Raw_Bump_Vector &operator+=(T value) {
     this->emplace_back(value);
     return *this;
   }
@@ -254,7 +254,7 @@ class raw_bump_vector {
       this->allocator_->deallocate(
           this->data_,
           narrow_cast<std::size_t>(this->size() *
-                                   static_cast<bump_vector_size>(sizeof(T))),
+                                   static_cast<Bump_Vector_Size>(sizeof(T))),
           alignof(T));
       this->release();
     }
@@ -305,10 +305,10 @@ class raw_bump_vector {
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 template <class T, class BumpAllocator>
-using bump_vector = instrumented_vector<raw_bump_vector<T, BumpAllocator>>;
+using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T, BumpAllocator>>;
 #else
 template <class T, class BumpAllocator>
-using bump_vector = uninstrumented_vector<raw_bump_vector<T, BumpAllocator>>;
+using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T, BumpAllocator>>;
 #endif
 }
 

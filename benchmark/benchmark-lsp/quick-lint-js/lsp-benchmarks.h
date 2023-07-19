@@ -9,22 +9,22 @@
 #include <string>
 
 namespace quick_lint_js {
-class benchmark {
+class Benchmark {
  public:
-  virtual ~benchmark() {}
+  virtual ~Benchmark() {}
 
   virtual std::string name() const = 0;
   // Must be called by derived classes.
-  virtual bool is_supported(const benchmark_config_server&) const;
+  virtual bool is_supported(const Benchmark_Config_Server&) const;
 
-  virtual lsp_task<void> set_up_async(lsp_server_process&,
-                                      const benchmark_config_server&,
+  virtual LSP_Task<void> set_up_async(LSP_Server_Process&,
+                                      const Benchmark_Config_Server&,
                                       int iteration_count) = 0;
 
-  virtual lsp_task<void> run_iteration_async(lsp_server_process&,
+  virtual LSP_Task<void> run_iteration_async(LSP_Server_Process&,
                                              int iteration_index) = 0;
 
-  lsp_task<void> run_iterations_async(lsp_server_process& server,
+  LSP_Task<void> run_iterations_async(LSP_Server_Process& server,
                                       int start_iteration, int end_iteration) {
     for (int i = start_iteration; i < end_iteration; ++i) {
       co_await this->run_iteration_async(server, i);
@@ -32,9 +32,9 @@ class benchmark {
   }
 };
 
-using benchmark_factory = std::unique_ptr<benchmark> (*)();
+using Benchmark_Factory = std::unique_ptr<Benchmark> (*)();
 
-std::vector<benchmark_factory> get_benchmark_factories();
+std::vector<Benchmark_Factory> get_benchmark_factories();
 }
 
 #endif

@@ -11,17 +11,17 @@
 
 namespace quick_lint_js {
 struct typescript_test_unit {
-  padded_string data;
-  string8 name;
+  Padded_String data;
+  String8 name;
 
   // Returns std::nullopt if this file should not be parsed or linted.
-  std::optional<linter_options> get_linter_options() const noexcept;
+  std::optional<Linter_Options> get_linter_options() const noexcept;
 };
 
 using typescript_test_units = std::vector<typescript_test_unit>;
 
 typescript_test_units extract_units_from_typescript_test(
-    padded_string&& file, string8_view test_file_name);
+    Padded_String&& file, String8_View test_file_name);
 }
 
 #endif

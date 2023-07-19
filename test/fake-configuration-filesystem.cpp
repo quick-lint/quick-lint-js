@@ -18,24 +18,24 @@
 #include <utility>
 
 namespace quick_lint_js {
-fake_configuration_filesystem::fake_configuration_filesystem() = default;
+Fake_Configuration_Filesystem::Fake_Configuration_Filesystem() = default;
 
-fake_configuration_filesystem::~fake_configuration_filesystem() = default;
+Fake_Configuration_Filesystem::~Fake_Configuration_Filesystem() = default;
 
-void fake_configuration_filesystem::create_file(const canonical_path& path,
-                                                string8_view content) {
+void Fake_Configuration_Filesystem::create_file(const Canonical_Path& path,
+                                                String8_View content) {
   this->files_.insert_or_assign(
-      path, [content_string = string8(content)]() -> read_file_result {
-        return padded_string(string8_view(content_string));
+      path, [content_string = String8(content)]() -> Read_File_Result {
+        return Padded_String(String8_View(content_string));
       });
 }
 
-void fake_configuration_filesystem::create_file(
-    const canonical_path& path, heap_function<read_file_result()> callback) {
+void Fake_Configuration_Filesystem::create_file(
+    const Canonical_Path& path, Heap_Function<Read_File_Result()> callback) {
   this->files_.insert_or_assign(path, std::move(callback));
 }
 
-canonical_path fake_configuration_filesystem::rooted(const char* path) const {
+Canonical_Path Fake_Configuration_Filesystem::rooted(const char* path) const {
   std::string full_path;
 #if defined(_WIN32)
   full_path = "X:\\";
@@ -50,10 +50,10 @@ canonical_path fake_configuration_filesystem::rooted(const char* path) const {
     }
   }
 #endif
-  return canonical_path(std::move(full_path));
+  return Canonical_Path(std::move(full_path));
 }
 
-string8 fake_configuration_filesystem::file_uri_prefix_8() const {
+String8 Fake_Configuration_Filesystem::file_uri_prefix_8() const {
 #if defined(_WIN32)
   return u8"file:///X:/";
 #else
@@ -61,23 +61,23 @@ string8 fake_configuration_filesystem::file_uri_prefix_8() const {
 #endif
 }
 
-result<canonical_path_result, canonicalize_path_io_error>
-fake_configuration_filesystem::canonicalize_path(const std::string& path) {
+Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
+Fake_Configuration_Filesystem::canonicalize_path(const std::string& path) {
   // TODO(strager): Check if path components exist.
-  return canonical_path_result(std::string(path), path.size());
+  return Canonical_Path_Result(std::string(path), path.size());
 }
 
-result<padded_string, read_file_io_error>
-fake_configuration_filesystem::read_file(const canonical_path& path) {
+Result<Padded_String, Read_File_IO_Error>
+Fake_Configuration_Filesystem::read_file(const Canonical_Path& path) {
   auto file_it = this->files_.find(path);
   if (file_it == this->files_.end()) {
 #if QLJS_HAVE_WINDOWS_H
-    windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
+    Windows_File_IO_Error io_error = {ERROR_FILE_NOT_FOUND};
 #endif
 #if QLJS_HAVE_UNISTD_H
-    posix_file_io_error io_error = {ENOENT};
+    POSIX_File_IO_Error io_error = {ENOENT};
 #endif
-    return failed_result(read_file_io_error{
+    return failed_result(Read_File_IO_Error{
         .path = std::string(path.path()),
         .io_error = io_error,
     });
@@ -85,7 +85,7 @@ fake_configuration_filesystem::read_file(const canonical_path& path) {
   return file_it->second();
 }
 
-void fake_configuration_filesystem::clear() { this->files_.clear(); }
+void Fake_Configuration_Filesystem::clear() { this->files_.clear(); }
 }
 
 #endif
