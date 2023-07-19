@@ -47,8 +47,6 @@ std::string_view to_string_view(String8_View);
 String8_View to_string8_view(std::string_view);
 
 const Char8 *strchr(const Char8 *haystack, Char8 needle);
-const Char8 *strstr(const Char8 *haystack, const Char8 *needle);
-std::size_t strspn(const Char8 *haystack, const Char8 *needles);
 
 // The following functions treat ASCII A-Z as upper, a-z as lower, and all other
 // code units as neither upper nor lower.

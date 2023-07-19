@@ -43,17 +43,6 @@ const Char8 *strchr(const Char8 *haystack, Char8 needle) {
       reinterpret_cast<const char *>(haystack), static_cast<char>(needle)));
 }
 
-const Char8 *strstr(const Char8 *haystack, const Char8 *needle) {
-  return reinterpret_cast<const Char8 *>(
-      std::strstr(reinterpret_cast<const char *>(haystack),
-                  reinterpret_cast<const char *>(needle)));
-}
-
-std::size_t strspn(const Char8 *haystack, const Char8 *needles) {
-  return std::strspn(reinterpret_cast<const char *>(haystack),
-                     reinterpret_cast<const char *>(needles));
-}
-
 Char8 toupper(Char8 c) noexcept {
   if (islower(c)) {
     return narrow_cast<Char8>(c - (u8'a' - u8'A'));
