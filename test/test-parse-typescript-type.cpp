@@ -459,8 +459,8 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[A?, B"), u8""_sv,
-                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
+                expected_question, u8"[A?, B"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[A"_sv.size(), u8"?"_sv),
         }));
   }
 
@@ -474,8 +474,8 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[A?, B?, C"), u8""_sv,
-                previous_optional_question, strlen(u8"[A?, B"), u8"?"_sv),
+                expected_question, u8"[A?, B?, C"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[A?, B"_sv.size(), u8"?"_sv),
         }))
         << "diagnostic should point to the last optional '?'";
   }
@@ -490,13 +490,13 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_unnamed_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[A?, B"), u8""_sv,
-                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
+                expected_question, u8"[A?, B"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[A"_sv.size(), u8"?"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[A?, B, C"), u8""_sv,
-                previous_optional_question, strlen(u8"[A"), u8"?"_sv),
+                expected_question, u8"[A?, B, C"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[A"_sv.size(), u8"?"_sv),
         }));
   }
 }
@@ -625,8 +625,8 @@ TEST_F(Test_Parse_TypeScript_Type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element,
-                optional_question, strlen(u8"[...A, B"), u8"?"_sv,
-                previous_spread, strlen(u8"["), u8"..."_sv),
+                optional_question, u8"[...A, B"_sv.size(), u8"?"_sv,
+                previous_spread, u8"["_sv.size(), u8"..."_sv),
         }));
   }
 
@@ -639,8 +639,8 @@ TEST_F(Test_Parse_TypeScript_Type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_TypeScript_Spread_Element_Cannot_Be_Optional,
-                optional_question, strlen(u8"[...A"), u8"?"_sv, spread,
-                strlen(u8"["), u8"..."_sv),
+                optional_question, u8"[...A"_sv.size(), u8"?"_sv, spread,
+                u8"["_sv.size(), u8"..."_sv),
         }));
   }
 }
@@ -712,8 +712,8 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, strlen(u8"[a: A, "), u8""_sv,
-                existing_name, strlen(u8"["), u8"a:"_sv),
+                expected_name_and_colon, u8"[a: A, "_sv.size(), u8""_sv,
+                existing_name, u8"["_sv.size(), u8"a:"_sv),
         }));
   }
 
@@ -727,8 +727,8 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, strlen(u8"[a: A, b: B, "), u8""_sv,
-                existing_name, strlen(u8"["), u8"a:"_sv),
+                expected_name_and_colon, u8"[a: A, b: B, "_sv.size(), u8""_sv,
+                existing_name, u8"["_sv.size(), u8"a:"_sv),
         }));
   }
 
@@ -746,8 +746,8 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, strlen(u8"["), u8""_sv, existing_name,
-                strlen(u8"[A, "), u8"b:"_sv),
+                expected_name_and_colon, u8"["_sv.size(), u8""_sv,
+                existing_name, u8"[A, "_sv.size(), u8"b:"_sv),
         }));
   }
 
@@ -764,7 +764,7 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, strlen(u8"["), u8":"_sv),
+                              colon, u8"["_sv.size(), u8":"_sv),
         }));
   }
 
@@ -781,7 +781,7 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, strlen(u8"["), u8":"_sv),
+                              colon, u8"["_sv.size(), u8":"_sv),
         }))
         << "should not also report a missing name for the second element, "
            "because maybe the ':' was a mistake";
@@ -796,12 +796,12 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, strlen(u8"["), u8":"_sv),
+                              colon, u8"["_sv.size(), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, strlen(u8"[: A, b: B, "), u8""_sv,
-                existing_name, strlen(u8"[: A, "), u8"b:"_sv)));
+                expected_name_and_colon, u8"[: A, b: B, "_sv.size(), u8""_sv,
+                existing_name, u8"[: A, "_sv.size(), u8"b:"_sv)));
   }
 
   {
@@ -813,12 +813,12 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, strlen(u8"["), u8":"_sv),
+                              colon, u8"["_sv.size(), u8":"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, strlen(u8"[: A, "), u8""_sv,
-                existing_name, strlen(u8"[: A, B, "), u8"c:"_sv),
+                expected_name_and_colon, u8"[: A, "_sv.size(), u8""_sv,
+                existing_name, u8"[: A, B, "_sv.size(), u8"c:"_sv),
         }));
   }
 }
@@ -855,8 +855,8 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_named_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[a?: A, b"), u8""_sv,
-                previous_optional_question, strlen(u8"[a"), u8"?"_sv),
+                expected_question, u8"[a?: A, b"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[a"_sv.size(), u8"?"_sv),
         }));
   }
 
@@ -871,8 +871,8 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_named_element) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, strlen(u8"[a?: A, b?: B, c"), u8""_sv,
-                previous_optional_question, strlen(u8"[a?: A, b"), u8"?"_sv),
+                expected_question, u8"[a?: A, b?: B, c"_sv.size(), u8""_sv,
+                previous_optional_question, u8"[a?: A, b"_sv.size(), u8"?"_sv),
         }))
         << "diagnostic should point to the last optional '?'";
   }
@@ -892,8 +892,8 @@ TEST_F(Test_Parse_TypeScript_Type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_TypeScript_Named_Tuple_Element_Question_After_Type,
-                question, strlen(u8"[a: A"), u8"?"_sv, expected_question,
-                strlen(u8"[a"), u8""_sv),
+                question, u8"[a: A"_sv.size(), u8"?"_sv, expected_question,
+                u8"[a"_sv.size(), u8""_sv),
         }));
   }
 
@@ -910,8 +910,8 @@ TEST_F(Test_Parse_TypeScript_Type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Named_Tuple_Element_Question_After_Name_And_Type,
-                type_question, strlen(u8"[a?: A"), u8"?"_sv, name_question,
-                strlen(u8"[a"), u8"?"_sv),
+                type_question, u8"[a?: A"_sv.size(), u8"?"_sv, name_question,
+                u8"[a"_sv.size(), u8"?"_sv),
         }));
   }
 }
@@ -965,8 +965,8 @@ TEST_F(Test_Parse_TypeScript_Type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element,
-                optional_question, strlen(u8"[...a: A, b"), u8"?"_sv,
-                previous_spread, strlen(u8"["), u8"..."_sv),
+                optional_question, u8"[...a: A, b"_sv.size(), u8"?"_sv,
+                previous_spread, u8"["_sv.size(), u8"..."_sv),
         }));
   }
 
@@ -979,8 +979,8 @@ TEST_F(Test_Parse_TypeScript_Type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_TypeScript_Spread_Element_Cannot_Be_Optional,
-                optional_question, strlen(u8"[...a"), u8"?"_sv, spread,
-                strlen(u8"["), u8"..."_sv),
+                optional_question, u8"[...a"_sv.size(), u8"?"_sv, spread,
+                u8"["_sv.size(), u8"..."_sv),
         }));
   }
 }
@@ -999,8 +999,8 @@ TEST_F(Test_Parse_TypeScript_Type,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_TypeScript_Named_Tuple_Element_Spread_Before_Type,
-                spread, strlen(u8"[ a: "), u8"..."_sv, expected_spread,
-                strlen(u8"[ "), u8""_sv),
+                spread, u8"[ a: "_sv.size(), u8"..."_sv, expected_spread,
+                u8"[ "_sv.size(), u8""_sv),
         }));
   }
 
@@ -1017,8 +1017,8 @@ TEST_F(Test_Parse_TypeScript_Type,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Named_Tuple_Element_Spread_Before_Name_And_Type,
-                type_spread, strlen(u8"[...a: "), u8"..."_sv, name_spread,
-                strlen(u8"["), u8"..."_sv),
+                type_spread, u8"[...a: "_sv.size(), u8"..."_sv, name_spread,
+                u8"["_sv.size(), u8"..."_sv),
         }));
   }
 }
@@ -1110,7 +1110,7 @@ TEST_F(Test_Parse_TypeScript_Type,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Separator_Between_Object_Type_Entries,
-                expected_separator, strlen(u8"{ p1: Type1"), u8""_sv),
+                expected_separator, u8"{ p1: Type1"_sv.size(), u8""_sv),
         }));
   }
 }
@@ -1696,8 +1696,8 @@ TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
                 p.code,
                 Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question,
-                strlen(u8"fs.promises.writeFile(outputPath, result).then((err: "
-                       u8"Error"),
+                u8"fs.promises.writeFile(outputPath, result).then((err: "
+                u8"Error"_sv.size(),
                 u8"?"_sv),
         }));
   }
@@ -1714,8 +1714,8 @@ TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
                 p.code,
                 Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
                 question,
-                strlen(
-                    u8"fs.promises.writeFile(outputPath, result).then((err: "),
+                u8"fs.promises.writeFile(outputPath, result).then((err: "_sv
+                    .size(),
                 u8"?"_sv),
         }));
   }
@@ -1729,7 +1729,7 @@ TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
-                question, strlen(u8"Type"), u8"?"_sv),
+                question, u8"Type"_sv.size(), u8"?"_sv),
         }));
   }
 
@@ -1934,8 +1934,8 @@ TEST_F(Test_Parse_TypeScript_Type, union_disallows_consecutive_pipes) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
-                        left_operator, strlen(u8""), u8"|"_sv, right_operator,
-                        strlen(u8"| "), u8"|"_sv),
+                        left_operator, u8""_sv.size(), u8"|"_sv, right_operator,
+                        u8"| "_sv.size(), u8"|"_sv),
                 }));
   }
 
@@ -1950,8 +1950,8 @@ TEST_F(Test_Parse_TypeScript_Type, union_disallows_consecutive_pipes) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
-                        left_operator, strlen(u8"Type1 "), u8"|"_sv,
-                        right_operator, strlen(u8"Type1 | "), u8"|"_sv),
+                        left_operator, u8"Type1 "_sv.size(), u8"|"_sv,
+                        right_operator, u8"Type1 | "_sv.size(), u8"|"_sv),
                 }));
   }
 }
@@ -1993,8 +1993,8 @@ TEST_F(Test_Parse_TypeScript_Type,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
-                        left_operator, strlen(u8""), u8"&"_sv, right_operator,
-                        strlen(u8"& "), u8"&"_sv),
+                        left_operator, u8""_sv.size(), u8"&"_sv, right_operator,
+                        u8"& "_sv.size(), u8"&"_sv),
                 }));
   }
 
@@ -2009,8 +2009,8 @@ TEST_F(Test_Parse_TypeScript_Type,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code, Diag_Missing_Type_Between_Intersection_Or_Union,
-                        left_operator, strlen(u8"Type1 "), u8"&"_sv,
-                        right_operator, strlen(u8"Type1 & "), u8"&"_sv),
+                        left_operator, u8"Type1 "_sv.size(), u8"&"_sv,
+                        right_operator, u8"Type1 & "_sv.size(), u8"&"_sv),
                 }));
   }
 }
@@ -2175,8 +2175,8 @@ TEST_F(Test_Parse_TypeScript_Type, typeof_generic_does_not_allow_dots_after) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type,
-                dot, strlen(u8"typeof Class<T>"), u8"."_sv, property_name,
-                strlen(u8"typeof Class<T>."), u8"member"_sv),
+                dot, u8"typeof Class<T>"_sv.size(), u8"."_sv, property_name,
+                u8"typeof Class<T>."_sv.size(), u8"member"_sv),
         }));
   }
 
@@ -2447,9 +2447,9 @@ TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_invalid_infer) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_TypeScript_Infer_Requires_Parentheses,      //
-                infer_and_type, strlen(u8"A extends "), u8"infer T"_sv,  //
-                type, strlen(u8"A extends infer "), u8"T"_sv),
+                p.code, Diag_TypeScript_Infer_Requires_Parentheses,        //
+                infer_and_type, u8"A extends "_sv.size(), u8"infer T"_sv,  //
+                type, u8"A extends infer "_sv.size(), u8"T"_sv),
         }));
   }
 }
@@ -2464,7 +2464,7 @@ TEST_F(Test_Parse_TypeScript_Type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
-                                      expected_type, strlen(u8" "), u8""_sv),
+                                      expected_type, u8" "_sv.size(), u8""_sv),
                 }));
   }
 
@@ -2476,7 +2476,7 @@ TEST_F(Test_Parse_TypeScript_Type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
-                                      expected_type, strlen(u8" "), u8""_sv),
+                                      expected_type, u8" "_sv.size(), u8""_sv),
                 }));
   }
 
@@ -2488,7 +2488,7 @@ TEST_F(Test_Parse_TypeScript_Type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
-                                      expected_type, strlen(u8" "), u8""_sv),
+                                      expected_type, u8" "_sv.size(), u8""_sv),
                 }));
   }
 
@@ -2500,7 +2500,7 @@ TEST_F(Test_Parse_TypeScript_Type, missing) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_TypeScript_Type,  //
-                                      expected_type, strlen(u8" "), u8""_sv),
+                                      expected_type, u8" "_sv.size(), u8""_sv),
                 }));
   }
 }

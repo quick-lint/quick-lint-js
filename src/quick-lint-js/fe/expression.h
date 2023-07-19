@@ -368,7 +368,7 @@ class Expression::Delete final
   Source_Code_Span unary_operator_span() {
     const Char8 *operator_begin = unary_operator_begin_;
     return Source_Code_Span(operator_begin,
-                            operator_begin + strlen(u8"delete"));
+                            operator_begin + u8"delete"_sv.size());
   }
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Delete>);
@@ -443,7 +443,7 @@ class Expression::Typeof final
 
   Source_Code_Span unary_operator_span() {
     return Source_Code_Span(this->unary_operator_begin_,
-                            this->unary_operator_begin_ + strlen(u8"typeof"));
+                            this->unary_operator_begin_ + u8"typeof"_sv.size());
   }
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Typeof>);

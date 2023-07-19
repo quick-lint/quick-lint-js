@@ -40,7 +40,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"function f(p"), u8":"_sv),
+                type_colon, u8"function f(p"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -57,7 +57,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"function f()"), u8":"_sv),
+                type_colon, u8"function f()"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -293,7 +293,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"(p"), u8":"_sv),
+                type_colon, u8"(p"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -491,7 +491,7 @@ TEST_F(Test_Parse_TypeScript_Function,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_Non_Null_Assertion_Not_Allowed_In_Parameter,  //
-                        bang, strlen(u8"function f(param"), u8"!"_sv),
+                        bang, u8"function f(param"_sv.size(), u8"!"_sv),
                 }));
   }
 
@@ -509,7 +509,7 @@ TEST_F(Test_Parse_TypeScript_Function,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_Non_Null_Assertion_Not_Allowed_In_Parameter,  //
-                        bang, strlen(u8"(param"), u8"!"_sv),
+                        bang, u8"(param"_sv.size(), u8"!"_sv),
                 }));
   }
 }
@@ -634,8 +634,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, strlen(u8"("), u8"param: Type"_sv,
-                type_colon, strlen(u8"(param"), u8":"_sv),
+                parameter_and_annotation, u8"("_sv.size(), u8"param: Type"_sv,
+                type_colon, u8"(param"_sv.size(), u8":"_sv),
         }));
   }
 
@@ -656,8 +656,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, strlen(u8"(async "),
-                u8"param: Type"_sv, type_colon, strlen(u8"(async param"),
+                parameter_and_annotation, u8"(async "_sv.size(),
+                u8"param: Type"_sv, type_colon, u8"(async param"_sv.size(),
                 u8":"_sv),
         }));
   }
@@ -681,7 +681,7 @@ TEST_F(Test_Parse_TypeScript_Function, optional_expression) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unexpected_Question_In_Expression,  //
-                              question, strlen(u8"(x"), u8"?"_sv),
+                              question, u8"(x"_sv.size(), u8"?"_sv),
         }));
   }
 
@@ -837,8 +837,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?",
-                required_parameter, strlen(u8"(param1?, "), u8"param2"),
+                optional_parameter, u8"("_sv.size(), u8"param1?",
+                required_parameter, u8"(param1?, "_sv.size(), u8"param2"),
         }));
   }
 }
@@ -855,8 +855,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?: number",
-                required_parameter, strlen(u8"(param1?: number, "),
+                optional_parameter, u8"("_sv.size(), u8"param1?: number",
+                required_parameter, u8"(param1?: number, "_sv.size(),
                 u8"param2: number"),
         }));
   }
@@ -872,8 +872,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, strlen(u8"("), u8"param1?: number",
-                required_parameter, strlen(u8"(param1?: number, "),
+                optional_parameter, u8"("_sv.size(), u8"param1?: number",
+                required_parameter, u8"(param1?: number, "_sv.size(),
                 u8"param2: number"),
         }));
   }
@@ -890,7 +890,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript,  //
-                question, strlen(u8"(param"), u8"?"_sv),
+                question, u8"(param"_sv.size(), u8"?"_sv),
         }));
   }
 
@@ -904,7 +904,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript,  //
-                question, strlen(u8"function f(param"), u8"?"_sv),
+                question, u8"function f(param"_sv.size(), u8"?"_sv),
         }));
   }
 }
@@ -920,8 +920,8 @@ TEST_F(Test_Parse_TypeScript_Function,
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_Optional_Parameter_Cannot_Have_Initializer,  //
-                        equal, strlen(u8"(param? "), u8"="_sv, question,
-                        strlen(u8"(param"), u8"?"_sv),
+                        equal, u8"(param? "_sv.size(), u8"="_sv, question,
+                        u8"(param"_sv.size(), u8"?"_sv),
                 }));
   }
 
@@ -934,8 +934,8 @@ TEST_F(Test_Parse_TypeScript_Function,
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_Optional_Parameter_Cannot_Have_Initializer,  //
-                        equal, strlen(u8"function f(param? "), u8"="_sv,
-                        question, strlen(u8"function f(param"), u8"?"_sv),
+                        equal, u8"function f(param? "_sv.size(), u8"="_sv,
+                        question, u8"function f(param"_sv.size(), u8"?"_sv),
                 }));
   }
 }
@@ -957,7 +957,7 @@ TEST_F(Test_Parse_TypeScript_Function,
                         p.code,
                         Diag_Optional_Arrow_Parameter_Requires_Parentheses,  //
                         parameter_and_question, 0, u8"param?"_sv, question,
-                        strlen(u8"param"), u8"?"_sv),
+                        u8"param"_sv.size(), u8"?"_sv),
                 }));
   }
 
@@ -976,8 +976,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Optional_Arrow_Parameter_Requires_Parentheses,  //
-                parameter_and_question, strlen(u8"async "), u8"param?"_sv,
-                question, strlen(u8"async param"), u8"?"_sv),
+                parameter_and_question, u8"async "_sv.size(), u8"param?"_sv,
+                question, u8"async param"_sv.size(), u8"?"_sv),
         }));
   }
 }
@@ -1002,10 +1002,10 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_3_OFFSETS(
                 p.code,
                 Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, strlen(u8"("),
-                u8"param?: Type"_sv,                     //
-                question, strlen(u8"(param"), u8"?"_sv,  //
-                type_colon, strlen(u8"(param?"), u8":"_sv),
+                parameter_and_annotation, u8"("_sv.size(),
+                u8"param?: Type"_sv,                       //
+                question, u8"(param"_sv.size(), u8"?"_sv,  //
+                type_colon, u8"(param?"_sv.size(), u8":"_sv),
         }));
   }
 
@@ -1026,10 +1026,10 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_3_OFFSETS(
                 p.code,
                 Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, strlen(u8"async "),
-                u8"param?: Type"_sv,                          //
-                question, strlen(u8"async param"), u8"?"_sv,  //
-                type_colon, strlen(u8"async param?"), u8":"_sv),
+                parameter_and_annotation, u8"async "_sv.size(),
+                u8"param?: Type"_sv,                            //
+                question, u8"async param"_sv.size(), u8"?"_sv,  //
+                type_colon, u8"async param?"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -1308,8 +1308,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, strlen(u8"function "), u8"f"_sv, function_name,
-                strlen(u8"function f();\nfunction "), u8"g"_sv),
+                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
+                u8"function f();\nfunction "_sv.size(), u8"g"_sv),
         }));
   }
 
@@ -1343,14 +1343,15 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, strlen(u8"function "), u8"f"_sv, function_name,
-                strlen(u8"function f();\nfunction g();\nfunction "), u8"h"_sv),
+                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
+                u8"function f();\nfunction g();\nfunction "_sv.size(),
+                u8"h"_sv),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, strlen(u8"function f();\nfunction "), u8"g"_sv,
+                overload_name, u8"function f();\nfunction "_sv.size(), u8"g"_sv,
                 function_name,
-                strlen(u8"function f();\nfunction g();\nfunction "),
+                u8"function f();\nfunction g();\nfunction "_sv.size(),
                 u8"h"_sv)));
   }
 
@@ -1370,9 +1371,10 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, strlen(u8"function f();\nfunction "), u8"g"_sv,
+                overload_name, u8"function f();\nfunction "_sv.size(), u8"g"_sv,
                 function_name,
-                strlen(u8"function f();\nfunction g();\nfunction "), u8"f"_sv),
+                u8"function f();\nfunction g();\nfunction "_sv.size(),
+                u8"f"_sv),
         }));
   }
 
@@ -1392,8 +1394,9 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, strlen(u8"function "), u8"f"_sv, function_name,
-                strlen(u8"function f();\nfunction g();\nfunction "), u8"g"_sv),
+                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
+                u8"function f();\nfunction g();\nfunction "_sv.size(),
+                u8"g"_sv),
         }));
   }
 
@@ -1418,18 +1421,18 @@ TEST_F(Test_Parse_TypeScript_Function,
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
                 overload_name,
-                strlen(u8"function f();\n"
-                       u8"function f();\n"
-                       u8"function f();\n"
-                       u8"function "),
+                u8"function f();\n"
+                u8"function f();\n"
+                u8"function f();\n"
+                u8"function "_sv.size(),
                 u8"g"_sv, function_name,
-                strlen(u8"function f();\n"
-                       u8"function f();\n"
-                       u8"function f();\n"
-                       u8"function g();\n"
-                       u8"function f();\n"
-                       u8"function f();\n"
-                       u8"function "),
+                u8"function f();\n"
+                u8"function f();\n"
+                u8"function f();\n"
+                u8"function g();\n"
+                u8"function f();\n"
+                u8"function f();\n"
+                u8"function "_sv.size(),
                 u8"g"_sv),
         }));
   }
@@ -1457,7 +1460,7 @@ TEST_F(Test_Parse_TypeScript_Function,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Body, expected_body,
-                              strlen(u8"function f()"), u8""_sv),
+                              u8"function f()"_sv.size(), u8""_sv),
         }))
         << "missing function body is more likely, so don't report "
            "Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name";
@@ -1493,7 +1496,7 @@ TEST_F(Test_Parse_TypeScript_Function,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Body, expected_body,
-                              strlen(u8"function f()"), u8""_sv),
+                              u8"function f()"_sv.size(), u8""_sv),
         }))
         << "missing function body is more likely, so don't report "
            "Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name";
@@ -1530,8 +1533,8 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword,
-                async_keyword, strlen(u8"function f()\n"), u8"async"_sv,
-                function_keyword, strlen(u8"function f()\nasync\n"),
+                async_keyword, u8"function f()\n"_sv.size(), u8"async"_sv,
+                function_keyword, u8"function f()\nasync\n"_sv.size(),
                 u8"function"_sv),
         }));
   }
@@ -1562,7 +1565,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, strlen(u8"function "), u8"*"_sv),
+                generator_star, u8"function "_sv.size(), u8"*"_sv),
         }));
   }
 
@@ -1580,11 +1583,12 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, strlen(u8"function "), u8"*"_sv),
+                generator_star, u8"function "_sv.size(), u8"*"_sv),
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, strlen(u8"function *f(a);function "), u8"*"_sv),
+                generator_star, u8"function *f(a);function "_sv.size(),
+                u8"*"_sv),
         }));
   }
 
@@ -1603,7 +1607,7 @@ TEST_F(Test_Parse_TypeScript_Function,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, strlen(u8"function "), u8"*"_sv),
+                generator_star, u8"function "_sv.size(), u8"*"_sv),
         }));
   }
 }

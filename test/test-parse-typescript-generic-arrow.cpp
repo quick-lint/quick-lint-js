@@ -134,8 +134,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                 p.code,
                 Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
                 generic_parameters_less, 0, u8"<"_sv,                   //
-                expected_comma, strlen(u8"<T"), u8""_sv,                //
-                arrow, strlen(u8"<T>() "), u8"=>"_sv),
+                expected_comma, u8"<T"_sv.size(), u8""_sv,              //
+                arrow, u8"<T>() "_sv.size(), u8"=>"_sv),
         }));
   }
 
@@ -156,7 +156,7 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       Diag_Unexpected_Greater_In_JSX_Text,  //
-                                      greater, strlen(u8"<T>() ="), u8">"_sv),
+                                      greater, u8"<T>() ="_sv.size(), u8">"_sv),
                 }));
   }
 }
@@ -173,7 +173,7 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unexpected_Greater_In_JSX_Text,  //
-                              greater, strlen(u8"<T>param ="), u8">"_sv),
+                              greater, u8"<T>param ="_sv.size(), u8">"_sv),
         }));
   }
 }
@@ -192,10 +192,10 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code,
-                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
-                generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
-                expected_comma, strlen(u8"async <T"), u8""_sv,          //
-                arrow, strlen(u8"async <T>() "), u8"=>"_sv),
+                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,    //
+                generic_parameters_less, u8"async "_sv.size(), u8"<"_sv,  //
+                expected_comma, u8"async <T"_sv.size(), u8""_sv,          //
+                arrow, u8"async <T>() "_sv.size(), u8"=>"_sv),
         }));
   }
 
@@ -209,10 +209,10 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code,
-                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
-                generic_parameters_less, strlen(u8"async "), u8"<"_sv,  //
-                expected_comma, strlen(u8"async <T"), u8""_sv,          //
-                arrow, strlen(u8"async <T>(): ReturnType "), u8"=>"_sv),
+                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,    //
+                generic_parameters_less, u8"async "_sv.size(), u8"<"_sv,  //
+                expected_comma, u8"async <T"_sv.size(), u8""_sv,          //
+                arrow, u8"async <T>(): ReturnType "_sv.size(), u8"=>"_sv),
         }));
   }
 }

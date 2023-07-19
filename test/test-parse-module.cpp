@@ -210,7 +210,7 @@ TEST_F(Test_Parse_Module, export_default_of_variable_is_illegal) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Export_Default_Variable,  //
-                              declaring_token, strlen(u8"export default "),
+                              declaring_token, u8"export default "_sv.size(),
                               declaration_kind),
         }));
   }
@@ -229,7 +229,7 @@ TEST_F(Test_Parse_Module, export_sometimes_requires_semicolon) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, strlen(u8"export {x}"), u8""_sv),
+                        where, u8"export {x}"_sv.size(), u8""_sv),
                 }));
   }
 
@@ -244,7 +244,7 @@ TEST_F(Test_Parse_Module, export_sometimes_requires_semicolon) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, strlen(u8"export * from 'other'"), u8""_sv),
+                        where, u8"export * from 'other'"_sv.size(), u8""_sv),
                 }));
   }
 
@@ -261,7 +261,7 @@ TEST_F(Test_Parse_Module, export_sometimes_requires_semicolon) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, strlen(u8"export default x+y"), u8""_sv),
+                        where, u8"export default x+y"_sv.size(), u8""_sv),
                 }));
   }
 
@@ -281,7 +281,7 @@ TEST_F(Test_Parse_Module, export_sometimes_requires_semicolon) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Semicolon_After_Statement,  //
-                where, strlen(u8"export default async () => {}"), u8""_sv),
+                where, u8"export default async () => {}"_sv.size(), u8""_sv),
         }));
   }
 }
@@ -387,7 +387,7 @@ TEST_F(Test_Parse_Module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Exporting_String_Name_Only_Allowed_For_Export_From,  //
-                export_name, strlen(u8"export {"), u8"'name'"_sv),
+                export_name, u8"export {"_sv.size(), u8"'name'"_sv),
         }));
   }
 }
@@ -404,7 +404,7 @@ TEST_F(Test_Parse_Module,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
-                        export_name, strlen(u8"export {"), keyword),
+                        export_name, u8"export {"_sv.size(), keyword),
                 }));
   }
 
@@ -419,7 +419,7 @@ TEST_F(Test_Parse_Module,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
-                        export_name, strlen(u8"export {"), keyword),
+                        export_name, u8"export {"_sv.size(), keyword),
                 }));
   }
 
@@ -439,7 +439,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"export {"), u8"\\u{??}"_sv),
+                  escape_sequence, u8"export {"_sv.size(), u8"\\u{??}"_sv),
           }));
     }
 
@@ -455,7 +455,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"export {"), u8"\\u{??}"_sv),
+                  escape_sequence, u8"export {"_sv.size(), u8"\\u{??}"_sv),
           }));
     }
   }
@@ -548,7 +548,7 @@ TEST_F(Test_Parse_Module, invalid_export_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Exporting_Requires_Curlies,  //
-                              names, strlen(u8"export "), u8"stuff"_sv),
+                              names, u8"export "_sv.size(), u8"stuff"_sv),
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // stuff
@@ -558,12 +558,12 @@ TEST_F(Test_Parse_Module, invalid_export_expression) {
   {
     Test_Parser p(u8"export a, b, c;"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Exporting_Requires_Default,  //
-                              expression, strlen(u8"export "), u8"a, b, c"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Exporting_Requires_Default,  //
+                        expression, u8"export "_sv.size(), u8"a, b, c"_sv),
+                }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // a
                               "visit_variable_use",  // b
@@ -578,7 +578,7 @@ TEST_F(Test_Parse_Module, invalid_export_expression) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Exporting_Requires_Default,  //
-                        expression, strlen(u8"export "), u8"a, b, c+d"_sv),
+                        expression, u8"export "_sv.size(), u8"a, b, c+d"_sv),
                 }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // a
@@ -595,7 +595,7 @@ TEST_F(Test_Parse_Module, invalid_export_expression) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Exporting_Requires_Default,  //
-                              expression, strlen(u8"export "), u8"2 + x"_sv),
+                              expression, u8"export "_sv.size(), u8"2 + x"_sv),
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
@@ -631,12 +631,12 @@ TEST_F(Test_Parse_Module, invalid_export) {
   {
     Test_Parser p(u8"export += x"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token_After_Export,  //
-                              unexpected_token, strlen(u8"export "), u8"+="_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Unexpected_Token_After_Export,  //
+                        unexpected_token, u8"export "_sv.size(), u8"+="_sv),
+                }));
     p.parse_and_visit_statement();  // Parse '+= x'.
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
@@ -725,10 +725,10 @@ TEST_F(Test_Parse_Module, import_star_without_as_keyword) {
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
                         Diag_Expected_As_Before_Imported_Namespace_Alias,  //
-                        star_through_alias_token, strlen(u8"import "),
-                        u8"* myExport"_sv,                          //
-                        star_token, strlen(u8"import "), u8"*"_sv,  //
-                        alias, strlen(u8"import * "), u8"myExport"_sv),
+                        star_through_alias_token, u8"import "_sv.size(),
+                        u8"* myExport"_sv,                            //
+                        star_token, u8"import "_sv.size(), u8"*"_sv,  //
+                        alias, u8"import * "_sv.size(), u8"myExport"_sv),
                 }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // myExport
@@ -745,7 +745,7 @@ TEST_F(Test_Parse_Module, import_without_from_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Expected_From_Before_Module_Specifier,  //
-                module_specifier, strlen(u8"import { x } "), u8"'other'"_sv),
+                module_specifier, u8"import { x } "_sv.size(), u8"'other'"_sv),
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -759,7 +759,7 @@ TEST_F(Test_Parse_Module, import_without_from_keyword) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Expected_From_And_Module_Specifier,  //
-                        where, strlen(u8"import { x }"), u8""_sv),
+                        where, u8"import { x }"_sv.size(), u8""_sv),
                 }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
@@ -776,7 +776,7 @@ TEST_F(Test_Parse_Module, import_as_invalid_token) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Expected_Variable_Name_For_Import_As,  //
-                        unexpected_token, strlen(u8"import {myExport as "),
+                        unexpected_token, u8"import {myExport as "_sv.size(),
                         u8"'string'"_sv),
                 }));
   }
@@ -789,7 +789,7 @@ TEST_F(Test_Parse_Module, import_as_invalid_token) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Expected_Variable_Name_For_Import_As,  //
-                        unexpected_token, strlen(u8"import {'myExport' as "),
+                        unexpected_token, u8"import {'myExport' as "_sv.size(),
                         u8"'string'"_sv),
                 }));
   }
@@ -820,12 +820,13 @@ TEST_F(Test_Parse_Module, export_function_requires_a_name) {
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Name_Of_Exported_Function,  //
-                        function_keyword, strlen(u8"export "), u8"function"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, Diag_Missing_Name_Of_Exported_Function,  //
+                function_keyword, u8"export "_sv.size(), u8"function"_sv),
+        }));
   }
 
   {
@@ -841,7 +842,7 @@ TEST_F(Test_Parse_Module, export_function_requires_a_name) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Name_Of_Exported_Function,  //
-                function_keyword, strlen(u8"export async "), u8"function"_sv),
+                function_keyword, u8"export async "_sv.size(), u8"function"_sv),
         }));
   }
 }
@@ -864,12 +865,12 @@ TEST_F(Test_Parse_Module, export_class_requires_a_name) {
                               "visit_enter_class_scope_body",  //
                               "visit_exit_class_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Name_Of_Exported_Class,  //
-                              class_keyword, strlen(u8"export "), u8"class"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Missing_Name_Of_Exported_Class,  //
+                        class_keyword, u8"export "_sv.size(), u8"class"_sv),
+                }));
   }
 }
 
@@ -939,7 +940,7 @@ TEST_F(Test_Parse_Module, imported_modules_must_be_quoted) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Import_From_Unquoted_Module,
-                              import_name, strlen(u8"import { test } from "),
+                              import_name, u8"import { test } from "_sv.size(),
                               import_name),
         }));
   }
@@ -960,7 +961,7 @@ TEST_F(Test_Parse_Module,
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, strlen(u8"import { "), name),
+                          import_name, u8"import { "_sv.size(), name),
                   }));
     }
 
@@ -978,7 +979,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                  import_name, strlen(u8"import { someFunction as "), name),
+                  import_name, u8"import { someFunction as "_sv.size(), name),
           }));
     }
 
@@ -995,7 +996,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                  import_name, strlen(u8"import { 'someFunction' as "), name),
+                  import_name, u8"import { 'someFunction' as "_sv.size(), name),
           }));
     }
 
@@ -1011,7 +1012,7 @@ TEST_F(Test_Parse_Module,
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, strlen(u8"import "), name),
+                          import_name, u8"import "_sv.size(), name),
                   }));
     }
 
@@ -1027,7 +1028,7 @@ TEST_F(Test_Parse_Module,
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, strlen(u8"import * as "), name),
+                          import_name, u8"import * as "_sv.size(), name),
                   }));
     }
   }
@@ -1050,7 +1051,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"import { "), u8"\\u{??}"_sv),
+                  escape_sequence, u8"import { "_sv.size(), u8"\\u{??}"_sv),
           }));
     }
 
@@ -1067,7 +1068,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"import { someFunction as "),
+                  escape_sequence, u8"import { someFunction as "_sv.size(),
                   u8"\\u{??}"_sv),
           }));
     }
@@ -1085,7 +1086,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"import { 'someFunction' as "),
+                  escape_sequence, u8"import { 'someFunction' as "_sv.size(),
                   u8"\\u{??}"_sv),
           }));
     }
@@ -1103,7 +1104,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"import "), u8"\\u{??}"_sv),
+                  escape_sequence, u8"import "_sv.size(), u8"\\u{??}"_sv),
           }));
     }
 
@@ -1120,7 +1121,7 @@ TEST_F(Test_Parse_Module,
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"import * as "), u8"\\u{??}"_sv),
+                  escape_sequence, u8"import * as "_sv.size(), u8"\\u{??}"_sv),
           }));
     }
   }
@@ -1211,13 +1212,13 @@ TEST_F(Test_Parse_Module, import_requires_semicolon_or_newline) {
                               "visit_variable_use",          // nextStatement
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Semicolon_After_Statement,  //
-                              where, strlen(u8"import fs from 'fs'"), u8""_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        Diag_Missing_Semicolon_After_Statement,  //
+                        where, u8"import fs from 'fs'"_sv.size(), u8""_sv),
+                }));
   }
 }
 }

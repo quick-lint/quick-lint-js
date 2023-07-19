@@ -168,7 +168,7 @@ TEST(Test_Diag_Matcher, match_offsets_of_2_fields_span) {
   ::testing::Matcher<const Diag_Collector::Diag &> matcher =
       DIAG_TYPE_2_OFFSETS(&code,
                           Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
-                          comma, strlen(u8"...x"), u8","_sv, spread, 0,
+                          comma, u8"...x"_sv.size(), u8","_sv, spread, 0,
                           u8"..."_sv);
   EXPECT_TRUE(matcher.Matches(
       Diag_Collector::Diag(Diag_Comma_Not_Allowed_After_Spread_Parameter{
@@ -197,7 +197,7 @@ TEST(Test_Diag_Matcher, match_offsets_of_2_fields_message) {
     ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
                             Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
-                            comma, strlen(u8"...x"), u8","_sv, spread, 0,
+                            comma, u8"...x"_sv.size(), u8","_sv, spread, 0,
                             u8"..."_sv);
     Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
         .comma = Source_Code_Span(&code[3], &code[5]),
@@ -213,7 +213,7 @@ TEST(Test_Diag_Matcher, match_offsets_of_2_fields_message) {
     ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
                             Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
-                            comma, strlen(u8"...x"), u8","_sv, spread, 0,
+                            comma, u8"...x"_sv.size(), u8","_sv, spread, 0,
                             u8"..."_sv);
     Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
         .comma = Source_Code_Span(&code[3], &code[5]),
@@ -229,7 +229,7 @@ TEST(Test_Diag_Matcher, match_offsets_of_2_fields_message) {
     ::testing::Matcher<const Diag_Collector::Diag &> matcher =
         DIAG_TYPE_2_OFFSETS(&code,
                             Diag_Comma_Not_Allowed_After_Spread_Parameter,  //
-                            comma, strlen(u8"...x"), u8","_sv, spread, 0,
+                            comma, u8"...x"_sv.size(), u8","_sv, spread, 0,
                             u8"..."_sv);
     Diag_Collector::Diag value(Diag_Comma_Not_Allowed_After_Spread_Parameter{
         .comma = Source_Code_Span(&code[4], &code[5]),

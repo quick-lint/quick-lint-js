@@ -246,7 +246,7 @@ TEST_F(Test_Parse_JSX, attribute_without_name_must_be_spread) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Dots_For_Attribute_Spread,  //
-                        expected_dots, strlen(u8"c = <div {"), u8""_sv),
+                        expected_dots, u8"c = <div {"_sv.size(), u8""_sv),
                 }));
   }
 }
@@ -258,9 +258,9 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                                        opening_tag_name, strlen(u8"c = <"),
+                                        opening_tag_name, u8"c = <"_sv.size(),
                                         u8"div"_sv, closing_tag_name,
-                                        strlen(u8"c = <div></"), u8"span"_sv),
+                                        u8"c = <div></"_sv.size(), u8"span"_sv),
                 }));
   }
 
@@ -268,12 +268,12 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
   {
     Test_Parser p(u8"c = < div ></span>;"_sv, jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                              opening_tag_name, strlen(u8"c = < "), u8"div"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
+                                      opening_tag_name, u8"c = < "_sv.size(),
+                                      u8"div"_sv),
+                }));
   }
 
   // opening_tag_name span for fragment tag:
@@ -284,7 +284,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                              opening_tag_name, strlen(u8"c = <"), u8""_sv),
+                              opening_tag_name, u8"c = <"_sv.size(), u8""_sv),
         }));
   }
 
@@ -296,7 +296,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                                      opening_tag_name, strlen(u8"c = < "),
+                                      opening_tag_name, u8"c = < "_sv.size(),
                                       u8"module . Component"_sv),
                 }));
   }
@@ -309,7 +309,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                                      opening_tag_name, strlen(u8"c = < "),
+                                      opening_tag_name, u8"c = < "_sv.size(),
                                       u8"svg : path"_sv),
                 }));
   }
@@ -322,7 +322,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
                                       closing_tag_name,
-                                      strlen(u8"c = <div></ "), u8"span"_sv),
+                                      u8"c = <div></ "_sv.size(), u8"span"_sv),
                 }));
   }
 
@@ -334,7 +334,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
                                       closing_tag_name,
-                                      strlen(u8"c = <div></  "), u8""_sv),
+                                      u8"c = <div></  "_sv.size(), u8""_sv),
                 }));
   }
 
@@ -347,7 +347,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                              closing_tag_name, strlen(u8"c = <div></ "),
+                              closing_tag_name, u8"c = <div></ "_sv.size(),
                               u8"module . Component"_sv),
         }));
   }
@@ -360,7 +360,7 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                              closing_tag_name, strlen(u8"c = <div></ "),
+                              closing_tag_name, u8"c = <div></ "_sv.size(),
                               u8"svg : path"_sv),
         }));
   }
@@ -544,15 +544,16 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
     Test_Parser p(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_OFFSETS(
-                        p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                        begin, strlen(u8"c = "), u8""_sv,          //
-                        begin_of_second_element, strlen(u8"c = <div></div> "),
-                        u8""_sv,  //
-                        end, strlen(u8"c = <div></div> <div></div>"), u8""_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_3_OFFSETS(
+                p.code, Diag_Adjacent_JSX_Without_Parent,  //
+                begin, u8"c = "_sv.size(), u8""_sv,        //
+                begin_of_second_element, u8"c = <div></div> "_sv.size(),
+                u8""_sv,  //
+                end, u8"c = <div></div> <div></div>"_sv.size(), u8""_sv),
+        }));
   }
 
   {
@@ -564,10 +565,10 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
         ElementsAreArray({
             DIAG_TYPE_3_OFFSETS(
                 p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                begin, strlen(u8"c = "), u8""_sv,          //
-                begin_of_second_element, strlen(u8"c = <div></div> "),
+                begin, u8"c = "_sv.size(), u8""_sv,        //
+                begin_of_second_element, u8"c = <div></div> "_sv.size(),
                 u8""_sv,  //
-                end, strlen(u8"c = <div></div> <div></div> <div></div>"),
+                end, u8"c = <div></div> <div></div> <div></div>"_sv.size(),
                 u8""_sv),
         }));
   }
@@ -655,7 +656,7 @@ TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
                     DIAG_TYPE_2_FIELDS(
                         Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
                         attribute_name,
-                        Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                         u8"onclick"_sv),  //
                         expected_attribute_name, u8"onClick"_sv),
                 }));
@@ -670,7 +671,7 @@ TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
                     DIAG_TYPE_2_FIELDS(
                         Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
                         attribute_name,
-                        Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                         u8"onclick"_sv),  //
                         expected_attribute_name, u8"onClick"_sv),
                 }));
@@ -685,7 +686,7 @@ TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
                     DIAG_TYPE_2_FIELDS(
                         Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
                         attribute_name,
-                        Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                         u8"onmouseenter"_sv),  //
                         expected_attribute_name, u8"onMouseEnter"_sv),
                 }));
@@ -700,7 +701,7 @@ TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
                     DIAG_TYPE_2_FIELDS(
                         Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
                         attribute_name,
-                        Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                         u8"oncustomevent"_sv),  //
                         expected_attribute_name, u8"onCustomevent"_sv),
                 }));
@@ -717,7 +718,7 @@ TEST_F(Test_Parse_JSX, miscapitalized_attribute) {
         ElementsAreArray({
             DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
                                attribute_name,
-                               Offsets_Matcher(p.code, strlen(u8"c = <td "),
+                               Offsets_Matcher(p.code, u8"c = <td "_sv.size(),
                                                u8"colspan"_sv),  //
                                expected_attribute_name, u8"colSpan"_sv),
         }));
@@ -732,7 +733,7 @@ TEST_F(Test_Parse_JSX, miscapitalized_attribute) {
         ElementsAreArray({
             DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
                                attribute_name,
-                               Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                               Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                                u8"onmouseenter"_sv),  //
                                expected_attribute_name, u8"onMouseEnter"_sv),
         }));
@@ -747,7 +748,7 @@ TEST_F(Test_Parse_JSX, miscapitalized_attribute) {
         ElementsAreArray({
             DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
                                attribute_name,
-                               Offsets_Matcher(p.code, strlen(u8"c = <div "),
+                               Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
                                                u8"onmouseENTER"_sv),  //
                                expected_attribute_name, u8"onMouseEnter"_sv),
         }));
@@ -764,7 +765,7 @@ TEST_F(Test_Parse_JSX, commonly_misspelled_attribute) {
         ElementsAreArray({
             DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Renamed_By_React,  //
                                attribute_name,
-                               Offsets_Matcher(p.code, strlen(u8"c = <span "),
+                               Offsets_Matcher(p.code, u8"c = <span "_sv.size(),
                                                u8"class"_sv),  //
                                react_attribute_name, u8"className"_sv),
         }));
@@ -846,26 +847,26 @@ TEST_F(Test_Parse_JSX, prop_needs_an_expression) {
     Test_Parser p(u8"c = <MyComponent custom={}></MyComponent>;"_sv,
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Prop_Is_Missing_Expression,
-                              left_brace_to_right_brace,
-                              strlen(u8"c = <MyComponent custom="), u8"{}"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_JSX_Prop_Is_Missing_Expression,
+                        left_brace_to_right_brace,
+                        u8"c = <MyComponent custom="_sv.size(), u8"{}"_sv),
+                }));
   }
 
   {
     Test_Parser p(u8"c = <MyComponent custom={ }></MyComponent>;"_sv,
                   jsx_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Prop_Is_Missing_Expression,
-                              left_brace_to_right_brace,
-                              strlen(u8"c = <MyComponent custom="), u8"{ }"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_JSX_Prop_Is_Missing_Expression,
+                        left_brace_to_right_brace,
+                        u8"c = <MyComponent custom="_sv.size(), u8"{ }"_sv),
+                }));
   }
 }
 }

@@ -44,7 +44,7 @@ TEST_F(Test_Parse_TypeScript, type_annotation_in_expression_is_an_error) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Type_Annotation_In_Expression,  //
-                              type_colon, strlen(u8"x = myVar"), u8":"_sv),
+                              type_colon, u8"x = myVar"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -129,7 +129,7 @@ TEST_F(Test_Parse_TypeScript, type_alias_requires_semicolon_or_asi) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Semicolon_After_Statement,  //
-                              where, strlen(u8"type T = U"), u8""_sv),
+                              where, u8"type T = U"_sv.size(), u8""_sv),
         }));
   }
 }
@@ -206,8 +206,8 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,  //
-                unexpected_space, strlen(u8"x!"), u8" "_sv,               //
-                bang, strlen(u8"x"), u8"!"_sv),
+                unexpected_space, u8"x!"_sv.size(), u8" "_sv,             //
+                bang, u8"x"_sv.size(), u8"!"_sv),
         }));
   }
   {
@@ -219,7 +219,7 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,
-                unexpected_space, strlen(u8"if (length + 1!"), u8" "_sv),
+                unexpected_space, u8"if (length + 1!"_sv.size(), u8" "_sv),
         }));
   }
   {
@@ -231,7 +231,7 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,
-                unexpected_space, strlen(u8"if (typeof diagnostic.code!"),
+                unexpected_space, u8"if (typeof diagnostic.code!"_sv.size(),
                 u8" "_sv),
         }));
   }

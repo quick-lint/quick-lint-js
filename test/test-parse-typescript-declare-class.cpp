@@ -43,7 +43,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
       ElementsAreArray({
           DIAG_TYPE_OFFSETS(p.code,
                             Diag_Declare_Class_Not_Allowed_In_JavaScript,  //
-                            declare_keyword, strlen(u8""), u8"declare"_sv),
+                            declare_keyword, u8""_sv.size(), u8"declare"_sv),
       }));
 }
 
@@ -66,7 +66,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Declare_Abstract_Class_Not_Allowed_In_JavaScript,  //
-                declare_keyword, strlen(u8""), u8"declare"_sv),
+                declare_keyword, u8""_sv.size(), u8"declare"_sv),
         }));
   }
 }
@@ -148,13 +148,14 @@ TEST_F(
                         }));
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({class_decl(u8"C"_sv)}));
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code,
-                      Diag_Newline_Not_Allowed_After_Abstract_Keyword,  //
-                      abstract_keyword, strlen(u8"declare "), u8"abstract"_sv),
-              }));
+  EXPECT_THAT(
+      p.errors,
+      ElementsAreArray({
+          DIAG_TYPE_OFFSETS(p.code,
+                            Diag_Newline_Not_Allowed_After_Abstract_Keyword,  //
+                            abstract_keyword, u8"declare "_sv.size(),
+                            u8"abstract"_sv),
+      }));
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
@@ -222,7 +223,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement,  //
-                static_token, strlen(u8"declare class C { "), u8"static"_sv),
+                static_token, u8"declare class C { "_sv.size(), u8"static"_sv),
         }));
   }
 }
@@ -290,7 +291,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_Declare_Class_Methods_Cannot_Contain_Bodies,  //
-                        body_start, strlen(u8"declare class C { myMethod() "),
+                        body_start, u8"declare class C { myMethod() "_sv.size(),
                         u8"{"_sv),
                 }));
   }
@@ -308,7 +309,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                         p.code,
                         Diag_Missing_Semicolon_After_Declare_Class_Method,  //
                         expected_semicolon,
-                        strlen(u8"declare class C { myMethod()"), u8""_sv),
+                        u8"declare class C { myMethod()"_sv.size(), u8""_sv),
                 }));
   }
 }
@@ -327,8 +328,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, strlen(u8"declare class C { "),
-                u8"abstract"_sv, class_keyword, strlen(u8"declare "),
+                abstract_keyword, u8"declare class C { "_sv.size(),
+                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
                 u8"class"_sv),
         }));
   }
@@ -345,8 +346,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, strlen(u8"declare class C { "),
-                u8"abstract"_sv, class_keyword, strlen(u8"declare "),
+                abstract_keyword, u8"declare class C { "_sv.size(),
+                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
                 u8"class"_sv),
         }));
   }
@@ -402,7 +403,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Declare_Class_Fields_Cannot_Have_Initializers,  //
-                equal, strlen(u8"declare class C { myField "), u8"="_sv),
+                equal, u8"declare class C { myField "_sv.size(), u8"="_sv),
         }));
   }
 }
@@ -419,7 +420,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
-                bang, strlen(u8"declare class C { myField"), u8"!"_sv),
+                bang, u8"declare class C { myField"_sv.size(), u8"!"_sv),
         }));
   }
 
@@ -433,7 +434,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
-                bang, strlen(u8"declare class C { myField"), u8"!"_sv),
+                bang, u8"declare class C { myField"_sv.size(), u8"!"_sv),
         }))
         << "Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also "
            "be reported";
@@ -515,7 +516,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Declare_Class_Methods_Cannot_Be_Async,  //
-                              async_keyword, strlen(u8"declare class C { "),
+                              async_keyword, u8"declare class C { "_sv.size(),
                               u8"async"_sv),
         }));
   }
@@ -529,7 +530,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_Declare_Class_Methods_Cannot_Be_Generators,  //
-                        star, strlen(u8"declare class C { "), u8"*"_sv),
+                        star, u8"declare class C { "_sv.size(), u8"*"_sv),
                 }));
   }
 
@@ -593,13 +594,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                     "visit_variable_declaration",    // C
                 }));
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_Missing_Class_Method_Name,  //
-                                      expected_name,
-                                      strlen(u8"declare class C { "), u8""_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              Diag_Missing_Class_Method_Name,  //
+                              expected_name, u8"declare class C { "_sv.size(),
+                              u8""_sv),
+        }));
   }
 }
 

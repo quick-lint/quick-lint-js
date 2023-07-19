@@ -187,7 +187,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
                 p.code,
                 Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx,  //
                 bracketed_type, 0, u8"<Type1 | Type2>"_sv, expected_as,
-                strlen(u8"<Type1 | Type2>(expr)"), u8""_sv),
+                u8"<Type1 | Type2>(expr)"_sv.size(), u8""_sv),
         }));
   }
 
@@ -205,7 +205,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
                 p.code,
                 Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx,  //
                 bracketed_type, 0, u8"<(Type)>"_sv, expected_as,
-                strlen(u8"<(Type)>expr"), u8""_sv),
+                u8"<(Type)>expr"_sv.size(), u8""_sv),
         }));
   }
 }
@@ -219,7 +219,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       Diag_Invalid_Parameter,  //
-                                      parameter, strlen(u8"("), u8"<T>x"_sv),
+                                      parameter, u8"("_sv.size(), u8"<T>x"_sv),
                 }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
@@ -229,13 +229,13 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
     Test_Parser p(u8"function f(<T>x) {}"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Invalid_Parameter,  //
-                              parameter, strlen(u8"function f("), u8"<T>x"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code,
+                                      Diag_Invalid_Parameter,  //
+                                      parameter, u8"function f("_sv.size(),
+                                      u8"<T>x"_sv),
+                }));
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));

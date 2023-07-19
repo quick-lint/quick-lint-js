@@ -41,7 +41,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"class C { fieldName"), u8":"_sv),
+                type_colon, u8"class C { fieldName"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -87,7 +87,7 @@ TEST_F(Test_Parse_TypeScript_Class,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, strlen(u8"class C { [key"), u8":"_sv),
+                              token, u8"class C { [key"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -138,11 +138,11 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript,  //
-                question, strlen(u8"class C { field1"), u8"?"_sv),
+                question, u8"class C { field1"_sv.size(), u8"?"_sv),
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript,  //
-                question, strlen(u8"class C { field1?; field2"), u8"?"_sv),
+                question, u8"class C { field1?; field2"_sv.size(), u8"?"_sv),
         }));
   }
 }
@@ -253,7 +253,7 @@ TEST_F(Test_Parse_TypeScript_Class,
           DIAG_TYPE_OFFSETS(
               p.code,
               Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript,  //
-              question, strlen(u8"class C { method"), u8"?"_sv),
+              question, u8"class C { method"_sv.size(), u8"?"_sv),
       }));
 }
 
@@ -269,7 +269,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript,  //
-                bang, strlen(u8"class C { field"), u8"!"_sv),
+                bang, u8"class C { field"_sv.size(), u8"!"_sv),
         }));
   }
 
@@ -283,7 +283,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript,  //
-                bang, strlen(u8"class C { field"), u8"!"_sv),
+                bang, u8"class C { field"_sv.size(), u8"!"_sv),
         }))
         << "should not also report "
            "Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer";
@@ -299,7 +299,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript,  //
-                bang, strlen(u8"class C { field"), u8"!"_sv),
+                bang, u8"class C { field"_sv.size(), u8"!"_sv),
         }))
         << "should not also report "
            "Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type";
@@ -338,8 +338,8 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator,  //
-                bang, strlen(u8"class C {\n  field\n  "), u8"!"_sv, field_name,
-                strlen(u8"class C {\n  "), u8"field"_sv),
+                bang, u8"class C {\n  field\n  "_sv.size(), u8"!"_sv,
+                field_name, u8"class C {\n  "_sv.size(), u8"field"_sv),
         }));
   }
 }
@@ -357,7 +357,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, strlen(u8"class C { field"), u8"!"_sv),
+                bang, u8"class C { field"_sv.size(), u8"!"_sv),
         }));
   }
 
@@ -374,7 +374,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, strlen(u8"class C { field"), u8"!"_sv)));
+                bang, u8"class C { field"_sv.size(), u8"!"_sv)));
   }
 
   {
@@ -393,7 +393,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, strlen(u8"class C {\n  field1"), u8"!"_sv),
+                bang, u8"class C {\n  field1"_sv.size(), u8"!"_sv),
         }));
   }
 
@@ -412,7 +412,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, strlen(u8"class C {\n  field1"), u8"!"_sv),
+                bang, u8"class C {\n  field1"_sv.size(), u8"!"_sv),
         }));
   }
 }
@@ -430,8 +430,8 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer,  //
-                equal, strlen(u8"class C { field!: any "), u8"="_sv, bang,
-                strlen(u8"class C { field"), u8"!"_sv),
+                equal, u8"class C { field!: any "_sv.size(), u8"="_sv, bang,
+                u8"class C { field"_sv.size(), u8"!"_sv),
         }));
   }
 }
@@ -457,7 +457,7 @@ TEST_F(Test_Parse_TypeScript_Class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Assignment_Asserted_Method,  //
-                              bang, strlen(u8"class C { method"), u8"!"_sv),
+                              bang, u8"class C { method"_sv.size(), u8"!"_sv),
         }));
   }
 }
@@ -480,7 +480,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv),
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
         }));
   }
 
@@ -493,7 +493,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv),
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
         }));
   }
 
@@ -507,7 +507,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv),
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
         }));
   }
 
@@ -521,7 +521,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv),
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
         }));
   }
 
@@ -546,7 +546,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv),
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
         }));
   }
 
@@ -563,7 +563,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv)));
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv)));
   }
 
   {
@@ -578,7 +578,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, strlen(u8"class C { "), u8"readonly"_sv)));
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv)));
   }
 }
 
@@ -635,13 +635,14 @@ TEST_F(Test_Parse_TypeScript_Class, readonly_methods_are_invalid) {
                               "visit_exit_class_scope",           // C
                               "visit_variable_declaration",       // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_TypeScript_Readonly_Method,  //
-                                      readonly_keyword, strlen(u8"class C { "),
-                                      u8"readonly"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              Diag_TypeScript_Readonly_Method,  //
+                              readonly_keyword, u8"class C { "_sv.size(),
+                              u8"readonly"_sv),
+        }));
   }
 }
 
@@ -662,7 +663,7 @@ TEST_F(Test_Parse_TypeScript_Class, readonly_static_field_is_disallowed) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       Diag_Readonly_Static_Field,  //
-                                      readonly_static, strlen(u8"class C { "),
+                                      readonly_static, u8"class C { "_sv.size(),
                                       u8"readonly static"_sv),
                 }));
   }
@@ -688,7 +689,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,  //
-                        opening_less, strlen(u8"class C"), u8"<"_sv),
+                        opening_less, u8"class C"_sv.size(), u8"<"_sv),
                 }));
   }
 }
@@ -750,7 +751,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,  //
-                        opening_less, strlen(u8"class C { method"), u8"<"_sv),
+                        opening_less, u8"class C { method"_sv.size(), u8"<"_sv),
                 }));
   }
 }
@@ -796,7 +797,7 @@ TEST_F(Test_Parse_TypeScript_Class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Class_Method_Name,  //
-                              expected_name, strlen(u8"class C { "), u8""_sv),
+                              expected_name, u8"class C { "_sv.size(), u8""_sv),
         }));
   }
 
@@ -822,7 +823,7 @@ TEST_F(Test_Parse_TypeScript_Class,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Class_Method_Name,  //
-                              expected_name, strlen(u8"class C { "), u8""_sv),
+                              expected_name, u8"class C { "_sv.size(), u8""_sv),
         }));
   }
 
@@ -841,7 +842,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Class_Method_Name,  //
                               expected_name,
-                              strlen(u8"class C {\n  field!\n  "), u8""_sv),
+                              u8"class C {\n  field!\n  "_sv.size(), u8""_sv),
         }));
   }
 
@@ -860,7 +861,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Class_Method_Name,  //
                               expected_name,
-                              strlen(u8"class C {\n  field!\n  "), u8""_sv),
+                              u8"class C {\n  field!\n  "_sv.size(), u8""_sv),
         }));
   }
 }
@@ -886,7 +887,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Public_Not_Allowed_In_JavaScript,  //
-                        specifier, strlen(u8"class C { "), u8"public"_sv),
+                        specifier, u8"class C { "_sv.size(), u8"public"_sv),
                 }));
   }
 
@@ -909,7 +910,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Protected_Not_Allowed_In_JavaScript,  //
-                        specifier, strlen(u8"class C { "), u8"protected"_sv),
+                        specifier, u8"class C { "_sv.size(), u8"protected"_sv),
                 }));
   }
 
@@ -932,7 +933,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Private_Not_Allowed_In_JavaScript,  //
-                        specifier, strlen(u8"class C { "), u8"private"_sv),
+                        specifier, u8"class C { "_sv.size(), u8"private"_sv),
                 }));
   }
 
@@ -1051,7 +1052,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                   second_modifier,
                   concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
                   access_specifier,  //
-                  first_modifier, strlen(u8"class C { "), other_modifier),
+                  first_modifier, u8"class C { "_sv.size(), other_modifier),
           }));
     }
   }
@@ -1072,7 +1073,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                   second_modifier,
                   concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
                   access_specifier,  //
-                  first_modifier, strlen(u8"class C { "), other_modifier),
+                  first_modifier, u8"class C { "_sv.size(), other_modifier),
           }));
     }
   }
@@ -1101,7 +1102,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"class C { method()"), u8":"_sv),
+                type_colon, u8"class C { method()"_sv.size(), u8":"_sv),
         }));
   }
 }
@@ -1143,7 +1144,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript,  //
-                abstract_keyword, strlen(u8""), u8"abstract"_sv),
+                abstract_keyword, u8""_sv.size(), u8"abstract"_sv),
         }));
   }
 
@@ -1156,7 +1157,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript,  //
-                abstract_keyword, strlen(u8"export "), u8"abstract"_sv),
+                abstract_keyword, u8"export "_sv.size(), u8"abstract"_sv),
         }));
   }
 
@@ -1169,7 +1170,8 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript,  //
-                abstract_keyword, strlen(u8"export default "), u8"abstract"_sv),
+                abstract_keyword, u8"export default "_sv.size(),
+                u8"abstract"_sv),
         }));
   }
 }
@@ -1252,7 +1254,7 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_class_method_requires_semicolon) {
                         p.code,
                         Diag_Missing_Semicolon_After_Abstract_Method,  //
                         expected_semicolon,
-                        strlen(u8"abstract class C { abstract f()"), u8""_sv),
+                        u8"abstract class C { abstract f()"_sv.size(), u8""_sv),
                 }));
   }
 }
@@ -1272,14 +1274,15 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_have_bodies) {
                               "visit_exit_class_scope",           // }
                               "visit_variable_declaration",       // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Abstract_Methods_Cannot_Contain_Bodies,  //
-                        body_start,
-                        strlen(u8"abstract class C { abstract f() "), u8"{"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code,
+                              Diag_Abstract_Methods_Cannot_Contain_Bodies,  //
+                              body_start,
+                              u8"abstract class C { abstract f() "_sv.size(),
+                              u8"{"_sv),
+        }));
   }
 }
 
@@ -1308,14 +1311,15 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
-                        async_keyword, strlen(u8"abstract class C { abstract "),
-                        u8"async"_sv, abstract_keyword,
-                        strlen(u8"abstract class C { "), u8"abstract"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
+                async_keyword, u8"abstract class C { abstract "_sv.size(),
+                u8"async"_sv, abstract_keyword,
+                u8"abstract class C { "_sv.size(), u8"abstract"_sv),
+        }));
   }
 
   {
@@ -1331,14 +1335,15 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
-                        async_keyword, strlen(u8"abstract class C { "),
-                        u8"async"_sv, abstract_keyword,
-                        strlen(u8"abstract class C { async "), u8"abstract"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(
+                p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
+                async_keyword, u8"abstract class C { "_sv.size(), u8"async"_sv,
+                abstract_keyword, u8"abstract class C { async "_sv.size(),
+                u8"abstract"_sv),
+        }));
   }
 
   {
@@ -1376,9 +1381,9 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_generators) {
               ElementsAreArray({
                   DIAG_TYPE_2_OFFSETS(
                       p.code, Diag_Abstract_Methods_Cannot_Be_Generators,  //
-                      star, strlen(u8"abstract class C { abstract "), u8"*"_sv,
-                      abstract_keyword, strlen(u8"abstract class C { "),
-                      u8"abstract"_sv),
+                      star, u8"abstract class C { abstract "_sv.size(),
+                      u8"*"_sv, abstract_keyword,
+                      u8"abstract class C { "_sv.size(), u8"abstract"_sv),
               }));
 }
 
@@ -1417,8 +1422,9 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Abstract_Field_Cannot_Have_Initializer,  //
-                equal, strlen(u8"abstract class C { abstract myField: string "),
-                u8"="_sv, abstract_keyword, strlen(u8"abstract class C { "),
+                equal,
+                u8"abstract class C { abstract myField: string "_sv.size(),
+                u8"="_sv, abstract_keyword, u8"abstract class C { "_sv.size(),
                 u8"abstract"_sv),
         }));
   }
@@ -1443,7 +1449,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, strlen(u8"class C { "), u8"abstract"_sv,
+                abstract_keyword, u8"class C { "_sv.size(), u8"abstract"_sv,
                 class_keyword, 0, u8"class"_sv),
         }));
   }
@@ -1467,7 +1473,7 @@ TEST_F(Test_Parse_TypeScript_Class,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, strlen(u8"class C { "), u8"abstract"_sv,
+                abstract_keyword, u8"class C { "_sv.size(), u8"abstract"_sv,
                 class_keyword, 0, u8"class"_sv),
         }));
   }
@@ -1509,7 +1515,7 @@ TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript,  //
-                implements_keyword, strlen(u8"class C "), u8"implements"_sv),
+                implements_keyword, u8"class C "_sv.size(), u8"implements"_sv),
         }));
   }
 
@@ -1532,7 +1538,7 @@ TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript,  //
-                implements_keyword, strlen(u8"class C extends Base "),
+                implements_keyword, u8"class C extends Base "_sv.size(),
                 u8"implements"_sv),
         }));
   }
@@ -1556,7 +1562,7 @@ TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript,  //
-                implements_keyword, strlen(u8"class C "), u8"implements"_sv),
+                implements_keyword, u8"class C "_sv.size(), u8"implements"_sv),
         }))
         << "should not report Diag_TypeScript_Implements_Must_Be_After_Extends";
   }
@@ -1612,9 +1618,9 @@ TEST_F(Test_Parse_TypeScript_Class, implements_comes_after_extends) {
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_TypeScript_Implements_Must_Be_After_Extends,  //
-                        implements_keyword, strlen(u8"class C "),
+                        implements_keyword, u8"class C "_sv.size(),
                         u8"implements"_sv, extends_keyword,
-                        strlen(u8"class C implements I "), u8"extends"_sv),
+                        u8"class C implements I "_sv.size(), u8"extends"_sv),
                 }));
   }
 }
@@ -1771,9 +1777,10 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_in_constructor) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
-                second_modifier, strlen(u8"class C {\n  constructor(readonly "),
+                second_modifier,
+                u8"class C {\n  constructor(readonly "_sv.size(),
                 access_specifier,  //
-                first_modifier, strlen(u8"class C {\n  constructor("),
+                first_modifier, u8"class C {\n  constructor("_sv.size(),
                 u8"readonly"),
         }));
   }
@@ -2019,7 +2026,7 @@ TEST_F(Test_Parse_TypeScript_Class, constructor_keyword_with_escape_sequence) {
                   DIAG_TYPE_OFFSETS(p.code,
                                     Diag_Keyword_Contains_Escape_Characters,  //
                                     escape_character_in_keyword,
-                                    strlen(u8"class C {\n  "),
+                                    u8"class C {\n  "_sv.size(),
                                     u8"\\u{63}onstructor"_sv),
               }));
 }

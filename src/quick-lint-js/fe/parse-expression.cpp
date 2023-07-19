@@ -1384,7 +1384,7 @@ next:
                       lhs->child_->span_begin(), rhs->span_end()),
                   .unary_operator = Source_Code_Span(
                       lhs->unary_operator_begin_,
-                      lhs->unary_operator_begin_ + strlen(u8"void")),
+                      lhs->unary_operator_begin_ + u8"void"_sv.size()),
               });
         } else {
           // -a ** b  // Invalid.

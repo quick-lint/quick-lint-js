@@ -111,7 +111,7 @@ TEST_F(Test_Parse_Class, class_statement_requires_a_body) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_Class,  //
                                       class_keyword_and_name_and_heritage,
-                                      strlen(u8"class C"), u8""_sv),
+                                      u8"class C"_sv.size(), u8""_sv),
                 }));
   }
 
@@ -125,13 +125,13 @@ TEST_F(Test_Parse_Class, class_statement_requires_a_body) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // Derived
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_Class,  //
-                              class_keyword_and_name_and_heritage,
-                              strlen(u8"class Derived extends Base"), u8""_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_Class,  //
+                                      class_keyword_and_name_and_heritage,
+                                      u8"class Derived extends Base"_sv.size(),
+                                      u8""_sv),
+                }));
   }
 
   {
@@ -149,7 +149,7 @@ TEST_F(Test_Parse_Class, class_statement_requires_a_body) {
                                       class_keyword, 0, u8"class"_sv),
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_Class,  //
                                       class_keyword_and_name_and_heritage,
-                                      strlen(u8"class"), u8""_sv)));
+                                      u8"class"_sv.size(), u8""_sv)));
   }
 }
 
@@ -167,7 +167,7 @@ TEST_F(Test_Parse_Class, unclosed_class_statement) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Unclosed_Class_Block,  //
-                              block_open, strlen(u8"class C "), u8"{"_sv),
+                              block_open, u8"class C "_sv.size(), u8"{"_sv),
         }));
   }
 
@@ -188,7 +188,7 @@ TEST_F(Test_Parse_Class, unclosed_class_statement) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Unclosed_Class_Block,  //
-                              block_open, strlen(u8"class C "), u8"{"_sv),
+                              block_open, u8"class C "_sv.size(), u8"{"_sv),
         }));
   }
 
@@ -206,7 +206,7 @@ TEST_F(Test_Parse_Class, unclosed_class_statement) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Unclosed_Class_Block,  //
-                              block_open, strlen(u8"class C "), u8"{"_sv),
+                              block_open, u8"class C "_sv.size(), u8"{"_sv),
         }));
   }
 }
@@ -419,7 +419,7 @@ TEST_F(Test_Parse_Class, class_statement_methods_with_arrow_operator) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator,  //
-                arrow_operator, strlen(u8"class C { method() "), u8"=>"_sv),
+                arrow_operator, u8"class C { method() "_sv.size(), u8"=>"_sv),
         }));
   }
 }
@@ -443,7 +443,7 @@ TEST_F(Test_Parse_Class, missing_class_method_name_fails) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Class_Method_Name,  //
-                        expected_name, strlen(u8"class Monster { "), u8""_sv),
+                        expected_name, u8"class Monster { "_sv.size(), u8""_sv),
                 }));
   }
 }
@@ -680,7 +680,7 @@ TEST_F(Test_Parse_Class, class_fields_with_comma) {
         p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code, Diag_Unexpected_Comma_After_Field_Initialization,  //
-            comma, strlen(u8"class C { a = 1"), u8","_sv)));
+            comma, u8"class C { a = 1"_sv.size(), u8","_sv)));
   }
 }
 
@@ -753,7 +753,7 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Methods_Should_Not_Use_Function_Keyword,  //
-                function_token, strlen(u8"class C { "), u8"function"_sv),
+                function_token, u8"class C { "_sv.size(), u8"function"_sv),
         }));
   }
 
@@ -763,9 +763,10 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Methods_Should_Not_Use_Function_Keyword,  //
-                function_token, strlen(u8"class C { async "), u8"function"_sv),
+            DIAG_TYPE_OFFSETS(p.code,
+                              Diag_Methods_Should_Not_Use_Function_Keyword,  //
+                              function_token, u8"class C { async "_sv.size(),
+                              u8"function"_sv),
         }));
   }
 
@@ -777,7 +778,7 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Methods_Should_Not_Use_Function_Keyword,  //
-                function_token, strlen(u8"class C { "), u8"function"_sv),
+                function_token, u8"class C { "_sv.size(), u8"function"_sv),
         }));
   }
 
@@ -787,9 +788,10 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Methods_Should_Not_Use_Function_Keyword,  //
-                function_token, strlen(u8"class C { static "), u8"function"_sv),
+            DIAG_TYPE_OFFSETS(p.code,
+                              Diag_Methods_Should_Not_Use_Function_Keyword,  //
+                              function_token, u8"class C { static "_sv.size(),
+                              u8"function"_sv),
         }));
   }
 }
@@ -1028,7 +1030,7 @@ TEST_F(Test_Parse_Class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Parameter_List,  //
                               expected_parameter_list,
-                              strlen(u8"class C { method"), u8""_sv),
+                              u8"class C { method"_sv.size(), u8""_sv),
         }));
   }
 
@@ -1040,7 +1042,7 @@ TEST_F(Test_Parse_Class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Parameter_List,  //
                               expected_parameter_list,
-                              strlen(u8"class C { [method+name]"), u8""_sv),
+                              u8"class C { [method+name]"_sv.size(), u8""_sv),
         }));
   }
 
@@ -1052,7 +1054,7 @@ TEST_F(Test_Parse_Class, class_method_without_parameter_list) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Parameter_List,  //
                               expected_parameter_list,
-                              strlen(u8"class C { 'method name'"), u8""_sv),
+                              u8"class C { 'method name'"_sv.size(), u8""_sv),
         }));
   }
 }
@@ -1078,7 +1080,7 @@ TEST_F(Test_Parse_Class, stray_identifier_before_class_method) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, strlen(u8"class C { "),
+                                      token, u8"class C { "_sv.size(),
                                       u8"junkIdentifier"_sv),
                 }));
   }
@@ -1091,7 +1093,7 @@ TEST_F(Test_Parse_Class, stray_identifier_before_class_method) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, strlen(u8"class C { "),
+                                      token, u8"class C { "_sv.size(),
                                       u8"#junkIdentifier"_sv),
                 }));
   }
@@ -1116,7 +1118,7 @@ TEST_F(Test_Parse_Class, stray_identifier_before_class_method) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, strlen(u8"class C { "),
+                                      token, u8"class C { "_sv.size(),
                                       u8"junkIdentifier"_sv),
                 }));
   }
@@ -1128,11 +1130,12 @@ TEST_F(Test_Parse_Class, stray_left_curly_in_class_is_ignored) {
     Test_Parser p(u8"class C { { method() {} }"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, strlen(u8"class C { "), u8"{"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
+                              token, u8"class C { "_sv.size(), u8"{"_sv),
+        }));
   }
 }
 
@@ -1142,14 +1145,15 @@ TEST_F(Test_Parse_Class, stray_keyword_in_class_body) {
         u8"class C { if method(arg) { body; } instanceof myField; }"_sv,
         capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, strlen(u8"class C { "), u8"if"_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Token,  //
-                        token, strlen(u8"class C { if method(arg) { body; } "),
-                        u8"instanceof"_sv)));
+    EXPECT_THAT(
+        p.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
+                              token, u8"class C { "_sv.size(), u8"if"_sv),
+            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
+                              token,
+                              u8"class C { if method(arg) { body; } "_sv.size(),
+                              u8"instanceof"_sv)));
   }
 }
 
@@ -1172,9 +1176,9 @@ TEST_F(Test_Parse_Class,
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::do_while_loop,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"do"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"do"_sv.size(), u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"do "), u8"class"_sv)),
+                Offsets_Matcher(p.code, u8"do "_sv.size(), u8"class"_sv)),
         }));
   }
 }
@@ -1199,9 +1203,10 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::if_statement,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"if (cond)"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"if (cond) "), u8"class"_sv)),
+                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
+                                u8"class"_sv)),
         }));
   }
 
@@ -1225,9 +1230,10 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::if_statement,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"if (cond)"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"if (cond) "), u8"class"_sv)),
+                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
+                                u8"class"_sv)),
         }));
   }
 
@@ -1251,10 +1257,10 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::if_statement,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"if (cond) {} else"),
+                Offsets_Matcher(p.code, u8"if (cond) {} else"_sv.size(),
                                 u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"if (cond) {} else "),
+                Offsets_Matcher(p.code, u8"if (cond) {} else "_sv.size(),
                                 u8"class"_sv)),
         }));
   }
@@ -1278,9 +1284,10 @@ TEST_F(Test_Parse_Class, class_statement_as_for_statement_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::for_loop,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"for (;cond;)"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"for (;cond;)"_sv.size(),
+                                u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"for (;cond;) "),
+                Offsets_Matcher(p.code, u8"for (;cond;) "_sv.size(),
                                 u8"class"_sv)),
         }));
   }
@@ -1305,9 +1312,10 @@ TEST_F(Test_Parse_Class,
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::while_loop,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"while (cond)"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"while (cond)"_sv.size(),
+                                u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"while (cond) "),
+                Offsets_Matcher(p.code, u8"while (cond) "_sv.size(),
                                 u8"class"_sv)),
         }));
   }
@@ -1333,9 +1341,10 @@ TEST_F(Test_Parse_Class, class_statement_as_with_statement_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
                 Statement_Kind::with_statement,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"with (obj)"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"with (obj)"_sv.size(), u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"with (obj) "), u8"class"_sv)),
+                Offsets_Matcher(p.code, u8"with (obj) "_sv.size(),
+                                u8"class"_sv)),
         }));
   }
 }
@@ -1357,9 +1366,9 @@ TEST_F(Test_Parse_Class, class_statement_as_label_body_is_disallowed) {
                 Diag_Class_Statement_Not_Allowed_In_Body,               //
                 kind_of_statement, Statement_Kind::labelled_statement,  //
                 expected_body,
-                Offsets_Matcher(p.code, strlen(u8"l:"), u8""_sv),  //
+                Offsets_Matcher(p.code, u8"l:"_sv.size(), u8""_sv),  //
                 class_keyword,
-                Offsets_Matcher(p.code, strlen(u8"l: "), u8"class"_sv)),
+                Offsets_Matcher(p.code, u8"l: "_sv.size(), u8"class"_sv)),
         }));
   }
 }
@@ -1396,7 +1405,7 @@ TEST_F(Test_Parse_Class, class_named_await_in_async_function) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Cannot_Declare_Await_In_Async_Function, name,
-                strlen(u8"async function g() { class "), u8"await"_sv),
+                u8"async function g() { class "_sv.size(), u8"await"_sv),
         }));
   }
 }
@@ -1424,7 +1433,7 @@ TEST_F(Test_Parse_Class, async_static_method_is_disallowed) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Async_Static_Method,  //
-                                      async_static, strlen(u8"class C { "),
+                                      async_static, u8"class C { "_sv.size(),
                                       u8"async static"_sv),
                 }));
   }
@@ -1437,7 +1446,7 @@ TEST_F(Test_Parse_Class, async_static_method_is_disallowed) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Async_Static_Method,  //
-                                      async_static, strlen(u8"class C { "),
+                                      async_static, u8"class C { "_sv.size(),
                                       u8"async static"_sv),
                 }));
   }
@@ -1451,7 +1460,7 @@ TEST_F(Test_Parse_Class, async_static_method_is_disallowed) {
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Async_Static_Method,  //
-                                      async_static, strlen(u8"class C { "),
+                                      async_static, u8"class C { "_sv.size(),
                                       u8"async static"_sv),
                 }));
   }
@@ -1512,7 +1521,7 @@ TEST_F(Test_Parse_Class, typescript_style_const_field) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_TypeScript_Style_Const_Field,  //
-                        const_token, strlen(u8"class C { "), u8"const"_sv),
+                        const_token, u8"class C { "_sv.size(), u8"const"_sv),
                 }));
   }
   {
@@ -1523,7 +1532,7 @@ TEST_F(Test_Parse_Class, typescript_style_const_field) {
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_TypeScript_Style_Const_Field,  //
-                        const_token, strlen(u8"class C { "), u8"const"_sv),
+                        const_token, u8"class C { "_sv.size(), u8"const"_sv),
                 }));
   }
 }

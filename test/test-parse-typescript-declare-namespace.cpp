@@ -43,7 +43,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
           DIAG_TYPE_OFFSETS(
               p.code,
               Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript,  //
-              namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
+              namespace_keyword, u8"declare "_sv.size(), u8"namespace"_sv),
       }));
 }
 
@@ -93,7 +93,7 @@ TEST_F(
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,  //
-                module_name, strlen(u8"declare namespace "),
+                module_name, u8"declare namespace "_sv.size(),
                 u8"'my name space'"),
         }));
   }
@@ -113,7 +113,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, missing_body) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Body_For_TypeScript_Namespace,  //
-                              expected_body, strlen(u8"declare namespace ns"),
+                              expected_body, u8"declare namespace ns"_sv.size(),
                               u8""_sv),
         }));
   }
@@ -132,7 +132,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, missing_body) {
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Body_For_TypeScript_Namespace,  //
-                              expected_body, strlen(u8"declare namespace ns"),
+                              expected_body, u8"declare namespace ns"_sv.size(),
                               u8""_sv),
         }));
   }
@@ -155,7 +155,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, incomplete_body) {
             // TODO(strager): Report a namespace-specific diagnostic.
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unclosed_Code_Block,  //
-                              block_open, strlen(u8"declare namespace ns "),
+                              block_open, u8"declare namespace ns "_sv.size(),
                               u8"{"_sv),
         }));
   }
@@ -178,7 +178,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
           DIAG_TYPE_OFFSETS(
               p.code,
               Diag_Newline_Not_Allowed_After_Namespace_Keyword,  //
-              namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
+              namespace_keyword, u8"declare "_sv.size(), u8"namespace"_sv),
       }));
 }
 
@@ -202,7 +202,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace,  //
-                declare_keyword, strlen(u8"declare namespace ns { "),
+                declare_keyword, u8"declare namespace ns { "_sv.size(),
                 u8"declare"_sv,  //
                 declare_namespace_declare_keyword, 0, u8"declare"_sv),
         }));
@@ -522,15 +522,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_variable_declaration",   // ns
                               "visit_end_of_module",          //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Namespace_Cannot_Import_Module,  //
-                        importing_keyword, strlen(u8"declare namespace ns { "),
-                        u8"import"_sv,  //
-                        declare_keyword, 0, u8"declare"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                Diag_Declare_Namespace_Cannot_Import_Module,  //
+                                importing_keyword,
+                                u8"declare namespace ns { "_sv.size(),
+                                u8"import"_sv,  //
+                                declare_keyword, 0, u8"declare"_sv),
+        }));
   }
 
   {
@@ -552,15 +553,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_variable_declaration",   // ns
                               "visit_end_of_module",          //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Namespace_Cannot_Import_Module,  //
-                        importing_keyword, strlen(u8"declare namespace ns { "),
-                        u8"import"_sv,  //
-                        declare_keyword, 0, u8"declare"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_2_OFFSETS(p.code,
+                                Diag_Declare_Namespace_Cannot_Import_Module,  //
+                                importing_keyword,
+                                u8"declare namespace ns { "_sv.size(),
+                                u8"import"_sv,  //
+                                declare_keyword, 0, u8"declare"_sv),
+        }));
   }
 }
 
@@ -576,7 +578,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
             DIAG_TYPE_2_OFFSETS(p.code,
                                 Diag_Declare_Namespace_Cannot_Import_Module,  //
                                 importing_keyword,
-                                strlen(u8"declare namespace ns { export * "),
+                                u8"declare namespace ns { export * "_sv.size(),
                                 u8"from"_sv,  //
                                 declare_keyword, 0, u8"declare"_sv),
         }));
@@ -594,16 +596,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Test_Parser p(u8"declare namespace ns { export {Z} from 'module'; }"_sv,
                   typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(p.code,
-                                Diag_Declare_Namespace_Cannot_Import_Module,  //
-                                importing_keyword,
-                                strlen(u8"declare namespace ns { export {Z} "),
-                                u8"from"_sv,  //
-                                declare_keyword, 0, u8"declare"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        Diag_Declare_Namespace_Cannot_Import_Module,  //
+                        importing_keyword,
+                        u8"declare namespace ns { export {Z} "_sv.size(),
+                        u8"from"_sv,  //
+                        declare_keyword, 0, u8"declare"_sv),
+                }));
   }
 }
 
@@ -670,9 +672,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                default_keyword, strlen(u8"declare namespace ns { export "),
+                default_keyword, u8"declare namespace ns { export "_sv.size(),
                 u8"default"_sv,  //
-                namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
+                namespace_keyword, u8"declare "_sv.size(), u8"namespace"_sv),
         }));
   }
 
@@ -696,9 +698,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                default_keyword, strlen(u8"declare namespace ns { export "),
+                default_keyword, u8"declare namespace ns { export "_sv.size(),
                 u8"default"_sv,  //
-                namespace_keyword, strlen(u8"declare "), u8"namespace"_sv),
+                namespace_keyword, u8"declare "_sv.size(), u8"namespace"_sv),
         }));
   }
 
@@ -865,7 +867,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                     DIAG_TYPE_OFFSETS(p.code,
                                       Diag_Declare_Function_Cannot_Be_Async,  //
                                       async_keyword,
-                                      strlen(u8"declare namespace ns { "),
+                                      u8"declare namespace ns { "_sv.size(),
                                       u8"async"_sv),
                 }));
   }
@@ -881,7 +883,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Declare_Function_Cannot_Be_Async,  //
                               async_keyword,
-                              strlen(u8"declare namespace ns { export "),
+                              u8"declare namespace ns { export "_sv.size(),
                               u8"async"_sv),
         }));
   }
@@ -934,7 +936,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                         p.code,
                         Diag_Declare_Namespace_Cannot_Contain_Statement,  //
                         first_statement_token,
-                        strlen(u8"declare namespace ns1 { namespace ns2 { "),
+                        u8"declare namespace ns1 { namespace ns2 { "_sv.size(),
                         u8"if"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
@@ -952,7 +954,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                 p.code,
                 Diag_Declare_Namespace_Cannot_Contain_Statement,  //
                 first_statement_token,
-                strlen(u8"declare namespace ns1 { export namespace ns2 { "),
+                u8"declare namespace ns1 { export namespace ns2 { "_sv.size(),
                 u8"if"_sv,  //
                 declare_keyword, 0, u8"declare"_sv),
         }));
@@ -968,7 +970,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                         p.code,
                         Diag_Declare_Namespace_Cannot_Contain_Statement,  //
                         first_statement_token,
-                        strlen(u8"declare namespace ns1 { module ns2 { "),
+                        u8"declare namespace ns1 { module ns2 { "_sv.size(),
                         u8"if"_sv,  //
                         declare_keyword, 0, u8"declare"_sv),
                 }));
@@ -987,7 +989,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                         p.code,
                         Diag_Declare_Namespace_Cannot_Contain_Statement,  //
                         first_statement_token,
-                        strlen(u8"declare namespace ns { "), u8"if"_sv),
+                        u8"declare namespace ns { "_sv.size(), u8"if"_sv),
                 }));
   }
 
@@ -1001,7 +1003,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                         p.code,
                         Diag_Declare_Namespace_Cannot_Contain_Statement,  //
                         first_statement_token,
-                        strlen(u8"declare namespace ns { "), u8"console"_sv),
+                        u8"declare namespace ns { "_sv.size(), u8"console"_sv),
                 }));
   }
 }

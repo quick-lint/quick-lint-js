@@ -39,7 +39,7 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Declare_Class_Not_Allowed_In_JavaScript,  //
-                declare_keyword, strlen(u8"export "), u8"declare"_sv),
+                declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
         }));
   }
 }
@@ -87,7 +87,7 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Import_Cannot_Have_Declare_Keyword,  //
-                        declare_keyword, strlen(u8"export "), u8"declare"_sv),
+                        declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
                 }));
   }
 }
@@ -102,7 +102,7 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Import_Cannot_Have_Declare_Keyword,  //
-                        declare_keyword, strlen(u8"export "), u8"declare"_sv),
+                        declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
                 }));
   }
 }
@@ -139,8 +139,8 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Export_Declare,  //
-                declare_keyword, strlen(u8"export "), u8"declare"_sv,   //
+                p.code, Diag_Newline_Not_Allowed_After_Export_Declare,   //
+                declare_keyword, u8"export "_sv.size(), u8"declare"_sv,  //
                 export_keyword, 0, u8"export"_sv),
         }));
   }

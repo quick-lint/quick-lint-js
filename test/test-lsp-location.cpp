@@ -245,8 +245,8 @@ TEST(Test_LSP_Location, offset_of_inside_cr_lf_gives_beginning_of_cr_lf) {
   Padded_String code(u8"hello\r\nworld"_sv);
   LSP_Locator l(&code);
   const Char8* terminator = l.from_position(LSP_Position{
-      .line = 0, .character = narrow_cast<int>(strlen(u8"hello\r"))});
-  EXPECT_EQ(terminator, &code[narrow_cast<int>(strlen(u8"hello"))]);
+      .line = 0, .character = narrow_cast<int>(u8"hello\r"_sv.size())});
+  EXPECT_EQ(terminator, &code[narrow_cast<int>(u8"hello"_sv.size())]);
 }
 
 TEST(Test_LSP_Location, offset_from_empty_input) {

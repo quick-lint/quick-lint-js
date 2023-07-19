@@ -79,13 +79,13 @@ TEST_F(Test_Parse_TypeScript_Namespace, missing_body) {
                               "visit_variable_declaration",  // ns
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Body_For_TypeScript_Namespace,  //
-                              expected_body, strlen(u8"namespace ns"), u8""_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        Diag_Missing_Body_For_TypeScript_Namespace,  //
+                        expected_body, u8"namespace ns"_sv.size(), u8""_sv),
+                }));
   }
 
   {
@@ -97,13 +97,13 @@ TEST_F(Test_Parse_TypeScript_Namespace, missing_body) {
                               "visit_variable_use",          // console
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Body_For_TypeScript_Namespace,  //
-                              expected_body, strlen(u8"namespace ns"), u8""_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        Diag_Missing_Body_For_TypeScript_Namespace,  //
+                        expected_body, u8"namespace ns"_sv.size(), u8""_sv),
+                }));
   }
 }
 
@@ -117,14 +117,14 @@ TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
                               "visit_variable_declaration",   // ns
                               "visit_end_of_module",          //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            // TODO(strager): Report a namespace-specific diagnostic.
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unclosed_Code_Block,  //
-                              block_open, strlen(u8"namespace ns "), u8"{"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    // TODO(strager): Report a namespace-specific diagnostic.
+                    DIAG_TYPE_OFFSETS(p.code,
+                                      Diag_Unclosed_Code_Block,  //
+                                      block_open, u8"namespace ns "_sv.size(),
+                                      u8"{"_sv),
+                }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
@@ -161,7 +161,7 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_cannot_have_string_name) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, strlen(u8"namespace "), u8"'my name space'"_sv),
+                module_name, u8"namespace "_sv.size(), u8"'my name space'"_sv),
         }));
   }
 
@@ -180,7 +180,7 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_cannot_have_string_name) {
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, strlen(u8"module "), u8"'my name space'"_sv),
+                module_name, u8"module "_sv.size(), u8"'my name space'"_sv),
         }));
   }
 }
@@ -374,7 +374,7 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                        default_keyword, strlen(u8"namespace ns { export "),
+                        default_keyword, u8"namespace ns { export "_sv.size(),
                         u8"default"_sv,  //
                         namespace_keyword, 0, u8"namespace"_sv),
                 }));
@@ -398,7 +398,7 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                        default_keyword, strlen(u8"namespace ns { export "),
+                        default_keyword, u8"namespace ns { export "_sv.size(),
                         u8"default"_sv,  //
                         namespace_keyword, 0, u8"namespace"_sv),
                 }));
@@ -727,7 +727,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
                 p.code,
                 Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript,  //
                 import_keyword, 0, u8"import"_sv,                        //
-                equal, strlen(u8"import A "), u8"="_sv),
+                equal, u8"import A "_sv.size(), u8"="_sv),
         }));
   }
 }
@@ -797,7 +797,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Semicolon_After_Statement,  //
-                              where, strlen(u8"import A = ns"), u8""_sv),
+                              where, u8"import A = ns"_sv.size(), u8""_sv),
         }));
   }
 }

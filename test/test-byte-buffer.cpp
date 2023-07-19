@@ -303,7 +303,7 @@ TEST(Test_Byte_Buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec iov(std::move(chunks));
-  iov.remove_front(strlen(u8"helloworld"));
+  iov.remove_front(u8"helloworld"_sv.size());
 
   Byte_Buffer bb;
   bb.append_copy(u8"hiya"_sv);
@@ -383,7 +383,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_entire_single_chunk) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
-  bb.remove_front(strlen(u8"hello"));
+  bb.remove_front(u8"hello"_sv.size());
   EXPECT_EQ(get_data(bb), u8" world");
 }
 
@@ -394,7 +394,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_entire_multiple_chunks) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
-  bb.remove_front(strlen(u8"hello") + strlen(u8"beautiful"));
+  bb.remove_front(u8"hello"_sv.size() + u8"beautiful"_sv.size());
   EXPECT_EQ(get_data(bb), u8"world");
 }
 
@@ -405,7 +405,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
-  bb.remove_front(strlen(u8"hello") + strlen(u8" ") + strlen(u8"world"));
+  bb.remove_front(u8"hello"_sv.size() + u8" "_sv.size() + u8"world"_sv.size());
   EXPECT_EQ(get_data(bb), u8"");
 }
 
@@ -416,7 +416,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_part_of_first_chunk) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
-  bb.remove_front(strlen(u8"hel"));
+  bb.remove_front(u8"hel"_sv.size());
   EXPECT_EQ(get_data(bb), u8"lo world");
 }
 
@@ -440,7 +440,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_first_chunk_and_part_of_second_chunk) {
       make_chunk(u8"world"_sv),
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
-  bb.remove_front(strlen(u8"hello") + strlen(u8"beauti"));
+  bb.remove_front(u8"hello"_sv.size() + u8"beauti"_sv.size());
   EXPECT_EQ(get_data(bb), u8"fulworld");
 }
 
@@ -452,7 +452,8 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks_byte_by_byte) {
   };
   Byte_Buffer_IOVec bb(std::move(chunks));
   for (std::size_t i = 0;
-       i < strlen(u8"hello") + strlen(u8"beautiful") + strlen(u8"world"); ++i) {
+       i < u8"hello"_sv.size() + u8"beautiful"_sv.size() + u8"world"_sv.size();
+       ++i) {
     bb.remove_front(1);
   }
   EXPECT_EQ(get_data(bb), u8"");

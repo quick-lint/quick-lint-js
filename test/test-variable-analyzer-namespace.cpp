@@ -141,10 +141,12 @@ TEST(Test_Variable_Analyzer_Namespace,
 
   static const Padded_String delete_expression(u8"delete myVarWithDelete"_sv);
   static const Source_Code_Span delete_keyword_span(
-      delete_expression.data(), delete_expression.data() + strlen(u8"delete"));
+      delete_expression.data(),
+      delete_expression.data() + u8"delete"_sv.size());
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
   static const Source_Code_Span deleted_variable_span(
-      delete_expression.data() + strlen(u8"delete "), delete_expression.cend());
+      delete_expression.data() + u8"delete "_sv.size(),
+      delete_expression.cend());
   ASSERT_EQ(deleted_variable_span.string_view(), u8"myVarWithDelete"_sv);
 
   {

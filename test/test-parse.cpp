@@ -208,7 +208,7 @@ TEST_F(Test_Parse, asi_for_statement_at_newline) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console", u8"console"}));
     CLI_Source_Position::Offset_Type end_of_first_expression =
-        strlen(u8"console.log('hello')");
+        u8"console.log('hello')"_sv.size();
     EXPECT_THAT(p.errors,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
@@ -392,9 +392,9 @@ TEST_F(Test_Parse, utter_garbage) {
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Expected_Parentheses_Around_If_Condition,  //
-                              condition, strlen(u8"if "), u8":"_sv),
+                              condition, u8"if "_sv.size(), u8":"_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, strlen(u8"if "), u8":"_sv)));
+                              token, u8"if "_sv.size(), u8":"_sv)));
   }
 }
 
@@ -468,7 +468,7 @@ TEST_F(
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, strlen(u8"("), u8"\\u{??}"_sv),
+                  escape_sequence, u8"("_sv.size(), u8"\\u{??}"_sv),
           }));
     }
   }

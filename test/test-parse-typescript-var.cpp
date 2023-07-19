@@ -184,7 +184,7 @@ TEST_F(Test_Parse_TypeScript_Var,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any,  //
-                        type_expression, strlen(u8"try { } catch (e: "),
+                        type_expression, u8"try { } catch (e: "_sv.size(),
                         u8"SomeType"_sv),
                 }));
   }
@@ -211,7 +211,7 @@ TEST_F(Test_Parse_TypeScript_Var,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, strlen(u8"try { } catch (e"), u8":"_sv),
+                type_colon, u8"try { } catch (e"_sv.size(), u8":"_sv),
         }));
   }
 }

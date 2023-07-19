@@ -153,11 +153,11 @@ TEST_F(Test_Parse_Expression_JSX, tag_with_element_children) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, jsxelement(span))");
     EXPECT_THAT(ast->span(),
-                p.matches_offsets(strlen(u8""),
+                p.matches_offsets(u8""_sv.size(),
                                   u8"<div>hello <span>world</span>!</div>"_sv));
-    EXPECT_THAT(
-        ast->child_0()->span(),
-        p.matches_offsets(strlen(u8"<div>hello "), u8"<span>world</span>"_sv));
+    EXPECT_THAT(ast->child_0()->span(),
+                p.matches_offsets(u8"<div>hello "_sv.size(),
+                                  u8"<span>world</span>"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -170,9 +170,10 @@ TEST_F(Test_Parse_Expression_JSX, tag_with_fragment_children) {
     ASSERT_EQ(summarize(ast), "jsxelement(div, jsxfragment())");
     EXPECT_THAT(
         ast->span(),
-        p.matches_offsets(strlen(u8""), u8"<div>hello <>world</>!</div>"_sv));
-    EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(strlen(u8"<div>hello "), u8"<>world</>"_sv));
+        p.matches_offsets(u8""_sv.size(), u8"<div>hello <>world</>!</div>"_sv));
+    EXPECT_THAT(
+        ast->child_0()->span(),
+        p.matches_offsets(u8"<div>hello "_sv.size(), u8"<>world</>"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -183,12 +184,12 @@ TEST_F(Test_Parse_Expression_JSX, fragment_with_element_children) {
                   capture_diags);
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxfragment(jsxelement(span))");
-    EXPECT_THAT(
-        ast->span(),
-        p.matches_offsets(strlen(u8""), u8"<>hello <span>world</span>!</>"_sv));
+    EXPECT_THAT(ast->span(),
+                p.matches_offsets(u8""_sv.size(),
+                                  u8"<>hello <span>world</span>!</>"_sv));
     EXPECT_THAT(
         ast->child_0()->span(),
-        p.matches_offsets(strlen(u8"<>hello "), u8"<span>world</span>"_sv));
+        p.matches_offsets(u8"<>hello "_sv.size(), u8"<span>world</span>"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -215,10 +216,10 @@ TEST_F(Test_Parse_Expression_JSX, fragment_with_fragment_children) {
     Test_Parser p(u8"<>hello <>world</>!</>"_sv, jsx_options, capture_diags);
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxfragment(jsxfragment())");
-    EXPECT_THAT(ast->span(),
-                p.matches_offsets(strlen(u8""), u8"<>hello <>world</>!</>"_sv));
+    EXPECT_THAT(ast->span(), p.matches_offsets(u8""_sv.size(),
+                                               u8"<>hello <>world</>!</>"_sv));
     EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(strlen(u8"<>hello "), u8"<>world</>"_sv));
+                p.matches_offsets(u8"<>hello "_sv.size(), u8"<>world</>"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
@@ -229,7 +230,7 @@ TEST_F(Test_Parse_Expression_JSX, tag_with_expression_children) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, var name)");
     EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(strlen(u8"<div>hello {"), u8"name"_sv));
+                p.matches_offsets(u8"<div>hello {"_sv.size(), u8"name"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
@@ -262,7 +263,7 @@ TEST_F(Test_Parse_Expression_JSX, tag_with_attributes) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, var expr)");
     EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(strlen(u8"<div className={"), u8"expr"_sv));
+                p.matches_offsets(u8"<div className={"_sv.size(), u8"expr"_sv));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 

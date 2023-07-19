@@ -48,9 +48,9 @@ TEST(Test_Variable_Analyzer_Parse, generic_parameter_use_before_declaration) {
   EXPECT_THAT(v.errors,
               ElementsAreArray({
                   DIAG_TYPE_2_OFFSETS(
-                      &input, Diag_Variable_Used_Before_Declaration,     //
-                      use, strlen(u8"function f<T extends "), u8"T"_sv,  //
-                      declaration, strlen(u8"function f<"), u8"T"_sv),
+                      &input, Diag_Variable_Used_Before_Declaration,       //
+                      use, u8"function f<T extends "_sv.size(), u8"T"_sv,  //
+                      declaration, u8"function f<"_sv.size(), u8"T"_sv),
               }));
 }
 

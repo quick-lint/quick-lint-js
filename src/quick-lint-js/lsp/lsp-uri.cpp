@@ -26,14 +26,14 @@ std::string parse_file_from_lsp_uri_posix(String8_View uri) {
   if (!starts_with(uri, u8"file://"_sv)) {
     return "";
   }
-  if (uri.size() < strlen(u8"file://") + 1) {
+  if (uri.size() < u8"file://"_sv.size() + 1) {
     return "";
   }
   bool have_authority = uri[7] != u8'/';
   if (have_authority) {
-    uri = uri.substr(strlen(u8"file:"));
+    uri = uri.substr(u8"file:"_sv.size());
   } else {
-    uri = uri.substr(strlen(u8"file://"));
+    uri = uri.substr(u8"file://"_sv.size());
   }
   std::size_t query_start = uri.find(u8'?');
   if (query_start != uri.npos) {

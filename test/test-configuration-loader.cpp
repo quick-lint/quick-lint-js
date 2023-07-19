@@ -741,9 +741,10 @@ TEST_F(Test_Configuration_Loader,
   {
     FILE* file = std::fopen(config_file.c_str(), "r+");
     ASSERT_TRUE(file) << std::strerror(errno);
-    ASSERT_EQ(std::fseek(file, narrow_cast<long>(strlen(u8R"({"globals": {")")),
-                         SEEK_SET),
-              0)
+    ASSERT_EQ(
+        std::fseek(file, narrow_cast<long>(u8R"({"globals": {")"_sv.size()),
+                   SEEK_SET),
+        0)
         << std::strerror(errno);
     ASSERT_EQ(std::fwrite(u8"after_", 1, 6, file), 6) << std::strerror(errno);
     ASSERT_EQ(std::fclose(file), 0) << std::strerror(errno);

@@ -166,7 +166,7 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_This_Parameter_Not_Allowed_In_Arrow_Functions,  //
-                        this_keyword, strlen(u8""), u8"this"_sv),
+                        this_keyword, u8""_sv.size(), u8"this"_sv),
                 }));
   }
 
@@ -183,7 +183,7 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_This_Parameter_Not_Allowed_In_Arrow_Functions,  //
-                        this_keyword, strlen(u8"("), u8"this"_sv),
+                        this_keyword, u8"("_sv.size(), u8"this"_sv),
                 }));
   }
 
@@ -195,7 +195,7 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_This_Parameter_Not_Allowed_In_Arrow_Functions,  //
-                        this_keyword, strlen(u8"async "), u8"this"_sv),
+                        this_keyword, u8"async "_sv.size(), u8"this"_sv),
                 }));
   }
 
@@ -207,7 +207,7 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, disallowed_in_arrow_functions) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_This_Parameter_Not_Allowed_In_Arrow_Functions,  //
-                        this_keyword, strlen(u8"async ("), u8"this"_sv),
+                        this_keyword, u8"async ("_sv.size(), u8"this"_sv),
                 }));
   }
 }
@@ -227,7 +227,7 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_when_destructuring) {
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_This_Parameter_Not_Allowed_When_Destructuring,  //
-                        this_keyword, strlen(u8"function(["), u8"this"_sv),
+                        this_keyword, u8"function(["_sv.size(), u8"this"_sv),
                 }));
   }
 
@@ -240,13 +240,14 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_when_destructuring) {
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_This_Parameter_Not_Allowed_When_Destructuring,  //
-                        this_keyword, strlen(u8"function({key: "), u8"this"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code,
+                Diag_This_Parameter_Not_Allowed_When_Destructuring,  //
+                this_keyword, u8"function({key: "_sv.size(), u8"this"_sv),
+        }));
   }
 }
 
@@ -265,8 +266,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_when_spreading) {
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
                         Diag_Spread_Parameter_Cannot_Be_This,  //
-                        this_keyword, strlen(u8"function(..."), u8"this"_sv,
-                        spread_operator, strlen(u8"function("), u8"..."_sv),
+                        this_keyword, u8"function(..."_sv.size(), u8"this"_sv,
+                        spread_operator, u8"function("_sv.size(), u8"..."_sv),
                 }));
   }
 }
@@ -287,9 +288,9 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, only_allowed_as_first_parameter) {
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(p.code,
                                 Diag_This_Parameter_Must_Be_First,  //
-                                this_keyword, strlen(u8"function( other, "),
+                                this_keyword, u8"function( other, "_sv.size(),
                                 u8"this"_sv, first_parameter_begin,
-                                strlen(u8"function( "), u8""_sv),
+                                u8"function( "_sv.size(), u8""_sv),
         }));
   }
 
@@ -297,14 +298,14 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, only_allowed_as_first_parameter) {
     Test_Parser p(u8"(other, this) => ReturnType"_sv, typescript_options,
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(p.code,
-                                Diag_This_Parameter_Must_Be_First,  //
-                                this_keyword, strlen(u8"(other, "), u8"this"_sv,
-                                first_parameter_begin, strlen(u8"("), u8""_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(p.code,
+                                        Diag_This_Parameter_Must_Be_First,  //
+                                        this_keyword, u8"(other, "_sv.size(),
+                                        u8"this"_sv, first_parameter_begin,
+                                        u8"("_sv.size(), u8""_sv),
+                }));
   }
 }
 
@@ -317,13 +318,13 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_in_javascript) {
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_This_Parameter_Not_Allowed_In_JavaScript,  //
-                              this_keyword, strlen(u8"function("), u8"this"_sv),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code,
+                        Diag_This_Parameter_Not_Allowed_In_JavaScript,  //
+                        this_keyword, u8"function("_sv.size(), u8"this"_sv),
+                }));
   }
 }
 

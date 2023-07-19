@@ -28,8 +28,8 @@ TEST(Test_C_API_Web_Demo, lint_error_after_text_insertion) {
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
   EXPECT_STREQ(diagnostics[0].code, "E0034");
-  EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
-  EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
+  EXPECT_EQ(diagnostics[0].begin_offset, u8"let x;let "_sv.size());
+  EXPECT_EQ(diagnostics[0].end_offset, u8"let x;let x"_sv.size());
 
   qljs_web_demo_destroy_document(p);
 }
@@ -51,8 +51,8 @@ TEST(Test_C_API_Web_Demo, lint_new_error_after_second_text_insertion) {
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
   EXPECT_STREQ(diagnostics[0].code, "E0034");
-  EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
-  EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
+  EXPECT_EQ(diagnostics[0].begin_offset, u8"let x;let "_sv.size());
+  EXPECT_EQ(diagnostics[0].end_offset, u8"let x;let x"_sv.size());
 
   qljs_web_demo_destroy_document(p);
 }

@@ -38,9 +38,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"var"_sv),
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"var"_sv),
                 }));
   }
 
@@ -54,9 +54,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"const"_sv),
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"const"_sv),
                 }));
   }
 
@@ -70,9 +70,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,     //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"let"_sv),
+                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"let"_sv),
                 }));
   }
 }
@@ -137,10 +137,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Cannot_Have_Initializer,       //
-                        equal, strlen(u8"declare var x "), u8"=",       //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"var"_sv),
+                        Diag_Declare_Var_Cannot_Have_Initializer,         //
+                        equal, u8"declare var x "_sv.size(), u8"=",       //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"var"_sv),
                 }));
   }
 
@@ -154,10 +154,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Cannot_Have_Initializer,       //
-                        equal, strlen(u8"declare const x "), u8"=",     //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"const"_sv),
+                        Diag_Declare_Var_Cannot_Have_Initializer,         //
+                        equal, u8"declare const x "_sv.size(), u8"=",     //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"const"_sv),
                 }));
   }
 
@@ -171,10 +171,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
                 ElementsAreArray({
                     DIAG_TYPE_3_OFFSETS(
                         p.code,
-                        Diag_Declare_Var_Cannot_Have_Initializer,       //
-                        equal, strlen(u8"declare let x "), u8"=",       //
-                        declare_keyword, strlen(u8""), u8"declare"_sv,  //
-                        declaring_token, strlen(u8"declare "), u8"let"_sv),
+                        Diag_Declare_Var_Cannot_Have_Initializer,         //
+                        equal, u8"declare let x "_sv.size(), u8"=",       //
+                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
+                        declaring_token, u8"declare "_sv.size(), u8"let"_sv),
                 }));
   }
 }

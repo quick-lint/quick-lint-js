@@ -79,7 +79,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level,  //
-                module_name, strlen(u8"namespace ns { declare module "),
+                module_name, u8"namespace ns { declare module "_sv.size(),
                 u8"'my name space'"),
         }));
   }
@@ -94,7 +94,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level,  //
-                module_name, strlen(u8"declare namespace ns { module "),
+                module_name, u8"declare namespace ns { module "_sv.size(),
                 u8"'inner ns'"_sv),
         }));
   }

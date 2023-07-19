@@ -570,7 +570,7 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Globals_Type_Mismatch,  //
-                    value, strlen(u8R"({"globals":)"), u8"["_sv)}));
+                    value, u8R"({"globals":)"_sv.size(), u8"["_sv)}));
     EXPECT_FALSE(c.globals().find(u8"myGlobalVariable"_sv))
         << "invalid global should be ignored";
   }
@@ -581,12 +581,12 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
     Configuration c;
     Diag_Collector errors;
     c.load_from_json(&json, &errors);
-    EXPECT_THAT(
-        errors.errors,
-        ElementsAreArray({DIAG_TYPE_OFFSETS(
-            &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
-            descriptor, strlen(u8R"({"globals":{"testBefore":true,"testBad":)"),
-            u8R"("string")"_sv)}));
+    EXPECT_THAT(errors.errors,
+                ElementsAreArray({DIAG_TYPE_OFFSETS(
+                    &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
+                    descriptor,
+                    u8R"({"globals":{"testBefore":true,"testBad":)"_sv.size(),
+                    u8R"("string")"_sv)}));
 
     EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
         << "valid globals before should work";
@@ -607,8 +607,8 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
         ElementsAreArray({DIAG_TYPE_OFFSETS(
             &json, Diag_Config_Globals_Descriptor_Shadowable_Type_Mismatch,  //
             value,
-            strlen(
-                u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":)"),
+            u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":)"_sv
+                .size(),
             u8R"("string")"_sv)}));
 
     EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
@@ -635,7 +635,8 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
         ElementsAreArray({DIAG_TYPE_OFFSETS(
             &json, Diag_Config_Globals_Descriptor_Writable_Type_Mismatch,  //
             value,
-            strlen(u8R"({"globals":{"testBefore":true,"testBad":{"writable":)"),
+            u8R"({"globals":{"testBefore":true,"testBad":{"writable":)"_sv
+                .size(),
             u8R"("string")"_sv)}));
 
     EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
@@ -661,7 +662,7 @@ TEST(Test_Configuration_JSON, bad_schema_in_global_groups_reports_error) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Global_Groups_Type_Mismatch,  //
-                    value, strlen(u8R"({"global-groups":)"), u8"{"_sv)}));
+                    value, u8R"({"global-groups":)"_sv.size(), u8"{"_sv)}));
     EXPECT_TRUE(c.globals().find(u8"Array"_sv))
         << "invalid global-groups should be ignored";
   }
@@ -675,7 +676,7 @@ TEST(Test_Configuration_JSON, bad_schema_in_global_groups_reports_error) {
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Global_Groups_Group_Type_Mismatch,  //
-                    group, strlen(u8R"({"global-groups":["browser",)"),
+                    group, u8R"({"global-groups":["browser",)"_sv.size(),
                     u8"false"_sv)}));
 
     EXPECT_TRUE(c.globals().find(u8"Array"_sv))
@@ -706,7 +707,7 @@ TEST(Test_Configuration_JSON, bad_global_error_excludes_trailing_whitespace) {
       errors.errors,
       ElementsAreArray({DIAG_TYPE_OFFSETS(
           &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
-          descriptor, strlen(u8R"({ "globals": { "a": )"), u8R"("b")"_sv)}));
+          descriptor, u8R"({ "globals": { "a": )"_sv.size(), u8R"("b")"_sv)}));
 }
 
 void load_from_json(Configuration& config, Padded_String_View json) {

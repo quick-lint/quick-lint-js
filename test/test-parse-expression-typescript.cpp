@@ -135,7 +135,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
           DIAG_TYPE_OFFSETS(
               p.code,
               Diag_TypeScript_Non_Null_Assertion_Not_Allowed_In_JavaScript,  //
-              bang, strlen(u8"x"), u8"!"_sv),
+              bang, u8"x"_sv.size(), u8"!"_sv),
       }));
 }
 
@@ -150,7 +150,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript,  //
-                as_keyword, strlen(u8"x "), u8"as"_sv),
+                as_keyword, u8"x "_sv.size(), u8"as"_sv),
         }));
   }
 
@@ -163,7 +163,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript,  //
-                as_keyword, strlen(u8"{} "), u8"as"_sv),
+                as_keyword, u8"{} "_sv.size(), u8"as"_sv),
         }));
   }
 }
@@ -247,7 +247,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, strlen(u8"(x "), u8"as"_sv),
+                bad_keyword, u8"(x "_sv.size(), u8"as"_sv),
         }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
@@ -279,7 +279,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, strlen(u8"function f(x "), u8"as"_sv),
+                bad_keyword, u8"function f(x "_sv.size(), u8"as"_sv),
         }));
     EXPECT_THAT(
         p.variable_declarations,
@@ -355,7 +355,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_As_Const_With_Non_Literal_Typeable,  //
-                        expression, strlen(u8"("), u8"f()"_sv),
+                        expression, u8"("_sv.size(), u8"f()"_sv),
                 }));
   }
 }
@@ -370,7 +370,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_TypeScript_Satisfies_Not_Allowed_In_JavaScript,  //
-                        satisfies_keyword, strlen(u8"x "), u8"satisfies"_sv),
+                        satisfies_keyword, u8"x "_sv.size(), u8"satisfies"_sv),
                 }));
   }
 }
@@ -456,7 +456,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, strlen(u8"(x "), u8"satisfies"_sv),
+                bad_keyword, u8"(x "_sv.size(), u8"satisfies"_sv),
         }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));

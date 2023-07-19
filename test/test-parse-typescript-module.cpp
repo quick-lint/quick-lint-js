@@ -112,7 +112,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"import "), u8"type"_sv),
+                type_keyword, u8"import "_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -138,7 +138,7 @@ TEST_F(Test_Parse_TypeScript_Module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named,
-                type_keyword, strlen(u8"import "), u8"type"_sv),
+                type_keyword, u8"import "_sv.size(), u8"type"_sv),
         }));
   }
 
@@ -160,7 +160,7 @@ TEST_F(Test_Parse_TypeScript_Module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named,
-                type_keyword, strlen(u8"import "), u8"type"_sv),
+                type_keyword, u8"import "_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -283,7 +283,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"import {"), u8"type"_sv),
+                type_keyword, u8"import {"_sv.size(), u8"type"_sv),
         }));
   }
 
@@ -300,7 +300,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"import {"), u8"type"_sv),
+                type_keyword, u8"import {"_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -322,8 +322,8 @@ TEST_F(Test_Parse_TypeScript_Module, mixed_inline_type_and_type_only_import) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import,
-                inline_type_keyword, strlen(u8"import type {"), u8"type"_sv,
-                type_only_keyword, strlen(u8"import "), u8"type"_sv),
+                inline_type_keyword, u8"import type {"_sv.size(), u8"type"_sv,
+                type_only_keyword, u8"import "_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -372,7 +372,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"export "), u8"type"_sv),
+                type_keyword, u8"export "_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -424,7 +424,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"export {"), u8"type"_sv),
+                type_keyword, u8"export {"_sv.size(), u8"type"_sv),
         }));
   }
 
@@ -440,7 +440,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, strlen(u8"export {"), u8"type"_sv),
+                type_keyword, u8"export {"_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -461,8 +461,8 @@ TEST_F(Test_Parse_TypeScript_Module, mixed_inline_type_and_type_only_export) {
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export,
-                inline_type_keyword, strlen(u8"export type {"), u8"type"_sv,
-                type_only_keyword, strlen(u8"export "), u8"type"_sv),
+                inline_type_keyword, u8"export type {"_sv.size(), u8"type"_sv,
+                type_only_keyword, u8"export "_sv.size(), u8"type"_sv),
         }));
   }
 }
@@ -514,7 +514,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Newline_Not_Allowed_After_Interface_Keyword,
-                interface_keyword, strlen(u8"export "), u8"interface"_sv),
+                interface_keyword, u8"export "_sv.size(), u8"interface"_sv),
         }));
   }
 }
@@ -606,12 +606,13 @@ TEST_F(Test_Parse_TypeScript_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
-                        abstract_keyword, strlen(u8"export "), u8"abstract"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
+                abstract_keyword, u8"export "_sv.size(), u8"abstract"_sv),
+        }));
   }
 
   {
@@ -620,12 +621,13 @@ TEST_F(Test_Parse_TypeScript_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
-                        abstract_keyword, strlen(u8"export "), u8"abstract"_sv),
-                }));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
+                abstract_keyword, u8"export "_sv.size(), u8"abstract"_sv),
+        }));
   }
 
   {
@@ -689,7 +691,7 @@ TEST_F(Test_Parse_TypeScript_Module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, strlen(u8"export namespace "),
+                module_name, u8"export namespace "_sv.size(),
                 u8"'my name space'"_sv),
         }));
   }
@@ -709,7 +711,7 @@ TEST_F(Test_Parse_TypeScript_Module,
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, strlen(u8"export module "),
+                module_name, u8"export module "_sv.size(),
                 u8"'my name space'"_sv),
         }));
   }
@@ -734,7 +736,7 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Newline_Not_Allowed_After_Namespace_Keyword,
-                namespace_keyword, strlen(u8"export "), u8"namespace"_sv),
+                namespace_keyword, u8"export "_sv.size(), u8"namespace"_sv),
         }));
   }
 }
@@ -801,7 +803,7 @@ TEST_F(Test_Parse_TypeScript_Module,
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Newline_Not_Allowed_After_Type_Keyword,
-                        type_keyword, strlen(u8"export "), u8"type"_sv),
+                        type_keyword, u8"export "_sv.size(), u8"type"_sv),
                 }));
   }
 }
@@ -869,7 +871,7 @@ TEST_F(Test_Parse_TypeScript_Module,
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript,  //
-                equal, strlen(u8"export "), u8"="_sv, export_keyword, 0,
+                equal, u8"export "_sv.size(), u8"="_sv, export_keyword, 0,
                 u8"export"_sv),
         }));
   }
@@ -928,7 +930,7 @@ TEST_F(Test_Parse_TypeScript_Module, export_equal_requires_semicolon) {
         p.errors,
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Semicolon_After_Statement,
-                              where, strlen(u8"export = foo"), u8""_sv),
+                              where, u8"export = foo"_sv.size(), u8""_sv),
         }));
   }
 
