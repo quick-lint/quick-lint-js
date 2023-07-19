@@ -8,14 +8,10 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
-#include <simdjson.h>
 #include <string>
 #include <utility>
 
 namespace quick_lint_js {
-static_assert(Padded_String::padding_size >= ::simdjson::SIMDJSON_PADDING,
-              "Padded_String must have enough padded to satisfy simdjson");
-
 namespace {
 std::array<Char8, Padded_String::padding_size> empty_string = {};
 }
