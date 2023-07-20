@@ -680,7 +680,21 @@ namespace quick_lint_js {
 
     out.append_literal(u8"  \\\n"_sv);
   }
+  out.append_literal(
+      u8R"(  /* END */
+// clang-format on
 
+)"_sv);
+
+  out.append_literal(
+      u8R"(// clang-format off
+#define QLJS_X_DIAG_TYPE_NAMES \
+)"_sv);
+  for (const Diagnostic_Type& type : types) {
+    out.append_literal(u8"  QLJS_DIAG_TYPE_NAME("_sv);
+    out.append_copy(type.name);
+    out.append_literal(u8") \\\n"_sv);
+  }
   out.append_literal(
       u8R"(  /* END */
 // clang-format on

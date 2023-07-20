@@ -48,9 +48,9 @@ namespace quick_lint_js {
 // NOTE(strager): Enum members in Diag_Type are Upper_Snake_Case (matching the
 // type names) instead of the usual lower_snake_case.
 enum class Diag_Type {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) name,
-  QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) name,
+  QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 };
 
 std::ostream& operator<<(std::ostream&, Diag_Type);
