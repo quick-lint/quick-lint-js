@@ -76,7 +76,7 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
   void visit_variable_use(Identifier name) override;
 
  private:
-  enum class Visit_Kind {
+  enum class Visit_Kind : unsigned char {
     end_of_module,
     enter_block_scope,
     enter_with_scope,

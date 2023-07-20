@@ -23,7 +23,7 @@ enum class Enum_Kind {
   normal,
 };
 
-enum class Variable_Kind {
+enum class Variable_Kind : unsigned char {
   _arrow_parameter,
   _catch,
   _class,

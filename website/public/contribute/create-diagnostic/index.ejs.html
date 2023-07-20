@@ -118,138 +118,125 @@
         <p>
           Diagnostic types are listed in
           <a
-            href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/diag/diagnostic-types.h"
-            ><code>src/quick-lint-js/diag/diagnostic-types.h</code></a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/src/quick-lint-js/diag/diagnostic-types-2.h"
+            ><code>src/quick-lint-js/diag/diagnostic-types-2.h</code></a
           >. They look like this:
         </p>
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                                                  \
-    <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark>, <mark class="arg-2">"E0120"</mark>,                \
-    <mark class="arg-3">Diagnostic_Severity::error</mark>,                                  \
-    <mark class="arg-4">{ Source_Code_Span try_token; }</mark>,                             \
-    <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"),</mark> \
-            <mark class="arg-5">try_token)</mark>)                                          \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark> {
+  [[qljs::diag(<mark class="arg-2">"E0120"</mark>, <mark class="arg-3">error</mark>)]]                                  //
+  [[qljs::message(<mark class="arg-5">"missing body for try statement", try_token</mark>)]]  //
+  <mark class="arg-4">Source_Code_Span try_token;</mark>
+};</code></pre>
         </blockquote>
 
         <p>
-          Each diagnostic type is created using the
-          <code class="cxx">QLJS_DIAG_TYPE</code> macro. Note the trailing
-          backslashes (<code class="cxx">\</code>) which serve as line
-          continuations.
+          Each diagnostic type is a C++
+          <code class="cxx">struct</code> with some custom C++ [[attributes]].
         </p>
 
-        <p>
-          The macro generates a class using the
-          <span class="mark-reference arg-1">first argument</span> and the
-          <span class="mark-reference arg-4">fourth argument</span>:
-        </p>
+        <p>The C++ compiler ignores the attributes and just sees a class:</p>
 
         <blockquote>
-          <pre><code class="cxx">struct <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark> <mark class="arg-4">{</mark>
+          <pre><code class="cxx">struct <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark> {
     <mark class="arg-4">Source_Code_Span try_token;</mark>
-<mark class="arg-4">}</mark>;</code></pre>
+};</code></pre>
         </blockquote>
 
         <p>
-          Let's pick a name for our diagnostic as the
-          <span class="arg-1 mark-reference">first argument</span>. The name
-          needs to start with <code class="cxx">diag_</code> and be a legal C++
-          class name. We will use this name later to report the diagnostic and
-          to test for the diagnostic:
+          The custom attributes are processed by a separate tool as part of
+          quick-lint-js's build system. We will discuss the custom attributes
+          shortly.
+        </p>
+
+        <p>
+          Let's pick a <span class="arg-1 mark-reference">name</span> for our
+          diagnostic. The name needs to start with
+          <code class="cxx">Diag_</code> and be a legal C++ class name. We will
+          use this name later to report the diagnostic and to test for the
+          diagnostic:
         </p>
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1">Diag_Comparison_With_Empty_String</mark>, \
-    <mark class="arg-2 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2 unimportant">/* TODO */</mark>, <mark class="arg-3 unimportant">/* TODO */</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]           //
+  <mark class="arg-4 unimportant">/* TODO */</mark>
+};</code></pre>
         </blockquote>
 
         <p>
           Each diagnostic in quick-lint-js has a unique diagnostic code as the
-          <span class="arg-2 mark-reference">second argument</span>. A
-          diagnostic code is the letter <code>E</code> followed by four decimal
-          digits. Let's be lazy and reuse an existing diagnostic code for now:
+          <span class="arg-2 mark-reference">first argument</span> to
+          <code class="cxx">[[qljs::diag]]</code>. A diagnostic code is the
+          letter <code>E</code> followed by four decimal digits. Let's be lazy
+          and reuse an existing diagnostic code for now:
         </p>
-
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>, \
-    <mark class="arg-2">"E0001"</mark>,                           \
-    <mark class="arg-3 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2">"E0001"</mark>, <mark class="arg-3 unimportant">/* TODO */</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]        //
+  <mark class="arg-4 unimportant">/* TODO */</mark>
+};</code></pre>
         </blockquote>
 
         <p>
-          We also need to pick a diagnostic severity, error or warning, as the
-          <span class="arg-3 mark-reference">third argument</span>. Our new
-          diagnostic is for a <em>possible</em> issue, so let's pick
+          We also need to pick a diagnostic severity, either
+          <code class="cxx">error</code> or <code class="cxx">warning</code>, as
+          the <span class="arg-3 mark-reference">second argument</span> to
+          <code class="cxx">[[qljs::diag]]</code>. Our new diagnostic is for a
+          <em>possible</em> issue, so let's pick
           <code class="cxx">warning</code>:
         </p>
-
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                        \
-    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>, \
-    <mark class="arg-2 unimportant">"E0001"</mark>,                           \
-    <mark class="arg-3">Diagnostic_Severity::warning</mark>,      \
-    <mark class="arg-4 unimportant">/* TODO */</mark>,                        \
-    <mark class="arg-5 unimportant">/* TODO */</mark>)                        \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3">warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]     //
+  <mark class="arg-4 unimportant">/* TODO */</mark>
+};</code></pre>
         </blockquote>
 
         <p>
-          Each diagnostic is actually a class. The class needs to store at least
-          one <code class="cxx">Source_Code_Span</code> or
-          <code class="cxx">identifier</code> variable so the editor knows where
-          to put the <span class="diagnostic">squigglies</span>. We should think
-          about where the squigglies should go and name our variable
+          Each diagnostic is a class (<code class="cxx">struct</code>). The
+          class needs to store at least one
+          <code class="cxx">Source_Code_Span</code> member variable so the
+          editor knows where to put the
+          <span class="diagnostic">squigglies</span>. We should think about
+          where the squigglies should go and name our member variable
           appropriately to make the reporting and testing code easier to read.
           Since our diagnostic is about string comparisons, let's name the
-          variable <code class="cxx">comparison_operator</code>. We write the
-          class' body in the
-          <span class="arg-4 mark-reference">fourth argument</span>:
+          member variable <code class="cxx">comparison_operator</code>. We write
+          the <span class="arg-4 mark-reference">member variables</span> after
+          the C++ attributes:
         </p>
-
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                                \
-    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,         \
-    <mark class="arg-2 unimportant">"E0001"</mark>,                                   \
-    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,              \
-    <mark class="arg-4">{ Source_Code_Span comparison_operator; }</mark>, \
-    <mark class="arg-5 unimportant">/* TODO */</mark>)                                \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]     //
+  <mark class="arg-4">Source_Code_Span comparison_operator;</mark>
+};</code></pre>
         </blockquote>
 
         <p>
-          Important: The curly brackets around the
-          <span class="arg-4 mark-reference">fourth argument</span> are
-          significant. Don't forget them!
+          Each diagnostic needs a message specified by one or more
+          <code class="arg-5 mark-reference">[[qljs::message]]</code>
+          attributes. Most diagnostics are simple and just have a simple string.
+          Other diagnostics might have formatting or multiple strings. Our
+          diagnostic is simple, so let's just write a single string with no
+          formatting. Don't forget to mention the
+          <code class="cxx">Source_Code_Span</code> member variable we defined
+          inside our <code class="cxx">Diag_</code> class:
         </p>
-
-        <p>
-          Each diagnostic needs a message in the
-          <span class="arg-5 mark-reference">fifth argument</span>. Most
-          diagnostics are simple and just have a simple string. Other
-          diagnostics might have formatting or multiple strings. Our diagnostic
-          is simple, so let's just write a single string with no formatting.
-          Don't forget to mention the
-          <code class="cxx">Source_Code_Span</code> variable we defined inside
-          our <code class="cxx">diag_</code> class:
-        </p>
-
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
-    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,             \
-    <mark class="arg-2 unimportant">"E0001"</mark>,                                       \
-    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,                  \
-    <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
-    <mark class="arg-5">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
-      <mark class="arg-5">"comparing against empty strings is silly"),</mark> \
-      <mark class="arg-5">comparison_operator)</mark>)                        \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5">"comparing against empty strings is silly",</mark>
+                  <mark class="arg-5">comparison_operator</mark>)]]  //
+  <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
+};</code></pre>
         </blockquote>
 
         <p>
-          After added the diagnostic type to <code>diagnostic-types.h</code>,
+          After adding the diagnostic type to <code>diagnostic-types-2.h</code>,
           build quick-lint-js. You should get a build error like one of the
           following:
 
@@ -332,7 +319,8 @@ Changes not staged for commit:
         modified:   po/messages.pot
         modified:   po/pt_BR.po
         modified:   po/sv_SE.po
-        modified:   src/quick-lint-js/diag/diagnostic-types.h
+        modified:   src/quick-lint-js/diag/diagnostic-metadata-generated.h
+        modified:   src/quick-lint-js/diag/diagnostic-types-2.h
         modified:   src/quick-lint-js/i18n/translation-table-generated.cpp
         modified:   src/quick-lint-js/i18n/translation-table-generated.h
         modified:   test/test-translation-table-generated.cpp
@@ -362,20 +350,17 @@ main thread ID: 372035
         <p>
           A test is telling us that the error code we chose (<code>E0001</code>)
           is already in use. Let's change our
-          <code class="cxx">QLJS_DIAG_TYPE</code> call in
-          <code>diagnostic-types.h</code> to use the unused code suggested by
+          <code class="cxx">Diag_</code> class in
+          <code>diagnostic-types-2.h</code> to use the unused code suggested by
           the test:
         </p>
-
         <blockquote>
-          <pre><code class="cxx">QLJS_DIAG_TYPE(                                    \
-    <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark>,             \
-    <mark class="arg-2">"E0331"</mark>,                                       \
-    <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>,                  \
-    <mark class="arg-4 unimportant">{ Source_Code_Span comparison_operator; }</mark>,     \
-    <mark class="arg-5 unimportant">MESSAGE(QLJS_TRANSLATABLE(</mark>                     \
-      <mark class="arg-5 unimportant">"comparing against empty strings is silly"),</mark> \
-      <mark class="arg-5 unimportant">comparison_operator)</mark>)                        \</code></pre>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2">"E0331"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">"comparing against empty strings is silly",</mark>
+                  <mark class="arg-5 unimportant">comparison_operator</mark>)]]  //
+  <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
+};</code></pre>
         </blockquote>
 
         <p>
@@ -468,8 +453,7 @@ main thread ID: 372035
           <dd>
             We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> which
             kind of diagnostic we expect. We do this by writing the diagnostic
-            class' name as it appears in
-            <code class="cxx">QLJS_DIAG_TYPE</code>.
+            class's name.
           </dd>
 
           <dt>
@@ -709,7 +693,7 @@ diagnostic in this case is sad.)</code></pre>
           <dd>
             The title of the document should include the diagnostic's code. The
             diagnostic's message should follow the code. The title should
-            include the message mentioned in <code>diagnostic-types.h</code>,
+            include the message mentioned in <code>diagnostic-types-2.h</code>,
             but it doesn't have to match exactly. Interpolation markers such as
             <code>{1:headlinese}</code> should be omitted.
           </dd>

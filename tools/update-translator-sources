@@ -41,7 +41,7 @@ update_template_file() {
     --msgid-bugs-address=strager.nds@gmail.com \
     benchmark/benchmark-translation.cpp \
     src/quick-lint-js/diag/diagnostic-formatter.cpp \
-    src/quick-lint-js/diag/diagnostic-types.h \
+    src/quick-lint-js/diag/diagnostic-metadata-generated.h \
     test/test-diagnostic-formatter.cpp \
     test/test-vim-qflist-json-diag-reporter.cpp
   sed -i -e 's/charset=CHARSET/charset=UTF-8/g' "${pot_temp_file}"

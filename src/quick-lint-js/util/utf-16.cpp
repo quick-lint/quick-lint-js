@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <optional>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>

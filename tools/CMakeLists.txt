@@ -22,6 +22,13 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
 endif ()
 
 if (QUICK_LINT_JS_USE_BUILD_TOOLS)
+  add_executable(quick-lint-js-generate-diagnostic-metadata IMPORTED GLOBAL)
+  set_target_properties(
+    quick-lint-js-generate-diagnostic-metadata
+    PROPERTIES
+    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-diagnostic-metadata${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
+  )
+
   add_executable(quick-lint-js-generate-lex-keyword IMPORTED GLOBAL)
   set_target_properties(
     quick-lint-js-generate-lex-keyword
@@ -29,6 +36,21 @@ if (QUICK_LINT_JS_USE_BUILD_TOOLS)
     IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-lex-keyword${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
   )
 elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  quick_lint_js_add_executable(
+    quick-lint-js-generate-diagnostic-metadata
+    generate-diagnostic-metadata.cpp
+  )
+  set_target_properties(
+    quick-lint-js-generate-diagnostic-metadata
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ..
+  )
+  target_link_libraries(
+    quick-lint-js-generate-diagnostic-metadata
+    PRIVATE
+    quick-lint-js-tool-lib
+  )
+
   quick_lint_js_add_executable(
     quick-lint-js-generate-lex-keyword
     generate-lex-keyword.cpp
@@ -46,6 +68,7 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
 
   install(
     TARGETS
+      quick-lint-js-generate-diagnostic-metadata
       quick-lint-js-generate-lex-keyword
     COMPONENT build-tools
     EXCLUDE_FROM_ALL
@@ -59,6 +82,7 @@ if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
     quick-lint-js-build-tools
     COMMENT "Building all quick-lint-js build-time tools"
     DEPENDS
+    quick-lint-js-generate-diagnostic-metadata
     quick-lint-js-generate-lex-keyword
   )
 endif ()

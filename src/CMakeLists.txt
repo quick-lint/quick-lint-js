@@ -30,6 +30,34 @@ if (QUICK_LINT_JS_ENABLE_CLI)
   install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif ()
 
+if (TARGET quick-lint-js-generate-diagnostic-metadata)
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
+    COMMAND
+      $<TARGET_FILE:quick-lint-js-generate-diagnostic-metadata>
+      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
+      >"${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
+    DEPENDS
+      quick-lint-js-generate-diagnostic-metadata
+      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
+    COMMENT "Generating metadata of diagnostics for diagnostic-metadata-generated.h"
+  )
+endif ()
+# NOTE(strager): We must create a target just for this header. Otherwise,
+# Ninja's build gets order-only dependencies from
+# diagnostic-metadata-generated.h to libquick-lint-js-debug.a, forming a
+# dependency cycle (because libquick-lint-js-debug.a depends on
+# diagnostic-types.h which depends on diagnostic-metadata-generated.h).
+#
+# DEPENDS_EXPLICIT_ONLY (CMake 3.27) might fix this, removing the need for an
+# intermediate target.
+add_library(
+  quick-lint-js-diagnostic-metadata
+  OBJECT
+  quick-lint-js/diag/diagnostic-metadata-generated.h
+  ../website/wasm/empty.cpp
+)
+
 if (TARGET quick-lint-js-generate-lex-keyword)
   add_custom_command(
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/fe/lex-keyword-generated.cpp"
@@ -49,9 +77,20 @@ quick_lint_js_add_library(
   quick-lint-js/assert.h
   quick-lint-js/cli/arg-parser.cpp
   quick-lint-js/cli/arg-parser.h
+  quick-lint-js/cli/cli-location.cpp
+  quick-lint-js/cli/cli-location.h
+  quick-lint-js/container/padded-string.cpp
+  quick-lint-js/container/padded-string.h
   quick-lint-js/container/string-view.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
+  quick-lint-js/io/file-handle-posix.cpp
+  quick-lint-js/io/file-handle-win32.cpp
+  quick-lint-js/io/file-handle.h
+  quick-lint-js/io/file.cpp
+  quick-lint-js/io/file.h
+  quick-lint-js/io/output-stream.cpp
+  quick-lint-js/io/output-stream.h
   quick-lint-js/port/char8.cpp
   quick-lint-js/port/char8.h
   quick-lint-js/port/have.h
@@ -61,7 +100,12 @@ quick_lint_js_add_library(
   quick-lint-js/port/source-location.h
   quick-lint-js/port/type-traits.h
   quick-lint-js/port/warning.h
+  quick-lint-js/port/windows-error.cpp
+  quick-lint-js/port/windows-error.h
+  quick-lint-js/port/windows.h
   quick-lint-js/util/narrow-cast.h
+  quick-lint-js/util/utf-16.cpp
+  quick-lint-js/util/utf-16.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
 
@@ -72,8 +116,6 @@ quick_lint_js_add_library(
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
   quick-lint-js/c-api.h
-  quick-lint-js/cli/cli-location.cpp
-  quick-lint-js/cli/cli-location.h
   quick-lint-js/cli/emacs-lisp-diag-reporter.cpp
   quick-lint-js/cli/emacs-lisp-diag-reporter.h
   quick-lint-js/cli/emacs-location.cpp
@@ -111,8 +153,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/linked-vector.h
   quick-lint-js/container/optional.h
-  quick-lint-js/container/padded-string.cpp
-  quick-lint-js/container/padded-string.h
   quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
   quick-lint-js/debug/debug-probe.cpp
@@ -188,15 +228,8 @@ quick_lint_js_add_library(
   quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
-  quick-lint-js/io/file-handle-posix.cpp
-  quick-lint-js/io/file-handle-win32.cpp
-  quick-lint-js/io/file-handle.h
   quick-lint-js/io/file-path.cpp
   quick-lint-js/io/file-path.h
-  quick-lint-js/io/file.cpp
-  quick-lint-js/io/file.h
-  quick-lint-js/io/output-stream.cpp
-  quick-lint-js/io/output-stream.h
   quick-lint-js/io/pipe-writer.cpp
   quick-lint-js/io/pipe-writer.h
   quick-lint-js/io/pipe.cpp
@@ -254,9 +287,6 @@ quick_lint_js_add_library(
   quick-lint-js/port/thread.cpp
   quick-lint-js/port/thread.h
   quick-lint-js/port/unreachable.h
-  quick-lint-js/port/windows-error.cpp
-  quick-lint-js/port/windows-error.h
-  quick-lint-js/port/windows.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
   quick-lint-js/util/ascii.h
@@ -271,8 +301,6 @@ quick_lint_js_add_library(
   quick-lint-js/util/synchronized.h
   quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/type-traits.h
-  quick-lint-js/util/utf-16.cpp
-  quick-lint-js/util/utf-16.h
   quick-lint-js/util/utf-8.cpp
   quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
@@ -289,6 +317,7 @@ target_link_libraries(
   quick-lint-js-lib
   PUBLIC
   boost
+  quick-lint-js-diagnostic-metadata
   quick-lint-js-tool-lib
   simdjson
   PRIVATE
