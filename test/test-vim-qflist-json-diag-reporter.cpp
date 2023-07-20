@@ -282,7 +282,7 @@ TEST(Test_Vim_Qflist_JSON_Diag_Formatter, single_span_simple_message) {
       .message_args =
           {
               Diagnostic_Message_Args{{
-                  {0, Diagnostic_Arg_Type::Source_Code_Span},
+                  {0, Diagnostic_Arg_Type::source_code_span},
               }},
           },
   };
@@ -321,11 +321,11 @@ TEST(Test_Vim_Qflist_JSON_Diag_Formatter, message_with_note_ignores_note) {
           {
               Diagnostic_Message_Args{{
                   {offsetof(Test_Diag, hello_span),
-                   Diagnostic_Arg_Type::Source_Code_Span},
+                   Diagnostic_Arg_Type::source_code_span},
               }},
               Diagnostic_Message_Args{{
                   {offsetof(Test_Diag, world_span),
-                   Diagnostic_Arg_Type::Source_Code_Span},
+                   Diagnostic_Arg_Type::source_code_span},
               }},
           },
   };

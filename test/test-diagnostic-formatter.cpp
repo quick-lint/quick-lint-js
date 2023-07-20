@@ -73,7 +73,7 @@ TEST(Test_Diagnostic_Formatter, origin_span) {
   formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("something happened"),
                            Diagnostic_Message_Args{{
-                               {0, Diagnostic_Arg_Type::Source_Code_Span},
+                               {0, Diagnostic_Arg_Type::source_code_span},
                            }},
                            &span);
 
@@ -86,7 +86,7 @@ TEST(Test_Diagnostic_Formatter, single_span_simple_message) {
   formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("something happened"),
                            Diagnostic_Message_Args{{
-                               {0, Diagnostic_Arg_Type::Source_Code_Span},
+                               {0, Diagnostic_Arg_Type::source_code_span},
                            }},
                            &empty_span);
   EXPECT_EQ(formatter.message, u8"something happened\n");
@@ -100,7 +100,7 @@ TEST(Test_Diagnostic_Formatter, diagnostic_with_single_message) {
       .message_args =
           {
               Diagnostic_Message_Args{{
-                  {0, Diagnostic_Arg_Type::Source_Code_Span},
+                  {0, Diagnostic_Arg_Type::source_code_span},
               }},
           },
   };
@@ -122,11 +122,11 @@ TEST(Test_Diagnostic_Formatter, diagnostic_with_two_messages) {
       .message_args =
           {
               Diagnostic_Message_Args{{
-                  {0, Diagnostic_Arg_Type::Source_Code_Span},
+                  {0, Diagnostic_Arg_Type::source_code_span},
               }},
               Diagnostic_Message_Args{
                   {
-                      {0, Diagnostic_Arg_Type::Source_Code_Span},
+                      {0, Diagnostic_Arg_Type::source_code_span},
                   },
               },
           },
@@ -147,7 +147,7 @@ TEST(Test_Diagnostic_Formatter, message_with_zero_placeholder) {
   formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("this {0} looks fishy"),
                            Diagnostic_Message_Args{{
-                               {0, Diagnostic_Arg_Type::Source_Code_Span},
+                               {0, Diagnostic_Arg_Type::source_code_span},
                            }},
                            &hello_span);
   EXPECT_EQ(formatter.message, u8"this hello looks fishy\n");
@@ -175,9 +175,9 @@ TEST(Test_Diagnostic_Formatter, message_with_multiple_span_placeholders) {
       QLJS_TRANSLATABLE("free {1} and {0} {1} {2}"),
       Diagnostic_Message_Args{{
           {offsetof(Test_Diag, let_span),
-           Diagnostic_Arg_Type::Source_Code_Span},
-          {offsetof(Test_Diag, me_span), Diagnostic_Arg_Type::Source_Code_Span},
-          {offsetof(Test_Diag, be_span), Diagnostic_Arg_Type::Source_Code_Span},
+           Diagnostic_Arg_Type::source_code_span},
+          {offsetof(Test_Diag, me_span), Diagnostic_Arg_Type::source_code_span},
+          {offsetof(Test_Diag, be_span), Diagnostic_Arg_Type::source_code_span},
       }},
       &diag);
   EXPECT_EQ(formatter.message, u8"free me and let me be\n");
@@ -197,8 +197,8 @@ TEST(Test_Diagnostic_Formatter, message_with_char_placeholder) {
       "E9999"sv, Diagnostic_Severity::error,
       QLJS_TRANSLATABLE("what is this '{1}' nonsense?"),
       Diagnostic_Message_Args{{
-          {offsetof(Test_Diag, span), Diagnostic_Arg_Type::Source_Code_Span},
-          {offsetof(Test_Diag, c), Diagnostic_Arg_Type::Char8},
+          {offsetof(Test_Diag, span), Diagnostic_Arg_Type::source_code_span},
+          {offsetof(Test_Diag, c), Diagnostic_Arg_Type::char8},
       }},
       &diag);
   EXPECT_EQ(formatter.message, u8"what is this 'Q' nonsense?\n");
@@ -212,7 +212,7 @@ TEST(Test_Diagnostic_Formatter, message_with_escaped_curlies) {
   formatter.format_message("E9999"sv, Diagnostic_Severity::error,
                            QLJS_TRANSLATABLE("a {{0} b }} c"),
                            Diagnostic_Message_Args{{
-                               {0, Diagnostic_Arg_Type::Source_Code_Span},
+                               {0, Diagnostic_Arg_Type::source_code_span},
                            }},
                            &code_span);
   EXPECT_EQ(formatter.message, u8"a {0} b }} c\n");
@@ -226,7 +226,7 @@ TEST(Test_Diagnostic_Formatter, enum_kind_placeholder) {
   constexpr Diagnostic_Message_Args message_args = {
       Diagnostic_Message_Args{{
           {offsetof(Test_Diag, empty_span),
-           Diagnostic_Arg_Type::Source_Code_Span},
+           Diagnostic_Arg_Type::source_code_span},
           {offsetof(Test_Diag, kind), Diagnostic_Arg_Type::enum_kind},
       }},
   };
@@ -252,7 +252,7 @@ TEST(Test_Diagnostic_Formatter, statement_kind_placeholder) {
   constexpr Diagnostic_Message_Args message_args = {
       Diagnostic_Message_Args{{
           {offsetof(Test_Diag, empty_span),
-           Diagnostic_Arg_Type::Source_Code_Span},
+           Diagnostic_Arg_Type::source_code_span},
           {offsetof(Test_Diag, statement), Diagnostic_Arg_Type::statement_kind},
       }},
   };

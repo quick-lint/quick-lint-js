@@ -156,14 +156,14 @@ Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
-  case Diagnostic_Arg_Type::Source_Code_Span:
+  case Diagnostic_Arg_Type::source_code_span:
     return *static_cast<const Source_Code_Span *>(member_data);
 
-  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::enum_kind:
   case Diagnostic_Arg_Type::invalid:
   case Diagnostic_Arg_Type::statement_kind:
-  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::string8_view:
   case Diagnostic_Arg_Type::variable_kind:
     QLJS_ASSERT(false && "invalid arg type");
     break;

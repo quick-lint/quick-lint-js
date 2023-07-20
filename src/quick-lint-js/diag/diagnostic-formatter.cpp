@@ -76,14 +76,14 @@ Source_Code_Span Diagnostic_Formatter_Base::get_argument_source_code_span(
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case Diagnostic_Arg_Type::Source_Code_Span:
+  case Diagnostic_Arg_Type::source_code_span:
     return *reinterpret_cast<const Source_Code_Span*>(arg_data);
 
-  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::enum_kind:
   case Diagnostic_Arg_Type::invalid:
   case Diagnostic_Arg_Type::statement_kind:
-  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::string8_view:
   case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
@@ -95,13 +95,13 @@ String8_View Diagnostic_Formatter_Base::expand_argument(
     int arg_index) {
   auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
   switch (arg_type) {
-  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::char8:
     return String8_View(reinterpret_cast<const Char8*>(arg_data), 1);
 
-  case Diagnostic_Arg_Type::Source_Code_Span:
+  case Diagnostic_Arg_Type::source_code_span:
     return reinterpret_cast<const Source_Code_Span*>(arg_data)->string_view();
 
-  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::string8_view:
     return *reinterpret_cast<const String8_View*>(arg_data);
 
   case Diagnostic_Arg_Type::enum_kind:
@@ -125,10 +125,10 @@ String8_View Diagnostic_Formatter_Base::expand_argument_headlinese(
     return this->translator_.translate(headlinese_statement_kind(
         *reinterpret_cast<const Statement_Kind*>(arg_data)));
 
-  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::invalid:
-  case Diagnostic_Arg_Type::Source_Code_Span:
-  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::source_code_span:
+  case Diagnostic_Arg_Type::string8_view:
   case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
@@ -148,10 +148,10 @@ String8_View Diagnostic_Formatter_Base::expand_argument_singular(
     QLJS_UNIMPLEMENTED();
     break;
 
-  case Diagnostic_Arg_Type::Char8:
+  case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::invalid:
-  case Diagnostic_Arg_Type::Source_Code_Span:
-  case Diagnostic_Arg_Type::String8_View:
+  case Diagnostic_Arg_Type::source_code_span:
+  case Diagnostic_Arg_Type::string8_view:
   case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }

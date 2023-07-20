@@ -27,7 +27,7 @@ TEST(Test_Diagnostic, diagnostic_info) {
         info.message_args[0][0].offset(),
         offsetof(Diag_Expected_Parentheses_Around_If_Condition, condition));
     EXPECT_EQ(info.message_args[0][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
     EXPECT_FALSE(info.message_formats[1].valid());
   }
 
@@ -41,10 +41,10 @@ TEST(Test_Diagnostic, diagnostic_info) {
     EXPECT_EQ(info.message_args[0][0].offset(),
               offsetof(Diag_Expected_Parenthesis_Around_If_Condition, where));
     EXPECT_EQ(info.message_args[0][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(info.message_args[0][1].offset(),
               offsetof(Diag_Expected_Parenthesis_Around_If_Condition, token));
-    EXPECT_EQ(info.message_args[0][1].type, Diagnostic_Arg_Type::Char8);
+    EXPECT_EQ(info.message_args[0][1].type, Diagnostic_Arg_Type::char8);
     EXPECT_FALSE(info.message_formats[1].valid());
   }
 
@@ -59,14 +59,14 @@ TEST(Test_Diagnostic, diagnostic_info) {
         info.message_args[0][0].offset(),
         offsetof(Diag_Function_Call_Before_Declaration_In_Block_Scope, use));
     EXPECT_EQ(info.message_args[0][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[1]),
               u8"function declared here"_sv);
     EXPECT_EQ(info.message_args[1][0].offset(),
               offsetof(Diag_Function_Call_Before_Declaration_In_Block_Scope,
                        declaration));
     EXPECT_EQ(info.message_args[1][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
   }
 
   {
@@ -80,7 +80,7 @@ TEST(Test_Diagnostic, diagnostic_info) {
         info.message_args[0][0].offset(),
         offsetof(Diag_Class_Statement_Not_Allowed_In_Body, expected_body));
     EXPECT_EQ(info.message_args[0][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(
         info.message_args[0][1].offset(),
         offsetof(Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement));
@@ -93,7 +93,7 @@ TEST(Test_Diagnostic, diagnostic_info) {
         info.message_args[1][0].offset(),
         offsetof(Diag_Class_Statement_Not_Allowed_In_Body, class_keyword));
     EXPECT_EQ(info.message_args[1][0].type,
-              Diagnostic_Arg_Type::Source_Code_Span);
+              Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(
         info.message_args[1][1].offset(),
         offsetof(Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement));

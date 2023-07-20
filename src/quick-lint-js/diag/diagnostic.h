@@ -37,11 +37,11 @@ enum class Diagnostic_Severity : std::uint8_t {
 enum class Diagnostic_Arg_Type : std::uint8_t {
   invalid = 0,
 
-  Char8,
+  char8,
   enum_kind,
-  Source_Code_Span,
+  source_code_span,
   statement_kind,
-  String8_View,
+  string8_view,
   variable_kind,
 };
 
@@ -102,7 +102,7 @@ constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type() noexcept;
 template <>
 constexpr Diagnostic_Arg_Type
 get_diagnostic_message_arg_type<Char8>() noexcept {
-  return Diagnostic_Arg_Type::Char8;
+  return Diagnostic_Arg_Type::char8;
 }
 template <>
 constexpr Diagnostic_Arg_Type
@@ -112,7 +112,7 @@ get_diagnostic_message_arg_type<Enum_Kind>() noexcept {
 template <>
 constexpr Diagnostic_Arg_Type
 get_diagnostic_message_arg_type<Source_Code_Span>() noexcept {
-  return Diagnostic_Arg_Type::Source_Code_Span;
+  return Diagnostic_Arg_Type::source_code_span;
 }
 template <>
 constexpr Diagnostic_Arg_Type
@@ -122,7 +122,7 @@ get_diagnostic_message_arg_type<Statement_Kind>() noexcept {
 template <>
 constexpr Diagnostic_Arg_Type
 get_diagnostic_message_arg_type<String8_View>() noexcept {
-  return Diagnostic_Arg_Type::String8_View;
+  return Diagnostic_Arg_Type::string8_view;
 }
 }
 
