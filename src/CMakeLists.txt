@@ -35,8 +35,8 @@ if (TARGET quick-lint-js-generate-diagnostic-metadata)
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-diagnostic-metadata>
+      --output-type-list-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
-      >"${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
     DEPENDS
       quick-lint-js-generate-diagnostic-metadata
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
