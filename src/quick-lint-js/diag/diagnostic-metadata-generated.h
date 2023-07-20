@@ -4,8 +4,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+namespace quick_lint_js {
 // clang-format off
-
 #define QLJS_X_DIAG_TYPES_GENERATED \
   QLJS_DIAG_TYPE( \
     Diag_Abstract_Field_Cannot_Have_Initializer, "E0295", \
@@ -3659,6 +3659,10 @@
   ) \
   \
   /* END */
+// clang-format on
+
+inline constexpr int Diag_Type_Count = 385;
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

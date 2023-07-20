@@ -478,8 +478,8 @@ int main(int argc, char** argv) {
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+namespace quick_lint_js {
 // clang-format off
-
 )");
 
   out->append_literal(u8"#define QLJS_X_DIAG_TYPES_GENERATED \\\n");
@@ -528,6 +528,15 @@ int main(int argc, char** argv) {
 
   out->append_literal(
       u8R"(  /* END */
+// clang-format on
+)"_sv);
+
+  out->append_literal(u8"\ninline constexpr int Diag_Type_Count = "_sv);
+  out->append_decimal_integer(cxx_parser.parsed_types.size());
+  out->append_literal(u8";\n"_sv);
+
+  out->append_literal(
+      u8R"(}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

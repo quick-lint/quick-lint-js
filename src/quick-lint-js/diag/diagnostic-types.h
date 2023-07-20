@@ -77,12 +77,6 @@ enum class Diag_Type {
 };
 
 std::ostream& operator<<(std::ostream&, Diag_Type);
-
-inline constexpr int Diag_Type_Count = 0
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) +1
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
-    ;
 }
 
 #endif
