@@ -292,7 +292,7 @@ class CXX_Parser {
         this->expect_skip(CXX_Token_Type::colon_colon);
         this->expect(CXX_Token_Type::identifier);
         if (this->peek().identifier == u8"diag"_sv) {
-          // [[qljs::diag("E0666", warning)]]
+          // [[qljs::diag("E0666", Diagnostic_Severity::warning)]]
           this->skip();
           this->expect_skip(CXX_Token_Type::left_paren);
 
@@ -301,6 +301,8 @@ class CXX_Parser {
           this->skip();
 
           this->expect_skip(CXX_Token_Type::comma);
+          this->expect_skip(u8"Diagnostic_Severity"_sv);
+          this->expect_skip(CXX_Token_Type::colon_colon);
 
           this->expect(CXX_Token_Type::identifier);
           type.severity = this->peek().identifier;
@@ -308,8 +310,8 @@ class CXX_Parser {
 
           this->expect_skip(CXX_Token_Type::right_paren);
         } else if (this->peek().identifier == u8"message"_sv) {
-          // [[qljs::message("string", arg)]]
-          // [[qljs::message("string", arg, arg, arg)]]
+          // [[qljs::message("string", ARG(a))]]
+          // [[qljs::message("string", ARG(a), ARG(b), ARG(c))]]
           this->skip();
           this->expect_skip(CXX_Token_Type::left_paren);
 
@@ -327,9 +329,12 @@ class CXX_Parser {
           this->expect_skip(CXX_Token_Type::comma);
 
         another_argument:
+          this->expect_skip(u8"ARG"_sv);
+          this->expect_skip(CXX_Token_Type::left_paren);
           this->expect(CXX_Token_Type::identifier);
           message.argument_variables.push_back(this->peek().identifier);
           this->skip();
+          this->expect_skip(CXX_Token_Type::right_paren);
           if (this->peek().type == CXX_Token_Type::comma) {
             this->skip();
             goto another_argument;

@@ -124,8 +124,9 @@
         </p>
         <blockquote>
           <pre><code class="cxx">struct <mark class="arg-1">Diag_Missing_Body_For_Try_Statement</mark> {
-  [[qljs::diag(<mark class="arg-2">"E0120"</mark>, <mark class="arg-3">error</mark>)]]                                  //
-  [[qljs::message(<mark class="arg-5">"missing body for try statement", try_token</mark>)]]  //
+  [[qljs::diag(<mark class="arg-2">"E0120"</mark>, <mark class="arg-3">Diagnostic_Severity::error</mark>)]] //
+  [[qljs::message(<mark class="arg-5">"missing body for try statement",</mark>
+                  <mark class="arg-5">ARG(try_token)</mark>)]]  //
   <mark class="arg-4">Source_Code_Span try_token;</mark>
 };</code></pre>
         </blockquote>
@@ -181,16 +182,17 @@
 
         <p>
           We also need to pick a diagnostic severity, either
-          <code class="cxx">error</code> or <code class="cxx">warning</code>, as
-          the <span class="arg-3 mark-reference">second argument</span> to
+          <code class="cxx">Diagnostic_Severity::error</code> or
+          <code class="cxx">Diagnostic_Severity::warning</code>, as the
+          <span class="arg-3 mark-reference">second argument</span> to
           <code class="cxx">[[qljs::diag]]</code>. Our new diagnostic is for a
           <em>possible</em> issue, so let's pick
           <code class="cxx">warning</code>:
         </p>
         <blockquote>
           <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
-  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3">warning</mark>)]]  //
-  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]     //
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3">Diagnostic_Severity::warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]                          //
   <mark class="arg-4 unimportant">/* TODO */</mark>
 };</code></pre>
         </blockquote>
@@ -210,8 +212,8 @@
         </p>
         <blockquote>
           <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
-  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
-  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]     //
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">/* TODO */</mark>)]]                          //
   <mark class="arg-4">Source_Code_Span comparison_operator;</mark>
 };</code></pre>
         </blockquote>
@@ -228,9 +230,9 @@
         </p>
         <blockquote>
           <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
-  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
+  [[qljs::diag(<mark class="arg-2 unimportant">"E0001"</mark>, <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>)]]  //
   [[qljs::message(<mark class="arg-5">"comparing against empty strings is silly",</mark>
-                  <mark class="arg-5">comparison_operator</mark>)]]  //
+                  <mark class="arg-5">ARG(comparison_operator)</mark>)]]  //
   <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
 };</code></pre>
         </blockquote>
@@ -356,9 +358,9 @@ main thread ID: 372035
         </p>
         <blockquote>
           <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
-  [[qljs::diag(<mark class="arg-2">"E0331"</mark>, <mark class="arg-3 unimportant">warning</mark>)]]  //
+  [[qljs::diag(<mark class="arg-2">"E0331"</mark>, <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>)]]  //
   [[qljs::message(<mark class="arg-5 unimportant">"comparing against empty strings is silly",</mark>
-                  <mark class="arg-5 unimportant">comparison_operator</mark>)]]  //
+                  <mark class="arg-5 unimportant">ARG(comparison_operator)</mark>)]]  //
   <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
 };</code></pre>
         </blockquote>
