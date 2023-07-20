@@ -6,6 +6,7 @@
 
 #include <iosfwd>
 #include <quick-lint-js/diag/diagnostic-metadata-generated.h>
+#include <quick-lint-js/diag/diagnostic-types-2.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
@@ -67,11 +68,6 @@
   /* END */
 
 namespace quick_lint_js {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  struct name struct_body;
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
-
 // NOTE(strager): Enum members in Diag_Type are Upper_Snake_Case (matching the
 // type names) instead of the usual lower_snake_case.
 enum class Diag_Type {
