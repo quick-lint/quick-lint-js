@@ -91,7 +91,6 @@ quick_lint_js_add_executable(
   test-crash.cpp
   test-debug-server.cpp
   test-diag-code-list.cpp
-  test-diag-code.cpp
   test-diag-matcher.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp

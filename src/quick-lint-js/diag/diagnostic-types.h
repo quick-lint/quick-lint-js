@@ -44,29 +44,6 @@
   QLJS_X_DIAG_TYPES_GENERATED \
   /* END */
 
-// QLJS_X_RESERVED_DIAG_TYPES lists reserved error codes. These codes were used
-// in the past but no longer mean anything.
-//
-// When removing a diagnostic from QLJS_X_DIAG_TYPES, add an entry to
-// QLJS_X_RESERVED_DIAG_TYPES.
-//
-// QLJS_DIAG_TYPE should have the following signature:
-//
-// #define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body,
-// format) ...
-//
-// * error_name: (unset)
-// * error_code: string literal
-// * severity: (unset)
-// * struct_body: (unset)
-// * format: (unset)
-#define QLJS_X_RESERVED_DIAG_TYPES \
-  QLJS_DIAG_TYPE(, "E0242", , , )  \
-  QLJS_DIAG_TYPE(, "E0271", , , )  \
-  QLJS_DIAG_TYPE(, "E0279", , , )  \
-  QLJS_DIAG_TYPE(, "E0707", , , )  \
-  /* END */
-
 namespace quick_lint_js {
 // NOTE(strager): Enum members in Diag_Type are Upper_Snake_Case (matching the
 // type names) instead of the usual lower_snake_case.

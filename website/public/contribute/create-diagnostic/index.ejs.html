@@ -239,12 +239,40 @@
 
         <p>
           After adding the diagnostic type to <code>diagnostic-types-2.h</code>,
-          build quick-lint-js. You should get a build error like one of the
-          following:
+          build quick-lint-js. You should get a build error like the following:
+        </p>
+        <figure class="build-error">
+          <figcaption>Build error after creating a diagnostic type</figcaption>
+          <pre style="white-space: pre-wrap">
+diagnostic-types-2.h:655:20: error: diag code "E0001" already in use; try this unused diag code: "E0331"
+diagnostic-types-2.h:107:16: note: Diag_Assignment_Before_Variable_Declaration used code "E0001" here</pre
+          >
+        </figure>
 
-          <figure class="build-error">
-            <figcaption>Build errors with Clang</figcaption>
-            <pre style="white-space: pre-wrap">
+        <p>
+          A build check is telling us that the error code we chose
+          (<code>E0001</code>) is already in use. Let's change our
+          <code class="cxx">Diag_</code> class in
+          <code>diagnostic-types-2.h</code> to use the unused diagnostic code
+          suggested by the check:
+        </p>
+        <blockquote>
+          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
+  [[qljs::diag(<mark class="arg-2">"E0331"</mark>, <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>)]]  //
+  [[qljs::message(<mark class="arg-5 unimportant">"comparing against empty strings is silly",</mark>
+                  <mark class="arg-5 unimportant">ARG(comparison_operator)</mark>)]]  //
+  <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
+};</code></pre>
+        </blockquote>
+
+        <p>
+          Build quick-lint-js again. You should now get a build error like one
+          of the following:
+        </p>
+
+        <figure class="build-error">
+          <figcaption>Build errors with Clang</figcaption>
+          <pre style="white-space: pre-wrap">
 src/quick-lint-js/diag/diagnostic.cpp:128:5: error: constexpr variable 'all_diagnostic_infos' must be initialized by a constant expression
     all_diagnostic_infos[] = {
     ^                        ~
@@ -259,12 +287,12 @@ src/quick-lint-js/diag/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIA
   info_for_diagnostic&lt;name&gt;::get(),
   ^
 1 error generated.</pre
-            >
-          </figure>
+          >
+        </figure>
 
-          <figure class="build-error">
-            <figcaption>Build errors with GCC</figcaption>
-            <pre style="white-space: pre-wrap">
+        <figure class="build-error">
+          <figcaption>Build errors with GCC</figcaption>
+          <pre style="white-space: pre-wrap">
 In file included from src/quick-lint-js/diag/diagnostic.cpp:7:
 <i>[snip]</i>
 src/quick-lint-js/assert.h:92:7: error: inline assembly is not a constant expression
@@ -276,9 +304,8 @@ src/quick-lint-js/diag/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of �
 src/quick-lint-js/diag/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
   133 | };
       | ^</pre
-            >
-          </figure>
-        </p>
+          >
+        </figure>
 
         <p>
           Don't panic! These errors are expected. The problem is that our new
@@ -330,7 +357,10 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
         </blockquote>
 
-        <p>Now let's build again and run the tests:</p>
+        <p>
+          Now let's build again and run the tests. We should get no failures,
+          which means we didn't break anything:
+        </p>
         <blockquote>
           <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd>
 ninja: Entering directory `build'
@@ -338,37 +368,9 @@ ninja: Entering directory `build'
 
 <kbd>./build/test/quick-lint-js-test --gtest_brief=1</kbd>
 Running main() from gmock_main.cc
-test/test-diag-code.cpp:50: Failure
-Failed
-<mark>diag code <strong>E0001</strong> used for multiple diags:</mark>
-Diag_Comparison_With_Empty_String, Diag_Assignment_Before_Variable_Declaration
-<mark>try this unused diag code: <strong>E0331</strong></mark>
-[  FAILED  ] test_diag_code.diag_codes_are_unique (1 ms)
-main thread ID: 372035
 [==========] 1980 tests from 151 test suites ran. (772 ms total)
-[  PASSED  ] 1979 tests.</code></pre>
+[  PASSED  ] 1980 tests.</code></pre>
         </blockquote>
-
-        <p>
-          A test is telling us that the error code we chose (<code>E0001</code>)
-          is already in use. Let's change our
-          <code class="cxx">Diag_</code> class in
-          <code>diagnostic-types-2.h</code> to use the unused code suggested by
-          the test:
-        </p>
-        <blockquote>
-          <pre><code class="cxx">struct <mark class="arg-1 unimportant">Diag_Comparison_With_Empty_String</mark> {
-  [[qljs::diag(<mark class="arg-2">"E0331"</mark>, <mark class="arg-3 unimportant">Diagnostic_Severity::warning</mark>)]]  //
-  [[qljs::message(<mark class="arg-5 unimportant">"comparing against empty strings is silly",</mark>
-                  <mark class="arg-5 unimportant">ARG(comparison_operator)</mark>)]]  //
-  <mark class="arg-4 unimportant">Source_Code_Span comparison_operator;</mark>
-};</code></pre>
-        </blockquote>
-
-        <p>
-          Build and re-run the tests. We should get no failures, which means we
-          didn't break anything.
-        </p>
 
         <p>
           Now that we have created the diagnostic type, let's move on to writing

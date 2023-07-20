@@ -6,12 +6,14 @@
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/concat.h>
+#include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;
@@ -259,21 +261,33 @@ class CXX_Parser {
     this->expect_skip(CXX_Token_Type::left_curly);
 
     while (this->peek().type != CXX_Token_Type::right_curly) {
-      if (!(this->peek().type == CXX_Token_Type::identifier &&
-            this->peek().identifier == u8"struct"_sv)) {
-        this->fatal("expected 'struct' or '}'");
+      if (this->peek().type == CXX_Token_Type::identifier &&
+          this->peek().identifier == u8"struct"_sv) {
+        // struct Diag_Name { ... };
+        this->skip();
+
+        this->expect(CXX_Token_Type::identifier);
+        String8_View diagnostic_struct_name = this->peek().identifier;
+        this->skip();
+
+        this->expect_skip(CXX_Token_Type::left_curly);
+        this->parse_diagnostic_struct_body(diagnostic_struct_name);
+        this->expect_skip(CXX_Token_Type::right_curly);
+        this->expect_skip(CXX_Token_Type::semicolon);
+      } else if (this->peek().type == CXX_Token_Type::identifier &&
+                 this->peek().identifier == u8"QLJS_RESERVED_DIAG"_sv) {
+        // QLJS_RESERVED_DIAG("E0242")
+        this->skip();
+        this->expect_skip(CXX_Token_Type::left_paren);
+
+        this->expect(CXX_Token_Type::string_literal);
+        this->reserved_code_strings.push_back(this->peek().string);
+        this->skip();
+
+        this->expect_skip(CXX_Token_Type::right_paren);
+      } else {
+        this->fatal("expected 'struct' or '}' or 'QLJS_RESERVED_DIAG'");
       }
-      this->skip();
-
-      // struct Diag_Name { ... };
-      this->expect(CXX_Token_Type::identifier);
-      String8_View diagnostic_struct_name = this->peek().identifier;
-      this->skip();
-
-      this->expect_skip(CXX_Token_Type::left_curly);
-      this->parse_diagnostic_struct_body(diagnostic_struct_name);
-      this->expect_skip(CXX_Token_Type::right_curly);
-      this->expect_skip(CXX_Token_Type::semicolon);
     }
   }
 
@@ -374,7 +388,83 @@ class CXX_Parser {
     }
   }
 
+  bool check_diag_codes() {
+    bool ok = true;
+    Hash_Map<String8_View, String8_View> code_to_diag_name;
+    for (String8_View reserved_code_string : this->reserved_code_strings) {
+      code_to_diag_name[reserved_code_string] = u8"(reserved)"_sv;
+    }
+
+    for (const Diagnostic_Type& type : this->parsed_types) {
+      auto existing_it = code_to_diag_name.find(type.code_string);
+      if (existing_it == code_to_diag_name.end()) {
+        code_to_diag_name.emplace(type.code_string, type.name);
+      } else {
+        CLI_Locator locator(this->lexer_.original_input_);
+        CLI_Source_Position p = locator.position(type.code_string.data());
+        std::fprintf(
+            stderr,
+            "%s:%d:%d: error: diag code %s already in use; try this "
+            "unused diag code: %s\n",
+            this->lexer_.file_path_, p.line_number, p.column_number,
+            quick_lint_js::to_string(type.code_string).c_str(),
+            quick_lint_js::to_string(this->next_unused_diag_code_string())
+                .c_str());
+        p = locator.position(existing_it->first.data());
+        std::fprintf(stderr, "%s:%d:%d: note: %s used code %s here\n",
+                     this->lexer_.file_path_, p.line_number, p.column_number,
+                     quick_lint_js::to_string(existing_it->second).c_str(),
+                     quick_lint_js::to_string(existing_it->first).c_str());
+        ok = false;
+      }
+
+      if (!this->is_valid_code_string(type.code_string)) {
+        CLI_Locator locator(this->lexer_.original_input_);
+        CLI_Source_Position p = locator.position(type.code_string.data());
+        std::fprintf(
+            stderr,
+            "%s:%d:%d: error: diag code %s is malformed; expected a code like "
+            "\"E1234\"; try this diag code instead: %s\n",
+            this->lexer_.file_path_, p.line_number, p.column_number,
+            quick_lint_js::to_string(type.code_string).c_str(),
+            quick_lint_js::to_string(this->next_unused_diag_code_string())
+                .c_str());
+        ok = false;
+      }
+    }
+    return ok;
+  }
+
+  bool is_valid_code_string(String8_View code_string) {
+    return code_string.size() == 7 && code_string[0] == u8'"' &&
+           code_string[1] == u8'E' && this->lexer_.is_digit(code_string[2]) &&
+           this->lexer_.is_digit(code_string[3]) &&
+           this->lexer_.is_digit(code_string[4]) &&
+           this->lexer_.is_digit(code_string[5]) && code_string[6] == u8'"';
+  }
+
+  String8 next_unused_diag_code_string() {
+    for (int i = 1; i <= 9999; ++i) {
+      char code_string_raw[8];
+      std::snprintf(code_string_raw, sizeof(code_string_raw), "\"E%04d\"", i);
+      String8_View code_string = to_string8_view(code_string_raw);
+      bool in_use = any_of(this->parsed_types,
+                           [&](const Diagnostic_Type& type) {
+                             return code_string == type.code_string;
+                           }) ||
+                    any_of(this->reserved_code_strings,
+                           [&](const String8_View& reserved_code_string) {
+                             return code_string == reserved_code_string;
+                           });
+      if (!in_use) {
+        return String8(code_string);
+      }
+    }
+    QLJS_UNIMPLEMENTED();
+  }
+
   std::vector<Diagnostic_Type> parsed_types;
+  std::vector<String8_View> reserved_code_strings;
 
  private:
   void skip_preprocessor_directives() {
@@ -469,6 +559,10 @@ int main(int argc, char** argv) {
 
   CXX_Parser cxx_parser(diagnostic_types_file_path, &*diagnostic_types_source);
   cxx_parser.parse_file();
+
+  if (!cxx_parser.check_diag_codes()) {
+    std::exit(1);
+  }
 
   File_Output_Stream* out = File_Output_Stream::get_stdout();
   out->append_literal(

@@ -16,7 +16,19 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
 // GCC 8.3 and GCC 9.2.
 #define ARG(arg_name) #arg_name
 
+#define QLJS_RESERVED_DIAG(code) \
+  /* Used by generate-diagnostic-metadata.cpp, not the C++ compiler. */
+
 namespace quick_lint_js {
+// Reserved error codes. These codes were used in the past but no longer mean
+// anything.
+//
+// When removing a diagnostic, mark its code as reserved here.
+QLJS_RESERVED_DIAG("E0242")
+QLJS_RESERVED_DIAG("E0271")
+QLJS_RESERVED_DIAG("E0279")
+QLJS_RESERVED_DIAG("E0707")
+
 struct Diag_Abstract_Field_Cannot_Have_Initializer {
   [[qljs::diag("E0295", Diagnostic_Severity::error)]]  //
   [[qljs::message("abstract fields cannot have default values",
