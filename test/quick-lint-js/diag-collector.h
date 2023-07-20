@@ -26,7 +26,6 @@ struct Diag_Collector : public Diag_Reporter {
 #undef QLJS_DIAG_TYPE
 
     Diag_Type type() const noexcept;
-    const char *error_code() const noexcept;
     const void *data() const noexcept;
 
     template <class Diag_Type>

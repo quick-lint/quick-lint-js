@@ -26,17 +26,6 @@ QLJS_X_DIAG_TYPES
 
 Diag_Type Diag_Collector::Diag::type() const noexcept { return this->type_; }
 
-const char *Diag_Collector::Diag::error_code() const noexcept {
-  switch (this->type_) {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  case Diag_Type::name:                                                \
-    return code;
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
-  }
-  QLJS_UNREACHABLE();
-}
-
 const void *Diag_Collector::Diag::data() const noexcept {
   return &this->variant_Diag_Unexpected_Token_;  // Arbitrary member.
 }
