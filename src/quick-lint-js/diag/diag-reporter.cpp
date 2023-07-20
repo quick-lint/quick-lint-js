@@ -7,7 +7,7 @@
 namespace quick_lint_js {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   void Diag_Reporter::report(name diag) {                         \
-    this->report_impl(Diag_Type_From_Type<name>, &diag);          \
+    this->report_impl(Diag_Type::name, &diag);                    \
   }
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE

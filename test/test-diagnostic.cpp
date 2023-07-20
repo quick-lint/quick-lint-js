@@ -12,17 +12,13 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-template <class Error>
-inline const Diagnostic_Info& diagnostic_info_for_error =
-    get_diagnostic_info(Diag_Type_From_Type<Error>);
-
 TEST(Test_Diagnostic, diagnostic_info) {
   Translator source_code_translator;
   source_code_translator.use_messages_from_source_code();
 
   {
-    const Diagnostic_Info& info = diagnostic_info_for_error<
-        Diag_Expected_Parentheses_Around_If_Condition>;
+    const Diagnostic_Info& info = get_diagnostic_info(
+        Diag_Type::Diag_Expected_Parentheses_Around_If_Condition);
     EXPECT_EQ(info.code, 17);
     EXPECT_EQ(info.severity, Diagnostic_Severity::error);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[0]),
@@ -36,8 +32,8 @@ TEST(Test_Diagnostic, diagnostic_info) {
   }
 
   {
-    const Diagnostic_Info& info = diagnostic_info_for_error<
-        Diag_Expected_Parenthesis_Around_If_Condition>;
+    const Diagnostic_Info& info = get_diagnostic_info(
+        Diag_Type::Diag_Expected_Parenthesis_Around_If_Condition);
     EXPECT_EQ(info.code, 18);
     EXPECT_EQ(info.severity, Diagnostic_Severity::error);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[0]),
@@ -53,8 +49,8 @@ TEST(Test_Diagnostic, diagnostic_info) {
   }
 
   {
-    const Diagnostic_Info& info = diagnostic_info_for_error<
-        Diag_Function_Call_Before_Declaration_In_Block_Scope>;
+    const Diagnostic_Info& info = get_diagnostic_info(
+        Diag_Type::Diag_Function_Call_Before_Declaration_In_Block_Scope);
     EXPECT_EQ(info.code, 77);
     EXPECT_EQ(info.severity, Diagnostic_Severity::warning);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[0]),
@@ -74,8 +70,8 @@ TEST(Test_Diagnostic, diagnostic_info) {
   }
 
   {
-    const Diagnostic_Info& info =
-        diagnostic_info_for_error<Diag_Class_Statement_Not_Allowed_In_Body>;
+    const Diagnostic_Info& info = get_diagnostic_info(
+        Diag_Type::Diag_Class_Statement_Not_Allowed_In_Body);
     EXPECT_EQ(info.code, 149);
     EXPECT_EQ(info.severity, Diagnostic_Severity::error);
     EXPECT_EQ(source_code_translator.translate(info.message_formats[0]),

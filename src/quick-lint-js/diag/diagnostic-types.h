@@ -78,21 +78,6 @@ enum class Diag_Type {
 
 std::ostream& operator<<(std::ostream&, Diag_Type);
 
-template <class Error>
-struct Diag_Type_From_Type_Detail;
-
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  template <>                                                          \
-  struct Diag_Type_From_Type_Detail<name> {                            \
-    static constexpr Diag_Type type = Diag_Type::name;                 \
-  };
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
-
-template <class Error>
-inline constexpr Diag_Type Diag_Type_From_Type =
-    Diag_Type_From_Type_Detail<Error>::type;
-
 inline constexpr int Diag_Type_Count = 0
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) +1
     QLJS_X_DIAG_TYPES
