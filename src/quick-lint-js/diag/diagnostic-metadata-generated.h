@@ -4,6 +4,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/diag/diagnostic.h>
+
 namespace quick_lint_js {
 // clang-format off
 #define QLJS_X_DIAG_TYPES_GENERATED \
@@ -3662,6 +3664,8 @@ namespace quick_lint_js {
 // clang-format on
 
 inline constexpr int Diag_Type_Count = 385;
+
+extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

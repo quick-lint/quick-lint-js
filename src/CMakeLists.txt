@@ -32,9 +32,12 @@ endif ()
 
 if (TARGET quick-lint-js-generate-diagnostic-metadata)
   add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
+    OUTPUT
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-diagnostic-metadata>
+      --output-info-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
       --output-type-list-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
     DEPENDS
@@ -43,8 +46,8 @@ if (TARGET quick-lint-js-generate-diagnostic-metadata)
     COMMENT "Generating metadata of diagnostics for diagnostic-metadata-generated.h"
   )
 endif ()
-# NOTE(strager): We must create a target just for this header. Otherwise,
-# Ninja's build gets order-only dependencies from
+# NOTE(strager): We must create a target just for these generated files.
+# Otherwise, Ninja's build gets order-only dependencies from
 # diagnostic-metadata-generated.h to libquick-lint-js-debug.a, forming a
 # dependency cycle (because libquick-lint-js-debug.a depends on
 # diagnostic-types.h which depends on diagnostic-metadata-generated.h).
@@ -53,9 +56,15 @@ endif ()
 # intermediate target.
 add_library(
   quick-lint-js-diagnostic-metadata
-  OBJECT
+  STATIC
+  quick-lint-js/diag/diagnostic-metadata-generated.cpp
   quick-lint-js/diag/diagnostic-metadata-generated.h
-  ../website/wasm/empty.cpp
+)
+target_include_directories(quick-lint-js-diagnostic-metadata PUBLIC .)
+quick_lint_js_target_add_cxx_flag_if_supported(
+  quick-lint-js-diagnostic-metadata
+  /constexpr:steps9999999
+  QUICK_LINT_JS_HAVE_CONSTEXPR_STEPS
 )
 
 if (TARGET quick-lint-js-generate-lex-keyword)
@@ -277,6 +286,7 @@ quick_lint_js_add_library(
   quick-lint-js/port/child-process.cpp
   quick-lint-js/port/child-process.h
   quick-lint-js/port/consteval.h
+  quick-lint-js/port/constinit.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h
   quick-lint-js/port/max-align.h

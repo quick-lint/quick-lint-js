@@ -192,6 +192,8 @@ Parse_Integer_Exact_Error parse_integer_exact(String8_View s, T &value) {
 }
 
 template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
+                                                       unsigned short &value);
+template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                        unsigned &value);
 template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                        unsigned long &value);

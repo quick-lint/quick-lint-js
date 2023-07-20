@@ -497,6 +497,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_CONSTINIT)
+#if defined(__cpp_constinit) && __cpp_constinit >= 201907L
+#define QLJS_HAVE_CONSTINIT 1
+#else
+#define QLJS_HAVE_CONSTINIT 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_FILE_NAME_MACRO)
 #if defined(__clang__) && (defined(NDEBUG) && NDEBUG)
 #define QLJS_HAVE_FILE_NAME_MACRO 1

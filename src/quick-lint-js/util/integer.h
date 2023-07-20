@@ -37,6 +37,8 @@ extern template Parse_Integer_Exact_Error parse_integer_exact(
 #if QLJS_HAVE_CHAR8_T
 template <class T>
 Parse_Integer_Exact_Error parse_integer_exact(String8_View, T &value);
+extern template Parse_Integer_Exact_Error parse_integer_exact(
+    String8_View, unsigned short &value);
 extern template Parse_Integer_Exact_Error parse_integer_exact(String8_View,
                                                               unsigned &value);
 extern template Parse_Integer_Exact_Error parse_integer_exact(
