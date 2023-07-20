@@ -635,59 +635,6 @@ void write_type_list_h(Span<const Diagnostic_Type> types, Output_Stream& out) {
 
 namespace quick_lint_js {
 // clang-format off
-)");
-
-  out.append_literal(u8"#define QLJS_X_DIAG_TYPES_GENERATED \\\n");
-  for (const Diagnostic_Type& type : types) {
-    out.append_literal(u8"  QLJS_DIAG_TYPE( \\\n"_sv);
-
-    out.append_literal(u8"    "_sv);
-    out.append_copy(type.name);
-    out.append_literal(u8", "_sv);
-    out.append_copy(type.code_string);
-    out.append_literal(u8", \\\n"_sv);
-
-    out.append_literal(u8"    Diagnostic_Severity::"_sv);
-    out.append_copy(type.severity);
-    out.append_literal(u8", \\\n"_sv);
-
-    out.append_literal(u8"    { \\\n"_sv);
-
-    for (const Diagnostic_Variable& var : type.variables) {
-      out.append_literal(u8"      "_sv);
-      out.append_copy(var.type);
-      out.append_literal(u8" "_sv);
-      out.append_copy(var.name);
-      out.append_literal(u8"; \\\n"_sv);
-    }
-
-    out.append_literal(u8"    }, \\\n"_sv);
-
-    for (const Diagnostic_Message& message : type.messages) {
-      out.append_literal(u8"      MESSAGE(QLJS_TRANSLATABLE("_sv);
-      for (String8_View string : message.message_strings) {
-        out.append_copy(string);
-      }
-      out.append_literal(u8")"_sv);
-      for (String8_View arg : message.argument_variables) {
-        out.append_literal(u8", "_sv);
-        out.append_copy(arg);
-      }
-      out.append_literal(u8") \\\n"_sv);
-    }
-
-    out.append_literal(u8"  ) \\\n"_sv);
-
-    out.append_literal(u8"  \\\n"_sv);
-  }
-  out.append_literal(
-      u8R"(  /* END */
-// clang-format on
-
-)"_sv);
-
-  out.append_literal(
-      u8R"(// clang-format off
 #define QLJS_X_DIAG_TYPE_NAMES \
 )"_sv);
   for (const Diagnostic_Type& type : types) {

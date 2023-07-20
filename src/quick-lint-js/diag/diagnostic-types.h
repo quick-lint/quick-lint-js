@@ -13,37 +13,6 @@
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>
 
-// QLJS_DIAG_TYPE should have the following signature:
-//
-// #define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body,
-// format) ...
-//
-// * error_name: identifier
-// * error_code: string literal
-// * severity: Diagnostic_Severity value
-// * struct_body: class member list, wrapped in { }
-// * format: member function calls
-//
-// A class named *error_name* is created in the quick_lint_js namespace.
-// *struct_body* is the body of the class.
-//
-// *format* should look like the following:
-//
-//    MESSAGE(QLJS_TRANSLATABLE("format string"), source_location)
-//
-// Within *format*:
-//
-// * MESSAGE's first argument must be QLJS_TRANSLATABLE(...)
-// * MESSAGE's second argument must be a member variable of the *error_name*
-//   class (i.e. listed in *struct_body*)
-// * MESSAGE's second argument must have type *Source_Code_Span*
-//
-// When removing a diagnostic from this list, add an entry to
-// QLJS_X_RESERVED_DIAG_TYPES.
-#define QLJS_X_DIAG_TYPES     \
-  QLJS_X_DIAG_TYPES_GENERATED \
-  /* END */
-
 namespace quick_lint_js {
 // NOTE(strager): Enum members in Diag_Type are Upper_Snake_Case (matching the
 // type names) instead of the usual lower_snake_case.
