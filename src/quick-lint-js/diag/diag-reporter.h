@@ -19,10 +19,9 @@ class Diag_Reporter {
 
   virtual ~Diag_Reporter() = default;
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void report(name diag);
-  QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) void report(name diag);
+  QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
   virtual void report_impl(Diag_Type type, void *diag) = 0;
 };

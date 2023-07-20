@@ -19,12 +19,12 @@ struct Buffering_Diag_Reporter::Impl {
     union underlying_diag {
       explicit underlying_diag() noexcept {}
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format)    \
+#define QLJS_DIAG_TYPE_NAME(name)                                    \
   ::quick_lint_js::name name;                                        \
   static_assert(std::is_trivially_copyable_v<::quick_lint_js::name>, \
                 #name " should be trivially copyable");
-      QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+      QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
     };
 
     Diag_Type type;
@@ -54,10 +54,9 @@ Buffering_Diag_Reporter::~Buffering_Diag_Reporter() = default;
 
 void Buffering_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   static constexpr unsigned char diag_sizes[] = {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  sizeof(::quick_lint_js::name),
-      QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) sizeof(::quick_lint_js::name),
+      QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
   };
 
   Impl::Any_Diag &e = this->impl_->diagnostics_.emplace_back();

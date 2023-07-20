@@ -9,20 +9,20 @@
 namespace quick_lint_js {
 void Diag_Collector::report_impl(Diag_Type type, void *diag) {
   switch (type) {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  case Diag_Type::name:                                                \
-    this->errors.emplace_back(*reinterpret_cast<const name *>(diag));  \
+#define QLJS_DIAG_TYPE_NAME(name)                                     \
+  case Diag_Type::name:                                               \
+    this->errors.emplace_back(*reinterpret_cast<const name *>(diag)); \
     break;
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+    QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
   }
 }
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  Diag_Collector::Diag::Diag(const name &data)                         \
+#define QLJS_DIAG_TYPE_NAME(name)              \
+  Diag_Collector::Diag::Diag(const name &data) \
       : type_(Diag_Type::name), variant_##name##_(std::move(data)) {}
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
 Diag_Type Diag_Collector::Diag::type() const noexcept { return this->type_; }
 
@@ -30,7 +30,7 @@ const void *Diag_Collector::Diag::data() const noexcept {
   return &this->variant_Diag_Unexpected_Token_;  // Arbitrary member.
 }
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)   \
+#define QLJS_DIAG_TYPE_NAME(name)                                        \
   template <>                                                            \
   bool holds_alternative<name>(const Diag_Collector::Diag &e) noexcept { \
     return e.type_ == Diag_Type::name;                                   \
@@ -41,17 +41,17 @@ const void *Diag_Collector::Diag::data() const noexcept {
     QLJS_ASSERT(holds_alternative<name>(e));                             \
     return e.variant_##name##_;                                          \
   }
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
 void PrintTo(const Diag_Collector::Diag &e, std::ostream *out) {
   *out << e.type_;
 }
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
+#define QLJS_DIAG_TYPE_NAME(name) \
   void PrintTo(const name &, std::ostream *out) { *out << #name; }
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

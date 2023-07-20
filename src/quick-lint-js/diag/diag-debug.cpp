@@ -8,11 +8,11 @@
 namespace quick_lint_js {
 std::ostream& operator<<(std::ostream& out, Diag_Type type) {
   switch (type) {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  case Diag_Type::name:                                                \
+#define QLJS_DIAG_TYPE_NAME(name) \
+  case Diag_Type::name:           \
     return out << #name;
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+    QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
   }
   QLJS_UNREACHABLE();
 }

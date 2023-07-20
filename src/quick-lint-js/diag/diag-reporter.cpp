@@ -5,12 +5,12 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void Diag_Reporter::report(name diag) {                         \
-    this->report_impl(Diag_Type::name, &diag);                    \
+#define QLJS_DIAG_TYPE_NAME(name)              \
+  void Diag_Reporter::report(name diag) {      \
+    this->report_impl(Diag_Type::name, &diag); \
   }
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
 Null_Diag_Reporter Null_Diag_Reporter::instance;
 }

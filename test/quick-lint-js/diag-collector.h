@@ -20,10 +20,9 @@ struct Diag_Collector : public Diag_Reporter {
   // Like std::variant<(diag types)>, but with much faster compilation.
   class Diag {
    public:
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  explicit Diag(const name &);
-    QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) explicit Diag(const name &);
+    QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
     Diag_Type type() const noexcept;
     const void *data() const noexcept;
@@ -39,10 +38,9 @@ struct Diag_Collector : public Diag_Reporter {
    private:
     Diag_Type type_;
     union {
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  name variant_##name##_;
-      QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) name variant_##name##_;
+      QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
     };
   };
 
@@ -57,10 +55,9 @@ bool holds_alternative(const Diag_Collector::Diag &) noexcept;
 
 void PrintTo(const Diag_Collector::Diag &, std::ostream *);
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  void PrintTo(const name &, std::ostream *);
-QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+#define QLJS_DIAG_TYPE_NAME(name) void PrintTo(const name &, std::ostream *);
+QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 }
 
 #endif

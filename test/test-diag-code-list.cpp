@@ -17,10 +17,10 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_Diag_Code_List, compiled_default_matches_all_errors) {
   Compiled_Diag_Code_List errors;
-#define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE_NAME(error_name) \
   EXPECT_TRUE(errors.is_present(Diag_Type::error_name)) << #error_name;
-  QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+  QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
@@ -76,10 +76,10 @@ TEST(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
   Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-#define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE_NAME(error_name) \
   EXPECT_FALSE(errors.is_present(Diag_Type::error_name)) << #error_name;
-  QLJS_X_DIAG_TYPES
-#undef QLJS_DIAG_TYPE
+  QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
