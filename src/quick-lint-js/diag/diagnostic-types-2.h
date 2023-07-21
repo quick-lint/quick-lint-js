@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_2_H
 #define QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_2_H
 
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/warning.h>
