@@ -173,6 +173,27 @@ Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
   return *da;
 }
 
+Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
+    String8_View code) const {
+  static constexpr String8_View escaped_single_characters = u8"\b\n\t\"\\"_sv;
+  Diagnostic_Assertion result = *this;
+  Padded_String_Size i;
+  for (i = 0; i < result.span_begin_offset; ++i) {
+    if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
+        String8_View::npos) {
+      result.span_begin_offset -= 1;
+      result.span_end_offset -= 1;
+    }
+  }
+  for (; i < result.span_end_offset; ++i) {
+    if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
+        String8_View::npos) {
+      result.span_end_offset -= 1;
+    }
+  }
+  return result;
+}
+
 Diagnostic_Assertion operator""_diag(
     const Char8* specification,
     [[maybe_unused]] std::size_t specification_length) {
@@ -185,22 +206,25 @@ void assert_diagnostics(Padded_String_View code,
                         Source_Location caller) {
   std::vector<Diag_Matcher> error_matchers;
   for (const Diagnostic_Assertion& diag : assertions) {
+    Diagnostic_Assertion adjusted_diag =
+        diag.adjusted_for_escaped_characters(code.string_view());
     error_matchers.push_back(Diag_Matcher(
-        code, diag.type,
+        code, adjusted_diag.type,
         Diag_Matcher::Field{
             .arg =
                 Diag_Matcher_Arg{
-                    .member_name = diag.member_name,
-                    .member_offset = diag.member_offset,
-                    .member_type = diag.member_type,
+                    .member_name = adjusted_diag.member_name,
+                    .member_offset = adjusted_diag.member_offset,
+                    .member_type = adjusted_diag.member_type,
                 },
             .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-                diag.span_begin_offset),
+                adjusted_diag.span_begin_offset),
             // TODO(strager): Make Diag_Matcher work with an end offset
             // instead of a text span.
-            .text = String8(narrow_cast<std::size_t>(diag.span_end_offset -
-                                                     diag.span_begin_offset),
-                            u8'_'),
+            .text = String8(
+                narrow_cast<std::size_t>(adjusted_diag.span_end_offset -
+                                         adjusted_diag.span_begin_offset),
+                u8'_'),
         }));
   }
   if (error_matchers.size() <= 1) {

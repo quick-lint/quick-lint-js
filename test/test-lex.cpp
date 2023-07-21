@@ -873,104 +873,43 @@ TEST_F(Test_Lex, lex_strings) {
   }
 
   this->check_tokens_with_errors(
-      u8"'unterminated\\"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Unclosed_String_Literal,  //
-                                  string_literal, 0, u8"'unterminated\\"_sv),
-            }));
-      });
+      u8"'unterminated\\"_sv,  //
+      u8"^^^^^^^^^^^^^^^ Diag_Unclosed_String_Literal"_diag,
+      {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'\\x"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            UnorderedElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'"_sv.size(), u8"\\x"_sv),
-                DIAG_TYPE_OFFSETS(input, Diag_Unclosed_String_Literal,  //
-                                  string_literal, 0, u8"'\\x"_sv),
-            }));
-      });
+      u8"'\\x"_sv,                                     //
+      u8" ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag,  //
+      u8"^^^^ Diag_Unclosed_String_Literal"_diag, {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'\\x1"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            UnorderedElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'"_sv.size(), u8"\\x"_sv),
-                DIAG_TYPE_OFFSETS(input, Diag_Unclosed_String_Literal,  //
-                                  string_literal, 0, u8"'\\x1"_sv),
-            }));
-      });
+      u8"'\\x1"_sv,                                    //
+      u8" ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag,  //
+      u8"^^^^^ Diag_Unclosed_String_Literal"_diag, {Token_Type::string});
+
+  this->check_tokens_with_errors(u8"'\\x'"_sv,  //
+                                 u8" ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag,
+                                 {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'\\x'"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'"_sv.size(), u8"\\x"_sv),
-            }));
-      });
+      u8"'\\x\\xyz'"_sv,                                  //
+      u8"    ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag,  //
+      u8" ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag, {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'\\x\\xyz'"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            UnorderedElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'"_sv.size(), u8"\\x"_sv),
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'\\x"_sv.size(),
-                                  u8"\\x"_sv),
-            }));
-      });
+      u8"'\\x1 \\xff \\xg '"_sv,                                  //
+      u8"            ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag,  //
+      u8" ^^^ Diag_Invalid_Hex_Escape_Sequence"_diag, {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'\\x1 \\xff \\xg '"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            UnorderedElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'"_sv.size(), u8"\\x"_sv),
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Hex_Escape_Sequence,  //
-                                  escape_sequence, u8"'\\x1 \\xff "_sv.size(),
-                                  u8"\\x"_sv),
-            }));
-      });
+      u8"'hello\\u'"_sv,  //
+      u8"      ^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      {Token_Type::string});
 
   this->check_tokens_with_errors(
-      u8"'hello\\u'"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"'hello"_sv.size(), u8"\\u'"_sv),
-            }));
-      });
-
-  this->check_tokens_with_errors(
-      u8"'hello\\u{110000}'"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range,  //
-                    escape_sequence, u8"'hello"_sv.size(), u8"\\u{110000}"_sv),
-            }));
-      });
+      u8"'hello\\u{110000}'"_sv,  //
+      u8"      ^^^^^^^^^^^ Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range"_diag,
+      {Token_Type::string});
 
   // TODO(#187): Report octal escape sequences in strict mode.
   // TODO(#187): Report invalid octal escape sequences in non-strict mode.
@@ -1235,15 +1174,9 @@ world`)"_sv,
   }
 
   this->check_tokens_with_errors(
-      u8"`unterminated\\"_sv, {Token_Type::complete_template},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(input, Diag_Unclosed_Template,  //
-                                          incomplete_template, 0,
-                                          u8"`unterminated\\"_sv),
-                    }));
-      });
+      u8"`unterminated\\"_sv,  //
+      u8"^^^^^^^^^^^^^^^ Diag_Unclosed_Template"_diag,
+      {Token_Type::complete_template});
 }
 
 TEST_F(Test_Lex, templates_buffer_unicode_escape_errors) {
@@ -1750,16 +1683,9 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
             }));
       });
   this->check_tokens_with_errors(
-      u8"are\\uf riendly"_sv, {Token_Type::identifier, Token_Type::identifier},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"are"_sv.size(), u8"\\uf "_sv),
-            }));
-      });
+      u8"are\\uf riendly"_sv,  //
+      u8"   ^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      {Token_Type::identifier, Token_Type::identifier});
   this->check_single_token_with_errors(
       u8"stray\\backslash"_sv, u8"stray\\backslash"_sv,
       [](Padded_String_View input, const auto& errors) {
@@ -1781,29 +1707,14 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
                     }));
       });
   this->check_tokens_with_errors(
-      u8"hello\\u}world"_sv,
-      {Token_Type::identifier, Token_Type::right_curly, Token_Type::identifier},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"hello"_sv.size(), u8"\\u}"_sv),
-            }));
-      });
+      u8"hello\\u}world"_sv,  //
+      u8"     ^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      {Token_Type::identifier, Token_Type::right_curly,
+       Token_Type::identifier});
   this->check_tokens_with_errors(
-      u8"negative\\u-0041"_sv,
-      {Token_Type::identifier, Token_Type::minus, Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"negative"_sv.size(), u8"\\u-"_sv),
-            }));
-      });
+      u8"negative\\u-0041"_sv,  //
+      u8"        ^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      {Token_Type::identifier, Token_Type::minus, Token_Type::number});
 
   this->check_single_token_with_errors(
       u8"a\\u{}b"_sv, u8"a\\u{}b"_sv,
@@ -1874,29 +1785,13 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
       });
 
   this->check_tokens_with_errors(
-      u8"unclosed\\u{0123 'string'"_sv,
-      {Token_Type::identifier, Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unclosed_Identifier_Escape_Sequence,  //
-                    escape_sequence, u8"unclosed"_sv.size(), u8"\\u{0123"_sv),
-            }));
-      });
+      u8"unclosed\\u{0123 'string'"_sv,  //
+      u8"        ^^^^^^^^ Diag_Unclosed_Identifier_Escape_Sequence"_diag,
+      {Token_Type::identifier, Token_Type::string});
   this->check_tokens_with_errors(
-      u8"unclosed\\u{+=42"_sv,
-      {Token_Type::identifier, Token_Type::plus_equal, Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unclosed_Identifier_Escape_Sequence,  //
-                    escape_sequence, u8"unclosed"_sv.size(), u8"\\u{"_sv),
-            }));
-      });
+      u8"unclosed\\u{+=42"_sv,  //
+      u8"        ^^^^ Diag_Unclosed_Identifier_Escape_Sequence"_diag,
+      {Token_Type::identifier, Token_Type::plus_equal, Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_identifier_with_out_of_range_escaped_character) {
@@ -3067,17 +2962,9 @@ TEST_F(Test_Lex, invalid_jsx_identifier) {
   this->lex_jsx_tokens = true;
 
   this->check_tokens_with_errors(
-      u8"<hello\\u{2d}world>"_sv,
-      {Token_Type::less, Token_Type::identifier, Token_Type::greater},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Hyphen_Not_Allowed_In_JSX_Tag,  //
-                    escape_sequence, u8"<hello"_sv.size(), u8"\\u{2d}"_sv),
-            }));
-      });
+      u8"<hello\\u{2d}world>"_sv,  //
+      u8"      ^^^^^^^ Diag_Escaped_Hyphen_Not_Allowed_In_JSX_Tag"_diag,
+      {Token_Type::less, Token_Type::identifier, Token_Type::greater});
 }
 
 TEST_F(Test_Lex, jsx_string) {

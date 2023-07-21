@@ -174,6 +174,144 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_multiple_members_explicit) {
         offsetof(Diag_Assignment_Before_Variable_Declaration, assignment));
   }
 }
+
+TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {
+  Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
+  da = da.adjusted_for_escaped_characters(u8"abcdef"_sv);
+  EXPECT_EQ(da.span_begin_offset, 2);
+  EXPECT_EQ(da.span_end_offset, 4);
+}
+
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_single_byte_escaped_characters_after_span_does_nothing) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"abcde\n"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 4);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"abcd\ng"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 4);
+  }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_single_byte_escaped_characters_before_span) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\nbcdef"_sv);
+    EXPECT_EQ(da.span_begin_offset, 1);
+    EXPECT_EQ(da.span_end_offset, 3);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"   ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\ncdef"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 4);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"   ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"a\ndef"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 4);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"     ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\nc\nfgh"_sv);
+    EXPECT_EQ(da.span_begin_offset, 3);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\tcdefg"_sv);
+    EXPECT_EQ(da.span_begin_offset, 3);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\"cdefg"_sv);
+    EXPECT_EQ(da.span_begin_offset, 3);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\\cdefg"_sv);
+    EXPECT_EQ(da.span_begin_offset, 3);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_single_byte_escaped_characters_inside_span) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"ab\nef"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 3);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"ab\ndefg"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 6);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"abc\nefg"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 6);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"abcde\ng"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 6);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"ab\ne\ng"_sv);
+    EXPECT_EQ(da.span_begin_offset, 2);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_single_byte_escaped_characters_before_and_inside_span) {
+  {
+    // This was an edge case.
+    Diagnostic_Assertion da =
+        parse_or_fail(u8"    ^^^ Diag_Invalid_Hex_Escape_Sequence");
+    da = da.adjusted_for_escaped_characters(u8"a\\d\\gh"_sv);
+    EXPECT_EQ(da.span_begin_offset, 3);
+    EXPECT_EQ(da.span_end_offset, 5);
+  }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_single_byte_escaped_characters_inside_and_after_span) {
+  {
+    // This was an edge case.
+    Diagnostic_Assertion da =
+        parse_or_fail(u8" ^^^ Diag_Invalid_Hex_Escape_Sequence");
+    da = da.adjusted_for_escaped_characters(u8"a\\d\\g"_sv);
+    EXPECT_EQ(da.span_begin_offset, 1);
+    EXPECT_EQ(da.span_end_offset, 3);
+  }
+}
 }
 }
 

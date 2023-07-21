@@ -81,6 +81,25 @@ struct Diagnostic_Assertion {
 
   // If the specification is malformed, exit the program.
   static Diagnostic_Assertion parse_or_exit(const Char8* specification);
+
+  // Adjust span_begin_offset and span_end_offset based on characters in 'code'
+  // which were probably escaped in the C++ source code.
+  //
+  // This function compensates for C++ escape sequences such as in the following
+  // example:
+  //
+  //    test_parse_and_visit_statement(
+  //      u8"\"string\""_sv,
+  //      u8"     ^ MyDiag"_diag);
+  //
+  // The Diagnostic_Assertion should point to the letter 'i' in the input
+  // string. The 'i' is at byte offset 4, but there are five spaces before the
+  // '^' in the _diag string. adjusted_for_escaped_characters would subtract 1
+  // from the offsets in the _diag string so that assert_diagnostics will work
+  // correctly.
+  //
+  // TODO(strager): Support Unicode escape sequences (\u2063 for example).
+  Diagnostic_Assertion adjusted_for_escaped_characters(String8_View code) const;
 };
 
 // See [_diag-syntax].
