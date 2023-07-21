@@ -9,7 +9,7 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-// binary_writer does no bounds checking.
+// Binary_Writer does no bounds checking.
 class Binary_Writer {
  public:
   explicit Binary_Writer(std::uint8_t *out) noexcept : out_(out) {}

@@ -11,13 +11,13 @@ namespace quick_lint_js {
 template <class Func_Type>
 class Heap_Function;
 
-// heap_function is like std::function but with a few differences:
+// Heap_Function is like std::function but with a few differences:
 //
-// * heap_function compiles significantly faster than libc++'s std::function.
-// * heap_function supports move-only targets.
-// * heap_function does not have inline storage. It always heap-allocates.
-// * heap_function does not support allocators.
-// * heap_function does not support member function pointers and other
+// * Heap_Function compiles significantly faster than libc++'s std::function.
+// * Heap_Function supports move-only targets.
+// * Heap_Function does not have inline storage. It always heap-allocates.
+// * Heap_Function does not support allocators.
+// * Heap_Function does not support member function pointers and other
 //   craziness.
 template <class Result, class... Args>
 class Heap_Function<Result(Args...)> {

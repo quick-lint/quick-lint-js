@@ -30,9 +30,9 @@ struct Byte_Buffer_Chunk {
 
 class Byte_Buffer_IOVec;
 
-// A byte_buffer is a container of Char8 which allows efficient appending.
+// A Byte_Buffer is a container of Char8 which allows efficient appending.
 //
-// A byte_buffer can be converted into a Byte_Buffer_IOVec for use with the
+// A Byte_Buffer can be converted into a Byte_Buffer_IOVec for use with the
 // POSIX writev(2) syscall.
 class Byte_Buffer {
  public:

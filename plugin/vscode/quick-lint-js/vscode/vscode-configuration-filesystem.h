@@ -98,7 +98,7 @@ class Thread_Safe_Configuration_Filesystem : public Configuration_Filesystem {
   UnderlyingFilesystem underlying_fs_;
 };
 
-// A configuration_filesystem which allows unsaved VS Code documents to appear
+// A Configuration_Filesystem which allows unsaved VS Code documents to appear
 // as real files.
 class VSCode_Configuration_Filesystem : public Configuration_Filesystem {
  public:

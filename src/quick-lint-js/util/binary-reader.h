@@ -16,7 +16,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-// checked_binary_reader calls unexpected_end_of_file on error.
+// Checked_Binary_Reader calls unexpected_end_of_file on error.
 //
 // Invariant: When unexpected_end_of_file is called, it does not return.
 class Checked_Binary_Reader {

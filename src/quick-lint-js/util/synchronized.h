@@ -36,7 +36,7 @@ class Synchronized {
 template <class Data>
 class Lock_Ptr {
  private:
-  // Do not call directly. Call synchronized<Data>::lock instead.
+  // Do not call directly. Call Synchronized<Data>::lock instead.
   explicit Lock_Ptr(Synchronized<Data>* synchronized)
       : synchronized_(synchronized) {
     this->lock();

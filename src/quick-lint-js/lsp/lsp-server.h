@@ -39,7 +39,7 @@ class LSP_Linter;
 class Trace_Flusher_Directory_Backend;
 struct Watch_IO_Error;
 
-// A configuration_filesystem which allows unsaved LSP documents (from the
+// A Configuration_Filesystem which allows unsaved LSP documents (from the
 // client) to appear as real files.
 class LSP_Overlay_Configuration_Filesystem : public Configuration_Filesystem {
  public:
@@ -67,9 +67,9 @@ struct Linting_LSP_Server_Config {
 
 struct LSP_Documents {
   enum class Document_Type {
-    config,    // config_document
-    lintable,  // lintable_document
-    unknown,   // unknown_document
+    config,    // Config_Document
+    lintable,  // Lintable_Document
+    unknown,   // Unknown_Document
   };
 
   struct Document_Base {
@@ -123,7 +123,7 @@ struct LSP_Documents {
   Hash_Map<String8, std::unique_ptr<Document_Base> > documents;
 };
 
-// A linting_lsp_server_handler listens for JavaScript code changes and notifies
+// A Linting_LSP_Server_Handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
 class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
  public:
@@ -233,9 +233,9 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
   Configuration default_config_;
   LSP_Linter& linter_;
 
-  // NOTE[lsp_documents thread safety]: lsp_documents can only be modified on
+  // NOTE[lsp_documents thread safety]: LSP_Documents can only be modified on
   // the LSP server thread. Therefore, it is safe to read without taking the
-  // lock. lsp_overlay_configuration_filesystem reads without taking the lock.
+  // lock. LSP_Overlay_Configuration_Filesystem reads without taking the lock.
   Synchronized<LSP_Documents> documents_;
 
   Outgoing_JSON_RPC_Message_Queue outgoing_messages_;
@@ -284,7 +284,7 @@ class LSP_JavaScript_Linter final : public LSP_Linter {
                                 Byte_Buffer& diagnostics_json);
 };
 
-// Returns the lsp_documents for the last-created linting_lsp_server_handler.
+// Returns the LSP_Documents for the last-created Linting_LSP_Server_Handler.
 //
 // Might return nullptr.
 //

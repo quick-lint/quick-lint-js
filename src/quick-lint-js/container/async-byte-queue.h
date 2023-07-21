@@ -15,17 +15,17 @@
 #include <utility>
 
 namespace quick_lint_js {
-// async_byte_queue is like byte_buffer, but allows one thread to write data and
-// another thread to read data. async_byte_queue is a Single-Producer
+// Async_Byte_Queue is like Byte_Buffer, but allows one thread to write data and
+// another thread to read data. Async_Byte_Queue is a Single-Producer
 // Single-Consumer (SPSC) queue of bytes.
 //
-// async_byte_queue allows multiple reader threads if they are synchronized
+// Async_Byte_Queue allows multiple reader threads if they are synchronized
 // (e.g. using a mutex).
 //
-// async_byte_queue allows multiple writer threads if they are synchronized
+// Async_Byte_Queue allows multiple writer threads if they are synchronized
 // (e.g. using a mutex).
 //
-// async_byte_queue is implemented as a linked list of byte arrays called
+// Async_Byte_Queue is implemented as a linked list of byte arrays called
 // chunks.
 class Async_Byte_Queue {
  public:

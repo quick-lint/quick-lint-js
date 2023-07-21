@@ -11,7 +11,7 @@
 namespace quick_lint_js {
 Char8* encode_utf_8(char32_t code_point, Char8* out);
 
-// There are three cases with decode_utf_8_result:
+// There are three cases with Decode_UTF8_Result:
 //
 // 1. The input string is empty. In this case, .size == 0 && .ok == false.
 //    .code_point is unspecified.
