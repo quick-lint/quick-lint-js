@@ -115,26 +115,6 @@ TEST(Test_Diag_Matcher, match_offsets_of_1_field_span) {
       })));
 }
 
-TEST(Test_Diag_Matcher, match_offsets_of_1_field_identifier) {
-  Padded_String code(u8"hello"_sv);
-
-  ::testing::Matcher<const Diag_Collector::Diag &> matcher =
-      DIAG_TYPE_OFFSETS(&code, Diag_Assignment_To_Undeclared_Variable,  //
-                        assignment, 1, u8"ello"_sv);
-  EXPECT_TRUE(matcher.Matches(
-      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
-          .assignment = Source_Code_Span(&code[1], &code[5]),
-      })));
-  EXPECT_FALSE(matcher.Matches(
-      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
-          .assignment = Source_Code_Span(&code[0], &code[5]),
-      })));
-  EXPECT_FALSE(matcher.Matches(
-      Diag_Collector::Diag(Diag_Assignment_To_Undeclared_Variable{
-          .assignment = Source_Code_Span(&code[0], &code[4]),
-      })));
-}
-
 TEST(Test_Diag_Matcher, match_offsets_of_1_field_message) {
   Padded_String code(u8"hello"_sv);
   {
