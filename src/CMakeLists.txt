@@ -33,10 +33,12 @@ endif ()
 if (TARGET quick-lint-js-generate-diagnostic-metadata)
   add_custom_command(
     OUTPUT
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-diagnostic-metadata>
+      --output-debug-info-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp"
       --output-info-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
       --output-type-list-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
@@ -398,6 +400,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/diag/diag-debug.cpp
+  quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
