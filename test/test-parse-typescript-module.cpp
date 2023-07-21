@@ -128,8 +128,9 @@ TEST_F(Test_Parse_TypeScript_Module,
                               "visit_variable_declaration",  // B
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)))
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
     EXPECT_THAT(

@@ -15,7 +15,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -397,10 +397,11 @@ TEST(Test_Variable_Analyzer_Eval_TypeScript,
 
     EXPECT_THAT(
         v.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name, span_of(use)),
             DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable, assignment,
-                           span_of(assignment))));
+                           span_of(assignment)),
+        }));
   }
 }
 }

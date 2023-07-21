@@ -25,7 +25,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -511,12 +511,13 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Let_With_No_Bindings,  //
                                       where, 0, u8"let"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, u8"let"_sv.size(), u8""_sv)));
+                        where, u8"let"_sv.size(), u8""_sv),
+                }));
   }
 
   {
@@ -531,13 +532,14 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Variable_Name_In_Declaration,  //
                               equal_token, u8"const "_sv.size(), u8"="_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Variable_Name_In_Declaration,  //
-                equal_token, u8"const = y, z = w, "_sv.size(), u8"="_sv)));
+                equal_token, u8"const = y, z = w, "_sv.size(), u8"="_sv),
+        }));
   }
 
   {
@@ -552,13 +554,14 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Comma_Between_Variable_Declarations,  //
                 expected_comma, u8"let x"_sv.size(), u8""_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Comma_Between_Variable_Declarations,  //
-                expected_comma, u8"let x y = z"_sv.size(), u8""_sv)));
+                expected_comma, u8"let x y = z"_sv.size(), u8""_sv),
+        }));
   }
 
   {
@@ -574,13 +577,14 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Comma_Between_Variable_Declarations,  //
                 expected_comma, u8"let x"_sv.size(), u8""_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Missing_Comma_Between_Variable_Declarations,  //
-                expected_comma, u8"let x [y]=ys"_sv.size(), u8""_sv)));
+                expected_comma, u8"let x [y]=ys"_sv.size(), u8""_sv),
+        }));
   }
 
   for (String8 compound_assignment_operator : {
@@ -1464,14 +1468,15 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
                 ElementsAreArray({function_decl(u8"f"_sv),  //
                                   func_param_decl(u8"await"_sv)}));
     EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code,
                         Diag_Cannot_Declare_Await_In_Async_Function,  //
                         name, u8"async function f("_sv.size(), u8"await"_sv),
                     // TODO(strager): Drop the
                     // Diag_Missing_Operand_For_Operator error.
-                    DIAG_TYPE(Diag_Missing_Operand_For_Operator)));
+                    DIAG_TYPE(Diag_Missing_Operand_For_Operator),
+                }));
   }
 }
 

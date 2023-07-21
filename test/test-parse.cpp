@@ -27,7 +27,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 using ::testing::VariantWith;
 
 namespace quick_lint_js {
@@ -389,12 +389,13 @@ TEST_F(Test_Parse, utter_garbage) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Expected_Parentheses_Around_If_Condition,  //
                               condition, u8"if "_sv.size(), u8":"_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, u8"if "_sv.size(), u8":"_sv)));
+                              token, u8"if "_sv.size(), u8":"_sv),
+        }));
   }
 }
 

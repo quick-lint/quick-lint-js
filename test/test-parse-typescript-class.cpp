@@ -23,6 +23,7 @@ using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -368,13 +369,14 @@ TEST_F(Test_Parse_TypeScript_Class,
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE(
                 Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer),
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, u8"class C { field"_sv.size(), u8"!"_sv)));
+                bang, u8"class C { field"_sv.size(), u8"!"_sv),
+        }));
   }
 
   {
@@ -556,14 +558,15 @@ TEST_F(Test_Parse_TypeScript_Class,
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE(Diag_Missing_Semicolon_After_Field),
             DIAG_TYPE(
                 Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript),
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv)));
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
+        }));
   }
 
   {
@@ -572,13 +575,14 @@ TEST_F(Test_Parse_TypeScript_Class,
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE(
                 Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript),
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv)));
+                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
+        }));
   }
 }
 

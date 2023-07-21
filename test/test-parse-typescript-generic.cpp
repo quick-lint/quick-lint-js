@@ -677,14 +677,18 @@ TEST_F(Test_Parse_TypeScript_Generic,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.variable_uses, IsEmpty());
-    EXPECT_THAT(p.visits, ::testing::AnyOf(
-                              IsEmpty(),
-                              ElementsAre("visit_enter_class_scope",          //
-                                          "visit_enter_class_scope_body",     //
-                                          "visit_exit_class_scope"),          //
-                              ElementsAre("visit_enter_function_scope",       //
-                                          "visit_enter_function_scope_body",  //
-                                          "visit_exit_function_scope")))
+    EXPECT_THAT(p.visits,
+                ::testing::AnyOf(IsEmpty(),
+                                 ElementsAreArray({
+                                     "visit_enter_class_scope",       //
+                                     "visit_enter_class_scope_body",  //
+                                     "visit_exit_class_scope",
+                                 }),  //
+                                 ElementsAreArray({
+                                     "visit_enter_function_scope",       //
+                                     "visit_enter_function_scope_body",  //
+                                     "visit_exit_function_scope",
+                                 })))
         << "there should be no generic arguments (visit_variable_type_use)";
   }
 }

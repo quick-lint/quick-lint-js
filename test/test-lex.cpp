@@ -3679,11 +3679,13 @@ void Test_Lex::check_single_token_with_errors(
   Diag_Collector errors;
   std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
 
-  EXPECT_THAT_AT_CALLER(lexed_tokens,
-                        ElementsAre(::testing::Field(
-                            "type", &Token::type,
-                            ::testing::AnyOf(Token_Type::identifier,
-                                             Token_Type::private_identifier))));
+  EXPECT_THAT_AT_CALLER(
+      lexed_tokens,
+      ElementsAreArray({
+          ::testing::Field("type", &Token::type,
+                           ::testing::AnyOf(Token_Type::identifier,
+                                            Token_Type::private_identifier)),
+      }));
   if (lexed_tokens.size() == 1 &&
       (lexed_tokens[0].type == Token_Type::identifier ||
        lexed_tokens[0].type == Token_Type::private_identifier)) {

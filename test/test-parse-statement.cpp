@@ -23,7 +23,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
@@ -892,9 +892,11 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
                               "visit_exit_block_scope",
                           }));
     EXPECT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, Diag_Missing_Semicolon_After_Statement,  //
-                    where, u8"if (false) {} else true"_sv.size(), u8""_sv)));
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Missing_Semicolon_After_Statement,  //
+                        where, u8"if (false) {} else true"_sv.size(), u8""_sv),
+                }));
   }
 
   {
@@ -928,14 +930,15 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Expression_Between_Parentheses,  //
                               left_paren_to_right_paren,
                               u8"if (false) {} else "_sv.size(), u8"()"_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_If_After_Else,  //
                               expected_if, u8"if (false) {} else"_sv.size(),
-                              u8""_sv)))
+                              u8""_sv),
+        }))
         << "should not report Diag_Missing_Arrow_Operator_In_Arrow_Function";
   }
 

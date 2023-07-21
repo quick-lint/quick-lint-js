@@ -22,11 +22,12 @@
 
 using ::testing::AllOf;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::Ge;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::Key;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -71,13 +72,14 @@ TEST_F(Test_Instrumented_Vector, creating_vector_from_range_adds_entry) {
   std::uintptr_t v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   EXPECT_THAT(
       Vector_Instrumentation::instance.take_entries(),
-      ElementsAre(
+      ElementsAreArray({
           AllOf(FIELD_EQ(Vector_Instrumentation::Entry, object_id, v_object_id),
                 FIELD_EQ(Vector_Instrumentation::Entry, owner, owner),
                 FIELD_EQ(Vector_Instrumentation::Entry, event,
                          Vector_Instrumentation::Event::create),
                 FIELD_EQ(Vector_Instrumentation::Entry, size, 3),
-                FIELD(Vector_Instrumentation::Entry, capacity, Ge(3)))));
+                FIELD(Vector_Instrumentation::Entry, capacity, Ge(3))),
+      }));
 }
 
 TEST_F(Test_Instrumented_Vector, append_to_vector_adds_entries) {
@@ -113,11 +115,12 @@ TEST_F(Test_Instrumented_Vector, clearing_vector_adds_entry) {
 
   v.clear();
 
-  EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
-      ElementsAre(AllOf(FIELD_EQ(Vector_Instrumentation::Entry, event,
+  EXPECT_THAT(Vector_Instrumentation::instance.take_entries(),
+              ElementsAreArray({
+                  AllOf(FIELD_EQ(Vector_Instrumentation::Entry, event,
                                  Vector_Instrumentation::Event::clear),
-                        FIELD_EQ(Vector_Instrumentation::Entry, size, 0))));
+                        FIELD_EQ(Vector_Instrumentation::Entry, size, 0)),
+              }));
 }
 
 TEST_F(Test_Instrumented_Vector, moving_vector_with_new_owner_adds_entries) {
@@ -226,7 +229,7 @@ TEST(Test_Vector_Instrumentation, take_one_entry) {
       /*size=*/1,
       /*capacity=*/1);
   auto entries_1 = data.take_entries();
-  ASSERT_THAT(entries_1, ElementsAre(::testing::_));
+  ASSERT_THAT(entries_1, ElementsAreArray({::testing::_}));
   EXPECT_STREQ(entries_1[0].owner, "first");
 
   data.add_entry(
@@ -237,7 +240,7 @@ TEST(Test_Vector_Instrumentation, take_one_entry) {
       /*size=*/1,
       /*capacity=*/1);
   auto entries_2 = data.take_entries();
-  ASSERT_THAT(entries_2, ElementsAre(::testing::_));
+  ASSERT_THAT(entries_2, ElementsAreArray({::testing::_}));
   EXPECT_STREQ(entries_2[0].owner, "second");
 
   EXPECT_THAT(data.take_entries(), IsEmpty());
@@ -277,11 +280,14 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist,
-              UnorderedElementsAre(Key("first"), Key("second"), Key("third")));
-  EXPECT_THAT(hist["first"], UnorderedElementsAre(std::pair(3, 1)));
-  EXPECT_THAT(hist["second"], UnorderedElementsAre(std::pair(5, 1)));
-  EXPECT_THAT(hist["third"], UnorderedElementsAre(std::pair(0, 1)));
+  EXPECT_THAT(hist, UnorderedElementsAreArray({
+                        Key("first"),
+                        Key("second"),
+                        Key("third"),
+                    }));
+  EXPECT_THAT(hist["first"], UnorderedElementsAreArray({std::pair(3, 1)}));
+  EXPECT_THAT(hist["second"], UnorderedElementsAreArray({std::pair(5, 1)}));
+  EXPECT_THAT(hist["third"], UnorderedElementsAreArray({std::pair(0, 1)}));
 }
 
 TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
@@ -322,7 +328,7 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(5, 1)));
+  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(5, 1)}));
 }
 
 TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
@@ -356,7 +362,7 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(10, 1)));
+  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(10, 1)}));
 }
 
 TEST(
@@ -400,8 +406,10 @@ TEST(
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner],
-              UnorderedElementsAre(std::pair(4, 1), std::pair(11, 1)));
+  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({
+                               std::pair(4, 1),
+                               std::pair(11, 1),
+                           }));
 }
 
 TEST(
@@ -444,8 +452,10 @@ TEST(
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner],
-              UnorderedElementsAre(std::pair(3, 1), std::pair(2, 1)));
+  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({
+                               std::pair(3, 1),
+                               std::pair(2, 1),
+                           }));
 }
 
 TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
@@ -497,7 +507,7 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAre(std::pair(size, 3)));
+  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(size, 3)}));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
@@ -678,8 +688,11 @@ TEST(Test_Vector_Instrumentation_Capacity_Change_Histogram_By_Owner,
   Vector_Capacity_Change_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
   auto hist = histogram.histogram();
-  EXPECT_THAT(hist,
-              UnorderedElementsAre(Key("first"), Key("second"), Key("third")));
+  EXPECT_THAT(hist, UnorderedElementsAreArray({
+                        Key("first"),
+                        Key("second"),
+                        Key("third"),
+                    }));
   EXPECT_EQ(hist["first"].appends_initial_capacity, 0);
   EXPECT_EQ(hist["first"].appends_reusing_capacity, 0);
   EXPECT_EQ(hist["first"].appends_growing_capacity, 0);

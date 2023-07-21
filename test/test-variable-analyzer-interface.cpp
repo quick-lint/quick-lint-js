@@ -15,7 +15,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -160,11 +160,12 @@ TEST(Test_Variable_Analyzer_Interface,
     l.visit_exit_interface_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, UnorderedElementsAre(
+    EXPECT_THAT(v.errors, UnorderedElementsAreArray({
                               DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
                                              span_of(type_use_1)),
                               DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
-                                             span_of(type_use_2))));
+                                             span_of(type_use_2)),
+                          }));
   }
 }
 
@@ -229,11 +230,12 @@ TEST(Test_Variable_Analyzer_Interface,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
                                    span_of(index_use_inside_interface)),
                     DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(index_use_outside_interface))));
+                                   span_of(index_use_outside_interface)),
+                }));
   }
 }
 }

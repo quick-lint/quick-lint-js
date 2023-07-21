@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -143,13 +143,14 @@ TEST_F(Test_Parse_Class, class_statement_requires_a_body) {
                               "visit_exit_class_scope",        // }
                           }));
     EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code,
                                       Diag_Missing_Name_In_Class_Statement,  //
                                       class_keyword, 0, u8"class"_sv),
                     DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_Class,  //
                                       class_keyword_and_name_and_heritage,
-                                      u8"class"_sv.size(), u8""_sv)));
+                                      u8"class"_sv.size(), u8""_sv),
+                }));
   }
 }
 
@@ -670,17 +671,21 @@ TEST_F(Test_Parse_Class, class_fields_with_comma) {
   {
     Test_Parser p(u8"class C { a = 1, b = 2 }"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
-                                      "visit_enter_class_scope_body",  //
-                                      "visit_property_declaration",    // a
-                                      "visit_property_declaration",    // b
-                                      "visit_exit_class_scope",
-                                      "visit_variable_declaration"));  // C
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       //
+                              "visit_enter_class_scope_body",  //
+                              "visit_property_declaration",    // a
+                              "visit_property_declaration",    // b
+                              "visit_exit_class_scope",        //
+                              "visit_variable_declaration",    // C
+                          }));
     EXPECT_THAT(
         p.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            p.code, Diag_Unexpected_Comma_After_Field_Initialization,  //
-            comma, u8"class C { a = 1"_sv.size(), u8","_sv)));
+        ElementsAreArray({
+            DIAG_TYPE_OFFSETS(
+                p.code, Diag_Unexpected_Comma_After_Field_Initialization,  //
+                comma, u8"class C { a = 1"_sv.size(), u8","_sv),
+        }));
   }
 }
 
@@ -1147,13 +1152,14 @@ TEST_F(Test_Parse_Class, stray_keyword_in_class_body) {
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
                               token, u8"class C { "_sv.size(), u8"if"_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
                               token,
                               u8"class C { if method(arg) { body; } "_sv.size(),
-                              u8"instanceof"_sv)));
+                              u8"instanceof"_sv),
+        }));
   }
 }
 

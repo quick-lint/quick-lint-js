@@ -61,7 +61,7 @@ TEST(Test_Linked_Vector, emplace_back_one_then_pop_back) {
   v.emplace_back(42);
   v.pop_back();
   EXPECT_TRUE(v.empty());
-  EXPECT_THAT(to_vector(v), ElementsAre());
+  EXPECT_THAT(to_vector(v), IsEmpty());
 }
 
 TEST(Test_Linked_Vector, emplace_back_two_then_pop_back) {

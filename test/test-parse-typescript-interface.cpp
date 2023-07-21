@@ -840,14 +840,14 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_methods_cannot_have_bodies) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             // TODO(strager): Report only one diagnostic:
             // Diag_Interface_Methods_Cannot_Contain_Bodies on the '=>'.
             DIAG_TYPE(Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Methods_Cannot_Contain_Bodies,  //
-                body_start, u8"interface I { method() => "_sv.size(),
-                u8"{"_sv)));
+                body_start, u8"interface I { method() => "_sv.size(), u8"{"_sv),
+        }));
   }
 }
 
@@ -986,13 +986,14 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
                           }));
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE(Diag_Interface_Methods_Cannot_Be_Async),
             DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Properties_Cannot_Be_Private,  //
                 property_name_or_private_keyword,
-                u8"interface I { async static "_sv.size(), u8"#method"_sv)));
+                u8"interface I { async static "_sv.size(), u8"#method"_sv),
+        }));
   }
 
   {
@@ -1008,12 +1009,13 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
                           }));
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Properties_Cannot_Be_Private,  //
                 property_name_or_private_keyword,
-                u8"interface I { readonly static "_sv.size(), u8"#field"_sv)));
+                u8"interface I { readonly static "_sv.size(), u8"#field"_sv),
+        }));
   }
 }
 
@@ -1215,11 +1217,12 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
                 static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-            DIAG_TYPE(Diag_Missing_Semicolon_After_Field)));
+            DIAG_TYPE(Diag_Missing_Semicolon_After_Field),
+        }));
   }
 }
 
@@ -1295,11 +1298,12 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
       p.parse_and_visit_module();
       EXPECT_THAT(
           p.errors,
-          ::testing::UnorderedElementsAre(
+          ::testing::UnorderedElementsAreArray({
               DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Interface_Methods_Cannot_Be_Generators,  //
-                  star, u8"interface I { static "_sv.size(), u8"*"_sv)));
+                  star, u8"interface I { static "_sv.size(), u8"*"_sv),
+          }));
     }
 
     {
@@ -1309,11 +1313,12 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
       p.parse_and_visit_module();
       EXPECT_THAT(
           p.errors,
-          ::testing::UnorderedElementsAre(
+          ::testing::UnorderedElementsAreArray({
               DIAG_TYPE(Diag_Interface_Methods_Cannot_Be_Async),
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Interface_Methods_Cannot_Be_Generators,  //
-                  star, u8"interface I { async "_sv.size(), u8"*"_sv)));
+                  star, u8"interface I { async "_sv.size(), u8"*"_sv),
+          }));
     }
   }
 }
@@ -1326,14 +1331,15 @@ TEST_F(Test_Parse_TypeScript_Interface,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Methods_Cannot_Be_Async,  //
                 async_keyword, u8"interface I { static "_sv.size(),
                 u8"async"_sv),
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                static_keyword, u8"interface I { "_sv.size(), u8"static"_sv)));
+                static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
+        }));
   }
 
   {
@@ -1342,7 +1348,7 @@ TEST_F(Test_Parse_TypeScript_Interface,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Methods_Cannot_Be_Async,  //
                 async_keyword, u8"interface I { "_sv.size(), u8"async"_sv),
@@ -1350,7 +1356,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
                               Diag_Interface_Properties_Cannot_Be_Static,  //
                               static_keyword,
                               u8"interface I { async "_sv.size(),
-                              u8"static"_sv)));
+                              u8"static"_sv),
+        }));
   }
 
   {
@@ -1359,7 +1366,7 @@ TEST_F(Test_Parse_TypeScript_Interface,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        ::testing::UnorderedElementsAre(
+        ::testing::UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Interface_Methods_Cannot_Be_Async,  //
                 async_keyword, u8"interface I { "_sv.size(), u8"async"_sv),
@@ -1370,7 +1377,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
                               Diag_Interface_Properties_Cannot_Be_Static,  //
                               static_keyword,
                               u8"interface I { async "_sv.size(),
-                              u8"static"_sv)));
+                              u8"static"_sv),
+        }));
   }
 }
 
@@ -1407,13 +1415,14 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
       p.parse_and_visit_module();
       EXPECT_THAT(
           p.errors,
-          ::testing::UnorderedElementsAre(
+          ::testing::UnorderedElementsAreArray({
               DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Interface_Fields_Cannot_Have_Initializers,  //
                   equal,
                   (u8"interface I { static " + field_name + u8" ").size(),
-                  u8"="_sv)));
+                  u8"="_sv),
+          }));
     }
   }
 

@@ -115,7 +115,7 @@ TEST(Test_Temporary_Directory, timestamped_directory) {
   for (std::string& file : files) {
     file = temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + file;
   }
-  EXPECT_THAT(files, ::testing::ElementsAre(*d));
+  EXPECT_THAT(files, ::testing::ElementsAreArray({*d}));
 }
 
 TEST(Test_Temporary_Directory,
@@ -137,7 +137,7 @@ TEST(Test_Temporary_Directory,
   for (std::string& file : files) {
     file = temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + file;
   }
-  EXPECT_THAT(files, ::testing::UnorderedElementsAre(*d1, *d2));
+  EXPECT_THAT(files, ::testing::UnorderedElementsAreArray({*d1, *d2}));
 }
 
 class Test_Directory : public ::testing::Test, protected Filesystem_Test {};

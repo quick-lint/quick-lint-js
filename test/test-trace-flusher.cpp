@@ -33,6 +33,7 @@
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
@@ -231,9 +232,9 @@ TEST_F(Test_Trace_Flusher, enabling_after_register_begins_thread) {
   Spy_Trace_Flusher_Backend backend;
   flusher.enable_backend(&backend);
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend.thread_indexes(), ElementsAreArray({thread_index}));
   EXPECT_THAT(backend.get_thread_init_versions(thread_index),
-              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+              ElementsAreArray({QUICK_LINT_JS_VERSION_STRING}));
 
   flusher.disable_all_backends();
 }
@@ -244,9 +245,9 @@ TEST_F(Test_Trace_Flusher, registering_after_enabling_begins_thread) {
 
   Trace_Flusher_Thread_Index thread_index = flusher.register_current_thread();
 
-  EXPECT_THAT(backend.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend.thread_indexes(), ElementsAreArray({thread_index}));
   EXPECT_THAT(backend.get_thread_init_versions(thread_index),
-              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+              ElementsAreArray({QUICK_LINT_JS_VERSION_STRING}));
 
   flusher.disable_all_backends();
 }
@@ -261,9 +262,9 @@ TEST_F(Test_Trace_Flusher,
   Trace_Flusher_Thread_Index thread_index = flusher.register_current_thread();
 
   EXPECT_THAT(backend_1.get_thread_init_versions(thread_index),
-              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+              ElementsAreArray({QUICK_LINT_JS_VERSION_STRING}));
   EXPECT_THAT(backend_2.get_thread_init_versions(thread_index),
-              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+              ElementsAreArray({QUICK_LINT_JS_VERSION_STRING}));
 
   flusher.disable_all_backends();
 }
@@ -376,8 +377,8 @@ TEST_F(Test_Trace_Flusher,
   flusher.enable_backend(&backend_2);
 
   EXPECT_TRUE(flusher.trace_writer_for_current_thread());
-  EXPECT_THAT(backend_1.thread_indexes(), ElementsAre(thread_index));
-  EXPECT_THAT(backend_2.thread_indexes(), ElementsAre(thread_index));
+  EXPECT_THAT(backend_1.thread_indexes(), ElementsAreArray({thread_index}));
+  EXPECT_THAT(backend_2.thread_indexes(), ElementsAreArray({thread_index}));
 
   flusher.disable_all_backends();
 }
@@ -413,8 +414,10 @@ TEST_F(Test_Trace_Flusher, disabling_backend_ends_all_registered_threads) {
     cond.wait(lock, [&] { return thread_2_index.has_value(); });
   }
 
-  ASSERT_THAT(backend.thread_indexes(),
-              ElementsAre(main_thread_index, *thread_2_index));
+  ASSERT_THAT(backend.thread_indexes(), ElementsAreArray({
+                                            main_thread_index,
+                                            *thread_2_index,
+                                        }));
   EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 0);
   EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
@@ -422,8 +425,10 @@ TEST_F(Test_Trace_Flusher, disabling_backend_ends_all_registered_threads) {
 
   flusher.disable_backend(&backend);
 
-  EXPECT_THAT(backend.thread_indexes(),
-              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_THAT(backend.thread_indexes(), ElementsAreArray({
+                                            main_thread_index,
+                                            *thread_2_index,
+                                        }));
   EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
   EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
@@ -474,8 +479,10 @@ TEST_F(Test_Trace_Flusher, unregistering_thread_calls_thread_end) {
     cond.wait(lock, [&] { return thread_2_index.has_value(); });
   }
 
-  ASSERT_THAT(backend.thread_indexes(),
-              ElementsAre(main_thread_index, *thread_2_index));
+  ASSERT_THAT(backend.thread_indexes(), ElementsAreArray({
+                                            main_thread_index,
+                                            *thread_2_index,
+                                        }));
   EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 0);
   EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
@@ -483,8 +490,10 @@ TEST_F(Test_Trace_Flusher, unregistering_thread_calls_thread_end) {
 
   flusher.unregister_current_thread();
 
-  EXPECT_THAT(backend.thread_indexes(),
-              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_THAT(backend.thread_indexes(), ElementsAreArray({
+                                            main_thread_index,
+                                            *thread_2_index,
+                                        }));
   EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
   EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
@@ -497,8 +506,10 @@ TEST_F(Test_Trace_Flusher, unregistering_thread_calls_thread_end) {
     cond.wait(lock, [&] { return unregistered_thread_2; });
   }
 
-  EXPECT_THAT(backend.thread_indexes(),
-              ElementsAre(main_thread_index, *thread_2_index));
+  EXPECT_THAT(backend.thread_indexes(), ElementsAreArray({
+                                            main_thread_index,
+                                            *thread_2_index,
+                                        }));
   EXPECT_EQ(backend.thread_states[main_thread_index].begin_calls, 1);
   EXPECT_EQ(backend.thread_states[main_thread_index].end_calls, 1);
   EXPECT_EQ(backend.thread_states[*thread_2_index].begin_calls, 1);
@@ -679,7 +690,7 @@ TEST_F(Test_Trace_Flusher, flush_async_does_not_flush_on_current_thread) {
   flusher.flush_async();  // Flush the testing init event, but not now.
 
   EXPECT_THAT(backend.get_thread_init_versions(thread_index),
-              ElementsAre(::testing::Not("testing")))
+              ElementsAreArray({::testing::Not("testing")}))
       << "creating the stream file should add an init event automatically (but "
          "not the testing init event)";
 
@@ -737,7 +748,7 @@ TEST_F(Test_Trace_Flusher, flushing_disabled_does_nothing) {
   flusher.enable_backend(&backend);
 
   EXPECT_THAT(backend.get_thread_init_versions(thread_index),
-              ElementsAre(QUICK_LINT_JS_VERSION_STRING));
+              ElementsAreArray({QUICK_LINT_JS_VERSION_STRING}));
 
   flusher.disable_all_backends();
 }

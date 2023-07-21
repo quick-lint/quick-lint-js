@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -784,12 +784,13 @@ TEST_F(Test_Parse_Function, function_statement_without_parameter_list_or_body) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Parameter_List,  //
                               expected_parameter_list, u8"function f"_sv.size(),
                               u8""_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
-                              where, u8"function f"_sv.size(), u8","_sv)));
+                              where, u8"function f"_sv.size(), u8","_sv),
+        }));
   }
 
   {
@@ -805,7 +806,7 @@ TEST_F(Test_Parse_Function, function_statement_without_parameter_list_or_body) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Parameter_List,  //
                               expected_parameter_list, u8"function f"_sv.size(),
                               u8""_sv),
@@ -813,7 +814,8 @@ TEST_F(Test_Parse_Function, function_statement_without_parameter_list_or_body) {
                               where, u8"function f"_sv.size(), u8"."_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Semicolon_After_Statement,  //
-                              where, u8"function f.x()"_sv.size(), u8""_sv)));
+                              where, u8"function f.x()"_sv.size(), u8""_sv),
+        }));
   }
 }
 
@@ -2129,12 +2131,13 @@ TEST_F(Test_Parse_Function, invalid_function_parameter) {
                           }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE(
                 Diag_Missing_Operator_Between_Expression_And_Arrow_Function),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unexpected_Literal_In_Parameter_List,  //
-                              literal, u8"g("_sv.size(), u8"42"_sv)));
+                              literal, u8"g("_sv.size(), u8"42"_sv),
+        }));
   }
 
   {

@@ -11,7 +11,7 @@
 
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -164,9 +164,10 @@ TEST(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
   Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-  EXPECT_THAT(errors.parse_warnings(),
-              UnorderedElementsAre("unknown error category: banana",
-                                   "unknown error category: strawberry"));
+  EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
+                                           "unknown error category: banana",
+                                           "unknown error category: strawberry",
+                                       }));
 }
 
 TEST(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
@@ -177,9 +178,10 @@ TEST(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
   Compiled_Diag_Code_List errors;
   errors.add(parsed_errors);
 
-  EXPECT_THAT(errors.parse_warnings(),
-              UnorderedElementsAre("unknown error code: E9999",
-                                   "unknown error code: E0000"));
+  EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
+                                           "unknown error code: E9999",
+                                           "unknown error code: E0000",
+                                       }));
 }
 
 TEST(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
@@ -224,7 +226,8 @@ TEST(Test_Diag_Code_List, add_error_code_to_default) {
 
   {
     Parsed_Diag_Code_List errors = parse_diag_code_list("+E0420,+E0069");
-    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
+    EXPECT_THAT(errors.included_codes,
+                UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -242,7 +245,8 @@ TEST(Test_Diag_Code_List, remove_error_code_from_default) {
 
   {
     Parsed_Diag_Code_List errors = parse_diag_code_list("-E0420,-E0069");
-    EXPECT_THAT(errors.excluded_codes, UnorderedElementsAre("E0420", "E0069"));
+    EXPECT_THAT(errors.excluded_codes,
+                UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -313,7 +317,8 @@ TEST(Test_Diag_Code_List, whitespace_around_predicates_is_ignored) {
 
   {
     Parsed_Diag_Code_List errors = parse_diag_code_list(" +E0420 , +E0069");
-    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
+    EXPECT_THAT(errors.included_codes,
+                UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
@@ -322,7 +327,7 @@ TEST(Test_Diag_Code_List, stray_commas_are_ignored) {
   {
     Parsed_Diag_Code_List errors = parse_diag_code_list(",one,,two , three");
     EXPECT_THAT(errors.included_categories,
-                UnorderedElementsAre("one", "two", "three"));
+                UnorderedElementsAreArray({"one", "two", "three"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }

@@ -373,7 +373,7 @@ TEST_F(Test_Linting_LSP_Server,
 
   std::vector<std::string> original_children =
       list_files_in_directory(temp_dir);
-  EXPECT_THAT(original_children, ElementsAre(::testing::_))
+  EXPECT_THAT(original_children, ElementsAreArray({::testing::_}))
       << "enabling tracing in " << temp_dir
       << " should create a trace subdirectory";
 
@@ -433,7 +433,7 @@ TEST_F(Test_Linting_LSP_Server,
 
   std::vector<std::string> new_children =
       list_files_in_directory(new_tracing_dir);
-  EXPECT_THAT(new_children, ElementsAre(::testing::_))
+  EXPECT_THAT(new_children, ElementsAreArray({::testing::_}))
       << "changing tracing dir from " << original_tracing_dir << " to "
       << new_tracing_dir << " should create a new trace subdirectory";
 }
@@ -1696,7 +1696,7 @@ TEST_F(Test_Linting_LSP_Server,
 
   std::vector< ::boost::json::object> notifications =
       this->client->notifications();
-  ASSERT_THAT(notifications, ElementsAre(::testing::_));
+  ASSERT_THAT(notifications, ElementsAreArray({::testing::_}));
   ::boost::json::object notification = notifications[0];
   EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
 }

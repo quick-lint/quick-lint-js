@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -1333,13 +1333,14 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_variable_declaration",       // h
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.variable_declarations,
-        UnorderedElementsAre(function_decl(u8"f"_sv), function_decl(u8"g"_sv),
-                             function_decl(u8"h"_sv)));
+    EXPECT_THAT(p.variable_declarations, UnorderedElementsAreArray({
+                                             function_decl(u8"f"_sv),
+                                             function_decl(u8"g"_sv),
+                                             function_decl(u8"h"_sv),
+                                         }));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
@@ -1352,7 +1353,8 @@ TEST_F(Test_Parse_TypeScript_Function,
                 overload_name, u8"function f();\nfunction "_sv.size(), u8"g"_sv,
                 function_name,
                 u8"function f();\nfunction g();\nfunction "_sv.size(),
-                u8"h"_sv)));
+                u8"h"_sv),
+        }));
   }
 
   {

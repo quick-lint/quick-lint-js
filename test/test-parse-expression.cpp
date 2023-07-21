@@ -26,7 +26,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 using ::testing::VariantWith;
 using namespace std::literals::string_literals;
 
@@ -643,13 +643,14 @@ TEST_F(Test_Parse_Expression, invalid_dot_expression) {
     EXPECT_EQ(summarize(ast), "cond(dot(var x, ), dot(var y, ), var z)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Property_Name_For_Dot_Operator,  //
                               dot, u8"x"_sv.size(), u8"."_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Property_Name_For_Dot_Operator,  //
-                              dot, u8"x. ? y"_sv.size(), u8"."_sv)));
+                              dot, u8"x. ? y"_sv.size(), u8"."_sv),
+        }));
   }
 
   {
@@ -868,11 +869,12 @@ TEST_F(Test_Parse_Expression, redundant_await) {
     EXPECT_EQ(summarize(ast), "await(await(await(var p)))");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Redundant_Await, await_operator, 0,
                               u8"await"_sv),
             DIAG_TYPE_OFFSETS(p.code, Diag_Redundant_Await, await_operator,
-                              u8"await "_sv.size(), u8"await"_sv)));
+                              u8"await "_sv.size(), u8"await"_sv),
+        }));
   }
 }
 
@@ -2648,13 +2650,14 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
               "object(literal: rwunarysuffix(var one), literal: var two)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Key_For_Object_Entry,  //
                               expression, u8"{"_sv.size(),
                               concat(u8"one "_sv, op)),
             // TODO(strager): Don't report
             // Diag_Missing_Comma_Between_Object_Literal_Entries.
-            DIAG_TYPE(Diag_Missing_Comma_Between_Object_Literal_Entries)));
+            DIAG_TYPE(Diag_Missing_Comma_Between_Object_Literal_Entries),
+        }));
   }
 
   {
@@ -2731,7 +2734,7 @@ TEST_F(Test_Parse_Expression,
               "literal: var set, literal: var async)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
@@ -2748,7 +2751,8 @@ TEST_F(Test_Parse_Expression,
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
                 unexpected_token, u8"{ first; get; set; async"_sv.size(),
-                u8";"_sv)));
+                u8";"_sv),
+        }));
   }
 
   {
@@ -2757,14 +2761,15 @@ TEST_F(Test_Parse_Expression,
     EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
                 unexpected_token, u8"{ [key]"_sv.size(), u8";"_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Value_For_Object_Literal_Entry,  //
-                              key, u8"{ "_sv.size(), u8"[key]"_sv)));
+                              key, u8"{ "_sv.size(), u8"[key]"_sv),
+        }));
   }
 }
 
@@ -2779,7 +2784,7 @@ TEST_F(Test_Parse_Expression,
               "literal: var set, literal: var async)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
@@ -2796,7 +2801,8 @@ TEST_F(Test_Parse_Expression,
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
                 unexpected_token, u8"{ first< get< set< async"_sv.size(),
-                u8"<"_sv)));
+                u8"<"_sv),
+        }));
   }
 
   {
@@ -2805,14 +2811,15 @@ TEST_F(Test_Parse_Expression,
     EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
                 Diag_Expected_Comma_To_Separate_Object_Literal_Entries,  //
                 unexpected_token, u8"{ [key]"_sv.size(), u8"<"_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Missing_Value_For_Object_Literal_Entry,  //
-                              key, u8"{ "_sv.size(), u8"[key]"_sv)));
+                              key, u8"{ "_sv.size(), u8"[key]"_sv),
+        }));
   }
 
   {

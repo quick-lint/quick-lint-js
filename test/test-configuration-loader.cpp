@@ -99,6 +99,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 using ::testing::AnyOf;
 using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using namespace std::literals::string_view_literals;
@@ -722,7 +723,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -752,7 +753,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -795,7 +796,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -855,7 +856,7 @@ TEST_F(Test_Configuration_Loader, creating_config_in_same_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -873,7 +874,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -892,7 +893,7 @@ TEST_F(Test_Configuration_Loader, creating_config_in_parent_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -914,7 +915,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
 }
@@ -934,7 +935,7 @@ TEST_F(Test_Configuration_Loader, deleting_config_in_same_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
 }
@@ -959,7 +960,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
 }
@@ -978,7 +979,7 @@ TEST_F(Test_Configuration_Loader, moving_config_away_in_same_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
 }
@@ -1001,7 +1002,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
 }
@@ -1021,7 +1022,7 @@ TEST_F(Test_Configuration_Loader, moving_config_into_same_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
 }
@@ -1042,7 +1043,7 @@ TEST_F(Test_Configuration_Loader, moving_config_into_parent_dir_is_detected) {
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
 }
@@ -1066,7 +1067,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
 }
@@ -1087,7 +1088,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
   EXPECT_EQ(changes[0].config_file, nullptr) << "config should be removed";
@@ -1110,7 +1111,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
   EXPECT_EQ(changes[0].config_file, nullptr) << "config should be removed";
@@ -1170,7 +1171,7 @@ TEST_F(Test_Configuration_Loader,
   write_file_or_exit(config_file, u8"{}"_sv);
 
   changes = loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_))
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}))
       << "adding config should change associated config file";
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -1191,7 +1192,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
@@ -1269,11 +1270,14 @@ TEST_F(Test_Configuration_Loader,
     watched_paths.emplace_back(*change.watched_path);
     watched_tokens.emplace_back(change.token);
   }
-  EXPECT_THAT(watched_paths, ::testing::UnorderedElementsAre(
+  EXPECT_THAT(watched_paths, ::testing::UnorderedElementsAreArray({
                                  ::testing::HasSubstr("outer.js"),
-                                 ::testing::HasSubstr("inner.js")));
-  EXPECT_THAT(watched_tokens,
-              ::testing::UnorderedElementsAre(&inner_js_file, &outer_js_file));
+                                 ::testing::HasSubstr("inner.js"),
+                             }));
+  EXPECT_THAT(watched_tokens, ::testing::UnorderedElementsAreArray({
+                                  &inner_js_file,
+                                  &outer_js_file,
+                              }));
 
   for (const Configuration_Change& change : changes) {
     EXPECT_SAME_FILE(*change.config_file->config_path, outer_config_file);
@@ -1307,7 +1311,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -1330,7 +1334,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -1353,7 +1357,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -1448,7 +1452,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   EXPECT_THAT(changes[0].error,
@@ -1480,7 +1484,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   EXPECT_THAT(changes[0].error,
@@ -1528,7 +1532,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(
       changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
@@ -1573,7 +1577,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_TRUE(
       changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
@@ -1671,7 +1675,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes_2 =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &js_file);
   EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
       u8"testGlobalVariable"_sv));
@@ -1706,7 +1710,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes_2 =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
       u8"testGlobalVariable"_sv));
@@ -1758,7 +1762,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes_2 =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &js_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
   EXPECT_THAT(changes_2[0].error, IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
@@ -1807,7 +1811,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes_2 =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
   EXPECT_THAT(changes_2[0].error, IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
@@ -1849,7 +1853,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(
       changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
@@ -1890,7 +1894,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_TRUE(
       changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
@@ -1926,7 +1930,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   EXPECT_THAT(changes[0].error, IS_POINTER_TO_POSIX_CANONICALIZE_PATH_IO_ERROR(
@@ -1962,7 +1966,7 @@ TEST_F(
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   EXPECT_THAT(changes[0].error,
@@ -2062,7 +2066,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_symlink);
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(after_config_file)->canonical());
@@ -2097,7 +2101,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(after_config_file)->canonical());
   EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
@@ -2129,7 +2133,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(subdir + "/quick-lint-js.config")->canonical());
   EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
@@ -2154,7 +2158,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
   std::vector<Watch_IO_Error> errors = loader.fs_take_watch_errors();
-  ASSERT_THAT(errors, ElementsAre(::testing::_));
+  ASSERT_THAT(errors, ElementsAreArray({::testing::_}));
   const Watch_IO_Error& error = errors[0];
   EXPECT_EQ(error.io_error.error, EMFILE) << error.to_string();
   EXPECT_EQ(error.path, "") << "init error should have an empty path\n"
@@ -2317,7 +2321,7 @@ TEST(Test_Configuration_Loader_Fake,
 
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{\\}"_sv);
   std::vector<Configuration_Change> changes = loader.refresh();
-  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"console"_sv));
 }
 
@@ -2341,7 +2345,8 @@ TEST(Test_Configuration_Loader_Fake,
   for (Configuration_Change& change : changes) {
     tokens.push_back(change.token);
   }
-  ASSERT_THAT(tokens, ::testing::UnorderedElementsAre(&token_1, &token_2));
+  ASSERT_THAT(tokens,
+              ::testing::UnorderedElementsAreArray({&token_1, &token_2}));
 }
 
 std::vector<Configuration_Change>

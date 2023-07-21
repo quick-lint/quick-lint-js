@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-using ::testing::ElementsAre;
+using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -87,7 +87,9 @@ TEST_F(Test_Translation, c_language_does_not_translate_diagnostics) {
   t.use_messages_from_locale("C");
   Basic_Text_Diag_Reporter reporter(t);
   reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
-  EXPECT_THAT(reporter.messages(), ElementsAre(u8"unexpected '#'"));
+  EXPECT_THAT(reporter.messages(), ElementsAreArray({
+                                       u8"unexpected '#'",
+                                   }));
 }
 
 TEST_F(Test_Translation, english_snarky_translates) {
@@ -95,7 +97,7 @@ TEST_F(Test_Translation, english_snarky_translates) {
   t.use_messages_from_locale("en_US.utf8@snarky");
   Basic_Text_Diag_Reporter reporter(t);
   reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
-  EXPECT_THAT(reporter.messages(), ElementsAre(u8"#unexpected"));
+  EXPECT_THAT(reporter.messages(), ElementsAreArray({u8"#unexpected"}));
 }
 
 TEST_F(Test_Translation, full_translation_table) {

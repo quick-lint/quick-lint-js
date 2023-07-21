@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -595,15 +595,15 @@ TEST_F(Test_Parse_TypeScript_Enum, normal_enum_auto_requires_constant_value) {
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE(Diag_TypeScript_Enum_Member_Name_Cannot_Be_Number),
             DIAG_TYPE(Diag_TypeScript_Enum_Member_Name_Cannot_Be_Number),
             DIAG_TYPE_2_OFFSETS(
                 p.code,
                 Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed,  //
                 auto_member_name, u8"enum E { 42 = f(), "_sv.size(), u8"69"_sv,
-                computed_expression, u8"enum E { 42 = "_sv.size(),
-                u8"f()"_sv)));
+                computed_expression, u8"enum E { 42 = "_sv.size(), u8"f()"_sv),
+        }));
   }
 }
 

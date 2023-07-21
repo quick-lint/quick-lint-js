@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -330,7 +330,7 @@ TEST_F(Test_Parse_Expression_Statement, invalid_identifier_after_expression) {
     Test_Parser p(u8"(a b c d)"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Unexpected_Identifier_In_Expression,  //
                         unexpected, u8"(a "_sv.size(), u8"b"_sv),
@@ -339,7 +339,8 @@ TEST_F(Test_Parse_Expression_Statement, invalid_identifier_after_expression) {
                         unexpected, u8"(a b "_sv.size(), u8"c"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Unexpected_Identifier_In_Expression,  //
-                        unexpected, u8"(a b c "_sv.size(), u8"d"_sv)));
+                        unexpected, u8"(a b c "_sv.size(), u8"d"_sv),
+                }));
   }
 }
 

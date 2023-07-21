@@ -25,7 +25,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -793,7 +793,7 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
                               colon, u8"["_sv.size(), u8":"_sv),
@@ -801,7 +801,8 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
                 p.code,
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
                 expected_name_and_colon, u8"[: A, b: B, "_sv.size(), u8""_sv,
-                existing_name, u8"[: A, "_sv.size(), u8"b:"_sv)));
+                existing_name, u8"[: A, "_sv.size(), u8"b:"_sv),
+        }));
   }
 
   {

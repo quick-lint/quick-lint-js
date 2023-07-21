@@ -22,7 +22,7 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
@@ -516,7 +516,7 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
-        UnorderedElementsAre(
+        UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
                               semicolon, u8"for (;; "_sv.size(), u8";"_sv),
@@ -525,7 +525,8 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
                               semicolon, u8"for (;; ;"_sv.size(), u8";"_sv),
             DIAG_TYPE_OFFSETS(p.code,
                               Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (;; ;;"_sv.size(), u8";"_sv)));
+                              semicolon, u8"for (;; ;;"_sv.size(), u8";"_sv),
+        }));
   }
 
   {
@@ -554,13 +555,14 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
     Test_Parser p(u8"for (a of b; c; d) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
-                UnorderedElementsAre(
+                UnorderedElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Unexpected_Semicolon_In_For_Of_Loop,  //
                         semicolon, u8"for (a of b"_sv.size(), u8";"_sv),
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Unexpected_Semicolon_In_For_Of_Loop,  //
-                        semicolon, u8"for (a of b; c"_sv.size(), u8";"_sv)));
+                        semicolon, u8"for (a of b; c"_sv.size(), u8";"_sv),
+                }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // b
                               "visit_variable_assignment",  // a
@@ -593,15 +595,15 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   {
     Test_Parser p(u8"for (var a in b; c; d) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
-                semicolon, u8"for (var a of b"_sv.size(), u8";"_sv),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
-                semicolon, u8"for (var a of b; c"_sv.size(), u8";"_sv)));
+    EXPECT_THAT(p.errors,
+                UnorderedElementsAreArray({
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
+                        semicolon, u8"for (var a of b"_sv.size(), u8";"_sv),
+                    DIAG_TYPE_OFFSETS(
+                        p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
+                        semicolon, u8"for (var a of b; c"_sv.size(), u8";"_sv),
+                }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // a
                               "visit_variable_use",          // b
@@ -1481,11 +1483,13 @@ TEST_F(Test_Parse_Loop, continue_statement) {
   {
     Test_Parser p(u8"switch (0) { default: continue; }"_sv, capture_diags);
     p.parse_and_visit_statement();
-    ASSERT_THAT(p.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code, Diag_Invalid_Continue,  //
-                    continue_statement, u8"switch (0) { default: "_sv.size(),
-                    u8"continue"_sv)));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Continue,  //
+                                      continue_statement,
+                                      u8"switch (0) { default: "_sv.size(),
+                                      u8"continue"_sv),
+                }));
   }
 
   {
