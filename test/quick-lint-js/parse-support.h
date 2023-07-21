@@ -14,12 +14,14 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/failing-diag-reporter.h>
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/source-location.h>
 #include <quick-lint-js/spy-visitor.h>
 #include <string>
 #include <string_view>
@@ -148,6 +150,11 @@ class Test_Parser {
     return Offsets_Matcher(&this->code_, begin_offset, end_offset);
   }
 
+  Spy_Visitor& spy_visitor() { return this->errors_; }
+
+  void assert_diagnostics(Span<const Diagnostic_Assertion> diags,
+                          Source_Location caller);
+
  private:
   Padded_String code_;
   Spy_Visitor errors_;
@@ -169,6 +176,107 @@ class Test_Parser {
   std::vector<Diag_Collector::Diag>& errors = this->errors_.errors;
   Padded_String_View code = Padded_String_View(&this->code_);
 };
+
+// Create a Parser and call Parser::parse_and_visit_statement. Assert that
+// exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
+// examples.
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
+    Source_Location caller = Source_Location::current());
+
+// Create a Parser and call Parser::parse_and_visit_module. Assert that
+// exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
+// examples.
+Spy_Visitor test_parse_and_visit_module(
+    String8_View input, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_module(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_module(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_module(
+    String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
+    Source_Location caller = Source_Location::current());
+
+// Create a Parser and call Parser::parse_and_visit_expression. Assert that
+// exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
+// examples.
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
+    Source_Location caller = Source_Location::current());
+
+// Create a Parser and call Parser::parse_and_visit_typescript_type_expression.
+// Assert that exactly the given diagnostics were emitted. See
+// NOTE[_diag-syntax] for examples.
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion, Parser_Options,
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Parser_Options, Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion, Parser_Options,
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
+    Source_Location caller = Source_Location::current());
+
+// Create a Parser and call
+// Parser::parse_and_visit_typescript_generic_parameters. Assert that exactly
+// the given diagnostics were emitted. See NOTE[_diag-syntax] for examples.
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion, Parser_Options,
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Parser_Options, Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    Diagnostic_Assertion, Parser_Options,
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
+    Source_Location caller = Source_Location::current());
 
 // TODO(strager): Delete.
 class Test_Parse_Expression : public ::testing::Test {};

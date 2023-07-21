@@ -351,6 +351,238 @@ std::string summarize(std::optional<Expression*> expression) {
     return "(null)";
   }
 }
+
+void Test_Parser::assert_diagnostics(Span<const Diagnostic_Assertion> diags,
+                                     Source_Location caller) {
+  std::vector<Diag_Matcher> error_matchers;
+  for (const Diagnostic_Assertion& diag : diags) {
+    error_matchers.push_back(Diag_Matcher(
+        this->code, diag.type,
+        Diag_Matcher::Field{
+            .arg =
+                Diag_Matcher_Arg{
+                    .member_name = diag.member_name,
+                    .member_offset = diag.member_offset,
+                    .member_type = diag.member_type,
+                },
+            .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+                diag.span_begin_offset),
+            // TODO(strager): Make Diag_Matcher work with an end offset
+            // instead of a text span.
+            .text = String8(narrow_cast<std::size_t>(diag.span_end_offset -
+                                                     diag.span_begin_offset),
+                            u8'_'),
+        }));
+  }
+  if (error_matchers.size() <= 1) {
+    // ElementsAreArray produces better diagnostics than
+    // UnorderedElementsAreArray.
+    EXPECT_THAT_AT_CALLER(this->errors,
+                          ::testing::ElementsAreArray(error_matchers));
+  } else {
+    EXPECT_THAT_AT_CALLER(this->errors,
+                          ::testing::UnorderedElementsAreArray(error_matchers));
+  }
+}
+
+Spy_Visitor test_parse_and_visit_statement(String8_View input,
+                                           Diagnostic_Assertion diag0,
+                                           Parser_Options options,
+                                           Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  return test_parse_and_visit_statement(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_statement(String8_View input,
+                                           Diagnostic_Assertion diag0,
+                                           Diagnostic_Assertion diag1,
+                                           Parser_Options options,
+                                           Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  return test_parse_and_visit_statement(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_statement(String8_View input,
+                                           Diagnostic_Assertion diag0,
+                                           Diagnostic_Assertion diag1,
+                                           Diagnostic_Assertion diag2,
+                                           Parser_Options options,
+                                           Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2};
+  return test_parse_and_visit_statement(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    Diagnostic_Assertion diag2, Diagnostic_Assertion diag3,
+    Diagnostic_Assertion diag4, Diagnostic_Assertion diag5,
+    Diagnostic_Assertion diag6, Diagnostic_Assertion diag7,
+    Diagnostic_Assertion diag8, Parser_Options options,
+    Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2, diag3, diag4,
+                                       diag5, diag6, diag7, diag8};
+  return test_parse_and_visit_statement(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, Span<const Diagnostic_Assertion> diags,
+    Parser_Options options, Source_Location caller) {
+  Test_Parser p(input, options, capture_diags);
+  p.parse_and_visit_statement();
+  p.assert_diagnostics(diags, caller);
+  return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_module(String8_View input,
+                                        Diagnostic_Assertion diag0,
+                                        Parser_Options options,
+                                        Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  return test_parse_and_visit_module(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_module(String8_View input,
+                                        Diagnostic_Assertion diag0,
+                                        Diagnostic_Assertion diag1,
+                                        Parser_Options options,
+                                        Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  return test_parse_and_visit_module(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_module(String8_View input,
+                                        Diagnostic_Assertion diag0,
+                                        Diagnostic_Assertion diag1,
+                                        Diagnostic_Assertion diag2,
+                                        Parser_Options options,
+                                        Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2};
+  return test_parse_and_visit_module(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_module(String8_View input,
+                                        Span<const Diagnostic_Assertion> diags,
+                                        Parser_Options options,
+                                        Source_Location caller) {
+  Test_Parser p(input, options, capture_diags);
+  p.parse_and_visit_module();
+  p.assert_diagnostics(diags, caller);
+  return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_expression(String8_View input,
+                                            Diagnostic_Assertion diag0,
+                                            Parser_Options options,
+                                            Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  return test_parse_and_visit_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_expression(String8_View input,
+                                            Diagnostic_Assertion diag0,
+                                            Diagnostic_Assertion diag1,
+                                            Parser_Options options,
+                                            Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  return test_parse_and_visit_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_expression(String8_View input,
+                                            Diagnostic_Assertion diag0,
+                                            Diagnostic_Assertion diag1,
+                                            Diagnostic_Assertion diag2,
+                                            Parser_Options options,
+                                            Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2};
+  return test_parse_and_visit_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, Span<const Diagnostic_Assertion> diags,
+    Parser_Options options, Source_Location caller) {
+  Test_Parser p(input, options, capture_diags);
+  p.parse_and_visit_expression();
+  p.assert_diagnostics(diags, caller);
+  return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion diag0, Parser_Options options,
+    Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  return test_parse_and_visit_typescript_type_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    Parser_Options options, Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  return test_parse_and_visit_typescript_type_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    Diagnostic_Assertion diag2, Parser_Options options,
+    Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2};
+  return test_parse_and_visit_typescript_type_expression(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, Span<const Diagnostic_Assertion> diags,
+    Parser_Options options, Source_Location caller) {
+  Test_Parser p(input, options, capture_diags);
+  p.parse_and_visit_typescript_type_expression();
+  p.assert_diagnostics(diags, caller);
+  return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion diag0, Parser_Options options,
+    Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  return test_parse_and_visit_typescript_generic_parameters(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    Parser_Options options, Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  return test_parse_and_visit_typescript_generic_parameters(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    Diagnostic_Assertion diag2, Parser_Options options,
+    Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1, diag2};
+  return test_parse_and_visit_typescript_generic_parameters(
+      input, Span<const Diagnostic_Assertion>(assertions), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, Span<const Diagnostic_Assertion> diags,
+    Parser_Options options, Source_Location caller) {
+  Test_Parser p(input, options, capture_diags);
+  p.parse_and_visit_typescript_generic_parameters();
+  p.assert_diagnostics(diags, caller);
+  return p.spy_visitor();
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
