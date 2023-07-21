@@ -891,9 +891,10 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",
                           }));
-    ElementsAre(DIAG_TYPE_OFFSETS(
-        p.code, Diag_Missing_Semicolon_After_Statement,  //
-        where, u8"if (false) {} else true"_sv.size(), u8""_sv));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, Diag_Missing_Semicolon_After_Statement,  //
+                    where, u8"if (false) {} else true"_sv.size(), u8""_sv)));
   }
 
   {
