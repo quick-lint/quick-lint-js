@@ -38,6 +38,24 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
           out);
 }
 #endif
+
+// Like EXPECT_THAT, but using the 'caller' variable for source locations.
+#define EXPECT_THAT_AT_CALLER(value, matcher)                                 \
+  GTEST_PRED_FORMAT1_(                                                        \
+      ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value, \
+      ADD_FAILURE_AT_CALLER)
+
+// Like EXPECT_EQ, but using the 'caller' variable for source locations.
+#define EXPECT_EQ_AT_CALLER(lhs, rhs)                                   \
+  GTEST_PRED_FORMAT2_(::testing::internal::EqHelper::Compare, lhs, rhs, \
+                      ADD_FAILURE_AT_CALLER)
+
+#define ADD_FAILURE_AT_CALLER(message)                                   \
+  GTEST_MESSAGE_AT_(                                                     \
+      (caller.valid() ? caller.file_name() : __FILE__),                  \
+      (caller.valid() ? ::quick_lint_js::narrow_cast<int>(caller.line()) \
+                      : __LINE__),                                       \
+      message, ::testing::TestPartResult::kNonFatalFailure)
 }
 
 #endif

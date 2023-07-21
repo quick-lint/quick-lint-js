@@ -17,6 +17,7 @@
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
@@ -35,24 +36,6 @@ using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAreArray;
 using ::testing::VariantWith;
-
-// Like EXPECT_THAT, but using the 'caller' variable for source locations.
-#define EXPECT_THAT_AT_CALLER(value, matcher)                                 \
-  GTEST_PRED_FORMAT1_(                                                        \
-      ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value, \
-      ADD_FAILURE_AT_CALLER)
-
-// Like EXPECT_EQ, but using the 'caller' variable for source locations.
-#define EXPECT_EQ_AT_CALLER(lhs, rhs)                                   \
-  GTEST_PRED_FORMAT2_(::testing::internal::EqHelper::Compare, lhs, rhs, \
-                      ADD_FAILURE_AT_CALLER)
-
-#define ADD_FAILURE_AT_CALLER(message)                                   \
-  GTEST_MESSAGE_AT_(                                                     \
-      (caller.valid() ? caller.file_name() : __FILE__),                  \
-      (caller.valid() ? ::quick_lint_js::narrow_cast<int>(caller.line()) \
-                      : __LINE__),                                       \
-      message, ::testing::TestPartResult::kNonFatalFailure)
 
 namespace quick_lint_js {
 namespace {
