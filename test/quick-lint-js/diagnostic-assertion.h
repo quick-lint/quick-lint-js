@@ -67,12 +67,20 @@ namespace quick_lint_js {
 //
 // clang-format on
 struct Diagnostic_Assertion {
+  struct Member {
+    const char* name = nullptr;
+    std::uint8_t offset;
+    Diagnostic_Arg_Type type = Diagnostic_Arg_Type::invalid;
+
+    // If type == Diagnostic_Arg_Type::source_code_span:
+    Padded_String_Size span_begin_offset;
+    Padded_String_Size span_end_offset;
+  };
+
   Diag_Type type = Diag_Type();
-  const char* member_name = nullptr;
-  std::uint8_t member_offset = 0;
-  Diagnostic_Arg_Type member_type = Diagnostic_Arg_Type::invalid;
-  Padded_String_Size span_begin_offset = static_cast<Padded_String_Size>(-1);
-  Padded_String_Size span_end_offset = static_cast<Padded_String_Size>(-1);
+  std::array<Member, 1> members;
+
+  int member_count() const;
 
   // If the specification is malformed, return a list of messages to report to
   // the user.

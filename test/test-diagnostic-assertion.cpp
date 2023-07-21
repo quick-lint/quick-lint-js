@@ -27,43 +27,48 @@ Diagnostic_Assertion parse_or_fail(
 TEST(Test_Diagnostic_Assertion, parse_one_character_span) {
   Diagnostic_Assertion da = parse_or_fail(u8"^ Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 0);
-  EXPECT_EQ(da.span_end_offset, 1);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 0);
+  EXPECT_EQ(da.members[0].span_end_offset, 1);
 }
 
 TEST(Test_Diagnostic_Assertion, parse_one_character_span_at_nonzero) {
   Diagnostic_Assertion da = parse_or_fail(u8"     ^ Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 5);
-  EXPECT_EQ(da.span_end_offset, 6);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 5);
+  EXPECT_EQ(da.members[0].span_end_offset, 6);
 }
 
 TEST(Test_Diagnostic_Assertion, parse_multiple_character_span) {
   Diagnostic_Assertion da = parse_or_fail(u8"^^^^ Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 0);
-  EXPECT_EQ(da.span_end_offset, 4);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 0);
+  EXPECT_EQ(da.members[0].span_end_offset, 4);
 }
 
 TEST(Test_Diagnostic_Assertion, parse_unit_character_span) {
   Diagnostic_Assertion da = parse_or_fail(u8"` Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 0);
-  EXPECT_EQ(da.span_end_offset, 0);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 0);
+  EXPECT_EQ(da.members[0].span_end_offset, 0);
 }
 
 TEST(Test_Diagnostic_Assertion, parse_unit_character_span_at_nonzero) {
   Diagnostic_Assertion da = parse_or_fail(u8"    ` Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 4);
-  EXPECT_EQ(da.span_end_offset, 4);
+  EXPECT_EQ(da.members[0].span_begin_offset, 4);
+  EXPECT_EQ(da.members[0].span_end_offset, 4);
 }
 
 TEST(Test_Diagnostic_Assertion, parse_spaces_between_caret_and_diag_type) {
   Diagnostic_Assertion da = parse_or_fail(u8"^     Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
-  EXPECT_EQ(da.span_begin_offset, 0);
-  EXPECT_EQ(da.span_end_offset, 1);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 0);
+  EXPECT_EQ(da.members[0].span_end_offset, 1);
 }
 
 TEST(Test_Diagnostic_Assertion, invalid_diag_type_fails) {
@@ -95,16 +100,18 @@ TEST(Test_Diagnostic_Assertion, stray_invalid_character_fails) {
 
 TEST(Test_Diagnostic_Assertion, diag_type_with_only_one_member_implicit) {
   Diagnostic_Assertion da = parse_or_fail(u8"^ Diag_Unexpected_Token");
-  EXPECT_STREQ(da.member_name, "token");
-  EXPECT_EQ(da.member_type, Diagnostic_Arg_Type::source_code_span);
-  EXPECT_EQ(da.member_offset, offsetof(Diag_Unexpected_Token, token));
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_STREQ(da.members[0].name, "token");
+  EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+  EXPECT_EQ(da.members[0].offset, offsetof(Diag_Unexpected_Token, token));
 }
 
 TEST(Test_Diagnostic_Assertion, diag_type_with_only_one_member_explicit) {
   Diagnostic_Assertion da = parse_or_fail(u8"^ Diag_Unexpected_Token.token");
-  EXPECT_STREQ(da.member_name, "token");
-  EXPECT_EQ(da.member_type, Diagnostic_Arg_Type::source_code_span);
-  EXPECT_EQ(da.member_offset, offsetof(Diag_Unexpected_Token, token));
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_STREQ(da.members[0].name, "token");
+  EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+  EXPECT_EQ(da.members[0].offset, offsetof(Diag_Unexpected_Token, token));
 }
 
 TEST(Test_Diagnostic_Assertion,
@@ -157,20 +164,22 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_multiple_members_explicit) {
   {
     Diagnostic_Assertion da = parse_or_fail(
         u8"^ Diag_Assignment_Before_Variable_Declaration.declaration");
-    EXPECT_STREQ(da.member_name, "declaration");
-    EXPECT_EQ(da.member_type, Diagnostic_Arg_Type::source_code_span);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_STREQ(da.members[0].name, "declaration");
+    EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(
-        da.member_offset,
+        da.members[0].offset,
         offsetof(Diag_Assignment_Before_Variable_Declaration, declaration));
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(
         u8"^ Diag_Assignment_Before_Variable_Declaration.assignment");
-    EXPECT_STREQ(da.member_name, "assignment");
-    EXPECT_EQ(da.member_type, Diagnostic_Arg_Type::source_code_span);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_STREQ(da.members[0].name, "assignment");
+    EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
     EXPECT_EQ(
-        da.member_offset,
+        da.members[0].offset,
         offsetof(Diag_Assignment_Before_Variable_Declaration, assignment));
   }
 }
@@ -178,8 +187,9 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_multiple_members_explicit) {
 TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {
   Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
   da = da.adjusted_for_escaped_characters(u8"abcdef"_sv);
-  EXPECT_EQ(da.span_begin_offset, 2);
-  EXPECT_EQ(da.span_end_offset, 4);
+  ASSERT_EQ(da.member_count(), 1);
+  EXPECT_EQ(da.members[0].span_begin_offset, 2);
+  EXPECT_EQ(da.members[0].span_end_offset, 4);
 }
 
 TEST(Test_Diagnostic_Assertion,
@@ -187,15 +197,17 @@ TEST(Test_Diagnostic_Assertion,
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"abcde\n"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 4);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 4);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"abcd\ng"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 4);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 4);
   }
 }
 
@@ -204,50 +216,57 @@ TEST(Test_Diagnostic_Assertion,
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\nbcdef"_sv);
-    EXPECT_EQ(da.span_begin_offset, 1);
-    EXPECT_EQ(da.span_end_offset, 3);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 1);
+    EXPECT_EQ(da.members[0].span_end_offset, 3);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"   ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\ncdef"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 4);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 4);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"   ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"a\ndef"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 4);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 4);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"     ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\nc\nfgh"_sv);
-    EXPECT_EQ(da.span_begin_offset, 3);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\tcdefg"_sv);
-    EXPECT_EQ(da.span_begin_offset, 3);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\"cdefg"_sv);
-    EXPECT_EQ(da.span_begin_offset, 3);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"    ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"\\cdefg"_sv);
-    EXPECT_EQ(da.span_begin_offset, 3);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 }
 
@@ -256,36 +275,41 @@ TEST(Test_Diagnostic_Assertion,
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"ab\nef"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 3);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 3);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"ab\ndefg"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 6);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 6);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"abc\nefg"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 6);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 6);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"abcde\ng"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 6);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 6);
   }
 
   {
     Diagnostic_Assertion da = parse_or_fail(u8"  ^^^^^ Diag_Unexpected_Token");
     da = da.adjusted_for_escaped_characters(u8"ab\ne\ng"_sv);
-    EXPECT_EQ(da.span_begin_offset, 2);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 }
 
@@ -296,8 +320,9 @@ TEST(Test_Diagnostic_Assertion,
     Diagnostic_Assertion da =
         parse_or_fail(u8"    ^^^ Diag_Invalid_Hex_Escape_Sequence");
     da = da.adjusted_for_escaped_characters(u8"a\\d\\gh"_sv);
-    EXPECT_EQ(da.span_begin_offset, 3);
-    EXPECT_EQ(da.span_end_offset, 5);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
 }
 
@@ -308,8 +333,9 @@ TEST(Test_Diagnostic_Assertion,
     Diagnostic_Assertion da =
         parse_or_fail(u8" ^^^ Diag_Invalid_Hex_Escape_Sequence");
     da = da.adjusted_for_escaped_characters(u8"a\\d\\g"_sv);
-    EXPECT_EQ(da.span_begin_offset, 1);
-    EXPECT_EQ(da.span_end_offset, 3);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 1);
+    EXPECT_EQ(da.members[0].span_end_offset, 3);
   }
 }
 }

@@ -49,7 +49,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   for (; *p == u8' '; ++p) {
     leading_space_count += 1;
   }
-  out_assertion.span_begin_offset = leading_space_count;
+  out_assertion.members[0].span_begin_offset = leading_space_count;
 
   Padded_String_Size caret_count = 0;
   if (*p == u8'`') {
@@ -59,7 +59,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       caret_count += 1;
     }
   }
-  out_assertion.span_end_offset = leading_space_count + caret_count;
+  out_assertion.members[0].span_end_offset = leading_space_count + caret_count;
 
   for (; *p == u8' '; ++p) {
   }
@@ -147,9 +147,9 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     }
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
-    out_assertion.member_name = member->name;
-    out_assertion.member_offset = member->offset;
-    out_assertion.member_type = member->type;
+    out_assertion.members[0].name = member->name;
+    out_assertion.members[0].offset = member->offset;
+    out_assertion.members[0].type = member->type;
   }
 
   if (!errors.empty()) {
@@ -157,6 +157,8 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   }
   return out_assertion;
 }
+
+int Diagnostic_Assertion::member_count() const { return 1; }
 
 Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
     const Char8* specification) {
@@ -178,17 +180,22 @@ Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
   static constexpr String8_View escaped_single_characters = u8"\b\n\t\"\\"_sv;
   Diagnostic_Assertion result = *this;
   Padded_String_Size i;
-  for (i = 0; i < result.span_begin_offset; ++i) {
-    if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
-        String8_View::npos) {
-      result.span_begin_offset -= 1;
-      result.span_end_offset -= 1;
+  for (Member& member : result.members) {
+    if (member.type != Diagnostic_Arg_Type::source_code_span) {
+      continue;
     }
-  }
-  for (; i < result.span_end_offset; ++i) {
-    if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
-        String8_View::npos) {
-      result.span_end_offset -= 1;
+    for (i = 0; i < member.span_begin_offset; ++i) {
+      if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
+          String8_View::npos) {
+        member.span_begin_offset -= 1;
+        member.span_end_offset -= 1;
+      }
+    }
+    for (; i < member.span_end_offset; ++i) {
+      if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
+          String8_View::npos) {
+        member.span_end_offset -= 1;
+      }
     }
   }
   return result;
@@ -208,23 +215,25 @@ void assert_diagnostics(Padded_String_View code,
   for (const Diagnostic_Assertion& diag : assertions) {
     Diagnostic_Assertion adjusted_diag =
         diag.adjusted_for_escaped_characters(code.string_view());
+    // TODO(strager): Support multiple members.
+    QLJS_ASSERT(adjusted_diag.member_count() == 1);
     error_matchers.push_back(Diag_Matcher(
         code, adjusted_diag.type,
         Diag_Matcher::Field{
             .arg =
                 Diag_Matcher_Arg{
-                    .member_name = adjusted_diag.member_name,
-                    .member_offset = adjusted_diag.member_offset,
-                    .member_type = adjusted_diag.member_type,
+                    .member_name = adjusted_diag.members[0].name,
+                    .member_offset = adjusted_diag.members[0].offset,
+                    .member_type = adjusted_diag.members[0].type,
                 },
             .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-                adjusted_diag.span_begin_offset),
+                adjusted_diag.members[0].span_begin_offset),
             // TODO(strager): Make Diag_Matcher work with an end offset
             // instead of a text span.
-            .text = String8(
-                narrow_cast<std::size_t>(adjusted_diag.span_end_offset -
-                                         adjusted_diag.span_begin_offset),
-                u8'_'),
+            .text = String8(narrow_cast<std::size_t>(
+                                adjusted_diag.members[0].span_end_offset -
+                                adjusted_diag.members[0].span_begin_offset),
+                            u8'_'),
         }));
   }
   if (error_matchers.size() <= 1) {
