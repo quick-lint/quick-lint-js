@@ -25,6 +25,7 @@ class Span {
   using pointer = T *;
   using const_pointer = const T *;
   using iterator = T *;
+  using const_iterator = T *;
 
   explicit Span() noexcept : data_(nullptr), size_(0) {}
 

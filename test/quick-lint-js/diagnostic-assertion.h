@@ -8,8 +8,10 @@
 #include <memory>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <vector>
 
@@ -86,6 +88,11 @@ struct Diagnostic_Assertion {
 // Exits the program at run-time if the specification is malformed.
 Diagnostic_Assertion operator""_diag(const Char8* specification,
                                      std::size_t specification_length);
+
+void assert_diagnostics(Padded_String_View code,
+                        Span<const Diag_Collector::Diag> diagnostics,
+                        Span<const Diagnostic_Assertion> assertions,
+                        Source_Location caller);
 }
 
 #endif

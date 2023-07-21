@@ -354,35 +354,9 @@ std::string summarize(std::optional<Expression*> expression) {
 
 void Test_Parser::assert_diagnostics(Span<const Diagnostic_Assertion> diags,
                                      Source_Location caller) {
-  std::vector<Diag_Matcher> error_matchers;
-  for (const Diagnostic_Assertion& diag : diags) {
-    error_matchers.push_back(Diag_Matcher(
-        this->code, diag.type,
-        Diag_Matcher::Field{
-            .arg =
-                Diag_Matcher_Arg{
-                    .member_name = diag.member_name,
-                    .member_offset = diag.member_offset,
-                    .member_type = diag.member_type,
-                },
-            .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-                diag.span_begin_offset),
-            // TODO(strager): Make Diag_Matcher work with an end offset
-            // instead of a text span.
-            .text = String8(narrow_cast<std::size_t>(diag.span_end_offset -
-                                                     diag.span_begin_offset),
-                            u8'_'),
-        }));
-  }
-  if (error_matchers.size() <= 1) {
-    // ElementsAreArray produces better diagnostics than
-    // UnorderedElementsAreArray.
-    EXPECT_THAT_AT_CALLER(this->errors,
-                          ::testing::ElementsAreArray(error_matchers));
-  } else {
-    EXPECT_THAT_AT_CALLER(this->errors,
-                          ::testing::UnorderedElementsAreArray(error_matchers));
-  }
+  quick_lint_js::assert_diagnostics(
+      this->code, Span<const Diag_Collector::Diag>(this->errors_.errors), diags,
+      caller);
 }
 
 Spy_Visitor test_parse_and_visit_statement(String8_View input,

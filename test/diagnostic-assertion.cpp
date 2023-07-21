@@ -6,9 +6,11 @@
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/diagnostic-assertion.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/cpp.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -175,6 +177,41 @@ Diagnostic_Assertion operator""_diag(
     const Char8* specification,
     [[maybe_unused]] std::size_t specification_length) {
   return Diagnostic_Assertion::parse_or_exit(specification);
+}
+
+void assert_diagnostics(Padded_String_View code,
+                        Span<const Diag_Collector::Diag> diagnostics,
+                        Span<const Diagnostic_Assertion> assertions,
+                        Source_Location caller) {
+  std::vector<Diag_Matcher> error_matchers;
+  for (const Diagnostic_Assertion& diag : assertions) {
+    error_matchers.push_back(Diag_Matcher(
+        code, diag.type,
+        Diag_Matcher::Field{
+            .arg =
+                Diag_Matcher_Arg{
+                    .member_name = diag.member_name,
+                    .member_offset = diag.member_offset,
+                    .member_type = diag.member_type,
+                },
+            .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+                diag.span_begin_offset),
+            // TODO(strager): Make Diag_Matcher work with an end offset
+            // instead of a text span.
+            .text = String8(narrow_cast<std::size_t>(diag.span_end_offset -
+                                                     diag.span_begin_offset),
+                            u8'_'),
+        }));
+  }
+  if (error_matchers.size() <= 1) {
+    // ElementsAreArray produces better diagnostics than
+    // UnorderedElementsAreArray.
+    EXPECT_THAT_AT_CALLER(diagnostics,
+                          ::testing::ElementsAreArray(error_matchers));
+  } else {
+    EXPECT_THAT_AT_CALLER(diagnostics,
+                          ::testing::UnorderedElementsAreArray(error_matchers));
+  }
 }
 }
 
