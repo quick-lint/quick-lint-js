@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_VSCODE_QLJS_WORKSPACE_H
 #define QUICK_LINT_JS_VSCODE_QLJS_WORKSPACE_H
 
+// TODO(strager): Trim includes.
 #include <cstdio>
 #include <memory>
 #include <napi.h>
@@ -33,6 +34,7 @@
 #include <quick-lint-js/vscode/qljs-document.h>
 #include <quick-lint-js/vscode/qljs-logger.h>
 #include <quick-lint-js/vscode/thread-safe-js-function.h>
+#include <quick-lint-js/vscode/ui.h>
 #include <quick-lint-js/vscode/vscode-configuration-filesystem.h>
 #include <quick-lint-js/vscode/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode/vscode-tracer.h>
@@ -40,7 +42,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-// TODO(strager): Trim includes.
 
 namespace quick_lint_js {
 // NOTE[workspace-cleanup]:
@@ -244,8 +245,11 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
   ::Napi::ObjectReference logger_;  // An optional qljs_logger.
   bool logger_enabled_ = false;
 
+  VSCode_UI ui_;
+
   friend class QLJS_Config_Document;
   friend class QLJS_Lintable_Document;
+  friend class VSCode_UI;
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info);

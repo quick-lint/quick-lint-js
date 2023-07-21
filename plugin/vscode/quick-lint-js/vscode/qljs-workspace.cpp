@@ -185,7 +185,8 @@ QLJS_Workspace::QLJS_Workspace(const Napi::CallbackInfo& info)
           /*object=*/this->Value()),
       qljs_documents_(info.Env()),
       vscode_diagnostic_collection_ref_(
-          ::Napi::Persistent(info[2].As<::Napi::Object>())) {
+          ::Napi::Persistent(info[2].As<::Napi::Object>())),
+      ui_(this) {
   QLJS_DEBUG_LOG("Workspace %p: created\n", this);
   this->update_logging(info.Env());
   this->fs_change_detection_thread_ =
@@ -408,11 +409,7 @@ void QLJS_Workspace::report_pending_watch_io_errors(::Napi::Env env) {
   std::vector<Watch_IO_Error> errors =
       this->fs_change_detection_event_loop_.fs()->take_watch_errors();
   if (!errors.empty() && !this->did_report_watch_io_error_) {
-    this->vscode_.window_show_warning_message.Value().Call(
-        /*this=*/this->vscode_.window_namespace.Value(),
-        {
-            ::Napi::String::New(env, errors[0].to_string()),
-        });
+    this->ui_.show_watch_io_errors(env, Span<const Watch_IO_Error>(errors));
     this->did_report_watch_io_error_ = true;
   }
 }

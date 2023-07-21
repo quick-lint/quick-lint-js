@@ -40,37 +40,14 @@ void QLJS_Lintable_Document::finish_init(
       if (loaded_config) {
         if (!loaded_config->errors.empty()) {
           QLJS_ASSERT(loaded_config->config_path);
-          std::string config_file_path(loaded_config->config_path->path());
-          std::string message = "Problems found in the config file for " +
-                                *file_path + " (" + config_file_path + ").";
-          workspace.vscode_.show_error_message(
-              env, message, {"Open config"},
-              [&workspace, self = ::Napi::Persistent(workspace.Value()),
-               config_file_path](::Napi::Env callback_env,
-                                 ::Napi::Value clicked_button_label) -> void {
-                bool popup_dismissed = clicked_button_label.IsUndefined();
-                if (popup_dismissed) {
-                  return;
-                }
-                std::string clicked_button_label_string =
-                    clicked_button_label.As<::Napi::String>().Utf8Value();
-                QLJS_ASSERT(clicked_button_label_string == "Open config");
-                workspace.vscode_.open_and_show_text_document_by_path(
-                    callback_env, config_file_path);
-              });
+          workspace.ui_.show_associated_config_file_errors(
+              env, *file_path, loaded_config->config_path->path());
         }
         this->config_ = &loaded_config->config;
       }
     } else {
-      std::string message = "Failed to load configuration file for " +
-                            *file_path +
-                            ". Using default configuration.\nError details: " +
-                            loaded_config_result.error_to_string();
-      workspace.vscode_.window_show_error_message.Value().Call(
-          /*this=*/workspace.vscode_.window_namespace.Value(),
-          {
-              ::Napi::String::New(env, message),
-          });
+      workspace.ui_.show_config_file_load_errors(env, *file_path,
+                                                 loaded_config_result);
     }
   }
 }

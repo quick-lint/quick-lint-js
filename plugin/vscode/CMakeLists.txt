@@ -22,6 +22,8 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       quick-lint-js/vscode/qljs-workspace.cpp
       quick-lint-js/vscode/qljs-workspace.h
       quick-lint-js/vscode/thread-safe-js-function.h
+      quick-lint-js/vscode/ui.cpp
+      quick-lint-js/vscode/ui.h
       quick-lint-js/vscode/vscode-configuration-filesystem.h
       quick-lint-js/vscode/vscode-diag-reporter.h
       quick-lint-js/vscode/vscode-tracer.h
