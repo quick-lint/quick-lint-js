@@ -16,8 +16,6 @@
 #include <quick-lint-js/spy-lsp-message-parser.h>
 #include <thread>
 
-using ::testing::ElementsAre;
-using ::testing::IsEmpty;
 using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {

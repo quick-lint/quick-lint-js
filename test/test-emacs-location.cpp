@@ -14,7 +14,6 @@
 
 namespace quick_lint_js {
 namespace {
-
 TEST(Test_Emacs_Location, ascii_ranges) {
   Padded_String code(u8"let x = 2;"_sv);
   Emacs_Locator l(&code);

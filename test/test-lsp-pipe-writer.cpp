@@ -24,9 +24,6 @@
 #include <fcntl.h>
 #endif
 
-using ::testing::ElementsAre;
-using ::testing::IsEmpty;
-
 namespace quick_lint_js {
 namespace {
 class Test_LSP_Pipe_Writer : public ::testing::Test {

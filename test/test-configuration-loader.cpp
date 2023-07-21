@@ -97,8 +97,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
                            &::quick_lint_js::POSIX_File_IO_Error::error,      \
                            expected_posix_error))))
 
-using ::testing::AnyOf;
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;

@@ -23,12 +23,9 @@
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
-using ::testing::_;
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAreArray;
-using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {

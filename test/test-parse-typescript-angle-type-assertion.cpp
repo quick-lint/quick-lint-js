@@ -19,10 +19,8 @@
 #include <string>
 #include <string_view>
 
-using ::testing::ElementsAre;
-using ::testing::IsEmpty;
-using namespace std::literals::string_literals;
 using ::testing::ElementsAreArray;
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {

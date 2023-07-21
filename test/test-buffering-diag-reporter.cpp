@@ -14,7 +14,6 @@
 #include <type_traits>
 
 using ::testing::ElementsAre;
-using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {

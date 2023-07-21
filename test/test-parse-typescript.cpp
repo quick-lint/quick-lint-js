@@ -19,10 +19,7 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {

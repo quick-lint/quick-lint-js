@@ -54,9 +54,7 @@
 #include <pty.h>
 #endif
 
-using ::testing::AnyOf;
 using ::testing::HasSubstr;
-using ::testing::Not;
 using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {

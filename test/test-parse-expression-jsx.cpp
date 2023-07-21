@@ -20,11 +20,7 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::_;
-using ::testing::ElementsAre;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
-using ::testing::VariantWith;
 using namespace std::literals::string_literals;
 
 namespace quick_lint_js {

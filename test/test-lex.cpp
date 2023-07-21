@@ -30,8 +30,6 @@
 
 using namespace std::literals::string_view_literals;
 
-using ::testing::_;
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAreArray;

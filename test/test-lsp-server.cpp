@@ -36,7 +36,6 @@
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using namespace std::literals::string_literals;

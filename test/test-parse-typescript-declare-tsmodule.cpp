@@ -19,7 +19,6 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {

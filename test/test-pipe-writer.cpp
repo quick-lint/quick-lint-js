@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #endif
 
-using ::testing::IsEmpty;
 using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {

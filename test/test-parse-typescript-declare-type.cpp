@@ -23,7 +23,6 @@
 #include <vector>
 
 using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {

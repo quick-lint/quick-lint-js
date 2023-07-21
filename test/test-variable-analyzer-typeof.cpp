@@ -12,10 +12,8 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/variable-analyzer-support.h>
 
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {

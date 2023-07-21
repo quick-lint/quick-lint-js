@@ -20,8 +20,6 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::_;
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using namespace std::literals::string_literals;
 

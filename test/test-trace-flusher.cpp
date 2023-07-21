@@ -35,7 +35,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {

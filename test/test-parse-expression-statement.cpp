@@ -22,7 +22,6 @@
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {

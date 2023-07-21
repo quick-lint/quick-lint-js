@@ -22,7 +22,6 @@
 #include <string_view>
 #include <vector>
 
-using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAreArray;
