@@ -71,7 +71,7 @@ TEST_F(Test_Parse_Class, parse_class_statement) {
   }
 
   {
-    Test_Parser p(u8"class A {} class B {}"_sv, capture_diags);
+    Test_Parser p(u8"class A {} class B {}"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
