@@ -58,6 +58,17 @@ class Test_Lex : public ::testing::Test {
                     std::initializer_list<Token_Type> expected_token_types,
                     Source_Location = Source_Location::current());
   void check_tokens_with_errors(
+      String8_View input, Diagnostic_Assertion,
+      std::initializer_list<Token_Type> expected_token_types,
+      Source_Location = Source_Location::current());
+  void check_tokens_with_errors(
+      String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+      std::initializer_list<Token_Type> expected_token_types,
+      Source_Location = Source_Location::current());
+  void check_tokens_with_errors(
+      String8_View input, Span<const Diagnostic_Assertion>,
+      std::initializer_list<Token_Type> expected_token_types, Source_Location);
+  void check_tokens_with_errors(
       String8_View input,
       std::initializer_list<Token_Type> expected_token_types,
       void (*check_errors)(Padded_String_View input,
@@ -439,61 +450,26 @@ TEST_F(Test_Lex, fail_lex_integer_loses_precision) {
 }
 
 TEST_F(Test_Lex, fail_lex_binary_number_no_digits) {
+  this->check_tokens_with_errors(u8"0b"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Binary_Number"_diag,
+                                 {Token_Type::number});
+  this->check_tokens_with_errors(u8"0bn"_sv,  //
+                                 u8"^^^ Diag_No_Digits_In_Binary_Number"_diag,
+                                 {Token_Type::number});
+  this->check_tokens_with_errors(u8"0b;"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Binary_Number"_diag,
+                                 {Token_Type::number, Token_Type::semicolon});
   this->check_tokens_with_errors(
-      u8"0b"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Binary_Number,  //
-                                  characters, 0, u8"0b"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"0bn"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Binary_Number,  //
-                                  characters, 0, u8"0bn"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"0b;"_sv, {Token_Type::number, Token_Type::semicolon},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Binary_Number,  //
-                                  characters, 0, u8"0b"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"[0b]"_sv,
-      {Token_Type::left_square, Token_Type::number, Token_Type::right_square},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Binary_Number,  //
-                                  characters, u8"["_sv.size(), u8"0b"_sv),
-            }));
-      });
+      u8"[0b]"_sv,  //
+      u8" ^^ Diag_No_Digits_In_Binary_Number"_diag,
+      {Token_Type::left_square, Token_Type::number, Token_Type::right_square});
 }
 
 TEST_F(Test_Lex, fail_lex_binary_number) {
   this->check_tokens_with_errors(
-      u8"0b1ee"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Binary_Number,  //
-                    characters, u8"0b1"_sv.size(), u8"ee"_sv),
-            }));
-      });
+      u8"0b1ee"_sv,  //
+      u8"   ^^ Diag_Unexpected_Characters_In_Binary_Number"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_modern_octal_numbers) {
@@ -508,63 +484,28 @@ TEST_F(Test_Lex, lex_modern_octal_numbers) {
 }
 
 TEST_F(Test_Lex, fail_lex_modern_octal_number_no_digits) {
+  this->check_tokens_with_errors(u8"0o"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Octal_Number"_diag,
+                                 {Token_Type::number});
+  this->check_tokens_with_errors(u8"0o;"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Octal_Number"_diag,
+                                 {Token_Type::number, Token_Type::semicolon});
   this->check_tokens_with_errors(
-      u8"0o"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Octal_Number,  //
-                                  characters, 0, u8"0o"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"0o;"_sv, {Token_Type::number, Token_Type::semicolon},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Octal_Number,  //
-                                  characters, 0, u8"0o"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"[0o]"_sv,
-      {Token_Type::left_square, Token_Type::number, Token_Type::right_square},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Octal_Number,  //
-                                  characters, u8"["_sv.size(), u8"0o"_sv),
-            }));
-      });
+      u8"[0o]"_sv,  //
+      u8" ^^ Diag_No_Digits_In_Octal_Number"_diag,
+      {Token_Type::left_square, Token_Type::number, Token_Type::right_square});
 }
 
 TEST_F(Test_Lex, fail_lex_modern_octal_numbers) {
   this->check_tokens_with_errors(
-      u8"0o58"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Octal_Number,  //
-                    characters, u8"0o5"_sv.size(), u8"8"_sv),
-            }));
-      });
+      u8"0o58"_sv,  //
+      u8"   ^ Diag_Unexpected_Characters_In_Octal_Number"_diag,
+      {Token_Type::number});
 
   this->check_tokens_with_errors(
-      u8"0o58.2"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Octal_Number,  //
-                    characters, u8"0o5"_sv.size(), u8"8.2"_sv),
-            }));
-      });
+      u8"0o58.2"_sv,  //
+      u8"   ^^^ Diag_Unexpected_Characters_In_Octal_Number"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_legacy_octal_numbers_strict) {
@@ -589,27 +530,14 @@ TEST_F(Test_Lex, lex_legacy_octal_numbers_lax) {
 
 TEST_F(Test_Lex, fail_lex_legacy_octal_numbers) {
   this->check_tokens_with_errors(
-      u8"0123n"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Legacy_Octal_Literal_May_Not_Be_Big_Int,  //
-                    characters, u8"0123"_sv.size(), u8"n"_sv),
-            }));
-      });
+      u8"0123n"_sv,  //
+      u8"    ^ Diag_Legacy_Octal_Literal_May_Not_Be_Big_Int"_diag,
+      {Token_Type::number});
 
   this->check_tokens_with_errors(
-      u8"052.2"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Octal_Literal_May_Not_Have_Decimal,  //
-                            characters, u8"052"_sv.size(), u8"."_sv),
-                    }));
-      });
+      u8"052.2"_sv,  //
+      u8"   ^ Diag_Octal_Literal_May_Not_Have_Decimal"_diag,
+      {Token_Type::number});
 }
 
 // TODO (#73) (when strict mode implemented) legacy octal number
@@ -617,30 +545,14 @@ TEST_F(Test_Lex, fail_lex_legacy_octal_numbers) {
 
 TEST_F(Test_Lex, legacy_octal_numbers_cannot_contain_underscores) {
   this->check_tokens_with_errors(
-      u8"0775_775"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Legacy_Octal_Literal_May_Not_Contain_Underscores,  //
-                    underscores, u8"0775"_sv.size(), u8"_"_sv),
-            }));
-      });
+      u8"0775_775"_sv,  //
+      u8"    ^ Diag_Legacy_Octal_Literal_May_Not_Contain_Underscores"_diag,
+      {Token_Type::number});
 
   this->check_tokens_with_errors(
-      u8"0775____775"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Legacy_Octal_Literal_May_Not_Contain_Underscores,  //
-                    underscores, u8"0775"_sv.size(), u8"____"_sv),
-            }));
-      });
+      u8"0775____775"_sv,  //
+      u8"    ^^^^ Diag_Legacy_Octal_Literal_May_Not_Contain_Underscores"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_hex_numbers) {
@@ -658,163 +570,70 @@ TEST_F(Test_Lex, lex_hex_numbers) {
 }
 
 TEST_F(Test_Lex, fail_lex_hex_number_no_digits) {
+  this->check_tokens_with_errors(u8"0x"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Hex_Number"_diag,
+                                 {Token_Type::number});
+  this->check_tokens_with_errors(u8"0xn"_sv,  //
+                                 u8"^^^ Diag_No_Digits_In_Hex_Number"_diag,
+                                 {Token_Type::number});
+  this->check_tokens_with_errors(u8"0x;"_sv,  //
+                                 u8"^^ Diag_No_Digits_In_Hex_Number"_diag,
+                                 {Token_Type::number, Token_Type::semicolon});
   this->check_tokens_with_errors(
-      u8"0x"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Hex_Number,  //
-                                  characters, 0, u8"0x"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"0xn"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Hex_Number,  //
-                                  characters, 0, u8"0xn"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"0x;"_sv, {Token_Type::number, Token_Type::semicolon},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Hex_Number,  //
-                                  characters, 0, u8"0x"_sv),
-            }));
-      });
-  this->check_tokens_with_errors(
-      u8"[0x]"_sv,
-      {Token_Type::left_square, Token_Type::number, Token_Type::right_square},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_No_Digits_In_Hex_Number,  //
-                                  characters, u8"["_sv.size(), u8"0x"_sv),
-            }));
-      });
+      u8"[0x]"_sv,  //
+      u8" ^^ Diag_No_Digits_In_Hex_Number"_diag,
+      {Token_Type::left_square, Token_Type::number, Token_Type::right_square});
 }
 
 TEST_F(Test_Lex, fail_lex_hex_number) {
   this->check_tokens_with_errors(
-      u8"0xfqqn"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Hex_Number,  //
-                            characters, u8"0xf"_sv.size(), u8"qqn"_sv),
-                    }));
-      });
+      u8"0xfqqn"_sv,  //
+      u8"   ^^^ Diag_Unexpected_Characters_In_Hex_Number"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_number_with_trailing_garbage) {
   this->check_tokens_with_errors(
-      u8"123abcd"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Number,  //
-                            characters, u8"123"_sv.size(), u8"abcd"_sv),
-                    }));
-      });
+      u8"123abcd"_sv,  //
+      u8"   ^^^^ Diag_Unexpected_Characters_In_Number"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"123e f"_sv, {Token_Type::number, Token_Type::identifier},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Number,  //
-                            characters, u8"123"_sv.size(), u8"e"_sv),
-                    }));
-      });
+      u8"123e f"_sv,  //
+      u8"   ^ Diag_Unexpected_Characters_In_Number"_diag,
+      {Token_Type::number, Token_Type::identifier});
   this->check_tokens_with_errors(
-      u8"123e-f"_sv,
-      {Token_Type::number, Token_Type::minus, Token_Type::identifier},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Number,  //
-                            characters, u8"123"_sv.size(), u8"e"_sv),
-                    }));
-      });
+      u8"123e-f"_sv,  //
+      u8"   ^ Diag_Unexpected_Characters_In_Number"_diag,
+      {Token_Type::number, Token_Type::minus, Token_Type::identifier});
   this->check_tokens_with_errors(
-      u8"0b01234"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Binary_Number,  //
-                    characters, u8"0b01"_sv.size(), u8"234"_sv),
-            }));
-      });
+      u8"0b01234"_sv,  //
+      u8"    ^^^ Diag_Unexpected_Characters_In_Binary_Number"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0b0h0lla"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Binary_Number,  //
-                    characters, u8"0b0"_sv.size(), u8"h0lla"_sv),
-            }));
-      });
+      u8"0b0h0lla"_sv,  //
+      u8"   ^^^^^ Diag_Unexpected_Characters_In_Binary_Number"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0xabjjw"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Hex_Number,  //
-                            characters, u8"0xab"_sv.size(), u8"jjw"_sv),
-                    }));
-      });
+      u8"0xabjjw"_sv,  //
+      u8"    ^^^ Diag_Unexpected_Characters_In_Hex_Number"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0o69"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unexpected_Characters_In_Octal_Number,  //
-                    characters, u8"0o6"_sv.size(), u8"9"_sv),
-            }));
-      });
+      u8"0o69"_sv,  //
+      u8"   ^ Diag_Unexpected_Characters_In_Octal_Number"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_decimal_number_with_dot_method_call_is_invalid) {
   // TODO(strager): Perhaps a better diagnostic would suggest adding parentheses
   // or another '.' to make a valid method call.
   this->check_tokens_with_errors(
-      u8"0.toString()"_sv,
-      {Token_Type::number, Token_Type::left_paren, Token_Type::right_paren},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Number,  //
-                            characters, u8"0."_sv.size(), u8"toString"_sv),
-                    }));
-      });
+      u8"0.toString()"_sv,  //
+      u8"  ^^^^^^^^ Diag_Unexpected_Characters_In_Number"_diag,
+      {Token_Type::number, Token_Type::left_paren, Token_Type::right_paren});
   this->check_tokens_with_errors(
-      u8"09.toString"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Characters_In_Number,  //
-                            characters, u8"09."_sv.size(), u8"toString"_sv),
-                    }));
-      });
+      u8"09.toString"_sv,  //
+      u8"   ^^^^^^^^ Diag_Unexpected_Characters_In_Number"_diag,
+      {Token_Type::number});
 
   // NOTE(strager): Other numbers with leading zeroes, like '00' and '012345',
   // are legacy octal literals and *can* have a dot method call.
@@ -822,26 +641,13 @@ TEST_F(Test_Lex, lex_decimal_number_with_dot_method_call_is_invalid) {
 
 TEST_F(Test_Lex, lex_invalid_big_int_number) {
   this->check_tokens_with_errors(
-      u8"12.34n"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Big_Int_Literal_Contains_Decimal_Point,  //
-                    where, 0, u8"12.34n"_sv),
-            }));
-      });
+      u8"12.34n"_sv,  //
+      u8"^^^^^^ Diag_Big_Int_Literal_Contains_Decimal_Point"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"1e3n"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Big_Int_Literal_Contains_Exponent,  //
-                            where, 0, u8"1e3n"_sv),
-                    }));
-      });
+      u8"1e3n"_sv,  //
+      u8"^^^^ Diag_Big_Int_Literal_Contains_Exponent"_diag,
+      {Token_Type::number});
 
   // Only complain about the decimal point, not the leading 0 digit.
   this->check_tokens_with_errors(
@@ -879,68 +685,28 @@ TEST_F(Test_Lex, lex_invalid_big_int_number) {
 
 TEST_F(Test_Lex, lex_number_with_double_underscore) {
   this->check_tokens_with_errors(
-      u8"123__000"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Consecutive_Underscores,  //
-                    underscores, u8"123"_sv.size(), u8"__"_sv),
-            }));
-      });
+      u8"123__000"_sv,  //
+      u8"   ^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_number_with_many_underscores) {
   this->check_tokens_with_errors(
-      u8"123_____000"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Consecutive_Underscores,  //
-                    underscores, u8"123"_sv.size(), u8"_____"_sv),
-            }));
-      });
+      u8"123_____000"_sv,  //
+      u8"   ^^^^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0xfee_____eed"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Consecutive_Underscores,  //
-                    underscores, u8"0xfee"_sv.size(), u8"_____"_sv),
-            }));
-      });
+      u8"0xfee_____eed"_sv,  //
+      u8"     ^^^^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0o777_____000"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Consecutive_Underscores,  //
-                    underscores, u8"0o777"_sv.size(), u8"_____"_sv),
-            }));
-      });
+      u8"0o777_____000"_sv,  //
+      u8"     ^^^^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag,
+      {Token_Type::number});
   this->check_tokens_with_errors(
-      u8"0b111_____000"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Consecutive_Underscores,  //
-                    underscores, u8"0b111"_sv.size(), u8"_____"_sv),
-            }));
-      });
+      u8"0b111_____000"_sv,  //
+      u8"     ^^^^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
@@ -970,32 +736,16 @@ TEST_F(Test_Lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
 
 TEST_F(Test_Lex, lex_number_with_trailing_underscore) {
   this->check_tokens_with_errors(
-      u8"123456_"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Trailing_Underscores,  //
-                    underscores, u8"123456"_sv.size(), u8"_"_sv),
-            }));
-      });
+      u8"123456_"_sv,  //
+      u8"      ^ Diag_Number_Literal_Contains_Trailing_Underscores"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_number_with_trailing_underscores) {
   this->check_tokens_with_errors(
-      u8"123456___"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input,
-                    Diag_Number_Literal_Contains_Trailing_Underscores,  //
-                    underscores, u8"123456"_sv.size(), u8"___"_sv),
-            }));
-      });
+      u8"123456___"_sv,  //
+      u8"      ^^^ Diag_Number_Literal_Contains_Trailing_Underscores"_diag,
+      {Token_Type::number});
 }
 
 TEST_F(Test_Lex, lex_strings) {
@@ -1457,16 +1207,9 @@ world`)"_sv,
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
   }
 
-  this->check_tokens_with_errors(
-      u8"`unterminated"_sv, {Token_Type::complete_template},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Unclosed_Template,  //
-                                  incomplete_template, 0, u8"`unterminated"_sv),
-            }));
-      });
+  this->check_tokens_with_errors(u8"`unterminated"_sv,  //
+                                 u8"^^^^^^^^^^^^^ Diag_Unclosed_Template"_diag,
+                                 {Token_Type::complete_template});
 
   {
     Diag_Collector v;
@@ -2436,16 +2179,9 @@ TEST_F(Test_Lex,
                     }));
       });
 
-  this->check_tokens_with_errors(
-      u8"#123"_sv, {Token_Type::number},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Unexpected_Hash_Character,  //
-                                  where, 0, u8"#"_sv),
-            }));
-      });
+  this->check_tokens_with_errors(u8"#123"_sv,  //
+                                 u8"^ Diag_Unexpected_Hash_Character"_diag,
+                                 {Token_Type::number});
 }
 
 TEST_F(Test_Lex, private_identifier_with_disallowed_escaped_initial_character) {
@@ -3720,6 +3456,46 @@ void Test_Lex::check_tokens(
         EXPECT_THAT_AT_CALLER(errors, IsEmpty());
       },
       caller);
+}
+
+void Test_Lex::check_tokens_with_errors(
+    String8_View input, Diagnostic_Assertion diag0,
+    std::initializer_list<Token_Type> expected_token_types,
+    Source_Location caller) {
+  Diagnostic_Assertion diag_assertions[] = {diag0};
+  this->check_tokens_with_errors(
+      input, Span<const Diagnostic_Assertion>(diag_assertions),
+      expected_token_types, caller);
+}
+
+void Test_Lex::check_tokens_with_errors(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    std::initializer_list<Token_Type> expected_token_types,
+    Source_Location caller) {
+  Diagnostic_Assertion diag_assertions[] = {diag0, diag1};
+  this->check_tokens_with_errors(
+      input, Span<const Diagnostic_Assertion>(diag_assertions),
+      expected_token_types, caller);
+}
+
+void Test_Lex::check_tokens_with_errors(
+    String8_View input, Span<const Diagnostic_Assertion> diag_assertions,
+    std::initializer_list<Token_Type> expected_token_types,
+    Source_Location caller) {
+  Padded_String code(input);
+  Diag_Collector errors;
+  std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
+
+  std::vector<Token_Type> lexed_token_types;
+  for (const Token& t : lexed_tokens) {
+    lexed_token_types.push_back(t.type);
+  }
+
+  EXPECT_THAT_AT_CALLER(lexed_token_types,
+                        ::testing::ElementsAreArray(expected_token_types));
+
+  assert_diagnostics(&code, Span<const Diag_Collector::Diag>(errors.errors),
+                     diag_assertions, caller);
 }
 
 void Test_Lex::check_tokens_with_errors(
