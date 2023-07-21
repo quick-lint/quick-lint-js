@@ -168,9 +168,10 @@ TEST_F(Test_Parse_TypeScript_Var,
 TEST_F(Test_Parse_TypeScript_Var,
        catch_variable_cannot_have_arbitrary_type_annotation) {
   {
-    Test_Parser p(u8"try { } catch (e: SomeType) {} "_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"try { } catch (e: SomeType) {} "_sv,  //
+        u8"                  ^^^^^^^^ Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",     // try {
                               "visit_exit_block_scope",      // } try
@@ -179,14 +180,6 @@ TEST_F(Test_Parse_TypeScript_Var,
                               "visit_exit_block_scope",      // } catch
                           }))
         << "SomeType should be ignored (no visit_variable_type_use)";
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any,  //
-                        type_expression, u8"try { } catch (e: "_sv.size(),
-                        u8"SomeType"_sv),
-                }));
   }
 }
 

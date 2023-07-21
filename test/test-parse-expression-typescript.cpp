@@ -240,16 +240,10 @@ TEST_F(Test_Parse_Expression_TypeScript, as_cannot_have_newline_before) {
 TEST_F(Test_Parse_Expression_TypeScript,
        as_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
-    Test_Parser p(u8"(x as T) => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, u8"(x "_sv.size(), u8"as"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"(x as T) => {}"_sv,  //
+        u8"   ^^ Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
   }
@@ -271,17 +265,10 @@ TEST_F(Test_Parse_Expression_TypeScript,
   }
 
   {
-    Test_Parser p(u8"function f(x as T) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, u8"function f(x "_sv.size(), u8"as"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"function f(x as T) {}"_sv,  //
+        u8"             ^^ Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation"_diag,  //
+        typescript_options);
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));
@@ -349,15 +336,10 @@ TEST_F(Test_Parse_Expression_TypeScript,
   }
 
   {
-    Test_Parser p(u8"(f()) as const"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_As_Const_With_Non_Literal_Typeable,  //
-                        expression, u8"("_sv.size(), u8"f()"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(f()) as const"_sv,  //
+        u8" ^^^ Diag_TypeScript_As_Const_With_Non_Literal_Typeable.expression"_diag,  //
+        typescript_options);
   }
 }
 
@@ -448,17 +430,10 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies_cannot_have_newline_before) {
 TEST_F(Test_Parse_Expression_TypeScript,
        satisfies_is_not_allowed_in_function_parameter_list) {
   {
-    Test_Parser p(u8"(x satisfies T) => {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation,  //
-                bad_keyword, u8"(x "_sv.size(), u8"satisfies"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"(x satisfies T) => {}"_sv,  //
+        u8"   ^^^^^^^^^ Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
   }

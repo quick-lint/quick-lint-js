@@ -65,17 +65,9 @@ TEST_F(Test_Parse, statement_starting_with_invalid_token) {
 
 TEST_F(Test_Parse, comma_not_allowed_between_class_methods) {
   {
-    Test_Parser p(
-        u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv,
-        capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 44, u8","_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv,  //
+        u8"                                            ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          //
                               "visit_enter_class_scope_body",     //
@@ -100,42 +92,17 @@ TEST_F(Test_Parse, comma_not_allowed_between_class_methods) {
 
 TEST_F(Test_Parse, commas_not_allowed_between_class_methods) {
   {
-    Test_Parser p(
-        u8"class f { ,,, constructor() { this._a = false; },,, ontext(text) { if (this._a) { process.stdout.write(text);}},,,}"_sv,
-        capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 10, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 11, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 12, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 48, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 49, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 50, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 111, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 112, u8","_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Comma_Not_Allowed_Between_Class_Methods,  //
-                              unexpected_comma, 113, u8","_sv),
-        }));
-
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class f { ,,, constructor() { this._a = false; },,, ontext(text) { if (this._a) { process.stdout.write(text);}},,,}"_sv,  //
+        u8"                                                                                                                 ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"                                                                                                                ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"                                                                                                               ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"                                                  ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"                                                 ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"                                                ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"            ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,  //
+        u8"           ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag,   //
+        u8"          ^ Diag_Comma_Not_Allowed_Between_Class_Methods"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // {
                               "visit_enter_class_scope_body",     //
@@ -401,32 +368,24 @@ TEST_F(Test_Parse, utter_garbage) {
 
 TEST_F(Test_Parse, statement_starting_with_extends) {
   {
-    Test_Parser p(u8"extends Base"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"extends Base"_sv,  //
+                                    u8"^^^^^^^ Diag_Unexpected_Token"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // Base
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, 0, u8"extends"_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse, stray_right_curly_at_top_level) {
   {
-    Test_Parser p(u8"}"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"}"_sv,  //
+                                    u8"^ Diag_Unmatched_Right_Curly"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unmatched_Right_Curly,  //
-                                      right_curly, 0, u8"}"_sv),
-                }));
   }
 }
 

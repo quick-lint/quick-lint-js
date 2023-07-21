@@ -29,20 +29,15 @@ namespace {
 class Test_Parse_TypeScript_Namespace : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Namespace, not_supported_in_vanilla_javascript) {
-  Test_Parser p(u8"namespace ns {}"_sv, javascript_options, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"namespace ns {}"_sv,  //
+      u8"^^^^^^^^^ Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_namespace_scope",  // {
                             "visit_exit_namespace_scope",   // }
                             "visit_variable_declaration",   // ns
                         }));
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code,
-                      Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript,  //
-                      namespace_keyword, 0, u8"namespace"_sv),
-              }));
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace, empty_namespace) {
@@ -73,58 +68,43 @@ TEST_F(Test_Parse_TypeScript_Namespace, empty_namespace) {
 
 TEST_F(Test_Parse_TypeScript_Namespace, missing_body) {
   {
-    Test_Parser p(u8"namespace ns "_sv, typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns "_sv,                                               //
+        u8"            ` Diag_Missing_Body_For_TypeScript_Namespace"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // ns
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Missing_Body_For_TypeScript_Namespace,  //
-                        expected_body, u8"namespace ns"_sv.size(), u8""_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"namespace ns\nconsole.log('hello');"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns\nconsole.log('hello');"_sv,                         //
+        u8"            ` Diag_Missing_Body_For_TypeScript_Namespace"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // ns
                               "visit_variable_use",          // console
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Missing_Body_For_TypeScript_Namespace,  //
-                        expected_body, u8"namespace ns"_sv.size(), u8""_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
   {
-    Test_Parser p(u8"namespace ns { "_sv, typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    // TODO(strager): Report a namespace-specific diagnostic.
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { "_sv,                            //
+        u8"             ^ Diag_Unclosed_Code_Block"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // implicit }
                               "visit_variable_declaration",   // ns
                               "visit_end_of_module",          //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    // TODO(strager): Report a namespace-specific diagnostic.
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_Unclosed_Code_Block,  //
-                                      block_open, u8"namespace ns "_sv.size(),
-                                      u8"{"_sv),
-                }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
   }
@@ -147,49 +127,37 @@ TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
 
 TEST_F(Test_Parse_TypeScript_Namespace, namespace_cannot_have_string_name) {
   {
-    Test_Parser p(u8"namespace 'my name space' {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace 'my name space' {}"_sv,  //
+        u8"          ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, u8"namespace "_sv.size(), u8"'my name space'"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"module 'my name space' {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"module 'my name space' {}"_sv,  //
+        u8"       ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, u8"module "_sv.size(), u8"'my name space'"_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
        namespace_cannot_have_newline_after_keyword) {
   {
-    Test_Parser p(u8"namespace\nns {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"namespace\nns {}"_sv,                                              //
+        u8"^^^^^^^^^ Diag_Newline_Not_Allowed_After_Namespace_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
@@ -197,18 +165,13 @@ TEST_F(Test_Parse_TypeScript_Namespace,
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Newline_Not_Allowed_After_Namespace_Keyword,  //
-                        namespace_keyword, 0, u8"namespace"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"module\nns {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"module\nns {}"_sv,                                              //
+        u8"^^^^^^ Diag_Newline_Not_Allowed_After_Namespace_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
@@ -216,13 +179,6 @@ TEST_F(Test_Parse_TypeScript_Namespace,
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Newline_Not_Allowed_After_Namespace_Keyword,  //
-                        namespace_keyword, 0, u8"module"_sv),
-                }));
   }
 }
 
@@ -735,21 +691,15 @@ TEST_F(Test_Parse_TypeScript_Namespace,
 TEST_F(Test_Parse_TypeScript_Namespace,
        namespace_alias_cannot_be_used_with_declare_keyword) {
   {
-    Test_Parser p(u8"declare import A = ns;"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare import A = ns;"_sv,                             //
+        u8"^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // A
                               "visit_variable_namespace_use",  // ns
                               "visit_end_of_module",           //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Import_Cannot_Have_Declare_Keyword,  //
-                              declare_keyword, 0, u8"declare"_sv),
-        }));
   }
 }
 
@@ -783,22 +733,16 @@ TEST_F(Test_Parse_TypeScript_Namespace, import_alias_of_namespace_member) {
 TEST_F(Test_Parse_TypeScript_Namespace,
        import_alias_requires_semicolon_or_newline) {
   {
-    Test_Parser p(u8"import A = ns nextStatement"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import A = ns nextStatement"_sv,                              //
+        u8"             ` Diag_Missing_Semicolon_After_Statement"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // A
                               "visit_variable_namespace_use",  // ns
                               "visit_variable_use",            // nextStatement
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Semicolon_After_Statement,  //
-                              where, u8"import A = ns"_sv.size(), u8""_sv),
-        }));
   }
 }
 

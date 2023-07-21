@@ -213,29 +213,19 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
 TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
        angle_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
-    Test_Parser p(u8"(<T>x) => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_Invalid_Parameter,  //
-                                      parameter, u8"("_sv.size(), u8"<T>x"_sv),
-                }));
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"(<T>x) => {}"_sv,                    //
+                                    u8" ^^^^ Diag_Invalid_Parameter"_diag,  //
+                                    typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv)}));
   }
 
   {
-    Test_Parser p(u8"function f(<T>x) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_Invalid_Parameter,  //
-                                      parameter, u8"function f("_sv.size(),
-                                      u8"<T>x"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"function f(<T>x) {}"_sv,                       //
+        u8"           ^^^^ Diag_Invalid_Parameter"_diag,  //
+        typescript_options);
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));

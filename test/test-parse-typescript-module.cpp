@@ -100,20 +100,14 @@ TEST_F(Test_Parse_TypeScript_Module,
 TEST_F(Test_Parse_TypeScript_Module,
        type_only_import_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"import type {T} from 'mod';"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import type {T} from 'mod';"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, u8"import "_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -144,9 +138,10 @@ TEST_F(Test_Parse_TypeScript_Module,
   }
 
   {
-    Test_Parser p(u8"import type A, * as B from 'mod';"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import type A, * as B from 'mod';"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // A
                               "visit_variable_declaration",  // B
@@ -155,14 +150,6 @@ TEST_F(Test_Parse_TypeScript_Module,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named,
-                type_keyword, u8"import "_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -272,37 +259,25 @@ TEST_F(Test_Parse_TypeScript_Module,
 TEST_F(Test_Parse_TypeScript_Module,
        inline_type_import_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"import {type T} from 'mod';"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import {type T} from 'mod';"_sv,  //
+        u8"        ^^^^ Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, u8"import {"_sv.size(), u8"type"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"import {type as} from 'mod';"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import {type as} from 'mod';"_sv,  //
+        u8"        ^^^^ Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // as
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript,
-                type_keyword, u8"import {"_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -362,19 +337,14 @@ TEST_F(Test_Parse_TypeScript_Module, type_only_export) {
 TEST_F(Test_Parse_TypeScript_Module,
        type_only_export_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"export type {T};"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export type {T};"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, u8"export "_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -414,35 +384,25 @@ TEST_F(Test_Parse_TypeScript_Module, inline_type_export) {
 TEST_F(Test_Parse_TypeScript_Module,
        inline_type_export_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"export {type T};"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export {type T};"_sv,  //
+        u8"        ^^^^ Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, u8"export {"_sv.size(), u8"type"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"export {type as};"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export {type as};"_sv,  //
+        u8"        ^^^^ Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // as
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript,
-                type_keyword, u8"export {"_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -499,9 +459,10 @@ TEST_F(Test_Parse_TypeScript_Module, export_interface) {
 TEST_F(Test_Parse_TypeScript_Module,
        export_interface_disallows_newline_after_interface_keyword) {
   {
-    Test_Parser p(u8"export interface\nI {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export interface\nI {}"_sv,  //
+        u8"       ^^^^^^^^^ Diag_Newline_Not_Allowed_After_Interface_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
@@ -510,13 +471,6 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({interface_decl(u8"I"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Interface_Keyword,
-                interface_keyword, u8"export "_sv.size(), u8"interface"_sv),
-        }));
   }
 }
 
@@ -602,33 +556,23 @@ TEST_F(Test_Parse_TypeScript_Module, export_abstract_class) {
 TEST_F(Test_Parse_TypeScript_Module,
        export_abstract_class_cannot_have_newline_after_abstract) {
   {
-    Test_Parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export abstract\nclass C { abstract m(); }"_sv,  //
+        u8"       ^^^^^^^^ Diag_Newline_Not_Allowed_After_Abstract_Keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
-                abstract_keyword, u8"export "_sv.size(), u8"abstract"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"export abstract\nclass C { abstract m(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export abstract\nclass C { abstract m(); }"_sv,  //
+        u8"       ^^^^^^^^ Diag_Newline_Not_Allowed_After_Abstract_Keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Abstract_Keyword,
-                abstract_keyword, u8"export "_sv.size(), u8"abstract"_sv),
-        }));
   }
 
   {
@@ -678,52 +622,38 @@ TEST_F(Test_Parse_TypeScript_Module, export_namespace) {
 TEST_F(Test_Parse_TypeScript_Module,
        exported_namespace_cannot_have_string_name) {
   {
-    Test_Parser p(u8"export namespace 'my name space' {}"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export namespace 'my name space' {}"_sv,  //
+        u8"                 ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, u8"export namespace "_sv.size(),
-                u8"'my name space'"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"export module 'my name space' {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export module 'my name space' {}"_sv,  //
+        u8"              ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module,
-                module_name, u8"export module "_sv.size(),
-                u8"'my name space'"_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Module,
        export_namespace_disallows_newline_after_namespace_keyword) {
   {
-    Test_Parser p(u8"export namespace\nns {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export namespace\nns {}"_sv,  //
+        u8"       ^^^^^^^^^ Diag_Newline_Not_Allowed_After_Namespace_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
@@ -732,13 +662,6 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Namespace_Keyword,
-                namespace_keyword, u8"export "_sv.size(), u8"namespace"_sv),
-        }));
   }
 }
 
@@ -791,21 +714,16 @@ TEST_F(Test_Parse_TypeScript_Module, export_type_alias) {
 TEST_F(Test_Parse_TypeScript_Module,
        export_type_alias_disallows_newline_after_type_keyword) {
   {
-    Test_Parser p(u8"export type\nA = any;"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export type\nA = any;"_sv,                                      //
+        u8"       ^^^^ Diag_Newline_Not_Allowed_After_Type_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // A
                               "visit_enter_type_alias_scope",  //
                               "visit_exit_type_alias_scope",   //
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Newline_Not_Allowed_After_Type_Keyword,
-                        type_keyword, u8"export "_sv.size(), u8"type"_sv),
-                }));
   }
 }
 
@@ -830,20 +748,14 @@ TEST_F(Test_Parse_TypeScript_Module, export_import_alias) {
 TEST_F(Test_Parse_TypeScript_Module,
        import_cannot_be_used_with_declare_keyword) {
   {
-    Test_Parser p(u8"declare import fs from 'fs';"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare import fs from 'fs';"_sv,                       //
+        u8"^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // fs
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Import_Cannot_Have_Declare_Keyword,  //
-                              declare_keyword, 0, u8"declare"_sv),
-        }));
   }
 
   {
@@ -920,19 +832,15 @@ TEST_F(Test_Parse_TypeScript_Module, export_equal_with_expression) {
 
 TEST_F(Test_Parse_TypeScript_Module, export_equal_requires_semicolon) {
   {
-    Test_Parser p(u8"export = foo bar"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export = foo bar"_sv,                                        //
+        u8"            ` Diag_Missing_Semicolon_After_Statement"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_export_use",  // foo
                               "visit_variable_use",         // bar
                               "visit_end_of_module",        //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Semicolon_After_Statement,
-                              where, u8"export = foo"_sv.size(), u8""_sv),
-        }));
   }
 
   {

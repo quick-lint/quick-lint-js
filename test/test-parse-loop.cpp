@@ -80,42 +80,31 @@ TEST_F(Test_Parse_Loop, do_while) {
 
 TEST_F(Test_Parse_Loop, do_while_without_parens) {
   {
-    Test_Parser p(u8"do {} while cond"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do {} while cond"_sv,  //
+        u8"            ^^^^ Diag_Expected_Parentheses_Around_Do_While_Condition"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Expected_Parentheses_Around_Do_While_Condition,  //
-                condition, u8"do {} while "_sv.size(), u8"cond"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"do {} while cond;"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do {} while cond;"_sv,  //
+        u8"            ^^^^ Diag_Expected_Parentheses_Around_Do_While_Condition"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Expected_Parentheses_Around_Do_While_Condition,  //
-                condition, u8"do {} while "_sv.size(), u8"cond"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"{ do {} while cond }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"{ do {} while cond }"_sv,  //
+        u8"              ^^^^ Diag_Expected_Parentheses_Around_Do_While_Condition"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_enter_block_scope",  //
@@ -123,13 +112,6 @@ TEST_F(Test_Parse_Loop, do_while_without_parens) {
                               "visit_variable_use",       // cond
                               "visit_exit_block_scope",   //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Expected_Parentheses_Around_Do_While_Condition,  //
-                condition, u8"{ do {} while "_sv.size(), u8"cond"_sv),
-        }));
   }
 
   {
@@ -173,33 +155,23 @@ TEST_F(Test_Parse_Loop, do_while_without_parens) {
 
 TEST_F(Test_Parse_Loop, do_while_without_body) {
   {
-    Test_Parser p(u8"do\nwhile (cond);"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do\nwhile (cond);"_sv,  //
+        u8"^^ Diag_Missing_Body_For_Do_While_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // cond
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Body_For_Do_While_Statement,  //
-                        do_token, 0, u8"do"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"{ do while (cond); }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"{ do while (cond); }"_sv,  //
+        u8"  ^^ Diag_Missing_Body_For_Do_While_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  // {
                               "visit_variable_use",       // cond
                               "visit_exit_block_scope",   // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Body_For_Do_While_Statement,  //
-                        do_token, u8"{ "_sv.size(), u8"do"_sv),
-                }));
   }
 }
 
@@ -312,14 +284,9 @@ TEST_F(Test_Parse_Loop, c_style_for_loop) {
 
 TEST_F(Test_Parse_Loop, c_style_for_loop_with_in_operator) {
   {
-    Test_Parser p(u8"for (a in b; c; d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_In_Disallowed_In_C_Style_For_Loop,  //
-                        in_token, u8"for (a "_sv.size(), u8"in"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (a in b; c; d) {}"_sv,  //
+        u8"       ^^ Diag_In_Disallowed_In_C_Style_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // b
                               "visit_variable_assignment",  // a
@@ -331,14 +298,9 @@ TEST_F(Test_Parse_Loop, c_style_for_loop_with_in_operator) {
   }
 
   {
-    Test_Parser p(u8"for (let x = a in b; c; d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_In_Disallowed_In_C_Style_For_Loop,  //
-                        in_token, u8"for (let x = a "_sv.size(), u8"in"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x = a in b; c; d) {}"_sv,  //
+        u8"               ^^ Diag_In_Disallowed_In_C_Style_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // a
@@ -353,14 +315,9 @@ TEST_F(Test_Parse_Loop, c_style_for_loop_with_in_operator) {
   }
 
   {
-    Test_Parser p(u8"for (var x = a in b; c; d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_In_Disallowed_In_C_Style_For_Loop,  //
-                        in_token, u8"for (var x = a "_sv.size(), u8"in"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var x = a in b; c; d) {}"_sv,  //
+        u8"               ^^ Diag_In_Disallowed_In_C_Style_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // a
                               "visit_variable_use",          // b
@@ -375,14 +332,9 @@ TEST_F(Test_Parse_Loop, c_style_for_loop_with_in_operator) {
 
 TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
   {
-    Test_Parser p(u8"for () {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Header_Of_For_Loop,  //
-                              where, u8"for "_sv.size(), u8"()"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for () {}"_sv,  //
+        u8"    ^^ Diag_Missing_Header_Of_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
@@ -454,16 +406,9 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
 
 TEST_F(Test_Parse_Loop, for_loop_with_missing_semicolons) {
   {
-    Test_Parser p(u8"for (a b; c) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Missing_Semicolon_Between_For_Loop_Init_And_Condition,  //
-                expected_semicolon, u8"for (a"_sv.size(), u8""_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (a b; c) {}"_sv,  //
+        u8"      ` Diag_Missing_Semicolon_Between_For_Loop_Init_And_Condition"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // a
                               "visit_variable_use",       // b
@@ -474,16 +419,9 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_semicolons) {
   }
 
   {
-    Test_Parser p(u8"for (a; b c) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Missing_Semicolon_Between_For_Loop_Condition_And_Update,  //
-                expected_semicolon, u8"for (a; b"_sv.size(), u8""_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (a; b c) {}"_sv,  //
+        u8"         ` Diag_Missing_Semicolon_Between_For_Loop_Condition_And_Update"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // a
                               "visit_variable_use",       // b
@@ -496,15 +434,9 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_semicolons) {
 
 TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   {
-    Test_Parser p(u8"for (;;;) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (;;"_sv.size(), u8";"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;;;) {}"_sv,  //
+        u8"       ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",
@@ -512,33 +444,17 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    Test_Parser p(u8"for (;; ;;;) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (;; "_sv.size(), u8";"_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (;; ;"_sv.size(), u8";"_sv),
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (;; ;;"_sv.size(), u8";"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;; ;;;) {}"_sv,                                              //
+        u8"          ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,  //
+        u8"         ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,   //
+        u8"        ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag);
   }
 
   {
-    Test_Parser p(u8"for (a;b;c;d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Semicolon_In_C_Style_For_Loop,  //
-                              semicolon, u8"for (a;b;c"_sv.size(), u8";"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (a;b;c;d) {}"_sv,  //
+        u8"          ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // a
                               "visit_variable_use",       // b
@@ -552,17 +468,10 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    Test_Parser p(u8"for (a of b; c; d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Semicolon_In_For_Of_Loop,  //
-                        semicolon, u8"for (a of b"_sv.size(), u8";"_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Semicolon_In_For_Of_Loop,  //
-                        semicolon, u8"for (a of b; c"_sv.size(), u8";"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (a of b; c; d) {}"_sv,                                       //
+        u8"              ^ Diag_Unexpected_Semicolon_In_For_Of_Loop"_diag,  //
+        u8"           ^ Diag_Unexpected_Semicolon_In_For_Of_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // b
                               "visit_variable_assignment",  // a
@@ -575,14 +484,9 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    Test_Parser p(u8"for (var a of b; c) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Semicolon_In_For_Of_Loop,  //
-                        semicolon, u8"for (var a of b"_sv.size(), u8";"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var a of b; c) {}"_sv,  //
+        u8"               ^ Diag_Unexpected_Semicolon_In_For_Of_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // b
                               "visit_variable_declaration",  // a
@@ -593,17 +497,10 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    Test_Parser p(u8"for (var a in b; c; d) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
-                        semicolon, u8"for (var a of b"_sv.size(), u8";"_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Semicolon_In_For_In_Loop,  //
-                        semicolon, u8"for (var a of b; c"_sv.size(), u8";"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var a in b; c; d) {}"_sv,  //
+        u8"                  ^ Diag_Unexpected_Semicolon_In_For_In_Loop"_diag,  //
+        u8"               ^ Diag_Unexpected_Semicolon_In_For_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // a
                               "visit_variable_use",          // b
@@ -914,8 +811,9 @@ TEST_F(Test_Parse_Loop, for_in_loop_with_var_initializer) {
 
 TEST_F(Test_Parse_Loop, invalid_for_in_loop) {
   {
-    Test_Parser p(u8"for (const x = 10 in []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (const x = 10 in []) {}"_sv,  //
+        u8"             ^ Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -923,19 +821,12 @@ TEST_F(Test_Parse_Loop, invalid_for_in_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop,  //
-                equal_token, u8"for (const x "_sv.size(), u8"="_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"for (let x = 10 in []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x = 10 in []) {}"_sv,  //
+        u8"           ^ Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -943,14 +834,6 @@ TEST_F(Test_Parse_Loop, invalid_for_in_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop,  //
-                equal_token, u8"for (let x "_sv.size(), u8"="_sv),
-        }));
   }
 }
 
@@ -1016,8 +899,9 @@ TEST_F(Test_Parse_Loop, for_of_loop) {
   }
 
   {
-    Test_Parser p(u8"for (let of myArray) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let of myArray) {}"_sv,  //
+        u8"     ^^^ Diag_Let_With_No_Bindings"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",    //
                               "visit_variable_use",       // myArray
@@ -1025,11 +909,6 @@ TEST_F(Test_Parse_Loop, for_of_loop) {
                               "visit_exit_block_scope",   //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Let_With_No_Bindings,  //
-                                      where, u8"for ("_sv.size(), u8"let"_sv),
-                }));
   }
 
   {
@@ -1104,8 +983,9 @@ TEST_F(Test_Parse_Loop, for_of_loop_with_destructuring) {
 
 TEST_F(Test_Parse_Loop, invalid_for_of_loop) {
   {
-    Test_Parser p(u8"for (const x = 10 of []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (const x = 10 of []) {}"_sv,  //
+        u8"             ^ Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -1113,19 +993,12 @@ TEST_F(Test_Parse_Loop, invalid_for_of_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop,  //
-                equal_token, u8"for (const x "_sv.size(), u8"="_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"for (let x = 10 of []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x = 10 of []) {}"_sv,  //
+        u8"           ^ Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -1133,57 +1006,37 @@ TEST_F(Test_Parse_Loop, invalid_for_of_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop,  //
-                equal_token, u8"for (let x "_sv.size(), u8"="_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"for (var x = 10 of []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var x = 10 of []) {}"_sv,  //
+        u8"           ^ Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  //
                               "visit_enter_block_scope",     //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop,  //
-                equal_token, u8"for (let x "_sv.size(), u8"="_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Loop, for_loop_without_body) {
   {
-    Test_Parser p(u8"for (let x of myArray) "_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x of myArray) "_sv,  //
+        u8"                      ` Diag_Missing_Body_For_For_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // myArray
                               "visit_variable_declaration",  // x
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_For_Statement,  //
-                              for_and_header,
-                              u8"for (let x of myArray)"_sv.size(), u8""_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"{ for (let x of myArray) }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"{ for (let x of myArray) }"_sv,  //
+        u8"                        ` Diag_Missing_Body_For_For_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",
                               "visit_enter_for_scope",       //
@@ -1192,35 +1045,25 @@ TEST_F(Test_Parse_Loop, for_loop_without_body) {
                               "visit_exit_for_scope",        //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_For_Statement,  //
-                              for_and_header,
-                              u8"{ for (let x of myArray)"_sv.size(), u8""_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Loop, for_loop_without_header) {
   {
-    Test_Parser p(u8"for x = y;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"for x = y;"_sv,  //
+                                    u8"^^^ Diag_Missing_For_Loop_Header"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // y
                               "visit_variable_assignment",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_For_Loop_Header,  //
-                                      for_token, 0, u8"for"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"{ for } x = y;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"{ for } x = y;"_sv,  //
+        u8"  ^^^ Diag_Missing_For_Loop_Header"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",    //
                               "visit_exit_block_scope",     //
@@ -1228,11 +1071,6 @@ TEST_F(Test_Parse_Loop, for_loop_without_header) {
                               "visit_variable_assignment",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Missing_For_Loop_Header,  //
-                                      for_token, u8"{ "_sv.size(), u8"for"_sv),
-                }));
   }
 }
 
@@ -1260,21 +1098,15 @@ TEST_F(Test_Parse_Loop, while_statement) {
 
 TEST_F(Test_Parse_Loop, while_without_parens) {
   {
-    Test_Parser p(u8"while cond { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while cond { body; }"_sv,  //
+        u8"      ^^^^ Diag_Expected_Parentheses_Around_While_Condition"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // body
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Expected_Parentheses_Around_While_Condition,  //
-                condition, u8"while "_sv.size(), u8"cond"_sv),
-        }));
   }
 
   {
@@ -1320,49 +1152,34 @@ TEST_F(Test_Parse_Loop, while_without_parens) {
 
 TEST_F(Test_Parse_Loop, while_without_condition) {
   {
-    Test_Parser p(u8"while { go(); break; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while { go(); break; }"_sv,  //
+        u8"^^^^^ Diag_Missing_Condition_For_While_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // go
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Condition_For_While_Statement,  //
-                        while_keyword, 0, u8"while"_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_Loop, while_without_body) {
   {
-    Test_Parser p(u8"while (cond) "_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) "_sv,  //
+        u8"            ` Diag_Missing_Body_For_While_Statement"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_While_Statement,  //
-                              while_and_condition, u8"while (cond)"_sv.size(),
-                              u8""_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Loop, break_statement) {
   {
-    Test_Parser p(u8"break;"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"break;"_sv,  //
+                                       u8"^^^^^ Diag_Invalid_Break"_diag);
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Break,  //
-                                      break_statement, 0, u8"break"_sv),
-                }));
   }
 
   {
@@ -1378,27 +1195,15 @@ TEST_F(Test_Parse_Loop, break_statement) {
   }
 
   {
-    Test_Parser p(u8"for (;;) { function f() { break; } }"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Break,  //
-                                      break_statement,
-                                      u8"for (;;) { function f() { "_sv.size(),
-                                      u8"break"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;;) { function f() { break; } }"_sv,  //
+        u8"                          ^^^^^ Diag_Invalid_Break"_diag);
   }
 
   {
-    Test_Parser p(u8"for (;;) { () => { break; } }"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Break,  //
-                              break_statement,
-                              u8"for (;;) { () => { "_sv.size(), u8"break"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;;) { () => { break; } }"_sv,  //
+        u8"                   ^^^^^ Diag_Invalid_Break"_diag);
   }
 
   {
@@ -1470,51 +1275,28 @@ TEST_F(Test_Parse_Loop, break_statement) {
 
 TEST_F(Test_Parse_Loop, continue_statement) {
   {
-    Test_Parser p(u8"continue;"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"continue;"_sv,  //
+                                       u8"^^^^^^^^ Diag_Invalid_Continue"_diag);
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Continue,  //
-                                      continue_statement, 0, u8"continue"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"switch (0) { default: continue; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Continue,  //
-                                      continue_statement,
-                                      u8"switch (0) { default: "_sv.size(),
-                                      u8"continue"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch (0) { default: continue; }"_sv,  //
+        u8"                      ^^^^^^^^ Diag_Invalid_Continue"_diag);
   }
 
   {
-    Test_Parser p(u8"for (;;) { function f() { continue; } }"_sv,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Continue,  //
-                                      continue_statement,
-                                      u8"for (;;) { function f() { "_sv.size(),
-                                      u8"continue"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;;) { function f() { continue; } }"_sv,  //
+        u8"                          ^^^^^^^^ Diag_Invalid_Continue"_diag);
   }
 
   {
-    Test_Parser p(u8"for (;;) { () => { continue; } }"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Continue,  //
-                                      continue_statement,
-                                      u8"for (;;) { () => { "_sv.size(),
-                                      u8"continue"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;;) { () => { continue; } }"_sv,  //
+        u8"                   ^^^^^^^^ Diag_Invalid_Continue"_diag);
   }
 
   {
@@ -1629,18 +1411,11 @@ TEST_F(Test_Parse_Loop,
 
 TEST_F(Test_Parse_Loop,
        cannot_assign_to_variable_named_async_without_parentheses_in_for_of) {
-  Test_Parser p(u8"for (async of xs) ;"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"for (async of xs) ;"_sv,  //
+      u8"     ^^^^^ Diag_Cannot_Assign_To_Variable_Named_Async_In_For_Of_Loop"_diag);
   EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"async"}));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs"}));
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(
-              p.code,
-              Diag_Cannot_Assign_To_Variable_Named_Async_In_For_Of_Loop,  //
-              async_identifier, u8"for ("_sv.size(), u8"async"_sv),
-      }));
 }
 
 TEST_F(Test_Parse_Loop, for_loop_in_for_loop_header_crash) {

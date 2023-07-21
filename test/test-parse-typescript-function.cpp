@@ -31,34 +31,20 @@ class Test_Parse_TypeScript_Function : public Test_Parse_Expression {};
 TEST_F(Test_Parse_TypeScript_Function,
        parameter_type_annotation_is_disallowed_in_javascript) {
   {
-    Test_Parser p(u8"function f(p: T) { }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p: T) { }"_sv,  //
+        u8"            ^ Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, u8"function f(p"_sv.size(), u8":"_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        return_type_annotation_is_disallowed_in_javascript) {
   {
-    Test_Parser p(u8"function f(): C { }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(): C { }"_sv,  //
+        u8"            ^ Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, u8"function f()"_sv.size(), u8":"_sv),
-        }));
   }
 }
 
@@ -284,17 +270,10 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        arrow_with_parameter_type_annotation_is_disallowed_in_javascript) {
   {
-    Test_Parser p(u8"(p: T) => {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(p: T) => {}"_sv,  //
+        u8"  ^ Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, u8"(p"_sv.size(), u8":"_sv),
-        }));
   }
 }
 
@@ -476,9 +455,10 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        non_null_assertion_in_parameter_list_is_an_error) {
   {
-    Test_Parser p(u8"function f(param!) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(param!) {}"_sv,  //
+        u8"                ^ Diag_Non_Null_Assertion_Not_Allowed_In_Parameter"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -486,31 +466,19 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Non_Null_Assertion_Not_Allowed_In_Parameter,  //
-                        bang, u8"function f(param"_sv.size(), u8"!"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"(param!) => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(param!) => {}"_sv,                                              //
+        u8"      ^ Diag_Non_Null_Assertion_Not_Allowed_In_Parameter"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       // f
                               "visit_variable_declaration",       // param
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Non_Null_Assertion_Not_Allowed_In_Parameter,  //
-                        bang, u8"(param"_sv.size(), u8"!"_sv),
-                }));
   }
 }
 
@@ -671,18 +639,13 @@ TEST_F(Test_Parse_TypeScript_Function, optional_expression) {
   }
 
   {
-    Test_Parser p(u8"(x?)"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_expression();
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(x?)"_sv,                                          //
+        u8"  ^ Diag_Unexpected_Question_In_Expression"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Question_In_Expression,  //
-                              question, u8"(x"_sv.size(), u8"?"_sv),
-        }));
   }
 
   {
@@ -882,30 +845,17 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameters_are_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"(param?) => {}"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript,  //
-                question, u8"(param"_sv.size(), u8"?"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(param?) => {}"_sv,  //
+        u8"      ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 
   {
-    Test_Parser p(u8"function f(param?) {}"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript,  //
-                question, u8"function f(param"_sv.size(), u8"?"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(param?) {}"_sv,  //
+        u8"                ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 

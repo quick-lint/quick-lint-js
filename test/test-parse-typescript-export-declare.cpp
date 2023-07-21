@@ -31,16 +31,10 @@ class Test_Parse_TypeScript_Export_Declare : public Test_Parse_Expression {};
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"export declare class C { }"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Declare_Class_Not_Allowed_In_JavaScript,  //
-                declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export declare class C { }"_sv,  //
+        u8"       ^^^^^^^ Diag_Declare_Class_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 
@@ -80,30 +74,21 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_alias_is_not_allowed) {
   {
-    Test_Parser p(u8"export declare import A = B;"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Import_Cannot_Have_Declare_Keyword,  //
-                        declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export declare import A = B;"_sv,                              //
+        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+        typescript_options);
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_is_not_allowed) {
   {
-    Test_Parser p(u8"export declare import a from 'mod';"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Import_Cannot_Have_Declare_Keyword,  //
-                        declare_keyword, u8"export "_sv.size(), u8"declare"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export declare import a from 'mod';"_sv,                       //
+        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+
+        typescript_options);
   }
 }
 

@@ -71,8 +71,10 @@ TEST_F(Test_Parse_TypeScript_Generic, multiple_basic_generic_parameter) {
 
 TEST_F(Test_Parse_TypeScript_Generic, parameters_require_commas_between) {
   {
-    Test_Parser p(u8"<T1 T2>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<T1 T2>"_sv,                                               //
+        u8"   ` Diag_Missing_Comma_Between_Generic_Parameters"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T1
                               "visit_variable_declaration",  // T2
@@ -80,145 +82,97 @@ TEST_F(Test_Parse_TypeScript_Generic, parameters_require_commas_between) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T1"_sv),
                                   generic_param_decl(u8"T2"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Comma_Between_Generic_Parameters,
-                        expected_comma, u8"<T1"_sv.size(), u8""_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_leading_comma) {
   {
-    Test_Parser p(u8"<, T>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<, T>"_sv,                                                       //
+        u8" ^ Diag_Comma_Not_Allowed_Before_First_Generic_Parameter"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
-                unexpected_comma, u8"<"_sv.size(), u8","_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"<,,, T>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<,,, T>"_sv,                                                       //
+        u8"   ^ Diag_Comma_Not_Allowed_Before_First_Generic_Parameter"_diag,  //
+        u8"  ^ Diag_Comma_Not_Allowed_Before_First_Generic_Parameter"_diag,   //
+        u8" ^ Diag_Comma_Not_Allowed_Before_First_Generic_Parameter"_diag,    //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
-                unexpected_comma, u8"<"_sv.size(), u8","_sv),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
-                unexpected_comma, u8"<,"_sv.size(), u8","_sv),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Comma_Not_Allowed_Before_First_Generic_Parameter,
-                unexpected_comma, u8"<,,"_sv.size(), u8","_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_must_contain_at_least_one_parameter) {
   {
-    Test_Parser p(u8"<>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<>"_sv,                                                    //
+        u8" ` Diag_TypeScript_Generic_Parameter_List_Is_Empty"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
-                        expected_parameter, u8"<"_sv.size(), u8""_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"<,>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<,>"_sv,                                                   //
+        u8" ` Diag_TypeScript_Generic_Parameter_List_Is_Empty"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
-                        expected_parameter, u8"<"_sv.size(), u8""_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"<,,>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<,,>"_sv,                                                  //
+        u8"  ^ Diag_Multiple_Commas_In_Generic_Parameter_List"_diag,  //
+        u8" ` Diag_TypeScript_Generic_Parameter_List_Is_Empty"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_TypeScript_Generic_Parameter_List_Is_Empty,
-                        expected_parameter, u8"<"_sv.size(), u8""_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
-                        unexpected_comma, u8"<,"_sv.size(), u8","_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_multiple_trailing_commas) {
   {
-    Test_Parser p(u8"<T,,>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<T,,>"_sv,                                                  //
+        u8"   ^ Diag_Multiple_Commas_In_Generic_Parameter_List"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
-                        unexpected_comma, u8"<T,"_sv.size(), u8","_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"<T , , ,>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<T , , ,>"_sv,                                                  //
+        u8"       ^ Diag_Multiple_Commas_In_Generic_Parameter_List"_diag,  //
+        u8"     ^ Diag_Multiple_Commas_In_Generic_Parameter_List"_diag,    //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
-                        unexpected_comma, u8"<T , "_sv.size(), u8","_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
-                        unexpected_comma, u8"<T , , "_sv.size(), u8","_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
        parameter_list_does_not_allow_consecutive_interior_commas) {
   {
-    Test_Parser p(u8"<T,,U>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<T,,U>"_sv,                                                 //
+        u8"   ^ Diag_Multiple_Commas_In_Generic_Parameter_List"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                               "visit_variable_declaration",  // U
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Multiple_Commas_In_Generic_Parameter_List,
-                        unexpected_comma, u8"<T,"_sv.size(), u8","_sv),
-                }));
   }
 }
 
@@ -239,8 +193,10 @@ TEST_F(Test_Parse_TypeScript_Generic, parameter_list_extends) {
 
 TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
   {
-    Test_Parser p(u8"<T: U>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<T: U>"_sv,                                                //
+        u8"  ^ Diag_Unexpected_Colon_After_Generic_Definition"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // U
                               "visit_variable_declaration",  // T
@@ -248,12 +204,6 @@ TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Colon_After_Generic_Definition,
-                        colon, u8"<T"_sv.size(), u8":"_sv),
-                }));
   }
 }
 

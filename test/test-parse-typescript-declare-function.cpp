@@ -33,16 +33,10 @@ class Test_Parse_TypeScript_Declare_Function : public Test_Parse_Expression {};
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"declare function f();"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Declare_Function_Not_Allowed_In_JavaScript,  //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function f();"_sv,                                      //
+        u8"^^^^^^^ Diag_Declare_Function_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 
@@ -105,49 +99,31 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_must_have_name) {
   {
-    Test_Parser p(u8"declare function ();"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function ();"_sv,                                          //
+        u8"                 ` Diag_Missing_Name_In_Function_Statement"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // (function)
                               "visit_exit_function_scope",   // (function)
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Name_In_Function_Statement,  //
-                              where, u8"declare function "_sv.size(), u8""_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_be_async_or_generator) {
   {
-    Test_Parser p(u8"declare async function f();"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Declare_Function_Cannot_Be_Async,  //
-                              async_keyword, u8"declare "_sv.size(), u8"async"),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare async function f();"_sv,                            //
+        u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"declare function* f();"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Declare_Function_Cannot_Be_Generator,  //
-                              star, u8"declare function"_sv.size(), u8"*"),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function* f();"_sv,  //
+        u8"                ^ Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+        typescript_options);
   }
 
   {
@@ -231,9 +207,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_requires_semicolon) {
   {
-    Test_Parser p(u8"declare function f() foo"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare function f() foo"_sv,  //
+        u8"                    ` Diag_Missing_Semicolon_After_Statement"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
@@ -241,13 +218,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
                               "visit_variable_use",          // foo
                               "visit_end_of_module",         //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Missing_Semicolon_After_Statement,  //
-                        where, u8"declare function f()"_sv.size(), u8""_sv),
-                }));
   }
 }
 
